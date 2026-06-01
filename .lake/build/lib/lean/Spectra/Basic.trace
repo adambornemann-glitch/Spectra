@@ -1,0 +1,31 @@
+{"synthetic": false,
+ "schemaVersion": "2025-09-10",
+ "outputs":
+ {"o": ["95f7a010b1769127.olean"],
+  "m": false,
+  "i": "f1f6f6cf9ce375a6.ilean",
+  "c": "315b7e05e6f71eb4.c"},
+ "log":
+ [{"message":
+   ".> LEAN_PATH=/Users/augustusthwack/Documents/Spectra/.lake/packages/Cli/.lake/build/lib/lean:/Users/augustusthwack/Documents/Spectra/.lake/packages/batteries/.lake/build/lib/lean:/Users/augustusthwack/Documents/Spectra/.lake/packages/Qq/.lake/build/lib/lean:/Users/augustusthwack/Documents/Spectra/.lake/packages/aesop/.lake/build/lib/lean:/Users/augustusthwack/Documents/Spectra/.lake/packages/proofwidgets/.lake/build/lib/lean:/Users/augustusthwack/Documents/Spectra/.lake/packages/importGraph/.lake/build/lib/lean:/Users/augustusthwack/Documents/Spectra/.lake/packages/LeanSearchClient/.lake/build/lib/lean:/Users/augustusthwack/Documents/Spectra/.lake/packages/plausible/.lake/build/lib/lean:/Users/augustusthwack/Documents/Spectra/.lake/packages/mathlib/.lake/build/lib/lean:/Users/augustusthwack/Documents/Spectra/.lake/build/lib/lean /Users/augustusthwack/.elan/toolchains/leanprover--lean4---v4.31.0-rc1/bin/lean /Users/augustusthwack/Documents/Spectra/Spectra/Basic.lean -o /Users/augustusthwack/Documents/Spectra/.lake/build/lib/lean/Spectra/Basic.olean -i /Users/augustusthwack/Documents/Spectra/.lake/build/lib/lean/Spectra/Basic.ilean -c /Users/augustusthwack/Documents/Spectra/.lake/build/ir/Spectra/Basic.c --setup /Users/augustusthwack/Documents/Spectra/.lake/build/ir/Spectra/Basic.setup.json --json",
+   "level": "trace"}],
+ "inputs":
+ [["Spectra.Basic:deps",
+   [["deps",
+     [["Spectra/Spectra:extraDep", [["@Spectra:extraDep", "00000000000006bb"]]],
+      ["imports", "00000000000006bb"]]],
+    ["libs",
+     [["import dynlibs", "00000000000006bb"],
+      ["package external libraries", "00000000000006bb"],
+      ["module dynlibs", "00000000000006bb"],
+      ["module plugins", "00000000000006bb"]]]]],
+  ["Lean 4.31.0, commit fd009949156901e6cf15b6d9bf1122294b8e697a",
+   "148386281e429e9a"],
+  ["/Users/augustusthwack/Documents/Spectra/Spectra/Basic.lean",
+   "a39fd33c0e7365d9"],
+  ["options", "00000000000006bb"],
+  ["isModule: false", "feefd2a0d3a1847e"],
+  ["Module.name: Spectra.Basic", "f5f56d36e3f5bfcf"],
+  ["Package.id?: (some Spectra)", "de880eb060c0010b"],
+  ["Module.leanArgs: #[]", "00000000000006bb"]],
+ "depHash": "e57b4c1ee3dd6345"}
