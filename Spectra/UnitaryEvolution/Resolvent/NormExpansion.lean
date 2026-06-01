@@ -31,7 +31,7 @@ namespace QuantumMechanics.Resolvent
 
 open InnerProductSpace Complex QuantumMechanics.Bochner QuantumMechanics.Generators
 
-variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H]
+variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
 
 /-! ## Symmetric operators have real expectation values -/
 

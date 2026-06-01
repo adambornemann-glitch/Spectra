@@ -47,9 +47,6 @@ lemma U_neg_eq_adjoint (t : ℝ) :
   rw [h_inv] at h
   exact h
 
-variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H]
-variable {U_grp : OneParameterUnitaryGroup (H := H)}
-
 lemma unitary_group_at_zero (ψ : H) : U_grp.U 0 ψ = ψ := by
   rw [U_grp.identity]
   simp only [ContinuousLinearMap.id_apply]

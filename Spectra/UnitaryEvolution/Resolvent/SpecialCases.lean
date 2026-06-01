@@ -36,7 +36,7 @@ namespace QuantumMechanics.Resolvent
 open InnerProductSpace MeasureTheory Complex Filter Topology
 open QuantumMechanics.Bochner QuantumMechanics.Generators
 
-variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H]
+variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
 
 /-! ## Resolvent at i -/
 

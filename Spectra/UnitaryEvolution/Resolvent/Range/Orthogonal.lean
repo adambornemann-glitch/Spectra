@@ -31,7 +31,7 @@ namespace QuantumMechanics.Resolvent
 
 open InnerProductSpace MeasureTheory Complex Filter Topology QuantumMechanics.Bochner QuantumMechanics.Generators
 
-variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H]
+variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
 
 /-- If χ is orthogonal to ran(A - zI), then ⟪Aψ, χ⟫ = z̄ * ⟪ψ, χ⟫ for all ψ in the domain. -/
 lemma weak_eigenvalue_of_orthogonal_to_range {U_grp : OneParameterUnitaryGroup (H := H)}

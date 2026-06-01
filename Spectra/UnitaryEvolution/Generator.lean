@@ -60,114 +60,48 @@ namespace QuantumMechanics.Generators
 
 open InnerProductSpace MeasureTheory Complex Filter Topology
 
-set_option linter.unusedSectionVars false
-variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
+variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H]
 
-
-
-structure OneParameterUnitaryGroup where
+structure OneParameterUnitaryGroup [CompleteSpace H] where
   U : ℝ → (H →L[ℂ] H)
   unitary : ∀ (t : ℝ) (ψ φ : H), ⟪U t ψ, U t φ⟫_ℂ = ⟪ψ, φ⟫_ℂ
   group_law : ∀ s t : ℝ, U (s + t) = (U s).comp (U t)
   identity : U 0 = ContinuousLinearMap.id ℂ H
   strong_continuous : ∀ ψ : H, Continuous (fun t : ℝ => U t ψ)
 
-
-lemma inverse_eq_adjoint (U_grp : OneParameterUnitaryGroup (H := H)) (t : ℝ) :
+lemma inverse_eq_adjoint [CompleteSpace H]
+  (U_grp : OneParameterUnitaryGroup (H := H)) (t : ℝ) :
     U_grp.U (-t) = (U_grp.U t).adjoint := by
-  ext ψ
-  apply ext_inner_right ℂ
-  intro φ
-
-  have h_inv : U_grp.U t (U_grp.U (-t) ψ) = ψ := by
-    have h1 : t + (-t) = 0 := by ring
-    have h2 : U_grp.U (t + (-t)) = (U_grp.U t).comp (U_grp.U (-t)) :=
-      U_grp.group_law t (-t)
-    rw [h1] at h2
-    have h3 : (U_grp.U t).comp (U_grp.U (-t)) = U_grp.U 0 := h2.symm
-    have h4 : U_grp.U 0 = ContinuousLinearMap.id ℂ H := U_grp.identity
-    rw [h4] at h3
-    have : (U_grp.U t) ((U_grp.U (-t)) ψ) = ((U_grp.U t).comp (U_grp.U (-t))) ψ := rfl
-    rw [this, h3]
-    rfl
-
-  calc ⟪U_grp.U (-t) ψ, φ⟫_ℂ
-      = ⟪U_grp.U t (U_grp.U (-t) ψ), U_grp.U t φ⟫_ℂ := by
-          rw [← U_grp.unitary t (U_grp.U (-t) ψ) φ]
-      _ = ⟪ψ, U_grp.U t φ⟫_ℂ := by rw [h_inv]
-      _ = ⟪(U_grp.U t).adjoint ψ, φ⟫_ℂ := by
-          rw [ContinuousLinearMap.adjoint_inner_left]
-
-lemma norm_preserving (U_grp : OneParameterUnitaryGroup (H := H)) (t : ℝ) (ψ : H) :
-    ‖U_grp.U t ψ‖ = ‖ψ‖ := by
-  have h := U_grp.unitary t ψ ψ
-  have h1 : (⟪U_grp.U t ψ, U_grp.U t ψ⟫_ℂ).re = ‖U_grp.U t ψ‖ ^ 2 := by
-    have := inner_self_eq_norm_sq_to_K (𝕜 := ℂ) (U_grp.U t ψ)
-    calc (⟪U_grp.U t ψ, U_grp.U t ψ⟫_ℂ).re
-        = ((‖U_grp.U t ψ‖ ^ 2 : ℂ)).re := by
-            have h_re := congr_arg Complex.re this
-            simp only [coe_algebraMap] at h_re
-            exact h_re
-      _ = ‖U_grp.U t ψ‖ ^ 2 := by norm_cast
-
-  have h2 : (⟪ψ, ψ⟫_ℂ).re = ‖ψ‖ ^ 2 := by
-    have := inner_self_eq_norm_sq_to_K (𝕜 := ℂ) ψ
-    calc (⟪ψ, ψ⟫_ℂ).re
-        = ((‖ψ‖ ^ 2 : ℂ)).re := by
-            have h_re := congr_arg Complex.re this
-            simp only [coe_algebraMap] at h_re
-            exact h_re
-      _ = ‖ψ‖ ^ 2 := by norm_cast
-
-  have h_sq : ‖U_grp.U t ψ‖ ^ 2 = ‖ψ‖ ^ 2 := by
-    calc ‖U_grp.U t ψ‖ ^ 2
-        = (⟪U_grp.U t ψ, U_grp.U t ψ⟫_ℂ).re := h1.symm
-      _ = (⟪ψ, ψ⟫_ℂ).re := by rw [h]
-      _ = ‖ψ‖ ^ 2 := h2
-
-  have : ‖U_grp.U t ψ‖ = ‖ψ‖ ∨ ‖U_grp.U t ψ‖ = -‖ψ‖ := by
-    exact sq_eq_sq_iff_eq_or_eq_neg.mp h_sq
-  cases this with
-  | inl h => exact h
-  | inr h =>
-
-      have h1 : 0 ≤ ‖U_grp.U t ψ‖ := norm_nonneg _
-      have h2 : 0 ≤ ‖ψ‖ := norm_nonneg _
-      linarith
+  have h_inv : ∀ x : H, U_grp.U t (U_grp.U (-t) x) = x := fun x => by
+    have h := U_grp.group_law t (-t)
+    rw [show t + (-t) = 0 by ring, U_grp.identity] at h
+    simpa using DFunLike.congr_fun h.symm x
+  rw [ContinuousLinearMap.eq_adjoint_iff]
+  intro x y
+  rw [← U_grp.unitary t (U_grp.U (-t) x) y, h_inv x]
 
 
-lemma norm_one [Nontrivial H] (U_grp : OneParameterUnitaryGroup (H := H)) (t : ℝ) :
+lemma norm_preserving [CompleteSpace H]
+  (U_grp : OneParameterUnitaryGroup (H := H)) (t : ℝ) (ψ : H) :
+    ‖U_grp.U t ψ‖ = ‖ψ‖ :=
+  (LinearMap.norm_map_iff_inner_map_map (U_grp.U t)).mpr (U_grp.unitary t) ψ
+
+lemma norm_one [Nontrivial H] [CompleteSpace H]
+  (U_grp : OneParameterUnitaryGroup (H := H)) (t : ℝ) :
     ‖U_grp.U t‖ = 1 := by
-  have h_le : ‖U_grp.U t‖ ≤ 1 := by
-    apply ContinuousLinearMap.opNorm_le_bound
-    · norm_num
-    · intro ψ
-      calc ‖U_grp.U t ψ‖
-          = ‖ψ‖ := norm_preserving U_grp t ψ
-        _ = 1 * ‖ψ‖ := by ring
-      rfl
+  refine le_antisymm ?_ ?_
+  · -- U t is norm-preserving ⇒ ‖U t‖ ≤ 1
+    refine ContinuousLinearMap.opNorm_le_bound _ zero_le_one fun ψ => le_of_eq ?_
+    rw [norm_preserving, one_mul]
+  · -- evaluate at any nonzero vector ⇒ 1 ≤ ‖U t‖
+    obtain ⟨ψ, hψ⟩ := exists_ne (0 : H)
+    have hpos : 0 < ‖ψ‖ := norm_pos_iff.mpr hψ
+    have hle := (U_grp.U t).le_opNorm ψ
+    rw [norm_preserving] at hle
+    nlinarith [hle, hpos]
 
-  have h_ge : 1 ≤ ‖U_grp.U t‖ := by
-    calc 1 = ‖ContinuousLinearMap.id ℂ H‖ := ContinuousLinearMap.norm_id.symm
-      _ = ‖U_grp.U 0‖ := by rw [← U_grp.identity]
-      _ = ‖U_grp.U (t + (-t))‖ := by ring_nf
-      _ = ‖(U_grp.U t).comp (U_grp.U (-t))‖ := by rw [← U_grp.group_law]
-      _ ≤ ‖U_grp.U t‖ * ‖U_grp.U (-t)‖ := ContinuousLinearMap.opNorm_comp_le _ _
-      _ ≤ ‖U_grp.U t‖ * 1 := by
-          have : ‖U_grp.U (-t)‖ ≤ 1 := by
-            apply ContinuousLinearMap.opNorm_le_bound
-            · norm_num
-            · intro ψ
-              calc ‖U_grp.U (-t) ψ‖ = ‖ψ‖ := norm_preserving U_grp (-t) ψ
-                _ = 1 * ‖ψ‖ := by ring
-              rfl
-          exact mul_le_mul_of_nonneg_left this (norm_nonneg _)
-      _ = ‖U_grp.U t‖ := by ring
-
-  exact le_antisymm h_le h_ge
-
-
-structure Generator (U_grp : OneParameterUnitaryGroup (H := H)) where
+structure Generator [CompleteSpace H]
+  (U_grp : OneParameterUnitaryGroup (H := H)) where
   domain : Submodule ℂ H
   op : domain →ₗ[ℂ] H
   dense_domain : Dense (domain : Set H)
@@ -181,7 +115,8 @@ structure Generator (U_grp : OneParameterUnitaryGroup (H := H)) where
     Tendsto (fun t : ℝ => ((I : ℂ) * (t : ℂ))⁻¹ • (U_grp.U t ψ - ψ)) (𝓝[≠] 0) (𝓝 η)) → ψ ∈ domain
 
 
-def Generator.IsSelfAdjoint {U_grp : OneParameterUnitaryGroup (H := H)}
+def Generator.IsSelfAdjoint [CompleteSpace H]
+  {U_grp : OneParameterUnitaryGroup (H := H)}
     (gen : Generator U_grp) : Prop :=
   (∀ φ : H, ∃ (ψ : H) (hψ : ψ ∈ gen.domain),
     gen.op ⟨ψ, hψ⟩ + (I : ℂ) • ψ = φ) ∧
@@ -189,7 +124,8 @@ def Generator.IsSelfAdjoint {U_grp : OneParameterUnitaryGroup (H := H)}
     gen.op ⟨ψ, hψ⟩ - (I : ℂ) • ψ = φ)
 
 
-lemma generator_domain_char (U_grp : OneParameterUnitaryGroup (H := H))
+lemma generator_domain_char [CompleteSpace H]
+  (U_grp : OneParameterUnitaryGroup (H := H))
     (gen : Generator U_grp) (ψ : H) :
     ψ ∈ gen.domain ↔
     ∃ (η : H), Tendsto (fun t : ℝ => ((I : ℂ) * (t : ℂ))⁻¹ • (U_grp.U t ψ - ψ))
@@ -201,14 +137,16 @@ lemma generator_domain_char (U_grp : OneParameterUnitaryGroup (H := H))
     exact gen.domain_maximal ψ ⟨η, hη⟩
 
 
-lemma selfAdjoint_domain_maximal (U_grp : OneParameterUnitaryGroup (H := H))
+lemma selfAdjoint_domain_maximal [CompleteSpace H]
+  (U_grp : OneParameterUnitaryGroup (H := H))
     (gen : Generator U_grp) (_hsa : gen.IsSelfAdjoint) (ψ : H)
     (η : H) (hη : Tendsto (fun t : ℝ => ((I : ℂ) * (t : ℂ))⁻¹ • (U_grp.U t ψ - ψ))
                           (𝓝[≠] 0) (𝓝 η)) :
     ψ ∈ gen.domain := gen.domain_maximal ψ ⟨η, hη⟩
 
 
-lemma selfAdjoint_generators_domain_eq (U_grp : OneParameterUnitaryGroup (H := H))
+lemma selfAdjoint_generators_domain_eq [CompleteSpace H]
+  (U_grp : OneParameterUnitaryGroup (H := H))
     (gen₁ gen₂ : Generator U_grp)
     (hsa₁ : gen₁.IsSelfAdjoint) (hsa₂ : gen₂.IsSelfAdjoint) :
     gen₁.domain = gen₂.domain := by
@@ -222,7 +160,8 @@ lemma selfAdjoint_generators_domain_eq (U_grp : OneParameterUnitaryGroup (H := H
     exact selfAdjoint_domain_maximal U_grp gen₁ hsa₁ ψ (gen₂.op (⟨ψ, hψ₂⟩ : gen₂.domain)) h_lim
 
 
-lemma generator_op_eq_on_domain (U_grp : OneParameterUnitaryGroup (H := H))
+lemma generator_op_eq_on_domain [CompleteSpace H]
+  (U_grp : OneParameterUnitaryGroup (H := H))
     (gen₁ gen₂ : Generator U_grp) (ψ : H)
     (hψ₁ : ψ ∈ gen₁.domain) (hψ₂ : ψ ∈ gen₂.domain) :
     gen₁.op (⟨ψ, hψ₁⟩ : gen₁.domain) = gen₂.op (⟨ψ, hψ₂⟩ : gen₂.domain) := by
@@ -231,7 +170,8 @@ lemma generator_op_eq_on_domain (U_grp : OneParameterUnitaryGroup (H := H))
   exact tendsto_nhds_unique h₁ h₂
 
 
-lemma LinearMap.heq_of_eq_domain {R M N : Type*} [Semiring R] [AddCommMonoid M] [AddCommMonoid N]
+lemma LinearMap.heq_of_eq_domain {R M N : Type*}
+  [Semiring R] [AddCommMonoid M] [AddCommMonoid N]
     [Module R M] [Module R N] {D₁ D₂ : Submodule R M}
     (h_dom : D₁ = D₂) (f : D₁ →ₗ[R] N) (g : D₂ →ₗ[R] N)
     (h_eq : ∀ (x : M) (hx₁ : x ∈ D₁) (hx₂ : x ∈ D₂), f ⟨x, hx₁⟩ = g ⟨x, hx₂⟩) :
@@ -240,7 +180,8 @@ lemma LinearMap.heq_of_eq_domain {R M N : Type*} [Semiring R] [AddCommMonoid M] 
   exact heq_of_eq (LinearMap.ext fun ⟨x, hx⟩ => h_eq x hx hx)
 
 
-lemma generator_op_ext_of_eq_on_domain (U_grp : OneParameterUnitaryGroup (H := H))
+lemma generator_op_ext_of_eq_on_domain [CompleteSpace H]
+  (U_grp : OneParameterUnitaryGroup (H := H))
     (gen₁ gen₂ : Generator U_grp)
     (h_dom : gen₁.domain = gen₂.domain)
     (h_eq : ∀ (ψ : H) (hψ₁ : ψ ∈ gen₁.domain) (hψ₂ : ψ ∈ gen₂.domain),

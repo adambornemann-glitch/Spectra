@@ -30,7 +30,7 @@ namespace QuantumMechanics.Resolvent
 
 open InnerProductSpace MeasureTheory Complex Filter Topology QuantumMechanics.Bochner QuantumMechanics.Generators
 
-variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H]
+variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
 /-! ### Step 2: Range is closed -/
 
 /-- Preimages of Cauchy sequences under (A - zI) are Cauchy when Im(z) ≠ 0. -/

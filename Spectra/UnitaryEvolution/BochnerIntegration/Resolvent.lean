@@ -39,18 +39,15 @@ open MeasureTheory Measure Filter Topology Complex QuantumMechanics.Generators
 
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
 
-
 section UnitaryGroupIntegration
 
-variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H]
+variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
 variable (U_grp : OneParameterUnitaryGroup (H := H))
 
 lemma continuous_unitary_apply (φ : H) :
     Continuous (fun t => U_grp.U t φ) :=
   U_grp.strong_continuous φ
 
-variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
-variable (U_grp : OneParameterUnitaryGroup (H := H))
 
 lemma integrable_exp_neg_unitary (φ : H) :
     IntegrableOn (fun t => Real.exp (-t) • U_grp.U t φ) (Set.Ici 0) volume := by
@@ -80,8 +77,7 @@ lemma norm_integral_exp_neg_unitary_le (φ : H) :
     exact le_of_eq (norm_preserving U_grp t φ)
   · exact norm_nonneg φ
 
-variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H]
-variable (U_grp : OneParameterUnitaryGroup (H := H))
+
 
 lemma integrable_unitary_Ioc (φ : H) (h : ℝ) (_ : 0 < h) :
     IntegrableOn (fun t => U_grp.U t φ) (Set.Ioc 0 h) volume := by

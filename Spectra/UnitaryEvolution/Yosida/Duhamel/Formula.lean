@@ -89,8 +89,6 @@ lemma duhamelIntegrand_bound
   unfold duhamelIntegrand
   rw [expBounded_yosidaApproxSym_isometry gen hsa n (t - s)]
 
-variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H]
-variable {U_grp : OneParameterUnitaryGroup (H := H)}
 
 /-! ### Derivative of unitary group -/
 

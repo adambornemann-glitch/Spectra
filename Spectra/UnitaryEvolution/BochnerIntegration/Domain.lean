@@ -90,7 +90,7 @@ noncomputable def generatorLimitValue (ψ : H)
     (hψ : ψ ∈ generatorDomain U_grp) : H :=
   Classical.choose hψ
 
-omit [CompleteSpace H] in
+
 lemma generatorLimitValue_spec (ψ : H) (hψ : ψ ∈ generatorDomain U_grp) :
     Tendsto (fun h : ℝ => ((I * h)⁻¹ : ℂ) • (U_grp.U h ψ - ψ))
             (𝓝[≠] 0) (𝓝 (generatorLimitValue U_grp ψ hψ)) :=
@@ -139,14 +139,14 @@ noncomputable def generatorOp : (generatorDomain U_grp) →ₗ[ℂ] H where
       exact h.const_smul c
     exact tendsto_nhds_unique hc h_smul_lim
 
-omit [CompleteSpace H] in
+
 theorem generator_formula_holds (ψ : generatorDomain U_grp) :
     Tendsto (fun h : ℝ => ((I * h)⁻¹ : ℂ) • (U_grp.U h (ψ : H) - (ψ : H)))
             (𝓝[≠] 0)
             (𝓝 (generatorOp U_grp ψ)) := by
   exact generatorLimitValue_spec U_grp ψ.val ψ.property
 
-omit [CompleteSpace H] in
+
 theorem generatorDomain_invariant (t : ℝ) (ψ : H) (hψ : ψ ∈ generatorDomain U_grp) :
     U_grp.U t ψ ∈ generatorDomain U_grp := by
   obtain ⟨η, hη⟩ := hψ
@@ -165,7 +165,7 @@ theorem generatorDomain_invariant (t : ℝ) (ψ : H) (hψ : ψ ∈ generatorDoma
   simp_rw [h_eq]
   exact (U_grp.U t).continuous.tendsto _ |>.comp hη
 
-omit [CompleteSpace H] in
+
 theorem generator_symmetric (ψ₁ ψ₂ : generatorDomain U_grp) :
     ⟪generatorOp U_grp ψ₁, (ψ₂ : H)⟫_ℂ = ⟪(ψ₁ : H), generatorOp U_grp ψ₂⟫_ℂ := by
   have h₁ := generatorLimitValue_spec U_grp ψ₁.val ψ₁.property
@@ -444,7 +444,7 @@ theorem generatorDomain_dense_via_average :
 theorem generatorDomain_dense : Dense (generatorDomain U_grp : Set H) :=
   generatorDomain_dense_via_average U_grp
 
-omit [CompleteSpace H] in
+
 lemma generatorDomain_maximal (ψ : H)
     (h : ∃ η : H, Tendsto (fun t : ℝ => ((I : ℂ) * t)⁻¹ • (U_grp.U t ψ - ψ)) (𝓝[≠] 0) (𝓝 η)) :
     ψ ∈ generatorDomain U_grp := h

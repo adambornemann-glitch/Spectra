@@ -31,7 +31,7 @@ namespace QuantumMechanics.Resolvent
 
 open InnerProductSpace MeasureTheory Complex Filter Topology QuantumMechanics.Bochner QuantumMechanics.Generators
 
-variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H]
+variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
 
 /-- The fundamental lower bound: for self-adjoint `A` and `Im(z) ≠ 0`,
     we have `‖(A - zI)ψ‖ ≥ |Im(z)| · ‖ψ‖`. -/

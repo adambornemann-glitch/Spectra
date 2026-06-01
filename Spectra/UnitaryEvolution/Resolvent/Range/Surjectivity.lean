@@ -91,7 +91,7 @@ lemma range_sub_smul_dense {U_grp : OneParameterUnitaryGroup (H := H)}
   exact h_M_dense
 
 
-variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H]
+variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
 /-! ### Uniqueness from lower bound -/
 
 /-- Solutions to (A - zI)ψ = φ are unique when Im(z) ≠ 0. -/

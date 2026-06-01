@@ -96,7 +96,7 @@ lemma tendsto_integral_Ici_exp_unitary (φ : H) :
                    ∫ t in Set.Ioc 0 h, Real.exp (-t) • U_grp.U t φ := by
         exact Eq.symm (sub_eq_of_eq_add' h_eq1)
       rw [h_ae_eq2, h_eq3, h_ae_eq.symm, h_eq2]
-    · push_neg at hh
+    · push Not at hh
       have h_union : Set.Ici h = Set.Ico h 0 ∪ Set.Ici 0 := by
         ext x
         simp only [Set.mem_Ici, Set.mem_union, Set.mem_Ico]
