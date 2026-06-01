@@ -1,9 +1,0 @@
-{"plugins": [],
- "package": "Spectra",
- "options": {},
- "name": "Spectra",
- "isModule": false,
- "importArts":
- {"Spectra.Basic":
-  ["/Users/augustusthwack/Documents/Spectra/.lake/build/lib/lean/Spectra/Basic.olean"]},
- "dynlibs": []}
