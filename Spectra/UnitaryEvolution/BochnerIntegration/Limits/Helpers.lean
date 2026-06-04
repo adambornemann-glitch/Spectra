@@ -26,7 +26,7 @@ generator, limit, exponential, average
 
 namespace QuantumMechanics.Bochner
 
-open MeasureTheory Measure Filter Topology Complex QuantumMechanics.Generators
+open MeasureTheory Measure Filter Topology Complex
 
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
 
@@ -217,6 +217,195 @@ lemma tendsto_average_integral_unitary_neg (φ : H) :
   rw [@neg_inv]
   simp_all only [neg_zero, Real.exp_zero, one_smul, intervalIntegral.integral_same, neg_neg]
 
-end Helpers
+lemma exp_neg_orbit_continuous (φ : H) :
+    Continuous (fun t : ℝ => Real.exp (-t) • U_grp.U (-t) φ) :=
+  (Real.continuous_exp.comp continuous_neg).smul
+    ((U_grp.strong_continuous φ).comp continuous_neg)
 
+lemma exp_neg_orbit_at_zero (φ : H) :
+    Real.exp (-(0 : ℝ)) • U_grp.U (-(0 : ℝ)) φ = φ := by
+  simp only [neg_zero, Real.exp_zero, one_smul]
+  rw [U_grp.identity]
+  simp only [ContinuousLinearMap.id_apply]
+
+lemma tendsto_neg_nhdsWithin_Ioi :
+    Tendsto (fun h : ℝ => -h) (𝓝[>] 0) (𝓝[<] 0) := by
+  rw [tendsto_nhdsWithin_iff]
+  constructor
+  · have : Tendsto (fun h : ℝ => -h) (𝓝 0) (𝓝 0) := by
+      convert (continuous_neg (G := ℝ)).tendsto 0 using 1
+      simp
+    exact this.mono_left nhdsWithin_le_nhds
+  · filter_upwards [self_mem_nhdsWithin] with h hh
+    simp only [Set.mem_Iio, Left.neg_neg_iff]
+    exact hh
+
+lemma tendsto_neg_nhdsWithin_Iio :
+    Tendsto (fun h : ℝ => -h) (𝓝[<] 0) (𝓝[>] 0) := by
+  rw [tendsto_nhdsWithin_iff]
+  constructor
+  · have : Tendsto (fun h : ℝ => -h) (𝓝 0) (𝓝 0) := by
+      convert (continuous_neg (G := ℝ)).tendsto 0 using 1
+      simp
+    exact this.mono_left nhdsWithin_le_nhds
+  · filter_upwards [self_mem_nhdsWithin] with h hh
+    simp only [Set.mem_Ioi]
+    exact Left.neg_pos_iff.mpr hh
+
+
+lemma exp_neg_sub_one_div_tendsto_neg_one {l : Filter ℝ}
+    (hl : Tendsto (fun h : ℝ => -h) l (𝓝[≠] 0)) :
+    Tendsto (fun h : ℝ => (Real.exp (-h) - 1) / h) l (𝓝 (-1)) := by
+  have h1 : Tendsto (fun h : ℝ => (Real.exp (-h) - 1) / (-h) * (-1)) l (𝓝 (1 * (-1))) := by
+    apply Tendsto.mul
+    · have := tendsto_exp_sub_one_div.comp hl
+      convert this using 1
+    · exact tendsto_const_nhds
+  simp only [mul_neg_one] at h1
+  convert h1 using 1
+  ext h
+  by_cases hh : h = 0
+  · simp [hh]
+  · field_simp
+
+lemma exp_neg_sub_one_div_ofReal_tendsto_neg_one {l : Filter ℝ}
+    (hl : Tendsto (fun h : ℝ => -h) l (𝓝[≠] 0)) :
+    Tendsto (fun h : ℝ => ((Real.exp (-h) - 1) / h : ℂ)) l (𝓝 (-1)) := by
+  have : Tendsto (fun h : ℝ => (((Real.exp (-h) - 1) / h : ℝ) : ℂ)) l (𝓝 ((-1 : ℝ) : ℂ)) :=
+    (continuous_ofReal.tendsto _).comp (exp_neg_sub_one_div_tendsto_neg_one hl)
+  simpa using this
+
+lemma avg_exp_neg_orbit_tendsto (φ : H) :
+    Tendsto (fun h : ℝ => h⁻¹ • ∫ t in (0:ℝ)..h, Real.exp (-t) • U_grp.U (-t) φ)
+      (𝓝[≠] 0) (𝓝 φ) := by
+  have h_cont : Continuous (fun t : ℝ => Real.exp (-t) • U_grp.U (-t) φ) :=
+    exp_neg_orbit_continuous U_grp φ
+  have h_deriv : HasDerivAt (fun x => ∫ t in (0:ℝ)..x, Real.exp (-t) • U_grp.U (-t) φ)
+      (Real.exp (-(0:ℝ)) • U_grp.U (-(0:ℝ)) φ) 0 := by
+    apply intervalIntegral.integral_hasDerivAt_right
+    · exact h_cont.intervalIntegrable 0 0
+    · exact Continuous.stronglyMeasurableAtFilter h_cont volume (𝓝 0)
+    · exact h_cont.continuousAt
+  rw [exp_neg_orbit_at_zero U_grp φ] at h_deriv
+  have h_F0 : ∫ t in (0:ℝ)..0, Real.exp (-t) • U_grp.U (-t) φ = 0 :=
+    intervalIntegral.integral_same
+  have := h_deriv.hasDerivWithinAt (s := Set.univ \ {0})
+  rw [hasDerivWithinAt_iff_tendsto_slope] at this
+  simp only [Set.diff_diff, Set.union_self] at this
+  convert this using 1
+  · ext h
+    unfold slope
+    simp only [sub_zero, h_F0, vsub_eq_sub]
+  · congr 1
+    exact Set.compl_eq_univ_diff {(0:ℝ)}
+
+lemma integral_Ici_sub_shift (φ : H) (h : ℝ) :
+    ∫ t in Set.Ici 0, Real.exp (-(t - h)) • U_grp.U (-(t - h)) φ =
+    ∫ s in Set.Ici (-h), Real.exp (-s) • U_grp.U (-s) φ := by
+  have h_preimage : (· - h) ⁻¹' (Set.Ici (-h)) = Set.Ici 0 := by
+    ext t; simp only [Set.mem_preimage, Set.mem_Ici]; constructor <;> intro ht <;> linarith
+  have h_map : Measure.map (· - h) volume = (volume : Measure ℝ) :=
+    (measurePreserving_sub_right volume h).map_eq
+  have h_f_meas : AEStronglyMeasurable (fun s => Real.exp (-s) • U_grp.U (-s) φ)
+                    (Measure.map (· - h) volume) := by
+    rw [h_map]
+    exact (exp_neg_orbit_continuous U_grp φ).aestronglyMeasurable
+  rw [← h_map, MeasureTheory.setIntegral_map measurableSet_Ici h_f_meas
+        (measurable_sub_const h).aemeasurable, h_preimage]
+  congr 1; ext t
+  exact congrFun (congrArg DFunLike.coe (congrFun (congrArg restrict h_map) (Set.Ici 0))) t
+
+/-- Applying `U h` to the half-line orbit integral shifts the lower limit by `-h`
+and factors out `e^{-h}`. Sign-free: holds for all `h`. -/
+lemma unitary_apply_Ici_orbit_integral (φ : H) (h : ℝ) :
+    U_grp.U h (∫ t in Set.Ici 0, Real.exp (-t) • U_grp.U (-t) φ) =
+    Real.exp (-h) • ∫ s in Set.Ici (-h), Real.exp (-s) • U_grp.U (-s) φ := by
+  have h_int := integrable_exp_neg_unitary_neg U_grp φ
+  have h_comm : U_grp.U h (∫ t in Set.Ici 0, Real.exp (-t) • U_grp.U (-t) φ) =
+                ∫ t in Set.Ici 0, U_grp.U h (Real.exp (-t) • U_grp.U (-t) φ) :=
+    ((U_grp.U h).integral_comp_comm h_int).symm
+  rw [h_comm]
+  have h_shift : ∀ t, U_grp.U h (Real.exp (-t) • U_grp.U (-t) φ) =
+                      Real.exp (-t) • U_grp.U (h - t) φ := by
+    intro t
+    have hlaw : U_grp.U h ∘L U_grp.U (-t) = U_grp.U (h - t) := by
+      rw [show h - t = h + (-t) from sub_eq_add_neg h t]
+      exact (U_grp.group_law h (-t)).symm
+    rw [← hlaw, ContinuousLinearMap.comp_apply]
+    exact map_smul (U_grp.U h) _ _
+  simp_rw [h_shift]
+  have h_exp : ∀ t, Real.exp (-t) • U_grp.U (h - t) φ =
+                    Real.exp (-h) • (Real.exp (-(t - h)) • U_grp.U (-(t - h)) φ) := by
+    intro t
+    rw [← smul_assoc, smul_eq_mul, ← Real.exp_add]
+    congr 1
+    · ring_nf
+    · congr 1; abel_nf
+  simp_rw [h_exp]
+  have h_smul_comm :
+      ∫ t in Set.Ici 0, Real.exp (-h) • (Real.exp (-(t - h)) • U_grp.U (-(t - h)) φ) =
+        Real.exp (-h) • ∫ t in Set.Ici 0, Real.exp (-(t - h)) • U_grp.U (-(t - h)) φ :=
+    integral_smul (Real.exp (-h)) fun a => Real.exp (-(a - h)) • (U_grp.U (-(a - h))) φ
+  rw [h_smul_comm, integral_Ici_sub_shift U_grp φ h]
+
+omit [InnerProductSpace ℂ H] [CompleteSpace H] in
+lemma integrableOn_Ici_of_Ici_zero {f : ℝ → H} (hcont : Continuous f)
+    (h0 : IntegrableOn f (Set.Ici 0)) (b : ℝ) :
+    IntegrableOn f (Set.Ici b) := by
+  rcases le_or_gt 0 b with hb | hb
+  · exact h0.mono_set (Set.Ici_subset_Ici.mpr hb)
+  · have h_union : Set.Ici b = Set.Ico b 0 ∪ Set.Ici 0 := by
+      ext x; simp only [Set.mem_Ici, Set.mem_union, Set.mem_Ico]
+      constructor
+      · intro hx; rcases lt_or_ge x 0 with hlt | hge
+        · exact Or.inl ⟨hx, hlt⟩
+        · exact Or.inr hge
+      · rintro (⟨hx, _⟩ | hx)
+        · exact hx
+        · linarith
+    rw [h_union]
+    exact (hcont.integrableOn_Icc.mono_set Set.Ico_subset_Icc_self).union h0
+
+omit [CompleteSpace H] in
+lemma integral_Ici_split_of {f : ℝ → H} (hcont : Continuous f)
+    (h0 : IntegrableOn f (Set.Ici 0)) {a b : ℝ} (hab : a ≤ b) :
+    ∫ t in Set.Ici a, f t = (∫ t in Set.Ioc a b, f t) + ∫ t in Set.Ici b, f t := by
+  have h_ae_eqa : ∫ t in Set.Ici a, f t = ∫ t in Set.Ioi a, f t :=
+    setIntegral_congr_set Ioi_ae_eq_Ici.symm
+  have h_ae_eqb : ∫ t in Set.Ici b, f t = ∫ t in Set.Ioi b, f t :=
+    setIntegral_congr_set Ioi_ae_eq_Ici.symm
+  have h_union : Set.Ioi a = Set.Ioc a b ∪ Set.Ioi b := by
+    ext x; simp only [Set.mem_Ioi, Set.mem_union, Set.mem_Ioc]
+    constructor
+    · intro hx; rcases le_or_gt x b with hxb | hxb
+      · exact Or.inl ⟨hx, hxb⟩
+      · exact Or.inr hxb
+    · rintro (⟨hx, _⟩ | hx)
+      · exact hx
+      · linarith
+  rw [h_ae_eqa, h_union,
+      setIntegral_union (Set.Ioc_disjoint_Ioi le_rfl) measurableSet_Ioi
+        (hcont.integrableOn_Icc.mono_set Set.Ioc_subset_Icc_self)
+        ((integrableOn_Ici_of_Ici_zero hcont h0 b).mono_set Set.Ioi_subset_Ici_self),
+      h_ae_eqb.symm]
+
+lemma exp_neg_orbit_continuous_plus (φ : H) :
+    Continuous (fun t : ℝ => Real.exp (-t) • U_grp.U t φ) :=
+  (Real.continuous_exp.comp continuous_neg).smul (U_grp.strong_continuous φ)
+
+/-- The orbit integrand `e^{-t} • U(-t)φ` is integrable on every half-line `[b,∞)`.
+Norm is `e^{-t}‖φ‖` by unitarity; bootstrap from the `Ici 0` case. -/
+lemma integrableOn_exp_neg_orbit_Ici (φ : H) (b : ℝ) :
+    IntegrableOn (fun t => Real.exp (-t) • U_grp.U (-t) φ) (Set.Ici b) :=
+  integrableOn_Ici_of_Ici_zero (exp_neg_orbit_continuous U_grp φ)
+    (integrable_exp_neg_unitary_neg U_grp φ) b
+
+/-- Split the half-line orbit integral at an interior point. -/
+lemma integral_Ici_orbit_split (φ : H) {a b : ℝ} (hab : a ≤ b) :
+    ∫ t in Set.Ici a, Real.exp (-t) • U_grp.U (-t) φ =
+    (∫ t in Set.Ioc a b, Real.exp (-t) • U_grp.U (-t) φ) +
+    ∫ t in Set.Ici b, Real.exp (-t) • U_grp.U (-t) φ :=
+  integral_Ici_split_of (exp_neg_orbit_continuous U_grp φ)
+    (integrable_exp_neg_unitary_neg U_grp φ) hab
+end Helpers
 end QuantumMechanics.Bochner

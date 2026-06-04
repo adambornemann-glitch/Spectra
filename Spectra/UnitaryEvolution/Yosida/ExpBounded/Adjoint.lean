@@ -1,5 +1,5 @@
 /-
-Copyright (c) 2026 Logos Library Formalization Project. All rights reserved.
+Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
 Filename: ExpBounded/Adjoint.lean
@@ -30,7 +30,7 @@ variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteS
 
 /-! ### Power of adjoint -/
 
-theorem adjoint_pow (B : H →L[ℂ] H) (k : ℕ) :
+lemma adjoint_pow (B : H →L[ℂ] H) (k : ℕ) :
     (B ^ k).adjoint = B.adjoint ^ k := by
   induction k with
   | zero =>
@@ -93,7 +93,7 @@ variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteS
 
 /-! ### Adjoint of exponential -/
 
-theorem adjoint_expBounded (B : H →L[ℂ] H) (t : ℝ) :
+lemma adjoint_expBounded (B : H →L[ℂ] H) (t : ℝ) :
     (expBounded B t).adjoint = expBounded B.adjoint t := by
   unfold expBounded
   have h_summable : Summable (fun k : ℕ => (1 / k.factorial : ℂ) • ((t : ℂ) • B) ^ k) :=

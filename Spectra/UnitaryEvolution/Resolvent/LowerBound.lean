@@ -29,50 +29,49 @@ creates a "gap" proportional to `|Im(z)|`.
 
 namespace QuantumMechanics.Resolvent
 
-open InnerProductSpace MeasureTheory Complex Filter Topology QuantumMechanics.Bochner QuantumMechanics.Generators
+open InnerProductSpace MeasureTheory Complex Filter Topology
+open QuantumMechanics.Bochner
 
-variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
+variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H]
 
-/-- The fundamental lower bound: for self-adjoint `A` and `Im(z) ≠ 0`,
+/-- The fundamental lower bound: for symmetric `A` and `Im(z) ≠ 0`,
     we have `‖(A - zI)ψ‖ ≥ |Im(z)| · ‖ψ‖`. -/
-lemma lower_bound_estimate {U_grp : OneParameterUnitaryGroup (H := H)}
-    (gen : Generator U_grp)
+lemma lower_bound_estimate {A : H →ₗ.[ℂ] H} (hsym : A.IsFormalAdjoint A)
     (z : ℂ) (_ : z.im ≠ 0)
-    (ψ : H) (hψ : ψ ∈ gen.domain) :
-    ‖gen.op ⟨ψ, hψ⟩ - z • ψ‖ ≥ |z.im| * ‖ψ‖ := by
+    (ψ : H) (hψ : ψ ∈ A.domain) :
+    ‖A ⟨ψ, hψ⟩ - z • ψ‖ ≥ |z.im| * ‖ψ‖ := by
   set x := z.re
   set y := z.im
-  have h_decomp : gen.op ⟨ψ, hψ⟩ - z • ψ = (gen.op ⟨ψ, hψ⟩ - x • ψ) - (y * I) • ψ := by
+  have h_decomp : A ⟨ψ, hψ⟩ - z • ψ = (A ⟨ψ, hψ⟩ - x • ψ) - (y * I) • ψ := by
     have hz_eq : z = x + y * I := by simp [x, y]
-    calc gen.op ⟨ψ, hψ⟩ - z • ψ
-        = gen.op ⟨ψ, hψ⟩ - (x + y * I) • ψ := by rw [hz_eq]
-      _ = gen.op ⟨ψ, hψ⟩ - (x • ψ + (y * I) • ψ) := by rw [add_smul]; rfl
-      _ = (gen.op ⟨ψ, hψ⟩ - x • ψ) - (y * I) • ψ := by abel
+    calc A ⟨ψ, hψ⟩ - z • ψ
+        = A ⟨ψ, hψ⟩ - (x + y * I) • ψ := by rw [hz_eq]
+      _ = A ⟨ψ, hψ⟩ - (x • ψ + (y * I) • ψ) := by rw [add_smul]; rfl
+      _ = (A ⟨ψ, hψ⟩ - x • ψ) - (y * I) • ψ := by abel
   rw [h_decomp]
-  have h_expand : ‖(gen.op ⟨ψ, hψ⟩ - x • ψ) - (y * I) • ψ‖^2 =
-                ‖gen.op ⟨ψ, hψ⟩ - x • ψ‖^2 + ‖(y * I) • ψ‖^2 +
-                2 * (⟪gen.op ⟨ψ, hψ⟩ - x • ψ, -((y * I) • ψ)⟫_ℂ).re := by
+  have h_expand : ‖(A ⟨ψ, hψ⟩ - x • ψ) - (y * I) • ψ‖^2 =
+                ‖A ⟨ψ, hψ⟩ - x • ψ‖^2 + ‖(y * I) • ψ‖^2 +
+                2 * (⟪A ⟨ψ, hψ⟩ - x • ψ, -((y * I) • ψ)⟫_ℂ).re := by
     rw [norm_sub_sq (𝕜 := ℂ)]
-    -- Goal is now: ‖a‖² - 2 * re⟪a,b⟫ + ‖b‖² = ‖a‖² + ‖b‖² + 2 * re⟪a,-b⟫
     rw [inner_neg_right, Complex.neg_re]
     ring_nf; exact
-      sub_add_eq_add_sub (‖gen.op ⟨ψ, hψ⟩ - x • ψ‖ ^ 2)
-        (RCLike.re ⟪gen.op ⟨ψ, hψ⟩ - x • ψ, (↑y * I) • ψ⟫_ℂ * 2) (‖(↑y * I) • ψ‖ ^ 2)
+      sub_add_eq_add_sub (‖A ⟨ψ, hψ⟩ - x • ψ‖ ^ 2)
+        (RCLike.re ⟪A ⟨ψ, hψ⟩ - x • ψ, (↑y * I) • ψ⟫_ℂ * 2) (‖(↑y * I) • ψ‖ ^ 2)
   have h_norm_scale : ‖(y * I) • ψ‖ = |y| * ‖ψ‖ := by
     calc ‖(y * I) • ψ‖
         = ‖(y * I : ℂ)‖ * ‖ψ‖ := norm_smul _ _
       _ = |y| * ‖ψ‖ := by simp
-  have h_cross_zero : (⟪gen.op ⟨ψ, hψ⟩ - x • ψ, -((y * I) • ψ)⟫_ℂ).re = 0 := by
+  have h_cross_zero : (⟪A ⟨ψ, hψ⟩ - x • ψ, -((y * I) • ψ)⟫_ℂ).re = 0 := by
     rw [inner_neg_right, inner_smul_right]
-    have h_real : (⟪gen.op ⟨ψ, hψ⟩ - x • ψ, ψ⟫_ℂ).im = 0 := by
+    have h_real : (⟪A ⟨ψ, hψ⟩ - x • ψ, ψ⟫_ℂ).im = 0 := by
       rw [inner_sub_left]
-      have h_Areal : (⟪gen.op ⟨ψ, hψ⟩, ψ⟫_ℂ).im = 0 := by
-        have h_sym := gen.symmetric ⟨ψ, hψ⟩ ⟨ψ, hψ⟩
-        have h_conj : ⟪gen.op ⟨ψ, hψ⟩, ψ⟫_ℂ = (starRingEnd ℂ) ⟪gen.op ⟨ψ, hψ⟩, ψ⟫_ℂ := by
-          calc ⟪gen.op ⟨ψ, hψ⟩, ψ⟫_ℂ
-              = ⟪ψ, gen.op ⟨ψ, hψ⟩⟫_ℂ := h_sym
-            _ = (starRingEnd ℂ) ⟪gen.op ⟨ψ, hψ⟩, ψ⟫_ℂ :=
-                (inner_conj_symm ψ (gen.op ⟨ψ, hψ⟩)).symm
+      have h_Areal : (⟪A ⟨ψ, hψ⟩, ψ⟫_ℂ).im = 0 := by
+        have h_sym := hsym ⟨ψ, hψ⟩ ⟨ψ, hψ⟩
+        have h_conj : ⟪A ⟨ψ, hψ⟩, ψ⟫_ℂ = (starRingEnd ℂ) ⟪A ⟨ψ, hψ⟩, ψ⟫_ℂ := by
+          calc ⟪A ⟨ψ, hψ⟩, ψ⟫_ℂ
+              = ⟪ψ, A ⟨ψ, hψ⟩⟫_ℂ := h_sym
+            _ = (starRingEnd ℂ) ⟪A ⟨ψ, hψ⟩, ψ⟫_ℂ :=
+                (inner_conj_symm ψ (A ⟨ψ, hψ⟩)).symm
         have h_parts := Complex.ext_iff.mp h_conj
         simp only [Complex.conj_im] at h_parts
         linarith [h_parts.2]
@@ -84,28 +83,30 @@ lemma lower_bound_estimate {U_grp : OneParameterUnitaryGroup (H := H)}
           rw [this]; norm_cast
         simp only [Complex.conj_ofReal, Complex.mul_im, Complex.ofReal_re,
                     Complex.ofReal_im, h_inner_real, mul_zero, zero_mul, add_zero]
-      simp [h_Areal, h_xreal]
-    have h_as_real : ⟪gen.op ⟨ψ, hψ⟩ - x • ψ, ψ⟫_ℂ =
-        ((⟪gen.op ⟨ψ, hψ⟩ - x • ψ, ψ⟫_ℂ).re : ℂ) := by
-      conv_lhs => rw [← Complex.re_add_im (⟪gen.op ⟨ψ, hψ⟩ - x • ψ, ψ⟫_ℂ), h_real]
+      simp only [sub_im]
+      simp [h_xreal]
+      exact Eq.symm (Real.ext_cauchy (congrArg Real.cauchy (id (Eq.symm h_Areal))))
+    have h_as_real : ⟪A ⟨ψ, hψ⟩ - x • ψ, ψ⟫_ℂ =
+        ((⟪A ⟨ψ, hψ⟩ - x • ψ, ψ⟫_ℂ).re : ℂ) := by
+      conv_lhs => rw [← Complex.re_add_im (⟪A ⟨ψ, hψ⟩ - x • ψ, ψ⟫_ℂ), h_real]
       simp
     rw [h_as_real]
     simp only [Complex.neg_re, Complex.mul_re, Complex.mul_im,
               Complex.ofReal_re, Complex.ofReal_im]
     ring_nf
     simp only [I_re, mul_zero, zero_mul, neg_zero]
-  have h_sq : ‖(gen.op ⟨ψ, hψ⟩ - x • ψ) - (y * I) • ψ‖^2 ≥ (|y| * ‖ψ‖)^2 := by
+  have h_sq : ‖(A ⟨ψ, hψ⟩ - x • ψ) - (y * I) • ψ‖^2 ≥ (|y| * ‖ψ‖)^2 := by
     rw [h_expand, h_norm_scale, h_cross_zero]
     simp only [mul_zero, add_zero]
-    have : 0 ≤ ‖gen.op ⟨ψ, hψ⟩ - x • ψ‖^2 := sq_nonneg _
+    have : 0 ≤ ‖A ⟨ψ, hψ⟩ - x • ψ‖^2 := sq_nonneg _
     linarith
   by_contra h_not
   push Not at h_not
-  have h1 : 0 ≤ ‖(gen.op ⟨ψ, hψ⟩ - x • ψ) - (y * I) • ψ‖ := norm_nonneg _
+  have h1 : 0 ≤ ‖(A ⟨ψ, hψ⟩ - x • ψ) - (y * I) • ψ‖ := norm_nonneg _
   have h2 : 0 ≤ |y| * ‖ψ‖ := by
     apply mul_nonneg
     · exact abs_nonneg _
     · exact norm_nonneg _
-  nlinarith [sq_nonneg (|y| * ‖ψ‖ - ‖(gen.op ⟨ψ, hψ⟩ - x • ψ) - (y * I) • ψ‖), h_sq, h_not, h1, h2]
+  nlinarith [sq_nonneg (|y| * ‖ψ‖ - ‖(A ⟨ψ, hψ⟩ - x • ψ) - (y * I) • ψ‖), h_sq, h_not, h1, h2]
 
 end QuantumMechanics.Resolvent

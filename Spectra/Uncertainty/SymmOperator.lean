@@ -72,7 +72,7 @@ open scoped ComplexConjugate
 
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
 
-/-- A symmetric operator with dense domain, representing a quantum observable.
+/-- A symmetric operator with dense domain.
 
 It is backed by a Mathlib `LinearPMap` (`H →ₗ.[ℂ] H`); the `symmetric` field is
 formal self-adjointness, `toLinearPMap.IsFormalAdjoint toLinearPMap`. -/

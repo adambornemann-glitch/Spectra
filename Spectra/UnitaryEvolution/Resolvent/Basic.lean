@@ -41,22 +41,14 @@ open InnerProductSpace MeasureTheory Complex Filter Topology
 /-- Complex numbers with nonzero imaginary part (complement of the real axis). -/
 def OffRealAxis : Type := {z : ℂ // z.im ≠ 0}
 
-/-- Complex numbers with positive imaginary part. -/
-def UpperHalfPlane : Type := {z : ℂ // 0 < z.im}
-
-/-- Complex numbers with negative imaginary part. -/
-def LowerHalfPlane : Type := {z : ℂ // z.im < 0}
-
-instance : Coe UpperHalfPlane OffRealAxis where
-  coe z := ⟨z.val, ne_of_gt z.property⟩
-
-instance : Coe LowerHalfPlane OffRealAxis where
-  coe z := ⟨z.val, ne_of_lt z.property⟩
-
 /-! ## Neumann Series -/
 
-variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℂ E]
+-- (`opNorm_pow_le` and `opNorm_pow_tendsto_zero` stay above, unchanged —
+--  keep them; they're likely used elsewhere and don't depend on completeness.)
 
+variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℂ E] [CompleteSpace E]
+
+omit [CompleteSpace E] in
 lemma opNorm_pow_le (T : E →L[ℂ] E) (n : ℕ) : ‖T^n‖ ≤ ‖T‖^n := by
   induction n with
   | zero =>
@@ -70,8 +62,7 @@ lemma opNorm_pow_le (T : E →L[ℂ] E) (n : ℕ) : ‖T^n‖ ≤ ‖T‖^n := b
           apply mul_le_mul_of_nonneg_right ih (norm_nonneg _)
       _ = ‖T‖^(n+1) := by rw [pow_succ]
 
-
-
+omit [CompleteSpace E] in
 lemma opNorm_pow_tendsto_zero (T : E →L[ℂ] E) (hT : ‖T‖ < 1) :
     Tendsto (fun n => ‖T^n‖) atTop (𝓝 0) := by
   have h_geom : Tendsto (fun n => ‖T‖^n) atTop (𝓝 0) := by
@@ -86,141 +77,34 @@ lemma opNorm_pow_tendsto_zero (T : E →L[ℂ] E) (hT : ‖T‖ < 1) :
 noncomputable def neumannPartialSum (T : E →L[ℂ] E) (n : ℕ) : E →L[ℂ] E :=
   Finset.sum (Finset.range n) (fun k => T^k)
 
-lemma neumannPartialSum_mul (T : E →L[ℂ] E) (n : ℕ) :
-    (ContinuousLinearMap.id ℂ E - T) * neumannPartialSum T n =
-    ContinuousLinearMap.id ℂ E - T^n := by
-  induction n with
-  | zero =>
-    simp only [neumannPartialSum, Finset.range_zero, Finset.sum_empty, pow_zero]
-    simp only [mul_zero]
-    ext x : 1
-    simp_all only [ContinuousLinearMap.zero_apply, ContinuousLinearMap.coe_sub',
-      ContinuousLinearMap.coe_id', Pi.sub_apply, id_eq, ContinuousLinearMap.one_apply, sub_self]
-  | succ n ih =>
-    simp only [neumannPartialSum] at ih ⊢
-    rw [Finset.sum_range_succ]
-    rw [mul_add]
-    rw [ih]
-    have h_id_eq : ContinuousLinearMap.id ℂ E = (1 : E →L[ℂ] E) := rfl
-    rw [h_id_eq]
-    rw [sub_mul, one_mul]
-    rw [← pow_succ']
-    abel
+/-- The Neumann series `∑_{k=0}^∞ Tᵏ = (1 - T)⁻¹` for `‖T‖ < 1`,
+realized as the inverse of the unit `1 - T`. -/
+noncomputable def neumannSeries (T : E →L[ℂ] E) (hT : ‖T‖ < 1) : E →L[ℂ] E :=
+  ↑(Units.oneSub T hT)⁻¹
 
-lemma neumannPartialSum_cauchy (T : E →L[ℂ] E) (hT : ‖T‖ < 1) :
-    CauchySeq (neumannPartialSum T) := by
-  apply cauchySeq_of_summable_dist
-  have h_bound : ∀ n, dist (neumannPartialSum T n) (neumannPartialSum T (n + 1)) ≤ ‖T‖^n := by
-    intro n
-    simp only [neumannPartialSum, dist_eq_norm, Finset.sum_range_succ]
-    rw [← norm_neg, neg_sub, add_sub_cancel_left]
-    exact opNorm_pow_le T n
-  apply Summable.of_nonneg_of_le
-  · intro n; exact dist_nonneg
-  · exact h_bound
-  · exact summable_geometric_of_lt_one (norm_nonneg _) hT
+lemma neumannSeries_summable (T : E →L[ℂ] E) (hT : ‖T‖ < 1) :
+    Summable (fun n => T ^ n) :=
+  summable_geometric_of_norm_lt_one hT
 
-/-- The Neumann series `∑_{k=0}^∞ Tᵏ` for `‖T‖ < 1`. -/
-noncomputable def neumannSeries (T : E →L[ℂ] E) (_ : ‖T‖ < 1) : E →L[ℂ] E :=
-  limUnder atTop (neumannPartialSum T)
+lemma tsum_eq_neumannSeries (T : E →L[ℂ] E) (hT : ‖T‖ < 1) :
+    ∑' n, T ^ n = neumannSeries T hT := rfl
 
-variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℂ E] [CompleteSpace E]
-
-lemma neumannSeries_mul_left (T : E →L[ℂ] E) (hT : ‖T‖ < 1) :
-    (ContinuousLinearMap.id ℂ E - T) * neumannSeries T hT = ContinuousLinearMap.id ℂ E := by
-  have h_lim : Tendsto (neumannPartialSum T) atTop (𝓝 (neumannSeries T hT)) := by
-    exact (neumannPartialSum_cauchy T hT).tendsto_limUnder
-  have h_mul_lim : Tendsto (fun n => (ContinuousLinearMap.id ℂ E - T) * neumannPartialSum T n)
-      atTop (𝓝 ((ContinuousLinearMap.id ℂ E - T) * neumannSeries T hT)) := by
-    exact Tendsto.const_mul (ContinuousLinearMap.id ℂ E - T) h_lim
-  have h_eq : ∀ n, (ContinuousLinearMap.id ℂ E - T) * neumannPartialSum T n =
-      ContinuousLinearMap.id ℂ E - T^n := neumannPartialSum_mul T
-  have h_pow_lim : Tendsto (fun n => T^n) atTop (𝓝 0) := by
-    have h := opNorm_pow_tendsto_zero T hT
-    exact tendsto_zero_iff_norm_tendsto_zero.mpr h
-  have h_sub_lim : Tendsto (fun n => ContinuousLinearMap.id ℂ E - T^n) atTop
-      (𝓝 (ContinuousLinearMap.id ℂ E - 0)) := by
-    exact Tendsto.const_sub (ContinuousLinearMap.id ℂ E) h_pow_lim
-  simp only [sub_zero] at h_sub_lim
-  have h_eq_lim : Tendsto (fun n => (ContinuousLinearMap.id ℂ E - T) * neumannPartialSum T n)
-      atTop (𝓝 (ContinuousLinearMap.id ℂ E)) := by
-    simp only [h_eq]
-    exact h_sub_lim
-  exact tendsto_nhds_unique h_mul_lim h_eq_lim
-
-lemma neumannSeries_mul_right (T : E →L[ℂ] E) (hT : ‖T‖ < 1) :
-    neumannSeries T hT * (ContinuousLinearMap.id ℂ E - T) = ContinuousLinearMap.id ℂ E := by
-  have h_telescope : ∀ n, neumannPartialSum T n * (ContinuousLinearMap.id ℂ E - T) =
-      ContinuousLinearMap.id ℂ E - T^n := by
-    intro n
-    induction n with
-    | zero =>
-      simp only [neumannPartialSum, Finset.range_zero, Finset.sum_empty, pow_zero]
-      simp only [zero_mul]
-      ext x : 1
-      simp_all only [ContinuousLinearMap.zero_apply, ContinuousLinearMap.coe_sub',
-        ContinuousLinearMap.coe_id', Pi.sub_apply, id_eq, ContinuousLinearMap.one_apply, sub_self]
-    | succ n ih =>
-      simp only [neumannPartialSum] at ih ⊢
-      rw [Finset.sum_range_succ]
-      rw [add_mul]
-      rw [ih]
-      have h_id_eq : ContinuousLinearMap.id ℂ E = (1 : E →L[ℂ] E) := rfl
-      rw [h_id_eq]
-      rw [mul_sub, mul_one]
-      rw [← pow_succ]
-      abel
-  have h_lim : Tendsto (neumannPartialSum T) atTop (𝓝 (neumannSeries T hT)) :=
-    (neumannPartialSum_cauchy T hT).tendsto_limUnder
-  have h_mul_lim : Tendsto (fun n => neumannPartialSum T n * (ContinuousLinearMap.id ℂ E - T))
-      atTop (𝓝 (neumannSeries T hT * (ContinuousLinearMap.id ℂ E - T))) := by
-    exact Tendsto.mul_const (ContinuousLinearMap.id ℂ E - T) h_lim
-  have h_pow_lim : Tendsto (fun n => T^n) atTop (𝓝 0) := by
-    have h := opNorm_pow_tendsto_zero T hT
-    exact tendsto_zero_iff_norm_tendsto_zero.mpr h
-  have h_sub_lim : Tendsto (fun n => ContinuousLinearMap.id ℂ E - T^n) atTop
-      (𝓝 (ContinuousLinearMap.id ℂ E)) := by
-    have := Tendsto.const_sub (ContinuousLinearMap.id ℂ E) h_pow_lim
-    simp only [sub_zero] at this
-    exact this
-  have h_eq_lim : Tendsto (fun n => neumannPartialSum T n * (ContinuousLinearMap.id ℂ E - T))
-      atTop (𝓝 (ContinuousLinearMap.id ℂ E)) := by
-    simp only [h_telescope]
-    exact h_sub_lim
-  exact tendsto_nhds_unique h_mul_lim h_eq_lim
-
-lemma isUnit_one_sub (T : E →L[ℂ] E) (hT : ‖T‖ < 1) :
-    IsUnit (ContinuousLinearMap.id ℂ E - T) := by
-  refine ⟨⟨ContinuousLinearMap.id ℂ E - T, neumannSeries T hT, ?_, ?_⟩, rfl⟩
-  · exact neumannSeries_mul_left T hT
-  · exact neumannSeries_mul_right T hT
-
-theorem neumannSeries_summable (T : E →L[ℂ] E) (hT : ‖T‖ < 1) :
-    Summable (fun n => T^n) := by
-  have h_geom : Summable (fun n => ‖T‖^n) := summable_geometric_of_lt_one (norm_nonneg _) hT
-  apply Summable.of_norm_bounded_eventually
-  · exact h_geom
-  · filter_upwards with n
-    exact opNorm_pow_le T n
-
-theorem tsum_eq_neumannSeries (T : E →L[ℂ] E) (hT : ‖T‖ < 1) :
-    ∑' n, T^n = neumannSeries T hT := by
-  have h_summable := neumannSeries_summable T hT
-  have h_cauchy := neumannPartialSum_cauchy T hT
-  have h_tendsto_neumann : Tendsto (neumannPartialSum T) atTop (𝓝 (neumannSeries T hT)) :=
-    h_cauchy.tendsto_limUnder
-  have h_tendsto_tsum : Tendsto (fun n => ∑ i ∈ Finset.range n, T^i) atTop (𝓝 (∑' n, T^n)) :=
-    h_summable.hasSum.tendsto_sum_nat
-  have h_eq_partial : (fun n => ∑ i ∈ Finset.range n, T^i) = neumannPartialSum T := by
-    ext n
-    simp only [neumannPartialSum]
-  rw [h_eq_partial] at h_tendsto_tsum
-  exact tendsto_nhds_unique h_tendsto_tsum h_tendsto_neumann
-
-theorem neumannSeries_hasSum (T : E →L[ℂ] E) (hT : ‖T‖ < 1) :
-    HasSum (fun n => T^n) (neumannSeries T hT) := by
+lemma neumannSeries_hasSum (T : E →L[ℂ] E) (hT : ‖T‖ < 1) :
+    HasSum (fun n => T ^ n) (neumannSeries T hT) := by
   rw [← tsum_eq_neumannSeries T hT]
   exact (neumannSeries_summable T hT).hasSum
+
+lemma neumannSeries_mul_left (T : E →L[ℂ] E) (hT : ‖T‖ < 1) :
+    (ContinuousLinearMap.id ℂ E - T) * neumannSeries T hT = ContinuousLinearMap.id ℂ E :=
+  (Units.oneSub T hT).mul_inv
+
+lemma neumannSeries_mul_right (T : E →L[ℂ] E) (hT : ‖T‖ < 1) :
+    neumannSeries T hT * (ContinuousLinearMap.id ℂ E - T) = ContinuousLinearMap.id ℂ E :=
+  (Units.oneSub T hT).inv_mul
+
+lemma isUnit_one_sub (T : E →L[ℂ] E) (hT : ‖T‖ < 1) :
+    IsUnit (ContinuousLinearMap.id ℂ E - T) :=
+  isUnit_one_sub_of_norm_lt_one hT
 
 /-! ## Auxiliary Lemmas -/
 

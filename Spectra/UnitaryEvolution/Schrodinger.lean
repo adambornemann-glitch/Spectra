@@ -4,105 +4,78 @@ Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
 Filename: UnitaryEvolution/Schrodinger.lean
 -/
-import Spectra.UnitaryEvolution.Stone
+import Spectra.UnitaryEvolution.Stone.Bijection
 /-!
-
 # The Schrödinger Equation
 
-The Schrödinger equation emerges as a theorem from Stone's correspondence.
+The Schrödinger equation emerges as a theorem from Stone's correspondence: the orbit of any
+strongly continuous one-parameter unitary group, restricted to the domain of its generator `A`,
+solves `ψ'(t) = i A ψ(t)`.  No self-adjointness hypothesis is needed — the generator of such a
+group is automatically self-adjoint (`generator_isSelfAdjoint`) — and no cheats are involved:
+the derivative comes from `unitary_orbit_hasDerivAt`, and `generator_comm` moves `A` to the
+outside (`A ψ(t)` rather than `U(t)(Aψ₀)`).
 
 ## References
-
 * Schrödinger, "Quantisierung als Eigenwertproblem" (1926)
 * Stone, "On one-parameter unitary groups in Hilbert space" (1932)
 -/
 namespace QuantumMechanics.Schrödinger
 
 open InnerProductSpace Complex Filter Topology
-open Yosida Generators StonesTheorem
+open Yosida StonesTheorem Stoneslemma
 
+variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
 
-/-- **The Schrödinger equation at the origin.**
-For `ψ₀ ∈ dom(A)`, the map `t ↦ U(t)ψ₀` is differentiable at `t = 0` with
-`d/dt U(t)ψ₀|_{t=0} = iA(ψ₀)`. This is the base case; `schrödinger_equation₂`
-bootstraps it to arbitrary `t` via the group law. -/
-theorem schrödinger_equation₁ {H : Type*}
-  [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
-    (U_grp : OneParameterUnitaryGroup (H := H))
-    (gen : Generator U_grp)
-    (hsa : gen.IsSelfAdjoint)
-    (h_dense : Dense (gen.domain : Set H))
-    (ψ₀ : H) (hψ₀ : ψ₀ ∈ gen.domain) :
+/-- **The Schrödinger equation.** For `ψ₀` in the domain of the generator `A := generator U_grp`,
+the orbit `s ↦ U(s)ψ₀` is differentiable at every `t` with `d/ds U(s)ψ₀ = i A (U(t)ψ₀)`. -/
+theorem schrödinger_equation₂ (U_grp : OneParameterUnitaryGroup (H := H))
+    (ψ₀ : H) (hψ₀ : ψ₀ ∈ (generator U_grp).domain) (t : ℝ) :
+    HasDerivAt (fun s : ℝ => U_grp.U s ψ₀)
+      (I • generator U_grp ⟨U_grp.U t ψ₀, generator_domain_invariant U_grp t ⟨ψ₀, hψ₀⟩⟩) t := by
+  have h := unitary_orbit_hasDerivAt U_grp ⟨ψ₀, hψ₀⟩ t
+  rwa [← generator_comm U_grp t ⟨ψ₀, hψ₀⟩] at h
+
+/-- **The Schrödinger equation at the origin.** The `t = 0` instance of `schrödinger_equation₂`. -/
+theorem schrödinger_equation₁ (U_grp : OneParameterUnitaryGroup (H := H))
+    (ψ₀ : H) (hψ₀ : ψ₀ ∈ (generator U_grp).domain) :
     HasDerivAt (fun t : ℝ => U_grp.U t ψ₀)
-               (I • gen.op ⟨U_grp.U 0 ψ₀, gen.domain_invariant 0 ψ₀ hψ₀⟩)
-               0 := by
-  have h_deriv := exponential_derivative_on_domain gen hsa h_dense 0 ψ₀ hψ₀
-  have h_eq : ∀ t, exponential gen hsa h_dense t ψ₀ = U_grp.U t ψ₀ :=
-    fun t => stone_exponential_eq_group U_grp gen hsa h_dense t ψ₀
-  have h_fun_eq : (fun t => exponential gen hsa h_dense t ψ₀) = (fun t => U_grp.U t ψ₀) := by
-    ext t; exact h_eq t
-  rw [h_fun_eq] at h_deriv
-  exact h_deriv
+      (I • generator U_grp ⟨U_grp.U 0 ψ₀, generator_domain_invariant U_grp 0 ⟨ψ₀, hψ₀⟩⟩) 0 :=
+  schrödinger_equation₂ U_grp ψ₀ hψ₀ 0
 
-
-/-- **The Schrödinger equation at arbitrary time.**
-If `ψ₀` is in the domain of the generator, then `t ↦ U(t)ψ₀` is differentiable
-with `d/dt U(t)ψ₀ = iA(U(t)ψ₀)` for all `t ∈ ℝ`. -/
-theorem schrödinger_equation₂ {H : Type*}
-  [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
-    (U_grp : OneParameterUnitaryGroup (H := H))
-    (gen : Generator U_grp)
-    (hsa : gen.IsSelfAdjoint)
-    (h_dense : Dense (gen.domain : Set H))
-    (ψ₀ : H) (hψ₀ : ψ₀ ∈ gen.domain)
-    (t : ℝ) :
+/-- The Schrödinger equation parametrized by entropy.  Mathematically identical to
+`schrödinger_equation₂`; the one-parameter group structure is agnostic to the physical
+interpretation of its parameter. -/
+theorem schrödinger_equation₃ (U_grp : OneParameterUnitaryGroup (H := H))
+    (ψ₀ : H) (hψ₀ : ψ₀ ∈ (generator U_grp).domain) (σ : ℝ) :
     HasDerivAt (fun s : ℝ => U_grp.U s ψ₀)
-               (I • gen.op ⟨U_grp.U t ψ₀, gen.domain_invariant t ψ₀ hψ₀⟩)
-               t := by
-  have hφ : U_grp.U t ψ₀ ∈ gen.domain := gen.domain_invariant t ψ₀ hψ₀
-  have h0 := schrödinger_equation₁ U_grp gen hsa h_dense (U_grp.U t ψ₀) hφ
-  have hfun : (fun r => U_grp.U r (U_grp.U t ψ₀)) =
-      (fun r => U_grp.U (r + t) ψ₀) := by
-    ext r; exact (ContinuousLinearMap.ext_iff.mp (U_grp.group_law r t) ψ₀).symm
-  have hderiv : gen.op ⟨U_grp.U 0 (U_grp.U t ψ₀), gen.domain_invariant 0 _ hφ⟩ =
-      gen.op ⟨U_grp.U t ψ₀, hφ⟩ := by
-    congr 1; ext
-    simp [show U_grp.U 0 = ContinuousLinearMap.id ℂ H from U_grp.identity]
-  rw [hfun, hderiv] at h0
-  rw [hasDerivAt_iff_isLittleO_nhds_zero] at h0 ⊢
-  refine h0.congr (fun r => ?_) (fun _ => rfl)
-  congr 2; congr 1; ring_nf;
-  norm_num
+      (I • generator U_grp ⟨U_grp.U σ ψ₀, generator_domain_invariant U_grp σ ⟨ψ₀, hψ₀⟩⟩) σ :=
+  schrödinger_equation₂ U_grp ψ₀ hψ₀ σ
+
+/-- The evolution generated by a self-adjoint `A` preserves `dom A`.  Transports
+`generator_domain_invariant` across the round-trip `generator (genToGroup hA) = A`. -/
+lemma genToGroup_domain_invariant {A : H →ₗ.[ℂ] H} (hA : IsSelfAdjoint A)
+    (t : ℝ) (ψ₀ : H) (hψ₀ : ψ₀ ∈ A.domain) :
+    (genToGroup hA).U t ψ₀ ∈ A.domain := by
+  have hdom : (generator (genToGroup hA)).domain = A.domain := by rw [generator_genToGroup hA]
+  rw [← hdom]
+  exact generator_domain_invariant (genToGroup hA) t ⟨ψ₀, by rw [hdom]; exact hψ₀⟩
+
+/-- **The Schrödinger equation, Hamiltonian-first.**  Given a self-adjoint `A` and
+`ψ₀ ∈ dom A`, the evolution `s ↦ (genToGroup hA).U s ψ₀` (i.e. `e^{isA}ψ₀`) solves
+`ψ'(t) = i A ψ(t)` — with `A` applied to the evolved state, on the nose. -/
+theorem schrödinger_of_selfAdjoint {A : H →ₗ.[ℂ] H} (hA : IsSelfAdjoint A)
+    (ψ₀ : H) (hψ₀ : ψ₀ ∈ A.domain) (t : ℝ) :
+    HasDerivAt (fun s => (genToGroup hA).U s ψ₀)
+      (I • A ⟨(genToGroup hA).U t ψ₀, genToGroup_domain_invariant hA t ψ₀ hψ₀⟩) t := by
+  have hψ₀' : ψ₀ ∈ (generator (genToGroup hA)).domain := by
+    have hdom : (generator (genToGroup hA)).domain = A.domain := by rw [generator_genToGroup hA]
+    rw [hdom]; exact hψ₀
+  have hval : generator (genToGroup hA)
+                ⟨(genToGroup hA).U t ψ₀, generator_domain_invariant (genToGroup hA) t ⟨ψ₀, hψ₀'⟩⟩
+            = A ⟨(genToGroup hA).U t ψ₀, genToGroup_domain_invariant hA t ψ₀ hψ₀⟩ :=
+    (le_of_eq (generator_genToGroup hA)).2 rfl
+  rw [← hval]
+  exact schrödinger_equation₂ (genToGroup hA) ψ₀ hψ₀' t
 
 
-/-- The Schrödinger equation parametrized by entropy.
-Mathematically identical to `schrödinger_equation₂`;
-the one-parameter group structure is agnostic to the
-physical interpretation of its parameter. -/
-theorem schrödinger_equation₃ {H : Type*}
-  [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
-    (U_grp : OneParameterUnitaryGroup (H := H))
-    (gen : Generator U_grp)
-    (hsa : gen.IsSelfAdjoint)
-    (h_dense : Dense (gen.domain : Set H))
-    (ψ₀ : H) (hψ₀ : ψ₀ ∈ gen.domain)
-    (σ : ℝ) :
-    HasDerivAt (fun s : ℝ => U_grp.U s ψ₀)
-               (I • gen.op ⟨U_grp.U σ ψ₀, gen.domain_invariant σ ψ₀ hψ₀⟩)
-               σ := by
-  have hφ : U_grp.U σ ψ₀ ∈ gen.domain := gen.domain_invariant σ ψ₀ hψ₀
-  have h0 := schrödinger_equation₁ U_grp gen hsa h_dense (U_grp.U σ ψ₀) hφ
-  have hfun : (fun r => U_grp.U r (U_grp.U σ ψ₀)) =
-      (fun r => U_grp.U (r + σ) ψ₀) := by
-    ext r; exact (ContinuousLinearMap.ext_iff.mp (U_grp.group_law r σ) ψ₀).symm
-  have hderiv : gen.op ⟨U_grp.U 0 (U_grp.U σ ψ₀), gen.domain_invariant 0 _ hφ⟩ =
-      gen.op ⟨U_grp.U σ ψ₀, hφ⟩ := by
-    congr 1; ext
-    simp [show U_grp.U 0 = ContinuousLinearMap.id ℂ H from U_grp.identity]
-  rw [hfun, hderiv] at h0
-  rw [hasDerivAt_iff_isLittleO_nhds_zero] at h0 ⊢
-  refine h0.congr (fun r => ?_) (fun _ => rfl)
-  congr 2; congr 1; ring_nf;
-  norm_num
-
-  end QuantumMechanics.Schrödinger
+end QuantumMechanics.Schrödinger

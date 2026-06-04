@@ -6,76 +6,55 @@ Filename: Resolvent/Range/Surjectivity.lean
 -/
 import Spectra.UnitaryEvolution.Resolvent.Range.Orthogonal
 import Spectra.UnitaryEvolution.Resolvent.Range.ClosedRange
-/-!
-# Surjectivity of (A - zI) for Self-Adjoint Generators
 
-This file proves the main resolvent theorem: for a self-adjoint generator `A`
-and any `z` with `Im(z) ≠ 0`, the equation `(A - zI)ψ = φ` has a unique
-solution for every `φ ∈ H`.
-
-The proof combines three facts:
-1. The orthogonal complement of the range is trivial (from `Orthogonal.lean`)
-2. The range is closed (from `ClosedRange.lean`)
-3. Closed + dense = everything
-
-## Main results
-
-* `rangeSubmodule`: The range of `(A - zI)` as a submodule
-* `range_sub_smul_dense`: The range is dense
-* `solution_unique`: Solutions are unique
-* `self_adjoint_range_all_z`: **Main theorem** — existence and uniqueness for all `z`
-
-## References
-
-* [Reed, Simon, *Methods of Modern Mathematical Physics I*][reed1980], Section VIII.3
--/
 namespace QuantumMechanics.Resolvent
 
-open InnerProductSpace MeasureTheory Complex Filter Topology QuantumMechanics.Bochner QuantumMechanics.Generators
+open InnerProductSpace MeasureTheory Complex Filter Topology
+open QuantumMechanics.Bochner
 
-variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H][CompleteSpace H]
+variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
 /-! ### Step 3: Range is dense -/
 
 /-- The range of (A - zI) forms a submodule. -/
-def rangeSubmodule {U_grp : OneParameterUnitaryGroup (H := H)}
-    (gen : Generator U_grp) (z : ℂ) : Submodule ℂ H where
-  carrier := Set.range (fun (ψ : gen.domain) => gen.op ψ - z • (ψ : H))
+def rangeSubmodule {A : H →ₗ.[ℂ] H} (z : ℂ) : Submodule ℂ H where
+  carrier := Set.range (fun (ψ : A.domain) => A ψ - z • (ψ : H))
   add_mem' := by
     intro a b ha hb
     obtain ⟨ψa, hψa⟩ := ha
     obtain ⟨ψb, hψb⟩ := hb
-    refine ⟨⟨(ψa : H) + (ψb : H), gen.domain.add_mem ψa.property ψb.property⟩, ?_⟩
-    have op_add := gen.op.map_add ψa ψb
+    refine ⟨⟨(ψa : H) + (ψb : H), A.domain.add_mem ψa.property ψb.property⟩, ?_⟩
+    have op_add := A.map_add ψa ψb
     simp only [← hψa, ← hψb]
-    calc gen.op ⟨(ψa : H) + (ψb : H), _⟩ - z • ((ψa : H) + (ψb : H))
-        = (gen.op ψa + gen.op ψb) - z • ((ψa : H) + (ψb : H)) := by congr 1
-      _ = (gen.op ψa + gen.op ψb) - (z • (ψa : H) + z • (ψb : H)) := by rw [smul_add]
-      _ = (gen.op ψa - z • (ψa : H)) + (gen.op ψb - z • (ψb : H)) := by abel
-  zero_mem' := ⟨⟨0, gen.domain.zero_mem⟩, by simp only [smul_zero, sub_zero]; exact gen.op.map_zero⟩
+    calc A ⟨(ψa : H) + (ψb : H), _⟩ - z • ((ψa : H) + (ψb : H))
+        = (A ψa + A ψb) - z • ((ψa : H) + (ψb : H)) := by congr 1
+      _ = (A ψa + A ψb) - (z • (ψa : H) + z • (ψb : H)) := by rw [smul_add]
+      _ = (A ψa - z • (ψa : H)) + (A ψb - z • (ψb : H)) := by abel
+  zero_mem' := ⟨⟨0, A.domain.zero_mem⟩, by simp only [smul_zero, sub_zero]; exact A.map_zero⟩
   smul_mem' := by
     intro c a ha
     obtain ⟨ψ, hψ⟩ := ha
-    refine ⟨⟨c • (ψ : H), gen.domain.smul_mem c ψ.property⟩, ?_⟩
-    have op_smul := gen.op.map_smul c ψ
+    refine ⟨⟨c • (ψ : H), A.domain.smul_mem c ψ.property⟩, ?_⟩
+    have op_smul := A.map_smul c ψ
     simp only [← hψ]
-    calc gen.op ⟨c • (ψ : H), _⟩ - z • (c • (ψ : H))
-        = c • gen.op ψ - z • (c • (ψ : H)) := by congr 1
-      _ = c • gen.op ψ - c • (z • (ψ : H)) := by rw [smul_comm z c]
-      _ = c • (gen.op ψ - z • (ψ : H)) := by rw [smul_sub]
+    calc A ⟨c • (ψ : H), _⟩ - z • (c • (ψ : H))
+        = c • A ψ - z • (c • (ψ : H)) := by congr 1
+      _ = c • A ψ - c • (z • (ψ : H)) := by rw [smul_comm z c]
+      _ = c • (A ψ - z • (ψ : H)) := by rw [smul_sub]
 
 /-- The range of (A - zI) is dense when Im(z) ≠ 0. -/
-lemma range_sub_smul_dense {U_grp : OneParameterUnitaryGroup (H := H)}
-    (gen : Generator U_grp) (hsa : Generator.IsSelfAdjoint gen)
+lemma range_sub_smul_dense {A : H →ₗ.[ℂ] H} (hsym : A.IsFormalAdjoint A)
+    (hplus : ∀ φ : H, ∃ ψ : A.domain, A ψ + I • (ψ : H) = φ)
+    (hminus : ∀ φ : H, ∃ ψ : A.domain, A ψ - I • (ψ : H) = φ)
     (z : ℂ) (hz : z.im ≠ 0) :
-    Dense (Set.range (fun (ψ : gen.domain) => gen.op ψ - z • (ψ : H))) := by
-  let M := rangeSubmodule gen z
-  have hM_eq : (M : Set H) = Set.range (fun (ψ : gen.domain) => gen.op ψ - z • (ψ : H)) := rfl
+    Dense (Set.range (fun (ψ : A.domain) => A ψ - z • (ψ : H))) := by
+  let M := rangeSubmodule (A := A) z
+  have hM_eq : (M : Set H) = Set.range (fun (ψ : A.domain) => A ψ - z • (ψ : H)) := rfl
   have h_M_orth : Mᗮ = ⊥ := by
     rw [Submodule.eq_bot_iff]
     intro χ hχ
-    apply orthogonal_range_eq_zero gen hsa z hz χ
+    apply orthogonal_range_eq_zero hsym hplus hminus z hz χ
     intro ψ
-    have h_mem : gen.op ψ - z • (ψ : H) ∈ M := ⟨ψ, rfl⟩
+    have h_mem : A ψ - z • (ψ : H) ∈ M := ⟨ψ, rfl⟩
     exact Submodule.inner_right_of_mem_orthogonal h_mem hχ
   have h_M_top : M.topologicalClosure = ⊤ := by
     rw [← Submodule.orthogonal_orthogonal_eq_closure]
@@ -90,60 +69,57 @@ lemma range_sub_smul_dense {U_grp : OneParameterUnitaryGroup (H := H)}
   rw [← hM_eq]
   exact h_M_dense
 
-
-variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
 /-! ### Uniqueness from lower bound -/
 
+omit [CompleteSpace H] in
+lemma resolvent_unique {A : H →ₗ.[ℂ] H} (hsym : A.IsFormalAdjoint A) (z : ℂ) (hz : z.im ≠ 0)
+    (ψ : H) (hψ : ψ ∈ A.domain) (h : A ⟨ψ, hψ⟩ - z • ψ = 0) : ψ = 0 := by
+  have hb := lower_bound_estimate hsym z hz ψ hψ
+  rw [h, norm_zero] at hb
+  have him : 0 < |z.im| := abs_pos.mpr hz
+  have h0 : ‖ψ‖ ≤ 0 := by nlinarith [norm_nonneg ψ]
+  exact norm_eq_zero.mp (le_antisymm h0 (norm_nonneg ψ))
+
+omit [CompleteSpace H] in
 /-- Solutions to (A - zI)ψ = φ are unique when Im(z) ≠ 0. -/
-lemma solution_unique {U_grp : OneParameterUnitaryGroup (H := H)}
-    (gen : Generator U_grp) (z : ℂ) (hz : z.im ≠ 0) (φ : H)
-    (ψ ψ' : gen.domain)
-    (hψ : gen.op ψ - z • (ψ : H) = φ)
-    (hψ' : gen.op ψ' - z • (ψ' : H) = φ) : ψ = ψ' := by
-  have h_sub_mem : (ψ : H) - (ψ' : H) ∈ gen.domain :=
-    gen.domain.sub_mem ψ.property ψ'.property
-  have h_diff : gen.op ⟨(ψ : H) - (ψ' : H), h_sub_mem⟩ - z • ((ψ : H) - (ψ' : H)) = 0 := by
-    have op_sub := gen.op.map_sub ψ ψ'
-    have op_eq : gen.op ⟨(ψ : H) - (ψ' : H), h_sub_mem⟩ = gen.op ψ - gen.op ψ' := by
-      convert op_sub using 1
-    calc gen.op ⟨(ψ : H) - (ψ' : H), h_sub_mem⟩ - z • ((ψ : H) - (ψ' : H))
-        = (gen.op ψ - gen.op ψ') - z • ((ψ : H) - (ψ' : H)) := by rw [op_eq]
-      _ = (gen.op ψ - gen.op ψ') - (z • (ψ : H) - z • (ψ' : H)) := by rw [smul_sub]
-      _ = (gen.op ψ - z • (ψ : H)) - (gen.op ψ' - z • (ψ' : H)) := by abel
+lemma solution_unique {A : H →ₗ.[ℂ] H} (hsym : A.IsFormalAdjoint A)
+    (z : ℂ) (hz : z.im ≠ 0) (φ : H)
+    (ψ ψ' : A.domain)
+    (hψ : A ψ - z • (ψ : H) = φ)
+    (hψ' : A ψ' - z • (ψ' : H) = φ) : ψ = ψ' := by
+  have hχ : A ⟨(ψ:H) - ψ', sub_mem ψ.2 ψ'.2⟩ - z • ((ψ:H) - ψ') = 0 := by
+    have op_eq : A ⟨(ψ:H) - ψ', sub_mem ψ.2 ψ'.2⟩ = A ψ - A ψ' := by
+      convert A.map_sub ψ ψ' using 1
+    calc A ⟨(ψ:H) - ψ', sub_mem ψ.2 ψ'.2⟩ - z • ((ψ:H) - ψ')
+        = (A ψ - A ψ') - z • ((ψ:H) - ψ') := by rw [op_eq]
+      _ = (A ψ - z • (ψ:H)) - (A ψ' - z • (ψ':H)) := by rw [smul_sub]; abel
       _ = φ - φ := by rw [hψ, hψ']
       _ = 0 := sub_self φ
-  have h_bound := lower_bound_estimate gen z hz ((ψ : H) - (ψ' : H)) h_sub_mem
-  rw [h_diff] at h_bound
-  simp only [norm_zero, ge_iff_le] at h_bound
-  have h_im_pos : 0 < |z.im| := abs_pos.mpr hz
-  have h_norm_zero : ‖(ψ : H) - (ψ' : H)‖ = 0 := by
-    nlinarith [norm_nonneg ((ψ : H) - (ψ' : H))]
-  exact Subtype.ext (sub_eq_zero.mp (norm_eq_zero.mp h_norm_zero))
+  have := resolvent_unique hsym z hz _ (sub_mem ψ.2 ψ'.2) hχ
+  exact Subtype.ext (sub_eq_zero.mp this)
 
-variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
 /-! ### Main theorem -/
 
 /-- **Main Theorem**: For self-adjoint `A` and `Im(z) ≠ 0`, the equation
     `(A - zI)ψ = φ` has a unique solution for every `φ`. -/
-theorem self_adjoint_range_all_z
-    {U_grp : OneParameterUnitaryGroup (H := H)}
-    (gen : Generator U_grp) (hsa : Generator.IsSelfAdjoint gen)
+lemma self_adjoint_range_all_z
+    {A : H →ₗ.[ℂ] H} (hsym : A.IsFormalAdjoint A)
+    (hplus : ∀ φ : H, ∃ ψ : A.domain, A ψ + I • (ψ : H) = φ)
+    (hminus : ∀ φ : H, ∃ ψ : A.domain, A ψ - I • (ψ : H) = φ)
     (z : ℂ) (hz : z.im ≠ 0) :
-    ∀ φ : H, ∃! (ψ : gen.domain), gen.op ψ - z • (ψ : H) = φ := by
+    ∀ φ : H, ∃! (ψ : A.domain), A ψ - z • (ψ : H) = φ := by
   intro φ
-  -- Existence: closed + dense = everything
-  have h_range_closed := range_sub_smul_closed gen hsa z hz
-  have h_dense := range_sub_smul_dense gen hsa z hz
-  have h_eq_univ : Set.range (fun (ψ : gen.domain) => gen.op ψ - z • (ψ : H)) = Set.univ := by
+  have h_range_closed := range_sub_smul_closed hsym hminus z hz
+  have h_dense := range_sub_smul_dense hsym hplus hminus z hz
+  have h_eq_univ : Set.range (fun (ψ : A.domain) => A ψ - z • (ψ : H)) = Set.univ := by
     have h_closure := h_dense.closure_eq
     rw [IsClosed.closure_eq h_range_closed] at h_closure
     exact h_closure
-  have h_exists : ∃ (ψ : gen.domain), gen.op ψ - z • (ψ : H) = φ := by
+  have h_exists : ∃ (ψ : A.domain), A ψ - z • (ψ : H) = φ := by
     have : φ ∈ Set.univ := Set.mem_univ φ
     rw [← h_eq_univ] at this
     exact Set.mem_range.mp this
-  -- Uniqueness: from lower bound
   obtain ⟨ψ, hψ⟩ := h_exists
-  exact ⟨ψ, hψ, fun ψ' hψ' => (solution_unique gen z hz φ ψ ψ' hψ hψ').symm⟩
+  exact ⟨ψ, hψ, fun ψ' hψ' => (solution_unique hsym z hz φ ψ ψ' hψ hψ').symm⟩
 
 end QuantumMechanics.Resolvent

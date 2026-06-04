@@ -1,5 +1,5 @@
 /-
-Copyright (c) 2026 Logos Library Formalization Project. All rights reserved.
+Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
 Filename: ExpBounded/Basic.lean
@@ -27,7 +27,7 @@ and establishes its basic properties including the group law and norm bounds.
 
 namespace QuantumMechanics.Yosida
 
-open Complex Filter Topology Generators Resolvent
+open Complex Filter Topology Resolvent
 
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
 
@@ -36,23 +36,6 @@ variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteS
 /-- The exponential of a bounded operator `B` at time `t`, defined via power series. -/
 noncomputable def expBounded (B : H →L[ℂ] H) (t : ℝ) : H →L[ℂ] H :=
   ∑' (k : ℕ), (1 / k.factorial : ℂ) • ((t : ℂ) • B) ^ k
-
-/-! ### Group law -/
-theorem expBounded_group_law (B : H →L[ℂ] H) (s t : ℝ) :
-    expBounded B (s + t) = (expBounded B s).comp (expBounded B t) := by
-  unfold expBounded
-  have h_eq_exp : ∀ X : H →L[ℂ] H, (∑' k : ℕ, (1 / k.factorial : ℂ) • X ^ k) =
-      NormedSpace.exp X := by
-    intro X
-    rw [NormedSpace.exp_eq_tsum ℂ]
-    congr 1; ext k; rw [one_div]
-  have h_comm : Commute ((s : ℂ) • B) ((t : ℂ) • B) :=
-    Commute.smul_right (Commute.smul_left (Commute.refl B) _) _
-  simp only [ofReal_add, add_smul, h_eq_exp]
-  haveI : NormedAlgebra ℚ (H →L[ℂ] H) :=
-    NormedAlgebra.restrictScalars ℚ ℂ _
-  rw [NormedSpace.exp_add_of_commute h_comm]
-  rfl
 
 /-! ### Summability -/
 
@@ -104,7 +87,7 @@ lemma expBounded_norm_summable (B : H →L[ℂ] H) (t : ℝ) :
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
 /-! ### Norm bounds -/
 
-theorem expBounded_norm_bound (B : H →L[ℂ] H) (t : ℝ) :
+lemma expBounded_norm_bound (B : H →L[ℂ] H) (t : ℝ) :
     ‖expBounded B t‖ ≤ Real.exp (|t| * ‖B‖) := by
   unfold expBounded
   set X := (t : ℂ) • B with hX

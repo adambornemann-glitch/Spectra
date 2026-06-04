@@ -4,8 +4,8 @@ Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
 Filename: QuantumMechanics/Uncertainty.lean
 -/
-import Spectra.Uncertainty.Basic
+import Spectra.Uncertainty.SymmOperator
+import Spectra.Uncertainty.Observable
 import Spectra.Uncertainty.Heisenberg
-import Spectra.Uncertainty.Robertson
-import Spectra.Uncertainty.Schrodinger
+import Spectra.Uncertainty.SchrodingerRobertson
 --import Spectra.Uncertainty.CramerRao

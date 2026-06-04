@@ -5,7 +5,6 @@ Authors: Adam Bornemann
 Filename: Bochner/Basic.lean
 -/
 import Mathlib.Probability.Distributions.Gaussian.Real
-
 /-!
 # Bochner Integration for Exponentially Decaying Functions
 
@@ -19,7 +18,6 @@ integral construction in Stone's theorem.
 * `integral_exp_neg_eq_one`: `∫₀^∞ e^{-t} dt = 1`
 * `integrable_exp_decay_continuous`: `e^{-t} • f(t)` is integrable if `f` is bounded
 * `norm_integral_exp_decay_le`: `‖∫₀^∞ e^{-t} • f(t) dt‖ ≤ C` if `‖f(t)‖ ≤ C`
-* `tendsto_integral_Ioc_exp_decay`: monotone convergence for exponentially decaying integrands
 * `hasDerivAt_integral_of_exp_decay`: differentiation under the integral sign
 
 ## Implementation notes
@@ -64,29 +62,11 @@ lemma integral_exp_neg_Ioc (n : ℕ) : ∫ x in (0 : ℝ)..n, Real.exp (-x) = 1 
 
 lemma integrableOn_exp_neg : IntegrableOn (fun t => Real.exp (-t)) (Set.Ici 0) volume := by
   rw [integrableOn_Ici_iff_integrableOn_Ioi]
-  refine integrableOn_Ioi_of_intervalIntegral_norm_bounded (ι := ℕ) (l := atTop)
-        (b := fun n => (n : ℝ)) 1 0 ?_ ?_ ?_
-  · intro i
-    exact (Real.continuous_exp.comp continuous_neg).integrableOn_Ioc
-  · exact tendsto_natCast_atTop_atTop
-  · filter_upwards with n
-    simp_rw [fun x => Real.norm_of_nonneg (le_of_lt (Real.exp_pos (-x)))]
-    calc ∫ x in (0 : ℝ)..n, Real.exp (-x)
-        = 1 - Real.exp (-n) := integral_exp_neg_Ioc n
-      _ ≤ 1 := by linarith [Real.exp_pos (-n : ℝ)]
-
+  exact integrableOn_exp_neg_Ioi 0
 
 lemma integral_exp_neg_eq_one : ∫ t in Set.Ici (0 : ℝ), Real.exp (-t) = 1 := by
   rw [integral_Ici_eq_integral_Ioi]
-  rw [MeasureTheory.integral_Ioi_of_hasDerivAt_of_tendsto' (a := 0)
-      (f := fun t => -Real.exp (-t)) (m := 0)]
-  · simp [Real.exp_zero]
-  · intro x _
-    have h1 : HasDerivAt (fun t => -t) (-1) x := hasDerivAt_neg x
-    have h2 : HasDerivAt Real.exp (Real.exp (-x)) (-x) := Real.hasDerivAt_exp (-x)
-    convert (h2.comp x h1).neg using 1; ring
-  · exact integrableOn_exp_neg.mono_set Set.Ioi_subset_Ici_self
-  · convert (Real.tendsto_exp_atBot.comp tendsto_neg_atTop_atBot).neg using 1; simp
+  exact integral_exp_neg_Ioi_zero
 
 
 lemma integrableOn_exp_neg_Ioi : IntegrableOn (fun t => Real.exp (-t)) (Set.Ioi 0) volume :=
@@ -146,94 +126,6 @@ lemma norm_integral_exp_decay_le
     _ = C * 1 := by rw [integral_exp_neg_eq_one]
     _ = C := mul_one C
 
-lemma tendsto_integral_Ioc_exp_decay
-    (f : ℝ → E) (hf_cont : Continuous f)
-    (C : ℝ) (hC : ∀ t ≥ 0, ‖f t‖ ≤ C) :
-    Tendsto (fun T => ∫ t in Set.Ioc 0 T, Real.exp (-t) • f t)
-            atTop
-            (𝓝 (∫ t in Set.Ici 0, Real.exp (-t) • f t)) := by
-  rw [integral_Ici_eq_integral_Ioi]
-  have h_int : IntegrableOn (fun t => Real.exp (-t) • f t) (Set.Ioi 0) volume :=
-    (integrable_exp_decay_continuous f hf_cont C hC).mono_set Set.Ioi_subset_Ici_self
-  rw [Metric.tendsto_atTop]
-  intro ε hε
-  set M := max C 0 with hM_def
-  have hM_nonneg : 0 ≤ M := le_max_right _ _
-  have h_norm_int : IntegrableOn (fun t => M * Real.exp (-t)) (Set.Ioi 0) volume := by
-    have h_exp : IntegrableOn (fun t => Real.exp (-t)) (Set.Ioi 0) volume :=
-      integrableOn_exp_neg_Ioi
-    exact h_exp.const_mul M
-  have h_tail_bound : ∀ T ≥ 0, ∫ t in Set.Ioi T, M * Real.exp (-t) = M * Real.exp (-T) := by
-    intro T hT
-    have h_deriv : ∀ x ∈ Set.Ici T, HasDerivAt (fun t => -M * Real.exp (-t))
-        (M * Real.exp (-x)) x := by
-      intro x _
-      have := ((Real.hasDerivAt_exp (-x)).comp x (hasDerivAt_neg x)).const_mul M |>.neg
-      convert this using 1
-      · ext t; ring_nf; rfl
-      · ring
-    have h_int : IntegrableOn (fun t => M * Real.exp (-t)) (Set.Ioi T) volume :=
-      h_norm_int.mono_set (Set.Ioi_subset_Ioi hT)
-    have h_tend : Tendsto (fun t => -M * Real.exp (-t)) atTop (𝓝 0) := by
-      have : Tendsto (fun t => -M * Real.exp (-t)) atTop (𝓝 (-M * 0)) := by
-        apply Tendsto.const_mul
-        exact Real.tendsto_exp_atBot.comp tendsto_neg_atTop_atBot
-      simp only [mul_zero] at this
-      exact this
-    rw [integral_Ioi_of_hasDerivAt_of_tendsto' (a := T) (f := fun t => -M * Real.exp (-t)) (m := 0)
-        h_deriv h_int h_tend]
-    ring
-  obtain ⟨N, hN⟩ : ∃ N : ℕ, M * Real.exp (-(N : ℝ)) < ε := by
-    by_cases hM_zero : M = 0
-    · exact ⟨0, by simp [hM_zero, hε]⟩
-    · have hM_pos : 0 < M := lt_of_le_of_ne hM_nonneg (Ne.symm hM_zero)
-      have : Tendsto (fun n : ℕ => M * Real.exp (-(n : ℝ))) atTop (𝓝 (M * 0)) := by
-        apply Tendsto.const_mul
-        exact Real.tendsto_exp_atBot.comp (tendsto_neg_atTop_atBot.comp tendsto_natCast_atTop_atTop)
-      simp at this
-      exact (this.eventually (gt_mem_nhds hε)).exists
-  use max 1 N
-  intro T hT
-  have hT_pos : 0 < T := by
-    have : (1 : ℝ) ≤ max 1 (N : ℝ) := le_max_left 1 (N : ℝ)
-    linarith
-  have h_split : ∫ t in Set.Ioi 0, Real.exp (-t) • f t ∂volume =
-                 (∫ t in Set.Ioc 0 T, Real.exp (-t) • f t ∂volume) +
-                 (∫ t in Set.Ioi T, Real.exp (-t) • f t ∂volume) := by
-    have h_union : Set.Ioc 0 T ∪ Set.Ioi T = Set.Ioi 0 := by
-      ext x
-      simp only [Set.mem_union, Set.mem_Ioc, Set.mem_Ioi]
-      constructor
-      · intro h; cases h with
-        | inl h => exact h.1
-        | inr h => exact lt_trans hT_pos h
-      · intro hx
-        by_cases hxT : x ≤ T
-        · left; exact ⟨hx, hxT⟩
-        · right; exact lt_of_not_ge hxT
-    rw [← h_union, setIntegral_union (Set.Ioc_disjoint_Ioi (le_refl T)) measurableSet_Ioi
-          (h_int.mono_set Set.Ioc_subset_Ioi_self) (h_int.mono_set (Set.Ioi_subset_Ioi hT_pos.le))]
-  rw [h_split, dist_eq_norm]
-  have h_simp : (∫ t in Set.Ioc 0 T, Real.exp (-t) • f t) -
-                ((∫ t in Set.Ioc 0 T, Real.exp (-t) • f t) + ∫ t in Set.Ioi T, Real.exp (-t) • f t) =
-                -(∫ t in Set.Ioi T, Real.exp (-t) • f t) := by abel
-  rw [h_simp, norm_neg]
-  calc ‖∫ t in Set.Ioi T, Real.exp (-t) • f t‖
-      ≤ ∫ t in Set.Ioi T, ‖Real.exp (-t) • f t‖ := norm_integral_le_integral_norm _
-    _ ≤ ∫ t in Set.Ioi T, M * Real.exp (-t) := by
-        apply setIntegral_mono_on (h_int.mono_set (Set.Ioi_subset_Ioi hT_pos.le)).norm
-              (h_norm_int.mono_set (Set.Ioi_subset_Ioi hT_pos.le)) measurableSet_Ioi
-        intro t ht
-        rw [norm_smul, Real.norm_of_nonneg (le_of_lt (Real.exp_pos _))]
-        rw [mul_comm]
-        apply mul_le_mul_of_nonneg_right _ (Real.exp_pos _).le
-        calc ‖f t‖ ≤ C := hC t (le_of_lt (lt_trans hT_pos ht))
-          _ ≤ M := le_max_left _ _
-    _ = M * Real.exp (-T) := h_tail_bound T hT_pos.le
-    _ ≤ M * Real.exp (-(N : ℝ)) := by
-        gcongr
-        grind only [= max_def]
-    _ < ε := hN
 
 lemma hasDerivAt_integral_of_exp_decay
     (f : ℝ → ℝ → E)

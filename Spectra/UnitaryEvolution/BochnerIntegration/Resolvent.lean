@@ -2,7 +2,7 @@
 Copyright (c) 2026 Logos Library Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
-Filename: Bochner/Resolvent.lean
+Filename: BochnerIntegration/ResolventII.lean
 -/
 import Spectra.UnitaryEvolution.BochnerIntegration.Basic
 import Spectra.UnitaryEvolution.Generator
@@ -35,7 +35,7 @@ resolvent, unitary group, Laplace transform
 
 namespace QuantumMechanics.Bochner
 
-open MeasureTheory Measure Filter Topology Complex QuantumMechanics.Generators
+open MeasureTheory Measure Filter Topology Complex
 
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
 

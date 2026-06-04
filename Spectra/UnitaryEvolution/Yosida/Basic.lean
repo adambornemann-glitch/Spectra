@@ -1,5 +1,5 @@
 /-
-Copyright (c) 2026 Logos Library Formalization Project. All rights reserved.
+Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
 Filename: Yosida/Basic.lean
@@ -22,7 +22,7 @@ and basic resolvent specifications needed for the Yosida approximation construct
 
 namespace QuantumMechanics.Yosida
 
-open Complex QuantumMechanics.Resolvent Generators
+open Complex QuantumMechanics.Resolvent
 
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
 
@@ -56,30 +56,32 @@ lemma norm_I_mul_pnat (n : ℕ+) : ‖I * (n : ℂ)‖ = (n : ℝ) := by
 
 /-! ### Resolvent specifications -/
 
-lemma resolvent_spec
-    {U_grp : OneParameterUnitaryGroup (H := H)}
-    (gen : Generator U_grp) (hsa : gen.IsSelfAdjoint)
+lemma resolvent_spec {A : H →ₗ.[ℂ] H}
+    (hsym : A.IsFormalAdjoint A)
+    (hplus : ∀ φ : H, ∃ ψ : A.domain, A ψ + I • (ψ : H) = φ)
+    (hminus : ∀ φ : H, ∃ ψ : A.domain, A ψ - I • (ψ : H) = φ)
     (z : ℂ) (hz : z.im ≠ 0) (φ : H) :
-    (Resolvent.resolvent gen z hz hsa φ) ∈ gen.domain ∧
-    gen.op ⟨Resolvent.resolvent gen z hz hsa φ,
-            (Classical.choose (self_adjoint_range_all_z gen hsa z hz φ).exists).property⟩ -
-    z • (Resolvent.resolvent gen z hz hsa φ) = φ := by
-  let ψ_sub : gen.domain := Classical.choose (self_adjoint_range_all_z gen hsa z hz φ).exists
-  have h_mem : (ψ_sub : H) ∈ gen.domain := ψ_sub.property
-  have h_eq := Classical.choose_spec (self_adjoint_range_all_z gen hsa z hz φ).exists
+    (Resolvent.resolvent z hz hsym hplus hminus φ) ∈ A.domain ∧
+    A ⟨Resolvent.resolvent z hz hsym hplus hminus φ,
+       (Classical.choose (self_adjoint_range_all_z hsym hplus hminus z hz φ).exists).property⟩ -
+    z • (Resolvent.resolvent z hz hsym hplus hminus φ) = φ := by
+  let ψ_sub : A.domain := Classical.choose (self_adjoint_range_all_z hsym hplus hminus z hz φ).exists
+  have h_mem : (ψ_sub : H) ∈ A.domain := ψ_sub.property
+  have h_eq := Classical.choose_spec (self_adjoint_range_all_z hsym hplus hminus z hz φ).exists
   constructor
   · exact h_mem
   · convert h_eq using 2
 
-lemma resolvent_spec'
-    {U_grp : OneParameterUnitaryGroup (H := H)}
-    (gen : Generator U_grp) (hsa : gen.IsSelfAdjoint)
+lemma resolvent_spec' {A : H →ₗ.[ℂ] H}
+    (hsym : A.IsFormalAdjoint A)
+    (hplus : ∀ φ : H, ∃ ψ : A.domain, A ψ + I • (ψ : H) = φ)
+    (hminus : ∀ φ : H, ∃ ψ : A.domain, A ψ - I • (ψ : H) = φ)
     (z : ℂ) (hz : z.im ≠ 0) (φ : H) :
-    ∃ (h : Resolvent.resolvent gen z hz hsa φ ∈ gen.domain),
-      gen.op ⟨Resolvent.resolvent gen z hz hsa φ, h⟩ -
-      z • (Resolvent.resolvent gen z hz hsa φ) = φ := by
-  let ψ_sub : gen.domain := Classical.choose (self_adjoint_range_all_z gen hsa z hz φ).exists
-  have h_eq := Classical.choose_spec (self_adjoint_range_all_z gen hsa z hz φ).exists
+    ∃ (h : Resolvent.resolvent z hz hsym hplus hminus φ ∈ A.domain),
+      A ⟨Resolvent.resolvent z hz hsym hplus hminus φ, h⟩ -
+      z • (Resolvent.resolvent z hz hsym hplus hminus φ) = φ := by
+  let ψ_sub : A.domain := Classical.choose (self_adjoint_range_all_z hsym hplus hminus z hz φ).exists
+  have h_eq := Classical.choose_spec (self_adjoint_range_all_z hsym hplus hminus z hz φ).exists
   exact ⟨ψ_sub.property, h_eq⟩
 
 end QuantumMechanics.Yosida

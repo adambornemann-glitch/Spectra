@@ -5,7 +5,6 @@ Authors: Adam Bornemann
 Filename: ExpBounded/Unitary.lean
 -/
 import Spectra.UnitaryEvolution.Yosida.ExpBounded.Adjoint
-
 /-!
 # Unitarity of Exponentials of Skew-Adjoint Operators
 
@@ -24,14 +23,14 @@ and establishes derivative formulas for the bounded exponential.
 
 namespace QuantumMechanics.Yosida
 
-open Complex Filter Topology InnerProductSpace Resolvent Generators
+open Complex Filter Topology InnerProductSpace Resolvent
 
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
 variable {U_grp : OneParameterUnitaryGroup (H := H)}
 
 /-! ### Skew-adjoint implies unitary exponential -/
 
-theorem expBounded_skewAdjoint_unitary (B : H →L[ℂ] H) (hB : B.adjoint = -B) (t : ℝ) :
+lemma expBounded_skewAdjoint_unitary (B : H →L[ℂ] H) (hB : B.adjoint = -B) (t : ℝ) :
     (expBounded B t).adjoint.comp (expBounded B t) = ContinuousLinearMap.id ℂ H ∧
     (expBounded B t).comp (expBounded B t).adjoint = ContinuousLinearMap.id ℂ H := by
   -- exp(tB)* = exp(tB*) = exp(t(-B)) = exp(-tB)
@@ -47,7 +46,7 @@ theorem expBounded_skewAdjoint_unitary (B : H →L[ℂ] H) (hB : B.adjoint = -B)
   constructor
   · -- exp(tB)* ∘ exp(tB) = exp(-tB) ∘ exp(tB) = exp(0) = I
     rw [h_adj]
-    rw [← expBounded_group_law B (-t) t]
+    rw [← expBounded_add_smul B (-t) t]
     simp only [neg_add_cancel]
     unfold expBounded
     simp only [ofReal_zero, zero_smul]
@@ -64,7 +63,7 @@ theorem expBounded_skewAdjoint_unitary (B : H →L[ℂ] H) (hB : B.adjoint = -B)
       simp [hk]
   · -- exp(tB) ∘ exp(tB)* = exp(tB) ∘ exp(-tB) = exp(0) = I
     rw [h_adj]
-    rw [← expBounded_group_law B t (-t)]
+    rw [← expBounded_add_smul B t (-t)]
     simp only [add_neg_cancel]
     unfold expBounded
     simp only [ofReal_zero, zero_smul]
@@ -117,26 +116,30 @@ lemma smul_I_skewSelfAdjoint (A : H →L[ℂ] H) (hA : ContinuousLinearMap.adjoi
   rw [h, hA, starRingEnd_apply, star_def, conj_I]
   simp only [neg_smul]
 
-theorem expBounded_yosidaApproxSym_unitary
-    (gen : Generator U_grp) (hsa : gen.IsSelfAdjoint)
+lemma expBounded_yosidaApproxSym_unitary {A : H →ₗ.[ℂ] H}
+    (hsym : A.IsFormalAdjoint A)
+    (hplus : ∀ φ : H, ∃ ψ : A.domain, A ψ + I • (ψ : H) = φ)
+    (hminus : ∀ φ : H, ∃ ψ : A.domain, A ψ - I • (ψ : H) = φ)
     (n : ℕ+) (t : ℝ) (ψ φ : H) :
-    ⟪expBounded (I • yosidaApproxSym gen hsa n) t ψ,
-     expBounded (I • yosidaApproxSym gen hsa n) t φ⟫_ℂ = ⟪ψ, φ⟫_ℂ := by
-  have h_skew := I_smul_yosidaApproxSym_skewAdjoint gen hsa n
-  have h_unitary := expBounded_skewAdjoint_unitary (I • yosidaApproxSym gen hsa n) h_skew t
-  let U := expBounded (I • yosidaApproxSym gen hsa n) t
+    ⟪expBounded (I • yosidaApproxSym hsym hplus hminus n) t ψ,
+     expBounded (I • yosidaApproxSym hsym hplus hminus n) t φ⟫_ℂ = ⟪ψ, φ⟫_ℂ := by
+  have h_skew := I_smul_yosidaApproxSym_skewAdjoint hsym hplus hminus n
+  have h_unitary := expBounded_skewAdjoint_unitary (I • yosidaApproxSym hsym hplus hminus n) h_skew t
+  let U := expBounded (I • yosidaApproxSym hsym hplus hminus n) t
   calc ⟪U ψ, U φ⟫_ℂ
       = ⟪ψ, U.adjoint (U φ)⟫_ℂ := (ContinuousLinearMap.adjoint_inner_right U ψ (U φ)).symm
     _ = ⟪ψ, (U.adjoint.comp U) φ⟫_ℂ := rfl
     _ = ⟪ψ, (ContinuousLinearMap.id ℂ H) φ⟫_ℂ := by rw [h_unitary.1]
     _ = ⟪ψ, φ⟫_ℂ := by simp
 
-theorem expBounded_yosidaApproxSym_isometry
-    (gen : Generator U_grp) (hsa : gen.IsSelfAdjoint)
+theorem expBounded_yosidaApproxSym_isometry {A : H →ₗ.[ℂ] H}
+    (hsym : A.IsFormalAdjoint A)
+    (hplus : ∀ φ : H, ∃ ψ : A.domain, A ψ + I • (ψ : H) = φ)
+    (hminus : ∀ φ : H, ∃ ψ : A.domain, A ψ - I • (ψ : H) = φ)
     (n : ℕ+) (t : ℝ) (ψ : H) :
-    ‖expBounded (I • yosidaApproxSym gen hsa n) t ψ‖ = ‖ψ‖ := by
-  set U := expBounded (I • yosidaApproxSym gen hsa n) t with hU
-  have h_inner := expBounded_yosidaApproxSym_unitary gen hsa n t ψ ψ
+    ‖expBounded (I • yosidaApproxSym hsym hplus hminus n) t ψ‖ = ‖ψ‖ := by
+  set U := expBounded (I • yosidaApproxSym hsym hplus hminus n) t with hU
+  have h_inner := expBounded_yosidaApproxSym_unitary hsym hplus hminus n t ψ ψ
   have h1 : ‖U ψ‖^2 = re ⟪U ψ, U ψ⟫_ℂ := (inner_self_eq_norm_sq (𝕜 := ℂ) (U ψ)).symm
   have h2 : ‖ψ‖^2 = re ⟪ψ, ψ⟫_ℂ := (inner_self_eq_norm_sq (𝕜 := ℂ) ψ).symm
   have h_sq : ‖U ψ‖^2 = ‖ψ‖^2 := by
@@ -145,11 +148,13 @@ theorem expBounded_yosidaApproxSym_isometry
   have h_nonneg2 : 0 ≤ ‖ψ‖ := norm_nonneg _
   nlinarith [sq_nonneg (‖U ψ‖ - ‖ψ‖), sq_nonneg (‖U ψ‖ + ‖ψ‖), h_sq, h_nonneg1, h_nonneg2]
 
-theorem expBounded_yosida_norm_le
-    (gen : Generator U_grp) (hsa : gen.IsSelfAdjoint)
+theorem expBounded_yosida_norm_le {A : H →ₗ.[ℂ] H}
+    (hsym : A.IsFormalAdjoint A)
+    (hplus : ∀ φ : H, ∃ ψ : A.domain, A ψ + I • (ψ : H) = φ)
+    (hminus : ∀ φ : H, ∃ ψ : A.domain, A ψ - I • (ψ : H) = φ)
     (n : ℕ+) (t : ℝ) :
-    ‖expBounded (I • yosidaApprox gen hsa n) t‖ ≤
-    Real.exp (|t| * ‖I • yosidaApprox gen hsa n‖) :=
+    ‖expBounded (I • yosidaApprox hsym hplus hminus n) t‖ ≤
+    Real.exp (|t| * ‖I • yosidaApprox hsym hplus hminus n‖) :=
   expBounded_norm_bound _ _
 
 /-! ### Derivatives of exponential -/

@@ -4,7 +4,7 @@ Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
 Filename: Uncertainty/Schrodinger.lean
 -/
-import Spectra.Uncertainty.UnboundedOb
+import Spectra.Uncertainty.Observable
 /-!
 # The Schrödinger (and Robertson) Uncertainty Relations
 
@@ -102,7 +102,7 @@ lemma im_inner_shifted_eq_half_commutator (A B : SymmetricOperator H) (ψ : H)
     rw [A.apply_smul _ h.hψ_A]
     rw [B.apply_sub h.hAψ_B (B.domain.smul_mem _ h.hψ_B)]
     rw [B.apply_smul _ h.hψ_B]
-    module
+    match_scalars <;> ring_nf
   unfold commutatorAt DomainConditions.ABψ DomainConditions.BAψ
   simp only [inner_sub_right]
   ring_nf
@@ -152,7 +152,11 @@ lemma re_inner_shifted_eq_covariance (A B : SymmetricOperator H) (ψ : H)
     rw [A.apply_smul _ h.hψ_A]
     rw [B.apply_sub h.hAψ_B (B.domain.smul_mem _ h.hψ_B)]
     rw [B.apply_smul _ h.hψ_B]
-    module
+    field_simp
+    match_scalars <;> ring_nf
+    · rfl
+    · rfl
+    · ring
   have h_inner_Aψ : ⟪ψ, h.Aψ⟫_ℂ = μ_A := by
     unfold DomainConditions.Aψ
     rw [A.inner_self_eq_re h.hψ_A]

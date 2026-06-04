@@ -4,7 +4,7 @@ Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
 Filename: Uncertainty/UnboundedOb.lean
 -/
-import Spectra.Uncertainty.SymmetricOp
+import Spectra.Uncertainty.SymmOperator
 /-!
 # Unbounded Observables (self-adjoint operators)
 

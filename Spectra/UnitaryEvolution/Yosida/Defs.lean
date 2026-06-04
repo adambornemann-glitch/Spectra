@@ -1,5 +1,5 @@
 /-
-Copyright (c) 2026 Logos Library Formalization Project. All rights reserved.
+Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
 Filename: Yosida/Defs.lean
@@ -30,7 +30,7 @@ exponential of a self-adjoint operator.
 
 namespace QuantumMechanics.Yosida
 
-open Complex Resolvent Generators
+open Complex Resolvent
 
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
 variable {U_grp : OneParameterUnitaryGroup (H := H)}
@@ -38,58 +38,75 @@ variable {U_grp : OneParameterUnitaryGroup (H := H)}
 /-! ### Resolvent at specific points -/
 
 /-- The resolvent at `z = in` for positive natural `n`. -/
-noncomputable def resolventAtIn
-    (gen : Generator U_grp) (hsa : gen.IsSelfAdjoint)
+noncomputable def resolventAtIn {A : H →ₗ.[ℂ] H}
+    (hsym : A.IsFormalAdjoint A)
+    (hplus : ∀ φ : H, ∃ ψ : A.domain, A ψ + I • (ψ : H) = φ)
+    (hminus : ∀ φ : H, ∃ ψ : A.domain, A ψ - I • (ψ : H) = φ)
     (n : ℕ+) : H →L[ℂ] H :=
-  resolvent gen (I * (n : ℂ)) (I_mul_pnat_im_ne_zero n) hsa
+  resolvent (I * (n : ℂ)) (I_mul_pnat_im_ne_zero n) hsym hplus hminus
 
 /-- The resolvent at `z = -in` for positive natural `n`. -/
-noncomputable def resolventAtNegIn
-    (gen : Generator U_grp) (hsa : gen.IsSelfAdjoint)
+noncomputable def resolventAtNegIn {A : H →ₗ.[ℂ] H}
+    (hsym : A.IsFormalAdjoint A)
+    (hplus : ∀ φ : H, ∃ ψ : A.domain, A ψ + I • (ψ : H) = φ)
+    (hminus : ∀ φ : H, ∃ ψ : A.domain, A ψ - I • (ψ : H) = φ)
     (n : ℕ+) : H →L[ℂ] H :=
-  resolvent gen (-I * (n : ℂ)) (neg_I_mul_pnat_im_ne_zero n) hsa
+  resolvent (-I * (n : ℂ)) (neg_I_mul_pnat_im_ne_zero n) hsym hplus hminus
 
 /-! ### Yosida approximation operators -/
 
 /-- The Yosida approximant `Aₙ = n²R(in) - in·I`. -/
-noncomputable def yosidaApprox
-    (gen : Generator U_grp) (hsa : gen.IsSelfAdjoint)
+noncomputable def yosidaApprox {A : H →ₗ.[ℂ] H}
+    (hsym : A.IsFormalAdjoint A)
+    (hplus : ∀ φ : H, ∃ ψ : A.domain, A ψ + I • (ψ : H) = φ)
+    (hminus : ∀ φ : H, ∃ ψ : A.domain, A ψ - I • (ψ : H) = φ)
     (n : ℕ+) : H →L[ℂ] H :=
-  (n : ℂ)^2 • resolventAtIn gen hsa n - (I * (n : ℂ)) • ContinuousLinearMap.id ℂ H
+  (n : ℂ)^2 • resolventAtIn hsym hplus hminus n - (I * (n : ℂ)) • ContinuousLinearMap.id ℂ H
 
 /-- The symmetric Yosida approximant `(n²/2)(R(in) + R(-in))`. -/
-noncomputable def yosidaApproxSym
-    (gen : Generator U_grp) (hsa : gen.IsSelfAdjoint)
+noncomputable def yosidaApproxSym {A : H →ₗ.[ℂ] H}
+    (hsym : A.IsFormalAdjoint A)
+    (hplus : ∀ φ : H, ∃ ψ : A.domain, A ψ + I • (ψ : H) = φ)
+    (hminus : ∀ φ : H, ∃ ψ : A.domain, A ψ - I • (ψ : H) = φ)
     (n : ℕ+) : H →L[ℂ] H :=
-  ((n : ℂ)^2 / 2) • (resolventAtIn gen hsa n + resolventAtNegIn gen hsa n)
+  ((n : ℂ)^2 / 2) • (resolventAtIn hsym hplus hminus n + resolventAtNegIn hsym hplus hminus n)
 
 /-- The contractive operator `Jₙ = -in·R(in)`. -/
-noncomputable def yosidaJ
-    (gen : Generator U_grp) (hsa : gen.IsSelfAdjoint)
+noncomputable def yosidaJ {A : H →ₗ.[ℂ] H}
+    (hsym : A.IsFormalAdjoint A)
+    (hplus : ∀ φ : H, ∃ ψ : A.domain, A ψ + I • (ψ : H) = φ)
+    (hminus : ∀ φ : H, ∃ ψ : A.domain, A ψ - I • (ψ : H) = φ)
     (n : ℕ+) : H →L[ℂ] H :=
-  (-I * (n : ℂ)) • resolventAtIn gen hsa n
+  (-I * (n : ℂ)) • resolventAtIn hsym hplus hminus n
 
 /-- The contractive operator `Jₙ⁻ = in·R(-in)`. -/
-noncomputable def yosidaJNeg
-    (gen : Generator U_grp) (hsa : gen.IsSelfAdjoint)
+noncomputable def yosidaJNeg {A : H →ₗ.[ℂ] H}
+    (hsym : A.IsFormalAdjoint A)
+    (hplus : ∀ φ : H, ∃ ψ : A.domain, A ψ + I • (ψ : H) = φ)
+    (hminus : ∀ φ : H, ∃ ψ : A.domain, A ψ - I • (ψ : H) = φ)
     (n : ℕ+) : H →L[ℂ] H :=
-  (I * (n : ℂ)) • resolventAtNegIn gen hsa n
+  (I * (n : ℂ)) • resolventAtNegIn hsym hplus hminus n
 
 /-- The approximant using `R(-in)`: `Aₙ⁻ = n²R(-in) + in·I`. -/
-noncomputable def yosidaApproxNeg
-    (gen : Generator U_grp) (hsa : gen.IsSelfAdjoint)
+noncomputable def yosidaApproxNeg {A : H →ₗ.[ℂ] H}
+    (hsym : A.IsFormalAdjoint A)
+    (hplus : ∀ φ : H, ∃ ψ : A.domain, A ψ + I • (ψ : H) = φ)
+    (hminus : ∀ φ : H, ∃ ψ : A.domain, A ψ - I • (ψ : H) = φ)
     (n : ℕ+) : H →L[ℂ] H :=
-  ((n : ℂ)^2) • resolventAtNegIn gen hsa n + (I * (n : ℂ)) • ContinuousLinearMap.id ℂ H
+  ((n : ℂ)^2) • resolventAtNegIn hsym hplus hminus n + (I * (n : ℂ)) • ContinuousLinearMap.id ℂ H
 
 /-! ### Resolvent bounds -/
 
-lemma resolventAtIn_bound
-    (gen : Generator U_grp) (hsa : gen.IsSelfAdjoint)
+lemma resolventAtIn_bound {A : H →ₗ.[ℂ] H}
+    (hsym : A.IsFormalAdjoint A)
+    (hplus : ∀ φ : H, ∃ ψ : A.domain, A ψ + I • (ψ : H) = φ)
+    (hminus : ∀ φ : H, ∃ ψ : A.domain, A ψ - I • (ψ : H) = φ)
     (n : ℕ+) :
-    ‖resolventAtIn gen hsa n‖ ≤ 1 / (n : ℝ) := by
+    ‖resolventAtIn hsym hplus hminus n‖ ≤ 1 / (n : ℝ) := by
   unfold resolventAtIn
-  calc ‖resolvent gen (I * (n : ℂ)) (I_mul_pnat_im_ne_zero n) hsa‖
-      ≤ 1 / |(I * (n : ℂ)).im| := resolvent_bound gen hsa (I * (n : ℂ)) (I_mul_pnat_im_ne_zero n)
+  calc ‖resolvent (I * (n : ℂ)) (I_mul_pnat_im_ne_zero n) hsym hplus hminus‖
+      ≤ 1 / |(I * (n : ℂ)).im| :=
+        resolvent_bound hsym hplus hminus (I * (n : ℂ)) (I_mul_pnat_im_ne_zero n)
     _ = 1 / (n : ℝ) := by rw [abs_I_mul_pnat_im]
 
 end QuantumMechanics.Yosida

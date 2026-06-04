@@ -33,27 +33,31 @@ underlies perturbation theory for quantum systems.
 
 namespace QuantumMechanics.Resolvent
 
-open InnerProductSpace MeasureTheory Complex Filter Topology QuantumMechanics.Bochner QuantumMechanics.Generators
+open InnerProductSpace MeasureTheory Complex Filter Topology
+open QuantumMechanics.Bochner
 
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
 
 /-- The resolvent has a convergent power series expansion near any point
     `z₀` with `Im(z₀) ≠ 0`. -/
-theorem resolventFun_hasSum {U_grp : OneParameterUnitaryGroup (H := H)}
-    (gen : Generator U_grp) (hsa : gen.IsSelfAdjoint)
+lemma resolventFun_hasSum {A : H →ₗ.[ℂ] H}
+    (hsym : A.IsFormalAdjoint A)
+    (hplus : ∀ φ : H, ∃ ψ : A.domain, A ψ + I • (ψ : H) = φ)
+    (hminus : ∀ φ : H, ∃ ψ : A.domain, A ψ - I • (ψ : H) = φ)
     (z₀ : OffRealAxis) (z : ℂ) (hz : ‖z - z₀.val‖ < |z₀.val.im|) :
     ∃ (hz' : z.im ≠ 0),
-    HasSum (fun n => (z - z₀.val)^n • (resolventFun gen hsa z₀)^(n+1))
-           (resolvent gen z hz' hsa) := by
+    HasSum (fun n => (z - z₀.val)^n • (resolventFun hsym hplus hminus z₀)^(n+1))
+           (resolvent z hz' hsym hplus hminus) := by
   have hz' : z.im ≠ 0 := im_ne_zero_of_near z₀.property hz
   use hz'
-  set R₀ := resolventFun gen hsa z₀ with hR₀_def
+  set R₀ := resolventFun hsym hplus hminus z₀ with hR₀_def
   set T := (z - z₀.val) • R₀ with hT_def
   have hT_norm : ‖T‖ < 1 := by
     have h_smul_bound : ‖T‖ ≤ ‖z - z₀.val‖ * ‖R₀‖ := by
       simp only [hT_def]
       exact norm_smul_le (z - z₀.val) R₀
-    have h_R₀_bound : ‖R₀‖ ≤ 1 / |z₀.val.im| := resolvent_bound gen hsa z₀.val z₀.property
+    have h_R₀_bound : ‖R₀‖ ≤ 1 / |z₀.val.im| :=
+      resolvent_bound hsym hplus hminus z₀.val z₀.property
     calc ‖T‖
         ≤ ‖z - z₀.val‖ * ‖R₀‖ := h_smul_bound
       _ ≤ ‖z - z₀.val‖ * (1 / |z₀.val.im|) := by
@@ -64,13 +68,13 @@ theorem resolventFun_hasSum {U_grp : OneParameterUnitaryGroup (H := H)}
       _ = 1 := div_self (ne_of_gt (abs_pos.mpr z₀.property))
   have h_neumann := neumannSeries_hasSum T hT_norm
   -- Show that resolvents commute
-  have h_comm : R₀.comp (resolvent gen z hz' hsa) =
-              (resolvent gen z hz' hsa).comp R₀ := by
-    have hR₀_eq : R₀ = resolvent gen z₀.val z₀.property hsa := rfl
-    have h1 := resolvent_identity gen hsa z z₀.val hz' z₀.property
-    have h2 := resolvent_identity gen hsa z₀.val z z₀.property hz'
-    set Rz := resolvent gen z hz' hsa with hRz_def
-    set Rz₀ := resolvent gen z₀.val z₀.property hsa with hRz₀_def
+  have h_comm : R₀.comp (resolvent z hz' hsym hplus hminus) =
+              (resolvent z hz' hsym hplus hminus).comp R₀ := by
+    have hR₀_eq : R₀ = resolvent z₀.val z₀.property hsym hplus hminus := rfl
+    have h1 := resolvent_identity hsym hplus hminus z z₀.val hz' z₀.property
+    have h2 := resolvent_identity hsym hplus hminus z₀.val z z₀.property hz'
+    set Rz := resolvent z hz' hsym hplus hminus with hRz_def
+    set Rz₀ := resolvent z₀.val z₀.property hsym hplus hminus with hRz₀_def
     have h_add : (Rz - Rz₀) + (Rz₀ - Rz) = 0 := by
       simp only [sub_add_sub_cancel, sub_self]
     rw [h1, h2] at h_add
@@ -87,10 +91,10 @@ theorem resolventFun_hasSum {U_grp : OneParameterUnitaryGroup (H := H)}
       | inl h => exact absurd h hz_sub_ne
       | inr h => exact (eq_of_sub_eq_zero h).symm
   -- Express R(z) in terms of R(z₀) and Neumann series
-  have h_resolvent_eq : resolvent gen z hz' hsa =
+  have h_resolvent_eq : resolvent z hz' hsym hplus hminus =
     R₀.comp (neumannSeries T hT_norm) := by
-    set Rz := resolvent gen z hz' hsa with hRz_def
-    have h_res_id := resolvent_identity gen hsa z₀.val z z₀.property hz'
+    set Rz := resolvent z hz' hsym hplus hminus with hRz_def
+    have h_res_id := resolvent_identity hsym hplus hminus z₀.val z z₀.property hz'
     have h1 : Rz = R₀ + (z - z₀.val) • R₀.comp Rz := by
       have hsub : R₀ - Rz = (z₀.val - z) • R₀.comp Rz := h_res_id
       have hneg : (z₀.val - z) = -(z - z₀.val) := by ring
