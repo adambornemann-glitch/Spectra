@@ -77,8 +77,6 @@ lemma norm_integral_exp_neg_unitary_le (φ : H) :
     exact le_of_eq (norm_preserving U_grp t φ)
   · exact norm_nonneg φ
 
-
-
 lemma integrable_unitary_Ioc (φ : H) (h : ℝ) (_ : 0 < h) :
     IntegrableOn (fun t => U_grp.U t φ) (Set.Ioc 0 h) volume := by
   exact (U_grp.strong_continuous φ).integrableOn_Icc.mono_set Set.Ioc_subset_Icc_self

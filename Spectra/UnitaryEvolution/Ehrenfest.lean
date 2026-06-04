@@ -1,5 +1,5 @@
 /-
-Copyright (c) 2026 SpectraFormalization Project. All rights reserved.
+Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
 Filename: UnitaryEvolution/Ehrenfest.lean
@@ -11,7 +11,7 @@ namespace QuantumMechanics.UnitaryEvo
 
 open InnerProductSpace Complex Filter Topology
 
-open StonesTheorem Schrödinger
+open StonesTheorem Schrodinger
 
 /-- The ℂ-inner product is bounded ℝ-bilinear.
 Conjugate-linearity over ℂ restricts to genuine ℝ-linearity since

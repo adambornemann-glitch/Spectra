@@ -19,7 +19,7 @@ outside (`A ψ(t)` rather than `U(t)(Aψ₀)`).
 * Schrödinger, "Quantisierung als Eigenwertproblem" (1926)
 * Stone, "On one-parameter unitary groups in Hilbert space" (1932)
 -/
-namespace QuantumMechanics.Schrödinger
+namespace QuantumMechanics.Schrodinger
 
 open InnerProductSpace Complex Filter Topology
 open Yosida StonesTheorem Stoneslemma
@@ -78,4 +78,4 @@ theorem schrödinger_of_selfAdjoint {A : H →ₗ.[ℂ] H} (hA : IsSelfAdjoint A
   exact schrödinger_equation₂ (genToGroup hA) ψ₀ hψ₀' t
 
 
-end QuantumMechanics.Schrödinger
+end QuantumMechanics.Schrodinger
