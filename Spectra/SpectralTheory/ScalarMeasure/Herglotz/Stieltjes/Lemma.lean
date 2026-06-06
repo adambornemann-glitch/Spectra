@@ -140,6 +140,7 @@ lemma herglotz_lemma_stieltjes
     exact tendsto_nhds_unique (h_lhs.congr h_eq_seq) h_rhs
   exact ⟨μ, hμ_finite, hμ_supp, hμ_fourier⟩
 
+
 end HerglotzStieltjes
 
 end QuantumMechanics.SpectralTheory.HerglotzStieltjes

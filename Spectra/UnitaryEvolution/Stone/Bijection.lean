@@ -40,7 +40,6 @@ noncomputable def stoneEquiv :
   left_inv  U := group_unique _ _ (generator_genToGroup (generator_isSelfAdjoint U))
   right_inv A := Subtype.ext (generator_genToGroup A.2)
 
-
 @[simp] lemma stoneEquiv_apply (U : OneParameterUnitaryGroup (H := H)) :
     (stoneEquiv U : H →ₗ.[ℂ] H) = generator U := rfl
 

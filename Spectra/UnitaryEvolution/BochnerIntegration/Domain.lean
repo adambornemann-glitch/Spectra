@@ -286,7 +286,7 @@ lemma generatorDomain_maximal (ψ : H)
 lemma generator_isSelfAdjoint : IsSelfAdjoint (generator U_grp) :=
   isSelfAdjoint_of_surjective_addSub (generator U_grp)
     (generator_isFormalAdjoint U_grp)
-    (generatorDomain_dense_via_average U_grp)   -- ← the new slot
+    (generatorDomain_dense_via_average U_grp)
     (range_plus_i_eq_top U_grp) (range_minus_i_eq_top U_grp)
 
 end AveragedVectors

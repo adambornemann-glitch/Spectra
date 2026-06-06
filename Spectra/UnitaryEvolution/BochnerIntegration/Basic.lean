@@ -1,5 +1,5 @@
 /-
-Copyright (c) 2026 Logos Library Formalization Project. All rights reserved.
+Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
 Filename: Bochner/Basic.lean
@@ -83,7 +83,6 @@ lemma integrable_exp_decay_continuous
   have hM_ge : |C| ≤ M := le_max_left _ _
   have h_exp_int : IntegrableOn (fun t => Real.exp (-t)) (Set.Ici 0) volume :=
   integrableOn_exp_neg
-
   have h_bound_int : IntegrableOn (fun t => M * Real.exp (-t)) (Set.Ici 0) volume :=
     h_exp_int.const_mul M
   have h_meas : AEStronglyMeasurable (fun t => Real.exp (-t) • f t)
