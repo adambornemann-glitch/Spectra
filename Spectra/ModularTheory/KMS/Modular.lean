@@ -120,7 +120,7 @@ These are now projections from `ModularTheoryData`, not global axioms.
 -/
 
 /-- The modular automorphism group leaves the state invariant. -/
-theorem modularAutomorphismGroup_invariant {A : Type*} [CStarAlgebra A] [IsVonNeumannAlgebra A]
+lemma modularAutomorphismGroup_invariant {A : Type*} [CStarAlgebra A] [IsVonNeumannAlgebra A]
     {ω : FaithfulNormalState A} (hmod : ModularTheoryData A ω) :
     IsInvariant ω.toState σ[hmod] :=
   hmod.invariant
@@ -157,7 +157,7 @@ The analyticity comes from the spectral theory of Δ:
 is KMS at β = 1 with respect to its modular automorphism group σ^ω.
 
 This is a direct projection from the bundled modular theory data. -/
-theorem modular_state_is_kms {A : Type*} [CStarAlgebra A] [IsVonNeumannAlgebra A]
+lemma modular_state_is_kms {A : Type*} [CStarAlgebra A] [IsVonNeumannAlgebra A]
     {ω : FaithfulNormalState A} (hmod : ModularTheoryData A ω) :
     IsKMSState ω.toState σ[hmod] 1 :=
   hmod.kms_at_one
@@ -346,7 +346,7 @@ noncomputable def KMSFunction.rescaleGeneral {A : Type*} [CStarAlgebra A]
     ring_nf
 
 /-- General rescaling theorem: KMS at β₁ implies KMS at β₂ for appropriately rescaled dynamics. -/
-theorem IsKMSState.rescale {A : Type*} [CStarAlgebra A]
+lemma IsKMSState.rescale {A : Type*} [CStarAlgebra A]
     {ω : State A} {α : Dynamics A} {β₁ : ℝ} (hβ₁ : 0 < β₁)
     (h : IsKMSState ω α β₁) (β₂ : ℝ) (hβ₂ : 0 < β₂) :
     IsKMSState ω (α.rescale (β₁/β₂)) β₂ := by
@@ -356,7 +356,7 @@ theorem IsKMSState.rescale {A : Type*} [CStarAlgebra A]
 
 /-- A faithful normal state is KMS at any inverse temperature β > 0 with respect
 to the rescaled modular automorphism group. -/
-theorem modular_state_is_kms_at_beta {A : Type*} [CStarAlgebra A] [IsVonNeumannAlgebra A]
+lemma modular_state_is_kms_at_beta {A : Type*} [CStarAlgebra A] [IsVonNeumannAlgebra A]
     {ω : FaithfulNormalState A} (hmod : ModularTheoryData A ω)
     (β : ℝ) (hβ : 0 < β) :
     IsKMSState ω.toState (σ[hmod].rescale (1/β)) β := by

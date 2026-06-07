@@ -1,27 +1,10 @@
 /-
-Copyright (c) 2026 Logos Library Formalization Project. All rights reserved.
+Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
-Filename: ResolventTheory/Kernel.lean
+Filename: StonesFormula/Kernel/Defs.lean
 -/
-import Spectra.SpectralTheory.StonesFormula.Kernel.Defs
-import Spectra.SpectralTheory.StonesFormula.Kernel.Resolvent
-import Spectra.SpectralTheory.StonesFormula.Kernel.Arctan
-import Spectra.SpectralTheory.StonesFormula.Kernel.Lorentzian
---import Spectra.SpectralTheory.HerglotzTheorem.FejerMeasure
---import Spectra.SpectralTheory.CayleyTransform.Unitary
---import Spectra.SpectralTheory.FourierTransform
---import Spectra.UnitaryEvolution.BochnerIntegration.Domain
---import Spectra.UnitaryEvolution.Resolvent.Analytic
---import Mathlib.MeasureTheory.Integral.DominatedConvergence
---import Mathlib.Analysis.SpecialFunctions.ExpDeriv
---import Mathlib.MeasureTheory.Measure.Portmanteau
---import Mathlib.MeasureTheory.Measure.GiryMonad
---import Mathlib.Analysis.CStarAlgebra.GelfandDuality
---import Mathlib.MeasureTheory.Measure.Stieltjes
---import Mathlib.MeasureTheory.Integral.IntervalIntegral.FundThmCalculus
---import Mathlib.MeasureTheory.Integral.DominatedConvergence
---import Mathlib.Data.Rat.Defs
+import Spectra.UnitaryEvolution.Resolvent.Analytic
 /-!
 # Resolvent Kernel Analysis
 
@@ -69,3 +52,30 @@ the resolvent.
 
 resolvent, Lorentzian, approximate identity, Poisson kernel
 -/
+namespace QuantumMechanics.SpectralTheory
+
+open Complex MeasureTheory Filter Topology TopologicalSpace
+open scoped NNReal ENNReal InnerProductSpace
+
+/-! ### Off-real axis points -/
+
+/-- A complex number with non-zero imaginary part. -/
+structure OffRealAxis where
+  val : ℂ
+  im_ne_zero : val.im ≠ 0
+
+/-- Construct `t + iε` as an off-real point. -/
+def offRealPoint (t : ℝ) (ε : ℝ) (hε : ε > 0) : OffRealAxis :=
+  ⟨↑t + ↑ε * I, by simp [Complex.add_im]; exact ne_of_gt hε⟩
+
+/-- Construct `t - iε` as an off-real point. -/
+def offRealPointNeg (t : ℝ) (ε : ℝ) (hε : ε > 0) : OffRealAxis :=
+  ⟨↑t - ↑ε * I, by simp [Complex.sub_im]; exact ne_of_gt hε⟩
+
+/-! ### Resolvent kernel -/
+
+/-- The resolvent integrand `(s - z)⁻¹`. -/
+noncomputable def resolvent_integrand (z : ℂ) : ℝ → ℂ :=
+  fun s => ((s : ℂ) - z)⁻¹
+
+end QuantumMechanics.SpectralTheory

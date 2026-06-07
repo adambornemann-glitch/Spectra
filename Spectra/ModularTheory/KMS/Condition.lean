@@ -279,7 +279,7 @@ If ω₁ and ω₂ are both KMS at β, then so is λω₁ + (1-λ)ω₂ for 0 �
 This reflects that mixtures of equilibrium states at the same temperature
 are still equilibrium states.
 -/
-theorem kms_states_convex_combination
+lemma kms_states_convex_combination
     (α : Dynamics A) (β : ℝ) (ω₁ ω₂ : State A)
     (h₁ : IsKMSState ω₁ α β) (h₂ : IsKMSState ω₂ α β)
     (t : ℝ) (_ht₀ : 0 ≤ t) (_ht₁ : t ≤ 1)
@@ -323,7 +323,7 @@ then ω(α_t(a)) = ω(a) for all t ∈ ℝ and a ∈ A.
 4. By Liouville's theorem, G is constant
 5. Therefore ω(α_t(a)) = G(t) = G(0) = ω(a)
 -/
-theorem IsKMSState.isInvariant
+lemma IsKMSState.isInvariant
     {ω : State A} {α : Dynamics A} {β : ℝ} (hβ : 0 < β)
     (h : IsKMSState ω α β)
     /- Morera: periodic extensions of KMS functions are entire -/
@@ -379,7 +379,7 @@ lemma kms_boundaries_agree_of_comm
     Physically: in classical (commutative) equilibrium, the two-point
     correlator ω(a · α_t(b)) carries no dynamical information — it equals
     ω(a · b) for all t. The state "sees no time." -/
-theorem commutative_kms_correlations_constant
+lemma commutative_kms_correlations_constant
     (hcomm : ∀ a b : A, a * b = b * a)
     {ω : State A} {α : Dynamics A} {β : ℝ} (hβ : 0 < β)
     (hkms : IsKMSState ω α β)
@@ -412,7 +412,7 @@ theorem commutative_kms_correlations_constant
 
 /-- **Corollary**: A commutative KMS state is invariant. This follows from the
     cylinder theorem by taking `a = 1`. -/
-theorem commutative_kms_is_invariant
+lemma commutative_kms_is_invariant
     (hcomm : ∀ a b : A, a * b = b * a)
     {ω : State A} {α : Dynamics A} {β : ℝ} (hβ : 0 < β)
     (hkms : IsKMSState ω α β)

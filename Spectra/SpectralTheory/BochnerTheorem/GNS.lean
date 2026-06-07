@@ -4,6 +4,7 @@ Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
 Filename: BochnerTheorem/GNS.lean
 -/
+import Spectra.SpectralTheory.BochnerTheorem.GNS.Continuity
 import Spectra.SpectralTheory.BochnerTheorem.GNS.PreHilbert.NormEst
 import Spectra.SpectralTheory.BochnerTheorem.GNS.Representation.ToStone
 import Spectra.SpectralTheory.BochnerTheorem.GNS.Basic

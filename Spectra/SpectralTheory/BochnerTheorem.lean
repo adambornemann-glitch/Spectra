@@ -4,8 +4,7 @@ Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
 Filename: SpectralTheory/BochnerTheorem.lean
 -/
-import Spectra.SpectralTheory.BochnerTheorem.Continuity
-import Spectra.SpectralTheory.BochnerTheorem.Fourier
+import Spectra.SpectralTheory.BochnerTheorem.SpectralScalarMeasure
 import Spectra.SpectralTheory.BochnerTheorem.GNS
 import Spectra.SpectralTheory.BochnerTheorem.Basic
 

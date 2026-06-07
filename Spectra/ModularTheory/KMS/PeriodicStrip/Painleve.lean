@@ -32,7 +32,7 @@ rectangle minus a single horizontal line `{ζ | ζ.im = a}`, then the integral o
 `f` along the boundary of the rectangle vanishes. The line is allowed to cross
 the open rectangle; the proof splits at height `a` and applies Mathlib's standard
 Cauchy–Goursat to the two sub-rectangles. -/
-theorem integral_boundary_rect_eq_zero_off_horizLine
+lemma integral_boundary_rect_eq_zero_off_horizLine
     {a : ℝ} (f : ℂ → ℂ) (z w : ℂ)
     (Hc : ContinuousOn f (Set.uIcc z.re w.re ×ℂ Set.uIcc z.im w.im))
     (Hd : DifferentiableOn ℂ f

@@ -19,7 +19,7 @@ integral of `g` vanishes over every closed rectangle contained in the ball, then
 every `z ∈ Metric.ball c R`.
 
 This is Lemma 2 of the local Painlevé argument. -/
-theorem exists_primitive_of_continuousOn_of_rect_integral_zero
+lemma exists_primitive_of_continuousOn_of_rect_integral_zero
     {c : ℂ} {R : ℝ} (hR : 0 < R) (g : ℂ → ℂ)
     (hg_cont : ContinuousOn g (Metric.ball c R))
     (hg_rect : ∀ z w : ℂ,
@@ -198,7 +198,7 @@ This is the local form of the Painlevé / Schwarz-reflection style "remove a
 line" theorem. It is the analytic content needed to upgrade the periodic
 extension of a holomorphic strip function from "holomorphic off the boundary
 lattice" to "entire". -/
-theorem differentiableOn_of_continuousOn_of_differentiableOn_off_horizLine
+lemma differentiableOn_of_continuousOn_of_differentiableOn_off_horizLine
     {c : ℂ} {R a : ℝ} (hR : 0 < R) (g : ℂ → ℂ)
     (hg_cont : ContinuousOn g (Metric.ball c R))
     (hg_diff : DifferentiableOn ℂ g (Metric.ball c R \ {z | z.im = a})) :

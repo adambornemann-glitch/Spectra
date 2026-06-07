@@ -89,7 +89,7 @@ lemma sSupNormIm_tildeF (F : ℂ → ℂ) (x : ℝ) :
   rw [show ((norm ∘ tildeF F) : ℂ → ℝ) = (norm ∘ F) ∘ (fun z : ℂ => I * z) from rfl,
       Set.image_comp, image_I_mul_re]
 
-theorem hadamard_three_lines_horizontal
+lemma hadamard_three_lines_horizontal
     (F : ℂ → ℂ) (hβ : 0 < β)
     (hholo : DifferentiableOn ℂ F (Strip β))
     (hcont : ContinuousOn F (ClosedStrip β))

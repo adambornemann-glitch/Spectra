@@ -5,8 +5,7 @@ Authors: Adam Bornemann
 Filename: BochnerTheorem/Existence/Spectral.lean
 -/
 import Spectra.SpectralTheory.BochnerTheorem.GNS
-import Spectra.SpectralTheory.BochnerTheorem.Fourier
-import Spectra.SpectralTheory.SpectralAxiom
+import Spectra.SpectralTheory.BochnerTheorem.MeasureExists
 /-!
 # From GNS to Bochner: The Spectral Route
 
@@ -27,44 +26,27 @@ composing three deep results:
 The representing measure is `μ(S) = ⟨E(S)ξ, ξ⟩`.
 
 ## The argument in four lines
-
-```
 f(t) = ⟨ξ, U(t)ξ⟩                       [GNS]
-     = ⟨ξ, exp(itA)ξ⟩                    [Stone]
+     = ⟨ξ, exp(itA)ξ⟩                   [Stone]
      = ∫ e^{itλ} d⟨E(λ)ξ, ξ⟩            [Spectral theorem]
-     = ∫ e^{itλ} dμ(λ)                   [define μ := ⟨E(·)ξ, ξ⟩]
-```
-
-## Dependencies
-
-This file uses:
-- `gns_theorem` from `GNS/Completion.lean` (GNS construction)
-- `stone_existence` from `UnitaryEvo/Stone.lean` (self-adjoint generator)
-- `exists_compatible_spectral_measures` from `Cayley.lean` (spectral theorem — AXIOM)
-- `bochner_measure_fourier` from `Routes.lean` (representation formula)
-- `fourier_uniqueness` from `Fourier/Unique.lean` (uniqueness — PROVED)
-
-The only axiom in the critical path is the spectral theorem.
+     = ∫ e^{itλ} dμ(λ)                  [define μ := ⟨E(·)ξ, ξ⟩]
 
 ## Tags
 
 Bochner's theorem, spectral theorem, Stone's theorem, GNS construction,
 positive definite function, Fourier-Stieltjes transform
 -/
-
 namespace QuantumMechanics.Bochner.Existence
 
-open Complex MeasureTheory Filter Topology QuantumMechanics.Bochner.GNS
-
+open Complex MeasureTheory Filter Topology GNS
+open SpectralTheory
 
 /-- **The Bochner measure via the spectral route.**
-
 Given `f` continuous and positive definite:
 1. GNS gives (H, U, ξ) with f(t) = ⟨ξ, U(t)ξ⟩
 2. Stone gives self-adjoint A with U(t) = exp(itA)
 3. Spectral theorem gives PVM E for A
 4. Define μ(S) = ⟨E(S)ξ, ξ⟩
-
 Then μ is a finite positive Borel measure with
   f(t) = ∫ e^{itλ} dμ(λ). -/
 noncomputable def bochnerMeasureSpectral (f : ℝ → ℂ)
@@ -87,15 +69,12 @@ lemma bochnerMeasureSpectral_finite {f : ℝ → ℂ}
   exact (spectral_scalar_measure_exists (toOneParameterUnitaryGroup gns)
     (gns_cyclic gns.toGNSData)).choose_spec.1
 
-
-/-- **Bochner's theorem — existence (spectral route).**
-
+/-- **Bochner's theorem (Existence)**
 Every continuous positive definite function on ℝ is the
 Fourier-Stieltjes transform of a finite positive Borel measure.
-
 The proof composes GNS, Stone, and the spectral theorem:
   f(t) = ⟨ξ, U(t)ξ⟩ = ⟨ξ, e^{itA}ξ⟩ = ∫ e^{itλ} dμ(λ). -/
-theorem bochner_existence (f : ℝ → ℂ) (hf : IsContinuous f) :
+lemma bochner_existence (f : ℝ → ℂ) (hf : IsContinuous f) :
     ∃ (μ : Measure ℝ), IsFiniteMeasure μ ∧
       ∀ t, f t = ∫ ω, exp (I * ↑ω * ↑t) ∂μ := by
   refine ⟨bochnerMeasureSpectral f hf, bochnerMeasureSpectral_finite hf, fun t => ?_⟩
@@ -107,30 +86,10 @@ theorem bochner_existence (f : ℝ → ℂ) (hf : IsContinuous f) :
   exact (spectral_scalar_measure_exists
     (toOneParameterUnitaryGroup gns) (gns_cyclic gns.toGNSData)).choose_spec.2 t
 
-
 /-- **Bochner's Theorem (Complete).**
-
 A function `f : ℝ → ℂ` is continuous and positive definite if and only
 if it is the Fourier-Stieltjes transform of a unique finite positive
-Borel measure on ℝ.
-
-### Forward direction (this theorem)
-PD + continuous ⟹ ∃! μ finite positive with f(t) = ∫ e^{itω} dμ(ω).
-
-### Reverse direction (elementary)
-If f(t) = ∫ e^{itω} dμ(ω) for finite positive μ, then f is continuous
-(by DCT) and positive definite (by direct computation:
-  Σ c̄ⱼcₖ f(tₖ-tⱼ) = ∫ |Σ cⱼ e^{itⱼω}|² dμ ≥ 0).
-
-### Proof architecture
-- Existence: GNS → Stone → Spectral (this file)
-- Uniqueness: Poisson kernel → Fubini → Lévy inversion (Fourier/Unique.lean)
-
-### Axiom audit
-The only axiom in the proof is `exists_compatible_spectral_measures`
-(the spectral theorem for self-adjoint operators). All other steps —
-GNS construction, Stone's theorem, Fourier uniqueness — are proved
-from first principles. -/
+Borel measure on ℝ.  -/
 theorem bochner_theorem (f : ℝ → ℂ) (hf : IsContinuous f) :
     ∃! (μ : Measure ℝ), IsFiniteMeasure μ ∧
       ∀ t, f t = ∫ ω, exp (I * ↑ω * ↑t) ∂μ := by
@@ -141,6 +100,5 @@ theorem bochner_theorem (f : ℝ → ℂ) (hf : IsContinuous f) :
   haveI := hν_fin
   exact (FourierUniqueness.fourier_uniqueness μ ν
     (fun t => (hμ_rep t).symm.trans (hν_rep t))).symm
-
 
 end QuantumMechanics.Bochner.Existence

@@ -4,7 +4,7 @@ Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
 Filename: BochnerTheorem/GNS/PreHilbert/Defs.lean
 -/
-import Spectra.SpectralTheory.BochnerTheorem.Continuity
+import Spectra.SpectralTheory.BochnerTheorem.GNS.Continuity
 import Mathlib.Data.Finsupp.Defs
 import Mathlib.Data.Finsupp.Basic
 import Mathlib.Data.Finsupp.Order
