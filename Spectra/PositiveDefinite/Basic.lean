@@ -131,13 +131,7 @@ lemma pd_two_point_neg_I (hf : IsPositiveDefinite f) (t : ℝ) :
 
 /-! ## Section 2: Hermitian symmetry -/
 
-/-- A function f : ℝ → ℂ has **Hermitian symmetry** if f(-t) = conj(f(t)).
-
-This holds automatically for:
-- Unitary correlation functions: `t ↦ ⟨U(t)ψ, ψ⟩` (by `U(-t) = U(t)*`)
-- Fourier transforms of positive measures: `t ↦ ∫ e^{iωt} dμ(ω)`
-
-It does NOT follow from `IsPositiveDefinite` (the `.re ≥ 0` condition) alone. -/
+/-- A function f : ℝ → ℂ has **Hermitian symmetry** if f(-t) = conj(f(t)). -/
 def IsHermitian (f : ℝ → ℂ) : Prop :=
   ∀ t, f (-t) = starRingEnd ℂ (f t)
 
@@ -239,14 +233,7 @@ lemma pd_hermitian_im_abs_le (hf : IsPositiveDefinite f) (hH : IsHermitian f) (t
 
 /-! ## Section 4: The sharp norm bound -/
 
-/-- Auxiliary: `starRingEnd ℂ z * z` has real part `‖z‖²`.
-
-This is the key identity for extracting norms from the PD quadratic form.
-
-Note: If `Complex.sq_abs` doesn't resolve in your Mathlib version, replace
-the last line with `simp [Complex.normSq_apply, Complex.norm_eq_abs,
-Real.sq_sqrt (Complex.normSq_nonneg z)]` or prove directly via
-`ext <;> simp [Complex.mul_re, Complex.conj_re, Complex.conj_im] <;> ring`. -/
+/-- Auxiliary: `starRingEnd ℂ z * z` has real part `‖z‖²`.-/
 private lemma conj_mul_self_re (z : ℂ) : (starRingEnd ℂ z * z).re = ‖z‖ ^ 2 := by
   rw [mul_comm, Complex.mul_conj, Complex.ofReal_re]
   exact normSq_eq_norm_sq z
@@ -269,18 +256,7 @@ private lemma conj_mul_div_norm (z : ℂ) (hz : z ≠ 0) :
     · exact Real.ext_cauchy (congrArg Real.cauchy h_im)
   rw [h_eq, ← Complex.ofReal_div, sq, mul_div_cancel_left₀ _ (ne_of_gt h_norm_pos)]
 
-/-- **The sharp norm bound**: `‖f(t)‖ ≤ f(0).re` for PD + Hermitian functions.
-
-This is the critical estimate for Bochner's lemma. It says the
-positive-definite function is uniformly bounded by its value at the origin,
-which provides the dominated convergence control in the existence proof.
-
-### Proof strategy
-
-Use the 2-point PD condition with n=2, points `![0, t]`, and coefficients
-`c = ![conj(f(t)), -‖f(t)‖]`. Under Hermitian symmetry, the quadratic form
-evaluates to `2·‖f(t)‖²·((f 0).re - ‖f(t)‖)`, which must be ≥ 0. Since
-`‖f(t)‖² > 0` (for f(t) ≠ 0), we get `‖f(t)‖ ≤ (f 0).re`. -/
+/-- **The sharp norm bound**: `‖f(t)‖ ≤ f(0).re` for PD + Hermitian functions. -/
 lemma pd_hermitian_norm_bound (hf : IsPositiveDefinite f) (hH : IsHermitian f) (t : ℝ) :
     ‖f t‖ ≤ (f 0).re := by
   by_cases hft : f t = 0
@@ -326,10 +302,7 @@ lemma pd_hermitian_norm_sq_bound (hf : IsPositiveDefinite f) (hH : IsHermitian f
 For PD + Hermitian + continuous at 0, we get uniform continuity everywhere.
 The key estimate is: `‖f(t+h) - f(t)‖² ≤ 2·f(0).re·(f(0).re - Re(f(h)))`. -/
 
-/-- The "variance" of the PD function: `f(0).re - Re(f(h))`.
-
-This is always non-negative (by `pd_hermitian_re_le`), and measures how far
-f(h) is from its maximum value f(0). Continuity at 0 means this tends to 0. -/
+/-- The "variance" of the PD function: `f(0).re - Re(f(h))`. -/
 def pdVariance (f : ℝ → ℂ) (h : ℝ) : ℝ := (f 0).re - (f h).re
 
 lemma pdVariance_nonneg (hf : IsPositiveDefinite f) (hH : IsHermitian f) (h : ℝ) :

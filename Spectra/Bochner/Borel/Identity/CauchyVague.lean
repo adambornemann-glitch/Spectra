@@ -6,6 +6,7 @@ Filename: BochnerTheorem/Borel/Identity/CauchyVague.lean
 -/
 import Spectra.Bochner.Borel.Identity.CauchyTransform
 import Spectra.Bochner.Borel.Identity.BoundedCDF
+import Spectra.Herglotz.Basic
 
 open Complex MeasureTheory Filter Topology
 open Spectra.Resolvent

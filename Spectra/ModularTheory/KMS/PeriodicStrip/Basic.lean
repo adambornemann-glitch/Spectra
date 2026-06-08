@@ -2,24 +2,23 @@
 Copyright (c) 2026 Logos Library Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Author: Adam Bornemann
-Filename: PeriodicStrip/API.lean
+Filename: PeriodicStrip/Basic.lean
 -/
 import Spectra.ModularTheory.KMS.PeriodicStrip.Defs
 import Spectra.ModularTheory.KMS.PeriodicStrip.IndexProps
 import Spectra.ModularTheory.KMS.PeriodicStrip.ExtensionProps
 import Spectra.ModularTheory.KMS.PeriodicStrip.Hadamard
 
-open Complex Set Filter Topology Int MeasureTheory
 namespace Spectra.PeriodicHolomorphic
 
 /-! ## The Main Theorem -/
 
-/-- **Periodic Strip Extension Theorem**
+variable {β:ℝ}
 
+/-- **Periodic Strip Extension Theorem**
 If F is holomorphic on the open strip, continuous on the closed strip,
 bounded, and satisfies F(t) = F(t + iβ) for all real t, then F extends
 to a bounded entire function that agrees with F on the strip.
-
 Combined with Liouville's theorem, this implies F is constant.
 -/
 lemma periodic_strip_extension
@@ -39,13 +38,10 @@ lemma periodic_strip_extension
    periodicExtension_bounded F hβ hbdd,
    fun _z hz => periodicExtension_eq_on_strip F hβ hcont hperiod hz⟩
 
-
 /-! ## Application: Periodic Functions on Strips are Constant -/
 
 /-- A holomorphic function on a strip with matching boundary values is constant.
-
-This is the key result used in proving KMS states are time-invariant.
--/
+This is the key result used in proving KMS states are time-invariant.-/
 lemma periodic_strip_is_constant
     (F : ℂ → ℂ) (hβ : 0 < β)
     (hholo : DifferentiableOn ℂ F (Strip β))

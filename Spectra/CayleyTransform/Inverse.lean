@@ -23,7 +23,7 @@ unitary operator `U`, and proves the fundamental domain characterization `dom(A)
 * `inverseCayleyOp_symmetric`: The inverse Cayley transform is symmetric
 * `generator_domain_eq_range_one_minus_cayley`: `dom(A) = range(I - U)`
 -/
-open InnerProductSpace MeasureTheory Complex Filter Topology
+open Complex
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H]
 namespace Spectra.Cayley
 
@@ -98,6 +98,7 @@ lemma cayley_bijection
   refine ⟨(inverse_cayley_domain hsym hplus ψ).symm, ?_⟩
   rw [one_plus_cayley_apply hsym hplus ψ, smul_smul, show (1 : ℂ) / 2 * 2 = 1 by norm_num, one_smul]
 
+open InnerProductSpace in
 /-- The inverse Cayley transform as a linear map on `range(I - U)`. -/
 noncomputable def inverseCayleyOp (U : H →L[ℂ] H)
     (_ : ∀ ψ φ, ⟪U ψ, U φ⟫_ℂ = ⟪ψ, φ⟫_ℂ)
@@ -167,6 +168,7 @@ noncomputable def inverseCayleyOp (U : H →L[ℂ] H)
       exact eq_of_sub_eq_zero (h_one _ h_fixed)
     rw [h_diff, map_smul, smul_comm c I (U ψ), smul_comm c I ψ]
 
+open InnerProductSpace in
 /-- The inverse Cayley transform is symmetric. -/
 lemma inverseCayleyOp_symmetric (U : H →L[ℂ] H)
     (hU : ∀ ψ φ, ⟪U ψ, U φ⟫_ℂ = ⟪ψ, φ⟫_ℂ)

@@ -32,6 +32,18 @@ namespace Spectra.Operator
 def Unitary (U : H →L[ℂ] H) : Prop :=
   U.adjoint * U = 1 ∧ U * U.adjoint = 1
 
+/-- Spectra's `Unitary` predicate agrees with Mathlib's `unitary` submonoid membership. -/
+lemma mem_unitary_iff_Unitary (U : H →L[ℂ] H) :
+    U ∈ unitary (H →L[ℂ] H) ↔ Unitary U := by
+  constructor
+  · intro hU
+    have h : star U * U = 1 ∧ U * star U = 1 := hU        -- membership unfolds to this
+    rwa [ContinuousLinearMap.star_eq_adjoint] at h
+  · intro hU
+    show star U * U = 1 ∧ U * star U = 1                   -- defeq to the goal `U ∈ unitary _`
+    rw [ContinuousLinearMap.star_eq_adjoint]
+    exact hU
+
 /-- Unitary operators preserve inner products. -/
 lemma Unitary.inner_map_map {U : H →L[ℂ] H} (hU : Unitary U) (x y : H) :
     ⟪U x, U y⟫_ℂ = ⟪x, y⟫_ℂ := by

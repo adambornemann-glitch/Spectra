@@ -10,13 +10,15 @@ import Spectra.Resolvent.SpecialCases
 import Spectra.Resolvent.NormExpansion
 import Spectra.Resolvent.Integral.Domain
 import Spectra.Operator.Unitary.Basic
+import Mathlib.Analysis.CStarAlgebra.ContinuousLinearMap
+import Mathlib.Analysis.CStarAlgebra.ContinuousFunctionalCalculus.Basic
 /-!
 # The Cayley Transform
 
 This file defines the Cayley transform of a self-adjoint generator and proves its
 fundamental properties: it is an isometry, surjective, and unitary.
 -/
-open InnerProductSpace MeasureTheory Complex Filter Topology
+open Complex
 open Spectra.Resolvent
 open Spectra.QuantumMechanics
 open Spectra.Operator
@@ -81,6 +83,7 @@ theorem cayleyTransform_surjective_of_isSelfAdjoint [CompleteSpace H]
                        (isSelfAdjoint_to_surjective hA).1) :=
   cayleyTransform_surjective _ _ (isSelfAdjoint_to_surjective hA).2
 
+open InnerProductSpace in
 /-- The Cayley transform of a self-adjoint operator is unitary. -/
 theorem cayleyTransform_unitary [CompleteSpace H]
     {A : H →ₗ.[ℂ] H} (hsym : A.IsFormalAdjoint A)
@@ -92,80 +95,9 @@ theorem cayleyTransform_unitary [CompleteSpace H]
     intro x; rw [hU]; exact cayleyTransform_isometry hsym hplus x
   -- `U` preserves the inner product, by complex polarization from the isometry.
   have h_inner : ∀ φ ψ : H, ⟪U φ, U ψ⟫_ℂ = ⟪φ, ψ⟫_ℂ := by
-    have h_inner_self : ∀ x, ⟪U x, U x⟫_ℂ = ⟪x, x⟫_ℂ := by
-      intro x
-      have h1 : (⟪U x, U x⟫_ℂ).re = ‖U x‖ ^ 2 := by
-        have := inner_self_eq_norm_sq_to_K (𝕜 := ℂ) (U x); rw [this]; norm_cast
-      have h2 : (⟪x, x⟫_ℂ).re = ‖x‖ ^ 2 := by
-        have := inner_self_eq_norm_sq_to_K (𝕜 := ℂ) x; rw [this]; norm_cast
-      have h3 : (⟪U x, U x⟫_ℂ).im = 0 := by
-        have := inner_self_eq_norm_sq_to_K (𝕜 := ℂ) (U x); rw [this]; norm_cast
-      have h4 : (⟪x, x⟫_ℂ).im = 0 := by
-        have := inner_self_eq_norm_sq_to_K (𝕜 := ℂ) x; rw [this]; norm_cast
-      apply Complex.ext <;> simp only [h1, h2, h3, h4, h_isometry]
+    let L : H →ₗᵢ[ℂ] H := ⟨U.toLinearMap, h_isometry⟩
     intro φ ψ
-    have h_re_part : ⟪U φ, U ψ⟫_ℂ + ⟪U ψ, U φ⟫_ℂ = ⟪φ, ψ⟫_ℂ + ⟪ψ, φ⟫_ℂ := by
-      have h_sum := h_inner_self (φ + ψ)
-      rw [U.map_add] at h_sum
-      have lhs : ⟪U φ + U ψ, U φ + U ψ⟫_ℂ =
-          ⟪U φ, U φ⟫_ℂ + ⟪U φ, U ψ⟫_ℂ + ⟪U ψ, U φ⟫_ℂ + ⟪U ψ, U ψ⟫_ℂ := by
-        rw [inner_add_left, inner_add_right, inner_add_right]; ring
-      have rhs : ⟪φ + ψ, φ + ψ⟫_ℂ =
-          ⟪φ, φ⟫_ℂ + ⟪φ, ψ⟫_ℂ + ⟪ψ, φ⟫_ℂ + ⟪ψ, ψ⟫_ℂ := by
-        rw [inner_add_left, inner_add_right, inner_add_right]; ring
-      rw [lhs, rhs, h_inner_self φ, h_inner_self ψ] at h_sum
-      calc ⟪U φ, U ψ⟫_ℂ + ⟪U ψ, U φ⟫_ℂ
-          = (⟪φ, φ⟫_ℂ + ⟪U φ, U ψ⟫_ℂ + ⟪U ψ, U φ⟫_ℂ + ⟪ψ, ψ⟫_ℂ)
-              - ⟪φ, φ⟫_ℂ - ⟪ψ, ψ⟫_ℂ := by ring
-        _ = (⟪φ, φ⟫_ℂ + ⟪φ, ψ⟫_ℂ + ⟪ψ, φ⟫_ℂ + ⟪ψ, ψ⟫_ℂ)
-              - ⟪φ, φ⟫_ℂ - ⟪ψ, ψ⟫_ℂ := by rw [h_sum]
-        _ = ⟪φ, ψ⟫_ℂ + ⟪ψ, φ⟫_ℂ := by ring
-    have h_im_part : ⟪U φ, I • U ψ⟫_ℂ + ⟪I • U ψ, U φ⟫_ℂ
-        = ⟪φ, I • ψ⟫_ℂ + ⟪I • ψ, φ⟫_ℂ := by
-      have h_sum_i := h_inner_self (φ + I • ψ)
-      rw [U.map_add, U.map_smul] at h_sum_i
-      have lhs : ⟪U φ + I • U ψ, U φ + I • U ψ⟫_ℂ =
-          ⟪U φ, U φ⟫_ℂ + ⟪U φ, I • U ψ⟫_ℂ + ⟪I • U ψ, U φ⟫_ℂ + ⟪I • U ψ, I • U ψ⟫_ℂ := by
-        rw [inner_add_left, inner_add_right, inner_add_right]; ring
-      have rhs : ⟪φ + I • ψ, φ + I • ψ⟫_ℂ =
-          ⟪φ, φ⟫_ℂ + ⟪φ, I • ψ⟫_ℂ + ⟪I • ψ, φ⟫_ℂ + ⟪I • ψ, I • ψ⟫_ℂ := by
-        rw [inner_add_left, inner_add_right, inner_add_right]; ring
-      have hIψ : ⟪I • U ψ, I • U ψ⟫_ℂ = ⟪I • ψ, I • ψ⟫_ℂ := by
-        rw [inner_smul_left, inner_smul_right, inner_smul_left, inner_smul_right]
-        simp only [Complex.conj_I]
-        rw [h_inner_self ψ]
-      rw [lhs, rhs, h_inner_self φ, hIψ] at h_sum_i
-      calc ⟪U φ, I • U ψ⟫_ℂ + ⟪I • U ψ, U φ⟫_ℂ
-          = (⟪φ, φ⟫_ℂ + ⟪U φ, I • U ψ⟫_ℂ + ⟪I • U ψ, U φ⟫_ℂ + ⟪I • ψ, I • ψ⟫_ℂ)
-              - ⟪φ, φ⟫_ℂ - ⟪I • ψ, I • ψ⟫_ℂ := by ring
-        _ = (⟪φ, φ⟫_ℂ + ⟪φ, I • ψ⟫_ℂ + ⟪I • ψ, φ⟫_ℂ + ⟪I • ψ, I • ψ⟫_ℂ)
-              - ⟪φ, φ⟫_ℂ - ⟪I • ψ, I • ψ⟫_ℂ := by rw [h_sum_i]
-        _ = ⟪φ, I • ψ⟫_ℂ + ⟪I • ψ, φ⟫_ℂ := by ring
-    apply Complex.ext
-    · have e1 : ⟪U ψ, U φ⟫_ℂ = (starRingEnd ℂ) ⟪U φ, U ψ⟫_ℂ := (inner_conj_symm _ _).symm
-      have e2 : ⟪ψ, φ⟫_ℂ = (starRingEnd ℂ) ⟪φ, ψ⟫_ℂ := (inner_conj_symm _ _).symm
-      have e3 : (⟪U φ, U ψ⟫_ℂ + (starRingEnd ℂ) ⟪U φ, U ψ⟫_ℂ).re = 2 * (⟪U φ, U ψ⟫_ℂ).re := by
-        simp only [Complex.add_re, Complex.conj_re]; ring
-      have e4 : (⟪φ, ψ⟫_ℂ + (starRingEnd ℂ) ⟪φ, ψ⟫_ℂ).re = 2 * (⟪φ, ψ⟫_ℂ).re := by
-        simp only [Complex.add_re, Complex.conj_re]; ring
-      rw [e1, e2] at h_re_part
-      have := congrArg Complex.re h_re_part
-      rw [e3, e4] at this; linarith
-    · rw [inner_smul_right, inner_smul_left, inner_smul_right, inner_smul_left] at h_im_part
-      simp only [Complex.conj_I] at h_im_part
-      have e1 : ⟪U ψ, U φ⟫_ℂ = (starRingEnd ℂ) ⟪U φ, U ψ⟫_ℂ := (inner_conj_symm _ _).symm
-      have e2 : ⟪ψ, φ⟫_ℂ = (starRingEnd ℂ) ⟪φ, ψ⟫_ℂ := (inner_conj_symm _ _).symm
-      have e3 : (I * ⟪U φ, U ψ⟫_ℂ + (-I) * (starRingEnd ℂ) ⟪U φ, U ψ⟫_ℂ).re
-          = -2 * (⟪U φ, U ψ⟫_ℂ).im := by
-        simp only [Complex.add_re, Complex.mul_re, Complex.neg_re, Complex.neg_im,
-          Complex.I_re, Complex.I_im, Complex.conj_re, Complex.conj_im]; ring
-      have e4 : (I * ⟪φ, ψ⟫_ℂ + (-I) * (starRingEnd ℂ) ⟪φ, ψ⟫_ℂ).re
-          = -2 * (⟪φ, ψ⟫_ℂ).im := by
-        simp only [Complex.add_re, Complex.mul_re, Complex.neg_re, Complex.neg_im,
-          Complex.I_re, Complex.I_im, Complex.conj_re, Complex.conj_im]; ring
-      rw [e1, e2] at h_im_part
-      have := congrArg Complex.re h_im_part
-      rw [e3, e4] at this; linarith
+    exact L.inner_map_map φ ψ
   -- `U⋆U = 1` is now immediate from inner-product preservation.
   have h_star_self : U.adjoint * U = 1 := by
     ext φ
@@ -186,6 +118,23 @@ theorem cayleyTransform_unitary [CompleteSpace H]
     rw [← hUψ, hadj]
   exact ⟨h_star_self, h_self_star⟩
 
+/-- The Cayley transform of a self-adjoint operator, as an element of Mathlib's `unitary`. -/
+theorem cayleyTransform_mem_unitary [CompleteSpace H]
+    {A : H →ₗ.[ℂ] H} (hsym : A.IsFormalAdjoint A)
+    (hplus  : ∀ φ : H, ∃ ψ : A.domain, A ψ + I • (ψ : H) = φ)
+    (hminus : ∀ φ : H, ∃ ψ : A.domain, A ψ - I • (ψ : H) = φ) :
+    cayleyTransform hsym hplus ∈ unitary (H →L[ℂ] H) :=
+  (mem_unitary_iff_Unitary _).mpr (cayleyTransform_unitary hsym hplus hminus)
+
+/-- The spectrum of the Cayley transform of `A` lies on the unit circle, since the transform is unitary. -/
+lemma cayleyTransform_spectrum_subset_circle [CompleteSpace H]
+    {A : H →ₗ.[ℂ] H} (hsym : A.IsFormalAdjoint A)
+    (hplus  : ∀ φ : H, ∃ ψ : A.domain, A ψ + I • (ψ : H) = φ)
+    (hminus : ∀ φ : H, ∃ ψ : A.domain, A ψ - I • (ψ : H) = φ) :
+    spectrum ℂ (cayleyTransform hsym hplus) ⊆ Metric.sphere (0 : ℂ) 1 :=
+  spectrum.subset_circle_of_unitary (cayleyTransform_mem_unitary hsym hplus hminus)
+
+/-- The Cayley transform of a self-adjoint operator is unitary. -/
 theorem cayleyTransform_unitary_of_isSelfAdjoint [CompleteSpace H]
     {A : H →ₗ.[ℂ] H} (hA : IsSelfAdjoint A) :
     Unitary (cayleyTransform (isFormalAdjoint_self_of_isSelfAdjoint hA)

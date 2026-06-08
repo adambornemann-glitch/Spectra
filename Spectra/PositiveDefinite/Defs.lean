@@ -5,7 +5,6 @@ Authors: Adam Bornemann
 Filename: HerglotzTheorem/PositiveDefinite.lean
 -/
 import Spectra.Operator.Unitary.Powers
-import Spectra.CayleyTransform.Transform
 /-!
 # Herglotz's Theorem and Scalar Spectral Measures for Unitary Operators
 

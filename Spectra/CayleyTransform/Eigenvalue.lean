@@ -20,7 +20,7 @@ its Cayley transform `U`: real eigenvalues `μ` of `A` correspond to eigenvalues
   `(μ - i)/(μ + i)` is an eigenvalue of `U`
 * `cayley_shift_identity`: Key identity relating `(U - w)φ` to `(A - μ)ψ`
 -/
-open InnerProductSpace MeasureTheory Complex Filter Topology
+open Complex
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H]
 open Spectra.QuantumMechanics
 
@@ -161,5 +161,161 @@ lemma cayley_shift_injective
   rw [h_Aψ, sub_self, norm_zero] at h_bound
   have hψ_zero : ‖(ψ : H)‖ = 0 := by nlinarith [norm_nonneg (ψ : H)]
   exact hψ_ne (norm_eq_zero.mp hψ_zero)
+
+/-- Approximate eigenvalues of `U` give approximate eigenvalues of `A`. -/
+lemma cayley_approx_eigenvalue_backward
+    {A : H →ₗ.[ℂ] H} (hsym : A.IsFormalAdjoint A)
+    (hplus : ∀ φ : H, ∃ ψ : A.domain, A ψ + I • (ψ : H) = φ) (μ : ℝ)
+    (hμ_ne : (↑μ : ℂ) + I ≠ 0) :
+    (∀ ε > 0, ∃ φ, ‖φ‖ = 1 ∧
+      ‖(cayleyTransform hsym hplus - ((↑μ - I) * (↑μ + I)⁻¹) • ContinuousLinearMap.id ℂ H) φ‖ < ε) →
+    (∀ C > 0, ∃ ψ : A.domain, (ψ : H) ≠ 0 ∧ ‖A ψ - (↑μ : ℂ) • (ψ : H)‖ < C * ‖(ψ : H)‖) := by
+  intro h_approx C hC
+  set U := cayleyTransform hsym hplus with hU_def
+  set w := (↑μ - I) * (↑μ + I)⁻¹ with hw_def
+  have h_one_sub_w_ne : (1 : ℂ) - w ≠ 0 := one_sub_mobius_ne_zero μ hμ_ne
+  have h_one_sub_w_norm_pos : ‖(1 : ℂ) - w‖ > 0 := norm_pos_iff.mpr h_one_sub_w_ne
+  set denom := Real.sqrt (1 + μ ^ 2) with hdenom
+  have hdenom_pos : denom > 0 := Real.sqrt_pos.mpr (by linarith [sq_nonneg μ])
+  have hdenom_ge_one : denom ≥ 1 := by
+    rw [hdenom]
+    calc Real.sqrt (1 + μ ^ 2) ≥ Real.sqrt 1 := Real.sqrt_le_sqrt (by linarith [sq_nonneg μ])
+      _ = 1 := Real.sqrt_one
+  have h_denom_sq : denom ^ 2 = 1 + μ ^ 2 := by
+    rw [hdenom]; exact Real.sq_sqrt (by linarith [sq_nonneg μ])
+  set C' := min C (1 / 2) with hC'_def
+  have hC'_pos : C' > 0 := lt_min hC (by norm_num)
+  have hC'_le_half : C' ≤ 1 / 2 := min_le_right C (1 / 2)
+  have hC'_le_C : C' ≤ C := min_le_left C (1 / 2)
+  obtain ⟨φ, hφ_norm, hφ_bound⟩ := h_approx (C' * ‖(1 : ℂ) - w‖ / (2 * denom)) (by positivity)
+  obtain ⟨ψ, hφ_eq⟩ := hplus φ
+  have hφ_ne : φ ≠ 0 := by
+    intro h; rw [h, norm_zero] at hφ_norm; exact one_ne_zero hφ_norm.symm
+  have hψ_ne : (ψ : H) ≠ 0 := by
+    intro h
+    have hψ0 : ψ = 0 := Subtype.ext h
+    apply hφ_ne; rw [← hφ_eq, hψ0]; simp
+  refine ⟨ψ, hψ_ne, ?_⟩
+  -- Cayley shift identity, transported through `φ = (A + iI)ψ`.
+  have h_key : (U - w • ContinuousLinearMap.id ℂ H) φ
+      = ((1 : ℂ) - w) • (A ψ - (↑μ : ℂ) • (ψ : H)) := by
+    have h := cayley_shift_identity hsym hplus μ hμ_ne ψ
+    rw [hφ_eq] at h; exact h
+  have h_norm_eq : ‖A ψ - (↑μ : ℂ) • (ψ : H)‖
+      = ‖(U - w • ContinuousLinearMap.id ℂ H) φ‖ / ‖(1 : ℂ) - w‖ := by
+    rw [h_key, norm_smul]; field_simp [ne_of_gt h_one_sub_w_norm_pos]
+  set δ := ‖A ψ - (↑μ : ℂ) • (ψ : H)‖ with hδ_def
+  have hδ_nonneg : 0 ≤ δ := norm_nonneg _
+  have hδ_bound : δ < C' / (2 * denom) := by
+    calc δ = ‖(U - w • ContinuousLinearMap.id ℂ H) φ‖ / ‖(1 : ℂ) - w‖ := h_norm_eq
+      _ < (C' * ‖(1 : ℂ) - w‖ / (2 * denom)) / ‖(1 : ℂ) - w‖ :=
+          div_lt_div_of_pos_right hφ_bound h_one_sub_w_norm_pos
+      _ = C' / (2 * denom) := by field_simp
+  have hδ_small : δ < 1 / (4 * denom) := by
+    calc δ < C' / (2 * denom) := hδ_bound
+      _ ≤ (1 / 2) / (2 * denom) := div_le_div_of_nonneg_right hC'_le_half (by positivity)
+      _ = 1 / (4 * denom) := by ring
+  have h_norm_identity : ‖A ψ‖ ^ 2 + ‖(ψ : H)‖ ^ 2 = 1 := by
+    have h := self_adjoint_norm_sq_add hsym ψ
+    rw [hφ_eq, hφ_norm, one_pow] at h; linarith
+  -- The δ-independent floor, by the crude `(a+b)² ≤ 2a²+2b²` estimate.
+  have hψ_norm_lower : 1 / (2 * denom) ≤ ‖(ψ : H)‖ := by
+    have h_Aψ_upper : ‖A ψ‖ ≤ |μ| * ‖(ψ : H)‖ + δ := by
+      have h1 : ‖(↑μ : ℂ) • (ψ : H)‖ = |μ| * ‖(ψ : H)‖ := by
+        rw [norm_smul]; simp [Complex.norm_real, Real.norm_eq_abs]
+      calc ‖A ψ‖
+          = ‖(A ψ - (↑μ : ℂ) • (ψ : H)) + (↑μ : ℂ) • (ψ : H)‖ := by rw [sub_add_cancel]
+        _ ≤ ‖A ψ - (↑μ : ℂ) • (ψ : H)‖ + ‖(↑μ : ℂ) • (ψ : H)‖ := norm_add_le _ _
+        _ = δ + |μ| * ‖(ψ : H)‖ := by rw [← hδ_def, h1]
+        _ = |μ| * ‖(ψ : H)‖ + δ := by ring
+    have hδ_half : δ ≤ 1 / 2 := by
+      have hle : (1 : ℝ) / (4 * denom) ≤ 1 / 2 := by
+        rw [div_le_div_iff₀ (by positivity) (by norm_num)]; nlinarith [hdenom_ge_one]
+      linarith [hδ_small, hle]
+    have h_crude : (1 : ℝ) ≤ (1 + 2 * μ ^ 2) * ‖(ψ : H)‖ ^ 2 + 2 * δ ^ 2 := by
+      have hsq : ‖A ψ‖ ^ 2 ≤ (|μ| * ‖(ψ : H)‖ + δ) ^ 2 :=
+        sq_le_sq'
+          (by nlinarith [norm_nonneg (A ψ), mul_nonneg (abs_nonneg μ) (norm_nonneg (ψ : H)), hδ_nonneg])
+          h_Aψ_upper
+      rw [← sq_abs μ]
+      nlinarith [h_norm_identity, hsq, sq_nonneg (|μ| * ‖(ψ : H)‖ - δ)]
+    have hsq_lower : 1 / (4 * denom ^ 2) ≤ ‖(ψ : H)‖ ^ 2 := by
+      have hge : (1 : ℝ) / 2 ≤ (1 + 2 * μ ^ 2) * ‖(ψ : H)‖ ^ 2 := by
+        nlinarith [h_crude, hδ_half, hδ_nonneg]
+      have hsq1 : 1 / (2 * (1 + 2 * μ ^ 2)) ≤ ‖(ψ : H)‖ ^ 2 := by
+        rw [div_le_iff₀ (by positivity)]; nlinarith [hge]
+      have hcmp : 1 / (4 * denom ^ 2) ≤ 1 / (2 * (1 + 2 * μ ^ 2)) := by
+        rw [h_denom_sq, div_le_div_iff₀ (by positivity) (by positivity)]; nlinarith [sq_nonneg μ]
+      linarith [hsq1, hcmp]
+    have h := Real.sqrt_le_sqrt hsq_lower
+    rwa [Real.sqrt_sq (norm_nonneg (ψ : H)),
+         show Real.sqrt (1 / (4 * denom ^ 2)) = 1 / (2 * denom) by
+           rw [show (1 : ℝ) / (4 * denom ^ 2) = (1 / (2 * denom)) ^ 2 by ring,
+               Real.sqrt_sq (by positivity)]] at h
+  calc δ < C' / (2 * denom) := hδ_bound
+    _ ≤ C / (2 * denom) := div_le_div_of_nonneg_right hC'_le_C (by positivity)
+    _ ≤ C * ‖(ψ : H)‖ := by
+        calc C / (2 * denom) = C * (1 / (2 * denom)) := by ring
+          _ ≤ C * ‖(ψ : H)‖ := mul_le_mul_of_nonneg_left hψ_norm_lower (le_of_lt hC)
+
+variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [IsScalarTower ℝ ℂ H]
+
+/-- Approximate eigenvalues of `A` give approximate eigenvalues of `U`. -/
+lemma cayley_approx_eigenvalue_forward
+    {A : H →ₗ.[ℂ] H} (hsym : A.IsFormalAdjoint A)
+    (hplus : ∀ φ : H, ∃ ψ : A.domain, A ψ + I • (ψ : H) = φ) (μ : ℝ)
+    (hμ_ne : (↑μ : ℂ) + I ≠ 0) :
+    (∀ C > 0, ∃ ψ : A.domain, (ψ : H) ≠ 0 ∧ ‖A ψ - (↑μ : ℂ) • (ψ : H)‖ < C * ‖(ψ : H)‖) →
+    (∀ ε > 0, ∃ φ, ‖φ‖ = 1 ∧
+      ‖(cayleyTransform hsym hplus - ((↑μ - I) * (↑μ + I)⁻¹) • ContinuousLinearMap.id ℂ H) φ‖ < ε) := by
+  intro h_approx ε hε
+  set U := cayleyTransform hsym hplus with hU_def
+  set w := (↑μ - I) * (↑μ + I)⁻¹ with hw_def
+  have h_one_sub_w_ne : (1 : ℂ) - w ≠ 0 := one_sub_mobius_ne_zero μ hμ_ne
+  have h_one_sub_w_norm_pos : ‖(1 : ℂ) - w‖ > 0 := norm_pos_iff.mpr h_one_sub_w_ne
+  obtain ⟨ψ, hψ_ne, h_Aμψ_bound⟩ := h_approx (ε / ‖(1 : ℂ) - w‖) (by positivity)
+  have hψ_norm_pos : ‖(ψ : H)‖ > 0 := norm_pos_iff.mpr hψ_ne
+  set φ' := A ψ + I • (ψ : H) with hφ'_def
+  have hφ'_norm_pos : ‖φ'‖ > 0 := by
+    have h_sq := self_adjoint_norm_sq_add hsym ψ
+    have h_ge : ‖φ'‖ ^ 2 ≥ ‖(ψ : H)‖ ^ 2 := by
+      calc ‖φ'‖ ^ 2 = ‖A ψ‖ ^ 2 + ‖(ψ : H)‖ ^ 2 := h_sq
+        _ ≥ 0 + ‖(ψ : H)‖ ^ 2 := by linarith [sq_nonneg ‖A ψ‖]
+        _ = ‖(ψ : H)‖ ^ 2 := by ring
+    nlinarith [norm_nonneg φ', sq_nonneg ‖φ'‖, sq_nonneg ‖(ψ : H)‖]
+  have hφ'_ne : φ' ≠ 0 := norm_pos_iff.mp hφ'_norm_pos
+  have hφ'_norm_ge_ψ : ‖φ'‖ ≥ ‖(ψ : H)‖ := by
+    have h_sq := self_adjoint_norm_sq_add hsym ψ
+    have h_ge : ‖φ'‖ ^ 2 ≥ ‖(ψ : H)‖ ^ 2 := by
+      calc ‖φ'‖ ^ 2 = ‖A ψ‖ ^ 2 + ‖(ψ : H)‖ ^ 2 := h_sq
+        _ ≥ ‖(ψ : H)‖ ^ 2 := by linarith [sq_nonneg ‖A ψ‖]
+    nlinarith [norm_nonneg φ', norm_nonneg (ψ : H), sq_nonneg (‖φ'‖ - ‖(ψ : H)‖)]
+  set φ := ‖φ'‖⁻¹ • φ' with hφ_def
+  refine ⟨φ, ?_, ?_⟩
+  · rw [hφ_def, norm_smul, norm_inv, norm_norm]
+    field_simp [ne_of_gt hφ'_norm_pos]
+  have h_Uwφ' : (U - w • ContinuousLinearMap.id ℂ H) φ' =
+      ((1 : ℂ) - w) • (A ψ - (↑μ : ℂ) • (ψ : H)) :=
+    cayley_shift_identity hsym hplus μ hμ_ne ψ
+  have h_norm_Uwφ' : ‖(U - w • ContinuousLinearMap.id ℂ H) φ'‖ =
+      ‖(1 : ℂ) - w‖ * ‖A ψ - (↑μ : ℂ) • (ψ : H)‖ := by
+    rw [h_Uwφ', norm_smul]
+  calc ‖(U - w • ContinuousLinearMap.id ℂ H) φ‖
+      = ‖(U - w • ContinuousLinearMap.id ℂ H) (‖φ'‖⁻¹ • φ')‖ := by rw [hφ_def]
+    _ = ‖‖φ'‖⁻¹ • (U - w • ContinuousLinearMap.id ℂ H) φ'‖ := by
+        simp only [ContinuousLinearMap.map_smul_of_tower,
+          ContinuousLinearMap.coe_sub', ContinuousLinearMap.coe_smul',
+          ContinuousLinearMap.coe_id', Pi.sub_apply, Pi.smul_apply, id_eq]
+    _ = ‖φ'‖⁻¹ * ‖(U - w • ContinuousLinearMap.id ℂ H) φ'‖ := by
+        rw [norm_smul, norm_inv, norm_norm]
+    _ = ‖φ'‖⁻¹ * (‖(1 : ℂ) - w‖ * ‖A ψ - (↑μ : ℂ) • (ψ : H)‖) := by rw [h_norm_Uwφ']
+    _ < ‖φ'‖⁻¹ * (‖(1 : ℂ) - w‖ * (ε / ‖(1 : ℂ) - w‖ * ‖(ψ : H)‖)) := by
+        apply mul_lt_mul_of_pos_left _ (inv_pos.mpr hφ'_norm_pos)
+        exact mul_lt_mul_of_pos_left h_Aμψ_bound h_one_sub_w_norm_pos
+    _ = ‖φ'‖⁻¹ * (ε * ‖(ψ : H)‖) := by field_simp
+    _ ≤ ‖φ'‖⁻¹ * (ε * ‖φ'‖) := by
+        apply mul_le_mul_of_nonneg_left _ (inv_nonneg.mpr (norm_nonneg _))
+        exact mul_le_mul_of_nonneg_left hφ'_norm_ge_ψ (le_of_lt hε)
+    _ = ε := by field_simp [ne_of_gt hφ'_norm_pos]
 
 end Spectra.Cayley

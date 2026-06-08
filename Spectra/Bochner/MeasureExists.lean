@@ -43,12 +43,7 @@ namespace Spectra.Bochner
 For continuous, bounded, Hermitian `h`, the `e^{-ε|t|}`-regularized full-line transform at
 frequency `s` equals `L_h(s-iε) + conj L_h(s-iε)`, where `L_h(z) = ∫_{t≥0} e^{-izt} h(t) dt`.
 Split `ℝ = Iic 0 ⊔ Ioi 0`: on `Ioi 0` (`|t| = t`) we get `L_h` directly; on `Iic 0` the
-substitution `t ↦ -t` together with `h(-t) = conj h(t)` yields `conj L_h`.
-
-NOTE (not compiler-checked by me): the `t ↦ -t` step mirrors Stage A of `fourier_identity`,
-so the lemma names are the ones already validated in your codebase.  The spots most likely
-to want a nudge are marked ⚠ (the two `Complex.ext` exponent identities, and the
-`setIntegral_preimage_emb` orientation). -/
+substitution `t ↦ -t` together with `h(-t) = conj h(t)` yields `conj L_h`. -/
 private lemma two_sided_split {h : ℝ → ℂ} (hcont : Continuous h)
     {C : ℝ} (hbnd : ∀ t, ‖h t‖ ≤ C) (hherm : ∀ t, h (-t) = starRingEnd ℂ (h t))
     (s : ℝ) {ε : ℝ} (hε : 0 < ε) :

@@ -4,7 +4,8 @@ Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
 Filename: SpectralTheory/HerglotzTheorem/Basic.lean
 -/
-import Spectra.Herglotz.Stieltjes
+import Spectra.Herglotz.Stieltjes.IntegralConv
+import Spectra.Herglotz.Stieltjes.Hellys
 
 open Complex MeasureTheory Filter Topology
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
@@ -14,7 +15,46 @@ namespace Spectra.Herglotz
 
 section HerglotzStieltjes
 
-variable (U : H →L[ℂ] H) --(hU : Cayley.Unitary U)
+variable (U : H →L[ℂ] H)
+
+/-- For a nonneg integrable density `ρ : ℝ → ℝ`, the measure
+`volume.withDensity (l ↦ ofReal (ρ l))` equals the Stieltjes measure of its
+cumulative distribution `F : a ↦ ∫_{(-∞,a]} ρ`. -/
+lemma withDensity_ofReal_eq_stieltjes_measure
+    {ρ : ℝ → ℝ} (hρ_nn : ∀ x, 0 ≤ ρ x) (hρ_int : Integrable ρ volume)
+    {F : ℝ → ℝ}
+    (hF : ∀ a, F a = ∫ l in Set.Iic a, ρ l ∂volume)
+    (hF_mono : Monotone F)
+    (hF_cont : Continuous F)
+    (hF_atBot : Tendsto F atBot (𝓝 0)) :
+    volume.withDensity (fun l => ENNReal.ofReal (ρ l)) =
+      hF_mono.stieltjesFunction.measure := by
+  -- LHS is a finite measure (total mass `= ∫ ρ < ∞`).
+  haveI : IsFiniteMeasure (volume.withDensity (fun l => ENNReal.ofReal (ρ l))) := by
+    refine ⟨?_⟩
+    rw [withDensity_apply _ MeasurableSet.univ, MeasureTheory.setLIntegral_univ,
+        ← MeasureTheory.ofReal_integral_eq_lintegral_ofReal hρ_int
+            (Filter.Eventually.of_forall hρ_nn)]
+    exact ENNReal.ofReal_lt_top
+  -- Right-continuous regularization `sf` agrees with `F` everywhere — `F` is continuous.
+  have hSF_eq : ∀ x, hF_mono.stieltjesFunction x = F x := fun x =>
+    stieltjes_eq_at_continuousAt _ hF_mono x hF_cont.continuousAt
+  -- `sf` inherits the `-∞` limit from `F`.
+  have hSF_atBot : Tendsto hF_mono.stieltjesFunction atBot (𝓝 0) := by
+    rw [show hF_mono.stieltjesFunction = F from funext hSF_eq]; exact hF_atBot
+  -- Both measures agree on every `Iic a`; apply uniqueness.
+  apply Measure.ext_of_Iic
+  intro a
+  have hLHS_val : (volume.withDensity (fun l => ENNReal.ofReal (ρ l))) (Set.Iic a)
+      = ENNReal.ofReal (F a) := by
+    rw [withDensity_apply _ measurableSet_Iic,
+        ← MeasureTheory.ofReal_integral_eq_lintegral_ofReal
+            hρ_int.integrableOn (Filter.Eventually.of_forall hρ_nn),
+        hF a]
+  have hRHS_val : hF_mono.stieltjesFunction.measure (Set.Iic a)
+      = ENNReal.ofReal (F a) := by
+    rw [StieltjesFunction.measure_Iic _ hSF_atBot, hSF_eq, sub_zero]
+  rw [hLHS_val, hRHS_val]
 
 -- stieltjes_rightLim_const:
 private lemma stieltjes_rightLim_const {F : ℝ → ℝ} (hF : Monotone F) {a M : ℝ}
@@ -47,7 +87,7 @@ lemma herglotz_lemma_stieltjes
       (∀ n : ℤ, ∫ θ in Set.Icc 0 (2 * Real.pi), exp (I * n * θ) ∂μ = c n) := by
   -- Step 1: Helly selection
   obtain ⟨G, φ, hφ, h_mono_G, h_G_zero, h_G_bnd, _h_rat_conv, h_cont_conv⟩ :=
-    helly_selection F M hM h_mono h_bnd h_zero
+    helly_selection' F M hM h_mono h_bnd h_zero
   have hFconst : ∀ N (y : ℝ), 2 * Real.pi ≤ y → F N y = M := fun N y hy =>
     le_antisymm (h_bnd N y).2 ((h_top N) ▸ h_mono N hy)
   have hG_left : ∀ x ≤ (0 : ℝ), G x = 0 := fun x hx =>

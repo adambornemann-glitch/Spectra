@@ -4,7 +4,7 @@ Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
 Filename: SpectralTheory/HerglotzTheorem/Stieltjes/IntegralConvergence.lean
 -/
-import Spectra.Herglotz.Stieltjes.Measure
+import Spectra.Herglotz.Stieltjes.Hellys
 import Mathlib.Topology.Algebra.Module.Cardinality
 
 open Complex MeasureTheory Filter Topology
@@ -15,6 +15,13 @@ namespace Spectra.Herglotz
 /-! ### Convergence of integrals (portmanteau-style) -/
 
 section IntegralConvergence
+
+/-- At continuity points of `G`, the Stieltjes regularization agrees with `G`. -/
+lemma stieltjes_eq_at_continuousAt (G : ℝ → ℝ) (h_mono : Monotone G)
+    (x : ℝ) (hx : ContinuousAt G x) :
+    h_mono.stieltjesFunction x = G x := by
+  rw [h_mono.stieltjesFunction_eq]
+  exact (h_mono.continuousWithinAt_Ioi_iff_rightLim_eq).mp hx.continuousWithinAt
 
 /-- Telescoping sum over `Ico 1 n`. -/
 private lemma sum_Ico_telescope (g : ℕ → ℝ) : ∀ n, 1 ≤ n →

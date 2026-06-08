@@ -4,8 +4,9 @@ Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
 Filename: SpectralTheory/BochnerTheorem/Borel/Measure.lean
 -/
-import Spectra.Herglotz.Stieltjes.Measure
-import Spectra.Bochner.Borel.Hellys
+import Spectra.Herglotz.Stieltjes.Hellys
+import Spectra.Bochner.Borel.Defs
+import Spectra.Bochner.Borel.CDF
 
 open Complex MeasureTheory Filter Topology
 open Spectra.Resolvent
@@ -19,6 +20,40 @@ variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteS
 variable (U_grp : OneParameterUnitaryGroup (H := H))
 
 namespace Spectra.Bochner
+
+lemma borelEps_pos (n : ℕ) : (0 : ℝ) < 1 / ((n : ℝ) + 1) := by positivity
+
+variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
+
+/-- Regularized CDFs along εₙ = 1/(n+1), packaged for Helly. -/
+noncomputable def borelApproxCDF (U_grp : OneParameterUnitaryGroup (H := H)) (ξ : H) :
+    ℕ → ℝ → ℝ := fun n => borelCDF U_grp ξ (borelEps_pos n)
+
+lemma borelApproxCDF_mono (U_grp : OneParameterUnitaryGroup (H := H)) (ξ : H)
+    (n : ℕ) : Monotone (borelApproxCDF U_grp ξ n) :=
+  borelCDF_mono U_grp ξ (borelEps_pos n)
+
+lemma borelApproxCDF_bnd (U_grp : OneParameterUnitaryGroup (H := H)) (ξ : H)
+    (n : ℕ) (x : ℝ) : borelApproxCDF U_grp ξ n x ∈ Set.Icc (0 : ℝ) (‖ξ‖ ^ 2) :=
+  ⟨borelCDF_nonneg U_grp ξ (borelEps_pos n) x, borelCDF_le U_grp ξ (borelEps_pos n) x⟩
+
+/-- The Helly existence, named once so the chosen `G`/`φ` are shared everywhere below. -/
+lemma borelHelly (U_grp : OneParameterUnitaryGroup (H := H)) (ξ : H) :
+    ∃ (G : ℝ → ℝ) (φ : ℕ → ℕ), StrictMono φ ∧ Monotone G ∧
+      (∀ x, G x ∈ Set.Icc (0 : ℝ) (‖ξ‖ ^ 2)) ∧
+      (∀ q : ℚ, Tendsto (fun k => borelApproxCDF U_grp ξ (φ k) (q : ℝ)) atTop (𝓝 (G (q : ℝ)))) ∧
+      (∀ x : ℝ, ContinuousAt G x →
+        Tendsto (fun k => borelApproxCDF U_grp ξ (φ k) x) atTop (𝓝 (G x))) :=
+  helly_selection (borelApproxCDF U_grp ξ) (‖ξ‖ ^ 2) (by positivity)
+    (borelApproxCDF_mono U_grp ξ) (borelApproxCDF_bnd U_grp ξ)
+
+/-- The limiting CDF (along the selected subsequence). -/
+noncomputable def borelLimitCDF (U_grp : OneParameterUnitaryGroup (H := H)) (ξ : H) : ℝ → ℝ :=
+  (borelHelly U_grp ξ).choose
+
+lemma borelLimitCDF_mono (U_grp : OneParameterUnitaryGroup (H := H)) (ξ : H) :
+    Monotone (borelLimitCDF U_grp ξ) :=
+  (borelHelly U_grp ξ).choose_spec.choose_spec.2.1
 
 /-- **The spectral (Borel) measure.** -/
 noncomputable def borelMeasure (U_grp : OneParameterUnitaryGroup (H := H)) (ξ : H) : Measure ℝ :=

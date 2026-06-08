@@ -16,127 +16,117 @@ namespace Spectra.Herglotz
 
 section HellySelection
 
+/-- **Helly selection, unanchored.** Uniformly bounded, monotone `Fₙ` admit a
+subsequence converging at every rational and at every continuity point of the
+limit. No value is fixed at the origin. -/
+lemma helly_selection
+    (F : ℕ → ℝ → ℝ) (M : ℝ) (_hM : 0 ≤ M)
+    (h_mono : ∀ N, Monotone (F N))
+    (h_bnd : ∀ N x, F N x ∈ Set.Icc (0 : ℝ) M) :
+    ∃ (G : ℝ → ℝ) (φ : ℕ → ℕ), StrictMono φ ∧ Monotone G ∧
+      (∀ x, G x ∈ Set.Icc (0 : ℝ) M) ∧
+      (∀ q : ℚ, Tendsto (fun k => F (φ k) (q : ℝ)) atTop (𝓝 (G (q : ℝ)))) ∧
+      (∀ x : ℝ, ContinuousAt G x →
+        Tendsto (fun k => F (φ k) x) atTop (𝓝 (G x))) := by
+  have hC : IsCompact (Set.univ.pi fun _ : ℚ => Set.Icc (0 : ℝ) M) :=
+    isCompact_univ_pi fun _ => isCompact_Icc
+  have hmem : ∀ n, (fun q : ℚ => F n (q : ℝ)) ∈ Set.univ.pi fun _ => Set.Icc (0:ℝ) M :=
+    fun n q _ => h_bnd n (q : ℝ)
+  obtain ⟨g, -, φ, hφ_mono, hφ_lim⟩ := hC.isSeqCompact hmem
+  have h_rat_conv : ∀ q : ℚ, Tendsto (fun k => F (φ k) (q : ℝ)) atTop (𝓝 (g q)) :=
+    fun q => (tendsto_pi_nhds.mp hφ_lim) q
+  have hg_bnd : ∀ q : ℚ, g q ∈ Set.Icc (0 : ℝ) M := fun q =>
+    ⟨ge_of_tendsto' (h_rat_conv q) fun k => (h_bnd (φ k) _).1,
+     le_of_tendsto'  (h_rat_conv q) fun k => (h_bnd (φ k) _).2⟩
+  have hg_mono : ∀ {q r : ℚ}, q ≤ r → g q ≤ g r := fun {q r} hqr =>
+    le_of_tendsto_of_tendsto (h_rat_conv q) (h_rat_conv r)
+      (Eventually.of_forall fun k => h_mono (φ k) (by exact_mod_cast hqr))
+  set S : ℝ → Set ℝ := fun x => g '' {q : ℚ | x ≤ (q : ℝ)} with hS
+  have hS_ne  : ∀ x, (S x).Nonempty := fun x => by
+    obtain ⟨q, hq⟩ := exists_rat_gt x; exact ⟨g q, q, hq.le, rfl⟩
+  have hS_bdd : ∀ x, BddBelow (S x) := fun x =>
+    ⟨0, by rintro _ ⟨q, _, rfl⟩; exact (hg_bnd q).1⟩
+  set G : ℝ → ℝ := fun x => sInf (S x) with hG
+  have hG_rat : ∀ q : ℚ, G (q : ℝ) = g q := fun q =>
+  le_antisymm (csInf_le (hS_bdd _) ⟨q, Set.mem_setOf.mpr le_rfl, rfl⟩)
+    (le_csInf (hS_ne _) (by rintro _ ⟨r, hr, rfl⟩; exact hg_mono (by exact_mod_cast hr)))
+  have hG_mono : Monotone G := fun x y hxy =>
+    le_csInf (hS_ne _) (by
+      rintro _ ⟨r, hr, rfl⟩; exact csInf_le (hS_bdd _) ⟨r, le_trans hxy hr, rfl⟩)
+  have hG_bnd : ∀ x, G x ∈ Set.Icc (0 : ℝ) M := fun x =>
+    ⟨le_csInf (hS_ne _) (by rintro _ ⟨r, _, rfl⟩; exact (hg_bnd r).1),
+     by obtain ⟨q, hq⟩ := exists_rat_gt x
+        exact le_trans (csInf_le (hS_bdd _) ⟨q, hq.le, rfl⟩) (hg_bnd q).2⟩
+  refine ⟨G, φ, hφ_mono, hG_mono, hG_bnd, fun q => by rw [hG_rat q]; exact h_rat_conv q, ?_⟩
+  intro x hx
+  refine tendsto_order.mpr ⟨fun c hc => ?_, fun c hc => ?_⟩
+  · -- hc : c < G x.  Seat a rational a < x with c < g a, then sandwich from below.
+    have hnhds : ∀ᶠ y in 𝓝 x, c < G y :=
+      Filter.Tendsto.eventually hx (eventually_gt_nhds hc)
+    obtain ⟨δ, hδ, hδ'⟩ := Metric.eventually_nhds_iff.mp hnhds
+    obtain ⟨a, ha₁, ha₂⟩ := exists_rat_btwn (show x - δ < x by linarith)
+    have hca : c < g a := by
+      have h := hδ' (show dist (a : ℝ) x < δ by
+        rw [Real.dist_eq, abs_lt]; constructor <;> linarith)
+      rwa [hG_rat a] at h
+    filter_upwards [Filter.Tendsto.eventually (h_rat_conv a) (eventually_gt_nhds hca)]
+      with k hk
+    exact lt_of_lt_of_le hk (h_mono (φ k) ha₂.le)
+  · -- hc : G x < c.  Seat a rational b > x with g b < c, then sandwich from above.
+    have hnhds : ∀ᶠ y in 𝓝 x, G y < c :=
+      Filter.Tendsto.eventually hx (eventually_lt_nhds hc)
+    obtain ⟨δ, hδ, hδ'⟩ := Metric.eventually_nhds_iff.mp hnhds
+    obtain ⟨b, hb₁, hb₂⟩ := exists_rat_btwn (show x < x + δ by linarith)
+    have hcb : g b < c := by
+      have h := hδ' (show dist (b : ℝ) x < δ by
+        rw [Real.dist_eq, abs_lt]; constructor <;> linarith)
+      rwa [hG_rat b] at h
+    filter_upwards [Filter.Tendsto.eventually (h_rat_conv b) (eventually_lt_nhds hcb)]
+      with k hk
+    exact lt_of_le_of_lt (h_mono (φ k) hb₁.le) hk
+
 /-- **Helly's selection lemma** for distribution functions on `[0, 2π]`.
   Given a sequence of monotone functions `F_N : ℝ → ℝ` with
   `0 ≤ F_N(x) ≤ M` for all `N, x`, there exists a subsequence converging
   pointwise at all points of a countable dense set. -/
-lemma helly_selection
+theorem helly_selection'
     (F : ℕ → ℝ → ℝ) (M : ℝ) (hM : 0 ≤ M)
     (h_mono : ∀ N, Monotone (F N))
-    (h_bnd : ∀ N x, F N x ∈ Set.Icc 0 M)
-    (h_zero : ∀ N, F N 0 = 0) :        -- ADDED: needed for `G 0 = 0` (see note)
-    ∃ (G : ℝ → ℝ) (φ : ℕ → ℕ), StrictMono φ ∧
-      Monotone G ∧
-      G 0 = 0 ∧
-      (∀ x, G x ∈ Set.Icc 0 M) ∧
-      (∀ q : ℚ, Tendsto (fun k => F (φ k) ↑q) atTop (𝓝 (G ↑q))) ∧
+    (h_bnd : ∀ N x, F N x ∈ Set.Icc (0 : ℝ) M)
+    (h_zero : ∀ N, F N 0 = 0) :
+    ∃ (G : ℝ → ℝ) (φ : ℕ → ℕ), StrictMono φ ∧ Monotone G ∧ G 0 = 0 ∧
+      (∀ x, G x ∈ Set.Icc (0 : ℝ) M) ∧
+      (∀ q : ℚ, Tendsto (fun k => F (φ k) (q : ℝ)) atTop (𝓝 (G (q : ℝ)))) ∧
       (∀ x : ℝ, ContinuousAt G x →
         Tendsto (fun k => F (φ k) x) atTop (𝓝 (G x))) := by
-  classical
-  -- enumerate ℚ
-  set e : ℚ ≃ ℕ := Denumerable.eqv ℚ with he
-  set xarr : ℕ → ℕ → ℝ := fun n k => F k ((e.symm n : ℝ)) with hxarr
-  have hbnd' : ∀ n k, xarr n k ∈ Set.Icc (-M) M := by
-    intro n k
-    simp only [hxarr]
-    rw [Set.mem_Icc]
-    have h := h_bnd k ((e.symm n : ℝ))
-    rw [Set.mem_Icc] at h
-    exact ⟨by linarith [h.1, hM], h.2⟩
-  obtain ⟨L, φ, hφ_mono, hL⟩ :=
-    coordinatewise_convergent_subseq xarr (fun _ => M) (fun _ => hM) hbnd'
-  -- limit at rationals
-  set Lq : ℚ → ℝ := fun q => L (e q) with hLq_def
-  have hconv_rat : ∀ q : ℚ, Tendsto (fun k => F (φ k) (q : ℝ)) atTop (𝓝 (Lq q)) := by
-    intro q
-    have h := hL (e q)
-    have hrw : (fun k => xarr (e q) (φ k)) = (fun k => F (φ k) (q : ℝ)) := by
-      funext k; simp only [hxarr, Equiv.symm_apply_apply]
-    rw [hrw] at h
-    exact h
-  have hLq_mem : ∀ q : ℚ, Lq q ∈ Set.Icc 0 M := fun q =>
-    isClosed_Icc.mem_of_tendsto (hconv_rat q)
-      (Eventually.of_forall (fun k => h_bnd (φ k) (q : ℝ)))
-  have hLq_mono : ∀ {q₁ q₂ : ℚ}, q₁ ≤ q₂ → Lq q₁ ≤ Lq q₂ := by
-    intro q₁ q₂ hq
-    exact le_of_tendsto_of_tendsto (hconv_rat q₁) (hconv_rat q₂)
-      (Eventually.of_forall (fun k => h_mono (φ k) (by exact_mod_cast hq)))
-  have hLq_zero : Lq 0 = 0 := by
-    have hc : Tendsto (fun k => F (φ k) ((0 : ℚ) : ℝ)) atTop (𝓝 (0 : ℝ)) := by
-      have hfun : (fun k => F (φ k) ((0 : ℚ) : ℝ)) = (fun _ => (0 : ℝ)) := by
-        funext k; rw [Rat.cast_zero, h_zero (φ k)]
-      rw [hfun]; exact tendsto_const_nhds
-    exact tendsto_nhds_unique (hconv_rat 0) hc
-  -- left-regularization
-  set S : ℝ → Set ℝ := fun x => Lq '' {q : ℚ | (q : ℝ) ≤ x} with hS
-  set G : ℝ → ℝ := fun x => sSup (S x) with hG
-  have hS_nonempty : ∀ x, (S x).Nonempty := by
-    intro x
-    obtain ⟨q, hq⟩ := exists_rat_lt x
-    exact ⟨Lq q, q, le_of_lt hq, rfl⟩
-  have hS_bddAbove : ∀ x, BddAbove (S x) := by
-    intro x
-    refine ⟨M, ?_⟩
-    rintro r ⟨q, _, rfl⟩
-    exact (hLq_mem q).2
-  have hS_nonneg : ∀ x, ∀ r ∈ S x, 0 ≤ r := by
-    rintro x r ⟨q, _, rfl⟩
-    exact (hLq_mem q).1
-  have hG_mem : ∀ x, G x ∈ Set.Icc 0 M := by
-    intro x
-    rw [Set.mem_Icc]
-    refine ⟨?_, ?_⟩
-    · obtain ⟨r, hr⟩ := hS_nonempty x
-      exact le_trans (hS_nonneg x r hr) (le_csSup (hS_bddAbove x) hr)
-    · exact csSup_le (hS_nonempty x) (by rintro r ⟨q, _, rfl⟩; exact (hLq_mem q).2)
-  have hG_mono : Monotone G := by
-    intro x y hxy
-    exact csSup_le_csSup (hS_bddAbove y) (hS_nonempty x)
-      (by rintro r ⟨q, hq, rfl⟩; exact ⟨q, le_trans hq hxy, rfl⟩)
-  have hG_rat : ∀ q₀ : ℚ, G (q₀ : ℝ) = Lq q₀ := by
-    intro q₀
-    apply le_antisymm
-    · exact csSup_le (hS_nonempty _)
-        (by rintro r ⟨q, hq, rfl⟩; exact hLq_mono (by exact_mod_cast hq))
-    · refine le_csSup (hS_bddAbove _) ⟨q₀, ?_, rfl⟩
-      simp only [Rat.cast_le, Set.mem_setOf_eq, le_refl]
-  have hG_zero : G 0 = 0 := by
-    have h := hG_rat 0
-    rw [Rat.cast_zero] at h
-    rw [h, hLq_zero]
-  have hrat : ∀ q : ℚ, Tendsto (fun k => F (φ k) (↑q)) atTop (𝓝 (G ↑q)) := by
-    intro q; rw [hG_rat q]; exact hconv_rat q
-  -- convergence at continuity points
-  have hG_cont_conv : ∀ x : ℝ, ContinuousAt G x →
-      Tendsto (fun k => F (φ k) x) atTop (𝓝 (G x)) := by
-    intro x hx_cont
-    rw [Metric.tendsto_atTop]
-    intro ε hε
-    obtain ⟨δ, hδ, hδ_prop⟩ := (Metric.continuousAt_iff.mp hx_cont) (ε / 2) (by linarith)
-    obtain ⟨q₂, hq₂_lo, hq₂_hi⟩ := exists_rat_btwn (show x < x + δ by linarith)
-    obtain ⟨q₁, hq₁_lo, hq₁_hi⟩ := exists_rat_btwn (show x - δ < x by linarith)
-    have hdist₂ : dist ((q₂ : ℝ)) x < δ := by
-      rw [Real.dist_eq, abs_lt]; exact ⟨by linarith, by linarith⟩
-    have hdist₁ : dist ((q₁ : ℝ)) x < δ := by
-      rw [Real.dist_eq, abs_lt]; exact ⟨by linarith, by linarith⟩
-    have hd₂ := hδ_prop hdist₂
-    have hd₁ := hδ_prop hdist₁
-    have hc₁ : Tendsto (fun k => F (φ k) ((q₁ : ℝ))) atTop (𝓝 (G ↑q₁)) := by
-      rw [hG_rat q₁]; exact hconv_rat q₁
-    have hc₂ : Tendsto (fun k => F (φ k) ((q₂ : ℝ))) atTop (𝓝 (G ↑q₂)) := by
-      rw [hG_rat q₂]; exact hconv_rat q₂
-    rw [Metric.tendsto_atTop] at hc₁ hc₂
-    obtain ⟨N₁, hN₁⟩ := hc₁ (ε / 2) (by linarith)
-    obtain ⟨N₂, hN₂⟩ := hc₂ (ε / 2) (by linarith)
-    refine ⟨max N₁ N₂, fun k hk => ?_⟩
-    have e₁ := hN₁ k (le_of_max_le_left hk)
-    have e₂ := hN₂ k (le_of_max_le_right hk)
-    have hsand₁ : F (φ k) ((q₁ : ℝ)) ≤ F (φ k) x := h_mono (φ k) (le_of_lt hq₁_hi)
-    have hsand₂ : F (φ k) x ≤ F (φ k) ((q₂ : ℝ)) := h_mono (φ k) (le_of_lt hq₂_lo)
-    rw [Real.dist_eq, abs_lt] at e₁ e₂ hd₁ hd₂
-    rw [Real.dist_eq, abs_lt]
-    exact ⟨by linarith [e₁.1, hd₁.1, hsand₁], by linarith [e₂.2, hd₂.2, hsand₂]⟩
-  exact ⟨G, φ, hφ_mono, hG_mono, hG_zero, hG_mem, hrat, hG_cont_conv⟩
+  obtain ⟨G, φ, hφ, hGmono, hGbnd, hGrat, hGcont⟩ := helly_selection F M hM h_mono h_bnd
+  refine ⟨G, φ, hφ, hGmono, ?_, hGbnd, hGrat, hGcont⟩
+  have h0 := hGrat 0
+  simp only [Rat.cast_zero, h_zero] at h0
+  exact tendsto_nhds_unique h0 tendsto_const_nhds
+
+open MeasureTheory in
+/-- Given the Helly limit `G` (monotone, bounded), produce a
+`StieltjesFunction` and its associated measure.
+
+The key: `Monotone.stieltjesFunction` right-regularizes `G` and
+packages it as a `StieltjesFunction`. Then `.measure` gives the
+Borel measure. -/
+noncomputable def hellyLimitMeasure (G : ℝ → ℝ) (h_mono : Monotone G) :
+    Measure ℝ :=
+  (h_mono.stieltjesFunction).measure
+
+/-- The Stieltjes measure satisfies `μ(Ioc a b) = G(b) - G(a)` at
+continuity points.
+
+More precisely, `Monotone.stieltjesFunction` right-regularizes `G`,
+so `μ(Ioc a b) = ofReal (G⁺(b) - G⁺(a))` where `G⁺` is the
+right-continuous version. At continuity points, `G⁺ = G`. -/
+lemma hellyLimitMeasure_Ioc (G : ℝ → ℝ) (h_mono : Monotone G)
+    (a b : ℝ) :
+    (hellyLimitMeasure G h_mono) (Set.Ioc a b) =
+    ENNReal.ofReal (h_mono.stieltjesFunction b - h_mono.stieltjesFunction a) :=
+  StieltjesFunction.measure_Ioc _ a b
 
 end HellySelection
 

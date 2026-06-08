@@ -4,7 +4,6 @@ Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
 Filename: Spectra.lean
 -/
--- # Mathlib Basic Function
 import Spectra.Mathlib.MeasureTheory.Integral.Basic
 import Spectra.Kernel.Defs
 import Spectra.Kernel.Arctan
@@ -20,11 +19,9 @@ import Spectra.Operator.Unitary.Basic
 import Spectra.Operator.Unitary.Powers
 import Spectra.Herglotz.FejerMeans
 import Spectra.Herglotz.FejerMeasure
-import Spectra.Herglotz.Stieltjes
 import Spectra.Herglotz.Stieltjes.CumulativeDistFun
 import Spectra.Herglotz.Stieltjes.Hellys
 import Spectra.Herglotz.Stieltjes.IntegralConv
-import Spectra.Herglotz.Stieltjes.Measure
 import Spectra.Herglotz.Basic
 import Spectra.Resolvent.Integral.GroupIntegration
 import Spectra.Resolvent.Integral.Limits.Helpers
@@ -50,16 +47,19 @@ import Spectra.Resolvent.Diagonal.IntegralZ.GeneratorLim
 import Spectra.Resolvent.Diagonal.IntegralZ.DiffQuotient
 import Spectra.Resolvent.Diagonal.IntegralZ.Basic
 import Spectra.CayleyTransform.Transform
+import Spectra.CayleyTransform.RieszMarkov
 import Spectra.CayleyTransform.Inverse
 import Spectra.CayleyTransform.Mobius
 import Spectra.CayleyTransform.Eigenvalue
+import Spectra.CayleyTransform.BoundedBelow
+import Spectra.CayleyTransform.MapsResolvent
+import Spectra.CayleyTransform.Image
 import Spectra.PositiveDefinite.Defs
 import Spectra.PositiveDefinite.Basic
 import Spectra.PositiveDefinite.PVMInterface
 import Spectra.Bochner.Borel.Defs
 import Spectra.Bochner.Borel.Fubini
 import Spectra.Bochner.Borel.CDF
-import Spectra.Bochner.Borel.Hellys
 import Spectra.Bochner.Borel.Measure
 import Spectra.Bochner.Borel.Identity.CauchyTransform
 import Spectra.Bochner.Borel.Identity.CauchyVague
@@ -88,6 +88,24 @@ import Spectra.Bochner.GNS.Representation.ToStone
 import Spectra.Bochner.GNS.Basic
 import Spectra.Bochner.MeasureExists
 import Spectra.Bochner.Basic
+import Spectra.SobolevSpaces.WeakDerivative
+import Spectra.SobolevSpaces.Density
+import Spectra.SobolevSpaces.DuBoisReymond
+import Spectra.SobolevSpaces.Operations
+import Spectra.SobolevSpaces.Submodules
+import Spectra.SobolevSpaces.Mollification
+import Spectra.SobolevSpaces.MeyersSerrin
+import Spectra.SobolevSpaces.MeyersMulti
+import Spectra.SobolevSpaces.DensityResults
+import Spectra.ModularTheory.KMS.PeriodicStrip.Defs
+import Spectra.ModularTheory.KMS.PeriodicStrip.IndexProps
+import Spectra.ModularTheory.KMS.PeriodicStrip.ExtensionProps
+import Spectra.ModularTheory.KMS.PeriodicStrip.Hadamard
+import Spectra.ModularTheory.KMS.PeriodicStrip.LineRemove
+import Spectra.ModularTheory.KMS.PeriodicStrip.Painleve
+import Spectra.ModularTheory.KMS.PeriodicStrip.Basic
+import Spectra.ModularTheory.KMS.Condition
+import Spectra.ModularTheory.KMS.Modular
 import Spectra.QuantumMechanics.Observable.Basic
 import Spectra.QuantumMechanics.Uncertainty.SchrodingerRobertson
 import Spectra.QuantumMechanics.Uncertainty.Heisenberg
@@ -109,16 +127,6 @@ import Spectra.QuantumMechanics.Stone.Unique
 import Spectra.QuantumMechanics.Stone.Basic
 import Spectra.QuantumMechanics.Schrodinger
 import Spectra.QuantumMechanics.Ehrenfest
-import Spectra.SobolevSpaces.WeakDerivative
-import Spectra.SobolevSpaces.Density
-import Spectra.SobolevSpaces.DuBoisReymond
-import Spectra.SobolevSpaces.Operations
-import Spectra.SobolevSpaces.Submodules
-import Spectra.SobolevSpaces.Mollification
-import Spectra.SobolevSpaces.MeyersSerrin
-import Spectra.SobolevSpaces.MeyersMulti
-import Spectra.SobolevSpaces.DensityResults
---import Spectra.SobolevSpaces.Embeddings (TODO)
 import Spectra.QuantumMechanics.BellsTheorem.Basic
 import Spectra.QuantumMechanics.BellsTheorem.CHSH_Bounds.CHSH_Basic
 import Spectra.QuantumMechanics.BellsTheorem.CHSH_Bounds.Commuting
@@ -131,12 +139,7 @@ import Spectra.QuantumMechanics.BellsTheorem.QuantumCHSH.Q_CHSH_Basic
 import Spectra.QuantumMechanics.BellsTheorem.QuantumCHSH.Correlations
 import Spectra.QuantumMechanics.BellsTheorem.QuantumCHSH.Violation
 import Spectra.QuantumMechanics.BellsTheorem.QuantumCHSH.Tsirelson
-import Spectra.ModularTheory.KMS.PeriodicStrip.Defs
-import Spectra.ModularTheory.KMS.PeriodicStrip.IndexProps
-import Spectra.ModularTheory.KMS.PeriodicStrip.ExtensionProps
-import Spectra.ModularTheory.KMS.PeriodicStrip.Hadamard
-import Spectra.ModularTheory.KMS.PeriodicStrip.LineRemove
-import Spectra.ModularTheory.KMS.PeriodicStrip.Painleve
-import Spectra.ModularTheory.KMS.PeriodicStrip.Basic
-import Spectra.ModularTheory.KMS.Condition
-import Spectra.ModularTheory.KMS.Modular
+import Spectra.QuantumMechanics.Dirac.PauliMatrices
+import Spectra.QuantumMechanics.Dirac.CliffordAlgebra
+import Spectra.QuantumMechanics.Dirac.GammaTrace
+import Spectra.QuantumMechanics.Dirac.Operator

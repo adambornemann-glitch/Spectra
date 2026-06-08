@@ -4,7 +4,7 @@ Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
 Filename: Resolvent/Integral/Domain.lean
 -/
-import Spectra.Resolvent.Integral.Limits.PLus
+import Spectra.Resolvent.Integral.Limits.Plus
 import Spectra.Resolvent.Integral.Limits.Minus
 import Mathlib.Probability.Distributions.Gaussian.Real
 /-!
