@@ -5,11 +5,9 @@ Author: Adam Bornemann
 Filename: PeriodicStrip/LineRemove.lean
 -/
 import Spectra.ModularTheory.KMS.PeriodicStrip.Painleve
-
-namespace PeriodicHolomorphic
-
 open Complex Set Filter MeasureTheory intervalIntegral
 open scoped Topology
+namespace Spectra.PeriodicHolomorphic
 
 /-- **Goursat's primitive on a ball.**
 
@@ -258,4 +256,4 @@ lemma intMul_eq_of_dist_lt {β : ℝ} (hβ : 0 < β) {m n : ℤ}
   omega
 
 
-end PeriodicHolomorphic
+end Spectra.PeriodicHolomorphic

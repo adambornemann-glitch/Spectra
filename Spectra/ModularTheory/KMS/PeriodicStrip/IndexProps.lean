@@ -5,10 +5,8 @@ Author: Adam Bornemann
 Filename: PeriodicStrip/IndexProps.lean
 -/
 import Spectra.ModularTheory.KMS.PeriodicStrip.Defs
-
-namespace PeriodicHolomorphic
-
 open Complex Set Filter Topology Int MeasureTheory
+namespace Spectra.PeriodicHolomorphic
 
 /-! ## Basic Properties of the Strip Index -/
 
@@ -293,4 +291,4 @@ lemma interior_closedStrip (_hβ : 0 < β) : interior (ClosedStrip β) = Strip �
     · have := (abs_lt.mp him).2
       linarith [min_le_right z.im (β - z.im)]
 
-end PeriodicHolomorphic
+end Spectra.PeriodicHolomorphic

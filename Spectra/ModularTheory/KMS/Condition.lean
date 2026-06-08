@@ -14,7 +14,7 @@ import Mathlib.Analysis.CStarAlgebra.Classes
 import Mathlib.Analysis.CStarAlgebra.Basic
 -- For *-homomorphism contractivity (GNS boundedness for free)
 import Mathlib.Analysis.CStarAlgebra.Spectrum
-import Spectra.ModularTheory.KMS.PeriodicStrip.API
+import Spectra.ModularTheory.KMS.PeriodicStrip.Basic
 
 /-!
 # The Kubo-Martin-Schwinger (KMS) Condition
@@ -62,9 +62,10 @@ observables and the thermal nature of the state.
 * O. Bratteli, D.W. Robinson, "Operator Algebras and Quantum Statistical Mechanics 2" (1997)
 
 -/
-namespace KMSCondition
+open Complex Set Filter Topology Convex
+open Spectra.PeriodicHolomorphic
 
-open Complex Set Filter Topology Convex PeriodicHolomorphic
+namespace Spectra.KMS
 
 /-! ## The Strip in the Complex Plane -/
 
@@ -425,4 +426,4 @@ lemma commutative_kms_is_invariant
   simp only [one_mul] at this
   exact this
 
-end KMSCondition
+end Spectra.KMS

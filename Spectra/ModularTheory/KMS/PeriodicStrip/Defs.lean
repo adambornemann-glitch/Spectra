@@ -48,7 +48,7 @@ functions with periodic boundary values must be constant on the strip.
 * Rudin, "Real and Complex Analysis", Chapter 10
 -/
 
-namespace PeriodicHolomorphic
+namespace Spectra.PeriodicHolomorphic
 
 open Complex Set Filter Topology Int MeasureTheory ProbabilityTheory
 
@@ -97,4 +97,4 @@ This maps any z to the fundamental strip and evaluates F there.
 noncomputable def periodicExtension (F : ℂ → ℂ) (β : ℝ) : ℂ → ℂ := fun z =>
   F (toFundamentalStrip β z)
 
-end PeriodicHolomorphic
+end Spectra.PeriodicHolomorphic

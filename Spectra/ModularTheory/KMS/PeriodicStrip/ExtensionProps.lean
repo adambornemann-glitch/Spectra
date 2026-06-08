@@ -5,10 +5,8 @@ Author: Adam Bornemann
 Filename: PeriodicStrip/ExtensionProps.lean
 -/
 import Spectra.ModularTheory.KMS.PeriodicStrip.IndexProps
-
-namespace PeriodicHolomorphic
-
 open Complex Set Filter Topology Int MeasureTheory
+namespace Spectra.PeriodicHolomorphic
 
 /-- The periodic extension is continuous everywhere -/
 lemma periodicExtension_continuous
@@ -289,7 +287,7 @@ lemma dense_off_boundaryLines (β : ℝ) (hβ : 0 < β) :
   by_cases h : ∀ n : ℤ, z₀.im ≠ n * β
   · exact ⟨z₀, hz₀, h⟩
   · -- z₀ is on some line, so perturb it
-    push_neg at h
+    push Not at h
     obtain ⟨n, hn⟩ := h
     -- Consider z₀ + δ*I where δ is small and irrational multiple of β
     -- Simpler: just pick δ = min(r/2, β/2)
@@ -399,7 +397,7 @@ lemma periodicExtension_eq_on_strip
       toFundamentalStrip_of_mem_strip hβ ⟨hz.1, h⟩
     rw [this]
   · -- z.im = β (on the upper boundary)
-    push_neg at h
+    push Not at h
     have hzβ : z.im = β := le_antisymm hz.2 h
     -- At the upper boundary, we need to use the periodic condition
     -- stripIndex will be 1, so we shift down by β
@@ -443,4 +441,4 @@ lemma periodicExtension_eq_on_strip
     -- Now goal is: F (realToLower z.re) = F (realToUpper β z.re)
     exact (hperiod z.re)
 
-end PeriodicHolomorphic
+end Spectra.PeriodicHolomorphic

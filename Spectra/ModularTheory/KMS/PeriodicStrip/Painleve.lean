@@ -8,10 +8,10 @@ import Mathlib.Analysis.Complex.CauchyIntegral
 import Mathlib.MeasureTheory.Integral.IntervalIntegral.FundThmCalculus
 import Spectra.ModularTheory.KMS.PeriodicStrip.Defs
 
-namespace PeriodicHolomorphic
-
 open Complex Set Filter MeasureTheory intervalIntegral
 open scoped Topology
+
+namespace Spectra.PeriodicHolomorphic
 
 /-! ## Local Painlevé: removing a horizontal line as a singular set
 
@@ -453,4 +453,4 @@ lemma F_diff_eq_Lpath {c : ℂ} {R : ℝ} (hR : 0 < R) (g : ℂ → ℂ)
 
 
 
-end PeriodicHolomorphic
+end Spectra.PeriodicHolomorphic

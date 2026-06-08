@@ -40,9 +40,10 @@ We bundle:
 * S.J. Summers, "Tomita-Takesaki Modular Theory" (arXiv:math-ph/0511034)
 -/
 
-open Complex Set Filter Topology StarAlgebra PeriodicHolomorphic
+open Complex Set Filter Topology StarAlgebra
+open Spectra.PeriodicHolomorphic
 
-namespace KMSCondition
+namespace Spectra.KMS
 
 variable {A : Type*} [CStarAlgebra A]
 
@@ -364,4 +365,4 @@ lemma modular_state_is_kms_at_beta {A : Type*} [CStarAlgebra A] [IsVonNeumannAlg
   obtain ⟨F⟩ := hmod.kms_at_one a b
   exact ⟨F.rescale β hβ⟩
 
-end KMSCondition
+end Spectra.KMS

@@ -7,10 +7,9 @@ Filename: PeriodicStrip/Hadamard.lean
 import Spectra.ModularTheory.KMS.PeriodicStrip.Defs
 import Mathlib.Analysis.Complex.Hadamard
 
-namespace ThreeLines
-
-open PeriodicHolomorphic
 open Complex Set Filter Topology Int MeasureTheory Complex.HadamardThreeLines
+open Spectra.PeriodicHolomorphic
+namespace Spectra.ThreeLines
 
 lemma neg_I_mul_re (w : ℂ) : (-I * w).re = w.im := by
   simp [Complex.mul_re, Complex.neg_re, Complex.I_re, Complex.I_im]
@@ -159,4 +158,4 @@ lemma hadamard_three_lines_horizontal
   simp only [sub_zero] at final
   exact final
 
-end ThreeLines
+end Spectra.ThreeLines
