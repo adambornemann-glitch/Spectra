@@ -142,4 +142,16 @@ import Spectra.QuantumMechanics.BellsTheorem.QuantumCHSH.Tsirelson
 import Spectra.QuantumMechanics.Dirac.PauliMatrices
 import Spectra.QuantumMechanics.Dirac.CliffordAlgebra
 import Spectra.QuantumMechanics.Dirac.GammaTrace
+import Spectra.QuantumMechanics.Dirac.Current
+import Spectra.QuantumMechanics.Dirac.Conservation
 import Spectra.QuantumMechanics.Dirac.Operator
+import Spectra.InformationGeometry.Fisher.FisherInformation
+import Spectra.InformationGeometry.Fisher.StatisticalModel
+import Spectra.InformationGeometry.Fisher.Score
+import Spectra.InformationGeometry.Fisher.FisherMetric
+import Spectra.InformationGeometry.Fisher.StatisticalManifold
+import Spectra.InformationGeometry.CramerRao.Basic
+import Spectra.InformationGeometry.CramerRao.Cross
+import Spectra.InformationGeometry.CramerRao.CauchySchwarz
+import Spectra.InformationGeometry.CramerRao.Bound
+import Spectra.InformationGeometry.CramerRao.SchrodingerRLD

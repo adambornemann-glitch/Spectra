@@ -1,5 +1,7 @@
 import Mathlib.Analysis.CStarAlgebra.ContinuousFunctionalCalculus.Basic
 import Mathlib.Analysis.CStarAlgebra.ContinuousLinearMap
+import Mathlib.Analysis.CStarAlgebra.ContinuousFunctionalCalculus.Isometric
+import Mathlib.MeasureTheory.Integral.RieszMarkovKakutani.Real
 
 open scoped InnerProductSpace
 open TopologicalSpace Filter Complex
@@ -71,6 +73,16 @@ noncomputable def rieszFunctional (U : H →L[ℂ] H) (hn : IsStarNormal U) (ξ 
     simp only [map_smul, h, ContinuousLinearMap.smul_apply,
                inner_smul_right_eq_smul, Complex.smul_re, RingHom.id_apply, smul_eq_mul]
 
+/-
+One fragility to log, not a bug: rieszFunctional_nonneg's hψ is fed as fun z => hφ z,
+which only typechecks because 0 ≤ ψ on ContinuousMap/C_c is definitionally the pointwise
+∀ z, 0 ≤ ψ z. It compiles today; if a Mathlib bump ever bundles that order behind a
+non-defeq wrapper, this is the line that breaks first. Cheap insurance is
+ContinuousMap.le_def.mp/.mpr at those spots. Relatedly, the .toContinuousMap/ccToC
+friction will keep recurring — on a compact σ(U) you may want a single helper
+restating the property over C(σU,ℝ) directly, so C_c stops leaking into every
+downstream lemma.
+-/
 lemma rieszFunctional_nonneg (U : H →L[ℂ] H) (hn : IsStarNormal U) (ξ : H)
     (ψ : C(spectrum ℂ U, ℝ)) (hψ : 0 ≤ ψ) :
     0 ≤ rieszFunctional U hn ξ ψ := by
@@ -84,5 +96,165 @@ lemma rieszFunctional_nonneg (U : H →L[ℂ] H) (hn : IsStarNormal U) (ξ : H)
   rw [key, cfcHom_conjMul_inner_eq_normSq U hn (complexify U s) ξ,
       ← Complex.ofReal_pow, Complex.ofReal_re]
   positivity
+
+open scoped CompactlySupported
+open MeasureTheory
+
+/-- The coercion `C_c(σU,ℝ) → C(σU,ℝ)` as an ℝ-linear map (C_c inherits +/• from C). -/
+def ccToC (U : H →L[ℂ] H) : C_c(spectrum ℂ U, ℝ) →ₗ[ℝ] C(spectrum ℂ U, ℝ) where
+  toFun := CompactlySupportedContinuousMap.toContinuousMap
+  map_add' _ _ := rfl
+  map_smul' _ _ := rfl
+
+/-- **The scalar spectral measure** `μ_ξ` on `σ(U)`: Riesz–Markov applied to the positive
+functional `ψ ↦ Re⟪ξ, ψ(U) ξ⟫`. -/
+noncomputable def spectralMeasure (U : H →L[ℂ] H) (hn : IsStarNormal U) (ξ : H) :
+    Measure (spectrum ℂ U) :=
+  RealRMK.rieszMeasure <| PositiveLinearMap.mk₀
+    ((rieszFunctional U hn ξ).comp (ccToC U))
+    (fun φ hφ => rieszFunctional_nonneg U hn ξ φ.toContinuousMap (fun z => hφ z))
+
+/-- **Defining property.** Integrating `ψ` against `μ_ξ` returns the quadratic form. -/
+lemma integral_spectralMeasure (U : H →L[ℂ] H) (hn : IsStarNormal U) (ξ : H)
+    (ψ : C_c(spectrum ℂ U, ℝ)) :
+    ∫ z, ψ z ∂(spectralMeasure U hn ξ)
+      = (⟪ξ, cfcHom hn (complexify U ψ.toContinuousMap) ξ⟫_ℂ).re :=
+  RealRMK.integral_rieszMeasure _ ψ
+
+/-- Defining property over **all** continuous functions on `σ(U)` (compact ⇒ `C = C_c`).
+This is the form downstream lemmas use, so `C_c` stops leaking into every statement. -/
+lemma integral_spectralMeasure_continuous
+    (U : H →L[ℂ] H) (hn : IsStarNormal U) (ξ : H) (g : C(spectrum ℂ U, ℝ)) :
+    ∫ z, g z ∂(spectralMeasure U hn ξ) = (⟪ξ, cfcHom hn (complexify U g) ξ⟫_ℂ).re := by
+  simpa using integral_spectralMeasure U hn ξ
+    (⟨g, HasCompactSupport.of_compactSpace g⟩ : C_c(spectrum ℂ U, ℝ))
+
+/-- `σ(U)` is a compact space and the Riesz measure is content-based, hence finite on
+compacts. -/
+instance instIsFiniteMeasureOnCompacts_spectralMeasure
+    (U : H →L[ℂ] H) (hn : IsStarNormal U) (ξ : H) :
+    IsFiniteMeasureOnCompacts (spectralMeasure U hn ξ) := by
+  have : (spectralMeasure U hn ξ).Regular := by
+     unfold spectralMeasure RealRMK.rieszMeasure; infer_instance
+  infer_instance
+
+instance instIsFiniteMeasure_spectralMeasure
+    (U : H →L[ℂ] H) (hn : IsStarNormal U) (ξ : H) :
+    IsFiniteMeasure (spectralMeasure U hn ξ) :=
+  ⟨isCompact_univ.measure_lt_top⟩
+
+/-- **Diagonal is real for real symbols.** For real `g`, `g(U)` is self-adjoint, so
+`⟪ξ, g(U) ξ⟫` is real and equals `∫ g dμ_ξ`. The bridge polarization needs. -/
+lemma inner_cfcHom_complexify_real
+    (U : H →L[ℂ] H) (hn : IsStarNormal U) (ξ : H) (g : C(spectrum ℂ U, ℝ)) :
+    ⟪ξ, cfcHom hn (complexify U g) ξ⟫_ℂ
+      = ((∫ z, g z ∂(spectralMeasure U hn ξ) : ℝ) : ℂ) := by
+  set T := cfcHom hn (complexify U g) with hT
+  have hφ : star (complexify U g) = complexify U g := by
+    ext z
+    show star ((g z : ℂ)) = ((g z : ℂ))
+    rw [show star ((g z : ℂ)) = (starRingEnd ℂ) (g z : ℂ) from rfl, Complex.conj_ofReal]
+  have hsa : IsSelfAdjoint T := by
+    rw [hT, isSelfAdjoint_iff, ← map_star, hφ]
+  have hre : (⟪ξ, T ξ⟫_ℂ).re = ∫ z, g z ∂(spectralMeasure U hn ξ) :=
+    (integral_spectralMeasure_continuous U hn ξ g).symm
+  have hreal : (starRingEnd ℂ) ⟪ξ, T ξ⟫_ℂ = ⟪ξ, T ξ⟫_ℂ := by
+    rw [inner_conj_symm]
+    nth_rewrite 1 [← hsa.adjoint_eq]
+    rw [ContinuousLinearMap.adjoint_inner_left]
+  rw [← Complex.conj_eq_iff_re.mp hreal, hre]
+
+/-- **Total mass.** `μ_ξ(σ(U)) = ‖ξ‖²` — the falsifiable normalization check, and what
+forces `E univ = 1` in Stage 4. -/
+lemma spectralMeasure_real_univ
+    (U : H →L[ℂ] H) (hn : IsStarNormal U) (ξ : H) :
+    (spectralMeasure U hn ξ).real Set.univ = ‖ξ‖ ^ 2 := by
+  have h := integral_spectralMeasure_continuous U hn ξ 1
+  simp only [ContinuousMap.one_apply] at h
+  rw [integral_const, smul_eq_mul, mul_one] at h
+  rw [h]
+  have hc1 : complexify U (1 : C(spectrum ℂ U, ℝ)) = 1 := by
+    ext z; simp [complexify_apply]
+  rw [hc1, map_one, ContinuousLinearMap.one_apply]
+  exact inner_self_eq_norm_sq (𝕜 := ℂ) ξ
+
+/-- Real continuous functions on the (compact) spectrum are integrable against `μ_ξ`. -/
+lemma spectral_integrable_real
+    (U : H →L[ℂ] H) (hn : IsStarNormal U) (ξ : H) (g : C(spectrum ℂ U, ℝ)) :
+    Integrable (fun z => g z) (spectralMeasure U hn ξ) :=
+  g.continuous.integrable_of_hasCompactSupport (HasCompactSupport.of_compactSpace g)
+
+/-- **Complex form.** `∫ f dμ_ξ = ⟪ξ, f(U) ξ⟫` for every continuous complex `f` — the
+on-ramp to polarization. Both sides split along real/imaginary parts and meet on the
+real diagonal. -/
+lemma integral_spectralMeasure_complex
+    (U : H →L[ℂ] H) (hn : IsStarNormal U) (ξ : H) (f : C(spectrum ℂ U, ℂ)) :
+    ∫ z, f z ∂(spectralMeasure U hn ξ) = ⟪ξ, cfcHom hn f ξ⟫_ℂ := by
+  set μ := spectralMeasure U hn ξ with hμ
+  let fr : C(spectrum ℂ U, ℝ) := ⟨fun z => (f z).re, by fun_prop⟩
+  let fi : C(spectrum ℂ U, ℝ) := ⟨fun z => (f z).im, by fun_prop⟩
+  have hsplit : f = complexify U fr + Complex.I • complexify U fi := by
+    ext z
+    simp only [ContinuousMap.add_apply, ContinuousMap.smul_apply, complexify_apply, smul_eq_mul]
+    show f z = ((f z).re : ℂ) + Complex.I * ((f z).im : ℂ)
+    rw [mul_comm]; exact (Complex.re_add_im (f z)).symm
+  have hint_r := spectral_integrable_real U hn ξ fr
+  have hint_i := spectral_integrable_real U hn ξ fi
+  have hRHS : ⟪ξ, cfcHom hn f ξ⟫_ℂ
+      = ((∫ z, fr z ∂μ : ℝ) : ℂ) + Complex.I * ((∫ z, fi z ∂μ : ℝ) : ℂ) := by
+    rw [hsplit, map_add, map_smul, ContinuousLinearMap.add_apply,
+        ContinuousLinearMap.smul_apply, inner_add_right, inner_smul_right,
+        inner_cfcHom_complexify_real, inner_cfcHom_complexify_real]
+  have hLHS : ∫ z, f z ∂μ
+      = ((∫ z, fr z ∂μ : ℝ) : ℂ) + Complex.I * ((∫ z, fi z ∂μ : ℝ) : ℂ) := by
+    rw [hsplit]
+    simp only [ContinuousMap.add_apply, ContinuousMap.smul_apply, complexify_apply, smul_eq_mul]
+    erw [integral_add (Complex.ofRealCLM.integrable_comp hint_r)
+          ((Complex.ofRealCLM.integrable_comp hint_i).const_mul Complex.I),
+        integral_complex_ofReal, integral_const_mul, integral_complex_ofReal]
+    abel
+  rw [hLHS, hRHS]
+
+/- # Polarization -/
+
+/-- Right-slot complex polarization: `⟪ξ, T η⟫` from the four diagonals `⟪z, T z⟫`.
+Mathlib's `inner_map_polarization'` is left-slot (`⟪T x, y⟫`); this is its image under the
+adjoint, putting the diagonal on the right where `⟪ζ, f(U) ζ⟫ = ∫ f dμ_ζ` lives. -/
+lemma inner_polarization_right (T : H →L[ℂ] H) (ξ η : H) :
+    ⟪ξ, T η⟫_ℂ =
+      (⟪ξ + η, T (ξ + η)⟫_ℂ - ⟪ξ - η, T (ξ - η)⟫_ℂ
+        - Complex.I * ⟪ξ + Complex.I • η, T (ξ + Complex.I • η)⟫_ℂ
+        + Complex.I * ⟪ξ - Complex.I • η, T (ξ - Complex.I • η)⟫_ℂ) / 4 := by
+  have key := inner_map_polarization' (T.adjoint : H →ₗ[ℂ] H) ξ η
+  simp only [ContinuousLinearMap.coe_coe, ContinuousLinearMap.adjoint_inner_left] at key
+  exact key
+
+/-- **Polarized-diagonal identity.** The off-diagonal form `⟪ξ, f(U) η⟫` expressed through
+the four diagonal spectral integrals. This is the spine of Piece 2: every later statement
+about `μ_{ξ,η}` rests on it. -/
+lemma inner_cfcHom_polarized (U : H →L[ℂ] H) (hn : IsStarNormal U) (ξ η : H)
+    (f : C(spectrum ℂ U, ℂ)) :
+    ⟪ξ, cfcHom hn f η⟫_ℂ =
+      ( ∫ z, f z ∂(spectralMeasure U hn (ξ + η))
+        - ∫ z, f z ∂(spectralMeasure U hn (ξ - η))
+        - Complex.I * ∫ z, f z ∂(spectralMeasure U hn (ξ + Complex.I • η))
+        + Complex.I * ∫ z, f z ∂(spectralMeasure U hn (ξ - Complex.I • η)) ) / 4 := by
+  rw [inner_polarization_right (cfcHom hn f) ξ η,
+      ← integral_spectralMeasure_complex U hn (ξ + η) f,
+      ← integral_spectralMeasure_complex U hn (ξ - η) f,
+      ← integral_spectralMeasure_complex U hn (ξ + Complex.I • η) f,
+      ← integral_spectralMeasure_complex U hn (ξ - Complex.I • η) f]
+
+/-- **Boundedness of the spectral form.** `‖⟪ξ, f(U) η⟫‖ ≤ ‖f‖ · ‖ξ‖ · ‖η‖`, from the isometry
+of `cfcHom` and Cauchy–Schwarz. This is the bound Stage 3's Fréchet–Riesz step consumes when
+it turns the polarized form into the operator `g(U)` for bounded Borel `g`. -/
+lemma norm_inner_cfcHom_le (U : H →L[ℂ] H) (hn : IsStarNormal U) (ξ η : H)
+    (f : C(spectrum ℂ U, ℂ)) :
+    ‖⟪ξ, cfcHom hn f η⟫_ℂ‖ ≤ ‖f‖ * ‖ξ‖ * ‖η‖ := by
+  calc ‖⟪ξ, cfcHom hn f η⟫_ℂ‖
+      ≤ ‖ξ‖ * ‖cfcHom hn f η‖           := norm_inner_le_norm ξ _
+    _ ≤ ‖ξ‖ * (‖cfcHom hn f‖ * ‖η‖)     := by gcongr; exact (cfcHom hn f).le_opNorm η
+    _ ≤ ‖ξ‖ * (‖f‖ * ‖η‖)               := by gcongr; exact (norm_cfcHom U f hn).le
+    _ = ‖f‖ * ‖ξ‖ * ‖η‖                 := by ring
 
 end Spectra.Riesz
