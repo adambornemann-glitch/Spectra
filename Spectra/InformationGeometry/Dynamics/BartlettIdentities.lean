@@ -1,15 +1,12 @@
 /-
-Copyright (c) 2026 Logos Library Formalization Project. All rights reserved.
+Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
 Filename: InformationGeometry/Dynamics/BartlettIdentities.lean
 -/
-import LogosLibrary.InformationGeometry.Dynamics.Hessian
-
-namespace InformationGeometry
-
+import Spectra.InformationGeometry.Dynamics.Hessian
 open MeasureTheory Finset Filter Topology TopologicalSpace
-
+namespace Spectra.InformationGeometry
 variable {n : ℕ} {Ω : Type*} [MeasurableSpace Ω]
 
 namespace TwiceDifferentiableModel
@@ -208,4 +205,4 @@ lemma bartlett_third
 
 
 end TwiceDifferentiableModel
-end InformationGeometry
+end Spectra.InformationGeometry

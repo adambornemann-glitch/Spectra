@@ -4,27 +4,21 @@ Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
 Filename: InformationGeometry/Dynamics/Schrodinger.lean
 -/
-import LogosLibrary.InformationGeometry.Dynamics.Stone
-
-namespace InformationGeometry
-
+import Spectra.InformationGeometry.Stone.Basic
 open MeasureTheory Finset Filter Topology TopologicalSpace
-
 variable {n : ℕ} {Ω : Type*} [MeasurableSpace Ω]
-
-namespace TwiceDifferentiableModel
-
+namespace Spectra.InformationGeometry
 variable (M : TwiceDifferentiableModel n Ω)
-
+namespace TwiceDifferentiableModel
 variable (F : M.DivergencePreservingFamily)
 
 
 
 -- ============================================================================
--- §9. The Information-Geometric Schrödinger Equations
+-- # The Information-Geometric Schrödinger Equations
 -- ============================================================================
 
-/-! ### The IG Schrödinger equations
+/-! ### IG Schrödinger equations
 
 Three forms of the evolution equation for divergence-preserving flows,
 mirroring the three Schrödinger equations in `UnitaryEvo/Schrodinger.lean`.

@@ -4,12 +4,9 @@ Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
 Filename: InformationGeometry/Dynamics/AlphaConnect.lean
 -/
-import LogosLibrary.InformationGeometry.Dynamics.CubicTensor
-
-namespace InformationGeometry
-
+import Spectra.InformationGeometry.Dynamics.CubicTensor
 open MeasureTheory Finset Filter Topology TopologicalSpace
-
+namespace Spectra.InformationGeometry
 variable {n : ℕ} {Ω : Type*} [MeasurableSpace Ω]
 
 namespace TwiceDifferentiableModel
@@ -70,4 +67,4 @@ lemma alpha_connection_duality
 
 end TwiceDifferentiableModel
 
-end InformationGeometry
+end Spectra.InformationGeometry

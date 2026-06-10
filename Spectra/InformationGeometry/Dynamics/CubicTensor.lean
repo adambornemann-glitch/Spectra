@@ -4,12 +4,9 @@ Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
 Filename: InformationGeometry/Dynamics/CubicTensor.lean
 -/
-import LogosLibrary.InformationGeometry.Dynamics.Hessian
-
-namespace InformationGeometry
-
+import Spectra.InformationGeometry.Dynamics.Hessian
 open MeasureTheory Finset Filter Topology TopologicalSpace
-
+namespace Spectra.InformationGeometry
 variable {n : ℕ} {Ω : Type*} [MeasurableSpace Ω]
 
 namespace TwiceDifferentiableModel
@@ -343,4 +340,4 @@ lemma klDiv_third_deriv_decomposition
   rw [hA_eq, h_neg, h_four, hB, hC, hD, hE]; ring
 
 end TwiceDifferentiableModel
-end InformationGeometry
+end Spectra.InformationGeometry

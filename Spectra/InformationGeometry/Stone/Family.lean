@@ -4,14 +4,12 @@ Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
 Filename: InformationGeometry/Family.lean
 -/
-import LogosLibrary.InformationGeometry.Dynamics.Hessian
-import LogosLibrary.InformationGeometry.Dynamics.CubicTensor
-import LogosLibrary.InformationGeometry.Dynamics.AlphaConnect
-
-namespace InformationGeometry
+import Spectra.InformationGeometry.Dynamics.Hessian
+import Spectra.InformationGeometry.Dynamics.CubicTensor
+import Spectra.InformationGeometry.Dynamics.AlphaConnect
 
 open MeasureTheory Finset Filter Topology TopologicalSpace
-
+namespace Spectra.InformationGeometry
 variable {n : ℕ} {Ω : Type*} [MeasurableSpace Ω]
 
 namespace TwiceDifferentiableModel
@@ -88,7 +86,7 @@ lemma mConnectionTrilin_single (θ : ParamSpace n) (a b c : Fin n) :
     M.mConnectionCoeff θ a b c := by
   unfold mConnectionTrilin
   -- Same pattern as bilinSum_single but for triple sum
-  simp only [EuclideanSpace.single_apply]
+  simp only [PiLp.single_apply]
   simp only [ite_mul, one_mul, zero_mul, sum_ite_irrel,
     sum_ite_eq', mem_univ, ↓reduceIte, sum_const_zero]
 
@@ -131,7 +129,7 @@ lemma preserves_fisher {θ : ParamSpace n} (hθ : θ ∈ M.paramDomain)
     have hbasis : ∀ u : ParamSpace n,
         u = ∑ a : Fin n, u a • EuclideanSpace.single a 1 := by
       intro u; ext i
-      simp only [WithLp.ofLp_sum, WithLp.ofLp_smul, EuclideanSpace.ofLp_single, sum_apply,
+      simp only [WithLp.ofLp_sum, WithLp.ofLp_smul, PiLp.ofLp_single, sum_apply,
         Pi.smul_apply, smul_eq_mul, Pi.single_apply, mul_ite, mul_one, mul_zero, sum_ite_eq,
         mem_univ, ↓reduceIte]
     have hdφ : ∀ u : ParamSpace n,
@@ -375,7 +373,7 @@ lemma preserves_fisher {θ : ParamSpace n} (hθ : θ ∈ M.paramDomain)
                 rw [Finset.sum_mul]; ring_nf
         -- Step 3: Squeeze — sum of components → 0
         apply squeeze_zero (fun _ => norm_nonneg _) h_bound
-        have := tendsto_finset_sum Finset.univ
+        have := tendsto_finsetSum Finset.univ
             (fun j _ => (h_comp j).norm)
         simp only [norm_zero, Finset.sum_const_zero] at this
         exact this
@@ -504,4 +502,4 @@ noncomputable def secondDerivPhi
 
 end DivergencePreservingFamily
 end TwiceDifferentiableModel
-end InformationGeometry
+end Spectra.InformationGeometry

@@ -4,7 +4,7 @@ Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
 Filename: InformationGeometry/Dynamics/Hessian.lean
 -/
-import LogosLibrary.InformationGeometry.Dynamics.Models
+import Spectra.InformationGeometry.Dynamics.Models
 import Mathlib.Analysis.Calculus.ParametricIntegral
 import Mathlib.Analysis.Calculus.LocalExtr.Basic
 import Mathlib.Analysis.Calculus.MeanValue
@@ -32,13 +32,8 @@ preserving D automatically preserves g.
 * `klDiv_hessian_eq_fisher` — **the Hessian theorem**
 * `klDiv_taylor_second_order` — quadratic Taylor expansion of D
 -/
-
-noncomputable section
-
-namespace InformationGeometry
-
 open MeasureTheory Finset Filter Topology TopologicalSpace
-
+namespace Spectra.InformationGeometry
 variable {n : ℕ} {Ω : Type*} [MeasurableSpace Ω]
 
 namespace TwiceDifferentiableModel
@@ -273,7 +268,7 @@ lemma klDiv_partial_j
 
 /-- The density-weighted score derivative
 ω ↦ p(θ,ω) • ∂ᵢsⱼ(θ,ω) is a.e. strongly measurable. -/
-private lemma score_deriv_aestronglyMeasurable
+lemma score_deriv_aestronglyMeasurable
     {θ : ParamSpace n} (hθ : θ ∈ M.paramDomain) (j : Fin n) :
     AEStronglyMeasurable
       (fun ω => M.density θ ω •
@@ -301,7 +296,7 @@ private lemma score_deriv_aestronglyMeasurable
           calc (m + 1 : ℝ)⁻¹ * ‖(EuclideanSpace.single k (1 : ℝ) : ParamSpace n)‖
               ≤ (m + 1 : ℝ)⁻¹ * 1 := by
                 apply mul_le_mul_of_nonneg_left _ (inv_nonneg.mpr (by positivity))
-                simp only [EuclideanSpace.norm_single, one_mem,
+                simp only [PiLp.norm_single, one_mem,
                         CStarRing.norm_of_mem_unitary, le_refl]
             _ = (m + 1 : ℝ)⁻¹ := mul_one _
         obtain ⟨N, hN⟩ := exists_nat_gt δ⁻¹
@@ -412,7 +407,7 @@ private lemma score_deriv_aestronglyMeasurable
       ext i
       simp only [ContinuousLinearMap.coe_smul', Pi.smul_apply, smul_eq_mul,
         PiLp.continuousLinearEquiv_symm_apply, WithLp.ofLp_sum, WithLp.ofLp_smul,
-        EuclideanSpace.ofLp_single, sum_apply]
+        PiLp.ofLp_single, sum_apply]
       simp only [Pi.single_apply]
       rw [Finset.sum_eq_single i]
       · simp
@@ -435,7 +430,7 @@ private lemma score_deriv_aestronglyMeasurable
     simp only [ContinuousLinearMap.smul_apply, smul_eq_mul, innerSL_apply_apply]
     conv_lhs => rw [show w = ∑ k : Fin n, w k • EuclideanSpace.single k 1 from by
       ext i;
-      simp only [WithLp.ofLp_sum, WithLp.ofLp_smul, EuclideanSpace.ofLp_single, sum_apply,
+      simp only [WithLp.ofLp_sum, WithLp.ofLp_smul, PiLp.ofLp_single, sum_apply,
                 Pi.smul_apply, smul_eq_mul, Pi.single_apply, mul_ite, mul_one, mul_zero,
                                                         sum_ite_eq, mem_univ, ↓reduceIte]]
     rw [map_sum, Finset.mul_sum]
@@ -488,7 +483,7 @@ private lemma fderiv_partialDensity_aestronglyMeasurable
               rw [norm_smul, Real.norm_eq_abs,
                   abs_of_nonneg (inv_nonneg.mpr (by positivity))]
               exact mul_le_of_le_one_right (inv_nonneg.mpr (by positivity))
-                (by simp [EuclideanSpace.norm_single])
+                (by simp [PiLp.norm_single])
           _ < δ := by
               rw [inv_lt_comm₀ (by positivity) hδ_pos]
               linarith [show (N : ℝ) ≤ m from by exact_mod_cast hm]))⟩
@@ -535,7 +530,7 @@ private lemma fderiv_partialDensity_aestronglyMeasurable
                 (EuclideanSpace.single j 1)) θ)
             (θ + (0 : ℝ) • EuclideanSpace.single k (1 : ℝ)) := by
           rw [zero_smul, add_zero]; exact hfd
-        simpa [zero_smul, add_zero] using hfd'.comp_hasDerivAt 0 hline
+        exact hfd'.comp_hasDerivAt 0 hline
       have h_seq : Tendsto (fun m : ℕ => (↑(m + 1 + N₀) : ℝ)⁻¹) atTop (𝓝 0) :=
         tendsto_inv_atTop_zero.comp
           ((Filter.tendsto_atTop_add_const_right _ (1 + ↑N₀ : ℝ)
@@ -563,7 +558,7 @@ private lemma fderiv_partialDensity_aestronglyMeasurable
   simp only [ContinuousLinearMap.sum_apply, ContinuousLinearMap.smul_apply,
     smul_eq_mul, innerSL_apply_apply]
   conv_lhs => rw [show w = ∑ k : Fin n, w.ofLp k • EuclideanSpace.single k (1 : ℝ) from by
-    ext i; simp only [WithLp.ofLp_sum, WithLp.ofLp_smul, EuclideanSpace.ofLp_single, sum_apply,
+    ext i; simp only [WithLp.ofLp_sum, WithLp.ofLp_smul, PiLp.ofLp_single, sum_apply,
       Pi.smul_apply, smul_eq_mul, Pi.single_apply, mul_ite, mul_one, mul_zero];
       exact Eq.symm (Fintype.sum_ite_eq i w.ofLp)]
   simp only [map_sum, map_smul, smul_eq_mul]
@@ -622,7 +617,7 @@ lemma integral_second_partial_eq_zero
             ‖(EuclideanSpace.single j (1 : ℝ) : ParamSpace n)‖ :=
             ContinuousLinearMap.le_opNorm _ _
         _ ≤ ‖fderiv ℝ (fderiv ℝ (fun θ'' => M.density θ'' ω)) θ' v‖ := by
-            rw [EuclideanSpace.norm_single];
+            rw [PiLp.norm_single];
             simp only [one_mem, CStarRing.norm_of_mem_unitary, mul_one, le_refl]
         _ ≤ ‖fderiv ℝ (fderiv ℝ (fun θ'' => M.density θ'' ω)) θ'‖ * ‖v‖ :=
             ContinuousLinearMap.le_opNorm _ _
@@ -660,11 +655,10 @@ lemma integral_second_partial_eq_zero
                   (EuclideanSpace.single j 1) := by
               have := (h_fderiv_diff.hasFDerivAt.clm_apply
                 (hasFDerivAt_const (EuclideanSpace.single j 1) θ)).fderiv
-              simp only at this
+              simp only [ContinuousLinearMap.comp_zero, zero_add] at this
               change fderiv ℝ (fun x => (fderiv ℝ (fun θ'' => M.density θ'' ω) x)
                 (EuclideanSpace.single j 1)) θ v = _
-              rw [this]; simp only [ContinuousLinearMap.comp_zero, zero_add,
-                ContinuousLinearMap.flip_apply]
+              rw [this]; simp only [ContinuousLinearMap.flip_apply]
             rw [h_chain]
             calc ‖(fderiv ℝ (fderiv ℝ (fun θ'' => M.density θ'' ω)) θ v)
                     (EuclideanSpace.single j 1)‖
@@ -672,7 +666,7 @@ lemma integral_second_partial_eq_zero
                   calc _ ≤ ‖fderiv ℝ (fderiv ℝ (fun θ'' => M.density θ'' ω)) θ v‖ *
                         ‖(EuclideanSpace.single j (1 : ℝ) : ParamSpace n)‖ :=
                         ContinuousLinearMap.le_opNorm _ _
-                    _ = _ := by rw [EuclideanSpace.norm_single]; simp only [one_mem,
+                    _ = _ := by rw [PiLp.norm_single]; simp only [one_mem,
                       CStarRing.norm_of_mem_unitary, mul_one]
               _ ≤ ‖fderiv ℝ (fderiv ℝ (fun θ'' => M.density θ'' ω)) θ‖ * ‖v‖ :=
                   ContinuousLinearMap.le_opNorm _ _
@@ -862,11 +856,11 @@ lemma cross_score_hasFDerivAt
               (EuclideanSpace.single i 1)‖ := by
             calc _ ≤ _ * ‖(EuclideanSpace.single j (1 : ℝ) : ParamSpace n)‖ :=
                     ContinuousLinearMap.le_opNorm _ _
-              _ = _ := by rw [EuclideanSpace.norm_single, norm_one, mul_one]
+              _ = _ := by rw [PiLp.norm_single, norm_one, mul_one]
         _ ≤ ‖fderiv ℝ (fderiv ℝ (fun θ'' => M.density θ'' ω)) θ‖ := by
             calc _ ≤ _ * ‖(EuclideanSpace.single i (1 : ℝ) : ParamSpace n)‖ :=
                     ContinuousLinearMap.le_opNorm _ _
-              _ = _ := by rw [EuclideanSpace.norm_single, norm_one, mul_one]
+              _ = _ := by rw [PiLp.norm_single, norm_one, mul_one]
         _ ≤ ‖iteratedFDeriv ℝ 2 (fun θ'' => M.density θ'' ω) θ‖ := by
             rw [show (2 : ℕ) = 1 + 1 from rfl, ← norm_iteratedFDeriv_fderiv (𝕜 := ℝ)]
             simp only [norm_iteratedFDeriv_one, le_refl]
@@ -931,7 +925,7 @@ lemma cross_score_differentiableAt
             ContinuousLinearMap.le_opNorm _ _
         _ ≤ ‖M.density θ ω •
               fderiv ℝ (fun θ'' => Real.log (M.density θ'' ω)) θ₀‖ := by
-            rw [EuclideanSpace.norm_single, norm_one, mul_one]
+            rw [PiLp.norm_single, norm_one, mul_one]
         _ ≤ bound₃ ω := (hω₃ θ₀ (Metric.mem_ball_self hε₃)).2
         _ ≤ ‖bound₃ ω‖ := le_abs_self _
       exact Real.le_norm_self ‖bound₃ ω‖
@@ -1173,14 +1167,18 @@ lemma klDiv_taylor_second_order {θ : ParamSpace n} (hθ : θ ∈ M.paramDomain)
     intro t ht0 ht1
     have hδ_basis : δ = ∑ k : Fin n, δ k • EuclideanSpace.single k 1 := by
       ext i
-      simp only [WithLp.ofLp_sum, WithLp.ofLp_smul, EuclideanSpace.ofLp_single, sum_apply,
+      simp only [WithLp.ofLp_sum, WithLp.ofLp_smul, PiLp.ofLp_single, sum_apply,
         Pi.smul_apply, smul_eq_mul]
       simp [Pi.single, Function.update_apply, Finset.mem_univ]
     have h_lin : fderiv ℝ (M.klDiv θ) (θ + t • δ) δ =
         ∑ j, δ j * fderiv ℝ (M.klDiv θ) (θ + t • δ) (EuclideanSpace.single j 1) := by
-      conv_lhs => rw [hδ_basis, map_sum]
-      congr 1; ext j; rw [map_smul, smul_eq_mul]
-      grind only [usr Exists.choose_spec]
+      calc fderiv ℝ (M.klDiv θ) (θ + t • δ) δ
+          = fderiv ℝ (M.klDiv θ) (θ + t • δ)
+              (∑ k : Fin n, δ k • EuclideanSpace.single k 1) := by rw [← hδ_basis]
+        _ = ∑ j, δ j * fderiv ℝ (M.klDiv θ) (θ + t • δ)
+              (EuclideanSpace.single j 1) := by
+            rw [map_sum]
+            exact Finset.sum_congr rfl fun j _ => by rw [map_smul, smul_eq_mul]
     have h_tG : t * G = ∑ j : Fin n, δ j *
         ∑ i, (t • δ) i * M.toRegularStatisticalModel.fisherMatrix θ i j := by
       simp only [G, Finset.mul_sum, PiLp.smul_apply, smul_eq_mul]
@@ -1258,8 +1256,102 @@ lemma klDiv_taylor_second_order {θ : ParamSpace n} (hθ : θ ∈ M.paramDomain)
   calc |r 1| ≤ ↑n * η * ‖δ‖ ^ 2 := hmvt
     _ ≤ ε * ‖δ‖ ^ 2 := mul_le_mul_of_nonneg_right hn_η (sq_nonneg _)
 
+/-- **Vector form of the Hessian theorem.** At a diagonal point `θ` of the
+domain, the second Fréchet derivative of `θ' ↦ D(θ‖θ')` — the canonical
+`fderiv` of the operator-valued first-derivative map — evaluates on any
+pair of vectors to the Fisher bilinear form:
+
+  `(d² D(θ‖·))(θ)[x, y] = g_θ(x, y)`.
+
+Componentwise this is `klDiv_hessian_eq_fisher`; the vector form follows
+by reconstructing the operator-valued differentiability from components
+(the `h_fKL` template), identifying each scalar partial's derivative via
+`cross_score_hasFDerivAt`, and expanding both slots in the basis. -/
+lemma klDiv_hessian_vec {θ : ParamSpace n} (hθ : θ ∈ M.paramDomain)
+    (x y : ParamSpace n) :
+    fderiv ℝ (fun θ'' => fderiv ℝ (M.klDiv θ) θ'') θ x y =
+    M.toRegularStatisticalModel.fisherBilin θ x y := by
+  -- ── The operator-valued first-derivative map is differentiable at θ. ──
+  have hG : DifferentiableAt ℝ (fun θ'' => fderiv ℝ (M.klDiv θ) θ'') θ := by
+    have h_comp : ∀ j : Fin n, DifferentiableAt ℝ
+        (fun θ₀ => fderiv ℝ (M.klDiv θ) θ₀
+          (EuclideanSpace.single j 1)) θ := by
+      intro j
+      have h_cs := M.cross_score_differentiableAt hθ hθ j
+      exact h_cs.congr_of_eventuallyEq (by
+        filter_upwards [M.isOpen_paramDomain.mem_nhds hθ] with θ₀ hθ₀
+        exact (M.klDiv_partial_j hθ hθ₀ j))
+    have h_eq : (fun θ₀ => fderiv ℝ (M.klDiv θ) θ₀) =
+        (fun θ₀ => ∑ j : Fin n,
+          fderiv ℝ (M.klDiv θ) θ₀ (EuclideanSpace.single j 1) •
+          (innerSL ℝ (EuclideanSpace.single j (1 : ℝ)) :
+            ParamSpace n →L[ℝ] ℝ)) := by
+      ext θ₀ w
+      simp only [ContinuousLinearMap.sum_apply, ContinuousLinearMap.smul_apply,
+        smul_eq_mul, innerSL_apply_apply]
+      conv_lhs => rw [show w = ∑ j : Fin n, w.ofLp j • EuclideanSpace.single j (1 : ℝ) from by
+        ext i; simp only [WithLp.ofLp_sum, WithLp.ofLp_smul, PiLp.ofLp_single, sum_apply,
+          Pi.smul_apply, smul_eq_mul, Pi.single_apply, mul_ite, mul_one, mul_zero]
+        exact Eq.symm (Fintype.sum_ite_eq i w.ofLp)]
+      simp only [map_sum, map_smul, smul_eq_mul]
+      apply Finset.sum_congr rfl; intro j _
+      erw [EuclideanSpace.inner_single_left, RCLike.conj_to_real, one_mul]
+      ring
+    show DifferentiableAt ℝ (fun θ₀ => fderiv ℝ (M.klDiv θ) θ₀) θ
+    rw [h_eq]
+    refine DifferentiableAt.fun_sum fun j _ => ?_
+    haveI : IsScalarTower ℝ ℝ (ParamSpace n →L[ℝ] ℝ) :=
+      ⟨fun r s f => by ext x; simp only [ContinuousLinearMap.smul_apply,
+        smul_eq_mul, mul_assoc]⟩
+    exact (h_comp j).smul_const _
+  -- ── Per-component derivative of the scalar partials, at the diagonal. ──
+  have hSj : ∀ j : Fin n, ∃ g'ⱼ : ParamSpace n →L[ℝ] ℝ,
+      HasFDerivAt (fun θ' => fderiv ℝ (M.klDiv θ) θ'
+        (EuclideanSpace.single j 1)) g'ⱼ θ ∧
+      (∀ i : Fin n, g'ⱼ (EuclideanSpace.single i 1) =
+        M.toRegularStatisticalModel.fisherMatrix θ i j) := by
+    intro j
+    obtain ⟨g'ⱼ, hg'ⱼ, hg'ⱼ_eval⟩ := M.cross_score_hasFDerivAt hθ j
+    refine ⟨g'ⱼ, ?_, hg'ⱼ_eval⟩
+    exact hg'ⱼ.congr_of_eventuallyEq (by
+      filter_upwards [M.isOpen_paramDomain.mem_nhds hθ] with θ' hθ'
+      exact (M.klDiv_partial_j hθ hθ' j))
+  -- ── Exchange: the operator derivative's components are the gⱼ's. ──
+  have hcomp_j : ∀ j : Fin n,
+      fderiv ℝ (fun θ'' => fderiv ℝ (M.klDiv θ) θ'') θ x
+        (EuclideanSpace.single j 1) = (hSj j).choose x := by
+    intro j
+    have huniq := (hG.hasFDerivAt.clm_apply
+      (hasFDerivAt_const
+        (EuclideanSpace.single j (1 : ℝ) : ParamSpace n) θ)).unique
+      (hSj j).choose_spec.1
+    have h := DFunLike.congr_fun huniq x
+    simpa only [ContinuousLinearMap.add_apply, ContinuousLinearMap.comp_apply,
+      ContinuousLinearMap.zero_apply, ContinuousLinearMap.flip_apply,
+      map_zero, zero_add] using h
+  -- ── First slot in the basis: components are rows of the Fisher matrix. ──
+  have hx_expand : ∀ j : Fin n,
+      fderiv ℝ (fun θ'' => fderiv ℝ (M.klDiv θ) θ'') θ x
+        (EuclideanSpace.single j 1) =
+      ∑ i : Fin n, x.ofLp i *
+        M.toRegularStatisticalModel.fisherMatrix θ i j := by
+    intro j
+    rw [hcomp_j j]
+    conv_lhs => rw [show x = ∑ i : Fin n, x.ofLp i •
+        EuclideanSpace.single i 1 from by ext p; simp [Pi.single,
+          Function.update_apply, Finset.mem_univ]]
+    rw [map_sum]; simp_rw [map_smul, smul_eq_mul, (hSj j).choose_spec.2]
+  -- ── Second slot in the basis; close against the Fisher double sum. ──
+  conv_lhs => rw [show y = ∑ j : Fin n, y.ofLp j •
+      EuclideanSpace.single j 1 from by ext p; simp [Pi.single,
+        Function.update_apply, Finset.mem_univ]]
+  rw [map_sum]; simp_rw [map_smul, smul_eq_mul, hx_expand]
+  rw [M.toRegularStatisticalModel.fisherBilin_eq_sum_fisherMatrix hθ
+    (M.scoreSqIntegrable θ hθ)]
+  simp_rw [Finset.mul_sum]
+  rw [Finset.sum_comm]
+  congr 1; ext k; congr 1; ext j; ring
+
 end TwiceDifferentiableModel
 
-end InformationGeometry
-
-end
+end Spectra.InformationGeometry

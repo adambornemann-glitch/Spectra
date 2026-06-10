@@ -114,11 +114,4 @@ lemma stone_orbit_hasDerivAt (U : OneParameterUnitaryGroup (H := H))
       (I • generator U ⟨U.U t (ψ : H), generator_domain_invariant U t ψ⟩) t := by
   rw [generator_comm]; exact unitary_orbit_hasDerivAt U ψ t
 
-/-- **Stone's theorem.** Every self-adjoint operator on `H` is the infinitesimal
-generator of exactly one strongly continuous one-parameter unitary group. -/
-theorem exists_unique_generator {A : H →ₗ.[ℂ] H} (hA : IsSelfAdjoint A) :
-    ∃! U : OneParameterUnitaryGroup (H := H), generator U = A :=
-  ⟨genToGroup hA, generator_genToGroup hA,
-   fun U hU => group_unique U (genToGroup hA) (hU.trans (generator_genToGroup hA).symm)⟩
-
 end Spectra.QuantumMechanics.StonesTheorem

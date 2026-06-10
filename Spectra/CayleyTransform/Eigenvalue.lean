@@ -6,6 +6,8 @@ Filename: CayleyTransform/EigenValue.lean
 -/
 import Spectra.CayleyTransform.Transform
 import Spectra.CayleyTransform.Mobius
+import Mathlib.Analysis.CStarAlgebra.ContinuousFunctionalCalculus.Basic
+import Mathlib.Analysis.CStarAlgebra.ContinuousLinearMap
 /-!
 # Eigenvalue Correspondence for the Cayley Transform
 
@@ -21,9 +23,8 @@ its Cayley transform `U`: real eigenvalues `μ` of `A` correspond to eigenvalues
 * `cayley_shift_identity`: Key identity relating `(U - w)φ` to `(A - μ)ψ`
 -/
 open Complex
+open Spectra.Resolvent
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H]
-open Spectra.QuantumMechanics
-
 namespace Spectra.Cayley
 
 /-- `−1` is an eigenvalue of `U` iff `0` is an eigenvalue of `A`. -/
@@ -161,6 +162,12 @@ lemma cayley_shift_injective
   rw [h_Aψ, sub_self, norm_zero] at h_bound
   have hψ_zero : ‖(ψ : H)‖ = 0 := by nlinarith [norm_nonneg (ψ : H)]
   exact hψ_ne (norm_eq_zero.mp hψ_zero)
+
+/-- For symmetric operators, `‖Aψ + iψ‖² = ‖Aψ‖² + ‖ψ‖²`. -/
+lemma self_adjoint_norm_sq_add
+    {A : H →ₗ.[ℂ] H} (hsym : A.IsFormalAdjoint A) (ψ : A.domain) :
+    ‖A ψ + I • (ψ : H)‖ ^ 2 = ‖A ψ‖ ^ 2 + ‖(ψ : H)‖ ^ 2 :=
+  norm_sq_add_I_smul hsym ψ
 
 /-- Approximate eigenvalues of `U` give approximate eigenvalues of `A`. -/
 lemma cayley_approx_eigenvalue_backward

@@ -4,7 +4,7 @@ Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
 Filename: InformationGeometry/Dynamics/Models.lean
 -/
-import LogosLibrary.InformationGeometry.Fisher.StatisticalManifold
+import Spectra.InformationGeometry.Fisher.StatisticalManifold
 import Mathlib.Analysis.SpecialFunctions.Log.Deriv
 /-!
 # Higher-Order Regularity for Statistical Models
@@ -34,12 +34,9 @@ core `density_*_diff` and `*DerivBound` data, but the derivations are
 nontrivial and currently bundled as axioms for tractability. A future
 refactor could prove them as lemmas.
 -/
-
-noncomputable section
-
-namespace InformationGeometry
-
 open MeasureTheory Filter Topology
+
+namespace Spectra.InformationGeometry
 
 variable {n : ℕ} {Ω : Type*} [MeasurableSpace Ω]
 
@@ -237,7 +234,33 @@ structure ThriceDifferentiableModel (n : ℕ) (Ω : Type*) [MeasurableSpace Ω]
              toRegularStatisticalModel.score θ j ω *
              toRegularStatisticalModel.score θ k ω) *
           density θ ω ∂refMeasure
+  /-- Leibniz interchange for differentiating the Fisher matrix entries
+      along the parameter: `θ' ↦ g_{jk}(θ')` is Fréchet differentiable at
+      every domain point, and the `eᵢ`-component of its derivative is the
+      "metric variation" integrand
 
-end InformationGeometry
+        `∂ᵢ g_{jk}(θ) = ∫ (sᵢsⱼsₖ + sₖ·∂ᵢsⱼ + sⱼ·∂ᵢsₖ) p dμ`
+                      `= C_{ijk} + Γᵐ_{ij,k} + Γᵐ_{ik,j}`.
 
-end
+      This is the live-density analogue of `bartlett2_hasFDerivAt` for the
+      summand `sⱼsₖ·p` alone (the Bartlett-2 field only differentiates the
+      *sum* `(∂ⱼsₖ + sⱼsₖ)·p`, whose derivative is 0, and so cannot
+      separate the two pieces).  Same design rationale as the other
+      interchange fields: morally derivable from `density_thrice_diff` +
+      `thirdDerivBound`, bundled as a field for tractability. -/
+  fisherMatrix_hasFDerivAt : ∀ θ ∈ paramDomain, ∀ j k : Fin n,
+    ∃ L : ParamSpace n →L[ℝ] ℝ,
+      HasFDerivAt
+        (fun θ' => toRegularStatisticalModel.fisherMatrix θ' j k) L θ ∧
+      ∀ i : Fin n,
+        L (EuclideanSpace.single i 1) =
+          ∫ ω, (toRegularStatisticalModel.score θ i ω *
+                  toRegularStatisticalModel.score θ j ω *
+                  toRegularStatisticalModel.score θ k ω +
+                toRegularStatisticalModel.score θ k ω *
+                  toTwiceDifferentiableModel.scorePartial θ i j ω +
+                toRegularStatisticalModel.score θ j ω *
+                  toTwiceDifferentiableModel.scorePartial θ i k ω) *
+            density θ ω ∂refMeasure
+
+end Spectra.InformationGeometry

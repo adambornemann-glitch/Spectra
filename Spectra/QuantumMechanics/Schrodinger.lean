@@ -11,7 +11,7 @@ import Spectra.QuantumMechanics.Stone.Basic
 The Schrödinger equation emerges as a theorem from Stone's correspondence: the orbit of any
 strongly continuous one-parameter unitary group, restricted to the domain of its generator `A`,
 solves `ψ'(t) = i A ψ(t)`.  No self-adjointness hypothesis is needed — the generator of such a
-group is automatically self-adjoint (`generator_isSelfAdjoint`) — and no cheats are involved:
+group is automatically self-adjoint (`generator_isSelfAdjoint`)
 the derivative comes from `unitary_orbit_hasDerivAt`, and `generator_comm` moves `A` to the
 outside (`A ψ(t)` rather than `U(t)(Aψ₀)`).
 

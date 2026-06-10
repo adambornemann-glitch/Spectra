@@ -13,11 +13,12 @@ import Mathlib.Analysis.Fourier.AddCircleMulti
 
 open Complex MeasureTheory
 open scoped InnerProductSpace ContinuousFunctionalCalculus
-
+open Spectra.PositiveDefinite
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H]
 variable (U : H →L[ℂ] H)
 
-namespace Spectra.PositiveDefinite
+namespace Spectra.ProjValMeasure
+
 
 /-! ### The PVM interface -/
 
@@ -334,4 +335,4 @@ lemma spectralMeasure_parallelogram
         hmom ψ n, hmom φ n]
     linear_combination hmom_par n ψ φ
 
-end Spectra.PositiveDefinite
+end Spectra.ProjValMeasure

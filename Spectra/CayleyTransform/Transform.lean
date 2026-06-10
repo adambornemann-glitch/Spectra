@@ -193,7 +193,7 @@ theorem cayleyTransform_norm_one [Nontrivial H]
       _ ≤ ‖U‖ := ContinuousLinearMap.ratio_le_opNorm U ψ
 
 /-- For symmetric operators, `‖Aψ + iψ‖² = ‖Aψ‖² + ‖ψ‖²`. -/
-lemma self_adjoint_norm_sq_add
+lemma symmetric_norm_sq_add
     {A : H →ₗ.[ℂ] H} (hsym : A.IsFormalAdjoint A) (ψ : A.domain) :
     ‖A ψ + I • (ψ : H)‖ ^ 2 = ‖A ψ‖ ^ 2 + ‖(ψ : H)‖ ^ 2 :=
   norm_sq_add_I_smul hsym ψ
