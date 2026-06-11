@@ -4,7 +4,7 @@ Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
 Filename: UnitaryEvolution/Ehrenfest.lean
 -/
-import Spectra.QuantumMechanics.Schrodinger
+import Spectra.QuantumMechanics.SchrodingerEquation
 import Mathlib.Analysis.InnerProductSpace.Continuous
 
 open InnerProductSpace Complex Filter Topology

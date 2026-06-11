@@ -4,7 +4,7 @@ Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
 Filename: DiracEquation/Conservation.lean
 -/
-import Spectra.QuantumMechanics.Dirac.Current
+import Spectra.QuantumMechanics.DiracEquation.Current
 import Mathlib.Analysis.Calculus.Deriv.Basic
 import Mathlib.Analysis.Calculus.Deriv.Prod
 import Mathlib.Analysis.Calculus.Deriv.Comp

@@ -4,7 +4,7 @@ Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
 Filename: SpectralTheory/HerglotzTheorem/Stieltjes/CumulativeDistFun.lean
 -/
-import Spectra.PositiveDefinite.Defs
+import Spectra.PositiveDefinite.Unitary
 import Spectra.Herglotz.FejerMeasure
 open MeasureTheory
 open Spectra.PositiveDefinite

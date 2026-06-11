@@ -4,7 +4,7 @@ Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
 Filename: BochnerTheorem/Borel/Identity.lean
 -/
-import Spectra.Bochner.Borel.Measure
+import Spectra.Bochner.Borel.CDF
 import Spectra.Kernel.Resolvent
 import Spectra.Herglotz.Stieltjes.IntegralConv
 import Mathlib.Topology.Algebra.Module.Cardinality
@@ -20,7 +20,7 @@ open scoped InnerProductSpace NNReal ENNReal ComplexConjugate
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
 variable (U_grp : OneParameterUnitaryGroup (H := H))
 
-namespace Spectra.Bochner
+namespace Spectra.Borel
 
 /-- Bounded-window version of `integral_tendsto_of_cdf_tendsto`.
 The `[0,2π]`/support hypotheses are unused once the interval is bounded — what survives
@@ -304,4 +304,4 @@ lemma integral_Ioc_tendsto_of_cdf_tendsto
     _ = ε₀ := by ring
 
 
-end Spectra.Bochner
+end Spectra.Borel

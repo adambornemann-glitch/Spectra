@@ -4,7 +4,7 @@ Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
 Filename: Dirac/Current.lean
 -/
-import Spectra.QuantumMechanics.Dirac.GammaTrace
+import Spectra.QuantumMechanics.DiracEquation.GammaTrace
 import Mathlib.MeasureTheory.Integral.Bochner.Basic
 import Mathlib.MeasureTheory.Measure.Lebesgue.Basic
 /-!

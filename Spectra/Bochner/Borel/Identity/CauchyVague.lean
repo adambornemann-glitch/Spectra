@@ -19,7 +19,7 @@ open scoped InnerProductSpace ENNReal ComplexConjugate
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
 variable (U_grp : OneParameterUnitaryGroup (H := H))
 
-namespace Spectra.Bochner
+namespace Spectra.Borel
 
 /-- C₀ vague convergence along the Helly subsequence. -/
 lemma borel_cauchy_vague
@@ -219,4 +219,4 @@ lemma borel_cauchy_vague
     _ = ε / 2 + 2 * M / (R - |z.re|) := by ring
     _ < ε := by linarith
 
-end Spectra.Bochner
+end Spectra.Borel

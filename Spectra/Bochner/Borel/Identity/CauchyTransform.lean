@@ -4,7 +4,7 @@ Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
 Filename: BochnerTheorem/Borel/Identity/CauchyTransform.lean
 -/
-import Spectra.Bochner.Borel.Measure
+import Spectra.Bochner.Borel.CDF
 import Spectra.Kernel.Resolvent
 import Spectra.Resolvent.Identities
 
@@ -19,7 +19,7 @@ open scoped InnerProductSpace ENNReal ComplexConjugate
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
 variable (U_grp : OneParameterUnitaryGroup (H := H))
 
-namespace Spectra.Bochner
+namespace Spectra.Borel
 
 /-- The subsequence selected by Helly — the same witness underlying `borelLimitCDF`. -/
 noncomputable def borelSubseq (U_grp : OneParameterUnitaryGroup (H := H)) (ξ : H) : ℕ → ℕ :=
@@ -215,4 +215,4 @@ lemma borel_cauchy_approx_tendsto
                   (fun k => (hconj k).symm)
     rwa [resolvent_inner_diag_conj hsym hplus hmin hz hcz] at hlim
 
-end Spectra.Bochner
+end Spectra.Borel

@@ -5,7 +5,6 @@ Authors: Adam Bornemann
 Filename: SpectralTheory/HerglotzTheorem/Stieltjes/Hellys.lean
 -/
 import Spectra.Herglotz.Stieltjes.CumulativeDistFun
-import Spectra.PositiveDefinite.Defs
 import Mathlib.Data.Rat.Denumerable
 
 open Filter Topology

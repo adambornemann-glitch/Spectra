@@ -4,7 +4,7 @@ Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
 Filename: SpectralTheory/HerglotzTheorem/PositiveDefinite/PVM_interface.lean
 -/
-import Spectra.PositiveDefinite.Defs
+import Spectra.PositiveDefinite.Unitary
 
 import Mathlib.Analysis.CStarAlgebra.ContinuousFunctionalCalculus.Basic
 import Mathlib.Analysis.CStarAlgebra.ContinuousLinearMap

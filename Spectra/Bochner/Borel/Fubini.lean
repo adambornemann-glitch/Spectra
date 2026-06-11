@@ -14,7 +14,7 @@ open OneParameterUnitaryGroup
 open Spectra.Fourier
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
 variable (U_grp : OneParameterUnitaryGroup (H := H))
-namespace Spectra.Bochner
+namespace Spectra.Borel
 
 /-- Integrate `key_identity`'s integrand
 against `e^{-δ|λ|}`, swap, evaluate. -/
@@ -88,4 +88,4 @@ lemma fubini_regularized
     funext lambda; show F lambda t = _; simp only [F]; ring
   rw [hreorder, integral_const_mul, fourier_kernel_eval hδ t]
 
-end Spectra.Bochner
+end Spectra.Borel

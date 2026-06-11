@@ -4,7 +4,8 @@ Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
 Filename: QuantumMechanics/SpectralTheory/ScalarMeasure/Exists.lean
 -/
-import Spectra.Bochner.Borel.Basic
+import Spectra.Bochner.Borel.Identity.CauchyVague
+import Spectra.Mathlib.CharFunBridge
 import Spectra.Fourier.Inversion
 /-!
 # Statement
@@ -17,6 +18,9 @@ space `H` and any vector `ξ ∈ H`, there exists a finite positive Borel measur
 
 with `μ(ℝ) = ‖ξ‖²`.
 
+The measure is `borelMeasure U ξ` and the identity is the named lemma
+`borelMeasure_fourier`; the existential `spectral_scalar_measure_exists` is a corollary.
+
 Combined with Fourier uniqueness (**proved**, `Fourier/Unique.lean`), this
 gives the complete Bochner theorem.
 
@@ -25,18 +29,16 @@ gives the complete Bochner theorem.
 spectral theorem, axiom, projection-valued measure, scalar spectral measure
 -/
 open Complex MeasureTheory Filter Topology
+open scoped InnerProductSpace
 open Spectra.Resolvent
 open Spectra.Fourier
-open Spectra.Kernels
-open Spectra.Herglotz
 open Spectra.QuantumMechanics
 open OneParameterUnitaryGroup
-open scoped InnerProductSpace
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
 variable (U_grp : OneParameterUnitaryGroup (H := H))
+namespace Spectra.Borel
 
-namespace Spectra.Bochner
-
+namespace SpectralMeasure
 
 /-! ## Half-line ⇒ two-sided -----------------------------------------------------------------
 
@@ -117,22 +119,33 @@ private lemma two_sided_split {h : ℝ → ℂ} (hcont : Continuous h)
   rw [h_iic, h_ioi]
   ring
 
+/-- **The Borel-transform identity** For every `z` off the real
+axis, `⟪ξ, R(z)ξ⟫ = ∫ (λ - z)⁻¹ d(borelMeasure U_grp ξ)(λ)`. -/
+lemma m_eq_cauchy_transform
+    (U_grp : OneParameterUnitaryGroup (H := H)) (ξ : H) {z : ℂ} (hz : z.im ≠ 0) :
+    ⟪ξ, resolvent z hz (generator_isFormalAdjoint U_grp)
+          (range_plus_i_eq_top U_grp) (range_minus_i_eq_top U_grp) ξ⟫_ℂ
+      = ∫ lambda, ((lambda : ℂ) - z)⁻¹ ∂(borelMeasure U_grp ξ) :=
+  tendsto_nhds_unique
+    (borel_cauchy_approx_tendsto U_grp ξ hz) (borel_cauchy_vague U_grp ξ hz)
+
 /-! ## The existence theorem --------------------------------------------------------- -/
 
-/-- For any strongly continuous one-parameter unitary group on a complex
-Hilbert space and any vector ξ, there exists a finite positive Borel
-measure μ on ℝ such that `⟨ξ, U(t)ξ⟩ = ∫ e^{itlambda} dμ(lambda)`. -/
-theorem spectral_scalar_measure_exists
-    (U_grp : OneParameterUnitaryGroup (H := H)) (ξ : H) :
-    ∃ (μ : Measure ℝ), IsFiniteMeasure μ ∧
-      (∀ t : ℝ, ⟪ ξ, U_grp.U t ξ⟫_ℂ = ∫ lambda, cexp (I * lambda * t) ∂μ) := by
+/-- **Defining identity of the diagonal spectral measure**: for any strongly continuous
+one-parameter unitary group on a complex Hilbert space and any vector ξ,
+
+  `⟨ξ, U(t)ξ⟩ = ∫ e^{itlambda} d(borelMeasure U ξ)(lambda)`.
+
+This is the concrete form of `spectral_scalar_measure_exists`, naming the witness. -/
+theorem borelMeasure_fourier
+    (U_grp : OneParameterUnitaryGroup (H := H)) (ξ : H) (t : ℝ) :
+    ⟪ξ, U_grp.U t ξ⟫_ℂ = ∫ lambda, cexp (I * lambda * t) ∂(borelMeasure U_grp ξ) := by
   classical
   set μ := borelMeasure U_grp ξ with hμ
   haveI : IsFiniteMeasure μ := borelMeasure_isFiniteMeasure U_grp ξ
-  refine ⟨μ, inferInstance, ?_⟩
   set f : ℝ → ℂ := fun t => ⟪ξ, U_grp.U t ξ⟫_ℂ with hf
   set g : ℝ → ℂ := fun t => ∫ lambda, cexp (I * (lambda:ℂ) * (t:ℂ)) ∂μ with hg
-  suffices h : f = g by intro t; exact congrFun h t
+  suffices h : f = g by exact congrFun h t
   -- continuity of f
   have hf_cont : Continuous f := continuous_const.inner (continuous_unitary_apply U_grp ξ)
   -- continuity of g : dominated convergence, |e^{iλt}| = 1, μ finite
@@ -275,4 +288,69 @@ theorem spectral_scalar_measure_exists
   -- conclude via your proved keystone
   exact eq_of_fourier_decay_eq hf_cont hg_cont hf_bdd hg_bdd hdecay
 
-end Spectra.Bochner
+/-- For any strongly continuous one-parameter unitary group on a complex
+Hilbert space and any vector ξ, there exists a finite positive Borel
+measure μ on ℝ such that `⟨ξ, U(t)ξ⟩ = ∫ e^{itlambda} dμ(lambda)`.
+
+The witness is `borelMeasure U_grp ξ`; prefer `borelMeasure_fourier` downstream. -/
+theorem spectral_scalar_measure_exists
+    (U_grp : OneParameterUnitaryGroup (H := H)) (ξ : H) :
+    ∃ (μ : Measure ℝ), IsFiniteMeasure μ ∧
+      (∀ t : ℝ, ⟪ ξ, U_grp.U t ξ⟫_ℂ = ∫ lambda, cexp (I * lambda * t) ∂μ) :=
+  ⟨borelMeasure U_grp ξ, borelMeasure_isFiniteMeasure U_grp ξ,
+    fun t => borelMeasure_fourier U_grp ξ t⟩
+
+/-- Total mass: evaluate `borelMeasure_fourier` at `t = 0`. -/
+lemma borelMeasure_mass (ξ : H) :
+    ((borelMeasure U_grp ξ) Set.univ).toReal = ‖ξ‖ ^ 2 := by
+  have h := borelMeasure_fourier U_grp ξ 0
+  -- left side: `U 0 = id` and `⟪ξ, ξ⟫ = ↑(‖ξ‖²)`
+  rw [U_grp.identity, ContinuousLinearMap.id_apply, inner_self_eq_norm_sq_to_K] at h
+  -- right side: the character at `t = 0` is the constant `1`, whose integral is the mass
+  have hint : (∫ lambda : ℝ, cexp (I * (lambda : ℂ) * ((0 : ℝ) : ℂ))
+        ∂(borelMeasure U_grp ξ))
+      = ((((borelMeasure U_grp ξ) Set.univ).toReal : ℝ) : ℂ) := by
+    simp only [Complex.ofReal_zero, mul_zero, Complex.exp_zero]
+    rw [integral_const, Complex.real_smul, mul_one, Measure.real_def]
+  rw [hint, ← coe_algebraMap] at h
+  exact_mod_cast h.symm
+
+/-- Scaling: `μ_{c•ξ} = ‖c‖₊² • μ_ξ`.  Both sides have transform `‖c‖²·⟪ξ, U(t)ξ⟫`;
+conclude by `measure_ext_of_fourier`. -/
+lemma borelMeasure_smul (c : ℂ) (ξ : H) :
+    borelMeasure U_grp (c • ξ) = (‖c‖₊ ^ 2) • borelMeasure U_grp ξ := by
+  refine measure_ext_of_fourier fun t => ?_
+  -- left transform: sesquilinearity pulls out `conj c · c = ‖c‖²`
+  have hL : (∫ ω, cexp (I * ω * t) ∂(borelMeasure U_grp (c • ξ)))
+      = ((‖c‖ ^ 2 : ℝ) : ℂ) * ∫ ω, cexp (I * ω * t) ∂(borelMeasure U_grp ξ) := by
+    rw [← borelMeasure_fourier U_grp (c • ξ) t, ← borelMeasure_fourier U_grp ξ t,
+        map_smul, inner_smul_left, inner_smul_right, ← mul_assoc, RCLike.conj_mul]
+    norm_cast
+  -- right transform: the `ℝ≥0` factor passes through the integral
+  have hR : (∫ ω, cexp (I * ω * t) ∂((‖c‖₊ ^ 2) • borelMeasure U_grp ξ))
+      = ((‖c‖ ^ 2 : ℝ) : ℂ) * ∫ ω, cexp (I * ω * t) ∂(borelMeasure U_grp ξ) := by
+    rw [integral_smul_nnreal_measure, NNReal.smul_def, Complex.real_smul]
+    norm_cast
+  rw [hL, hR]
+
+/-- The zero vector carries the zero measure: `borelMeasure_smul` with `c = 0`. -/
+lemma borelMeasure_zero : borelMeasure U_grp (0 : H) = 0 := by
+  simpa using borelMeasure_smul U_grp 0 (0 : H)
+
+/-- **Bridge to the workhorse.**  Two complex combinations of diagonal spectral measures whose
+matrix-element combinations agree for all `t` have equal integrals against every bounded
+measurable function.  Specialization of `integral_combination_ext'` along
+`borelMeasure_fourier`; every sesquilinearity lemma below is an instance. -/
+lemma borel_combination_ext {n m : ℕ} (c : Fin n → ℂ) (v : Fin n → H)
+    (d : Fin m → ℂ) (w : Fin m → H)
+    (h : ∀ t : ℝ, ∑ i, c i * ⟪v i, U_grp.U t (v i)⟫_ℂ
+        = ∑ j, d j * ⟪w j, U_grp.U t (w j)⟫_ℂ)
+    {g : ℝ → ℂ} (hg_meas : Measurable g) (hg_bdd : ∃ C, ∀ ω, ‖g ω‖ ≤ C) :
+    ∑ i, c i * ∫ ω, g ω ∂(borelMeasure U_grp (v i))
+      = ∑ j, d j * ∫ ω, g ω ∂(borelMeasure U_grp (w j)) := by
+  refine integral_combination_ext' c (fun i => borelMeasure U_grp (v i)) d
+    (fun j => borelMeasure U_grp (w j)) (fun t => ?_) hg_meas hg_bdd
+  simp only [← borelMeasure_fourier]
+  exact h t
+
+end Spectra.Borel.SpectralMeasure

@@ -2,9 +2,9 @@
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
-Filename: Dirac/GammaTraces.lean
+Filename: QuantumMechanics/GammaTraces.lean
 -/
-import Spectra.QuantumMechanics.Dirac.CliffordAlgebra
+import Spectra.QuantumMechanics.DiracEquation.CliffordAlgebra
 import Mathlib.Analysis.Complex.Basic
 import Mathlib.MeasureTheory.Integral.Bochner.ContinuousLinearMap
 /-!
@@ -54,10 +54,8 @@ anticommutation to move γ⁵ through, and observe that Tr(A) = -Tr(A) implies T
 
 gamma matrices, trace identities, Feynman diagrams, QED, Clifford algebra
 -/
-
-namespace Spectra.QuantumMechanics.Dirac
-
 open Complex Matrix
+namespace Spectra.QuantumMechanics.Dirac
 
 /-! ## Minkowski Metric -/
 

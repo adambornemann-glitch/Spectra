@@ -73,7 +73,8 @@ on the quantum state manifold.
 * S. Amari, H. Nagaoka, *Methods of Information Geometry*, AMS,
   2000, Ch. 7.
 -/
-namespace Spectra.QuantumMechanics.Bridge
+open Spectra.QuantumMechanics.Composite
+namespace Spectra.QuantumMechanics.FisherModel
 
 open Spectra.Operator Spectra.QuantumMechanics.Schrodinger Spectra.InformationGeometry
 open SymmetricOperator InnerProductSpace
@@ -177,4 +178,4 @@ noncomputable def quantumRLDFisherModel (D : QuantumRLDData n H)
     have h := quantum_schrodinger_bilinear D v w
     nlinarith
 
-end Spectra.QuantumMechanics.Bridge
+end Spectra.QuantumMechanics.FisherModel

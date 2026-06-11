@@ -4,7 +4,7 @@ Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
 Filename: Fourier/PoissonKernel/Lemmas.lean
 -/
-import Spectra.PositiveDefinite.Defs
+import Spectra.PositiveDefinite.Unitary
 import Mathlib.Analysis.SpecialFunctions.ImproperIntegrals
 import Mathlib.Analysis.SpecialFunctions.JapaneseBracket
 /-!

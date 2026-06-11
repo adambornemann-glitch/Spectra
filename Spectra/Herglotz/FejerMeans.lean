@@ -4,7 +4,7 @@ Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
 Filename: SpectralTheory/HerglotzTheorem/FejerMeans.lean
 -/
-import Spectra.PositiveDefinite.Defs
+import Spectra.PositiveDefinite.Unitary
 import Mathlib.MeasureTheory.Integral.IntervalIntegral.FundThmCalculus
 import Mathlib.Analysis.SpecialFunctions.ExpDeriv
 

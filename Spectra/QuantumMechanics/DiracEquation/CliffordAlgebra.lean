@@ -4,7 +4,8 @@ Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
 Filename: Dirac/CliffordAlgebra.lean
 -/
-import Spectra.QuantumMechanics.Stone.OneParameterUnitaryGroup
+import Mathlib.Analysis.InnerProductSpace.Adjoint
+import Mathlib.Analysis.InnerProductSpace.LinearPMap
 /-!
 # The Dirac Equation and Relativistic Quantum Mechanics
 
@@ -62,8 +63,8 @@ the mathematical formalism to quantum mechanical measurement.
 Dirac equation, Clifford algebra, gamma matrices, spinor, relativistic quantum mechanics,
 spectral gap, probability conservation, Born rule, chirality
 -/
-variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
 open Complex
+variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
 namespace Spectra.QuantumMechanics.Dirac
 
 /-- α₁ in standard representation (4×4) -/

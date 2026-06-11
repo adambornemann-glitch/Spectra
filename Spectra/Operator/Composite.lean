@@ -84,7 +84,7 @@ open InnerProductSpace
 open scoped ComplexConjugate
 
 variable {n : ℕ} {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
-namespace Spectra.QuantumMechanics.Bridge
+namespace Spectra.QuantumMechanics.Composite
 
 private lemma mem_of_mem_iInf {O : Fin n → SymmetricOperator H} {x : H}
     (hx : x ∈ ⨅ i, (O i).domain) (i : Fin n) : x ∈ (O i).domain :=
@@ -407,4 +407,4 @@ lemma variance_composite (D : QuantumRLDData n H) (v : Fin n → ℝ) :
     norm_cast
   rw [h_var_cov, covariance_composite]
 
-end Spectra.QuantumMechanics.Bridge
+end Spectra.QuantumMechanics.Composite
