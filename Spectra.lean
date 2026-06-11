@@ -67,7 +67,8 @@ import Spectra.InformationGeometry.Stone.FaaDiBruno.Basic
 import Spectra.InformationGeometry.Stone.mConnect
 import Spectra.InformationGeometry.Stone.PreservesCubic
 import Spectra.InformationGeometry.Stone.Generator
---import Spectra.InformationGeometry.Dynamics.Stone
+import Spectra.InformationGeometry.Stone.Basic
+import Spectra.InformationGeometry.SchrodingerEquation
 import Spectra.Kernel.Defs
 import Spectra.Kernel.Arctan
 import Spectra.Kernel.Resolvent

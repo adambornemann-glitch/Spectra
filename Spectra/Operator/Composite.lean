@@ -1,8 +1,8 @@
 /-
-Copyright (c) 2026 Logos Library Formalization Project. All rights reserved.
+Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
-Filename: InformationGeometry/CompositeObservable.lean
+Filename: Operator/Composite.lean
 -/
 import Spectra.QuantumMechanics.Uncertainty.SchrodingerRobertson
 import Spectra.InformationGeometry.CramerRao.SchrodingerRLD

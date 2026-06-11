@@ -1,5 +1,5 @@
 /-
-Copyright (c) 2026 Logos Library Formalization Project. All rights reserved.
+Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
 Filename: Uncertainty/Schrodinger.lean
@@ -49,13 +49,11 @@ self-adjoint observables (`UnboundedObservable`) via `toSymmetricOperator` in th
 
 uncertainty principle, Schrödinger inequality, Robertson inequality, covariance
 -/
-namespace Spectra.QuantumMechanics.Schrodinger
-
-open Operator SymmetricOperator Observable
+open Spectra.Operator SymmetricOperator Spectra.QuantumMechanics.Observable
 open InnerProductSpace
 open scoped ComplexConjugate
-
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
+namespace Spectra.QuantumMechanics.Schrodinger
 
 /-! ### Real/complex helper lemmas -/
 
