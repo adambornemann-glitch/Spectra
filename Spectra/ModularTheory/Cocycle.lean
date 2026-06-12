@@ -45,14 +45,11 @@ of them:
 -/
 open Complex Filter Topology
 open scoped InnerProductSpace
-
-namespace Spectra.QuantumMechanics.ModularTheory
-
 open Spectra.QuantumMechanics OneParameterUnitaryGroup
 open Spectra.QuantumMechanics.SpectralTheory
 
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
-
+namespace Spectra.QuantumMechanics.ModularTheory
 /-!
 ## Section 1: Inner equivalence and Out(M)
 
