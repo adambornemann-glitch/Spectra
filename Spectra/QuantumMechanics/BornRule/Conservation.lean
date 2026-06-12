@@ -4,8 +4,8 @@ Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
 Filename: Dirac/BornRule.lean
 -/
-import Spectra.DiracEquation.Current
-import Spectra.DiracEquation.Conservation
+import Spectra.QuantumMechanics.DiracEquation.Current
+import Spectra.QuantumMechanics.DiracEquation.Conservation
 import Mathlib.Analysis.Calculus.ParametricIntegral
 import Mathlib.MeasureTheory.Integral.IntegralEqImproper
 import Mathlib.MeasureTheory.Integral.Prod

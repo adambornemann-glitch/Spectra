@@ -122,7 +122,7 @@ noncomputable def toDiracOperator (H_D : DiracHamiltonian H K M) : DiracOperator
 
 /-- The Dirac operator generates a strongly continuous unitary group with a symmetric
 generator — trivial by construction.  (The old axiom, then the old field, now nothing.) -/
-theorem dirac_generates_unitary (H_D : DiracHamiltonian H K M) :
+lemma dirac_generates_unitary (H_D : DiracHamiltonian H K M) :
     ∃ U : OneParameterUnitaryGroup (H := H),
       (generator U).IsFormalAdjoint (generator U) :=
   ⟨H_D.U_grp, generator_isFormalAdjoint H_D.U_grp⟩
@@ -134,7 +134,7 @@ Every spectral input is constructed from `H_D.U_grp`; the lone hypothesis is the
 physical one (the spectrum reaches arbitrarily far down), which for the concrete operator
 `H_D = -iℏc(α·∇) + βmc²` on `L²(ℝ³; ℂ⁴)` is a Fourier-multiplier computation — a separate
 project. -/
-theorem dirac_unbounded_below (H_D : DiracHamiltonian H K M)
+lemma dirac_unbounded_below (H_D : DiracHamiltonian H K M)
     (h_spectrum_below : ∀ N : ℝ, ∃ φ : H,
       spectralProjection H_D.U_grp (Set.Iic N) measurableSet_Iic φ ≠ 0) :
     ∀ bound : ℝ, ∃ ψ : (generator H_D.U_grp).domain,
@@ -145,7 +145,7 @@ theorem dirac_unbounded_below (H_D : DiracHamiltonian H K M)
   exact ⟨ψ, hψ⟩
 
 /-- **The Dirac operator is unbounded above**: for any bound, some state has energy above it. -/
-theorem dirac_unbounded_above (H_D : DiracHamiltonian H K M)
+lemma dirac_unbounded_above (H_D : DiracHamiltonian H K M)
     (h_spectrum_above : ∀ N : ℝ, ∃ φ : H,
       spectralProjection H_D.U_grp (Set.Ici N) measurableSet_Ici φ ≠ 0) :
     ∀ bound : ℝ, ∃ ψ : (generator H_D.U_grp).domain,
@@ -163,7 +163,7 @@ negative energy — the spectrum extends to `−∞`.  This is why Dirac introdu
 interpretation: in the physical vacuum all negative-energy states are already occupied,
 and the Pauli exclusion principle prevents further electrons from falling into them —
 the prediction of antimatter. -/
-theorem dirac_not_semibounded (H_D : DiracHamiltonian H K M)
+lemma dirac_not_semibounded (H_D : DiracHamiltonian H K M)
     (h_spectrum_below : ∀ N : ℝ, ∃ φ : H,
       spectralProjection H_D.U_grp (Set.Iic N) measurableSet_Iic φ ≠ 0) :
     ¬∃ bound : ℝ, ∀ ψ : (generator H_D.U_grp).domain,

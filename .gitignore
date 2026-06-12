@@ -2,9 +2,12 @@
 /build/*
 /config/*
 /packages/*
-/@PY/
 /@DEP/
 /@MONOLITH/
+/@PY/
 /@REFACTOR/
-/GUIDANCE/
+/@SIGS/
 /@STATS/
+/@ToQFT/
+/@ToQIG/
+/GUIDANCE/
