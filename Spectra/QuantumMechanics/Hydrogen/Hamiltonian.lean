@@ -3,201 +3,132 @@ Copyright (c) 2026 Logos Library Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
-import Spectra.QuantumMechanics.Hydrogen.Laplacian
 import Spectra.QuantumMechanics.Perturbation.CoulombBound
+import Spectra.QuantumMechanics.OneParameterUnitaryGroup.Basic
+import Spectra.QuantumMechanics.Stone.Basic
+import Spectra.SpectralTheory.ResolventForm
 /-!
 # The Hydrogen Hamiltonian
 
-Assembly of H = −Δ − Z/r as a self-adjoint generator on H²(ℝ³),
-connecting to the spectral pipeline.
+Assembly of `H = −Δ − Z/r` as a self-adjoint operator on `H²(ℝ³)`, and its
+connection to the spectral pipeline (Stone's theorem, the resolvent).
 
-## Architecture
-
-This is the **interface file** — it takes the concrete analysis from
-Layers 0–1 and produces the abstract algebraic objects the spectral
-pipeline consumes.
-
-```
-  Layer 0-1 (Analysis)              Layer 4 (Interface)           Pipeline
-  ┌─────────────────┐               ┌──────────────────┐         ┌──────────┐
-  │ laplacianGen    │──┐            │                  │         │ IsSpec   │
-  │ laplacian_isSA  │  ├──KR────→   │ hydrogenGenerator│────────→│ MeasFor  │
-  │ coulombOnGenDom │──┘            │ hydrogen_isSA    │         │ funcCalc │
-  │ coulomb_KR_ready│               │ hydrogen_domain  │         │ resolvent│
-  └─────────────────┘               └──────────────────┘         └──────────┘
-```
-
-Once `hydrogenGenerator` and `hydrogen_isSelfAdjoint` compile, the
-entire spectral infrastructure applies automatically:
-- Stone's theorem: H generates a unitary group e^{−itH}
-- Spectral measure: ∃ E with H = ∫ λ dE(λ)
-- Functional calculus: f(H) = ∫ f(λ) dE(λ)
-- Resolvent: (H − z)⁻¹ for z ∉ σ(H)
+This is the **interface file**: the analytic content lives upstream
+(`HardyInequality`, `CoulombBound`), and here we package it into the abstract
+objects the spectral machinery consumes. In the current architecture the central
+object is `perturbedOp laplacianPMap (coulombPotential p)`, shown self-adjoint by
+`hydrogen_isSelfAdjoint` (Kato–Rellich) in `CoulombBound`; this file re-exports it
+under hydrogen-specific names and bundles it as an `UnboundedObservable` and a
+`OneParameterUnitaryGroup`.
 
 ## Main definitions
 
-* `hydrogenGenerator` — H = −Δ − Z/r as a `Generator`.
-* `HydrogenData` — bundled hydrogen atom data (Z, generator, proofs).
+* `hydrogenHamiltonian` — `H = −Δ − Z/r` as a partial linear map.
+* `hydrogenObservable` — `H` bundled as an `UnboundedObservable`.
+* `hydrogenUnitaryGroup` — the evolution `e^{itH}` (Stone's theorem).
+* `HydrogenData` — bundled hydrogen-atom data.
 
 ## Main statements
 
-* `hydrogen_isSelfAdjoint` — H is self-adjoint on H²(ℝ³).
-* `hydrogen_domain_eq` — Dom(H) = Dom(−Δ) = H²(ℝ³).
-* `hydrogen_op_eq` — H ψ = −Δψ − (Z/r)ψ for ψ ∈ H².
+* `hydrogenHamiltonian_isSelfAdjoint` — `H` is self-adjoint on `H²(ℝ³)`.
+* `hydrogenHamiltonian_domain` — `Dom(H) = H²(ℝ³)`.
+* `hydrogenHamiltonian_apply` — `Hψ = −Δψ − (Z/r)ψ`.
+* `laplacian_spectrum_nonneg` — eigenvalues of `−Δ` are `≥ 0`.
+* `laplacian_resolvent_bound` — `‖(−Δ − z)⁻¹‖ ≤ 1/|Im z|`.
 
 ## References
 
-* [Kato, *Perturbation Theory*][kato1995], §V.5.
+* [Kato, *Perturbation Theory for Linear Operators*][kato1995], §V.5.
 * [Reed, Simon, *Methods of Modern Mathematical Physics IV*][reed1978], §XIII.3.
 -/
-open MeasureTheory Complex Filter
+open MeasureTheory Complex Filter InnerProductSpace
+open Spectra.Sobolev
+open Spectra.QuantumMechanics
+open Hamiltonian SpectralTheory OneParameterUnitaryGroup StonesTheorem
+open Spectra.QuantumMechanics.Observable
+open Spectra.Resolvent
 open scoped Topology NNReal ENNReal
 noncomputable section
-open Spectra.QuantumMechanics
-open OneParameterUnitaryGroup
 namespace Spectra.QuantumMechanics.Hydrogen
 
-/-! ## Applying Kato-Rellich -/
+/-! ## The hydrogen Hamiltonian -/
 
-/-- **Application of Kato-Rellich to hydrogen.**
+/-- The hydrogen Hamiltonian `H = −Δ − Z/r` as a partial linear map on `L²(ℝ³)`,
+with domain `H²(ℝ³)`. (The sign and charge are inside `coulombMultiplier`.) -/
+def hydrogenHamiltonian (p : CoulombParams) : L2_R3 →ₗ.[ℂ] L2_R3 :=
+  perturbedOp laplacianPMap (coulombPotential p)
 
-    Inputs (all from upstream files):
-    1. `laplacian_isSelfAdjoint` — −Δ is self-adjoint on H²
-    2. `coulomb_symmetric_on_domain` — V = −Z/r is symmetric on H²
-    3. `coulomb_isRelativelyBounded` — V is (−Δ)-bounded with any a > 0
+/-- The hydrogen Hamiltonian is self-adjoint on `H²(ℝ³)` (Kato–Rellich, via Hardy);
+this is `hydrogen_isSelfAdjoint` from `CoulombBound`. -/
+theorem hydrogenHamiltonian_isSelfAdjoint (p : CoulombParams) :
+    IsSelfAdjoint (hydrogenHamiltonian p) :=
+  hydrogen_isSelfAdjoint p
 
-    Choosing a = 1/2 < 1, Kato-Rellich produces:
-    - A unitary group U'
-    - A generator gen' with gen'.IsSelfAdjoint
-    - Domain equality: gen'.domain = laplacianGenerator.domain
-    - Operator identity: gen'.op ψ = (−Δ)ψ + Vψ = (−Δ)ψ − (Z/r)ψ -/
-theorem hydrogen_kato_rellich (p : CoulombParams) :
-    ∃ (U_grp' : OneParameterUnitaryGroup (H := L2_R3))
-      (gen' : Generator U_grp')
-      (h_dom : laplacianGenerator.domain = gen'.domain),
-      gen'.IsSelfAdjoint ∧
-      ∀ (x : L2_R3) (hx : x ∈ laplacianGenerator.domain),
-        gen'.op ⟨x, h_dom ▸ hx⟩ =
-        laplacianGenerator.op ⟨x, hx⟩ + coulombOnGeneratorDomain p ⟨x, hx⟩ := by
-  obtain ⟨hsa, hsym, hbound⟩ := coulomb_kato_rellich_ready p
-  obtain ⟨b, hb, hest⟩ := hbound (1/2) (by norm_num)
-  exact kato_rellich laplacianGenerator hsa (coulombOnGeneratorDomain p) hsym
-    { a := 1/2, b := b, ha := by norm_num, hb := hb, bound := hest }
-    (by norm_num)
+/-- `Dom(H) = Dom(−Δ) = H²(ℝ³)`: the perturbation `−Z/r` does not change the
+domain. -/
+@[simp] theorem hydrogenHamiltonian_domain (p : CoulombParams) :
+    (hydrogenHamiltonian p).domain = SobolevH2 :=
+  rfl
 
-/-! ## The hydrogen generator -/
+/-- `Hψ = −Δψ − (Z/r)ψ` for `ψ ∈ H²`. -/
+theorem hydrogenHamiltonian_apply (p : CoulombParams)
+    (ψ : (hydrogenHamiltonian p).domain) :
+    hydrogenHamiltonian p ψ = laplacianPMap ψ + coulombPotential p ψ :=
+  rfl
 
-/-- **The hydrogen unitary group.**
+/-- The hydrogen Hamiltonian bundled as an `UnboundedObservable`. -/
+def hydrogenObservable (p : CoulombParams) : UnboundedObservable L2_R3 where
+  toLinearPMap := hydrogenHamiltonian p
+  selfAdjoint := hydrogen_isSelfAdjoint p
 
-    The strongly continuous one-parameter unitary group U(t) = e^{−itH}
-    generated by the hydrogen Hamiltonian. -/
+/-- The hydrogen unitary evolution `U(t) = e^{itH}` (Stone's theorem). -/
 def hydrogenUnitaryGroup (p : CoulombParams) :
     OneParameterUnitaryGroup (H := L2_R3) :=
-  (hydrogen_kato_rellich p).choose
+  genToGroup (hydrogen_isSelfAdjoint p)
 
-/-- **The hydrogen Hamiltonian as a Generator.**
+/-- The generator of `e^{itH}` is `H`. -/
+theorem generator_hydrogenUnitaryGroup (p : CoulombParams) :
+    generator (hydrogenUnitaryGroup p) = hydrogenHamiltonian p :=
+  generator_genToGroup (hydrogen_isSelfAdjoint p)
 
-    H = −Δ − Z/r on Dom(H) = H²(ℝ³).
+/-! ## Bundled hydrogen-atom data -/
 
-    This is the central object. Once constructed, the spectral pipeline
-    gives everything: spectral measure, functional calculus, resolvent,
-    eigenvalue decomposition. -/
-def hydrogenGenerator (p : CoulombParams) :
-    Generator (hydrogenUnitaryGroup p) :=
-  (hydrogen_kato_rellich p).choose_spec.choose
-
-/-- **Self-adjointness of the hydrogen Hamiltonian.** -/
-theorem hydrogen_isSelfAdjoint (p : CoulombParams) :
-    (hydrogenGenerator p).IsSelfAdjoint :=
-  (hydrogen_kato_rellich p).choose_spec.choose_spec.choose_spec.1
-
-/-- **Domain equality**: Dom(H) = Dom(−Δ) = H²(ℝ³).
-
-    The domain is preserved by Kato-Rellich — the perturbation −Z/r
-    does not change the domain. -/
-theorem hydrogen_domain_eq (p : CoulombParams) :
-    laplacianGenerator.domain = (hydrogenGenerator p).domain :=
-  (hydrogen_kato_rellich p).choose_spec.choose_spec.choose
-
-/-- **Operator identity**: Hψ = (−Δ)ψ − (Z/r)ψ for ψ ∈ H².
-
-    The hydrogen Hamiltonian acts as the sum of kinetic and potential
-    energy operators. -/
-theorem hydrogen_op_eq (p : CoulombParams) (ψ : L2_R3)
-    (hψ : ψ ∈ laplacianGenerator.domain) :
-    (hydrogenGenerator p).op ⟨ψ, (hydrogen_domain_eq p) ▸ hψ⟩ =
-    laplacianGenerator.op ⟨ψ, hψ⟩ + coulombOnGeneratorDomain p ⟨ψ, hψ⟩ :=
-  (hydrogen_kato_rellich p).choose_spec.choose_spec.choose_spec.2 ψ hψ
-
-/-- The hydrogen domain is H²(ℝ³). -/
-theorem hydrogen_domain_is_sobolevH2 (p : CoulombParams) :
-    (hydrogenGenerator p).domain = SobolevH2 := by
-  rw [← hydrogen_domain_eq p, laplacianGenerator_domain]
-
-/-- **Bundled hydrogen atom data.**
-
-    Packages everything needed for spectral analysis:
-    - The nuclear charge Z
-    - The generator (self-adjoint, domain = H²)
-    - Access to the spectral pipeline -/
+/-- Bundled hydrogen-atom data: a nuclear charge, from which the self-adjoint
+Hamiltonian and its evolution are derived. -/
 structure HydrogenData where
-  /-- Nuclear charge. -/
+  /-- The Coulomb parameters (nuclear charge `Z > 0`). -/
   params : CoulombParams
 
 namespace HydrogenData
 
-/-- The unitary group e^{−itH}. -/
+/-- The Hamiltonian `H = −Δ − Z/r`. -/
+def hamiltonian (d : HydrogenData) : L2_R3 →ₗ.[ℂ] L2_R3 :=
+  hydrogenHamiltonian d.params
+
+/-- The Hamiltonian as an `UnboundedObservable`. -/
+def observable (d : HydrogenData) : UnboundedObservable L2_R3 :=
+  hydrogenObservable d.params
+
+/-- The unitary evolution `e^{itH}`. -/
 def unitaryGroup (d : HydrogenData) : OneParameterUnitaryGroup (H := L2_R3) :=
   hydrogenUnitaryGroup d.params
 
-/-- The Hamiltonian as a generator. -/
-def generator (d : HydrogenData) : Generator (hydrogenUnitaryGroup d.params) :=
-  hydrogenGenerator d.params
-
-/-- Self-adjointness. -/
-theorem isSelfAdjoint (d : HydrogenData) : d.generator.IsSelfAdjoint :=
+/-- Self-adjointness of the Hamiltonian. -/
+theorem isSelfAdjoint (d : HydrogenData) : IsSelfAdjoint d.hamiltonian :=
   hydrogen_isSelfAdjoint d.params
 
 end HydrogenData
 
-/-- Construct HydrogenData from a nuclear charge. -/
+/-- Construct `HydrogenData` from a nuclear charge `Z > 0`. -/
 def HydrogenData.ofCharge (Z : ℝ) (hZ : 0 < Z) : HydrogenData :=
   ⟨⟨Z, hZ⟩⟩
 
-/-- Standard hydrogen atom (Z = 1). -/
+/-- The standard hydrogen atom (`Z = 1`). -/
 def hydrogenAtom : HydrogenData :=
   HydrogenData.ofCharge 1 one_pos
 
-/-- Helium ion He⁺ (Z = 2). -/
+/-- The helium ion `He⁺` (`Z = 2`). -/
 def heliumIon : HydrogenData :=
   HydrogenData.ofCharge 2 two_pos
 
-
-/-! ## Interface: connection to spectral pipeline
-
-Once `hydrogenGenerator` and `hydrogen_isSelfAdjoint` are in hand,
-the library's existing infrastructure gives:
-
-### From `FunctionalCalc/Generator.lean`:
-- `generator_eq_spectral_integral`:
-    H = ∫ λ dE(λ) on Dom(H)
-- `generator_domain_eq_functional_domain`:
-    Dom(H) = {ψ : ∫ λ² dμ_ψ < ∞}
-- `generator_norm_sq_eq_second_moment`:
-    ‖Hψ‖² = ∫ λ² dμ_ψ
-
-### From `SpectralTheory/`:
-- `spectral_integral_isometry`:
-    ‖f(H)ψ‖² = ∫ |f(λ)|² dμ_ψ
-- `stieltjes_inversion`:
-    μ_ψ recovered from the resolvent
-- `stones_formula`:
-    E([a,b]) recovered from boundary values of the resolvent
-
-### From `UnitaryEvo/`:
-- `Stone`: the unitary group e^{−itH} satisfying the Schrödinger equation
-    i ∂ₜ ψ(t) = H ψ(t)
--/
-
-
-end QuantumMechanics.Hydrogen
+end Spectra.QuantumMechanics.Hydrogen

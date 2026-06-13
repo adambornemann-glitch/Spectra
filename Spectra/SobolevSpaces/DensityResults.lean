@@ -17,7 +17,7 @@ namespace Spectra.Sobolev
 
 /-- For smooth compactly supported `φ`, the classical partial derivative `∂ᵢφ`
     is the weak derivative of `hmem.toLp φ` in direction `i`. -/
-private lemma hasWeakDerivative_of_smooth_compactSupport
+lemma hasWeakDerivative_of_smooth_compactSupport
     {φ : R3 → ℂ} (hφ : ContDiff ℝ ∞ φ) (hsupp : HasCompactSupport φ)
     {i : Fin 3}
     (hmem : MemLp φ 2 (volume : Measure R3))

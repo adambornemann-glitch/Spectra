@@ -8,6 +8,7 @@ import Mathlib.Analysis.Calculus.FDeriv.Symmetric
 import Mathlib.Analysis.Calculus.ContDiff.Basic
 import Mathlib.Analysis.Calculus.ContDiff.Convolution
 import Mathlib.Analysis.SpecialFunctions.Gamma.Basic
+import Mathlib.Analysis.SpecialFunctions.Gaussian.GaussianIntegral
 import Mathlib.MeasureTheory.Function.ContinuousMapDense
 import Mathlib.MeasureTheory.Function.L2Space
 import Mathlib.MeasureTheory.Measure.Lebesgue.Basic
@@ -29,8 +30,8 @@ eigenfunctions of the hydrogen atom after appropriate substitutions.
 
 ## Main definitions
 
-* `laguerrePolynomial` — L_n^α(x) via Rodrigues formula.
-* `laguerreWeight` — the weight function x^α e^{-x}.
+* `laguerrePolynomial` — `L_n^α(x)`, via the explicit finite series.
+* `laguerreWeight` — the weight function `x^α e^{-x}` on `(0, ∞)`.
 
 ## Main statements
 
@@ -50,15 +51,8 @@ open scoped Topology NNReal ENNReal Nat
 namespace Spectra.QuantumMechanics.Hydrogen.Radial
 /-! ## Definition -/
 
-/-- The associated Laguerre polynomial L_n^α(x).
-
-    Defined via the Rodrigues formula:
-      L_n^α(x) = (e^x x^{-α} / n!) d^n/dx^n (e^{-x} x^{n+α})
-
-    For integer α ≥ 0 (which suffices for hydrogen, where α = 2ℓ+1),
-    these are polynomials of degree n.
-
-Generalized binomial coefficient for real `α` and integer `k`. -/
+/-- The generalized binomial coefficient `C(α, k) = α (α-1) ⋯ (α-k+1) / k!`
+for a real `α` and a natural number `k`. -/
 noncomputable def realBinom (α : ℝ) (k : ℕ) : ℝ :=
   (∏ i ∈ Finset.range k, (α - (i : ℝ))) / (k.factorial : ℝ)
 
@@ -991,6 +985,57 @@ theorem laguerre_norm_sq (α : ℝ) (hα : -1 < α) (n : ℕ) :
       field_simp at hstep ⊢
       linear_combination hstep
 
+/-- **First moment of the squared norm.**
+For `α > -1`,  `∫₀^∞ x · xᵅ e⁻ˣ (Lₙ^{(α)}(x))² dx = (2n+α+1) · Γ(n+α+1) / n!`.
+
+This is the `x`-weighted normalisation integral; it follows from the three-term
+recurrence (which expresses `x·Lₙ` as a combination of `Lₙ₋₁, Lₙ, Lₙ₊₁`),
+orthogonality (killing the off-diagonal terms) and `laguerre_norm_sq`. -/
+theorem laguerre_x_norm_sq (α : ℝ) (hα : -1 < α) (n : ℕ) :
+    ∫ x in Set.Ioi (0 : ℝ), laguerreWeight α x * x * (laguerrePolynomial n α x) ^ 2
+    = (2 * (n : ℝ) + α + 1) * Real.Gamma ((n : ℝ) + α + 1) / (Nat.factorial n : ℝ) := by
+  obtain rfl | hn := Nat.eq_zero_or_pos n
+  · -- n = 0 : L₀ = 1, so the integral is the first moment Γ(α+2) = (α+1)Γ(α+1).
+    have hL0 : ∀ x : ℝ, laguerrePolynomial 0 α x = 1 := by
+      intro x; simp [laguerrePolynomial, realBinom]
+    rw [show (∫ x in Set.Ioi (0 : ℝ), laguerreWeight α x * x * (laguerrePolynomial 0 α x) ^ 2)
+          = ∫ x in Set.Ioi (0 : ℝ), laguerreWeight α x * x ^ 1 from
+        setIntegral_congr_fun measurableSet_Ioi (fun x _ => by rw [hL0]; ring),
+      laguerreWeight_mul_pow_moment α hα 1]
+    simp only [Nat.cast_zero, Nat.factorial_zero, Nat.cast_one]
+    rw [show (α + (1 : ℝ) + 1) = (α + 1) + 1 by ring,
+      Real.Gamma_add_one (show (0 : ℝ) < α + 1 by linarith).ne']
+    ring
+  · -- n ≥ 1 : use x·Lₙ = (2n+α+1)Lₙ − (n+1)Lₙ₊₁ − (n+α)Lₙ₋₁.
+    replace hn : 1 ≤ n := hn
+    have hA := (laguerreWeight_mul_laguerre_mul_laguerre_integrable n n α hα).const_mul
+      (2 * (n : ℝ) + α + 1)
+    have hB := (laguerreWeight_mul_laguerre_mul_laguerre_integrable (n + 1) n α hα).const_mul
+      ((n : ℝ) + 1)
+    have hC := (laguerreWeight_mul_laguerre_mul_laguerre_integrable (n - 1) n α hα).const_mul
+      ((n : ℝ) + α)
+    rw [show (∫ x in Set.Ioi (0 : ℝ), laguerreWeight α x * x * (laguerrePolynomial n α x) ^ 2)
+          = ∫ x in Set.Ioi (0 : ℝ),
+              ((2 * (n : ℝ) + α + 1) *
+                  (laguerreWeight α x * laguerrePolynomial n α x * laguerrePolynomial n α x)
+                - ((n : ℝ) + 1) *
+                  (laguerreWeight α x * laguerrePolynomial (n + 1) α x * laguerrePolynomial n α x))
+              - ((n : ℝ) + α) *
+                  (laguerreWeight α x * laguerrePolynomial (n - 1) α x * laguerrePolynomial n α x)
+        from setIntegral_congr_fun measurableSet_Ioi (fun x _ => by
+          linear_combination
+            (laguerreWeight α x * laguerrePolynomial n α x) * laguerre_recurrence n α hn x)]
+    erw [integral_sub (hA.sub hB) hC, integral_sub hA hB,
+      integral_const_mul, integral_const_mul, integral_const_mul]
+    rw [laguerre_orthogonality (n + 1) n α hα (by omega),
+      laguerre_orthogonality (n - 1) n α hα (by omega),
+      show (∫ x in Set.Ioi (0 : ℝ),
+              laguerreWeight α x * laguerrePolynomial n α x * laguerrePolynomial n α x)
+          = ∫ x in Set.Ioi (0 : ℝ), laguerreWeight α x * (laguerrePolynomial n α x) ^ 2 from
+        setIntegral_congr_fun measurableSet_Ioi (fun x _ => by ring),
+      laguerre_norm_sq α hα n]
+    ring
+
 /-! ## Completeness -/
 
 /-- The associated-Laguerre weighting measure `dμ_α = xᵅ e⁻ˣ · 𝟙_{(0,∞)} dx` on ℝ.
@@ -998,8 +1043,10 @@ theorem laguerre_norm_sq (α : ℝ) (hα : -1 < α) (n : ℕ) :
 noncomputable def laguerreMeasure (α : ℝ) : Measure ℝ :=
   volume.withDensity (fun x => ENNReal.ofReal (laguerreWeight α x))
 
-/-! ## 0. Tiny weight facts (the `0 ≤ α` hypothesis in your `laguerreWeight_nonneg`
-       is spurious; we restate without it, since `laguerre_complete` only has `-1 < α`). -/
+/-! ### Weight facts
+
+`laguerreWeight_nonneg` carries a redundant `0 ≤ α` hypothesis; the facts below are
+restated without it, since `laguerre_complete` only assumes `-1 < α`. -/
 
 lemma laguerreWeight_nonneg' (α : ℝ) (x : ℝ) : 0 ≤ laguerreWeight α x := by
   simp only [laguerreWeight]
@@ -1013,8 +1060,7 @@ lemma measurable_laguerreWeight (α : ℝ) : Measurable (laguerreWeight α) := b
   refine Measurable.ite measurableSet_Ioi ?_ measurable_const
   fun_prop
 
-/-! ## 1. `laguerreMeasure α` is finite, and integration against it is integration
-       against the Lebesgue weight `w`. -/
+/-! ### Finiteness of `laguerreMeasure α` and integration against the Lebesgue weight `w` -/
 
 lemma isFiniteMeasure_laguerreMeasure (α : ℝ) (hα : -1 < α) :
     IsFiniteMeasure (laguerreMeasure α) := by
@@ -1042,39 +1088,86 @@ lemma integral_laguerreMeasure_eq (α : ℝ) (h : ℝ → ℝ) :
   refine integral_congr_ae (.of_forall fun x => ?_)
   simp only [smul_eq_mul, ENNReal.toReal_ofReal (laguerreWeight_nonneg' α x)]
 
-/-! ## 2. Monomials are in `L²(μ_α)`  (so that `f · xᵏ ∈ L¹`). -/
+/-! ### Monomials lie in `L²(μ_α)` (so that `f · xᵏ ∈ L¹`) -/
 
 lemma memLp_two_pow (α : ℝ) (hα : -1 < α) (k : ℕ) :
     MemLp (fun x => x ^ k) 2 (laguerreMeasure α) := by
-  -- eLpNorm (x^k) 2 μ_α < ∞  ⟺  ∫ |x^k|² dμ_α < ∞  ⟺  ∫_{Ioi 0} w · x^{2k} < ∞,
-  -- which is exactly `laguerreWeight_mul_pow_integrable α hα (2*k)` (your brick),
-  -- pushed through `integral_laguerreMeasure_eq` / `withDensity`.
-  sorry  -- SORRY-ROUTINE (MemLp bookkeeping on top of your existing integrability brick)
+  -- MemLp (x^k) 2 μ_α  ⟺  Integrable |x^k|² = x^{2k} wrt μ_α
+  --                    ⟺  Integrable (w · x^{2k}) wrt volume  (translate withDensity),
+  -- and the latter is `laguerreWeight_mul_pow_integrable α hα (2*k)` (vanishing off Ioi 0).
+  have hmeas : AEStronglyMeasurable (fun x : ℝ => x ^ k) (laguerreMeasure α) :=
+    (continuous_pow k).aestronglyMeasurable
+  rw [memLp_two_iff_integrable_sq hmeas, laguerreMeasure,
+      integrable_withDensity_iff_integrable_smul₀'
+        (measurable_laguerreWeight α).ennreal_ofReal.aemeasurable
+        (.of_forall fun x => ENNReal.ofReal_lt_top)]
+  -- The brick: `w · x^{2k}` is integrable on (0,∞); it vanishes off (0,∞), so on all of ℝ.
+  have hbrick : IntegrableOn
+      (fun x : ℝ => laguerreWeight α x * x ^ (2 * k)) (Set.Ioi 0) volume :=
+    laguerreWeight_mul_pow_integrable α hα (2 * k)
+  have hsupp : (fun x : ℝ => laguerreWeight α x * x ^ (2 * k))
+      = (Set.Ioi 0).indicator (fun x : ℝ => laguerreWeight α x * x ^ (2 * k)) := by
+    funext x
+    rw [Set.indicator_apply]
+    split_ifs with hx
+    · rfl
+    · rw [Set.mem_Ioi] at hx
+      simp only [laguerreWeight, if_neg hx, zero_mul]
+  have hInt : Integrable (fun x : ℝ => laguerreWeight α x * x ^ (2 * k)) volume := by
+    rw [hsupp]
+    exact (integrable_indicator_iff measurableSet_Ioi).2 hbrick
+  refine hInt.congr (.of_forall fun x => ?_)
+  simp only [smul_eq_mul, ENNReal.toReal_ofReal (laguerreWeight_nonneg' α x)]
+  rw [← pow_mul, Nat.mul_comm k 2]
 
-/-! ## 3. STEP 0 — orthogonality to every Lₙ ⟹ orthogonality to every monomial. -/
+/-! ### From orthogonality to every `Lₙ` to orthogonality to every monomial -/
 
 lemma laguerre_ortho_monomial (α : ℝ) (hα : -1 < α) (f : ℝ → ℝ)
     (hf : MemLp f 2 (laguerreMeasure α))
     (hortho : ∀ n : ℕ, ∫ x, f x * laguerrePolynomial n α x ∂(laguerreMeasure α) = 0) :
     ∀ k : ℕ, ∫ x, f x * x ^ k ∂(laguerreMeasure α) = 0 := by
+  -- Every `f · xʲ` is in `L¹(μ_α)` (Hölder: `f ∈ L²`, `xʲ ∈ L²`).
+  have hInt : ∀ j : ℕ, Integrable (fun x => f x * x ^ j) (laguerreMeasure α) := fun j =>
+    memLp_one_iff_integrable.1 ((memLp_two_pow α hα j).mul' hf)
   intro k
   induction k using Nat.strong_induction_on with
   | _ k ih =>
-    -- `laguerrePolynomial k α x = (-1)^k/k! · x^k + Σ_{j<k} c_{k,j} x^j`, with the top
-    -- coefficient `(-1)^k * realBinom (k+α) 0 / k! = (-1)^k / k! ≠ 0` (realBinom_zero).
-    -- Invert: `x^k = (-1)^k k! · L_k(x) − Σ_{j<k} (-1)^k k! c_{k,j} · x^j`.
-    -- Integrate (linearity over the finite sum is legal because each `f·x^j ∈ L¹`,
-    -- via `(memLp_two_pow α hα j).mul' hf` and `memLp_one_iff_integrable`):
-    --   ∫ f·x^k = (-1)^k k! · (∫ f·L_k)        -- = 0 by `hortho k`
-    --             − Σ_{j<k} (…) · (∫ f·x^j)     -- each = 0 by `ih j`
-    -- hence 0.
-    sorry  -- SORRY-ROUTINE-1 (triangular change of basis + integral linearity)
+    -- Coefficients of `L_k`:  `L_k(x) = ∑_{j≤k} c j · xʲ`, with `c k = (-1)^k / k! ≠ 0`.
+    set c : ℕ → ℝ := fun j => (-1 : ℝ) ^ j * realBinom (k + α) (k - j) / (j.factorial : ℝ)
+      with hc
+    -- `∫ f·L_k = ∑_{j≤k} c j · ∫ f·xʲ`, by expanding `L_k` and integral linearity.
+    have hexpand : ∫ x, f x * laguerrePolynomial k α x ∂(laguerreMeasure α)
+        = ∑ j ∈ Finset.range (k + 1), c j * ∫ x, f x * x ^ j ∂(laguerreMeasure α) := by
+      have hpoint : (fun x => f x * laguerrePolynomial k α x)
+          = fun x => ∑ j ∈ Finset.range (k + 1), c j * (f x * x ^ j) := by
+        funext x
+        simp only [laguerrePolynomial, Finset.mul_sum]
+        refine Finset.sum_congr rfl (fun j _ => ?_)
+        simp only [hc]; ring
+      rw [hpoint, integral_finsetSum _ (fun j _ => (hInt j).const_mul (c j))]
+      exact Finset.sum_congr rfl (fun j _ => integral_const_mul _ _)
+    -- The orthogonality hypothesis, in expanded form.
+    have hsum : ∑ j ∈ Finset.range (k + 1), c j * ∫ x, f x * x ^ j ∂(laguerreMeasure α) = 0 := by
+      rw [← hexpand]; exact hortho k
+    -- Split off the top term; the lower terms vanish by the induction hypothesis.
+    rw [Finset.sum_range_succ] at hsum
+    have hlow : ∑ j ∈ Finset.range k, c j * ∫ x, f x * x ^ j ∂(laguerreMeasure α) = 0 :=
+      Finset.sum_eq_zero (fun j hj => by rw [ih j (Finset.mem_range.1 hj), mul_zero])
+    rw [hlow, zero_add] at hsum
+    -- `c k = (-1)^k / k! ≠ 0`, so the surviving factor `∫ f·x^k` must vanish.
+    have hck : c k = (-1 : ℝ) ^ k / (k.factorial : ℝ) := by
+      simp only [hc, Nat.sub_self, realBinom_zero, mul_one]
+    have hck_ne : c k ≠ 0 := by
+      rw [hck]
+      exact div_ne_zero (pow_ne_zero _ (by norm_num)) (by exact_mod_cast Nat.factorial_ne_zero k)
+    exact (mul_eq_zero.1 hsum).resolve_left hck_ne
 
-/-! ## 4. STEP 2 — the working object `g := w · f` and its weighted moments.
-       Switching to plain Lebesgue integrals (your whole development lives there). -/
+/-! ### The working function `g := w · f` and its weighted moments
+
+These are stated as plain Lebesgue integrals. -/
 
 /-- `g = w · f`, supported on `(0,∞)`. -/
-local notation3 "g["α", "f"]" => fun x : ℝ => laguerreWeight α x * f x
+local notation "g[" α ", " f "]" => fun x : ℝ => laguerreWeight α x * f x
 
 lemma g_moments_zero (α : ℝ) (hα : -1 < α) (f : ℝ → ℝ)
     (hf : MemLp f 2 (laguerreMeasure α))
@@ -1086,28 +1179,64 @@ lemma g_moments_zero (α : ℝ) (hα : -1 < α) (f : ℝ → ℝ)
   -- `w x * (f x * x^k) = (w x * f x) * x^k`
   simpa [mul_assoc] using this
 
-/-! ## 5. STEP 1/2 — exponential-tilt integrability:  `g · e^{c·} ∈ L¹` for `c < 1/2`.
-       Key: `e^{c·} ∈ L²(μ_α)` because `∫ e^{2cx} dμ_α = ∫_{Ioi0} xᵃ e^{(2c-1)x} < ∞`. -/
+/-! ### Exponential-tilt integrability: `g · e^{c·} ∈ L¹` for `c < 1/2`
+
+The key fact is `e^{c·} ∈ L²(μ_α)`, since `∫ e^{2cx} dμ_α = ∫_{Ioi 0} xᵃ e^{(2c-1)x} < ∞`. -/
 
 lemma memLp_two_exp (α : ℝ) (hα : -1 < α) {c : ℝ} (hc : c < 1 / 2) :
     MemLp (fun x => Real.exp (c * x)) 2 (laguerreMeasure α) := by
-  -- ∫ |e^{cx}|² dμ_α = ∫_{Ioi0} e^{2cx} · xᵃ e^{-x} dx = ∫_{Ioi0} xᵃ e^{(2c-1)x} dx.
-  -- With 2c-1 < 0 this converges: substitute u = (1-2c)x to reduce to `Real.GammaIntegral_convergent`.
-  sorry  -- SORRY-ROUTINE-2 (scaled Γ-integral convergence) + MemLp bookkeeping
+  -- MemLp (e^{cx}) 2 μ_α  ⟺  Integrable |e^{cx}|² = e^{2cx} wrt μ_α
+  --                       ⟺  Integrable (w · e^{2cx}) wrt volume,
+  -- and on (0,∞) this is `xᵃ e^{-x} · e^{2cx} = xᵃ e^{-(1-2c)x}`, the scaled Γ-integrand
+  -- (`integrableOn_rpow_mul_exp_neg_mul_rpow`, exponent `b = 1-2c > 0`), vanishing off (0,∞).
+  have hmeas : AEStronglyMeasurable (fun x : ℝ => Real.exp (c * x)) (laguerreMeasure α) :=
+    (by fun_prop : Continuous fun x : ℝ => Real.exp (c * x)).aestronglyMeasurable
+  rw [memLp_two_iff_integrable_sq hmeas, laguerreMeasure,
+      integrable_withDensity_iff_integrable_smul₀'
+        (measurable_laguerreWeight α).ennreal_ofReal.aemeasurable
+        (.of_forall fun x => ENNReal.ofReal_lt_top)]
+  set b : ℝ := 1 - 2 * c with hb
+  have hb_pos : 0 < b := by rw [hb]; linarith
+  -- Scaled Γ-integrand: `xᵃ · e^{-b·x}` is integrable on (0,∞).
+  have hbrick : IntegrableOn
+      (fun x : ℝ => x ^ α * Real.exp (-b * x ^ (1 : ℝ))) (Set.Ioi 0) volume :=
+    integrableOn_rpow_mul_exp_neg_mul_rpow hα (le_refl (1 : ℝ)) hb_pos
+  -- `w·e^{2cx}` agrees with the Γ-integrand on (0,∞) and vanishes off it.
+  have hexp : ∀ x : ℝ, Real.exp (-x) * Real.exp (c * x) ^ 2 = Real.exp (-b * x) := by
+    intro x
+    rw [pow_two, ← Real.exp_add, ← Real.exp_add]
+    congr 1
+    rw [hb]; ring
+  have hsupp : (fun x : ℝ => laguerreWeight α x * Real.exp (c * x) ^ 2)
+      = (Set.Ioi 0).indicator (fun x : ℝ => x ^ α * Real.exp (-b * x ^ (1 : ℝ))) := by
+    funext x
+    rw [Set.indicator_apply]
+    split_ifs with hx
+    · rw [Set.mem_Ioi] at hx
+      simp only [laguerreWeight, if_pos hx, Real.rpow_one]
+      rw [mul_assoc, hexp]
+    · rw [Set.mem_Ioi] at hx
+      simp only [laguerreWeight, if_neg hx, zero_mul]
+  have hInt : Integrable (fun x : ℝ => laguerreWeight α x * Real.exp (c * x) ^ 2) volume := by
+    rw [hsupp]
+    exact (integrable_indicator_iff measurableSet_Ioi).2 hbrick
+  refine hInt.congr (.of_forall fun x => ?_)
+  simp only [smul_eq_mul, ENNReal.toReal_ofReal (laguerreWeight_nonneg' α x)]
 
-/-- `g · e^{c·} ∈ L¹(volume)` for `c < 1/2`.  In particular (c = 0) `g ∈ L¹`. -/
+/-- The exponentially tilted function `w · f · e^{c·}` is integrable for `c < 1/2`,
+where `w = laguerreWeight α`. In particular (`c = 0`) `w · f` is integrable. -/
 lemma g_tilt_integrable (α : ℝ) (hα : -1 < α) (f : ℝ → ℝ)
     (hf : MemLp f 2 (laguerreMeasure α)) {c : ℝ} (hc : c < 1 / 2) :
     Integrable (fun x => (laguerreWeight α x * f x) * Real.exp (c * x)) := by
   -- f · e^{c·} ∈ L¹(μ_α) by Hölder (both in L²(μ_α)); convert to volume.
   have hL1 : MemLp (fun x => f x * Real.exp (c * x)) 1 (laguerreMeasure α) :=
-    hf.mul' (memLp_two_exp α hα hc)        -- HolderConjugate 2 2  (= HolderTriple 2 2 1)
+    (memLp_two_exp α hα hc).mul' hf        -- HolderTriple 2 2 1; `.mul'` puts the receiver second
   have hInt : Integrable (fun x => f x * Real.exp (c * x)) (laguerreMeasure α) :=
     (memLp_one_iff_integrable).1 hL1
   -- Integrable wrt withDensity ⟺ Integrable of the `toReal`-smul wrt volume:
   rw [laguerreMeasure,
       integrable_withDensity_iff_integrable_smul₀'
-        (measurable_laguerreWeight α).ennreal_ofReal
+        (measurable_laguerreWeight α).ennreal_ofReal.aemeasurable
         (.of_forall fun x => ENNReal.ofReal_lt_top)] at hInt
   refine hInt.congr (.of_forall fun x => ?_)
   simp only [smul_eq_mul, ENNReal.toReal_ofReal (laguerreWeight_nonneg' α x)]
@@ -1119,53 +1248,249 @@ lemma g_integrable (α : ℝ) (hα : -1 < α) (f : ℝ → ℝ)
   have h := g_tilt_integrable α hα f hf (c := 0) (by norm_num)
   simpa using h
 
-/-! ## 6. The (complex) Laplace/Fourier transform and its analytic properties. -/
+/-! ### The complex Laplace/Fourier transform and its analytic properties -/
 
 /-- The open strip `{Re z < 1/2}`; convex hence preconnected, open, contains `0`. -/
 def strip : Set ℂ := {z : ℂ | z.re < 1 / 2}
 
 lemma isOpen_strip : IsOpen strip := isOpen_lt Complex.continuous_re continuous_const
 
-lemma convex_strip : Convex ℝ strip := by
-  -- {z | re z < 1/2} = re ⁻¹' (Iio (1/2)); preimage of a convex set under the ℝ-linear `re`
-  sorry  -- SORRY-ROUTINE (convexity of a half-plane; or use `convex_halfSpace_lt`)
+lemma convex_strip : Convex ℝ strip :=
+  -- `strip = {z | z.re < 1/2}` is a half-space for the ℝ-linear map `Complex.re`.
+  convex_halfSpace_lt Complex.reLm.isLinear (1 / 2)
 lemma zero_mem_strip : (0 : ℂ) ∈ strip := by simp [strip]
 
-/-- `G f z = ∫ g(x) · e^{z x} dx`  with `g = w·f`. -/
+/-- The two-sided Laplace transform `∫ w(x) · f(x) · e^{z x} dx` of the weighted
+function `w · f`, where `w = laguerreWeight α`. -/
 noncomputable def laplaceTr (α : ℝ) (f : ℝ → ℝ) (z : ℂ) : ℂ :=
   ∫ x : ℝ, ((laguerreWeight α x : ℂ) * (f x : ℂ)) * Complex.exp (z * (x : ℂ))
 
-/-- STEP 3 (CRUX): `G f` is holomorphic on the strip. -/
+/-- The transform `laplaceTr α f` is holomorphic on the strip `{Re z < 1/2}`. -/
 lemma laplaceTr_differentiableOn (α : ℝ) (hα : -1 < α) (f : ℝ → ℝ)
     (hf : MemLp f 2 (laguerreMeasure α)) :
     DifferentiableOn ℂ (laplaceTr α f) strip := by
-  -- For each z₀ with re z₀ < 1/2, pick c with re z₀ < c < 1/2 and a neighbourhood
-  -- s = {z : re z < c}.  Dominating function: x ↦ |g x| · e^{c·max x 0}  (integrable by
-  -- `g_tilt_integrable α hα f hf (c := c)`, since on supp g we have x>0 so e^{(re z)x} ≤ e^{cx}).
-  -- The z-derivative of the integrand is x ↦ g(x)·x·e^{z x}; bounded by the same majorant
-  -- after enlarging c slightly.  Apply
-  --   `hasDerivAt_integral_of_dominated_loc_of_deriv_le`  (Calculus/ParametricIntegral.lean),
-  -- giving `HasDerivAt (laplaceTr α f) _ z₀` for each z₀ ∈ strip, hence DifferentiableOn.
-  -- Template to mimic: `Complex.hasDerivAt_GammaIntegral` (Gamma/Deriv.lean) and
-  --   `mellin_differentiableAt_of_isBigO_rpow_exp` (MellinTransform.lean).
-  sorry  -- SORRY-CRUX-A
+  -- Work with `g = w·f`, which is genuinely integrable, and `g·e^{c·}` for every `c < 1/2`.
+  have hgint : Integrable (fun x => laguerreWeight α x * f x) := g_integrable α hα f hf
+  have hgC : AEStronglyMeasurable (fun x : ℝ => ((laguerreWeight α x * f x : ℝ) : ℂ)) volume :=
+    Complex.continuous_ofReal.comp_aestronglyMeasurable hgint.aestronglyMeasurable
+  -- `g` vanishes off `(0,∞)`.
+  have hg_zero : ∀ x : ℝ, x ≤ 0 → laguerreWeight α x * f x = 0 := by
+    intro x hx
+    simp only [laguerreWeight, if_neg (not_lt.2 hx), zero_mul]
+  -- Norm of the coefficient `(w·f : ℂ)`.
+  have hnorm_coef : ∀ x : ℝ,
+      ‖(laguerreWeight α x : ℂ) * (f x : ℂ)‖ = |laguerreWeight α x * f x| := by
+    intro x
+    rw [show (laguerreWeight α x : ℂ) * (f x : ℂ) = ((laguerreWeight α x * f x : ℝ) : ℂ) by
+          push_cast; ring, Complex.norm_real, Real.norm_eq_abs]
+  -- Norms of the integrand `F` and its `z`-derivative `F'`.
+  have hnormF : ∀ (z : ℂ) (x : ℝ),
+      ‖(laguerreWeight α x : ℂ) * (f x : ℂ) * Complex.exp (z * x)‖
+        = |laguerreWeight α x * f x| * Real.exp (z.re * x) := by
+    intro z x
+    rw [norm_mul, hnorm_coef x, Complex.norm_exp,
+        show (z * (x : ℂ)).re = z.re * x by simp [Complex.mul_re]]
+  have hnormF' : ∀ (z : ℂ) (x : ℝ),
+      ‖(laguerreWeight α x : ℂ) * (f x : ℂ) * (Complex.exp (z * x) * (x : ℂ))‖
+        = |laguerreWeight α x * f x| * Real.exp (z.re * x) * |x| := by
+    intro z x
+    rw [norm_mul, hnorm_coef x, norm_mul, Complex.norm_exp,
+        show (z * (x : ℂ)).re = z.re * x by simp [Complex.mul_re],
+        Complex.norm_real, Real.norm_eq_abs]
+    ring
+  -- The cast `(w x : ℂ)(f x : ℂ) = ((w x * f x : ℝ) : ℂ)`, threaded through the integrand.
+  have hcoefC : ∀ z : ℂ,
+      (fun x : ℝ => (laguerreWeight α x : ℂ) * (f x : ℂ) * Complex.exp (z * x))
+        = (fun x : ℝ => ((laguerreWeight α x * f x : ℝ) : ℂ) * Complex.exp (z * x)) := by
+    intro z; funext x; push_cast; ring
+  have hFaesm : ∀ z : ℂ, AEStronglyMeasurable
+      (fun x : ℝ => (laguerreWeight α x : ℂ) * (f x : ℂ) * Complex.exp (z * x)) volume := by
+    intro z
+    rw [hcoefC z]
+    exact hgC.mul (Complex.continuous_exp.comp (by fun_prop)).aestronglyMeasurable
+  -- Monotonicity of the majorant in the exponent (using that `g` vanishes for `x ≤ 0`).
+  have hbnd_le : ∀ (x : ℝ) {a b : ℝ}, a ≤ b →
+      |laguerreWeight α x * f x| * Real.exp (a * x)
+        ≤ |laguerreWeight α x * f x| * Real.exp (b * x) := by
+    intro x a b hab
+    rcases le_or_gt x 0 with hx | hx
+    · simp [hg_zero x hx]
+    · exact mul_le_mul_of_nonneg_left
+        (Real.exp_le_exp.2 (mul_le_mul_of_nonneg_right hab hx.le)) (abs_nonneg _)
+  -- Now fix a point of the (open) strip and prove differentiability there.
+  intro z₀ hz₀
+  apply DifferentiableAt.differentiableWithinAt
+  have hz0 : z₀.re < 1 / 2 := hz₀
+  obtain ⟨c₁, hz0c1, hc1half⟩ : ∃ c, z₀.re < c ∧ c < 1 / 2 :=
+    ⟨(z₀.re + 1 / 2) / 2, by linarith, by linarith⟩
+  obtain ⟨c₂, hc1c2, hc2half⟩ : ∃ c, c₁ < c ∧ c < 1 / 2 :=
+    ⟨(c₁ + 1 / 2) / 2, by linarith, by linarith⟩
+  have hd_pos : 0 < c₂ - c₁ := by linarith
+  -- tilt integrability of the real majorants `|g| e^{c·}`.
+  have htilt : ∀ c : ℝ, c < 1 / 2 →
+      Integrable (fun x => |laguerreWeight α x * f x| * Real.exp (c * x)) := by
+    intro c hc
+    refine (g_tilt_integrable α hα f hf hc).norm.congr (.of_forall fun x => ?_)
+    simp [norm_mul, Real.norm_eq_abs, Real.norm_eq_abs, abs_of_nonneg (Real.exp_nonneg _)]
+  have htilt1 : Integrable (fun x => |laguerreWeight α x * f x| * Real.exp (c₁ * x)) :=
+    htilt c₁ hc1half
+  have htilt2 : Integrable (fun x => |laguerreWeight α x * f x| * Real.exp (c₂ * x)) :=
+    htilt c₂ hc2half
+  -- The data for the parametric-integral theorem.
+  set s : Set ℂ := {z : ℂ | z.re < c₁} with hs_def
+  set bound : ℝ → ℝ :=
+    fun x => (1 / (c₂ - c₁)) * (|laguerreWeight α x * f x| * Real.exp (c₂ * x)) with hbound_def
+  set F : ℂ → ℝ → ℂ :=
+    fun z x => (laguerreWeight α x : ℂ) * (f x : ℂ) * Complex.exp (z * x) with hF_def
+  set F' : ℂ → ℝ → ℂ :=
+    fun z x => (laguerreWeight α x : ℂ) * (f x : ℂ) * (Complex.exp (z * x) * (x : ℂ)) with hF'_def
+  have hs_nhds : s ∈ 𝓝 z₀ := by
+    rw [hs_def]; exact (isOpen_lt Complex.continuous_re continuous_const).mem_nhds hz0c1
+  have hF_meas : ∀ᶠ z in 𝓝 z₀, AEStronglyMeasurable (F z) volume :=
+    Filter.Eventually.of_forall (fun z => by rw [hF_def]; exact hFaesm z)
+  have hF_int : Integrable (F z₀) volume := by
+    simp only [hF_def]
+    refine Integrable.mono' htilt1 (hFaesm z₀) (Filter.Eventually.of_forall fun x => ?_)
+    simp only [hnormF]; exact hbnd_le x hz0c1.le
+  have hF'aesm : AEStronglyMeasurable (F' z₀) volume := by
+    simp only [hF'_def,
+        show (fun x : ℝ => (laguerreWeight α x : ℂ) * (f x : ℂ) * (Complex.exp (z₀ * x) * (x : ℂ)))
+            = (fun x : ℝ => ((laguerreWeight α x * f x : ℝ) : ℂ) * (Complex.exp (z₀ * x) * (x : ℂ)))
+          from by funext x; push_cast; ring]
+    exact hgC.mul (by fun_prop : Continuous
+      (fun x : ℝ => Complex.exp (z₀ * x) * (x : ℂ))).aestronglyMeasurable
+  have hF'_bound : ∀ᵐ a ∂(volume : Measure ℝ), ∀ z ∈ s, ‖F' z a‖ ≤ bound a := by
+    refine Filter.Eventually.of_forall (fun x z hz => ?_)
+    rw [hs_def, Set.mem_setOf_eq] at hz
+    simp only [hF'_def, hbound_def, hnormF']
+    rcases le_or_gt x 0 with hx | hx
+    · simp [hg_zero x hx]
+    · rw [abs_of_pos hx]
+      have hxexp : x * Real.exp (c₁ * x) ≤ (1 / (c₂ - c₁)) * Real.exp (c₂ * x) := by
+        have hdx : (c₂ - c₁) * x ≤ Real.exp ((c₂ - c₁) * x) := by
+          have := Real.add_one_le_exp ((c₂ - c₁) * x); linarith
+        have h1 : x * Real.exp (c₁ * x) * (c₂ - c₁) ≤ Real.exp (c₂ * x) :=
+          calc x * Real.exp (c₁ * x) * (c₂ - c₁)
+              = (c₂ - c₁) * x * Real.exp (c₁ * x) := by ring
+            _ ≤ Real.exp ((c₂ - c₁) * x) * Real.exp (c₁ * x) :=
+                mul_le_mul_of_nonneg_right hdx (Real.exp_pos _).le
+            _ = Real.exp (c₂ * x) := by rw [← Real.exp_add]; congr 1; ring
+        rw [show (1 / (c₂ - c₁)) * Real.exp (c₂ * x) = Real.exp (c₂ * x) / (c₂ - c₁) by ring,
+            le_div_iff₀ hd_pos]
+        exact h1
+      calc |laguerreWeight α x * f x| * Real.exp (z.re * x) * x
+          ≤ |laguerreWeight α x * f x| * Real.exp (c₁ * x) * x := by
+            apply mul_le_mul_of_nonneg_right _ hx.le
+            exact mul_le_mul_of_nonneg_left
+              (Real.exp_le_exp.2 (mul_le_mul_of_nonneg_right hz.le hx.le)) (abs_nonneg _)
+        _ = |laguerreWeight α x * f x| * (x * Real.exp (c₁ * x)) := by ring
+        _ ≤ |laguerreWeight α x * f x| * ((1 / (c₂ - c₁)) * Real.exp (c₂ * x)) :=
+            mul_le_mul_of_nonneg_left hxexp (abs_nonneg _)
+        _ = (1 / (c₂ - c₁)) * (|laguerreWeight α x * f x| * Real.exp (c₂ * x)) := by ring
+  have hbound_int : Integrable bound := by
+    rw [hbound_def]; exact htilt2.const_mul (1 / (c₂ - c₁))
+  have h_diff : ∀ᵐ a ∂(volume : Measure ℝ), ∀ z ∈ s,
+      HasDerivAt (fun z => F z a) (F' z a) z := by
+    refine Filter.Eventually.of_forall (fun a z _ => ?_)
+    simp only [hF_def, hF'_def]
+    have hlin : HasDerivAt (fun w : ℂ => w * (a : ℂ)) (a : ℂ) z := by
+      simpa using (hasDerivAt_id z).mul_const (a : ℂ)
+    exact hlin.cexp.const_mul ((laguerreWeight α a : ℂ) * (f a : ℂ))
+  obtain ⟨_, hderiv⟩ := hasDerivAt_integral_of_dominated_loc_of_deriv_le
+    hs_nhds hF_meas hF_int hF'aesm hF'_bound hbound_int h_diff
+  have hlap : laplaceTr α f = fun n => ∫ a, F n a := by
+    funext n; simp only [hF_def, laplaceTr]
+  rw [hlap]
+  exact hderiv.differentiableAt
 
-/-- STEP 4 (CRUX): all moments vanish ⟹ `G f` is identically `0` near `0`. -/
+/-- If all weighted moments of `f` vanish, then `laplaceTr α f` is eventually `0` near `0`. -/
 lemma laplaceTr_eventuallyEq_zero (α : ℝ) (hα : -1 < α) (f : ℝ → ℝ)
     (hf : MemLp f 2 (laguerreMeasure α))
     (hmom : ∀ k : ℕ, ∫ x, (laguerreWeight α x * f x) * x ^ k = 0) :
     laplaceTr α f =ᶠ[𝓝 0] 0 := by
   -- It suffices to show `laplaceTr α f z = 0` for `‖z‖ < 1/2` (a nbhd of 0):
+  -- `g = w·f` complexified is a.e.-strongly measurable, and `g` vanishes off `(0,∞)`.
+  have hgC : AEStronglyMeasurable (fun x : ℝ => ((laguerreWeight α x * f x : ℝ) : ℂ)) volume :=
+    Complex.continuous_ofReal.comp_aestronglyMeasurable (g_integrable α hα f hf).aestronglyMeasurable
+  have hgz : ∀ x : ℝ, x ≤ 0 → laguerreWeight α x * f x = 0 := by
+    intro x hx; simp only [laguerreWeight, if_neg (not_lt.2 hx), zero_mul]
   have key : ∀ z : ℂ, ‖z‖ < 1 / 2 → laplaceTr α f z = 0 := by
     intro z hz
-    -- e^{z x} = Σ_k (z x)^k / k!.  Interchange Σ and ∫ (dominated: Σ_k ∫ |g| ‖z‖^k x^k /k!
-    --   = ∫ |g| e^{‖z‖ x} < ∞ by `g_tilt_integrable α hα f hf (c := ‖z‖)`):
-    --   laplaceTr α f z = Σ_k z^k/k! · ∫ g(x) x^k = Σ_k z^k/k! · 0 = 0   (uses `hmom`).
-    sorry  -- SORRY-CRUX-B
+    -- `e^{zx} = Σ_n (zx)ⁿ/n!`, so the integrand is the `HasSum` of `Fₙ`.
+    set F : ℕ → ℝ → ℂ :=
+      fun n x => (laguerreWeight α x : ℂ) * (f x : ℂ) * ((z * x) ^ n / (n.factorial : ℂ))
+      with hF_def
+    set bound : ℕ → ℝ → ℝ :=
+      fun n x => |laguerreWeight α x * f x| * ((‖z‖ * |x|) ^ n / (n.factorial : ℝ)) with hb_def
+    -- pointwise series expansion of the integrand
+    have hlim : ∀ x : ℝ,
+        HasSum (fun n => F n x) ((laguerreWeight α x : ℂ) * (f x : ℂ) * Complex.exp (z * x)) := by
+      intro x
+      have hexp : HasSum (fun n => (z * (x : ℂ)) ^ n / (n.factorial : ℂ)) (Complex.exp (z * x)) := by
+        rw [Complex.exp_eq_exp_ℂ]; exact NormedSpace.expSeries_div_hasSum_exp (z * (x : ℂ))
+      simpa only [hF_def, mul_assoc] using hexp.mul_left ((laguerreWeight α x : ℂ) * (f x : ℂ))
+    -- norm of `Fₙ` is exactly `boundₙ`
+    have hnormFn : ∀ n x, ‖F n x‖ = bound n x := by
+      intro n x
+      have hreal : F n x
+          = ((laguerreWeight α x * f x : ℝ) : ℂ) * ((z * x) ^ n / (n.factorial : ℂ)) := by
+        simp only [hF_def]; push_cast; ring
+      rw [hreal, hb_def, norm_mul, Complex.norm_real, Real.norm_eq_abs, norm_div, norm_pow,
+          norm_mul, Complex.norm_real, Real.norm_eq_abs, RCLike.norm_natCast]
+    have hsummable : ∀ x : ℝ, Summable (fun n => bound n x) := by
+      intro x; simp only [hb_def]
+      exact (Real.summable_pow_div_factorial (‖z‖ * |x|)).mul_left _
+    -- the dominating series sums to `|g| · e^{‖z‖|x|}`
+    have hexpR : ∀ t : ℝ, ∑' n : ℕ, t ^ n / (n.factorial : ℝ) = Real.exp t := by
+      intro t; rw [Real.exp_eq_exp_ℝ]; exact (NormedSpace.expSeries_div_hasSum_exp t).tsum_eq
+    have htsum : ∀ x : ℝ,
+        ∑' n, bound n x = |laguerreWeight α x * f x| * Real.exp (‖z‖ * |x|) := by
+      intro x; simp only [hb_def]; rw [tsum_mul_left, hexpR]
+    have hbi : Integrable (fun x => ∑' n, bound n x) volume := by
+      have heq : (fun x => ∑' n, bound n x)
+          = (fun x => |laguerreWeight α x * f x| * Real.exp (‖z‖ * x)) := by
+        funext x; rw [htsum x]
+        rcases le_or_gt x 0 with hx | hx
+        · rw [hgz x hx]; simp
+        · rw [abs_of_pos hx]
+      rw [heq]
+      refine (g_tilt_integrable α hα f hf hz).norm.congr (.of_forall fun x => ?_)
+      simp only [norm_mul, Real.norm_eq_abs, abs_mul, abs_of_nonneg (Real.exp_nonneg (‖z‖ * x))]
+    have hFmeas : ∀ n, AEStronglyMeasurable (F n) volume := by
+      intro n
+      simp only [hF_def]
+      rw [show (fun x : ℝ => (laguerreWeight α x : ℂ) * (f x : ℂ) * ((z * x) ^ n / (n.factorial : ℂ)))
+            = (fun x : ℝ => ((laguerreWeight α x * f x : ℝ) : ℂ) * ((z * x) ^ n / (n.factorial : ℂ)))
+          from by funext x; push_cast; ring]
+      exact hgC.mul (by fun_prop)
+    -- each `∫ Fₙ` vanishes by the moment hypothesis
+    have hintFn : ∀ n, ∫ x, F n x = 0 := by
+      intro n
+      have hcong : ∀ x, F n x
+          = (z ^ n / (n.factorial : ℂ)) * (((laguerreWeight α x * f x) * x ^ n : ℝ) : ℂ) := by
+        intro x; simp only [hF_def]; push_cast; ring
+      calc ∫ x, F n x
+          = ∫ x, (z ^ n / (n.factorial : ℂ)) * (((laguerreWeight α x * f x) * x ^ n : ℝ) : ℂ) :=
+            integral_congr_ae (.of_forall hcong)
+        _ = (z ^ n / (n.factorial : ℂ)) * ∫ x, (((laguerreWeight α x * f x) * x ^ n : ℝ) : ℂ) :=
+            integral_const_mul _ _
+        _ = (z ^ n / (n.factorial : ℂ)) * ((∫ x, (laguerreWeight α x * f x) * x ^ n : ℝ) : ℂ) := by
+            rw [integral_complex_ofReal]
+        _ = 0 := by rw [hmom n]; simp
+    -- assemble: the transform is the sum of vanishing terms
+    have hHS : HasSum (fun n => ∫ x, F n x)
+        (∫ x, (laguerreWeight α x : ℂ) * (f x : ℂ) * Complex.exp (z * x)) :=
+      hasSum_integral_of_dominated_convergence bound hFmeas
+        (fun n => Filter.Eventually.of_forall (fun x => (hnormFn n x).le))
+        (Filter.Eventually.of_forall hsummable) hbi (Filter.Eventually.of_forall hlim)
+    have h0 : HasSum (fun _ : ℕ => (0 : ℂ))
+        (∫ x, (laguerreWeight α x : ℂ) * (f x : ℂ) * Complex.exp (z * x)) := by
+      simpa only [hintFn] using hHS
+    exact h0.unique hasSum_zero
   filter_upwards [Metric.ball_mem_nhds (0 : ℂ) (by norm_num : (0:ℝ) < 1/2)] with z hz
   exact key z (by simpa [Metric.mem_ball, dist_eq_norm] using hz)
 
-/-- STEP 5: identity theorem ⟹ `G f ≡ 0` on the whole strip. -/
+/-- By the identity theorem, `laplaceTr α f` vanishes on the whole strip `{Re z < 1/2}`. -/
 lemma laplaceTr_eqOn_zero (α : ℝ) (hα : -1 < α) (f : ℝ → ℝ)
     (hf : MemLp f 2 (laguerreMeasure α))
     (hmom : ∀ k : ℕ, ∫ x, (laguerreWeight α x * f x) * x ^ k = 0) :
@@ -1176,8 +1501,9 @@ lemma laplaceTr_eqOn_zero (α : ℝ) (hα : -1 < α) (f : ℝ → ℝ)
     convex_strip.isPreconnected zero_mem_strip
     (laplaceTr_eventuallyEq_zero α hα f hf hmom)
 
-/-! ## 7. STEP 6 — Fourier transform of an `L¹` function vanishes ⟹ a.e. `0`.
-       Reusable; proved via characteristic-function extensionality on `g⁺, g⁻`. -/
+/-! ### An `L¹` function with vanishing Fourier transform is a.e. zero
+
+Proved via characteristic-function extensionality on the positive and negative parts `g⁺, g⁻`. -/
 
 lemma ae_zero_of_fourier_zero (g : ℝ → ℝ) (hg : Integrable g)
     (h : ∀ t : ℝ, ∫ x : ℝ, (g x : ℂ) * Complex.exp (Complex.I * (t : ℂ) * (x : ℂ)) = 0) :
@@ -1194,17 +1520,54 @@ lemma ae_zero_of_fourier_zero (g : ℝ → ℝ) (hg : Integrable g)
   -- charFun μ± t = ∫ exp(⟪x,t⟫ I) dμ± = ∫ g±(x) exp(x t I) dx   (toReal-smul + ⟪x,t⟫_ℝ = x*t).
   have hμ : μp = μn := by
     refine Measure.ext_of_charFun (funext fun t => ?_)
-    -- charFun μp t - charFun μn t = ∫ (gp-gn) exp(xtI) = ∫ g exp(xtI) = 0  (by `h`),
-    -- using linearity (each piece integrable) and `g = gp - gn`.
-    sorry  -- SORRY-ROUTINE (charFun unfolding via integral_withDensity_eq_integral_toReal_smul₀
-           --   + match exp(⟪x,t⟫·I) with h's exp(I·t·x), and gp - gn = g)
+    -- `g·e^{itx} ∈ L¹` for any integrable `g`, since `‖e^{itx}‖ = 1`.
+    have hI : ∀ w : ℝ → ℝ, Integrable w →
+        Integrable (fun x => (w x : ℂ) * Complex.exp (↑t * ↑x * Complex.I)) := by
+      intro w hw
+      refine Integrable.mono' hw.norm
+        ((Complex.continuous_ofReal.comp_aestronglyMeasurable hw.aestronglyMeasurable).mul
+          (by fun_prop)) (.of_forall fun x => le_of_eq ?_)
+      rw [norm_mul, Complex.norm_exp, Complex.norm_real,
+          show (↑t * ↑x * Complex.I).re = 0 from by simp [Complex.mul_re, Complex.mul_im],
+          Real.exp_zero, mul_one]
+    -- `charFun` of a `withDensity` measure as a weighted Lebesgue integral.
+    have hp : charFun μp t = ∫ x, (gp x : ℂ) * Complex.exp (↑t * ↑x * Complex.I) := by
+      rw [charFun_apply_real]; simp only [μp]
+      rw [integral_withDensity_eq_integral_toReal_smul₀ hgp.aemeasurable.ennreal_ofReal
+            (.of_forall fun x => ENNReal.ofReal_lt_top)]
+      refine integral_congr_ae (.of_forall fun x => ?_)
+      simp only [gp]
+      rw [Complex.real_smul, ENNReal.toReal_ofReal (le_max_right _ _)]
+    have hn : charFun μn t = ∫ x, (gn x : ℂ) * Complex.exp (↑t * ↑x * Complex.I) := by
+      rw [charFun_apply_real]; simp only [μn]
+      rw [integral_withDensity_eq_integral_toReal_smul₀ hgn.aemeasurable.ennreal_ofReal
+            (.of_forall fun x => ENNReal.ofReal_lt_top)]
+      refine integral_congr_ae (.of_forall fun x => ?_)
+      simp only [gn]
+      rw [Complex.real_smul, ENNReal.toReal_ofReal (le_max_right _ _)]
+    rw [hp, hn]
+    -- `gp = gn + g`, so the `gp`-integral splits; the `g`-piece is `0` by `h`.
+    have hcombine : (fun x => (gp x : ℂ) * Complex.exp (↑t * ↑x * Complex.I))
+        = (fun x => (gn x : ℂ) * Complex.exp (↑t * ↑x * Complex.I)
+                    + (g x : ℂ) * Complex.exp (↑t * ↑x * Complex.I)) := by
+      funext x
+      have hr : gp x = gn x + g x := by
+        simp only [gp, gn]
+        rcases le_total 0 (g x) with hx | hx
+        · rw [max_eq_left hx, max_eq_right (by linarith : -g x ≤ 0)]; ring
+        · rw [max_eq_right hx, max_eq_left (by linarith : (0 : ℝ) ≤ -g x)]; ring
+      rw [show (gp x : ℂ) = (gn x : ℂ) + (g x : ℂ) by rw [hr]; push_cast; ring]; ring
+    have hg0 : (∫ x, (g x : ℂ) * Complex.exp (↑t * ↑x * Complex.I)) = 0 := by
+      rw [← h t]
+      refine integral_congr_ae (.of_forall fun x => ?_)
+      have hcomm : (↑t * ↑x * Complex.I) = Complex.I * ↑t * ↑x := by ring
+      simp only [hcomm]
+    rw [hcombine, integral_add (hI gn hgn) (hI g hg), hg0, add_zero]
   -- equal withDensity ⟹ equal densities a.e. ⟹ gp =ᵐ gn ⟹ g =ᵐ 0.
   have hden : (fun x => ENNReal.ofReal (gp x)) =ᵐ[volume] (fun x => ENNReal.ofReal (gn x)) :=
-    (withDensity_eq_iff
-      (measurable_ennreal_ofReal_of hgp).aemeasurable      -- AEMeasurable of ofReal∘g±
-      (measurable_ennreal_ofReal_of hgn).aemeasurable
-      (by rw [← lt_top_iff_ne_top]; exact (isFiniteMeasure_withDensity_ofReal hgp.hasFiniteIntegral).measure_univ_lt_top.ne ▸ sorry)).1 hμ
-      -- ^ the finiteness side-goal of `withDensity_eq_iff`; discharge from IsFiniteMeasure.
+    -- `volume` on ℝ is σ-finite, so equal `withDensity` measures have a.e.-equal densities.
+    (withDensity_eq_iff_of_sigmaFinite
+      hgp.aemeasurable.ennreal_ofReal hgn.aemeasurable.ennreal_ofReal).1 hμ
   -- ofReal gp = ofReal gn a.e.  ⟹  gp = gn a.e. (both ≥ 0)  ⟹  g = gp - gn = 0 a.e.
   filter_upwards [hden] with x hx
   have : gp x = gn x := by
@@ -1225,7 +1588,9 @@ lemma ae_zero_of_fourier_zero (g : ℝ → ℝ) (hg : Integrable g)
     have h2 : max (-g x) 0 = -g x := max_eq_left (by linarith)
     rw [h1, h2] at this; linarith
 
-/-! ## 8. STEP 7 — `g = 0 a.e.[volume]`  ⟹  `f = 0 a.e.[μ_α]`  (since `w > 0` on `(0,∞)`). -/
+/-! ### Transfer back to `μ_α`: `w · f = 0` a.e.`[volume]` ⟹ `f = 0` a.e.`[μ_α]`
+
+This uses that `w > 0` on `(0, ∞)`. -/
 
 lemma ae_zero_laguerreMeasure_of_g_ae_zero (α : ℝ) (f : ℝ → ℝ)
     (hg : (fun x => laguerreWeight α x * f x) =ᵐ[volume] 0) :
@@ -1241,7 +1606,7 @@ lemma ae_zero_laguerreMeasure_of_g_ae_zero (α : ℝ) (f : ℝ → ℝ)
   have : laguerreWeight α x * f x = 0 := hx
   exact (mul_eq_zero.1 this).resolve_left hw.ne'
 
-/-! ## 9. MAIN THEOREM — assembly (no new mathematics here). -/
+/-! ### Completeness: assembling the main theorem -/
 
 theorem laguerre_complete (α : ℝ) (hα : -1 < α) (f : ℝ → ℝ)
     (hf : MemLp f 2 (laguerreMeasure α))
@@ -1271,7 +1636,6 @@ theorem laguerre_complete (α : ℝ) (hα : -1 < α) (f : ℝ → ℝ)
   -- transfer to μ_α
   exact ae_zero_laguerreMeasure_of_g_ae_zero α f hg0
 
-
 /-! ## Generating function -/
 
 /-! ### Bridge: `realBinom` = Mathlib's generalized binomial `Ring.choose` -/
@@ -1293,7 +1657,6 @@ lemma realBinom_eq_ringChoose (α : ℝ) (k : ℕ) :
   have hprod : (∏ i ∈ Finset.range k, (α - (i : ℝ))) = (k.factorial : ℝ) * Ring.choose α k := by
     rw [← descPochhammer_smeval_prod, Ring.descPochhammer_eq_factorial_smul_choose, nsmul_eq_mul]
   rw [realBinom, hprod, mul_comm, mul_div_assoc, div_self hfac, mul_one]
-
 
 /-! ### Diagonal coefficient (pure algebra) -/
 

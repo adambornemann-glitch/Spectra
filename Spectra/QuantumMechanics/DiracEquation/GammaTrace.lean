@@ -75,7 +75,6 @@ def gamma5 : Matrix (Fin 4) (Fin 4) ℂ :=
      1, 0, 0, 0;
      0, 1, 0, 0]
 
-
 /-! ## Gamma Matrix Access -/
 
 /-- Helper to get gamma matrix by index.
@@ -88,7 +87,6 @@ def gammaAt (μ : Fin 4) : Matrix (Fin 4) (Fin 4) ℂ :=
   | 1 => gamma1
   | 2 => gamma2
   | 3 => gamma3
-
 
 /-! ## Single Gamma Traces -/
 
@@ -133,7 +131,6 @@ lemma gamma_trace_zero (μ : Fin 4) : Matrix.trace (gammaAt μ) = 0 := by
   · exact gamma1_trace_zero
   · exact gamma2_trace_zero
   · exact gamma3_trace_zero
-
 
 /-! ## Gamma Squares
 

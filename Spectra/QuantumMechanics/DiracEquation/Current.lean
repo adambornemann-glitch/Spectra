@@ -286,7 +286,6 @@ lemma current_zero_eq_zero_iff (Γ : GammaMatrices) (ψ : Fin 4 → ℂ) :
   · intro h
     simp [h]
 
-
 /-! ## Probability Density and Current -/
 
 /-- The probability density ρ = j⁰ = ψ†ψ as a real number.
@@ -303,7 +302,6 @@ This gives the probability flux through surfaces. The continuity equation
 noncomputable def probabilityCurrent (Γ : GammaMatrices) (ψ : Fin 4 → ℂ) : Fin 3 → ℂ :=
   fun i => diracCurrent Γ ψ i.succ
 
-
 /-! ## Spacetime Utilities -/
 
 /-- Construct a spacetime point from time t and spatial position x = (x¹, x², x³).
@@ -318,7 +316,5 @@ This is the total probability of finding the particle somewhere in space.
 For a normalized state, P(t) = 1 for all t. -/
 noncomputable def totalProbability (Γ : GammaMatrices) (ψ : SpinorField) (t : ℝ) : ℝ :=
   ∫ x : Fin 3 → ℝ, probabilityDensity Γ (ψ.ψ (spacetimePoint t x)) ∂volume
-    /-At volume: failed to synthesize instance of type class
-  MeasureSpace (Fin 3 → ℝ)-/
 
 end Spectra.QuantumMechanics.Dirac.Current

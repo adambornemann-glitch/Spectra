@@ -804,90 +804,6 @@ theorem sphericalDecomposition_symm_single (i : HarmonicIdx) (R : RadialL2) :
     sphericalDecomposition.symm (lp.single 2 i R) = sectorEmbedding i R :=
   isHilbertSum_sectors.linearIsometryEquiv_symm_apply_single R
 
-/-! ## Separation of the Laplacian -/
-
-/-- **The Laplacian separates in spherical coordinates.**
-
-    −Δ = −(1/r²)(d/dr)(r² d/dr) + L̂²/r²
-
-    where L̂² is the angular Laplacian (Laplace-Beltrami on S²).
-
-    Equivalently, after the substitution χ = rR:
-    −Δ|_{sector ℓ} = −d²/dr² + ℓ(ℓ+1)/r²    (on ReducedRadialL2)
-
-    **Discharge route:** Direct computation in spherical coordinates.
-    The key identity is:
-      Δf = (1/r²)(d/dr)(r² df/dr) + (1/r²) Δ_{S²} f
-    where Δ_{S²} is the Laplace-Beltrami operator on S². -/
-def laplacian_separates :
-    sorry :=  -- −Δ = radial + L̂²/r² in the decomposition
-  sorry
-
-/-- Within angular sector ℓ, the Laplacian becomes:
-
-    −Δ|_{V_ℓ} acts on R(r) as:
-      −R''(r) − (2/r)R'(r) + ℓ(ℓ+1)/r² R(r)
-
-    or equivalently, on χ(r) = rR(r):
-      −χ''(r) + ℓ(ℓ+1)/r² χ(r) -/
-def laplacian_in_sector (ℓ : ℕ) :
-    sorry :=  -- −Δ restricted to sector ℓ = radial operator with centrifugal term
-  sorry
-
-/-! ## The Coulomb potential respects angular sectors -/
-
-/-- **1/r commutes with L̂²**, hence preserves each angular sector.
-
-    This is because 1/r depends only on r, not on (θ, φ), so it acts
-    as the identity on the angular part.
-
-    **Discharge route:** For f(r, ω) = R(r) Y_ℓ^m(ω):
-      (1/r) f(r, ω) = (R(r)/r) Y_ℓ^m(ω)
-    which is still in the ℓ-sector. -/
-def coulomb_preserves_sectors (ℓ : ℕ) :
-    sorry :=  -- (1/r) maps sector ℓ to itself
-  sorry
-
-/-- **The hydrogen Hamiltonian reduces to radial operators.**
-
-    H = −Δ − Z/r reduces on sector ℓ to:
-      H_ℓ = −d²/dr² − (2/r)d/dr + ℓ(ℓ+1)/r² − Z/r
-
-    acting on RadialL2.
-
-    Or equivalently, on χ(r) = rR(r):
-      h_ℓ = −d²/dr² + ℓ(ℓ+1)/r² − Z/r
-
-    acting on ReducedRadialL2.-/
-def hydrogen_reduces (ℓ : ℕ) :
-    sorry :=  -- H|_{sector ℓ} = H_ℓ (radial Hamiltonian)
-  sorry
-
-/-! ## The radial Hamiltonian -/
-
-/-- The radial hydrogen Hamiltonian in sector ℓ (on RadialL2).
-
-    H_ℓ R = −R'' − (2/r)R' + ℓ(ℓ+1)/r² R − Z/r R -/
-def radialHamiltonian (ℓ : ℕ) (Z : ℝ) :
-    sorry :=  -- operator on RadialL2
-  sorry
-
-/-- The reduced radial operator (on ReducedRadialL2).
-
-    h_ℓ χ = −χ'' + V_eff(r) χ
-    where V_eff(r) = ℓ(ℓ+1)/r² − Z/r
-
-    This is a 1D Schrödinger operator with effective potential. -/
-def reducedRadialOp (ℓ : ℕ) (Z : ℝ) :
-    sorry :=  -- operator on ReducedRadialL2
-  sorry
-
-/-- H_ℓ on RadialL2 is unitarily equivalent to h_ℓ on ReducedRadialL2
-    via the map R ↦ rR. -/
-def radial_unitary_equivalence (ℓ : ℕ) (Z : ℝ) :
-    sorry :=  -- radialHamiltonian ℓ Z ≅ reducedRadialOp ℓ Z via radialReduction
-  sorry
-
 
 /-! ## Interface summary
 
@@ -896,12 +812,6 @@ def radial_unitary_equivalence (ℓ : ℕ) (Z : ℝ) :
 - `reducedRadialOp` — the 1D operator whose eigenvalues we compute
 - `radialReduction` — the R ↦ rR isomorphism
 
-### For `HydrogenSpectrum.lean`:
-- `sphericalDecomposition : L2_R3 ≃ₗᵢ[ℂ] lp (fun _ : HarmonicIdx => RadialL2) 2`
-  — reduces 3D to ⊕ 1D problems (with `sphericalDecomposition_symm_single`
-  recovering the pure tensors R ⊗ Y_ℓ^m via `sectorEmbedding`)
-- `hydrogen_reduces` — H = ⊕_ℓ H_ℓ
-- `angularSector_dim` — dim V_ℓ = 2ℓ+1 (for degeneracy counting)
 -/
 
 

@@ -3,8 +3,15 @@ Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
+import Spectra.QuantumMechanics.OneParameterUnitaryGroup.Basic
 import Spectra.QuantumMechanics.Perturbation.HardyInequality
 import Spectra.QuantumMechanics.Perturbation.KatoRellich
+import Spectra.SobolevSpaces.DensityResults
+import Spectra.QuantumMechanics.Observable.Basic
+import Spectra.QuantumMechanics.Stone.Basic
+import Spectra.SobolevSpaces.DensityResults
+import Spectra.SpectralTheory.ResolventForm
+import Spectra.Resolvent.Range
 import Spectra.QuantumMechanics.Hydrogen.Laplacian
 
 -- ^ adjust the three module paths above to the actual file locations
@@ -91,7 +98,10 @@ packaging, self-adjointness of hydrogen) is **proved**.
 open MeasureTheory Complex Filter InnerProductSpace
 open Spectra.Sobolev
 open Spectra.QuantumMechanics
-open Spectra.QuantumMechanics.Hamiltonian
+open Hamiltonian SpectralTheory OneParameterUnitaryGroup
+open Spectra.QuantumMechanics.Observable
+open UnboundedObservable
+open Spectra.Resolvent
 open scoped Topology NNReal ENNReal
 
 namespace Spectra.QuantumMechanics.Hydrogen
@@ -142,22 +152,22 @@ lemma coulombMultiplier_sq (p : CoulombParams) (x : R3) :
 
 /-! ## (1/r)ψ is in L² for ψ ∈ H¹ -/
 
-/-- **The Coulomb potential applied to an H¹ function is in L².**
-
-    ‖(Z/r)ψ‖² = Z² ∫ |ψ|²/|x|² dx = Z² · hardyIntegral(ψ) < ∞.
-
-    **Discharge route:**
-    1. Pointwise: ‖V(x)ψ(x)‖² = Z² · inverseRSq x · ‖ψ(x)‖²
-       (`coulombMultiplier_sq`).
-    2. The RHS is integrable by `inverseRSq_mul_sq_integrable` (Hardy).
-    3. Measurability: `coulombMultiplier_measurable` + a.e.-measurability
-       of the Lp representative; conclude with the `MemLp` characterisation
-       via finiteness of the squared integral. -/
+/-- `(Z/r)ψ ∈ L²` for `ψ ∈ H¹`. Pointwise `‖(−Z/|x|)·ψ(x)‖² = Z²·inverseRSq(x)·‖ψ(x)‖²`,
+which is integrable by Hardy's inequality (`inverseRSq_mul_sq_integrable`). -/
 theorem coulomb_mul_memLp
     (p : CoulombParams) (ψ : L2_R3) (hψ : MemSobolevH1 ψ) :
     MemLp (fun x => (coulombMultiplier p x : ℂ) * (ψ : R3 → ℂ) x)
-      2 (volume : Measure R3) :=
-  sorry
+      2 (volume : Measure R3) := by
+  have h_meas : AEStronglyMeasurable
+      (fun x => (coulombMultiplier p x : ℂ) * (ψ : R3 → ℂ) x) volume :=
+    (Complex.measurable_ofReal.comp (coulombMultiplier_measurable p)).aestronglyMeasurable.mul
+      (Lp.aestronglyMeasurable ψ)
+  rw [memLp_two_iff_integrable_sq_norm h_meas]
+  refine ((inverseRSq_mul_sq_integrable ψ hψ).const_mul (p.Z ^ 2)).congr
+    (Filter.Eventually.of_forall fun x => ?_)
+  dsimp only
+  rw [norm_mul, mul_pow, Complex.norm_real, Real.norm_eq_abs, sq_abs, coulombMultiplier_sq]
+  ring
 
 /-- The Coulomb potential applied to an H² function is in L². -/
 theorem coulomb_mul_memLp_H2
@@ -173,42 +183,41 @@ no further transport: it is already of the type
 `laplacianPMap.domain →ₗ[ℂ] L2_R3` that Kato–Rellich consumes.
 -/
 
-/-- **The Coulomb potential as a linear map on H².**
-
-    V : H²(ℝ³) →ₗ[ℂ] L²(ℝ³) defined by (Vψ)(x) = (−Z/|x|) · ψ(x),
-    well-defined by `coulomb_mul_memLp_H2`.
-
-    **Discharge route for linearity:** both fields reduce, via
-    `MemLp.toLp_eq_toLp_iff`, to a.e. pointwise identities
-    (mul_add resp. mul_smul_comm) against `Lp.coeFn_add` / `Lp.coeFn_smul`. -/
+/-- The Coulomb potential `V = −Z/r` as a `ℂ`-linear map `H²(ℝ³) →ₗ[ℂ] L²(ℝ³)`,
+`(Vψ)(x) = (−Z/|x|)·ψ(x)`, well-defined by `coulomb_mul_memLp_H2`. Since
+`laplacianPMap.domain = SobolevH2` definitionally, this is already of the type
+`laplacianPMap.domain →ₗ[ℂ] L2_R3` consumed by Kato–Rellich. -/
 noncomputable def coulombPotential (p : CoulombParams) : SobolevH2 →ₗ[ℂ] L2_R3 where
   toFun := fun ⟨ψ, hψ⟩ =>
     (coulomb_mul_memLp_H2 p ψ hψ).toLp
       (fun x => (coulombMultiplier p x : ℂ) * (ψ : R3 → ℂ) x)
   map_add' := fun ⟨ψ₁, hψ₁⟩ ⟨ψ₂, hψ₂⟩ => by
-    sorry  -- a.e.: V(ψ₁+ψ₂) = Vψ₁ + Vψ₂, from mul_add + Lp.coeFn_add
+    rw [← MemLp.toLp_add, MemLp.toLp_eq_toLp_iff]
+    filter_upwards [Lp.coeFn_add ψ₁ ψ₂] with x hx
+    simp only [Pi.add_apply, hx, mul_add]
   map_smul' := fun c ⟨ψ, hψ⟩ => by
-    sorry  -- a.e.: V(cψ) = c·Vψ, from mul_smul_comm + Lp.coeFn_smul
+    simp only [RingHom.id_apply]
+    rw [← MemLp.toLp_const_smul, MemLp.toLp_eq_toLp_iff]
+    filter_upwards [Lp.coeFn_smul c ψ] with x hx
+    simp only [Submodule.coe_smul, Pi.smul_apply, smul_eq_mul] at hx ⊢
+    rw [hx]; ring
 
 /-! ## Symmetry -/
 
-/-- **The Coulomb potential is symmetric on H².**
-
-    ⟪Vψ, φ⟫ = ⟪ψ, Vφ⟫ for ψ, φ ∈ H².
-
-    **Discharge route:** V is multiplication by the *real-valued*
-    −Z/|x|, so under `L2.inner_def`,
-
-      ⟪Vψ, φ⟫ = ∫ conj((−Z/|x|)ψ) · φ = ∫ conj(ψ) · (−Z/|x|)φ = ⟪ψ, Vφ⟫,
-
-    using `Complex.conj_ofReal` (`coulombMultiplier_real`) pointwise,
-    `MemLp.coeFn_toLp` to pass to representatives, and
-    `integral_congr_ae`. -/
+/-- The Coulomb potential is symmetric on `H²`: `⟪Vψ, φ⟫ = ⟪ψ, Vφ⟫`. As `V` is
+multiplication by the real-valued `−Z/|x|`, both sides equal `∫ (−Z/|x|)·conj(ψ)·φ`. -/
 theorem coulomb_symmetric (p : CoulombParams) :
     ∀ (ψ φ : SobolevH2),
       ⟪coulombPotential p ψ, (φ : L2_R3)⟫_ℂ =
-      ⟪(ψ : L2_R3), coulombPotential p φ⟫_ℂ :=
-  sorry
+      ⟪(ψ : L2_R3), coulombPotential p φ⟫_ℂ := by
+  rintro ⟨ψ, hψ⟩ ⟨φ, hφ⟩
+  rw [MeasureTheory.L2.inner_def, MeasureTheory.L2.inner_def]
+  refine integral_congr_ae ?_
+  filter_upwards [(coulomb_mul_memLp_H2 p ψ hψ).coeFn_toLp,
+    (coulomb_mul_memLp_H2 p φ hφ).coeFn_toLp] with x hVψ hVφ
+  simp only [coulombPotential, LinearMap.coe_mk, AddHom.coe_mk]
+  rw [hVψ, hVφ, RCLike.inner_apply, RCLike.inner_apply, map_mul, ← coulombMultiplier_real]
+  ring
 
 /-- Symmetry in the `IsSymmetricOn` shape consumed by Kato–Rellich.
     Pure repackaging: `laplacianPMap.domain` *is* `SobolevH2`. -/
@@ -218,18 +227,21 @@ theorem coulomb_isSymmetricOn (p : CoulombParams) :
 
 /-! ## Relative boundedness -/
 
-/-- **The L² norm of Vψ in terms of the Hardy integral**:
-    ‖Vψ‖ = Z · √(hardyIntegral ψ).
-
-    **Discharge route:** ‖Vψ‖² = ∫ ‖(−Z/|x|)ψ(x)‖² dx
-    = Z² ∫ inverseRSq x · ‖ψ(x)‖² dx (pointwise `coulombMultiplier_sq`)
-    = Z² · hardyIntegral ψ; take square roots (both sides ≥ 0;
-    integrability from `inverseRSq_mul_sq_integrable`). -/
+/-- The `L²`-norm of `Vψ` in terms of the Hardy integral: `‖Vψ‖ = Z·√(hardyIntegral ψ)`,
+from `‖Vψ‖² = Z²·∫ inverseRSq·‖ψ‖² = Z²·hardyIntegral ψ`. -/
 theorem coulomb_norm_eq (p : CoulombParams)
     (ψ : L2_R3) (hψ : MemSobolevH2 ψ) :
     ‖(coulombPotential p ⟨ψ, hψ⟩ : L2_R3)‖ =
-      p.Z * Real.sqrt (hardyIntegral ψ) :=
-  sorry
+      p.Z * Real.sqrt (hardyIntegral ψ) := by
+  have hsq : ‖(coulombPotential p ⟨ψ, hψ⟩ : L2_R3)‖ ^ 2 = p.Z ^ 2 * hardyIntegral ψ := by
+    rw [norm_sq_eq_integral_norm_sq, hardyIntegral, ← integral_const_mul]
+    refine integral_congr_ae ?_
+    filter_upwards [(coulomb_mul_memLp_H2 p ψ hψ).coeFn_toLp] with x hx
+    simp only [coulombPotential, LinearMap.coe_mk, AddHom.coe_mk]
+    rw [hx, norm_mul, mul_pow, Complex.norm_real, Real.norm_eq_abs, sq_abs, coulombMultiplier_sq]
+    ring
+  rw [← Real.sqrt_sq (norm_nonneg (coulombPotential p ⟨ψ, hψ⟩ : L2_R3)), hsq,
+    Real.sqrt_mul (sq_nonneg p.Z), Real.sqrt_sq p.hZ.le]
 
 /-- **The Coulomb potential is (−Δ)-bounded with any slope ε > 0.**
 

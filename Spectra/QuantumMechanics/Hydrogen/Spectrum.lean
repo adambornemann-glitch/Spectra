@@ -3,9 +3,10 @@ Copyright (c) 2026 Logos Library Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
-import Spectra.QuantumMechanics.Hydrogen.AngularDecomp.TensorDecomp
+import Spectra.QuantumMechanics.Hydrogen.RadialProblem.TensorDecomp
 import Spectra.QuantumMechanics.Hydrogen.RadialProblem.RadialEquation
 import Spectra.QuantumMechanics.Hydrogen.Hamiltonian
+
 /-!
 # The Spectrum of the Hydrogen Atom
 
@@ -59,9 +60,115 @@ noncomputable section
 
 namespace QuantumMechanics.Hydrogen.Spectrum
 
-open MeasureTheory Complex Filter Generators Perturbation
+open MeasureTheory Complex Filter
 open scoped Topology NNReal ENNReal Nat
-open Angular RadialEq Decomposition
+open RadialEq Spectra.QuantumMechanics.Hydrogen Spectra.QuantumMechanics.Hydrogen.Decomposition
+
+/-! ## Separation of the Laplacian -/
+
+/-- **The Laplacian separates in spherical coordinates.**
+
+    −Δ = −(1/r²)(d/dr)(r² d/dr) + L̂²/r²
+
+    where L̂² is the angular Laplacian (Laplace-Beltrami on S²).
+
+    Equivalently, after the substitution χ = rR:
+    −Δ|_{sector ℓ} = −d²/dr² + ℓ(ℓ+1)/r²    (on ReducedRadialL2)
+
+    **Discharge route:** Direct computation in spherical coordinates.
+    The key identity is:
+      Δf = (1/r²)(d/dr)(r² df/dr) + (1/r²) Δ_{S²} f
+    where Δ_{S²} is the Laplace-Beltrami operator on S². -/
+def laplacian_separates :
+    sorry :=  -- −Δ = radial + L̂²/r² in the decomposition
+  sorry
+
+/-- Within angular sector ℓ, the Laplacian becomes:
+
+    −Δ|_{V_ℓ} acts on R(r) as:
+      −R''(r) − (2/r)R'(r) + ℓ(ℓ+1)/r² R(r)
+
+    or equivalently, on χ(r) = rR(r):
+      −χ''(r) + ℓ(ℓ+1)/r² χ(r) -/
+def laplacian_in_sector (ℓ : ℕ) :
+    sorry :=  -- −Δ restricted to sector ℓ = radial operator with centrifugal term
+  sorry
+
+/-! ## The Coulomb potential respects angular sectors -/
+
+/-- **1/r commutes with L̂²**, hence preserves each angular sector.
+
+    This is because 1/r depends only on r, not on (θ, φ), so it acts
+    as the identity on the angular part.
+
+    **Discharge route:** For f(r, ω) = R(r) Y_ℓ^m(ω):
+      (1/r) f(r, ω) = (R(r)/r) Y_ℓ^m(ω)
+    which is still in the ℓ-sector. -/
+def coulomb_preserves_sectors (ℓ : ℕ) :
+    sorry :=  -- (1/r) maps sector ℓ to itself
+  sorry
+
+/-- **The hydrogen Hamiltonian reduces to radial operators.**
+
+    H = −Δ − Z/r reduces on sector ℓ to:
+      H_ℓ = −d²/dr² − (2/r)d/dr + ℓ(ℓ+1)/r² − Z/r
+
+    acting on RadialL2.
+
+    Or equivalently, on χ(r) = rR(r):
+      h_ℓ = −d²/dr² + ℓ(ℓ+1)/r² − Z/r
+
+    acting on ReducedRadialL2.-/
+def hydrogen_reduces (ℓ : ℕ) :
+    sorry :=  -- H|_{sector ℓ} = H_ℓ (radial Hamiltonian)
+  sorry
+
+/-! ## The radial Hamiltonian -/
+
+/-- The radial hydrogen Hamiltonian in sector ℓ (on RadialL2).
+
+    H_ℓ R = −R'' − (2/r)R' + ℓ(ℓ+1)/r² R − Z/r R -/
+def radialHamiltonian (ℓ : ℕ) (Z : ℝ) : (ℝ → ℝ) → ℝ → ℝ :=
+  fun R r => -(deriv (deriv R) r) - (2 / r) * deriv R r
+    + ((ℓ : ℝ) * (ℓ + 1) / r ^ 2 - Z / r) * R r
+
+/-- The reduced radial operator (on ReducedRadialL2).
+
+    h_ℓ χ = −χ'' + V_eff(r) χ
+    where V_eff(r) = ℓ(ℓ+1)/r² − Z/r
+
+    This is a 1D Schrödinger operator with effective potential. -/
+def reducedRadialOp (ℓ : ℕ) (Z : ℝ) : (ℝ → ℝ) → ℝ → ℝ :=
+  fun χ r => -(deriv (deriv χ) r) + ((ℓ : ℝ) * (ℓ + 1) / r ^ 2 - Z / r) * χ r
+
+/-- `H_ℓ` on `RadialL2` is intertwined with `h_ℓ` on `ReducedRadialL2` by the
+    substitution `χ = rR`: for `r > 0` and `C²` radial functions,
+    `h_ℓ(rR)(r) = r·(H_ℓR)(r)`. This is the concrete content of the unitary
+    equivalence implemented by `radialReduction`; the key identity is
+    `(rR)'' = rR'' + 2R'`. -/
+theorem radial_unitary_equivalence (ℓ : ℕ) (Z : ℝ) (R : ℝ → ℝ)
+    (hR : ContDiff ℝ 2 R) {r : ℝ} (hr : 0 < r) :
+    reducedRadialOp ℓ Z (fun s => s * R s) r = r * radialHamiltonian ℓ Z R r := by
+  have hR1 : Differentiable ℝ R := hR.differentiable (by norm_num)
+  have hR2 : Differentiable ℝ (deriv R) := hR.differentiable_deriv_two
+  -- `(rR)' = R + rR'`
+  have hrne : r ≠ 0 := ne_of_gt hr
+  have hχ' : deriv (fun s => s * R s) = fun s => R s + s * deriv R s := by
+    funext s
+    rw [deriv_fun_mul differentiableAt_fun_id (hR1 s), deriv_id'']; ring
+  -- `(rR)'' = 2R' + rR''`
+  have hχ'' : deriv (deriv (fun s => s * R s)) r
+      = 2 * deriv R r + r * deriv (deriv R) r := by
+    have e1 : deriv (fun s => R s + s * deriv R s) r
+        = deriv R r + deriv (fun s => s * deriv R s) r :=
+      deriv_fun_add (hR1 r) (differentiableAt_fun_id.mul (hR2 r))
+    have e2 : deriv (fun s => s * deriv R s) r = deriv R r + r * deriv (deriv R) r := by
+      rw [deriv_fun_mul differentiableAt_fun_id (hR2 r), deriv_id'']; simp
+    rw [hχ', e1, e2]; ring
+  simp only [reducedRadialOp, radialHamiltonian]
+  rw [hχ'']
+  field_simp
+  ring
 
 /-! ## Hydrogen eigenvalues -/
 
@@ -95,7 +202,7 @@ lemma eigenvalue_Z1 (n : ℕ) (hn : 1 ≤ n) :
       Σ_{ℓ=0}^{n-1} (2ℓ+1) = n² -/
 def hydrogenEigenfunction (n : ℕ) (ℓ : ℕ) (m : ℤ)
     (hn : ℓ + 1 ≤ n) (hm : |m| ≤ ℓ) :
-    sorry :=  -- R3 → ℂ or element of L2_R3
+    L2_R3 :=  -- `R_{nℓ} ⊗ Y_ℓ^m` in the spherical decomposition `Decomposition.L2_R3`
   sorry
 
 /-! ## The eigenvalue equation -/
@@ -124,11 +231,13 @@ def hydrogen_eigenfunction_eq (p : CoulombParams)
     - Radial: ∫₀^∞ R_{nℓ} R_{n'ℓ} r² dr = δ_{nn'} (`radial_wavefunction_orthonormal`).
     - Angular: ∫_{S²} Ȳ_ℓ^m Y_{ℓ'}^{m'} dΩ = δ_{ℓℓ'} δ_{mm'} (`sphericalHarmonic_orthonormal`).
     - Combined: ⟨R⊗Y, R'⊗Y'⟩ = ⟨R,R'⟩ · ⟨Y,Y'⟩ (tensor product). -/
-def hydrogen_eigenfunction_orthonormal
+theorem hydrogen_eigenfunction_orthonormal
     (n n' : ℕ) (ℓ ℓ' : ℕ) (m m' : ℤ)
     (hn : ℓ + 1 ≤ n) (hn' : ℓ' + 1 ≤ n')
     (hm : |m| ≤ ℓ) (hm' : |m'| ≤ ℓ') :
-    sorry :=  -- ⟨ψ_{nℓm}, ψ_{n'ℓ'm'}⟩ = δ_{nn'}δ_{ℓℓ'}δ_{mm'}
+    inner (𝕜 := ℂ) (hydrogenEigenfunction n ℓ m hn hm)
+        (hydrogenEigenfunction n' ℓ' m' hn' hm')
+      = (if n = n' ∧ ℓ = ℓ' ∧ m = m' then 1 else 0) :=
   sorry
 
 /-! ## Discrete spectrum -/
@@ -148,9 +257,10 @@ def hydrogen_eigenfunction_orthonormal
        H_ℓ R = E R with E < 0, which forces E = E_n. -/
 theorem hydrogen_discrete_spectrum (p : CoulombParams) :
     ∀ (E : ℝ), E < 0 →
-    (sorry  -- E is an eigenvalue of hydrogenGenerator p
-    ) ↔
-    ∃ (n : ℕ), 1 ≤ n ∧ E = eigenvalue p n (by sorry) :=
+    (∃ ψ : (hydrogenHamiltonian p).domain,
+        (ψ : Spectra.Sobolev.L2_R3) ≠ 0 ∧
+        hydrogenHamiltonian p ψ = (E : ℂ) • (ψ : Spectra.Sobolev.L2_R3)) ↔
+    ∃ (n : ℕ) (hn : 1 ≤ n), E = eigenvalue p n hn :=
   sorry
 
 /-! ## Degeneracy -/
@@ -216,9 +326,9 @@ def hydrogen_continuous_spectrum (p : CoulombParams) :
     estimates. This is significantly harder than the rest and may be
     deferred. -/
 theorem hydrogen_no_positive_eigenvalues (p : CoulombParams) :
-    ∀ (E : ℝ) (hE : 0 ≤ E) (ψ : L2_R3)
-      (hψ : ψ ∈ (hydrogenGenerator p).domain),
-    (hydrogenGenerator p).op ⟨ψ, hψ⟩ = (E : ℂ) • ψ → ψ = 0 :=
+    ∀ (E : ℝ) (hE : 0 ≤ E) (ψ : Spectra.Sobolev.L2_R3)
+      (hψ : ψ ∈ (hydrogenHamiltonian p).domain),
+    hydrogenHamiltonian p ⟨ψ, hψ⟩ = (E : ℂ) • ψ → ψ = 0 :=
   sorry
 
 /-! ## Eigenfunction completeness -/
