@@ -2,7 +2,7 @@
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
-Filename: Fourier/PoissonKernel.lean
+Filename: Kernel/Poisson/Basic.lean
 -/
 import Spectra.Kernel.Poisson.Lemmas
 import Mathlib.Analysis.Fourier.FourierTransform

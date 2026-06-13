@@ -5,7 +5,7 @@ Authors: Adam Bornemann
 Filename: Yosida/Defs.lean
 -/
 import Spectra.QuantumMechanics.Stone.Yosida.Helpers
-import Spectra.QuantumMechanics.Stone.OneParameterUnitaryGroup
+import Spectra.QuantumMechanics.OneParameterUnitaryGroup.Basic
 /-!
 # Yosida Approximation Operators
 

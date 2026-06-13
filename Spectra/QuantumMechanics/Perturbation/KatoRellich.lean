@@ -4,7 +4,7 @@ Released under MIT license as described in the file LICENSE.
 File: KatoRellich.lean
 Authors: Adam Bornemann
 -/
-import Spectra.QuantumMechanics.Stone.OneParameterUnitaryGroup
+import Spectra.QuantumMechanics.OneParameterUnitaryGroup.Basic
 import Spectra.QuantumMechanics.Stone.Basic
 import Spectra.QuantumMechanics.Observable.Basic
 import Spectra.Resolvent.Defs

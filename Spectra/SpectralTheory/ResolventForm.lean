@@ -3,9 +3,7 @@ Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
 Filename: SpectralTheory/Keystone.lean
-
 -/
--- Adjust to taste; the catalogue places the borrowed declarations here:
 import Spectra.ProjValMeasure.Basic              -- ProjValMeasure, ext_of_diag
 import Spectra.Herglotz.CauchyInjective          -- measure_ext_of_cauchyTransform
 import Spectra.QuantumMechanics.Stone.Basic      -- genToGroup, generator_genToGroup
@@ -59,13 +57,12 @@ open Spectra.Resolvent
 open Spectra.Borel
 open Spectra.QuantumMechanics
 open Stoneslemma
+open StonesTheorem
 open Spectra.QuantumMechanics.SpectralTheory
 open Spectra.QuantumMechanics.OneParameterUnitaryGroup
-
-
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
 
-namespace Spectra.QuantumMechanics.StonesTheorem
+namespace Spectra.QuantumMechanics.SpectralTheory
 
 /-! ## The resolvent of a self-adjoint operator, canonically packaged -/
 
@@ -192,7 +189,7 @@ theorem spectralTheorem {A : H →ₗ.[ℂ] H} (hA : IsSelfAdjoint A) :
 
 With uniqueness in hand, `stonesFormula` is no longer a statement about the
 projections of *a* calculus — it recovers the unique spectral measure of `A`
-from boundary values of its resolvent.  The proof is `rfl`-transport. -/
+from boundary values of its resolvent. -/
 
 theorem stonesFormula_spectralPVM {A : H →ₗ.[ℂ] H} (hA : IsSelfAdjoint A)
     (a b : ℝ) (hab : a < b) (ξ : H) :
@@ -206,4 +203,4 @@ theorem stonesFormula_spectralPVM {A : H →ₗ.[ℂ] H} (hA : IsSelfAdjoint A)
                     (measurableSet_singleton b))) ξ)) :=
   stonesFormula (genToGroup hA) a b hab ξ
 
-end Spectra.QuantumMechanics.StonesTheorem
+end Spectra.QuantumMechanics.SpectralTheory

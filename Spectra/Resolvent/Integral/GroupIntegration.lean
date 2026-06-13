@@ -4,7 +4,7 @@ Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
 Filename: BochnerIntegration/ResolventII.lean
 -/
-import Spectra.QuantumMechanics.Stone.OneParameterUnitaryGroup
+import Spectra.QuantumMechanics.OneParameterUnitaryGroup.Basic
 import Spectra.Mathlib.MeasureTheory.Integral.Basic
 /-!
 # Resolvent Integrals for Unitary Groups

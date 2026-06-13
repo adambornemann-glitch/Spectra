@@ -4,7 +4,7 @@ Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
 Filename: UnitaryEvolution/Stone/Helpers.lean
 -/
-import Spectra.QuantumMechanics.Stone.OneParameterUnitaryGroup
+import Spectra.QuantumMechanics.OneParameterUnitaryGroup.Basic
 
 open InnerProductSpace Complex Filter Topology
 open scoped ComplexConjugate

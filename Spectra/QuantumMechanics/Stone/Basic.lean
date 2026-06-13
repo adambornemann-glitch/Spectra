@@ -6,6 +6,7 @@ Filename: UnitaryEvolution/Stone/Converse.lean
 -/
 import Spectra.QuantumMechanics.Stone.Helpers
 import Spectra.QuantumMechanics.Stone.Unique
+import Spectra.QuantumMechanics.OneParameterUnitaryGroup.Basic
 import Spectra.QuantumMechanics.Stone.Yosida.Exponential
 /-!
 # Stone's lemma: Complete Statement

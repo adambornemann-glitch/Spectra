@@ -5,7 +5,7 @@ Authors: Adam Bornemann
 Filename: UnitaryEvolution/Resolvent/IntegralZ.lean
 -/
 import Spectra.Resolvent.Identities
-import Spectra.QuantumMechanics.Stone.OneParameterUnitaryGroup
+import Spectra.QuantumMechanics.Stone.Basic
 
 open Complex MeasureTheory
 open Spectra.QuantumMechanics

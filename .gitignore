@@ -3,6 +3,8 @@
 /config/*
 /packages/*
 /@DEP/
+/@EXPORT/
+/@META/
 /@MONOLITH/
 /@PY/
 /@REFACTOR/
@@ -11,3 +13,4 @@
 /@ToQFT/
 /@ToQIG/
 /GUIDANCE/
+/@PLAN/
