@@ -368,6 +368,12 @@ private lemma differentiable_hydrogenRadial (n ℓ : ℕ) (hn : ℓ + 1 ≤ n) :
     ((laguerre_smooth _ _).differentiable (by simp)).comp (by fun_prop)
   fun_prop
 
+/-- The radial wavefunction is continuous on all of `ℝ` (public wrapper around the
+    private differentiability lemma, for use when lifting `R_{nℓ}` into `L²`). -/
+theorem continuous_hydrogenRadialWavefunction (n ℓ : ℕ) (hn : ℓ + 1 ≤ n) :
+    Continuous (hydrogenRadialWavefunction n ℓ hn) :=
+  (differentiable_hydrogenRadial n ℓ hn).continuous
+
 /-- The derivative of the radial wavefunction is differentiable everywhere
     (so the second derivative exists pointwise as `HasDerivAt`). -/
 private lemma differentiable_deriv_hydrogenRadial (n ℓ : ℕ) (hn : ℓ + 1 ≤ n) :
@@ -802,59 +808,442 @@ theorem radial_eigenfunction_unique (n ℓ : ℕ) (hn : ℓ + 1 ≤ n) (ψ : ℝ
   · exact absurd h hrne
   · linear_combination h
 
+/-! ## Reduced-equation transform and the analytic quantization core
+
+The quantization argument is cleanest for the *reduced* wavefunction `χ = r·ψ`,
+which obeys a Schrödinger-form equation with no first-derivative term:
+`χ''(r) = (ℓ(ℓ+1)/r² − 2/r − 2E)·χ(r)`.
+The lemmas below carry out the (fully mechanical) transform `ψ ↦ χ`, the
+`κ = √(−2E)` algebra, and the `κ ↔ Eₙ` dictionary. The single remaining analytic
+input — that square-integrability quantizes the decay rate — is isolated as the
+documented gap lemmas `reduced_radial_L2_quantized` and `reduced_radial_continuum`
+(see their docstrings for why this needs confluent-hypergeometric / Coulomb-wave
+asymptotics not yet available in Mathlib). -/
+
+/-- First derivative of `χ = r·ψ`, valid at every `r`. -/
+private lemma hasDerivAt_reducedMul (ψ : ℝ → ℝ) {r : ℝ}
+    (hψ : HasDerivAt ψ (deriv ψ r) r) :
+    HasDerivAt (fun s => s * ψ s) (ψ r + r * deriv ψ r) r := by
+  have h : HasDerivAt (fun s => s * ψ s) (1 * ψ r + r * deriv ψ r) r :=
+    (hasDerivAt_id' (x := r)).mul hψ
+  rwa [one_mul] at h
+
+/-- Closed form of `deriv (r·ψ)` where `ψ` is differentiable at `r`. -/
+private lemma deriv_reducedMul (ψ : ℝ → ℝ) {r : ℝ}
+    (hψ : HasDerivAt ψ (deriv ψ r) r) :
+    deriv (fun s => s * ψ s) r = ψ r + r * deriv ψ r :=
+  (hasDerivAt_reducedMul ψ hψ).deriv
+
+/-- On `(0,∞)` the derivative of `χ = r·ψ` agrees with the explicit closed form. -/
+private lemma deriv_reducedMul_eventuallyEq (ψ : ℝ → ℝ)
+    (hψ1 : ∀ r, 0 < r → HasDerivAt ψ (deriv ψ r) r) {r : ℝ} (hr : 0 < r) :
+    deriv (fun s => s * ψ s) =ᶠ[nhds r] (fun s => ψ s + s * deriv ψ s) := by
+  have hmem : Set.Ioi (0 : ℝ) ∈ nhds r := isOpen_Ioi.mem_nhds hr
+  filter_upwards [hmem] with x hx
+  exact deriv_reducedMul ψ (hψ1 x hx)
+
+/-- Second derivative of `χ = r·ψ` exists at `r>0`. -/
+private lemma hasDerivAt_deriv_reducedMul (ψ : ℝ → ℝ)
+    (hψ1 : ∀ r, 0 < r → HasDerivAt ψ (deriv ψ r) r)
+    (hψ2 : ∀ r, 0 < r → HasDerivAt (deriv ψ) (deriv^[2] ψ r) r)
+    {r : ℝ} (hr : 0 < r) :
+    HasDerivAt (deriv (fun s => s * ψ s))
+      (2 * deriv ψ r + r * deriv^[2] ψ r) r := by
+  have hbase : HasDerivAt (fun s => ψ s + s * deriv ψ s)
+      (deriv ψ r + (deriv ψ r + r * deriv^[2] ψ r)) r := by
+    have h1 : HasDerivAt ψ (deriv ψ r) r := hψ1 r hr
+    have h2 : HasDerivAt (fun s => s * deriv ψ s) (deriv ψ r + r * deriv^[2] ψ r) r := by
+      have h2' : HasDerivAt (fun s => s * deriv ψ s) (1 * deriv ψ r + r * deriv^[2] ψ r) r :=
+        (hasDerivAt_id' (x := r)).mul (hψ2 r hr)
+      rwa [one_mul] at h2'
+    exact h1.add h2
+  have hee := deriv_reducedMul_eventuallyEq ψ hψ1 hr
+  have : HasDerivAt (deriv (fun s => s * ψ s))
+      (deriv ψ r + (deriv ψ r + r * deriv^[2] ψ r)) r :=
+    hbase.congr_of_eventuallyEq hee
+  convert this using 1
+  ring
+
+/-- Closed form of `deriv^[2] (r·ψ)` at `r>0`. -/
+private lemma deriv2_reducedMul (ψ : ℝ → ℝ)
+    (hψ1 : ∀ r, 0 < r → HasDerivAt ψ (deriv ψ r) r)
+    (hψ2 : ∀ r, 0 < r → HasDerivAt (deriv ψ) (deriv^[2] ψ r) r)
+    {r : ℝ} (hr : 0 < r) :
+    deriv^[2] (fun s => s * ψ s) r = 2 * deriv ψ r + r * deriv^[2] ψ r := by
+  show deriv (deriv (fun s => s * ψ s)) r = _
+  exact (hasDerivAt_deriv_reducedMul ψ hψ1 hψ2 hr).deriv
+
+/-- **The reduced radial equation.** If `ψ` is a `C²` classical solution of
+    `H_ℓ ψ = E ψ` on `(0,∞)`, then `χ = r·ψ` solves the first-derivative-free form
+    `χ''(r) = (ℓ(ℓ+1)/r² − 2/r − 2E)·χ(r)`. -/
+lemma reduced_ode (ℓ : ℕ) (E : ℝ) (ψ : ℝ → ℝ)
+    (hψ1 : ∀ r, 0 < r → HasDerivAt ψ (deriv ψ r) r)
+    (hψ2 : ∀ r, 0 < r → HasDerivAt (deriv ψ) (deriv^[2] ψ r) r)
+    (heq : ∀ r, 0 < r → radialHamiltonian ℓ ψ r = E * ψ r)
+    {r : ℝ} (hr : 0 < r) :
+    deriv^[2] (fun s => s * ψ s) r
+      = ((ℓ : ℝ) * ((ℓ : ℝ) + 1) / r ^ 2 - 2 / r - 2 * E) * (r * ψ r) := by
+  have hrne : r ≠ 0 := ne_of_gt hr
+  rw [deriv2_reducedMul ψ hψ1 hψ2 hr]
+  have he := heq r hr
+  simp only [radialHamiltonian] at he
+  have hX : deriv^[2] ψ r =
+      -2 * (E * ψ r + (1 / r) * deriv ψ r
+        - ((ℓ : ℝ) * ((ℓ : ℝ) + 1) / (2 * r ^ 2)) * ψ r + (1 / r) * ψ r) := by
+    linear_combination -2 * he
+  rw [hX]
+  field_simp
+  ring
+
+/-- `RadialL2 ψ` says exactly that the reduced wavefunction `χ = r·ψ` is in
+    `L²((0,∞), dr)`. -/
+private lemma reduced_integrableOn_sq (ψ : ℝ → ℝ) (h : RadialL2 ψ) :
+    IntegrableOn (fun r => (r * ψ r) ^ 2) (Set.Ioi 0) := by
+  unfold RadialL2 at h
+  exact h.congr_fun (fun x _ => by ring) measurableSet_Ioi
+
+/-- Nondegeneracy transfers: a point `r>0` with `ψ ≠ 0` gives one with `χ = r·ψ ≠ 0`. -/
+private lemma reduced_nonzero (ψ : ℝ → ℝ) (h : ∃ r, 0 < r ∧ ψ r ≠ 0) :
+    ∃ r, 0 < r ∧ r * ψ r ≠ 0 := by
+  obtain ⟨r, hr, hψ⟩ := h
+  exact ⟨r, hr, mul_ne_zero (ne_of_gt hr) hψ⟩
+
+/-- For `E < 0`, the decay rate `κ = √(−2E)` is positive with `κ² = −2E`. -/
+private lemma kappa_pos_sq (E : ℝ) (hE : E < 0) :
+    0 < Real.sqrt (-2 * E) ∧ Real.sqrt (-2 * E) ^ 2 = -2 * E := by
+  have hpos : 0 < -2 * E := by linarith
+  exact ⟨Real.sqrt_pos.mpr hpos, Real.sq_sqrt (le_of_lt hpos)⟩
+
+/-- The `κ ↔ Eₙ` dictionary: `κ = 1/m` together with `κ² = −2E` forces `E = Eₘ`. -/
+private lemma energy_eq_of_kappa (E κ : ℝ) (m : ℕ) (hm : 1 ≤ m)
+    (hκ2 : κ ^ 2 = -2 * E) (hκm : κ = 1 / (m : ℝ)) :
+    E = hydrogenEigenvalue m hm := by
+  have hmpos : (0 : ℝ) < m := by exact_mod_cast hm
+  have hmne : (m : ℝ) ≠ 0 := ne_of_gt hmpos
+  have hkey : (1 : ℝ) / (m : ℝ) ^ 2 = -2 * E := by
+    rw [← hκ2, hκm, div_pow, one_pow]
+  unfold hydrogenEigenvalue
+  field_simp at hkey ⊢
+  linarith
+
+/-! ### The Frobenius/Kummer ansatz `χ = r^{ℓ+1} e^{-κr} w`
+
+The reduced equation is solved by separating the boundary behaviour: a regular
+solution has the form `χ = r^{ℓ+1} e^{-κr} w` with `w` analytic. The lemmas below
+prove (purely mechanically) that this ansatz solves the reduced radial equation
+*iff* `w` solves the confluent (Laguerre/Kummer) ODE. This is the substitution at
+the heart of the quantization argument; what remains open is the *asymptotics* of
+the Kummer solution `w` (termination ⇔ `L²`), isolated in
+`reduced_radial_L2_quantized`. -/
+
+/-- First derivative of the ansatz `χ = r^{ℓ+1} e^{-κr} w`. -/
+private lemma deriv_ansatz (ℓ : ℕ) (κ : ℝ) (w : ℝ → ℝ) {r : ℝ}
+    (hw : HasDerivAt w (deriv w r) r) :
+    deriv (fun s => s ^ (ℓ + 1) * Real.exp (-κ * s) * w s) r
+      = ((ℓ : ℝ) + 1) * r ^ ℓ * Real.exp (-κ * r) * w r
+        - κ * r ^ (ℓ + 1) * Real.exp (-κ * r) * w r
+        + r ^ (ℓ + 1) * Real.exp (-κ * r) * deriv w r := by
+  have hpow : HasDerivAt (fun s : ℝ => s ^ (ℓ + 1)) (((ℓ : ℝ) + 1) * r ^ ℓ) r := by
+    simpa using hasDerivAt_pow (ℓ + 1) r
+  have hexp : HasDerivAt (fun s : ℝ => Real.exp (-κ * s)) (Real.exp (-κ * r) * (-κ)) r := by
+    have hin : HasDerivAt (fun s : ℝ => -κ * s) (-κ) r := by
+      simpa using (hasDerivAt_id r).const_mul (-κ)
+    simpa using hin.exp
+  have key : HasDerivAt (fun s => s ^ (ℓ + 1) * Real.exp (-κ * s) * w s) _ r :=
+    (hpow.mul hexp).mul hw
+  rw [key.deriv]
+  simp only [Pi.mul_apply]
+  ring
+
+/-- Second derivative of the ansatz `χ = r^{ℓ+1} e^{-κr} w` (raw expanded form). -/
+private lemma deriv2_ansatz (ℓ : ℕ) (κ : ℝ) (w : ℝ → ℝ)
+    (hw1 : ∀ s, 0 < s → HasDerivAt w (deriv w s) s)
+    (hw2 : ∀ s, 0 < s → HasDerivAt (deriv w) (deriv^[2] w s) s)
+    {r : ℝ} (hr : 0 < r) :
+    deriv^[2] (fun s => s ^ (ℓ + 1) * Real.exp (-κ * s) * w s) r
+      = Real.exp (-κ * r) * (
+          (ℓ : ℝ) * ((ℓ : ℝ) + 1) * r ^ (ℓ - 1) * w r
+          - 2 * κ * ((ℓ : ℝ) + 1) * r ^ ℓ * w r
+          + 2 * ((ℓ : ℝ) + 1) * r ^ ℓ * deriv w r
+          + κ ^ 2 * r ^ (ℓ + 1) * w r
+          - 2 * κ * r ^ (ℓ + 1) * deriv w r
+          + r ^ (ℓ + 1) * deriv^[2] w r) := by
+  have hD1eq : deriv (fun s => s ^ (ℓ + 1) * Real.exp (-κ * s) * w s) =ᶠ[nhds r]
+      (fun x => ((ℓ : ℝ) + 1) * x ^ ℓ * Real.exp (-κ * x) * w x
+        - κ * x ^ (ℓ + 1) * Real.exp (-κ * x) * w x
+        + x ^ (ℓ + 1) * Real.exp (-κ * x) * deriv w x) := by
+    have hmem : Set.Ioi (0 : ℝ) ∈ nhds r := isOpen_Ioi.mem_nhds hr
+    filter_upwards [hmem] with x hx
+    exact deriv_ansatz ℓ κ w (hw1 x hx)
+  have hpowℓ : HasDerivAt (fun s : ℝ => s ^ ℓ) ((ℓ : ℝ) * r ^ (ℓ - 1)) r := by
+    simpa using hasDerivAt_pow ℓ r
+  have hpowℓ1 : HasDerivAt (fun s : ℝ => s ^ (ℓ + 1)) (((ℓ : ℝ) + 1) * r ^ ℓ) r := by
+    simpa using hasDerivAt_pow (ℓ + 1) r
+  have hexp : HasDerivAt (fun s : ℝ => Real.exp (-κ * s)) (Real.exp (-κ * r) * (-κ)) r := by
+    have hin : HasDerivAt (fun s : ℝ => -κ * s) (-κ) r := by
+      simpa using (hasDerivAt_id r).const_mul (-κ)
+    simpa using hin.exp
+  have hw := hw1 r hr
+  have hw2' := hw2 r hr
+  have hD1 : HasDerivAt
+      (fun x => ((ℓ : ℝ) + 1) * x ^ ℓ * Real.exp (-κ * x) * w x
+        - κ * x ^ (ℓ + 1) * Real.exp (-κ * x) * w x
+        + x ^ (ℓ + 1) * Real.exp (-κ * x) * deriv w x) _ r :=
+    ((((hpowℓ.const_mul ((ℓ : ℝ) + 1)).mul hexp).mul hw).sub
+      (((hpowℓ1.const_mul κ).mul hexp).mul hw)).add
+      ((hpowℓ1.mul hexp).mul hw2')
+  show deriv (deriv (fun s => s ^ (ℓ + 1) * Real.exp (-κ * s) * w s)) r = _
+  rw [hD1eq.deriv_eq, hD1.deriv]
+  simp only [Pi.mul_apply]
+  ring
+
+/-- **The Laguerre/Kummer residual identity.** For the ansatz `χ = r^{ℓ+1} e^{-κr} w`,
+    the reduced-equation residual factors through the Laguerre/Kummer operator on `w`:
+    `χ''(r) − (ℓ(ℓ+1)/r² − 2/r + κ²)·χ(r)`
+      `= e^{-κr} r^ℓ · (r·w'' + (2ℓ+2 − 2κr)·w' + (2 − 2(ℓ+1)κ)·w)`.
+    Since `e^{-κr} r^ℓ ≠ 0` for `r > 0`, the ansatz solves the reduced radial
+    equation iff `w` solves the confluent (Laguerre) ODE
+    `ρ v'' + (2ℓ+2 − ρ) v' + (1/κ − ℓ − 1) v = 0` (in the variable `ρ = 2κr`). -/
+lemma laguerre_ansatz_residual (ℓ : ℕ) (κ : ℝ) (w : ℝ → ℝ)
+    (hw1 : ∀ s, 0 < s → HasDerivAt w (deriv w s) s)
+    (hw2 : ∀ s, 0 < s → HasDerivAt (deriv w) (deriv^[2] w s) s)
+    {r : ℝ} (hr : 0 < r) :
+    deriv^[2] (fun s => s ^ (ℓ + 1) * Real.exp (-κ * s) * w s) r
+      - ((ℓ : ℝ) * ((ℓ : ℝ) + 1) / r ^ 2 - 2 / r + κ ^ 2)
+        * (r ^ (ℓ + 1) * Real.exp (-κ * r) * w r)
+      = Real.exp (-κ * r) * r ^ ℓ
+        * (r * deriv^[2] w r + (2 * (ℓ : ℝ) + 2 - 2 * κ * r) * deriv w r
+           + (2 - 2 * ((ℓ : ℝ) + 1) * κ) * w r) := by
+  have hrne : r ≠ 0 := ne_of_gt hr
+  rw [deriv2_ansatz ℓ κ w hw1 hw2 hr]
+  rcases lt_or_ge ℓ 2 with hℓ | hℓ
+  · interval_cases ℓ <;> · field_simp; ring
+  · obtain ⟨k, rfl⟩ : ∃ k, ℓ = k + 2 := ⟨ℓ - 2, by omega⟩
+    rw [show k + 2 - 1 = k + 1 from rfl]
+    field_simp
+    push_cast
+    ring
+
+/-- **The Kummer bridge.** The ansatz `χ = r^{ℓ+1} e^{-κr} w` solves the reduced
+    radial equation `χ'' = (ℓ(ℓ+1)/r² − 2/r + κ²)·χ` at `r > 0` *iff* `w` solves
+    the confluent (Laguerre) ODE there, written in the variable `r`:
+    `r·w'' + (2ℓ+2 − 2κr)·w' + (2 − 2(ℓ+1)κ)·w = 0`. This is the exact substitution
+    underlying `reduced_radial_L2_quantized`; only the *asymptotics* of `w` remain. -/
+lemma laguerre_ansatz_reduced_iff (ℓ : ℕ) (κ : ℝ) (w : ℝ → ℝ)
+    (hw1 : ∀ s, 0 < s → HasDerivAt w (deriv w s) s)
+    (hw2 : ∀ s, 0 < s → HasDerivAt (deriv w) (deriv^[2] w s) s)
+    {r : ℝ} (hr : 0 < r) :
+    deriv^[2] (fun s => s ^ (ℓ + 1) * Real.exp (-κ * s) * w s) r
+        = ((ℓ : ℝ) * ((ℓ : ℝ) + 1) / r ^ 2 - 2 / r + κ ^ 2)
+          * (r ^ (ℓ + 1) * Real.exp (-κ * r) * w r)
+      ↔ r * deriv^[2] w r + (2 * (ℓ : ℝ) + 2 - 2 * κ * r) * deriv w r
+          + (2 - 2 * ((ℓ : ℝ) + 1) * κ) * w r = 0 := by
+  have hfac : Real.exp (-κ * r) * r ^ ℓ ≠ 0 := by positivity
+  rw [← sub_eq_zero (a := deriv^[2] (fun s => s ^ (ℓ + 1) * Real.exp (-κ * s) * w s) r),
+    laguerre_ansatz_residual ℓ κ w hw1 hw2 hr, mul_eq_zero]
+  exact or_iff_right hfac
+
+/-- **[Analytic gap — confluent-hypergeometric asymptotics, not yet in Mathlib]**
+
+    *Square-integrable bound states of the reduced radial operator are quantized.*
+    If `χ` is a `C²` function on `(0,∞)`, square-integrable there, nonzero at some
+    point, and solving the reduced radial equation
+    `χ''(r) = (ℓ(ℓ+1)/r² − 2/r + κ²)·χ(r)` with decay rate `κ > 0`,
+    then `1/κ` is an integer `m ≥ ℓ+1`, i.e. `κ = 1/m`.
+
+    **Why this is the hard core.** Writing `χ = r^{ℓ+1} e^{−κr} w`, the factor `w`
+    solves the confluent (Laguerre/Kummer) ODE — this substitution is *proved*, as
+    `laguerre_ansatz_reduced_iff`. In the variable `ρ = 2κr` the regular-at-`0`
+    solution `w` is `₁F₁(ℓ+1 − 1/κ; 2ℓ+2; ρ)`, whose coefficients obey
+    `c_{k+1}/c_k = (k + ℓ + 1 − 1/κ)/((k+1)(k+2ℓ+2))`. Unless this terminates —
+    i.e. `1/κ = ℓ+1+p` for some `p ∈ ℕ` — the ratio tends to `1/k`, so `w(ρ)`
+    grows like `e^ρ` and `χ(r) ∼ r^{ℓ+1} e^{+κr}` fails to be square-integrable.
+    Formalising this growth estimate needs asymptotics of power-series solutions of
+    linear ODEs (a Levinson/Poincaré-type theorem) not yet available in Mathlib.
+
+    Every *mechanical* reduction feeding this lemma is proved: the reduced equation
+    (`reduced_ode`), the Kummer substitution (`laguerre_ansatz_reduced_iff`,
+    `laguerre_ansatz_residual`), the L²/nondegeneracy transfer
+    (`reduced_integrableOn_sq`, `reduced_nonzero`), and the `κ ↔ Eₙ` dictionary
+    (`kappa_pos_sq`, `energy_eq_of_kappa`). -/
+theorem reduced_radial_L2_quantized (ℓ : ℕ) (κ : ℝ) (hκ : 0 < κ) (χ : ℝ → ℝ)
+    (hχ1 : ∀ r, 0 < r → HasDerivAt χ (deriv χ r) r)
+    (hχ2 : ∀ r, 0 < r → HasDerivAt (deriv χ) (deriv^[2] χ r) r)
+    (hode : ∀ r, 0 < r → deriv^[2] χ r
+      = ((ℓ : ℝ) * ((ℓ : ℝ) + 1) / r ^ 2 - 2 / r + κ ^ 2) * χ r)
+    (hL2 : IntegrableOn (fun r => χ r ^ 2) (Set.Ioi 0))
+    (hnz : ∃ r, 0 < r ∧ χ r ≠ 0) :
+    ∃ m : ℕ, ℓ + 1 ≤ m ∧ κ = 1 / (m : ℝ) := by
+  sorry
+
+/-- **Consistency of the analytic core on the known eigenfunctions.**
+
+    The reduced hydrogen eigenfunction `χ_{mℓ} = r·R_{mℓ}` (for `m ≥ ℓ+1`) solves
+    the reduced radial equation `χ'' = (ℓ(ℓ+1)/r² − 2/r + κ²)·χ` with decay rate
+    `κ = 1/m`. Combined with `radial_wavefunction_L2` (square-integrability) and
+    `radial_wavefunction_norm` (nonvanishing), this exhibits `χ_{mℓ}` as a witness
+    satisfying *every* hypothesis of `reduced_radial_L2_quantized`, with the
+    expected conclusion `κ = 1/m`. It confirms that the reduced equation
+    (`reduced_ode`) and the analytic gap lemma's hypotheses are correctly stated
+    and non-vacuous (a mis-stated reduced ODE would fail to compile here). -/
+theorem reduced_eigenfunction_solves (m ℓ : ℕ) (hm : ℓ + 1 ≤ m) {r : ℝ} (hr : 0 < r) :
+    deriv^[2] (fun s => s * hydrogenRadialWavefunction m ℓ hm s) r
+      = ((ℓ : ℝ) * ((ℓ : ℝ) + 1) / r ^ 2 - 2 / r + (1 / (m : ℝ)) ^ 2)
+        * (r * hydrogenRadialWavefunction m ℓ hm r) := by
+  have hψ1 : ∀ s, 0 < s →
+      HasDerivAt (hydrogenRadialWavefunction m ℓ hm)
+        (deriv (hydrogenRadialWavefunction m ℓ hm) s) s :=
+    fun s _ => (differentiable_hydrogenRadial m ℓ hm s).hasDerivAt
+  have hψ2 : ∀ s, 0 < s →
+      HasDerivAt (deriv (hydrogenRadialWavefunction m ℓ hm))
+        (deriv^[2] (hydrogenRadialWavefunction m ℓ hm) s) s :=
+    fun s _ => (differentiable_deriv_hydrogenRadial m ℓ hm s).hasDerivAt
+  have heq : ∀ s, 0 < s → radialHamiltonian ℓ (hydrogenRadialWavefunction m ℓ hm) s
+      = hydrogenEigenvalue m (by omega) * hydrogenRadialWavefunction m ℓ hm s :=
+    fun s hs => radial_eigenvalue_eq m ℓ hm s hs
+  have h := reduced_ode ℓ (hydrogenEigenvalue m (by omega))
+    (hydrogenRadialWavefunction m ℓ hm) hψ1 hψ2 heq hr
+  have hmne : (m : ℝ) ≠ 0 := Nat.cast_ne_zero.mpr (by omega)
+  have hE : -2 * hydrogenEigenvalue m (by omega) = (1 / (m : ℝ)) ^ 2 := by
+    rw [hydrogenEigenvalue]; field_simp
+  rw [h, ← hE]; ring
+
+/-- **[Analytic gap — Coulomb-wave asymptotics, not yet in Mathlib]**
+
+    *No square-integrable solutions for `E ≥ 0`.* For `E ≥ 0`, any `C²`
+    square-integrable solution of the reduced radial equation
+    `χ''(r) = (ℓ(ℓ+1)/r² − 2/r − 2E)·χ(r)` vanishes identically on `(0,∞)`.
+
+    With `k = √(2E)`, the solutions are the regular/irregular Coulomb wave
+    functions, oscillating like `sin(kr − …)`, `cos(kr − …)` as `r → ∞`; both are
+    bounded but not square-integrable, so the only L² solution is `0`. (For
+    `E = 0` the solutions involve Bessel functions, again non-L².) The reduction
+    `ψ ↦ χ = r·ψ` (`reduced_ode`) is proved; the non-existence of L² oscillatory
+    solutions is the analytic gap. -/
+theorem reduced_radial_continuum (ℓ : ℕ) (E : ℝ) (hE : 0 ≤ E) (χ : ℝ → ℝ)
+    (hχ1 : ∀ r, 0 < r → HasDerivAt χ (deriv χ r) r)
+    (hχ2 : ∀ r, 0 < r → HasDerivAt (deriv χ) (deriv^[2] χ r) r)
+    (hode : ∀ r, 0 < r → deriv^[2] χ r
+      = ((ℓ : ℝ) * ((ℓ : ℝ) + 1) / r ^ 2 - 2 / r - 2 * E) * χ r)
+    (hL2 : IntegrableOn (fun r => χ r ^ 2) (Set.Ioi 0)) :
+    ∀ r, 0 < r → χ r = 0 := by
+  sorry
+
 /-! ## Quantization -/
 
 /-- **The quantization theorem.**
 
-    Square-integrable solutions of the radial equation `H_ℓ ψ = E ψ` with `E < 0`
-    exist if and only if `E = −1/(2n²)` for some integer `n ≥ ℓ + 1`.
+    A *classical* (`C²` on `(0,∞)`) square-integrable solution of the radial
+    equation `H_ℓ ψ = E ψ` with `E < 0` that is nonzero somewhere on `(0,∞)`
+    exists if and only if `E = −1/(2n²)` for some integer `n ≥ ℓ + 1`.
 
-    **`←` (E = Eₙ ⟹ a solution exists): proved.** Take `ψ = R_{nℓ}`; it is L²
-    (`radial_wavefunction_L2`), nonzero (`radial_wavefunction_norm`), and solves
-    the equation (`radial_eigenvalue_eq`).
+    **On the hypotheses.** Both the `C²` hypotheses (`HasDerivAt`) and the
+    nondegeneracy `∃ r₀ > 0, ψ r₀ ≠ 0` are essential. `radialHamiltonian` is built
+    from Mathlib's junk-extended `deriv`, so *without* differentiability a `ψ`
+    supported on a single point (or supported off `(0,∞)`) satisfies the equation
+    vacuously for an arbitrary `E < 0` — making the bare statement false. The
+    `C²`/nondegeneracy form here is the genuine classical-solution theorem, and
+    matches the hypotheses of `radial_eigenfunction_unique`.
 
-    **`→` (a solution exists ⟹ E = Eₙ): not yet proved.** This is the hard
-    quantization core. With `κ = √(−2E)`, `ρ = 2κr`, the ODE becomes the Laguerre
-    ODE with parameter `n' = 1/(2κ) − ℓ − 1`; an L² solution (regular at 0) forces
-    the confluent-hypergeometric series to terminate, i.e. `n' ∈ ℕ`, giving
-    `E = Eₙ` with `n = n' + ℓ + 1`. For non-integer `n'`, `₁F₁(−n'; 2ℓ+2; ρ)`
-    grows like `e^ρ`, so `χ(r) ~ e^{κr}` is not square-integrable. Formalising
-    this needs asymptotics of the power-series solution that are not yet available
-    in Mathlib. -/
+    **`←` (E = Eₙ ⟹ a solution exists): proved.** Take `ψ = R_{nℓ}`; it is `C²`
+    (`differentiable_hydrogenRadial`), L² (`radial_wavefunction_L2`), nonzero
+    (from `radial_wavefunction_norm`), and solves the equation
+    (`radial_eigenvalue_eq`).
+
+    **`→` (a solution exists ⟹ E = Eₙ): reduced to a documented analytic gap.**
+    Set `κ = √(−2E) > 0` and pass to the reduced wavefunction `χ = r·ψ`, which by
+    `reduced_ode` solves `χ'' = (ℓ(ℓ+1)/r² − 2/r + κ²)χ`. The remaining content —
+    that an L² such `χ` forces `κ = 1/m` with `m ∈ ℕ`, `m ≥ ℓ+1` — is
+    `reduced_radial_L2_quantized`, whose proof needs confluent-hypergeometric
+    asymptotics not yet in Mathlib (see its docstring). Then `E = Eₘ` by
+    `energy_eq_of_kappa`. -/
 theorem radial_quantization (ℓ : ℕ) (E : ℝ) (hE : E < 0) :
-    (∃ (ψ : ℝ → ℝ), ψ ≠ 0 ∧ RadialL2 ψ ∧
-      ∀ r, 0 < r → radialHamiltonian ℓ ψ r = E * ψ r) ↔
+    (∃ (ψ : ℝ → ℝ),
+        (∃ r₀, 0 < r₀ ∧ ψ r₀ ≠ 0) ∧ RadialL2 ψ ∧
+        (∀ r, 0 < r → HasDerivAt ψ (deriv ψ r) r) ∧
+        (∀ r, 0 < r → HasDerivAt (deriv ψ) (deriv^[2] ψ r) r) ∧
+        (∀ r, 0 < r → radialHamiltonian ℓ ψ r = E * ψ r)) ↔
     ∃ (n : ℕ) (hn : ℓ + 1 ≤ n), E = hydrogenEigenvalue n (by omega) := by
   constructor
-  · -- (→) existence of an L² bound state forces quantization (hard ODE asymptotics).
-    sorry
+  · -- (→) a classical L² bound state forces quantization (via the reduced equation).
+    rintro ⟨ψ, hnz, hL2, hψ1, hψ2, heq⟩
+    obtain ⟨hκpos, hκ2⟩ := kappa_pos_sq E hE
+    set κ := Real.sqrt (-2 * E) with hκdef
+    set χ : ℝ → ℝ := fun s => s * ψ s with hχdef
+    have hχ1 : ∀ r, 0 < r → HasDerivAt χ (deriv χ r) r := by
+      intro r hr
+      rw [hχdef, deriv_reducedMul ψ (hψ1 r hr)]
+      exact hasDerivAt_reducedMul ψ (hψ1 r hr)
+    have hχ2 : ∀ r, 0 < r → HasDerivAt (deriv χ) (deriv^[2] χ r) r := by
+      intro r hr
+      rw [hχdef, deriv2_reducedMul ψ hψ1 hψ2 hr]
+      exact hasDerivAt_deriv_reducedMul ψ hψ1 hψ2 hr
+    have hode : ∀ r, 0 < r → deriv^[2] χ r
+        = ((ℓ : ℝ) * ((ℓ : ℝ) + 1) / r ^ 2 - 2 / r + κ ^ 2) * χ r := by
+      intro r hr
+      have hχr : χ r = r * ψ r := rfl
+      rw [show deriv^[2] χ r = deriv^[2] (fun s => s * ψ s) r from rfl,
+        reduced_ode ℓ E ψ hψ1 hψ2 heq hr, hχr, hκ2]
+      ring
+    have hχL2 : IntegrableOn (fun r => χ r ^ 2) (Set.Ioi 0) := reduced_integrableOn_sq ψ hL2
+    have hχnz : ∃ r, 0 < r ∧ χ r ≠ 0 := reduced_nonzero ψ hnz
+    obtain ⟨m, hm_le, hκm⟩ := reduced_radial_L2_quantized ℓ κ hκpos χ hχ1 hχ2 hode hχL2 hχnz
+    exact ⟨m, hm_le, energy_eq_of_kappa E κ m (by omega) hκ2 hκm⟩
   · -- (←) construct the eigenfunction R_{nℓ}.
     rintro ⟨n, hn, rfl⟩
     refine ⟨hydrogenRadialWavefunction n ℓ hn, ?_, radial_wavefunction_L2 n ℓ hn,
+      fun r _ => (differentiable_hydrogenRadial n ℓ hn r).hasDerivAt,
+      fun r _ => (differentiable_deriv_hydrogenRadial n ℓ hn r).hasDerivAt,
       fun r hr => radial_eigenvalue_eq n ℓ hn r hr⟩
-    intro hzero
+    -- nondegeneracy: if R_{nℓ} vanished on all of (0,∞) its unit norm would be 0.
+    by_contra hcon
+    have hz : ∀ r, 0 < r → hydrogenRadialWavefunction n ℓ hn r = 0 :=
+      fun r hr => not_not.1 (fun h => hcon ⟨r, hr, h⟩)
     have hnorm := radial_wavefunction_norm n ℓ hn
-    rw [hzero] at hnorm
+    rw [setIntegral_congr_fun measurableSet_Ioi
+      (g := fun _ => (0 : ℝ)) (fun r hr => by rw [hz r hr]; ring)] at hnorm
     simp at hnorm
 
 /-! ## Continuous spectrum -/
 
-/-- **For E ≥ 0, all solutions are bounded but not L².**
+/-- **For E ≥ 0, every classical L² solution vanishes (continuous spectrum).**
 
-    This gives the continuous spectrum [0, ∞) of H_ℓ.
-    The solutions are Coulomb wave functions (related to confluent
-    hypergeometric functions with imaginary parameters).
+    This gives the continuous spectrum [0, ∞) of H_ℓ: at energy `E ≥ 0` there are
+    no `L²` bound states, so any `C²` square-integrable solution is identically
+    `0` on `(0,∞)`. (As in `radial_quantization`, the `C²` hypotheses are needed
+    for the `deriv`-based `radialHamiltonian` to express a genuine classical ODE.)
 
-    **Discharge route:** For E > 0, set k = √(2E). The solutions are
-    the regular and irregular Coulomb wave functions F_ℓ(kr) and G_ℓ(kr),
-    which oscillate as r → ∞ like sin(kr − ...) and cos(kr − ...).
-    These are bounded but not square-integrable.
-
-    For E = 0, the solutions involve Bessel functions. -/
+    **Reduction.** Passing to `χ = r·ψ` via `reduced_ode`, the claim is
+    `reduced_radial_continuum`: the solutions are oscillatory Coulomb waves
+    (`E > 0`) or Bessel-type (`E = 0`), bounded but not `L²`. That non-existence
+    of `L²` oscillatory solutions is the documented analytic gap. -/
 theorem radial_continuum (ℓ : ℕ) (E : ℝ) (hE : 0 ≤ E) :
-    ∀ ψ : ℝ → ℝ, (∀ r, 0 < r → radialHamiltonian ℓ ψ r = E * ψ r) → RadialL2 ψ →
-      ∀ r, 0 < r → ψ r = 0 :=
-  sorry
+    ∀ ψ : ℝ → ℝ,
+      (∀ r, 0 < r → HasDerivAt ψ (deriv ψ r) r) →
+      (∀ r, 0 < r → HasDerivAt (deriv ψ) (deriv^[2] ψ r) r) →
+      (∀ r, 0 < r → radialHamiltonian ℓ ψ r = E * ψ r) → RadialL2 ψ →
+      ∀ r, 0 < r → ψ r = 0 := by
+  intro ψ hψ1 hψ2 heq hL2
+  set χ : ℝ → ℝ := fun s => s * ψ s with hχdef
+  have hχ1 : ∀ r, 0 < r → HasDerivAt χ (deriv χ r) r := by
+    intro r hr
+    rw [hχdef, deriv_reducedMul ψ (hψ1 r hr)]
+    exact hasDerivAt_reducedMul ψ (hψ1 r hr)
+  have hχ2 : ∀ r, 0 < r → HasDerivAt (deriv χ) (deriv^[2] χ r) r := by
+    intro r hr
+    rw [hχdef, deriv2_reducedMul ψ hψ1 hψ2 hr]
+    exact hasDerivAt_deriv_reducedMul ψ hψ1 hψ2 hr
+  have hode : ∀ r, 0 < r → deriv^[2] χ r
+      = ((ℓ : ℝ) * ((ℓ : ℝ) + 1) / r ^ 2 - 2 / r - 2 * E) * χ r := by
+    intro r hr
+    have hχr : χ r = r * ψ r := rfl
+    rw [show deriv^[2] χ r = deriv^[2] (fun s => s * ψ s) r from rfl,
+      reduced_ode ℓ E ψ hψ1 hψ2 heq hr, hχr]
+  have hχL2 : IntegrableOn (fun r => χ r ^ 2) (Set.Ioi 0) := reduced_integrableOn_sq ψ hL2
+  have h0 := reduced_radial_continuum ℓ E hE χ hχ1 hχ2 hode hχL2
+  intro r hr
+  have hrψ : r * ψ r = 0 := h0 r hr
+  exact (mul_eq_zero.1 hrψ).resolve_left (ne_of_gt hr)
 
 /-! ## Completeness of discrete eigenfunctions -/
 
@@ -867,15 +1256,19 @@ theorem radial_continuum (ℓ : ℕ) (E : ℝ) (hE : 0 ≤ E) :
     eigenfunctions by k ≥ 0 via n = k + ℓ + 1 (so the constraint n ≥ ℓ+1 is
     automatic).
 
-    (The fully spectral-theoretic statement — that the closed span equals the
-    range of the spectral projection E((-∞,0)) — additionally requires the
-    self-adjoint realisation of H_ℓ as an operator on the Hilbert space, which
-    is not yet formalised here.)
-
-    **Discharge route:** From `laguerre_complete` applied with
-    α = 2ℓ+1 and the change of variables ρ = 2r/n. -/
+    **[Analytic/spectral gap — not yet in Mathlib.]** Unlike a fixed-scale
+    Laguerre basis, the `R_{nℓ}` live at *different* scales `e^{−r/n}`, so this is
+    **not** a direct corollary of `laguerre_complete`; the `R_{nℓ}` span only the
+    discrete (bound-state) subspace, not all of `L²((0,∞), r²dr)`. The honest
+    statement that the closed span equals the range of the spectral projection
+    `E((−∞,0))` requires the self-adjoint realisation of `H_ℓ` on the Hilbert
+    space and its spectral decomposition, which is not yet formalised here. As in
+    `radial_quantization`, the `C²` hypotheses make the `deriv`-based eigen-equation
+    a genuine classical ODE. -/
 theorem radial_completeness (ℓ : ℕ) :
     ∀ ψ : ℝ → ℝ, RadialL2 ψ →
+      (∀ r, 0 < r → HasDerivAt ψ (deriv ψ r) r) →
+      (∀ r, 0 < r → HasDerivAt (deriv ψ) (deriv^[2] ψ r) r) →
       (∃ E : ℝ, E < 0 ∧ ∀ r, 0 < r → radialHamiltonian ℓ ψ r = E * ψ r) →
       ∀ ε : ℝ, 0 < ε → ∃ (N : ℕ) (c : ℕ → ℝ),
         ∫ r in Set.Ioi 0,

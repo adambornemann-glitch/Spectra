@@ -27,7 +27,7 @@ private lemma bumpConvolve_smooth (ρ : ContDiffBump (0 : R3)) (f : R3 → ℂ)
     (hf : LocallyIntegrable f volume) :
     ContDiff ℝ ∞ (bumpConvolve ρ f) := by
   haveI : (volume : Measure R3).IsAddHaarMeasure := by
-    change (MeasureTheory.Measure.addHaar : Measure R3).IsAddHaarMeasure; infer_instance
+    infer_instance
   have hli_re : LocallyIntegrable (fun y => (f y).re) volume := by
     intro x; obtain ⟨s, hs, hint⟩ := hf x
     exact ⟨s, hs, hint.re⟩
@@ -65,7 +65,7 @@ private lemma bumpConvolve_hasCompactSupport (ρ : ContDiffBump (0 : R3)) (f : R
     (hf_supp : HasCompactSupport f) :
     HasCompactSupport (bumpConvolve ρ f) := by
   haveI : (volume : Measure R3).IsAddHaarMeasure := by
-    change (MeasureTheory.Measure.addHaar : Measure R3).IsAddHaarMeasure; infer_instance
+    infer_instance
   have hsupp_re : HasCompactSupport (fun y => (f y).re) := hf_supp.comp_left Complex.zero_re
   have hsupp_im : HasCompactSupport (fun y => (f y).im) := hf_supp.comp_left Complex.zero_im
   have hcs_re : HasCompactSupport (fun x => MeasureTheory.convolution (ρ.normed volume)
@@ -129,9 +129,9 @@ private lemma bumpConvolve_tendsto_continuous (g : R3 → ℂ)
     ∃ δ₀ > 0, ∀ (ρ : ContDiffBump (0 : R3)), ρ.rOut ≤ δ₀ →
       eLpNorm (g - bumpConvolve ρ g) 2 volume < ENNReal.ofReal ε := by
   haveI : (volume : Measure R3).IsAddHaarMeasure := by
-    change (MeasureTheory.Measure.addHaar : Measure R3).IsAddHaarMeasure; infer_instance
+    infer_instance
   haveI : IsFiniteMeasureOnCompacts (volume : Measure R3) := by
-    change IsFiniteMeasureOnCompacts MeasureTheory.Measure.addHaar; infer_instance
+    infer_instance
   -- Support geometry
   set K := tsupport g with hK_def
   have hK : IsCompact K := hsupp.isCompact
@@ -254,7 +254,6 @@ private lemma bumpConvolve_tendsto_continuous (g : R3 → ℂ)
     hg.aestronglyMeasurable.sub
       (bumpConvolve_smooth ρ g (by
         haveI : IsLocallyFiniteMeasure (volume : Measure R3) := by
-          change IsLocallyFiniteMeasure (MeasureTheory.Measure.addHaar : Measure R3)
           infer_instance
         exact hg.locallyIntegrable (by norm_num : (1 : ℝ≥0∞) ≤ 2))).continuous.aestronglyMeasurable
   -- Support containment: tsupport(g - bumpConvolve ρ g) ⊆ K₂
@@ -300,7 +299,6 @@ private lemma integrable_bump_smul_comp (ρ : ContDiffBump (0 : R3))
     (h : R3 → ℝ) (hh : LocallyIntegrable h volume) (x : R3) :
     Integrable (fun t => ρ.normed volume t * h (x - t)) volume := by
   haveI : (volume : Measure R3).IsAddHaarMeasure := by
-    change (MeasureTheory.Measure.addHaar : Measure R3).IsAddHaarMeasure
     infer_instance
   have hce : ConvolutionExists (ρ.normed volume) h
       (ContinuousLinearMap.lsmul ℝ ℝ) (volume : Measure R3) :=
@@ -351,7 +349,6 @@ private lemma eLpNorm_real_convolve_le (ρ : ContDiffBump (0 : R3))
       (ContinuousLinearMap.lsmul ℝ ℝ) volume) 2 volume ≤ eLpNorm g 2 volume := by
   -- ===== Setup =====
   haveI : (volume : Measure R3).IsAddHaarMeasure := by
-    change (MeasureTheory.Measure.addHaar : Measure R3).IsAddHaarMeasure
     infer_instance
   set ψ := ρ.normed volume with hψ_def
   have hψ_nn   : ∀ x, 0 ≤ ψ x := ρ.nonneg_normed
@@ -553,7 +550,6 @@ private lemma eLpNorm_bumpConvolve_le (ρ : ContDiffBump (0 : R3))
   -- ===== Setup: real and imaginary parts =====
   set ψ := ρ.normed volume with hψ_def
   haveI : (volume : Measure R3).IsAddHaarMeasure := by
-    change (MeasureTheory.Measure.addHaar : Measure R3).IsAddHaarMeasure
     infer_instance
   have hψ_cont : Continuous ψ := ρ.continuous_normed
   have hψ_supp : HasCompactSupport ψ := ρ.hasCompactSupport_normed
@@ -669,7 +665,7 @@ private lemma eLpNorm_bumpConvolve_sub (ρ : ContDiffBump (0 : R3))
     eLpNorm (bumpConvolve ρ f - bumpConvolve ρ g) 2 volume ≤
     eLpNorm (f - g) 2 volume := by
   haveI : IsLocallyFiniteMeasure (volume : Measure R3) := by
-    change IsLocallyFiniteMeasure (MeasureTheory.Measure.addHaar : Measure R3); infer_instance
+    infer_instance
   rw [← bumpConvolve_sub ρ f g
     (hf.locallyIntegrable (by norm_num : (1 : ℝ≥0∞) ≤ 2))
     (hg.locallyIntegrable (by norm_num : (1 : ℝ≥0∞) ≤ 2))]
@@ -685,9 +681,9 @@ private lemma bumpConvolve_L2_tendsto (f : R3 → ℂ)
   have hε3 : 0 < ε / 3 := by positivity
   -- Step 1: approximate f by continuous c.s. φ within ε/3
   haveI : IsFiniteMeasureOnCompacts (volume : Measure R3) := by
-    change IsFiniteMeasureOnCompacts (MeasureTheory.Measure.addHaar); infer_instance
+    infer_instance
   haveI : (volume : Measure R3).Regular := by
-    change (MeasureTheory.Measure.addHaar : Measure R3).Regular; infer_instance
+    infer_instance
   haveI : WeaklyLocallyCompactSpace R3 := inferInstance
   haveI : R1Space R3 := inferInstance
   have hε3' : (ENNReal.ofReal (ε / 3)) ≠ 0 := by
@@ -702,7 +698,7 @@ private lemma bumpConvolve_L2_tendsto (f : R3 → ℂ)
   refine ⟨δ₀, hδ₀_pos, fun ρ hρ => ?_⟩
   -- Measurability witnesses
   haveI : IsLocallyFiniteMeasure (volume : Measure R3) := by
-    change IsLocallyFiniteMeasure (MeasureTheory.Measure.addHaar : Measure R3); infer_instance
+    infer_instance
   have hf_li : LocallyIntegrable f volume :=
     hf.locallyIntegrable (by norm_num : (1 : ℝ≥0∞) ≤ 2)
   have hφ_li : LocallyIntegrable φ volume :=
@@ -800,10 +796,8 @@ private lemma fderiv_bumpConvolve_re_apply
       (EuclideanSpace.single i 1) := by
   set eᵢ := EuclideanSpace.single i (1 : ℝ)
   haveI : (volume : Measure R3).IsAddHaarMeasure := by
-    change (MeasureTheory.Measure.addHaar : Measure R3).IsAddHaarMeasure
     infer_instance
   haveI : IsLocallyFiniteMeasure (volume : Measure R3) := by
-    change IsLocallyFiniteMeasure (MeasureTheory.Measure.addHaar : Measure R3)
     infer_instance
   have hh_li : LocallyIntegrable h volume :=
     hh.locallyIntegrable (by norm_num : (1 : ℝ≥0∞) ≤ 2)
@@ -850,10 +844,8 @@ private lemma fderiv_bumpConvolve_im_apply
       (EuclideanSpace.single i 1) := by
   set eᵢ := EuclideanSpace.single i (1 : ℝ)
   haveI : (volume : Measure R3).IsAddHaarMeasure := by
-    change (MeasureTheory.Measure.addHaar : Measure R3).IsAddHaarMeasure
     infer_instance
   haveI : IsLocallyFiniteMeasure (volume : Measure R3) := by
-    change IsLocallyFiniteMeasure (MeasureTheory.Measure.addHaar : Measure R3)
     infer_instance
   have hh_li : LocallyIntegrable h volume :=
     hh.locallyIntegrable (by norm_num : (1 : ℝ≥0∞) ≤ 2)
@@ -920,10 +912,8 @@ private lemma weak_deriv_against_translated_bump
       ∂(volume : Measure R3) =
     ∫ u, dh u * (((ρ.normed volume) (x - u)) : ℂ) ∂(volume : Measure R3) := by
   haveI : (volume : Measure R3).IsAddHaarMeasure := by
-    change (MeasureTheory.Measure.addHaar : Measure R3).IsAddHaarMeasure
     infer_instance
   haveI : IsLocallyFiniteMeasure (volume : Measure R3) := by
-    change IsLocallyFiniteMeasure (MeasureTheory.Measure.addHaar : Measure R3)
     infer_instance
   have hψ_re_smooth : ContDiff ℝ ∞ (fun u : R3 => (ρ.normed volume) (x - u)) :=
     ρ.contDiff_normed.comp (contDiff_const.sub contDiff_id)
@@ -985,10 +975,8 @@ private lemma bumpConvolve_fderiv_eq (i : Fin 3)
   intro x
   -- Measure instances ---------------------------------------------------------
   haveI : (volume : Measure R3).IsAddHaarMeasure := by
-    change (MeasureTheory.Measure.addHaar : Measure R3).IsAddHaarMeasure
     infer_instance
   haveI : IsLocallyFiniteMeasure (volume : Measure R3) := by
-    change IsLocallyFiniteMeasure (MeasureTheory.Measure.addHaar : Measure R3)
     infer_instance
   -- Local integrability of h and its components ------------------------------
   have hh_li : LocallyIntegrable h volume :=
@@ -1260,7 +1248,6 @@ lemma mollify_compactly_supported (i : Fin 3)
   -- Local integrability (compactly supported L² ⟹ locally integrable)
   have hli : LocallyIntegrable h_R volume :=
     haveI : IsLocallyFiniteMeasure (volume : Measure R3) := by
-      change IsLocallyFiniteMeasure (MeasureTheory.Measure.addHaar : Measure R3)
       infer_instance
     hh.locallyIntegrable (by norm_num : (1 : ℝ≥0∞) ≤ 2)
   have hφ_smooth : ContDiff ℝ ∞ φ := bumpConvolve_smooth ρ h_R hli
@@ -1272,7 +1259,6 @@ lemma mollify_compactly_supported (i : Fin 3)
   -- MemLp for bumpConvolve ρ dh_R (smooth + compactly supported)
   have hdh_li : LocallyIntegrable dh_R volume :=
     haveI : IsLocallyFiniteMeasure (volume : Measure R3) := by
-      change IsLocallyFiniteMeasure (MeasureTheory.Measure.addHaar : Measure R3)
       infer_instance
     hdh.locallyIntegrable (by norm_num : (1 : ℝ≥0∞) ≤ 2)
   have hconv_dh_smooth : ContDiff ℝ ∞ (bumpConvolve ρ dh_R) :=
@@ -1337,7 +1323,6 @@ lemma mollify_compactly_supported_multi
   -- A single φ approximates all four targets simultaneously.
   set φ := bumpConvolve ρ h_R with hφ_def
   haveI : IsLocallyFiniteMeasure (volume : Measure R3) := by
-    change IsLocallyFiniteMeasure (MeasureTheory.Measure.addHaar : Measure R3)
     infer_instance
   have hli : LocallyIntegrable h_R volume :=
     hh.locallyIntegrable (by norm_num : (1 : ℝ≥0∞) ≤ 2)

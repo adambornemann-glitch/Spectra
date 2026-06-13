@@ -2,7 +2,6 @@
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
-Filename: CramerRao/Basic.lean
 -/
 import Spectra.InformationGeometry.Fisher.StatisticalManifold
 import Mathlib.LinearAlgebra.Matrix.PosDef
@@ -28,7 +27,7 @@ where I(θ) is the Fisher information. Equality holds iff T is an
 * `IsUnbiasedEstimator` — E_θ[T] = τ(θ) for all θ
 * `IsRegularEstimator` — estimator with regularity for differentiation
 
-## Main results
+## Main statements
 
 * `covariance_score_identity` — Cov_θ(T, sᵢ) = ∂ᵢE_θ[T]
 * `integral_mul_sq_le` — Cauchy–Schwarz for density-weighted integrals

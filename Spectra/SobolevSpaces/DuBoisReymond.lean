@@ -13,9 +13,9 @@ namespace Spectra.Sobolev
 
 /-! ### Configuration space and Hilbert space -/
 
-instance : MeasurableSpace R3 := borel R3
-instance : BorelSpace R3 := ⟨rfl⟩
-noncomputable instance : MeasureSpace R3 := ⟨MeasureTheory.Measure.addHaar⟩
+-- `MeasurableSpace`/`BorelSpace`/`MeasureSpace R3` come from `WeakDerivative.lean`
+-- (transitively imported); no re-declaration here. `MeasureSpace` is Mathlib's
+-- `measureSpaceOfInnerProductSpace` — see the note in `WeakDerivative.lean`.
 
 /-- The L² inner product vanishes against test function representatives -/
 lemma inner_L2_test_eq_zero (h : L2_R3)

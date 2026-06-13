@@ -2,7 +2,6 @@
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
-Filename: Fisher/FisherInformation.lean
 -/
 import Spectra.InformationGeometry.Fisher.Score
 
@@ -30,7 +29,7 @@ where `⟨v, s⟩ = ∑ᵢ vᵢ sᵢ` is the *directional score*.
 * `RegularStatisticalModel.fisherBilin` — `g_θ(v, w) = E_θ[⟨v,s⟩ ⟨w,s⟩]`.
 * `RegularStatisticalModel.ScoreInjective` — score-injectivity at `θ`.
 
-## Main results
+## Main statements
 
 * `fisherMatrix_symm` — `g_{ij} = g_{ji}` (unconditional).
 * `fisherBilin_symm` — `g(v, w) = g(w, v)` (unconditional).

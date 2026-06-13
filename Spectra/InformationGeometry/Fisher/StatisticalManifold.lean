@@ -2,7 +2,6 @@
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
-Filename: Fisher/StatisticalManifold.lean
 -/
 import Spectra.InformationGeometry.Fisher.FisherMetric
 
@@ -28,7 +27,7 @@ gives rise to a `StatisticalManifold` carrying a `RiemannianMetric`.
 * `StatisticalManifold.fisherDist` — the infinitesimal Fisher distance
   `‖v‖_θ = √(g_θ(v, v))`.
 
-## Main results
+## Main statements
 
 * `fisherMetric_isRiemannian` — the Fisher metric is symmetric,
   positive definite, and smooth (holds by construction).

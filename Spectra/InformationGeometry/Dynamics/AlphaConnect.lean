@@ -2,7 +2,6 @@
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
-Filename: InformationGeometry/Dynamics/AlphaConnect.lean
 -/
 import Spectra.InformationGeometry.Dynamics.CubicTensor
 open MeasureTheory Finset Filter Topology TopologicalSpace

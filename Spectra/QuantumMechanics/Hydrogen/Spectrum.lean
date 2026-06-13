@@ -191,7 +191,88 @@ lemma eigenvalue_Z1 (n : ℕ) (hn : 1 ≤ n) :
 
 /-! ## Hydrogen eigenfunctions -/
 
-/-- The full hydrogen eigenfunction ψ_{nℓm}(r, θ, φ) = R_{nℓ}(r) Y_ℓ^m(θ, φ).
+/-! ### Lifting the radial wavefunction into the radial Hilbert space
+
+The radial wavefunction `R_{nℓ}` is a genuine element of the radial Hilbert
+space `RadialL2 = L²((0,∞), r²dr)`. We realize it by first lifting the reduced
+wavefunction `χ_{nℓ} = r·R_{nℓ}` into `ReducedRadialL2 = L²((0,∞), dr)` — whose
+membership is *exactly* `radial_wavefunction_L2` (which says `∫|rR|² dr < ∞`) —
+and then transporting back along the unitary `radialReduction : R ↦ rR`. -/
+
+/-- The reduced wavefunction `χ_{nℓ} = r·R_{nℓ}` lies in `L²((0,∞), dr)`. Its
+    square-integrability is exactly `radial_wavefunction_L2`. -/
+lemma memLp_reducedLp (n ℓ : ℕ) (hn : ℓ + 1 ≤ n) :
+    MemLp (fun r => ((hydrogenReducedWavefunction n ℓ hn r : ℝ) : ℂ)) 2
+      ((volume : Measure ℝ).restrict (Set.Ioi 0)) := by
+  have hcont : Continuous (fun r => ((hydrogenReducedWavefunction n ℓ hn r : ℝ) : ℂ)) :=
+    Complex.continuous_ofReal.comp
+      (continuous_id.mul (continuous_hydrogenRadialWavefunction n ℓ hn))
+  refine (memLp_two_iff_integrable_sq_norm hcont.aestronglyMeasurable).2 ?_
+  have hL2 : Integrable (fun r => hydrogenRadialWavefunction n ℓ hn r ^ 2 * r ^ 2)
+      ((volume : Measure ℝ).restrict (Set.Ioi 0)) := radial_wavefunction_L2 n ℓ hn
+  refine hL2.congr (Filter.Eventually.of_forall fun r => ?_)
+  show hydrogenRadialWavefunction n ℓ hn r ^ 2 * r ^ 2
+      = ‖((hydrogenReducedWavefunction n ℓ hn r : ℝ) : ℂ)‖ ^ 2
+  rw [Complex.norm_real, Real.norm_eq_abs, sq_abs]
+  simp only [hydrogenReducedWavefunction]
+  ring
+
+/-- The reduced wavefunction `χ_{nℓ}` as an element of `ReducedRadialL2`. -/
+noncomputable def reducedLp (n ℓ : ℕ) (hn : ℓ + 1 ≤ n) : ReducedRadialL2 :=
+  (memLp_reducedLp n ℓ hn).toLp _
+
+lemma reducedLp_coeFn (n ℓ : ℕ) (hn : ℓ + 1 ≤ n) :
+    ⇑(reducedLp n ℓ hn) =ᵐ[(volume : Measure ℝ).restrict (Set.Ioi 0)]
+      fun r => ((hydrogenReducedWavefunction n ℓ hn r : ℝ) : ℂ) :=
+  (memLp_reducedLp n ℓ hn).coeFn_toLp
+
+/-- The radial wavefunction `R_{nℓ}` as an element of `RadialL2 = L²((0,∞), r²dr)`,
+    obtained from `reducedLp` by the inverse of the unitary `R ↦ rR`. -/
+noncomputable def radialLp (n ℓ : ℕ) (hn : ℓ + 1 ≤ n) : Decomposition.RadialL2 :=
+  radialReduction.symm (reducedLp n ℓ hn)
+
+/-- **Radial orthonormality at the Hilbert-space level.**
+    `⟨R_{nℓ}, R_{n'ℓ}⟩_{L²(r²dr)} = δ_{nn'}`. The pairing is transported through the
+    unitary `radialReduction` to the reduced space, where it is the elementary
+    integral `∫ R_{nℓ} R_{n'ℓ} r² dr`, discharged by `radial_wavefunction_norm`
+    (n = n') and `radial_wavefunction_orthonormal` (n ≠ n'). -/
+lemma inner_radialLp (n n' ℓ : ℕ) (hn : ℓ + 1 ≤ n) (hn' : ℓ + 1 ≤ n') :
+    inner ℂ (radialLp n ℓ hn) (radialLp n' ℓ hn') = (if n = n' then (1 : ℂ) else 0) := by
+  have hmap : inner ℂ (radialLp n ℓ hn) (radialLp n' ℓ hn')
+      = inner ℂ (reducedLp n ℓ hn) (reducedLp n' ℓ hn') := by
+    have h := radialReduction.inner_map_map (radialLp n ℓ hn) (radialLp n' ℓ hn')
+    simpa only [radialLp, LinearIsometryEquiv.apply_symm_apply] using h.symm
+  rw [hmap, L2.inner_def]
+  have hint : (∫ r, inner ℂ (⇑(reducedLp n ℓ hn) r) (⇑(reducedLp n' ℓ hn') r)
+        ∂((volume : Measure ℝ).restrict (Set.Ioi 0)))
+      = ((∫ r in Set.Ioi 0, hydrogenRadialWavefunction n ℓ hn r
+          * hydrogenRadialWavefunction n' ℓ hn' r * r ^ 2 : ℝ) : ℂ) := by
+    have e1 : (∫ r, inner ℂ (⇑(reducedLp n ℓ hn) r) (⇑(reducedLp n' ℓ hn') r)
+          ∂((volume : Measure ℝ).restrict (Set.Ioi 0)))
+        = ∫ r in Set.Ioi 0, ((hydrogenRadialWavefunction n ℓ hn r
+            * hydrogenRadialWavefunction n' ℓ hn' r * r ^ 2 : ℝ) : ℂ) := by
+      refine integral_congr_ae ?_
+      filter_upwards [reducedLp_coeFn n ℓ hn, reducedLp_coeFn n' ℓ hn'] with r h1 h2
+      rw [RCLike.inner_apply', h1, h2, Complex.conj_ofReal, ← Complex.ofReal_mul,
+        Complex.ofReal_inj]
+      simp only [hydrogenReducedWavefunction]
+      ring
+    rw [e1]
+    exact integral_ofReal
+  rw [hint]
+  split_ifs with hnn
+  · subst hnn
+    rw [Subsingleton.elim hn' hn,
+      show (∫ r in Set.Ioi 0, hydrogenRadialWavefunction n ℓ hn r
+            * hydrogenRadialWavefunction n ℓ hn r * r ^ 2)
+          = ∫ r in Set.Ioi 0, hydrogenRadialWavefunction n ℓ hn r ^ 2 * r ^ 2 from
+        setIntegral_congr_fun measurableSet_Ioi fun r _ => by ring,
+      radial_wavefunction_norm n ℓ hn, Complex.ofReal_one]
+  · rw [radial_wavefunction_orthonormal n n' ℓ hn hn' hnn, Complex.ofReal_zero]
+
+/-- The full hydrogen eigenfunction ψ_{nℓm}(r, θ, φ) = R_{nℓ}(r) Y_ℓ^m(θ, φ),
+    realized as the pure tensor `R_{nℓ} ⊗ Y_ℓ^m` in the spherical decomposition
+    `Decomposition.L2_R3` via `sectorEmbedding`.
 
     Quantum numbers:
     - n ≥ 1: principal (energy)
@@ -201,9 +282,8 @@ lemma eigenvalue_Z1 (n : ℕ) (hn : 1 ≤ n) :
     The number of states with energy E_n is:
       Σ_{ℓ=0}^{n-1} (2ℓ+1) = n² -/
 def hydrogenEigenfunction (n : ℕ) (ℓ : ℕ) (m : ℤ)
-    (hn : ℓ + 1 ≤ n) (hm : |m| ≤ ℓ) :
-    L2_R3 :=  -- `R_{nℓ} ⊗ Y_ℓ^m` in the spherical decomposition `Decomposition.L2_R3`
-  sorry
+    (hn : ℓ + 1 ≤ n) (hm : |m| ≤ ℓ) : L2_R3 :=
+  sectorEmbedding ⟨ℓ, ⟨m, hm⟩⟩ (radialLp n ℓ hn)
 
 /-! ## The eigenvalue equation -/
 
@@ -237,8 +317,108 @@ theorem hydrogen_eigenfunction_orthonormal
     (hm : |m| ≤ ℓ) (hm' : |m'| ≤ ℓ') :
     inner (𝕜 := ℂ) (hydrogenEigenfunction n ℓ m hn hm)
         (hydrogenEigenfunction n' ℓ' m' hn' hm')
-      = (if n = n' ∧ ℓ = ℓ' ∧ m = m' then 1 else 0) :=
-  sorry
+      = (if n = n' ∧ ℓ = ℓ' ∧ m = m' then 1 else 0) := by
+  simp only [hydrogenEigenfunction]
+  have hrad : (∫ r, (starRingEnd ℂ) (⇑(radialLp n ℓ hn) r) * ⇑(radialLp n' ℓ' hn') r
+        ∂radialMeasure)
+      = inner ℂ (radialLp n ℓ hn) (radialLp n' ℓ' hn') := by
+    rw [L2.inner_def]
+    refine integral_congr_ae (Filter.Eventually.of_forall fun r => ?_)
+    simp only [RCLike.inner_apply']
+  rw [inner_sectorEmbedding, inner_harmonicLp, hrad]
+  split_ifs with hidx hcond hcond2
+  · -- angular and quantum-number conditions both hold: ⟨R,R⟩ = 1
+    obtain ⟨rfl, rfl, rfl⟩ := hcond
+    rw [mul_one, inner_radialLp n n ℓ hn hn']
+    simp
+  · -- same (ℓ, m), but n ≠ n': radial orthogonality kills it
+    rw [mul_one]
+    have hℓ : ℓ = ℓ' := congrArg (fun k : HarmonicIdx => k.1) hidx
+    have hmeq : m = m' := congrArg (fun k : HarmonicIdx => k.2.1) hidx
+    subst hℓ; subst hmeq
+    rw [inner_radialLp n n' ℓ hn hn']
+    exact if_neg (fun hnn => hcond ⟨hnn, rfl, rfl⟩)
+  · -- (ℓ, m) ≠ (ℓ', m') but the RHS condition claims equality: contradiction
+    obtain ⟨-, hℓ_eq, hm_eq⟩ := hcond2
+    exact absurd (HarmonicIdx.ext hℓ_eq hm_eq) hidx
+  · -- angular factor vanishes
+    rw [mul_zero]
+
+/-! ## Degeneracy -/
+
+/-- The degeneracy sum: Σ_{ℓ=0}^{n-1} (2ℓ+1) = n². -/
+lemma degeneracy_sum (n : ℕ) :
+    ∑ ℓ ∈ Finset.range n, (2 * ℓ + 1) = n ^ 2 := by
+  induction n with
+  | zero => simp
+  | succ n ih => simp [Finset.sum_range_succ, ih]; ring
+
+/-- The index set of the `n²` bound states at principal quantum number `n`:
+    pairs `(ℓ, j)` with `ℓ < n` and `j < 2ℓ+1`, where `j` enumerates the magnetic
+    quantum number `m = j − ℓ ∈ {−ℓ, …, ℓ}`. Indexing the `2ℓ+1` sublevels by
+    `j ∈ {0,…,2ℓ}` (rather than `m` directly) makes the cardinality a clean
+    `Finset.sigma` count. -/
+def degenIndex (n : ℕ) : Finset (Σ _ : ℕ, ℕ) :=
+  (Finset.range n).sigma fun ℓ => Finset.range (2 * ℓ + 1)
+
+/-- There are exactly `n²` degenerate bound states at level `n`. -/
+@[simp] lemma card_degenIndex (n : ℕ) : (degenIndex n).card = n ^ 2 := by
+  rw [degenIndex, Finset.card_sigma]
+  simp only [Finset.card_range]
+  exact degeneracy_sum n
+
+/-- A member `(ℓ, j)` of `degenIndex n` satisfies `ℓ + 1 ≤ n` and `|m| ≤ ℓ`
+    for the magnetic quantum number `m = j − ℓ`. -/
+lemma degenIndex_bounds {n : ℕ} (i : ↥(degenIndex n)) :
+    i.1.1 + 1 ≤ n ∧ |(i.1.2 : ℤ) - i.1.1| ≤ (i.1.1 : ℤ) := by
+  have hmem := i.2
+  simp only [degenIndex, Finset.mem_sigma, Finset.mem_range] at hmem
+  obtain ⟨hℓ, hj⟩ := hmem
+  refine ⟨by omega, ?_⟩
+  rw [abs_le]; omega
+
+/-- The family of the `n²` hydrogen bound states at level `n`: `ψ_{n ℓ m}` for
+    `0 ≤ ℓ < n` and `m = j − ℓ` with `0 ≤ j ≤ 2ℓ`. -/
+noncomputable def degenFamily (n : ℕ) : ↥(degenIndex n) → L2_R3 :=
+  fun i => hydrogenEigenfunction n i.1.1 ((i.1.2 : ℤ) - i.1.1)
+    (degenIndex_bounds i).1 (degenIndex_bounds i).2
+
+/-- The `n²` bound states at level `n` are orthonormal. -/
+lemma orthonormal_degenFamily (n : ℕ) : Orthonormal ℂ (degenFamily n) := by
+  rw [orthonormal_iff_ite]
+  intro i j
+  simp only [degenFamily]
+  rw [hydrogen_eigenfunction_orthonormal]
+  split_ifs with hc hij hij2
+  · rfl
+  · refine absurd (Subtype.ext ?_) hij
+    obtain ⟨-, hℓ, hm⟩ := hc
+    exact Sigma.ext hℓ (heq_of_eq (by omega))
+  · subst hij2
+    exact absurd ⟨rfl, rfl, rfl⟩ hc
+  · rfl
+
+/-- **Degeneracy of the n-th level is n².**
+
+    The `n²` orthonormal bound states `{ψ_{nℓm} : 0 ≤ ℓ < n, |m| ≤ ℓ}` span an
+    `n²`-dimensional subspace of `L²(ℝ³)`:
+    `dim span {ψ_{nℓm}} = Σ_{ℓ=0}^{n-1} (2ℓ+1) = n²`.
+
+    The sum counts, for each `ℓ ∈ {0,…,n−1}`, the `2ℓ+1` magnetic sublevels
+    `m ∈ {−ℓ,…,ℓ}`. Orthonormality (`hydrogen_eigenfunction_orthonormal`) makes the
+    family linearly independent, so the dimension of its span equals its cardinality
+    `n²` (`card_degenIndex`, via `degeneracy_sum`).
+
+    This makes the lower bound `dim ker(H − E_n) ≥ n²` precise. That the span is
+    *exactly* the `E_n`-eigenspace additionally needs completeness within each
+    sector and the as-yet-unbuilt unitary identifying this spherical-coordinate
+    `L²(ℝ³)` with `Sobolev.L2_R3` (where `hydrogenHamiltonian` lives), so the full
+    `dim ker(H − E_n) = n²` is not yet available. -/
+theorem hydrogen_degeneracy (_p : CoulombParams) (n : ℕ) (_hn : 1 ≤ n) :
+    Module.finrank ℂ (Submodule.span ℂ (Set.range (degenFamily n))) = n ^ 2 := by
+  rw [finrank_span_eq_card (orthonormal_degenFamily n).linearIndependent,
+    Fintype.card_coe, card_degenIndex]
+
 
 /-! ## Discrete spectrum -/
 
@@ -262,34 +442,6 @@ theorem hydrogen_discrete_spectrum (p : CoulombParams) :
         hydrogenHamiltonian p ψ = (E : ℂ) • (ψ : Spectra.Sobolev.L2_R3)) ↔
     ∃ (n : ℕ) (hn : 1 ≤ n), E = eigenvalue p n hn :=
   sorry
-
-/-! ## Degeneracy -/
-
-/-- **Degeneracy of the n-th level is n².**
-
-    dim ker(H − E_n) = Σ_{ℓ=0}^{n-1} (2ℓ + 1) = n²
-
-    The sum counts:
-    - For each ℓ ∈ {0, ..., n-1}: one radial function R_{nℓ}
-    - For each ℓ: 2ℓ+1 angular functions Y_ℓ^m with m ∈ {-ℓ,...,ℓ}
-    - Total: Σ (2ℓ+1) = n²
-
-    **Discharge route:**
-    1. The eigenspace at E_n is spanned by {ψ_{nℓm} : 0 ≤ ℓ < n, |m| ≤ ℓ}.
-    2. These are orthonormal (`hydrogen_eigenfunction_orthonormal`).
-    3. There are no other eigenvectors: from radial quantization,
-       within each sector ℓ, the eigenfunction is unique (up to scalar).
-    4. Count: Σ_{ℓ=0}^{n-1} (2ℓ+1) = n². -/
-def hydrogen_degeneracy (p : CoulombParams) (n : ℕ) (hn : 1 ≤ n) :
-    sorry :=  -- dim ker(H - E_n) = n²
-  sorry
-
-/-- The degeneracy sum: Σ_{ℓ=0}^{n-1} (2ℓ+1) = n². -/
-lemma degeneracy_sum (n : ℕ) :
-    ∑ ℓ ∈ Finset.range n, (2 * ℓ + 1) = n ^ 2 := by
-  induction n with
-  | zero => simp
-  | succ n ih => simp [Finset.sum_range_succ, ih]; ring
 
 /-! ## Continuous spectrum -/
 

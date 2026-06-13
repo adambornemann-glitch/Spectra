@@ -157,9 +157,8 @@ lemma hasWeakSecondDerivative_comm
     integral_congr_ae (ae_of_all _ fun x => by
       dsimp only
       rw [schwarz_partials φ hφ i j x])
-  -- Chain: linear_combination −eA + eD + eB − eC
-  -- i.e., ∫ mid'·∂ᵢφ = −∫ f·∂ⱼ(∂ᵢφ) = −∫ f·∂ᵢ(∂ⱼφ) = ∫ mid·∂ⱼφ = −∫ g·φ
-  grind only
+  -- Chain: ∫ mid'·∂ᵢφ = −∫ f·∂ⱼ(∂ᵢφ) = −∫ f·∂ᵢ(∂ⱼφ) = ∫ mid·∂ⱼφ = −∫ g·φ
+  linear_combination eA - eD - eB + eC
 
 /-- Second weak derivative is unique. -/
 lemma hasWeakSecondDerivative_unique

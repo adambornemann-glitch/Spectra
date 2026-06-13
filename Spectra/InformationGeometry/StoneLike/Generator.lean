@@ -2,7 +2,6 @@
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
-Filename: InformationGeometry/Dynamics/Generator.lean
 -/
 import Spectra.InformationGeometry.StoneLike.PreservesCubic
 /-!
@@ -24,7 +23,7 @@ The family is recovered from its generator by the flow equation
 
 — the information-geometric analogue of dψ/dt = iAψ.
 
-## Main results
+## Main statements
 
 * `generator` — the infinitesimal generator X(θ) = d/dt φ_t(θ)|_{t=0}
 * `generator_killing` — infinitesimal Fisher preservation

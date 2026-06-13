@@ -2,7 +2,6 @@
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
-Filename: Fisher/StatisticalModel.lean
 -/
 import Mathlib.MeasureTheory.Measure.MeasureSpace
 import Mathlib.MeasureTheory.Integral.Bochner.Basic
@@ -220,6 +219,7 @@ def expectation {θ : ParamSpace n} (_hθ : θ ∈ M.paramDomain)
     (f : Ω → ℝ) : ℝ :=
   ∫ ω, f ω * M.density θ ω ∂M.refMeasure
 
+/-- The expectation of the constant function `1` is `1`: the density integrates to one. -/
 @[simp]
 lemma expectation_const_one {θ : ParamSpace n}
     (hθ : θ ∈ M.paramDomain) :

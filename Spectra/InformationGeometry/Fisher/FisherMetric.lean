@@ -2,7 +2,6 @@
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
-Filename: Fisher/FisherMetric.lean
 -/
 import Spectra.InformationGeometry.Fisher.FisherInformation
 import Mathlib.LinearAlgebra.BilinearMap
@@ -34,7 +33,7 @@ positive-definite inner product on each tangent space).
 * `RegularStatisticalModel.fisherRiemannianMetric` —
   the Fisher–Rao metric as a `RiemannianMetric`.
 
-## Main results
+## Main statements
 
 * `fisherBilinForm_symm` — `g_θ` is symmetric as a `BilinForm`.
 * `fisherBilinForm_pos_def` — positive definiteness under score-injectivity.

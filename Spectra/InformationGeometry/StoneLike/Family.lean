@@ -2,7 +2,6 @@
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
-Filename: InformationGeometry/Family.lean
 -/
 import Spectra.InformationGeometry.Dynamics.Hessian
 import Spectra.InformationGeometry.Dynamics.CubicTensor
@@ -65,8 +64,6 @@ structure DivergencePreservingFamily where
   smooth : ContDiff ℝ ⊤ (Function.uncurry φ)
 
 
--- Place in §2a, right after cubicTrilin (around line ~830)
-
 /-- The m-connection as a trilinear form:
   Γᵐ(θ)(u, v, w) = ∑_{a,b,c} u_a · v_b · w_c · Γᵐ_{ab,c}(θ)
 
@@ -78,6 +75,8 @@ noncomputable def mConnectionTrilin
   ∑ a : Fin n, ∑ b : Fin n, ∑ c : Fin n,
     u a * v b * w c * M.mConnectionCoeff θ a b c
 
+/-- Evaluating the m-connection trilinear form on the coordinate basis triple
+`(eₐ, e_b, e_c)` recovers the coefficient `Γᵐ_{ab,c}(θ)`. -/
 lemma mConnectionTrilin_single (θ : ParamSpace n) (a b c : Fin n) :
     M.mConnectionTrilin θ
       (EuclideanSpace.single a 1)

@@ -1,0 +1,115 @@
+# Contributing to Spectra
+
+Spectra is a Lean 4 formalization of spectral theory and mathematical quantum mechanics, built on
+[Mathlib](https://github.com/leanprover-community/mathlib4). Its conventions follow
+[PhysLean / PhysLib](https://physlib.io) and Mathlib closely, so the codebase reads the way those
+libraries do.
+
+Contributions of every size are welcome — a single new lemma, a docstring, a golfed proof, or a
+whole new module. **Small pull requests are better than large ones**, even if a PR is just one
+result; they are far easier to review and land.
+
+---
+
+## Getting set up
+
+Spectra uses the standard Lean 4 / Lake toolchain. The pinned toolchain is in
+[`lean-toolchain`](lean-toolchain) and is installed automatically by `elan`.
+
+1. Install [`elan`](https://github.com/leanprover/elan) (the Lean version manager).
+2. Clone the repository and fetch prebuilt Mathlib artifacts (this avoids recompiling Mathlib):
+
+   ```sh
+   git clone <your-fork-url> Spectra
+   cd Spectra
+   lake exe cache get
+   ```
+
+3. Build the library:
+
+   ```sh
+   lake build
+   ```
+
+The recommended editor is **VS Code with the Lean 4 extension**, which gives you the interactive
+goal view, hover docstrings, and the `#lint` / `#check` commands inline.
+
+---
+
+## Project layout
+
+- [`Spectra.lean`](Spectra.lean) is the root module: it simply imports every file in the library.
+  When you add a new file, add a matching `import Spectra.…` line here (kept sorted) so it is part
+  of the build.
+- Source lives under [`Spectra/`](Spectra/), organized by topic — `Resolvent/`, `SpectralTheory/`,
+  `QuantumMechanics/`, `SobolevSpaces/`, and so on.
+- `Spectra/Mathlib/` holds material that is intended to eventually be upstreamed to Mathlib, mirroring
+  Mathlib's own directory structure. Keep things here Mathlib-general (no Spectra-specific
+  assumptions) so the eventual port is mechanical.
+
+The directory path and the namespace match: a file at `Spectra/Resolvent/Defs.lean` declares
+`namespace Spectra.Resolvent`.
+
+---
+
+## The contribution workflow
+
+1. **Branch** off `master` for your change.
+2. **Write** the code following [STYLE.md](STYLE.md). The non-negotiables:
+   - the copyright header,
+   - a module docstring with `# Title`, `## Main definitions`, `## Main statements`, `## References`,
+   - **a `/-- … -/` docstring on every `def`, `lemma`, `theorem`, and `instance`.**
+3. **Build** locally with `lake build` — the change must compile with no errors and no new `sorry`
+   in finished files.
+4. **Lint** (see below).
+5. **Commit** with a clear message describing the result added. Keep the PR focused on one thing.
+6. **Open a pull request** against `master`. Describe what you proved/added and reference any source
+   (paper, textbook section) the formalization follows.
+
+### Adding a new file
+
+A new file must, from the start:
+
+- open with the MIT copyright header,
+- carry a full module docstring,
+- declare a single `Spectra.…` namespace matching its path,
+- have a letters-only `UpperCamelCase` filename (no underscores or digits),
+- be wired into [`Spectra.lean`](Spectra.lean).
+
+---
+
+## Linting and quality
+
+Spectra inherits Mathlib's linters. At minimum, before opening a PR:
+
+- Make sure `lake build` is clean.
+- Run Mathlib's environment linters on your file by adding `#lint` at the bottom while developing
+  (remove it before committing), or check the goal panel for linter warnings. These catch missing
+  docstrings, unused arguments, simp-normal-form issues, and more.
+- Re-read [STYLE.md §6](STYLE.md) and walk the checklist.
+
+> Spectra does not yet vendor PhysLean's `lake exe lint_all` / `scripts/lint-style.sh` tooling or a
+> CI workflow. Adding a text-style linter and CI is a welcome contribution; until then, the build +
+> `#lint` + the STYLE.md checklist are the bar.
+
+---
+
+## Informal and work-in-progress results
+
+Spectra does not (yet) use PhysLean's `informal_def` / `semiformal_result` machinery. Instead:
+
+- Mark unfinished work with `-- TODO: …` comments, or a `TODO.lean` module for a larger plan.
+- A `sorry` is acceptable only in a clearly work-in-progress file, and must be flagged in that
+  file's module docstring. Never leave a `sorry` in a file that other "finished" files import.
+
+---
+
+## Questions and conventions
+
+If a situation isn't covered here or in [STYLE.md](STYLE.md), follow Mathlib's conventions:
+
+- Documentation style — <https://leanprover-community.github.io/contribute/doc.html>
+- Naming — <https://leanprover-community.github.io/contribute/naming.html>
+
+When in doubt, open the PR and ask in the description — a reviewer would rather discuss a small,
+clear change than a large one built on a guess.

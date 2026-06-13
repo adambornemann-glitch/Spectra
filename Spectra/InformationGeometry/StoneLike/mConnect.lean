@@ -2,7 +2,6 @@
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
-Filename: InformationGeometry/DivergenceDynamics.lean
 -/
 import Spectra.InformationGeometry.Fisher.StatisticalManifold
 import Spectra.InformationGeometry.CramerRao.SchrodingerRLD
@@ -78,7 +77,7 @@ design note in `Models.lean`).  Everything else is assembled from
 `klDiv_third_deriv_decomposition`, `bartlett2_hasFDerivAt`,
 `kl_faa_di_bruno`, and `third_deriv_transfer`.
 
-## Main results
+## Main statements
 
 * `bartlett_second`, `bartlett_third` — the integrated Bartlett identities
 * `klDiv_third_deriv_eval`, `klDiv_third_deriv_trilin` — the diagonal

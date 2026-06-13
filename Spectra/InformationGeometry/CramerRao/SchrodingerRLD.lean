@@ -2,7 +2,6 @@
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
-Filename: InformationGeometry/SchrodingerRLD.lean
 -/
 import Spectra.InformationGeometry.Fisher.FisherMetric
 import Spectra.InformationGeometry.Fisher.StatisticalManifold
@@ -54,7 +53,7 @@ complex inner product.
 * `rldBilin` — the complex RLD form `G^RLD(v,w) = g(v,w) + i · ω(v,w)`.
 * `rldMatrix` — the complex RLD matrix `G^RLD_{ij} = g_{ij} + i · ω_{ij}`.
 
-## Main results
+## Main statements
 
 * `symplecticBilin_antisymm` — `ω(v,w) = -ω(w,v)`.
 * `symplecticBilin_self` — `ω(v,v) = 0`.

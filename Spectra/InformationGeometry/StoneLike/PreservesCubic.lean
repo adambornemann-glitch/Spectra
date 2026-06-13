@@ -2,12 +2,29 @@
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
-Filename: InformationGeometry/DivergenceDynamics.lean
 -/
 import Spectra.InformationGeometry.Dynamics.BartlettIdentities
 import Spectra.InformationGeometry.StoneLike.FaaDiBruno.Basic
 import Spectra.InformationGeometry.StoneLike.mConnect
 
+/-!
+# Divergence Preservation Implies Cubic-Tensor Preservation
+
+A *divergence-preserving family* `φ_t` is one along which the KL divergence between
+nearby points is invariant. This file shows that such a family preserves not only the
+Fisher metric but the full Amari–Chentsov cubic tensor: the pullback of `cubicTrilin`
+along `dφ_t` equals `cubicTrilin`. The basis-triple case is `preserves_cubic_basis`
+(`mConnect.lean`); here it is extended to arbitrary tangent vectors by trilinearity.
+
+## Main statements
+
+* `preserves_cubic` — for arbitrary tangent vectors `u v w`,
+  `cubicTrilin (φ_t θ) (dφ·u) (dφ·v) (dφ·w) = cubicTrilin θ u v w`.
+
+## References
+
+* S. Amari, H. Nagaoka, *Methods of Information Geometry*, AMS, 2000.
+-/
 open MeasureTheory Finset Filter Topology TopologicalSpace
 namespace Spectra.InformationGeometry
 variable {n : ℕ} {Ω : Type*} [MeasurableSpace Ω]

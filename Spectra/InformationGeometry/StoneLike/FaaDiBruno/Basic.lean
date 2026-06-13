@@ -2,13 +2,33 @@
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
-Filename: InformationGeometry/Dynamics/FaaDiBruno/Basic.lean
 -/
 import Spectra.InformationGeometry.StoneLike.FaaDiBruno.Helpers
 import Spectra.InformationGeometry.StoneLike.Family
 import Spectra.InformationGeometry.Dynamics.CubicTensor
 import Mathlib.Analysis.Calculus.FDeriv.Symmetric
 
+/-!
+# Faà di Bruno Expansion of the Third KL Derivative
+
+Along a divergence-preserving family `φ_t`, the third derivative of the KL divergence
+`θ₂ ↦ D(α, φ_t(θ₂))` at the base point unfolds, via the Faà di Bruno chain rule, into
+a third-derivative term pushed forward along `dφ` plus three Hessian × second-derivative
+correction terms. Because the family fixes `α` as a critical point
+(`fderiv (klDiv α) α = 0`), the first-derivative × `d³φ` term drops out, and the
+second-derivative factor `f''` is identified with the Fisher metric via the Hessian
+theorem (`klDiv_hessian_eq_fisher`).
+
+## Main statements
+
+* `kl_faa_di_bruno` — the Faà di Bruno expansion at the critical point: the third
+  derivative equals the pushed-forward third KL derivative plus three
+  `fisherBilin (d²φ_••) (dφ_•)` correction terms.
+
+## References
+
+* S. Amari, H. Nagaoka, *Methods of Information Geometry*, AMS, 2000.
+-/
 open MeasureTheory Finset Filter Topology TopologicalSpace
 namespace Spectra.InformationGeometry
 variable {n : ℕ} {Ω : Type*} [MeasurableSpace Ω]

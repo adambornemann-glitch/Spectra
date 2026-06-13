@@ -2,7 +2,6 @@
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
-Filename: InformationGeometry/Dynamics/Hessian.lean
 -/
 import Spectra.InformationGeometry.Dynamics.Models
 import Mathlib.Analysis.Calculus.ParametricIntegral
@@ -24,7 +23,7 @@ Consequence: the Fisher metric is the **infinitesimal divergence** —
 the second-order Taylor expansion of D at the diagonal. Any map
 preserving D automatically preserves g.
 
-## Main results
+## Main statements
 
 * `klDiv` — KL divergence at the model level
 * `klDiv_self`, `klDiv_nonneg` — diagonal vanishing, Gibbs inequality

@@ -26,10 +26,8 @@ lemma hasWeakDerivative_of_smooth_compactSupport
     HasWeakDerivative (hmem.toLp φ) i
       (hdmem.toLp (fun x => fderiv ℝ φ x (EuclideanSpace.single i 1))) := by
   haveI : (volume : Measure R3).IsAddHaarMeasure := by
-    change (MeasureTheory.Measure.addHaar : Measure R3).IsAddHaarMeasure
     infer_instance
   haveI : IsFiniteMeasureOnCompacts (volume : Measure R3) := by
-    change IsFiniteMeasureOnCompacts (MeasureTheory.Measure.addHaar : Measure R3)
     infer_instance
   intro ψ hψ_s hψ_c
   -- Continuities & compact supports

@@ -2,9 +2,31 @@
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
-Filename: InformationGeometry/Dynamics/BartlettIdentities.lean
 -/
 import Spectra.InformationGeometry.Dynamics.Hessian
+
+/-!
+# Bartlett Identities
+
+The **Bartlett identities** are the integral identities satisfied by the score
+function and its derivatives under a regular statistical model: differentiating the
+normalization `∫ p(θ,ω) dμ = 1` repeatedly in `θ` produces a family of vanishing
+expectations. This file formalizes the order-2 and order-3 identities, which are the
+analytic backbone of the Amari–Chentsov cubic tensor and the third-derivative
+decomposition of the KL divergence (see `CubicTensor.lean`).
+
+## Main statements
+
+* `bartlett_second` — order-2 identity: `∫ (∂ⱼsₖ + sⱼsₖ)·p dμ = 0`, equivalently
+  `∫ ∂ⱼ∂ₖp dμ = 0`.
+* `bartlett_third` — order-3 identity: the five-term integrand
+  `∫ (∂ᵢ∂ⱼsₖ + sⱼ∂ᵢsₖ + sᵢ∂ⱼsₖ + sₖ∂ᵢsⱼ + sᵢsⱼsₖ)·p dμ = 0`, obtained by
+  differentiating `bartlett_second`.
+
+## References
+
+* S. Amari, H. Nagaoka, *Methods of Information Geometry*, AMS, 2000.
+-/
 open MeasureTheory Finset Filter Topology TopologicalSpace
 namespace Spectra.InformationGeometry
 variable {n : ℕ} {Ω : Type*} [MeasurableSpace Ω]

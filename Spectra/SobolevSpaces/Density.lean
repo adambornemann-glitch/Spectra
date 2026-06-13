@@ -25,10 +25,8 @@ lemma dense_continuous_compactSupport_L2 :
     simp only [ne_eq, ENNReal.ofReal_eq_zero, not_le, Nat.ofNat_pos, div_pos_iff_of_pos_right]
     exact RCLike.ofReal_pos.mp hε
   haveI : IsFiniteMeasureOnCompacts (volume : Measure R3) := by
-    change IsFiniteMeasureOnCompacts (MeasureTheory.Measure.addHaar)
     infer_instance
   haveI : (volume : Measure R3).Regular := by
-    change (MeasureTheory.Measure.addHaar : Measure R3).Regular
     infer_instance
   haveI : WeaklyLocallyCompactSpace R3 := by infer_instance
   haveI : R1Space R3 := by infer_instance
@@ -137,7 +135,7 @@ private lemma exists_smooth_uniform_approx
   refine ⟨ψ, ?smooth, ?compact_supp, ?supp_bound, ?unif_bound⟩
   case smooth =>
     haveI : (volume : Measure R3).IsAddHaarMeasure := by
-      change (MeasureTheory.Measure.addHaar : Measure R3).IsAddHaarMeasure; infer_instance
+      infer_instance
     have hli_re : LocallyIntegrable φ_re volume := hcont_re.locallyIntegrable
     have hli_im : LocallyIntegrable φ_im volume := hcont_im.locallyIntegrable
     have hsmooth_re : ContDiff ℝ ∞ ψ_re :=
@@ -158,7 +156,7 @@ private lemma exists_smooth_uniform_approx
       ((Complex.ofRealCLM.contDiff.comp hsmooth_im).mul contDiff_const)
   case compact_supp =>
     haveI : (volume : Measure R3).IsAddHaarMeasure := by
-      change (MeasureTheory.Measure.addHaar : Measure R3).IsAddHaarMeasure; infer_instance
+      infer_instance
     have hsupp_re : HasCompactSupport φ_re := hsupp.comp_left Complex.zero_re
     have hsupp_im : HasCompactSupport φ_im := hsupp.comp_left Complex.zero_im
     have hcs_re : HasCompactSupport ψ_re :=
@@ -181,7 +179,7 @@ private lemma exists_smooth_uniform_approx
       (isClosed_tsupport _) h_sub
   case supp_bound =>
     haveI : (volume : Measure R3).IsAddHaarMeasure := by
-      change (MeasureTheory.Measure.addHaar : Measure R3).IsAddHaarMeasure; infer_instance
+      infer_instance
     have h_closed : IsClosed (tsupport φ + Metric.closedBall (0 : R3) radius) :=
       (hsupp.isCompact.add (isCompact_closedBall _ _)).isClosed
     apply closure_minimal _ h_closed
@@ -259,7 +257,6 @@ private lemma exists_smooth_uniform_approx
         _ ≤ δ / 2 := hosc x₀ y (by rwa [dist_comm])
     -- Apply the Mathlib convolution bound to each component
     haveI : (volume : Measure R3).IsAddHaarMeasure := by
-      change (MeasureTheory.Measure.addHaar : Measure R3).IsAddHaarMeasure
       infer_instance
     have hre : dist (ψ_re x₀) (φ_re x₀) ≤ δ / 2 :=
       ρ.dist_normed_convolution_le hmeas_re hosc_re
@@ -301,7 +298,6 @@ lemma eLpNorm_le_of_compactSupport_bound
       exact image_eq_zero_of_notMem_tsupport hx
   conv_lhs => rw [h_eq, eLpNorm_indicator_eq_eLpNorm_restrict hKm]
   haveI : IsFiniteMeasureOnCompacts (volume : Measure R3) := by
-    change IsFiniteMeasureOnCompacts (MeasureTheory.Measure.addHaar)
     infer_instance
   haveI : IsFiniteMeasure ((volume : Measure R3).restrict K) :=
     ⟨by rw [Measure.restrict_apply_univ]; exact hK.measure_lt_top⟩
@@ -327,7 +323,7 @@ lemma smooth_approx_continuous_compactSupport
       ∀ (hψ : MemLp ψ 2 (volume : Measure R3)),
         ‖hφ.toLp φ - hψ.toLp ψ‖ < ε := by
   haveI : IsFiniteMeasureOnCompacts (volume : Measure R3) := by
-    change IsFiniteMeasureOnCompacts (MeasureTheory.Measure.addHaar); infer_instance
+    infer_instance
   set K₀ := tsupport φ + Metric.closedBall (0 : R3) 1
   have hK₀ : IsCompact K₀ := by
     exact hsupp.isCompact.add (isCompact_closedBall 0 1)
@@ -416,7 +412,7 @@ lemma dense_test_functions_L2 :
   -- Step 2: φ₁ ∈ L² (continuous + compact support on a locally finite measure)
   have hφ₁_Lp : MemLp φ₁ 2 (volume : Measure R3) := by
     haveI : IsFiniteMeasureOnCompacts (volume : Measure R3) := by
-      change IsFiniteMeasureOnCompacts MeasureTheory.Measure.addHaar; infer_instance
+      infer_instance
     obtain ⟨C, hC⟩ := hcont₁.bounded_above_of_compact_support hsupp₁
     exact hsupp₁.memLp_of_bound hcont₁.aestronglyMeasurable C (ae_of_all _ hC)
   -- Step 3: g₁ = toLp φ₁ (both represent φ₁ a.e., hence equal as Lp elements)

@@ -128,7 +128,7 @@ lemma inverseR_nonneg (x : R3) : 0 ≤ inverseR x := by
 theorem inverseRSq_integrableOn_ball (R : ℝ) :
     IntegrableOn inverseRSq (Metric.ball (0 : R3) R) volume := by
   haveI : (volume : Measure R3).IsAddHaarMeasure := by
-    change (MeasureTheory.Measure.addHaar : Measure R3).IsAddHaarMeasure; infer_instance
+    infer_instance
   have hfr : Module.finrank ℝ R3 = 3 := finrank_euclideanSpace_fin
   -- Almost every point of `R3` is nonzero (the origin is a null set).
   have hae : ∀ᵐ x ∂(volume : Measure R3), x ≠ 0 := by
@@ -340,7 +340,6 @@ private lemma integrable_mul_singular
     {g : R3 → ℝ} (hg_cont : ContinuousOn g ({0}ᶜ : Set R3)) :
     Integrable (fun x => u x * g x) volume := by
   haveI : IsFiniteMeasureOnCompacts (volume : Measure R3) := by
-    change IsFiniteMeasureOnCompacts (MeasureTheory.Measure.addHaar)
     infer_instance
   refine Continuous.integrable_of_hasCompactSupport ?_ hu_supp.mul_right
   rw [continuous_iff_continuousAt]
@@ -404,7 +403,6 @@ private lemma ibp_direction_hardyField
     ∫ x, u x * fderiv ℝ (fun y => hardyField y i) x (EuclideanSpace.single i (1 : ℝ)) ∂volume
       = - ∫ x, fderiv ℝ u x (EuclideanSpace.single i (1 : ℝ)) * hardyField x i ∂volume := by
   haveI : (volume : Measure R3).IsAddHaarMeasure := by
-    change (MeasureTheory.Measure.addHaar : Measure R3).IsAddHaarMeasure
     infer_instance
   -- tsupport u ⊆ {x : r ≤ ‖x‖}
   have h_tsupp : tsupport u ⊆ {x : R3 | r ≤ ‖x‖} := by
@@ -513,7 +511,6 @@ private lemma ibp_summed_hardyField
     (∑ i : Fin 3, ∫ x, fderiv ℝ u x (EuclideanSpace.single i (1:ℝ)) * hardyField x i ∂volume)
       = - ∫ x, u x * inverseRSq x ∂volume := by
   haveI : (volume : Measure R3).IsAddHaarMeasure := by
-    change (MeasureTheory.Measure.addHaar : Measure R3).IsAddHaarMeasure
     infer_instance
   -- tsupport bound from vanishing near 0
   have h_tsupp : tsupport u ⊆ {x : R3 | r ≤ ‖x‖} := by
@@ -570,7 +567,6 @@ private lemma ibp_v_squared_hardyField
       = - 2 * ∑ i : Fin 3,
           ∫ x, v x * fderiv ℝ v x (EuclideanSpace.single i (1:ℝ)) * hardyField x i ∂volume := by
   haveI : (volume : Measure R3).IsAddHaarMeasure := by
-    change (MeasureTheory.Measure.addHaar : Measure R3).IsAddHaarMeasure
     infer_instance
   -- u = v²: smooth, compactly supported, vanishes near 0.
   have hu_smooth : ContDiff ℝ ∞ (fun x => v x ^ 2) := hv_smooth.pow 2
@@ -799,7 +795,6 @@ private lemma memLp_sqrt_sum_sq_fderiv
     MemLp (fun x => Real.sqrt
         (∑ i : Fin 3, (fderiv ℝ v x (EuclideanSpace.single i (1:ℝ))) ^ 2)) 2 volume := by
   haveI : (volume : Measure R3).IsAddHaarMeasure := by
-    change (MeasureTheory.Measure.addHaar : Measure R3).IsAddHaarMeasure
     infer_instance
   set S := fun x => ∑ i : Fin 3,
       (fderiv ℝ v x (EuclideanSpace.single i (1:ℝ))) ^ 2 with hS_def
@@ -1078,7 +1073,7 @@ private lemma sum_sq_fderiv_integrable
     Integrable (fun x => ∑ i : Fin 3,
       (fderiv ℝ w x (EuclideanSpace.single i (1:ℝ))) ^ 2) volume := by
   haveI : IsFiniteMeasureOnCompacts (volume : Measure R3) := by
-    change IsFiniteMeasureOnCompacts (MeasureTheory.Measure.addHaar); infer_instance
+    infer_instance
   have h_cont : Continuous (fun x => ∑ i : Fin 3,
       (fderiv ℝ w x (EuclideanSpace.single i (1:ℝ))) ^ 2) := by
     refine continuous_finsetSum _ (fun i _ => ?_)
@@ -1171,7 +1166,7 @@ private lemma hardy_cutoff_step
   have hT3_int : Integrable (fun x => v x ^ 2 * ∑ i : Fin 3,
       (fderiv ℝ χ x (EuclideanSpace.single i (1:ℝ))) ^ 2) volume := by
     haveI : IsFiniteMeasureOnCompacts (volume : Measure R3) := by
-      change IsFiniteMeasureOnCompacts (MeasureTheory.Measure.addHaar); infer_instance
+      infer_instance
     refine Continuous.integrable_of_hasCompactSupport ?_ ?_
     · exact (hv_smooth.continuous.pow 2).mul
         (continuous_finsetSum _ (fun i _ =>
@@ -1212,9 +1207,9 @@ private lemma cutoff_grad_sq_integral_le
     ∫ x, v x ^ 2 * ∑ i : Fin 3, (fderiv ℝ χ x (EuclideanSpace.single i (1:ℝ))) ^ 2
       ≤ 24 * K * M ^ 2 * (volume.real (Metric.ball (0:R3) 1)) * ε := by
   haveI : (volume : Measure R3).IsAddHaarMeasure := by
-    change (MeasureTheory.Measure.addHaar : Measure R3).IsAddHaarMeasure; infer_instance
+    infer_instance
   haveI : IsFiniteMeasureOnCompacts (volume : Measure R3) := by
-    change IsFiniteMeasureOnCompacts (MeasureTheory.Measure.addHaar); infer_instance
+    infer_instance
   -- Pointwise bound on the squared gradient of χ.
   have h_grad_sq : ∀ x, ∑ i : Fin 3,
       (fderiv ℝ χ x (EuclideanSpace.single i (1:ℝ))) ^ 2 ≤ 3 * (M / ε) ^ 2 := by
@@ -1296,7 +1291,7 @@ theorem hardy_inequality_smooth_real
     ∫ x, v x ^ 2 * inverseRSq x ≤
       4 * ∫ x, ∑ i : Fin 3, (fderiv ℝ v x (EuclideanSpace.single i (1:ℝ))) ^ 2 := by
   haveI : (volume : Measure R3).IsAddHaarMeasure := by
-    change (MeasureTheory.Measure.addHaar : Measure R3).IsAddHaarMeasure; infer_instance
+    infer_instance
   have hv_cont : Continuous v := hv_smooth.continuous
   -- `v²·inverseRSq` is the integrable dominator.
   have hvsq_int := vsq_inverseRSq_integrable hv_cont hv_supp
@@ -1525,7 +1520,7 @@ private lemma gradientNormSq_toLp {φ : R3 → ℂ}
         (sobolevH2_le_H1 (smooth_compactSupport_memSobolevH2 φ hφ hsupp hmem))
       = ∫ x, ∑ i : Fin 3, ‖fderiv ℝ φ x (EuclideanSpace.single i 1)‖ ^ 2 := by
   haveI : IsFiniteMeasureOnCompacts (volume : Measure R3) := by
-    change IsFiniteMeasureOnCompacts (MeasureTheory.Measure.addHaar); infer_instance
+    infer_instance
   -- Each weak-gradient component is `toLp (∂ᵢφ)`, with squared norm `∫ |∂ᵢφ|²`.
   have step1 : ∀ i : Fin 3,
       ‖weakGradient (hmem.toLp φ)
@@ -1584,7 +1579,7 @@ private lemma hardy_lintegral_le (ψ : L2_R3) (hψ : MemSobolevH1 ψ) :
     ∫⁻ x, ENNReal.ofReal (inverseRSq x * ‖(ψ : R3 → ℂ) x‖ ^ 2) ∂volume
       ≤ ENNReal.ofReal (4 * gradientNormSq ψ hψ) := by
   haveI : (volume : Measure R3).IsAddHaarMeasure := by
-    change (MeasureTheory.Measure.addHaar : Measure R3).IsAddHaarMeasure; infer_instance
+    infer_instance
   -- Smooth compactly supported approximants `φₙ → ψ` in `H¹` (Meyers–Serrin), `εₙ = 1/(n+1)`.
   have happrox : ∀ n : ℕ, ∃ (φ : R3 → ℂ) (hφ : ContDiff ℝ ∞ φ) (hsupp : HasCompactSupport φ),
       ‖ψ - (memLp_of_smooth_compactSupport φ hφ hsupp).toLp φ‖ < 1 / (n + 1) ∧

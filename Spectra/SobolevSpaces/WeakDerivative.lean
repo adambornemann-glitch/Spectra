@@ -42,7 +42,10 @@ abbrev R3 : Type := EuclideanSpace ℝ (Fin 3)
 
 instance : MeasurableSpace R3 := borel R3
 instance : BorelSpace R3 := ⟨rfl⟩
-noncomputable instance : MeasureSpace R3 := ⟨MeasureTheory.Measure.addHaar⟩
+-- `MeasureSpace R3` is provided by Mathlib's `measureSpaceOfInnerProductSpace`
+-- (`volume := stdOrthonormalBasis.toBasis.addHaar`), which agrees with Mathlib's
+-- L² Fourier transform. We deliberately do NOT declare our own `⟨Measure.addHaar⟩`
+-- instance, to avoid a measure-instance diamond against `Lp.fourierTransformₗᵢ`.
 
 /-- The Hilbert space L²(ℝ³, ℂ) with Lebesgue measure.
 
@@ -88,9 +91,7 @@ lemma memLp_of_smooth_compactSupport (φ : R3 → ℂ)
     (hφ : ContDiff ℝ ∞ φ) (hsupp : HasCompactSupport φ) :
     MemLp φ 2 (volume : Measure R3) := by
   have hcont := hφ.continuous
-  haveI : IsFiniteMeasureOnCompacts (volume : Measure R3) := by
-    change IsFiniteMeasureOnCompacts (MeasureTheory.Measure.addHaar)
-    infer_instance
+  haveI : IsFiniteMeasureOnCompacts (volume : Measure R3) := inferInstance
   obtain ⟨C, hC⟩ := hcont.bounded_above_of_compact_support hsupp
   exact hsupp.memLp_of_bound hcont.aestronglyMeasurable C (ae_of_all _ hC)
 

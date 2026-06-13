@@ -2,12 +2,35 @@
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
-Filename: InformationGeometry/Dynamics/FaaDiBruno/Helper.lean
 -/
 import Spectra.InformationGeometry.StoneLike.Family
 import Spectra.InformationGeometry.Dynamics.CubicTensor
 
 import Mathlib.Tactic.Explode
+
+/-!
+# Helpers for the Faà di Bruno Expansion
+
+Supporting lemmas for `FaaDiBruno/Basic.lean`. These isolate the two analytic
+ingredients of the third-derivative computation: a cross-score Fréchet derivative that
+is valid at every point of the parameter domain (with its components), and a
+"frozen-vector" derivative lemma showing that, because `fderiv (klDiv α)` vanishes at
+`α`, only the frozen tangent vector survives when differentiating, paired against the
+Hessian (= Fisher metric).
+
+## Main statements
+
+* `cross_score_hasFDerivAt'` — the cross-score integral `θ' ↦ −∫ p(θ,ω)·sⱼ(θ',ω) dμ`
+  is Fréchet differentiable at every `θ₀ ∈ paramDomain`, with `i`-th component
+  `−∫ p(θ,ω)·(∂ᵢsⱼ)(θ₀,ω) dμ`.
+* `fderiv_klDiv_phi_apply_live` — differentiating `θ₁ ↦ fderiv (klDiv α) (φ_t θ₁) (V θ₁)`
+  at the base point returns `fisherBilin α (dφ_a) (V θ)`, for any differentiable vector
+  field `V`.
+
+## References
+
+* S. Amari, H. Nagaoka, *Methods of Information Geometry*, AMS, 2000.
+-/
 open MeasureTheory Finset Filter Topology TopologicalSpace
 namespace Spectra.InformationGeometry
 variable {n : ℕ} {Ω : Type*} [MeasurableSpace Ω]

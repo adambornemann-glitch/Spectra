@@ -241,7 +241,6 @@ theorem sobolev_embedding_L6_smooth :
           ‖(memLp_partialDeriv φ i hφ hsupp).toLp
             (fun x => fderiv ℝ φ x (EuclideanSpace.single i 1))‖ ^ 2)) := by
   haveI : (volume : Measure R3).IsAddHaarMeasure := by
-    change (MeasureTheory.Measure.addHaar : Measure R3).IsAddHaarMeasure
     infer_instance
   have hrank : Module.finrank ℝ R3 = 3 := finrank_euclideanSpace_fin
   -- Mathlib's GNS inequality, packaged with an abstract ℝ≥0 constant.

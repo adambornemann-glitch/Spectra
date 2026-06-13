@@ -2,7 +2,6 @@
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
-Filename: InformationGeometry/Dynamics/CubicTensor.lean
 -/
 import Spectra.InformationGeometry.Dynamics.Hessian
 open MeasureTheory Finset Filter Topology TopologicalSpace
@@ -46,11 +45,15 @@ lemma cubicTensor_symm₁₂ {θ : ParamSpace n} (_hθ : θ ∈ M.paramDomain)
     M.cubicTensor θ i j k = M.cubicTensor θ j i k := by
   unfold cubicTensor; congr 1; ext ω; ring
 
+/-- Symmetry of the cubic tensor under swapping the last two indices:
+`C_{ijk} = C_{ikj}`. -/
 lemma cubicTensor_symm₂₃ {θ : ParamSpace n} (_hθ : θ ∈ M.paramDomain)
     (i j k : Fin n) :
     M.cubicTensor θ i j k = M.cubicTensor θ i k j := by
   unfold cubicTensor; congr 1; ext ω; ring
 
+/-- Symmetry of the cubic tensor under swapping the outer indices:
+`C_{ijk} = C_{kji}`. -/
 lemma cubicTensor_symm₁₃ {θ : ParamSpace n} (_hθ : θ ∈ M.paramDomain)
     (i j k : Fin n) :
     M.cubicTensor θ i j k = M.cubicTensor θ k j i := by
@@ -102,6 +105,10 @@ is Fréchet differentiable at θ, and its i-th component equals
 Proof: identical template to `cross_score_hasFDerivAt`, using
 `hasFDerivAt_integral_of_dominated_of_fderiv_le` with the
 domination hypothesis `h_dom`. -/
+/-- **Lemma A (Leibniz).** The map `θ' ↦ −∫ p(θ,ω)·(∂ⱼsₖ)(θ',ω) dμ` is Fréchet
+differentiable at `θ`, and the `i`-th component of its derivative is
+`−∫ p(θ,ω)·(∂ᵢ∂ⱼsₖ)(θ,ω) dμ`, under the stated domination, integrability, and
+measurability hypotheses. -/
 lemma klDiv_third_partial
     {θ : ParamSpace n} (_hθ : θ ∈ M.paramDomain) (j k : Fin n)
     (h_dom : ∃ ε > 0, ∃ bound : Ω → ℝ, Integrable bound M.refMeasure ∧
@@ -188,6 +195,10 @@ correct decomposition of the third KL derivative at the diagonal:
 
 For exponential families, Γ^(m) = 0 and this reduces to ∂³D = C.
 In general, the m-connection terms do not vanish. -/
+/-- **Lemma C (third-derivative decomposition).** At the diagonal,
+`∂³D(θ‖θ')/∂θ'ⁱ∂θ'ʲ∂θ'ᵏ|_{θ'=θ} = C_{ijk} + Γ^(m)_{ik,j} + Γ^(m)_{jk,i} + Γ^(m)_{ij,k}`,
+obtained by combining Lemma A with the order-3 Bartlett identity (`h_B`). For
+exponential families the m-connection terms vanish and this reduces to `∂³D = C`. -/
 lemma klDiv_third_deriv_decomposition
     {θ : ParamSpace n} (_hθ : θ ∈ M.paramDomain) (i j k : Fin n)
     (h_A : ∀ j' k' : Fin n,

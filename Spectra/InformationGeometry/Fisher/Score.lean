@@ -2,7 +2,6 @@
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
-Filename: Fisher/Score.lean
 -/
 import Spectra.InformationGeometry.Fisher.StatisticalModel
 import Mathlib.Analysis.Calculus.ParametricIntegral
@@ -17,7 +16,7 @@ The **score function** is the gradient of the log-density with respect to
 the parameter.  Its key property — vanishing expectation under the model —
 is the seed from which the entire Fisher information metric grows.
 
-## Main results
+## Main statements
 
 * `RegularStatisticalModel.hasFDerivAt_integral_density` — differentiation
   under the integral sign for `θ ↦ ∫ ω, p(θ, ω) dμ`, justified by the
