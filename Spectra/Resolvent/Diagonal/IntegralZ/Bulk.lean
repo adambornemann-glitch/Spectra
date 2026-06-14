@@ -7,12 +7,10 @@ Filename: UnitaryEvolution/Resolvent/IntegralZ/Bulk.lean
 import Spectra.Resolvent.Diagonal.IntegralZ.Tendsto
 
 open Complex Filter Topology
-open Spectra.QuantumMechanics
-open OneParameterUnitaryGroup
+open Spectra.OneParameterUnitaryGroup
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
-variable (U_grp : OneParameterUnitaryGroup (H := H))
-
 namespace Spectra.Resolvent
+variable (U_grp : OneParameterUnitaryGroup (H := H))
 
 lemma genZ_bulk_pos {z : ℂ} (hz : z.im < 0) (φ : H) :
     Tendsto (fun h : ℝ => -((h : ℂ)⁻¹ • (cexp (I * z * (h : ℂ)) - 1) •

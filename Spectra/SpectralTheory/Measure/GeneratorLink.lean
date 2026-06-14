@@ -43,10 +43,8 @@ open scoped InnerProductSpace
 open Spectra.Borel
 open SpectralMeasure
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
-namespace Spectra.QuantumMechanics
-open OneParameterUnitaryGroup
-namespace SpectralTheory
-
+open Spectra.OneParameterUnitaryGroup
+namespace Spectra.QuantumMechanics.SpectralTheory
 variable (U_grp : OneParameterUnitaryGroup (H := H))
 
 /-! ## The scalar limit -/

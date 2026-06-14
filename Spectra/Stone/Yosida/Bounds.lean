@@ -4,7 +4,7 @@ Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
 Filename: Yosida/Bounds.lean
 -/
-import Spectra.QuantumMechanics.Stone.Yosida.Defs
+import Spectra.Stone.Yosida.Defs
 /-!
 # Norm Bounds on Yosida Operators
 
@@ -19,9 +19,9 @@ The key results show that `Jₙ` and `Jₙ⁻` are contractions (norm ≤ 1).
 
 -/
 open Complex Spectra.Resolvent
-open Spectra.QuantumMechanics.OneParameterUnitaryGroup
+open Spectra.OneParameterUnitaryGroup
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
-namespace Spectra.QuantumMechanics.Stone.Yosida
+namespace Spectra.Stone.Yosida
 
 lemma yosidaApprox_norm_bound {A : H →ₗ.[ℂ] H}
     (hsym : A.IsFormalAdjoint A)
@@ -107,4 +107,4 @@ lemma yosidaJNeg_norm_bound {A : H →ₗ.[ℂ] H}
           apply mul_le_mul_of_nonneg_left h_res (le_of_lt hn_pos)
     _ = 1 := by field_simp
 
-end Spectra.QuantumMechanics.Stone.Yosida
+end Spectra.Stone.Yosida

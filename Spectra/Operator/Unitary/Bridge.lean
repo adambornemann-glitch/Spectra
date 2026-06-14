@@ -10,7 +10,7 @@ import Mathlib.Analysis.CStarAlgebra.ContinuousLinearMap
 import Mathlib.Analysis.CStarAlgebra.Spectrum
 import Spectra.Operator.Unitary.Basic
 import Spectra.Operator.Unitary.Powers
-import Spectra.CayleyTransform.Transform
+import Spectra.CayleyTransform.Defs
 import Spectra.PositiveDefinite.Unitary
 /-!
 # Bridge: `Operator.Unitary` ↔ Mathlib's `unitary` submonoid

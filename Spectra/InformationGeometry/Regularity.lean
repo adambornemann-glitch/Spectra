@@ -8,8 +8,8 @@ import Mathlib.Analysis.SpecialFunctions.Log.Deriv
 /-!
 # Higher-Order Regularity for Statistical Models
 
-This file defines the regularity classes used throughout
-`InformationGeometry.Dynamics`:
+This file defines the regularity classes used throughout the connection,
+divergence, and flow theory of `InformationGeometry`:
 
 * `TwiceDifferentiableModel` — extends `RegularStatisticalModel` with
   second-order differentiability, dominating bounds for the second

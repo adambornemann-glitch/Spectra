@@ -32,12 +32,10 @@ open Complex MeasureTheory Filter Topology
 open scoped InnerProductSpace
 open Spectra.Resolvent
 open Spectra.Fourier
-open Spectra.QuantumMechanics
-open OneParameterUnitaryGroup
+open Spectra.OneParameterUnitaryGroup
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
-variable (U_grp : OneParameterUnitaryGroup (H := H))
 namespace Spectra.Borel
-
+variable (U_grp : OneParameterUnitaryGroup (H := H))
 namespace SpectralMeasure
 
 /-! ## Half-line ⇒ two-sided -----------------------------------------------------------------

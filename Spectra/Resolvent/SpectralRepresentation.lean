@@ -48,15 +48,12 @@ symbol (`Spectra.Arctan`), one scalar Fubini on `[a,b] × μ_ξ` gives
 -/
 open Complex MeasureTheory Filter Topology
 open scoped InnerProductSpace
-open Spectra.Borel
+open Spectra.Borel Spectra.OneParameterUnitaryGroup
 open SpectralMeasure
-open Spectra.QuantumMechanics
 open Spectra.QuantumMechanics.SpectralTheory
-open Spectra.QuantumMechanics.OneParameterUnitaryGroup
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
-variable (U_grp : OneParameterUnitaryGroup (H := H))
-
 namespace Spectra.Resolvent
+variable (U_grp : OneParameterUnitaryGroup (H := H))
 
 /-! ## The resolvent symbol `f_z(s) = (s − z)⁻¹` -/
 

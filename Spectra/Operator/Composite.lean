@@ -76,7 +76,8 @@ carries the symplectic structure responsible for uncertainty.
 * M. Reed, B. Simon, *Methods of Modern Mathematical Physics I*,
   §VIII.6 — sums of unbounded self-adjoint operators.
 -/
-open Spectra.Operator Spectra.QuantumMechanics.Observable
+open Spectra.Operator
+open Spectra.QuantumMechanics.Observable
 open Spectra.QuantumMechanics.Schrodinger
 open Spectra.InformationGeometry
 open SymmetricOperator

@@ -14,7 +14,7 @@ A *divergence-preserving family* `φ_t` is one along which the KL divergence bet
 nearby points is invariant. This file shows that such a family preserves not only the
 Fisher metric but the full Amari–Chentsov cubic tensor: the pullback of `cubicTrilin`
 along `dφ_t` equals `cubicTrilin`. The basis-triple case is `preserves_cubic_basis`
-(`mConnect.lean`); here it is extended to arbitrary tangent vectors by trilinearity.
+(`MixtureConnection.lean`); here it is extended to arbitrary tangent vectors by trilinearity.
 
 ## Main statements
 
@@ -36,7 +36,7 @@ open TwiceDifferentiableModel
 
 /-- Divergence preservation implies cubic tensor preservation.
 
-The basis-triple case is `preserves_cubic_basis` (mConnect.lean); this
+The basis-triple case is `preserves_cubic_basis` (MixtureConnection.lean); this
 lemma extends it to arbitrary tangent vectors `u v w` by trilinearity:
 expand each pushed-forward vector `dφ_t(θ)·x` over the coordinate basis,
 distribute, reorder the resulting six-fold sum, and contract with the
@@ -55,7 +55,7 @@ lemma preserves_cubic
     M.cubicTrilin θ u v w := by
   subst hM₃
   -- ═══ Step 1: componentwise identity on basis triples ═══
-  -- This is exactly `preserves_cubic_basis` from mConnect.lean.
+  -- This is exactly `preserves_cubic_basis` from MixtureConnection.lean.
   have h_comp : ∀ a b c : Fin n,
       ∑ i : Fin n, ∑ j : Fin n, ∑ k : Fin n,
         (fderiv ℝ (F.φ t) θ (EuclideanSpace.single a 1)).ofLp i *

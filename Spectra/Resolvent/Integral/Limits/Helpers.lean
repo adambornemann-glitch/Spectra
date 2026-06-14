@@ -23,7 +23,7 @@ integrals `R±(φ)` lie in the generator domain.
 generator, limit, exponential, average
 -/
 open MeasureTheory Measure Filter Topology Complex
-open Spectra.QuantumMechanics
+open Spectra.OneParameterUnitaryGroup
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
 namespace Spectra.Resolvent
 

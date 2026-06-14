@@ -8,7 +8,7 @@ Target: Mathlib master (2026-06-10)
 import Mathlib.Analysis.InnerProductSpace.Basic
 import Spectra.Bochner.Borel.Measure.Basic
 import Spectra.Mathlib.CharFunBridge
-import Spectra.QuantumMechanics.Stone.Basic
+import Spectra.Stone.Basic
 /-!
 # Polarized spectral measures and the keystone lemma
 

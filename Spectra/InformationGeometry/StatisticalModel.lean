@@ -210,6 +210,18 @@ lemma exp_logDensity_eq_ae {θ : ParamSpace n}
   filter_upwards [M.density_pos_ae θ hθ] with ω hω
   exact Real.exp_log hω
 
+/-! ### Kullback–Leibler divergence -/
+
+/-- The **Kullback–Leibler divergence** from `P_{θ₁}` to `P_{θ₂}`:
+`D_KL(θ₁ ‖ θ₂) = ∫ p(θ₁, ω) · log(p(θ₁, ω) / p(θ₂, ω)) dμ(ω)`.
+
+Defined at the model level — it needs only the density and reference measure — so it is
+available on every `RegularStatisticalModel`, `TwiceDifferentiableModel`, and
+`StatisticalManifold` by inheritance. Nonneg by Gibbs' inequality, and zero iff
+`P_{θ₁} = P_{θ₂}` a.e. -/
+noncomputable def klDiv (θ₁ θ₂ : ParamSpace n) : ℝ :=
+  ∫ ω, M.density θ₁ ω * Real.log (M.density θ₁ ω / M.density θ₂ ω) ∂M.refMeasure
+
 /-! ### Expectation under the model -/
 
 /-- Expectation of `f` under `P_θ`.  This is notation-friendly sugar

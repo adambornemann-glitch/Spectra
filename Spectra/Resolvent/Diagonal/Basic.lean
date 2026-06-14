@@ -8,12 +8,10 @@ import Spectra.Resolvent.Diagonal.IntegralZ.Basic
 
 open scoped InnerProductSpace
 open Complex MeasureTheory
-open Spectra.QuantumMechanics
-open OneParameterUnitaryGroup
+open Spectra.OneParameterUnitaryGroup
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
-variable (U_grp : OneParameterUnitaryGroup (H := H))
-
 namespace Spectra.Resolvent
+variable (U_grp : OneParameterUnitaryGroup (H := H))
 
 /-- The resolvent diagonal `⟪ξ, R(z)ξ⟫` is `(-i)` times the Laplace transform of
 `t ↦ ⟪ξ, U(t)ξ⟫` on `[0,∞)`, valid for `Im z < 0`. -/

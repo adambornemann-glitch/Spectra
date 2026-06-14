@@ -14,13 +14,11 @@ open Spectra.Resolvent
 open Spectra.Fourier
 open Spectra.Kernels
 open Spectra.Herglotz
-open Spectra.QuantumMechanics
-open OneParameterUnitaryGroup
+open Spectra.OneParameterUnitaryGroup
 open scoped InnerProductSpace NNReal ENNReal ComplexConjugate
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
-variable (U_grp : OneParameterUnitaryGroup (H := H))
-
 namespace Spectra.Borel
+variable (U_grp : OneParameterUnitaryGroup (H := H))
 
 /-- Bounded-window version of `integral_tendsto_of_cdf_tendsto`.
 The `[0,2π]`/support hypotheses are unused once the interval is bounded — what survives

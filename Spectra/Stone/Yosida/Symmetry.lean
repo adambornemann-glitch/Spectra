@@ -4,7 +4,7 @@ Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
 Filename: Yosida/Symmetry.lean
 -/
-import Spectra.QuantumMechanics.Stone.Yosida.Bounds
+import Spectra.Stone.Yosida.Bounds
 
 /-!
 # Symmetry Properties of Yosida Operators
@@ -21,7 +21,7 @@ showing that `exp(i·Aₙˢʸᵐ·t)` is unitary.
 -/
 open Complex InnerProductSpace Spectra.Resolvent
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
-namespace Spectra.QuantumMechanics.Stone.Yosida
+namespace Spectra.Stone.Yosida
 variable {U_grp : OneParameterUnitaryGroup (H := H)}
 
 lemma yosidaApproxSym_selfAdjoint {A : H →ₗ.[ℂ] H}
@@ -98,4 +98,4 @@ lemma I_smul_yosidaApproxSym_skewAdjoint {A : H →ₗ.[ℂ] H}
   rw [eq_neg_iff_add_eq_zero, add_eq_zero_iff_neg_eq']
   rw [neg_eq_iff_eq_neg]
 
-end Spectra.QuantumMechanics.Stone.Yosida
+end Spectra.Stone.Yosida

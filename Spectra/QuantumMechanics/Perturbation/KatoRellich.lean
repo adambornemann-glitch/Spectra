@@ -4,8 +4,8 @@ Released under MIT license as described in the file LICENSE.
 File: KatoRellich.lean
 Authors: Adam Bornemann
 -/
-import Spectra.QuantumMechanics.OneParameterUnitaryGroup.Basic
-import Spectra.QuantumMechanics.Stone.Basic
+import Spectra.OneParameterUnitaryGroup.Basic
+import Spectra.Stone.Basic
 import Spectra.QuantumMechanics.Observable.Basic
 import Spectra.Resolvent.Defs
 import Spectra.Resolvent.NormExpansion
@@ -97,17 +97,12 @@ estimate) are produced downstream and plugged into `kato_rellich_bound_zero`.
 * [Teschl, *Mathematical Methods in Quantum Mechanics*][teschl2014], §6.5.
 -/
 open Complex Filter InnerProductSpace
-open Spectra.QuantumMechanics
-open Spectra.QuantumMechanics.OneParameterUnitaryGroup
-open Spectra.QuantumMechanics.Observable
-open Spectra.QuantumMechanics.Stoneslemma
-open Spectra.QuantumMechanics.StonesTheorem
+open Spectra.OneParameterUnitaryGroup
+open Spectra.Stoneslemma
+open Spectra.StonesTheorem
 open Spectra.Resolvent
--- `resolvent_mem_domain` / `resolvent_solves` live in
--- `SpectralTheory/StoneFormula/Identities.lean`; if they are declared in the
--- `Spectra.QuantumMechanics.SpectralTheory` namespace rather than
--- `Spectra.Resolvent`, uncomment:
--- open Spectra.QuantumMechanics.SpectralTheory
+open Spectra.QuantumMechanics.Observable
+open Spectra.QuantumMechanics.SpectralTheory
 
 namespace Spectra.QuantumMechanics.Hamiltonian
 

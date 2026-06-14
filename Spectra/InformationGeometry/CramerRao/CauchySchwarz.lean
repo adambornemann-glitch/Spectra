@@ -5,6 +5,23 @@ Authors: Adam Bornemann
 -/
 import Spectra.InformationGeometry.CramerRao.Covariance
 
+/-!
+# Cauchy–Schwarz for Density-Weighted Integrals
+
+The Cauchy–Schwarz inequality and its equality case for the inner product
+`⟨f, g⟩_θ = ∫ f·g·p(θ) dμ` on `L²(P_θ)`. This is the analytic core of the Cramér–Rao bound
+(`Bound.lean`): the estimator–score pairing is controlled by the variance and the Fisher
+information, with equality exactly when the centred estimator and the score are proportional.
+
+## Main statements
+
+* `integral_mul_sq_le` — Cauchy–Schwarz: `(∫ f·g·p)² ≤ (∫ f²·p)·(∫ g²·p)`.
+* `integral_mul_sq_eq_iff` — equality holds iff `f` and `g` are proportional in `L²(P_θ)`.
+
+## References
+
+* S. Amari, H. Nagaoka, *Methods of Information Geometry*, AMS, 2000.
+-/
 open MeasureTheory ENNReal Real Set Filter Finset Metric
 open scoped Topology
 

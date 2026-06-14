@@ -4,7 +4,7 @@ Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
 Filename: ExpBounded/Basic.lean
 -/
-import Spectra.QuantumMechanics.Stone.Yosida.Convergence.Approximants
+import Spectra.Stone.Yosida.Convergence.Approximants
 /-!
 # Exponential of Bounded Operators
 
@@ -26,7 +26,7 @@ and establishes its basic properties including the group law and norm bounds.
 -/
 open Complex Filter Topology Spectra.Resolvent
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
-namespace Spectra.QuantumMechanics.Stone.Yosida
+namespace Spectra.Stone.Yosida
 
 
 /-! ### Definition -/
@@ -224,4 +224,4 @@ lemma expBounded_add_smul (B : H →L[ℂ] H) (s t : ℝ) :
   rw [NormedSpace.exp_add_of_commute h_comm]
   rfl
 
-end Spectra.QuantumMechanics.Stone.Yosida
+end Spectra.Stone.Yosida

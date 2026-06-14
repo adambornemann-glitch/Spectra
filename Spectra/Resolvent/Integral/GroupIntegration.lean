@@ -4,7 +4,7 @@ Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
 Filename: BochnerIntegration/ResolventII.lean
 -/
-import Spectra.QuantumMechanics.OneParameterUnitaryGroup.Basic
+import Spectra.OneParameterUnitaryGroup.Basic
 import Spectra.Mathlib.MeasureTheory.Integral.Basic
 /-!
 # Resolvent Integrals for Unitary Groups
@@ -33,7 +33,7 @@ resolvent, unitary group, Laplace transform
 -/
 open MeasureTheory Measure Filter Topology Complex
 open MeasureTheory.Integral
-open Spectra.QuantumMechanics OneParameterUnitaryGroup
+open Spectra.OneParameterUnitaryGroup
 
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
 namespace Spectra.Resolvent

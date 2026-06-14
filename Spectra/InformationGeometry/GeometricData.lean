@@ -2,13 +2,7 @@
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
-Target: Mathlib v4.31.0-rc1
-
-NOTE: adjust the import below to wherever `InfoGeometricGenerator` and
-`TwiceDifferentiableModel` live in your tree (the equivalence section at
-the bottom is the only part that needs them; `GeometricData` itself needs
-only `ParamSpace`).
--/
+Target: Mathlib v4.31.0-rc1-/
 import Spectra.InformationGeometry.Flow.Basic
 
 /-!

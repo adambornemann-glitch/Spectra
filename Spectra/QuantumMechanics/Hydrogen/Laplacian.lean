@@ -4,9 +4,9 @@ Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 
-import Spectra.QuantumMechanics.OneParameterUnitaryGroup.Basic
+import Spectra.OneParameterUnitaryGroup.Basic
+import Spectra.Stone.Basic
 import Spectra.QuantumMechanics.Observable.Basic
-import Spectra.QuantumMechanics.Stone.Basic
 import Spectra.SobolevSpaces.DensityResults
 import Spectra.SpectralTheory.ResolventForm
 import Mathlib.Analysis.Fourier.LpSpace
@@ -98,12 +98,11 @@ noncomputable section
 
 open MeasureTheory Complex Filter InnerProductSpace
 open Spectra.Sobolev
-open Spectra.QuantumMechanics
-open Spectra.QuantumMechanics.OneParameterUnitaryGroup
-open Spectra.QuantumMechanics.Observable
-open Spectra.QuantumMechanics.Stoneslemma
-open Spectra.QuantumMechanics.StonesTheorem
+open Spectra.OneParameterUnitaryGroup
+open Spectra.Stoneslemma
+open Spectra.StonesTheorem
 open Spectra.Resolvent
+open Spectra.QuantumMechanics.Observable
 open Spectra.QuantumMechanics.SpectralTheory
 open FourierTransform
 open scoped Topology NNReal ENNReal SchwartzMap ContDiff

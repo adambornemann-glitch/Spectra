@@ -28,10 +28,10 @@ and these averaged vectors lie in the domain.
 generator, self-adjoint, domain, Stone's lemma
 -/
 open InnerProductSpace MeasureTheory Complex Filter Topology
-open Spectra.QuantumMechanics OneParameterUnitaryGroup
+open Spectra.OneParameterUnitaryGroup
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
-variable (U_grp : OneParameterUnitaryGroup (H := H))
 namespace Spectra.Resolvent
+variable (U_grp : OneParameterUnitaryGroup (H := H))
 
 lemma range_plus_i_eq_top :
     ∀ φ : H, ∃ ψ : (generator U_grp).domain,

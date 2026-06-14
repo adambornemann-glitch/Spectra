@@ -5,6 +5,25 @@ Authors: Adam Bornemann
 -/
 import Spectra.InformationGeometry.CramerRao.CauchySchwarz
 
+/-!
+# The Cramér–Rao Bound
+
+The Cramér–Rao inequality lower-bounds the variance of any regular unbiased estimator by the
+reciprocal Fisher information. The proof applies Cauchy–Schwarz (`CauchySchwarz.lean`) to the
+centred estimator and the score in the density-weighted inner product, with the covariance–score
+identity (`Covariance.lean`) supplying the numerator.
+
+## Main statements
+
+* `cramerRao_scalar` — `Var_θ(T) ≥ (∂ᵢτ(θ))² / g_{ii}(θ)` for a regular unbiased estimator `T`
+  of a differentiable parameter function `τ`.
+* `cramerRao_saturated` — the saturation (equality) case of the bound.
+
+## References
+
+* C. R. Rao, "Information and accuracy attainable in the estimation of statistical
+  parameters", *Bull. Calcutta Math. Soc.* **37** (1945), 81–91.
+-/
 open MeasureTheory ENNReal Real Set Filter Finset Metric
 open scoped Topology
 

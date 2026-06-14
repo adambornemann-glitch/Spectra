@@ -7,11 +7,10 @@ Filename: UnitaryEvolution/Resolvent/IntegralZ.lean
 import Spectra.Resolvent.Diagonal.IntegralZ.Defs
 open Complex MeasureTheory Filter Topology
 
-open Spectra.QuantumMechanics
-open OneParameterUnitaryGroup
+open Spectra.OneParameterUnitaryGroup
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
-variable (U_grp : OneParameterUnitaryGroup (H := H))
 namespace Spectra.Resolvent
+variable (U_grp : OneParameterUnitaryGroup (H := H))
 
 /-- Bulk derivative: `(e^{izh} - 1)/h → iz` as `h → 0`. The `z`-generalization of
 `tendsto_exp_sub_one_div` (the `z = -i` case gives `iz = 1`). -/

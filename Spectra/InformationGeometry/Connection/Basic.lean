@@ -4,6 +4,29 @@ Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Spectra.InformationGeometry.Connection.AmariChentsov
+
+/-!
+# The α-Connections
+
+The one-parameter family of affine connections on a statistical manifold, built from the Fisher
+metric `g` and the Amari–Chentsov cubic tensor `C` (`AmariChentsov.lean`). The Levi-Civita
+Christoffel symbols `Γ^(0)` are corrected by `−(α/2)·C` to give `Γ^(α)`; `α = 1` is the
+exponential connection, `α = −1` the mixture connection. The dual pair `∇^(α)`, `∇^(−α)` with
+respect to `g` is the dualistic structure at the heart of information geometry.
+
+## Main definitions
+
+* `christoffelFirstKind` — Christoffel symbols of the first kind for the Fisher metric, `Γ^(0)`.
+* `alphaConnectionCoeff` — the α-connection coefficients `Γ^(α) = Γ^(0) − (α/2)·C`.
+
+## Main statements
+
+* `alpha_connection_duality` — the duality relation between the `α`- and `(−α)`-connections.
+
+## References
+
+* S. Amari, H. Nagaoka, *Methods of Information Geometry*, AMS, 2000.
+-/
 open MeasureTheory Finset Filter Topology TopologicalSpace
 namespace Spectra.InformationGeometry
 variable {n : ℕ} {Ω : Type*} [MeasurableSpace Ω]

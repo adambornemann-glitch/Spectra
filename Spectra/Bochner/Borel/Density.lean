@@ -12,13 +12,11 @@ open Complex MeasureTheory Filter Topology
 open Spectra.Resolvent
 open Spectra.Fourier
 open Spectra.Kernels
-open Spectra.QuantumMechanics
-open OneParameterUnitaryGroup
+open Spectra.OneParameterUnitaryGroup
 open scoped InnerProductSpace
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
-variable (U_grp : OneParameterUnitaryGroup (H := H))
-
 namespace Spectra.Borel
+variable (U_grp : OneParameterUnitaryGroup (H := H))
 
 /-- Poisson density of the diagonal resolvent:
 `pε(λ) := (1/π)·Im⟪ξ, R(λ+iε)ξ⟫`. -/

@@ -44,7 +44,7 @@ open scoped InnerProductSpace
 
 open Spectra.Borel
 open SpectralMeasure
-open Spectra.QuantumMechanics.OneParameterUnitaryGroup
+open Spectra.OneParameterUnitaryGroup
 
 /-! ## The Dirac Hamiltonian -/
 

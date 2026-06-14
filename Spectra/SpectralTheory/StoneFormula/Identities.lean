@@ -38,13 +38,11 @@ open scoped InnerProductSpace
 open Spectra.Borel
 open SpectralMeasure
 open Spectra.Kernels
-open Spectra.QuantumMechanics
 open Spectra.QuantumMechanics.SpectralTheory
-open Spectra.QuantumMechanics.OneParameterUnitaryGroup
+open Spectra.OneParameterUnitaryGroup
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
-variable (U_grp : OneParameterUnitaryGroup (H := H))
-
 namespace Spectra.Resolvent
+variable (U_grp : OneParameterUnitaryGroup (H := H))
 
 /-! ## Structural facts, read off the construction -/
 

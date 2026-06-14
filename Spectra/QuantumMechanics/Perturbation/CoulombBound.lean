@@ -3,12 +3,12 @@ Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
-import Spectra.QuantumMechanics.OneParameterUnitaryGroup.Basic
+import Spectra.OneParameterUnitaryGroup.Basic
+import Spectra.Stone.Basic
 import Spectra.QuantumMechanics.Perturbation.HardyInequality
 import Spectra.QuantumMechanics.Perturbation.KatoRellich
 import Spectra.SobolevSpaces.DensityResults
 import Spectra.QuantumMechanics.Observable.Basic
-import Spectra.QuantumMechanics.Stone.Basic
 import Spectra.SobolevSpaces.DensityResults
 import Spectra.SpectralTheory.ResolventForm
 import Spectra.Resolvent.Range
@@ -97,9 +97,9 @@ packaging, self-adjointness of hydrogen) is **proved**.
 -/
 open MeasureTheory Complex Filter InnerProductSpace
 open Spectra.Sobolev
-open Spectra.QuantumMechanics
-open Hamiltonian SpectralTheory OneParameterUnitaryGroup
+open Spectra.OneParameterUnitaryGroup
 open Spectra.QuantumMechanics.Observable
+open Spectra.QuantumMechanics.Hamiltonian
 open UnboundedObservable
 open Spectra.Resolvent
 open scoped Topology NNReal ENNReal

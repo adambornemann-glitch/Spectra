@@ -4,7 +4,7 @@ Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
 Filename: CayleyTransform/Inverse.lean
 -/
-import Spectra.CayleyTransform.Transform
+import Spectra.CayleyTransform.Defs
 /-!
 # The Inverse Cayley Transform
 

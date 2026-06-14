@@ -4,8 +4,8 @@ Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
 Filename: Yosida/Exponential.lean
 -/
-import Spectra.QuantumMechanics.Stone.Yosida.Commutation
-import Spectra.QuantumMechanics.Stone.Yosida.Symmetry
+import Spectra.Stone.Yosida.Commutation
+import Spectra.Stone.Yosida.Symmetry
 /-!
 # The Exponential Map and Stone's lemma (Converse)
 
@@ -38,7 +38,7 @@ operator generates a strongly continuous unitary group.
 -/
 open Complex Filter Topology InnerProductSpace
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
-namespace Spectra.QuantumMechanics.Stone.Yosida
+namespace Spectra.Stone.Yosida
 
 /-! ### Definition of the exponential -/
 
@@ -602,4 +602,4 @@ lemma exponential_generator_eq'
   rw [mul_inv, Complex.inv_I]
 
 
-end Spectra.QuantumMechanics.Stone.Yosida
+end Spectra.Stone.Yosida

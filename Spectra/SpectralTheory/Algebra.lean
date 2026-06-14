@@ -45,7 +45,7 @@ open scoped InnerProductSpace
 
 open Spectra.Borel
 open SpectralMeasure
-open Spectra.QuantumMechanics.OneParameterUnitaryGroup
+open Spectra.OneParameterUnitaryGroup
 
 /-! ## Spectral projection algebra (generic; extends `SpectralTheory`) -/
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]

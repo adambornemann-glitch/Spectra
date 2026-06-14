@@ -9,14 +9,12 @@ import Spectra.Fourier.IsUnique
 import Spectra.Kernel.Poisson.Lemmas
 
 open Complex MeasureTheory Filter Topology
-open Spectra.QuantumMechanics
-open OneParameterUnitaryGroup
+open Spectra.OneParameterUnitaryGroup
 open scoped InnerProductSpace
 open Spectra.Resolvent
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
-variable (U_grp : OneParameterUnitaryGroup (H := H))
-
 namespace Spectra.Fourier
+variable (U_grp : OneParameterUnitaryGroup (H := H))
 
 /-- Hermitian symmetry of the correlation:
 `⟪ξ, U(-t)ξ⟫ = conj⟪ξ, U(t)ξ⟫`, since `U(-t) = U(t)*`. -/

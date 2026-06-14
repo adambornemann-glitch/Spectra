@@ -4,13 +4,13 @@ Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
 Filename: UnitaryEvolution/Stone/Helpers.lean
 -/
-import Spectra.QuantumMechanics.OneParameterUnitaryGroup.Basic
+import Spectra.OneParameterUnitaryGroup.Basic
 
 open InnerProductSpace Complex Filter Topology
 open scoped ComplexConjugate
 
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
-namespace Spectra.QuantumMechanics.Stoneslemma
+namespace Spectra.Stoneslemma
 
 omit [CompleteSpace H] in
 /-- Lower bound for a symmetric operator off the real axis: `|z.im|·‖x‖ ≤ ‖A x − z•x‖`.
@@ -213,4 +213,4 @@ lemma IsSelfAdjoint.eq_of_le {A B : H →ₗ.[ℂ] H}
     ⟨fun w hw => hdom w hw, fun x y hxy => (hle.2 (x := y) (y := x) hxy.symm).symm⟩
   exact le_antisymm hle hB_le
 
-end Spectra.QuantumMechanics.Stoneslemma
+end Spectra.Stoneslemma

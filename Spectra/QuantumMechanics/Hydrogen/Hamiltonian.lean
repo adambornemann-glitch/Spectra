@@ -4,8 +4,8 @@ Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Spectra.QuantumMechanics.Perturbation.CoulombBound
-import Spectra.QuantumMechanics.OneParameterUnitaryGroup.Basic
-import Spectra.QuantumMechanics.Stone.Basic
+import Spectra.OneParameterUnitaryGroup.Basic
+import Spectra.Stone.Basic
 import Spectra.SpectralTheory.ResolventForm
 /-!
 # The Hydrogen Hamiltonian
@@ -43,10 +43,10 @@ under hydrogen-specific names and bundles it as an `UnboundedObservable` and a
 -/
 open MeasureTheory Complex Filter InnerProductSpace
 open Spectra.Sobolev
-open Spectra.QuantumMechanics
-open Hamiltonian SpectralTheory OneParameterUnitaryGroup StonesTheorem
+open Spectra.OneParameterUnitaryGroup Spectra.StonesTheorem Spectra.Resolvent
+open Spectra.QuantumMechanics.Hamiltonian
+open Spectra.QuantumMechanics.SpectralTheory
 open Spectra.QuantumMechanics.Observable
-open Spectra.Resolvent
 open scoped Topology NNReal ENNReal
 noncomputable section
 namespace Spectra.QuantumMechanics.Hydrogen

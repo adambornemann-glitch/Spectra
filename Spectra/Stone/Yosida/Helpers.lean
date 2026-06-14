@@ -22,7 +22,7 @@ open Complex
 open Spectra.Resolvent
 
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
-namespace Spectra.QuantumMechanics.Stone.Yosida
+namespace Spectra.Stone.Yosida
 
 /-! ### Arithmetic lemmas for `I * n` -/
 
@@ -82,4 +82,4 @@ lemma resolvent_spec' {A : H →ₗ.[ℂ] H}
   have h_eq := Classical.choose_spec (self_adjoint_range_all_z hsym hplus hminus z hz φ).exists
   exact ⟨ψ_sub.property, h_eq⟩
 
-end Spectra.QuantumMechanics.Stone.Yosida
+end Spectra.Stone.Yosida

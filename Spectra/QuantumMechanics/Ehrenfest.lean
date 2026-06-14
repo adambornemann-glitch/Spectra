@@ -8,9 +8,10 @@ import Spectra.QuantumMechanics.SchrodingerEquation
 import Mathlib.Analysis.InnerProductSpace.Continuous
 
 open InnerProductSpace Complex Filter Topology
-open Spectra.QuantumMechanics.StonesTheorem
+open Spectra.OneParameterUnitaryGroup
+open Spectra.StonesTheorem
 open Spectra.QuantumMechanics.Schrodinger
-open Spectra.QuantumMechanics.OneParameterUnitaryGroup
+
 namespace Spectra.QuantumMechanics.Ehrenfest
 
 /-- The ℂ-inner product is bounded ℝ-bilinear.

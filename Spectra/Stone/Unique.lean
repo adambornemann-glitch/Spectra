@@ -4,7 +4,7 @@ Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
 Filename: UnitaryEvolution/Stone/Unique.lean
 -/
-import Spectra.QuantumMechanics.Stone.Yosida.Exponential
+import Spectra.Stone.Yosida.Exponential
 import Spectra.Resolvent.Integral.Domain
 /-!
 
@@ -19,10 +19,10 @@ import Spectra.Resolvent.Integral.Domain
 Stone's lemma, unitary group, self-adjoint operator, spectral theory
 -/
 open InnerProductSpace Complex Filter Topology
-open Spectra.QuantumMechanics.OneParameterUnitaryGroup
+open Spectra.OneParameterUnitaryGroup
 
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
-namespace Spectra.QuantumMechanics.Stoneslemma
+namespace Spectra.Stoneslemma
 
 lemma unitary_orbit_hasDerivAt (U : OneParameterUnitaryGroup (H := H))
     (x : (generator U).domain) (s : ℝ) :
@@ -173,4 +173,4 @@ lemma group_unique (V W : OneParameterUnitaryGroup (H := H))
   exact ContinuousLinearMap.ext fun ψ =>
     congrFun (Continuous.ext_on hdense (V.U t).continuous (W.U t).continuous hpt) ψ
 
-end Spectra.QuantumMechanics.Stoneslemma
+end Spectra.Stoneslemma

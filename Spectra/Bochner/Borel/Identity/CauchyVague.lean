@@ -13,11 +13,10 @@ open Spectra.Resolvent
 open Spectra.Fourier
 open Spectra.Kernels
 open Spectra.Herglotz
-open Spectra.QuantumMechanics
-open OneParameterUnitaryGroup
-open scoped InnerProductSpace ENNReal ComplexConjugate
+open Spectra.OneParameterUnitaryGroup
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
-variable (U_grp : OneParameterUnitaryGroup (H := H))
+open scoped InnerProductSpace ENNReal ComplexConjugate
+
 
 namespace Spectra.Borel
 

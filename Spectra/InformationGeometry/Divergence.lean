@@ -23,9 +23,11 @@ Consequence: the Fisher metric is the **infinitesimal divergence** —
 the second-order Taylor expansion of D at the diagonal. Any map
 preserving D automatically preserves g.
 
+The KL divergence `klDiv` itself is defined once at the model level in `StatisticalModel.lean`;
+this file develops its calculus.
+
 ## Main statements
 
-* `klDiv` — KL divergence at the model level
 * `klDiv_self`, `klDiv_nonneg` — diagonal vanishing, Gibbs inequality
 * `klDiv_fderiv_eq_zero` — vanishing first derivative at the diagonal
 * `klDiv_hessian_eq_fisher` — **the Hessian theorem**
@@ -39,19 +41,15 @@ namespace TwiceDifferentiableModel
 
 variable (M : TwiceDifferentiableModel n Ω)
 
-/-! ### KL Divergence at the RegularStatisticalModel level
+/-! ### Calculus of the KL divergence
 
-We redefine KL divergence here at the model level rather than requiring
-the full StatisticalManifold structure. -/
-
-/-- The KL divergence D(θ₁ ‖ θ₂) for a regular statistical model. -/
-noncomputable def klDiv (θ₁ θ₂ : ParamSpace n) : ℝ :=
-  ∫ ω, M.density θ₁ ω * Real.log (M.density θ₁ ω / M.density θ₂ ω) ∂M.refMeasure
+`klDiv` is defined at the model level in `StatisticalModel.lean`; here we establish its
+diagonal behaviour, the Gibbs inequality, and the Hessian theorem. -/
 
 /-- D(θ ‖ θ) = 0: the divergence vanishes on the diagonal. -/
 lemma klDiv_self {θ : ParamSpace n} (_hθ : θ ∈ M.paramDomain) :
     M.klDiv θ θ = 0 := by
-  unfold klDiv
+  unfold StatisticalModel.klDiv
   have : (fun ω => M.density θ ω * Real.log (M.density θ ω / M.density θ ω)) = 0 := by
     ext ω
     by_cases h : M.density θ ω = 0
@@ -84,7 +82,7 @@ private lemma gibbs_pointwise {p q : ℝ} (hp : 0 < p) (hq : 0 < q) :
 lemma klDiv_nonneg {θ₁ θ₂ : ParamSpace n}
     (hθ₁ : θ₁ ∈ M.paramDomain) (hθ₂ : θ₂ ∈ M.paramDomain) :
     0 ≤ M.klDiv θ₁ θ₂ := by
-  unfold klDiv
+  unfold StatisticalModel.klDiv
   by_cases hInt : Integrable (fun ω => M.density θ₁ ω *
       Real.log (M.density θ₁ ω / M.density θ₂ ω)) M.refMeasure
   · have h_int_p := M.toStatisticalModel.integrable hθ₁
@@ -170,7 +168,7 @@ lemma klDiv_hasFDerivAt_self {θ : ParamSpace n} (hθ : θ ∈ M.paramDomain) :
       ∫ ω, M.density θ ω * Real.log (M.density θ ω) ∂M.refMeasure +
       (-∫ ω, M.density θ ω * Real.log (M.density θ' ω) ∂M.refMeasure) := by
     intro θ' hθ'
-    unfold klDiv
+    unfold StatisticalModel.klDiv
     have h_eq : ∀ᵐ ω ∂M.refMeasure,
         M.density θ ω * Real.log (M.density θ ω / M.density θ' ω) =
         M.density θ ω * Real.log (M.density θ ω) -
@@ -213,7 +211,7 @@ lemma klDiv_decomp {θ : ParamSpace n} (hθ : θ ∈ M.paramDomain)
     M.klDiv θ θ' =
       ∫ ω, M.density θ ω * Real.log (M.density θ ω) ∂M.refMeasure +
       (-∫ ω, M.density θ ω * Real.log (M.density θ' ω) ∂M.refMeasure) := by
-  unfold klDiv
+  unfold StatisticalModel.klDiv
   rw [← sub_eq_add_neg,
       ← integral_sub (M.entropy_integrable θ hθ) (M.crossEntropy_integrable θ hθ θ' hθ')]
   apply integral_congr_ae

@@ -17,7 +17,6 @@ lies in the generator domain and satisfies `A(R₊φ) = φ - iR₊φ`.
 generator, resolvent, limit
 -/
 open MeasureTheory Measure Filter Topology Complex
-open Spectra.QuantumMechanics
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
 namespace Spectra.Resolvent
 

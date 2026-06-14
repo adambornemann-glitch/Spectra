@@ -7,7 +7,7 @@ Target: Mathlib master (2026-06-10)
 -/
 import Mathlib.Analysis.InnerProductSpace.Basic
 import Mathlib.Algebra.Module.LinearMap.Star
-import Spectra.QuantumMechanics.Stone.Basic
+import Spectra.Stone.Basic
 /-!
 # Antiunitary conjugations
 
@@ -33,7 +33,7 @@ Sorry count: 0.
 open Complex Filter Topology
 open scoped InnerProductSpace
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H]
-open Spectra.QuantumMechanics OneParameterUnitaryGroup
+open Spectra.OneParameterUnitaryGroup
 namespace Spectra.QuantumMechanics.SpectralTheory
 
 

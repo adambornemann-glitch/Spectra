@@ -5,14 +5,13 @@ Authors: Adam Bornemann
 Filename: UnitaryEvolution/Resolvent/IntegralZ.lean
 -/
 import Spectra.Resolvent.Identities
-import Spectra.QuantumMechanics.Stone.Basic
+import Spectra.Stone.Basic
 
 open Complex MeasureTheory
-open Spectra.QuantumMechanics
-open OneParameterUnitaryGroup
+open Spectra.OneParameterUnitaryGroup
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
-variable (U_grp : OneParameterUnitaryGroup (H := H))
 namespace Spectra.Resolvent
+variable (U_grp : OneParameterUnitaryGroup (H := H))
 
 /-- Resolvent integral at general `z` in the lower half-plane:
     `R(z)φ = (-i) ∫₀^∞ e^{-izt} U(t)φ dt`.  At `z = -i` this is `resolventIntegralPlus`. -/

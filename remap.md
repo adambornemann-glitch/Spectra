@@ -144,16 +144,17 @@ InformationGeometry/
 - **Minor:** `GeometricData.lean` header carries cruft (`Target:` line + a `NOTE:` paragraph
   inside the copyright block) — clean during the rename pass.
 
-### Remaining follow-ups (post-move, none block the build)
-1. **Module-title gap** — 7 files have only `/-! ### section -/` blocks, no titled
-   `/-! # Title … -/`: `CramerRao/{Bound, CauchySchwarz, Covariance}`,
-   `Connection/{Basic, AmariChentsov}`, `Flow/Schrodinger`, `Flow/Family`. Additive, no build risk.
-2. **Stale prose filename refs** (8, cosmetic — docstrings mention old paths): `Connection/Bartlett`
-   (`CubicTensor.lean`), `Flow/CubicInvariance` (`mConnect.lean` ×3), `Flow/FaaDiBruno` (`Hessian.lean`),
-   `Regularity` (`InformationGeometry.Dynamics`), `StatisticalManifold` (`KLDivergence.lean` ×2 — should
-   point to `Divergence.lean`). Sweep alongside #1.
-3. **KL consolidation** (§3.1 of the audit) — still pending: merge `klDivergence` into one model-level
-   `klDiv`. Separate code change.
+### Remaining follow-ups (post-move)
+1. ~~**Module-title gap**~~ — DONE 2026-06-13: titled `/-! # Title … -/` module docstrings added to all
+   7 files (`CramerRao/{Bound, CauchySchwarz, Covariance}`, `Connection/{Basic, AmariChentsov}`,
+   `Flow/{Schrodinger, Family}`). Every IG file now has a titled module doc; build green.
+2. ~~**Stale prose filename refs**~~ — DONE 2026-06-13: all 9 cosmetic refs reworded to new names
+   (`CubicTensor`→`AmariChentsov`, `mConnect`→`MixtureConnection` ×3, `Hessian`→`Divergence`, the
+   `Dynamics`-namespace prose, `KLDivergence`→`Divergence` ×2, `Models`→`Regularity`). Sweep is clean.
+3. ~~**KL consolidation**~~ — DONE 2026-06-13: one `StatisticalModel.klDiv` on the base structure
+   (it owns `density`/`refMeasure`); the `TwiceDifferentiableModel.klDiv` duplicate removed (234
+   `M.klDiv` sites resolve via `extends`), `klDivergence` + `klDivergence_self` deleted, and the 4
+   `unfold klDiv` retargeted to `unfold StatisticalModel.klDiv`. `lake build` green (3960 jobs).
 
 ---
 
@@ -172,3 +173,9 @@ _(record `accepted` / rejected decisions here as they're made, with date)_
   Spectra.lean regenerated; `lake build` green (3959 jobs). (Some renames — Fisher/Metric,
   Fisher/Information, MConnect — were already on disk from concurrent edits; reconciled.)
   Remaining: module-title gap (7), KL consolidation, 8 cosmetic prose refs.
+- 2026-06-13 — follow-ups #1 (7 titled module docstrings) + #2 (9 stale prose refs) DONE; full
+  `lake build` green (3960 jobs). Only the KL `klDivergence`→`klDiv` consolidation remains.
+- 2026-06-13 — **KL consolidation DONE**: single `StatisticalModel.klDiv`; removed
+  `TwiceDifferentiableModel.klDiv` + `klDivergence`/`klDivergence_self`; retargeted 4 `unfold` sites.
+  `lake build` green (3960). InformationGeometry reorg + cleanup fully complete (only the trivial
+  `GeometricData.lean` header cruft — a stray `Target:`/`NOTE:` block — remains as cosmetic tidy-up).

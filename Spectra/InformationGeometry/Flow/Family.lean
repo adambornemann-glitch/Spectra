@@ -7,6 +7,29 @@ import Spectra.InformationGeometry.Divergence
 import Spectra.InformationGeometry.Connection.AmariChentsov
 import Spectra.InformationGeometry.Connection.Basic
 
+/-!
+# Divergence-Preserving Families
+
+The information-geometric analogue of a one-parameter unitary group: a smooth family
+`φ_t : Θ → Θ` that preserves the KL divergence between every pair of points. This file defines
+the family, its second derivative, and the m-connection trilinear form, and shows that
+divergence preservation already forces preservation of the Fisher metric.
+
+## Main definitions
+
+* `DivergencePreservingFamily` — a divergence-preserving one-parameter family `φ_t`.
+* `mConnectionTrilin` — the m-connection as a trilinear form.
+* `secondDerivPhi` — the second derivative `d²φ_t` of the family.
+
+## Main statements
+
+* `preserves_fisher` — a divergence-preserving family preserves the Fisher metric.
+* `mConnectionTrilin_single` — the trilinear form on a basis triple recovers `Γᵐ_{ab,c}`.
+
+## References
+
+* S. Amari, H. Nagaoka, *Methods of Information Geometry*, AMS, 2000.
+-/
 open MeasureTheory Finset Filter Topology TopologicalSpace
 namespace Spectra.InformationGeometry
 variable {n : ℕ} {Ω : Type*} [MeasurableSpace Ω]

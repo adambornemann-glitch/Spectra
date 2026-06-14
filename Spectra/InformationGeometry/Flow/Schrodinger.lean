@@ -5,16 +5,31 @@ Authors: Adam Bornemann
 -/
 import Spectra.InformationGeometry.Flow.Basic
 
+/-!
+# The Information-Geometric Schrödinger Equations
+
+The evolution equations of a divergence-preserving flow `φ_t`, mirroring the quantum Schrödinger
+equations and the Ehrenfest theorem. The generator `X` (a Killing, cubic-preserving vector field)
+plays the role of `iA`, the parameter trajectory the role of the evolving state, and the KL
+divergence the role of the conserved inner product.
+
+## Main statements
+
+* `infoGeometric_schrodinger₁` — initial velocity: `d/dt φ_t(θ)|₀ = X(θ)`.
+* `infoGeometric_schrodinger₂` — evolution: `d/dt φ_t(θ) = X(φ_t θ)`.
+* `infoGeometric_schrodinger₃` — divergence conservation: `d/dt D(φ_t θ₁ ‖ φ_t θ₂) = 0`.
+* `infoGeometric_ehrenfest` — observable evolution: `d/dt f(φ_t θ) = df(X(φ_t θ))`.
+
+## References
+
+* S. Amari, H. Nagaoka, *Methods of Information Geometry*, AMS, 2000.
+-/
 open MeasureTheory Finset Filter Topology TopologicalSpace
 variable {n : ℕ} {Ω : Type*} [MeasurableSpace Ω]
 namespace Spectra.InformationGeometry
 variable (M : TwiceDifferentiableModel n Ω)
 namespace TwiceDifferentiableModel
 variable (F : M.DivergencePreservingFamily)
-
--- ============================================================================
--- # The Information-Geometric Schrödinger Equations
--- ============================================================================
 
 /-! ### IG Schrödinger equations
 

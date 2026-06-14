@@ -6,12 +6,10 @@ Filename: UnitaryEvolution/Resolvent/IntegralZ/DiffQuotient.lean
 -/
 import Spectra.Resolvent.Diagonal.IntegralZ.Shift
 open Complex
-open Spectra.QuantumMechanics
-open OneParameterUnitaryGroup
+open Spectra.OneParameterUnitaryGroup
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
-variable (U_grp : OneParameterUnitaryGroup (H := H))
-
 namespace Spectra.Resolvent
+variable (U_grp : OneParameterUnitaryGroup (H := H))
 
 lemma genZ_diffQuotient_pos {z : ℂ} (hz : z.im < 0) (φ : H) (h : ℝ) (hh : h > 0) :
     ((I * (h : ℂ))⁻¹ : ℂ) • (U_grp.U h (resolventIntegralZ U_grp z φ) -

@@ -108,10 +108,9 @@ open Spectra.Fourier
 
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
 
-namespace Spectra.QuantumMechanics
-open OneParameterUnitaryGroup
+open Spectra.OneParameterUnitaryGroup
 
-namespace SpectralTheory
+namespace Spectra.QuantumMechanics.SpectralTheory
 
 variable (U_grp : OneParameterUnitaryGroup (H := H))
 

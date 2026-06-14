@@ -46,7 +46,7 @@ open scoped ComplexConjugate
 
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H]
 
-namespace Spectra.QuantumMechanics
+namespace Spectra
 
 structure OneParameterUnitaryGroup (H : Type*) [NormedAddCommGroup H]
     [InnerProductSpace ℂ H] [CompleteSpace H] where
@@ -265,4 +265,4 @@ lemma isSelfAdjoint_of_surjective_addSub
   exact ⟨hw, x.2, hxeq⟩
 
 end OneParameterUnitaryGroup
-end Spectra.QuantumMechanics
+end Spectra

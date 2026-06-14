@@ -8,12 +8,11 @@ import Spectra.Resolvent.Diagonal.IntegralZ.GeneratorLim
 import Spectra.Resolvent.Integral.Domain
 
 open Complex
-open Spectra.QuantumMechanics
-open OneParameterUnitaryGroup
+open Spectra.OneParameterUnitaryGroup
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
-variable (U_grp : OneParameterUnitaryGroup (H := H))
 
 namespace Spectra.Resolvent
+variable (U_grp : OneParameterUnitaryGroup (H := H))
 
 /-- Hence `(A - z)` sends the integral to `φ`, so it IS the resolvent. -/
 theorem resolventIntegralZ_eq_resolvent {z : ℂ} (hz : z.im < 0) (φ : H) :

@@ -4,6 +4,31 @@ Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Spectra.InformationGeometry.Divergence
+
+/-!
+# The Amari–Chentsov Cubic Tensor
+
+The totally symmetric `(0,3)`-tensor `C_{ijk}(θ) = E_θ[sᵢ sⱼ sₖ]`, the third cumulant of the
+score vector. Together with the Fisher metric it determines the family of α-connections
+(`Basic.lean`). This file defines the tensor, its trilinear form, and the intrinsic
+m-connection coefficient, and decomposes the third derivative of the KL divergence at the
+diagonal into the cubic tensor plus m-connection terms.
+
+## Main definitions
+
+* `cubicTensor` — the Amari–Chentsov tensor `C_{ijk}(θ) = E_θ[sᵢ sⱼ sₖ]`.
+* `cubicTrilin` — `C` as a trilinear form on tangent vectors.
+* `mConnectionCoeff` — the intrinsic mixture-connection coefficient `Γ^(m)_{ab,c}`.
+
+## Main statements
+
+* `cubicTensor_symm₁₂`, `cubicTensor_symm₂₃`, `cubicTensor_symm₁₃` — total symmetry of `C`.
+* `klDiv_third_deriv_decomposition` — `∂³D = C_{ijk} + Γ^(m)_{ik,j} + Γ^(m)_{jk,i} + Γ^(m)_{ij,k}`.
+
+## References
+
+* S. Amari, H. Nagaoka, *Methods of Information Geometry*, AMS, 2000.
+-/
 open MeasureTheory Finset Filter Topology TopologicalSpace
 namespace Spectra.InformationGeometry
 variable {n : ℕ} {Ω : Type*} [MeasurableSpace Ω]

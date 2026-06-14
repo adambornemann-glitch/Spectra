@@ -12,13 +12,11 @@ open Spectra.Resolvent
 open Spectra.Herglotz
 open Spectra.Fourier
 open Spectra.Kernels
-open Spectra.QuantumMechanics
-open OneParameterUnitaryGroup
+open Spectra.OneParameterUnitaryGroup
 open scoped InnerProductSpace
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
-variable (U_grp : OneParameterUnitaryGroup (H := H))
-
 namespace Spectra.Borel
+variable (U_grp : OneParameterUnitaryGroup (H := H))
 
 /-- The cumulative distribution function of the spectral density `borelDensity ε`. -/
 noncomputable def borelCDF (U_grp : OneParameterUnitaryGroup (H := H)) (ξ : H)

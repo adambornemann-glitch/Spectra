@@ -56,7 +56,7 @@ This is `cross_score_differentiableAt`'s Leibniz interchange, upgraded
 to keep the derivative and evaluate its components.  (That lemma is the
 `.differentiableAt` shadow of this one and could be re-derived from it
 in one line; this lemma morally belongs next to its siblings in
-`Hessian.lean`.) -/
+`Divergence.lean`.) -/
 lemma cross_score_hasFDerivAt'
     {θ θ₀ : ParamSpace n} (hθ : θ ∈ M.paramDomain)
     (hθ₀ : θ₀ ∈ M.paramDomain) (j : Fin n) :

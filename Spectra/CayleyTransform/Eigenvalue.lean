@@ -4,7 +4,7 @@ Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
 Filename: CayleyTransform/EigenValue.lean
 -/
-import Spectra.CayleyTransform.Transform
+import Spectra.CayleyTransform.Defs
 import Spectra.CayleyTransform.Mobius
 import Mathlib.Analysis.CStarAlgebra.ContinuousFunctionalCalculus.Basic
 import Mathlib.Analysis.CStarAlgebra.ContinuousLinearMap

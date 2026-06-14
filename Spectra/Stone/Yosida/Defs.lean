@@ -4,8 +4,8 @@ Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
 Filename: Yosida/Defs.lean
 -/
-import Spectra.QuantumMechanics.Stone.Yosida.Helpers
-import Spectra.QuantumMechanics.OneParameterUnitaryGroup.Basic
+import Spectra.Stone.Yosida.Helpers
+import Spectra.OneParameterUnitaryGroup.Basic
 /-!
 # Yosida Approximation Operators
 
@@ -29,7 +29,7 @@ exponential of a self-adjoint operator.
 -/
 open Complex Spectra.Resolvent
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
-namespace Spectra.QuantumMechanics.Stone.Yosida
+namespace Spectra.Stone.Yosida
 
 /-! ### Resolvent at specific points -/
 
@@ -105,4 +105,4 @@ lemma resolventAtIn_bound {A : H →ₗ.[ℂ] H}
         resolvent_bound hsym hplus hminus (I * (n : ℂ)) (I_mul_pnat_im_ne_zero n)
     _ = 1 / (n : ℝ) := by rw [abs_I_mul_pnat_im]
 
-end Spectra.QuantumMechanics.Stone.Yosida
+end Spectra.Stone.Yosida

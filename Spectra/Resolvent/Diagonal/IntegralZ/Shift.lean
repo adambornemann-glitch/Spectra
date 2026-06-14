@@ -8,13 +8,10 @@ import Spectra.Resolvent.Diagonal.IntegralZ.Tendsto
 import Spectra.Resolvent.Integral.Limits.Helpers
 
 open Complex
-open Spectra.QuantumMechanics
-open OneParameterUnitaryGroup
+open Spectra.OneParameterUnitaryGroup
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
-variable (U_grp : OneParameterUnitaryGroup (H := H))
-
 namespace Spectra.Resolvent
-
+variable (U_grp : OneParameterUnitaryGroup (H := H))
 lemma expZ_orbit_continuous {z : ℂ} (φ : H) :
     Continuous (fun t : ℝ => cexp (-(I * z * (t : ℂ))) • U_grp.U t φ) :=
   (Complex.continuous_exp.comp ((Complex.continuous_ofReal.const_mul (I * z)).neg)).smul

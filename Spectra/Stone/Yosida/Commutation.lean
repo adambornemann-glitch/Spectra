@@ -4,7 +4,7 @@ Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
 Filename: Duhamel/Commutation.lean
 -/
-import Spectra.QuantumMechanics.Stone.Yosida.ExpBounded.Unitary
+import Spectra.Stone.Yosida.ExpBounded.Unitary
 
 /-!
 # Commutation Properties for Duhamel's Formula
@@ -16,7 +16,7 @@ unitary group, and that certain norms are constant along orbits.
 open Complex MeasureTheory Filter Topology InnerProductSpace
 open Spectra.Resolvent
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
-namespace Spectra.QuantumMechanics.Stone.Yosida
+namespace Spectra.Stone.Yosida
 
 lemma yosidaApproxSym_commute
     {A : H →ₗ.[ℂ] H} (hsym : A.IsFormalAdjoint A)
@@ -195,4 +195,4 @@ lemma expBounded_yosidaApproxSym_cauchy_intrinsic
         linarith [hN m hm n hn, hφ_close]
     _ = ε := by ring
 
-end Spectra.QuantumMechanics.Stone.Yosida
+end Spectra.Stone.Yosida

@@ -5,6 +5,25 @@ Authors: Adam Bornemann
 -/
 import Spectra.InformationGeometry.CramerRao.Basic
 
+/-!
+# Score–Estimator Covariance Identity
+
+The identity at the heart of the Cramér–Rao bound: the covariance of an estimator with the score
+equals the derivative of its expectation, `Cov_θ(T, sᵢ) = ∂ᵢ E_θ[T]`. Establishing it requires a
+Leibniz rule for differentiating `θ ↦ ∫ T(ω)·p(θ,ω) dμ` under the integral sign, plus the
+integrability of the centred estimator/score products.
+
+## Main statements
+
+* `covariance_score_eq_deriv_target` — `Cov_θ(T, sᵢ) = ∂ᵢ E_θ[T]`.
+* `hasFDerivAt_integral_T_density` — Leibniz rule: `θ ↦ ∫ T·p(θ,·) dμ` is Fréchet differentiable.
+* `estimator_score_integrable`, `centered_sq_integrable`, `centered_score_integrable`,
+  `centered_estimator_score_integral` — supporting integrability lemmas.
+
+## References
+
+* S. Amari, H. Nagaoka, *Methods of Information Geometry*, AMS, 2000.
+-/
 open MeasureTheory ENNReal Real Set Filter Finset Metric
 open scoped Topology
 

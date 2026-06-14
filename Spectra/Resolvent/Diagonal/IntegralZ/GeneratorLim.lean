@@ -8,12 +8,10 @@ import Spectra.Resolvent.Diagonal.IntegralZ.DiffQuotient
 import Spectra.Resolvent.Diagonal.IntegralZ.Bulk
 
 open Complex Filter Topology
-open Spectra.QuantumMechanics
-open OneParameterUnitaryGroup
+open Spectra.OneParameterUnitaryGroup
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
-variable (U_grp : OneParameterUnitaryGroup (H := H))
-
 namespace Spectra.Resolvent
+variable (U_grp : OneParameterUnitaryGroup (H := H))
 
 lemma genZ_boundary_neg {z : ℂ} (φ : H) :
     Tendsto (fun h : ℝ => -(h : ℂ)⁻¹ • cexp (I * z * (h : ℂ)) •

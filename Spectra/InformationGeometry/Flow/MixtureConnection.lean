@@ -71,7 +71,7 @@ information of (I) is what separates `C` from `Γ`.
 (I) requires differentiating `θ' ↦ g_{ij}(θ')` — a Leibniz interchange
 with *live* density.  This is supplied by the new
 `ThriceDifferentiableModel.fisherMatrix_hasFDerivAt` field (see the
-design note in `Models.lean`).  Everything else is assembled from
+design note in `Regularity.lean`).  Everything else is assembled from
 `cross_score_hasFDerivAt'`, `klDiv_third_partial`,
 `klDiv_third_deriv_decomposition`, `bartlett2_hasFDerivAt`,
 `kl_faa_di_bruno`, and `third_deriv_transfer`.

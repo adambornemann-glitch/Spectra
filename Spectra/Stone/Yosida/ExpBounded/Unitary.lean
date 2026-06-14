@@ -4,7 +4,7 @@ Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
 Filename: ExpBounded/Unitary.lean
 -/
-import Spectra.QuantumMechanics.Stone.Yosida.ExpBounded.Adjoint
+import Spectra.Stone.Yosida.ExpBounded.Adjoint
 /-!
 # Unitarity of Exponentials of Skew-Adjoint Operators
 
@@ -22,8 +22,9 @@ and establishes derivative formulas for the bounded exponential.
 -/
 open Complex Filter Topology InnerProductSpace
 open Spectra.Resolvent
+open Spectra.OneParameterUnitaryGroup
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
-namespace Spectra.QuantumMechanics.Stone.Yosida
+namespace Spectra.Stone.Yosida
 variable {U_grp : OneParameterUnitaryGroup (H := H)}
 
 /-! ### Skew-adjoint implies unitary exponential -/
@@ -214,4 +215,4 @@ lemma expBounded_hasDerivAt (B : H →L[ℂ] H) (τ : ℝ) :
   rw [h_comm] at h_post
   exact h_post.congr_of_eventuallyEq (Eventually.of_forall (fun t => (h_eq t)))
 
-end Spectra.QuantumMechanics.Stone.Yosida
+end Spectra.Stone.Yosida

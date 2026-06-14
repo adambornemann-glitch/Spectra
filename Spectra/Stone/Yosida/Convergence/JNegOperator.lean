@@ -4,7 +4,7 @@ Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
 Filename: Convergence/JNegOperator.lean
 -/
-import Spectra.QuantumMechanics.Stone.Yosida.Convergence.JOperator
+import Spectra.Stone.Yosida.Convergence.JOperator
 
 /-!
 # Convergence of the JNeg Operator
@@ -21,7 +21,7 @@ strongly to the identity on the domain, and extends this to all of H by density.
 -/
 open Complex Filter Topology Spectra.Resolvent
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
-namespace Spectra.QuantumMechanics.Stone.Yosida
+namespace Spectra.Stone.Yosida
 variable {U_grp : OneParameterUnitaryGroup (H := H)}
 
 lemma yosidaJNeg_eq_sub_resolvent_A {A : H →ₗ.[ℂ] H}
@@ -166,4 +166,4 @@ lemma yosidaJNeg_tendsto_id {A : H →ₗ.[ℂ] H}
             exact mem_ball_iff_norm.mpr hφ_close
     _ = ε := by ring
 
-end Spectra.QuantumMechanics.Stone.Yosida
+end Spectra.Stone.Yosida

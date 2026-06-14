@@ -4,7 +4,7 @@ Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
 Filename: ExpBounded/Adjoint.lean
 -/
-import Spectra.QuantumMechanics.Stone.Yosida.ExpBounded.Helpers
+import Spectra.Stone.Yosida.ExpBounded.Helpers
 
 /-!
 # Adjoint Properties of Bounded Exponentials
@@ -23,7 +23,7 @@ This is crucial for proving unitarity of exponentials of skew-adjoint operators.
 -/
 open Complex Filter Topology InnerProductSpace
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
-namespace Spectra.QuantumMechanics.Stone.Yosida
+namespace Spectra.Stone.Yosida
 
 /-! ### Power of adjoint -/
 
@@ -160,4 +160,4 @@ lemma expBounded_adjoint (B : H →L[ℂ] H) (t : ℝ) :
     ContinuousLinearMap.adjoint (expBounded B t) = expBounded (ContinuousLinearMap.adjoint B) t :=
   adjoint_expBounded B t
 
-end Spectra.QuantumMechanics.Stone.Yosida
+end Spectra.Stone.Yosida

@@ -13,7 +13,7 @@ function and its derivatives under a regular statistical model: differentiating 
 normalization `∫ p(θ,ω) dμ = 1` repeatedly in `θ` produces a family of vanishing
 expectations. This file formalizes the order-2 and order-3 identities, which are the
 analytic backbone of the Amari–Chentsov cubic tensor and the third-derivative
-decomposition of the KL divergence (see `CubicTensor.lean`).
+decomposition of the KL divergence (see `AmariChentsov.lean`).
 
 ## Main statements
 

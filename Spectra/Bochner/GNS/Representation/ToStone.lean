@@ -6,7 +6,7 @@ Filename: BochnerTheorem/GNS/Completion/ToStone.lean
 -/
 import Spectra.Bochner.GNS.Representation.StronglyEx
 import Spectra.Bochner.GNS.Representation.Cyclic
-import Spectra.QuantumMechanics.Stone.Basic
+import Spectra.Stone.Basic
 open Complex Finsupp Filter Topology
 namespace Spectra.Bochner.GNS
 
@@ -23,7 +23,7 @@ structure from `UnitaryEvolution/Generator.lean`. The map is:
 -/
 noncomputable def toOneParameterUnitaryGroup {f : ℝ → ℂ}
     (gns : GNSUnitaryGroup f) :
-    @QuantumMechanics.OneParameterUnitaryGroup gns.H
+    @OneParameterUnitaryGroup gns.H
     gns.instNACG gns.instIPS gns.instComplete := by
   letI := gns.instNACG
   letI := gns.instIPS

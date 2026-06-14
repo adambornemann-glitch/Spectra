@@ -4,7 +4,7 @@ Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
 Filename: Convergence/Approximants.lean
 -/
-import Spectra.QuantumMechanics.Stone.Yosida.Convergence.JNegOperator
+import Spectra.Stone.Yosida.Convergence.JNegOperator
 /-!
 # Convergence of Yosida Approximants
 
@@ -24,7 +24,7 @@ strongly to the generator `A` on its domain.
 -/
 open Complex Filter Topology Spectra.Resolvent
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
-namespace Spectra.QuantumMechanics.Stone.Yosida
+namespace Spectra.Stone.Yosida
 variable {U_grp : OneParameterUnitaryGroup (H := H)}
 
 lemma yosidaApprox_eq_J_comp_A {A : H →ₗ.[ℂ] H}
@@ -231,4 +231,4 @@ lemma yosidaApprox_commutes_resolvent {A : H →ₗ.[ℂ] H}
   simp only [resolventAtIn] at h_resolvent_comm
   rw [h_resolvent_comm]
 
-end Spectra.QuantumMechanics.Stone.Yosida
+end Spectra.Stone.Yosida

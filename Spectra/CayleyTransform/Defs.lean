@@ -4,7 +4,7 @@ Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
 Filename: CayleyTransform/Transform.lean
 -/
-import Spectra.QuantumMechanics.Stone.Basic
+import Spectra.Stone.Basic
 import Spectra.QuantumMechanics.Observable.Basic
 import Spectra.Resolvent.SpecialCases
 import Spectra.Resolvent.NormExpansion
@@ -20,12 +20,12 @@ fundamental properties: it is an isometry, surjective, and unitary.
 -/
 open Complex
 open Spectra.Resolvent
-open Spectra.QuantumMechanics
+open Spectra.OneParameterUnitaryGroup
+open Spectra.Stoneslemma
 open Spectra.Operator
-open OneParameterUnitaryGroup
-open Observable
+open Spectra.QuantumMechanics.Observable
 open UnboundedObservable
-open Stoneslemma
+
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H]
 
 namespace Spectra.Cayley

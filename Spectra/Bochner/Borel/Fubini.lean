@@ -9,12 +9,11 @@ import Spectra.Resolvent.Diagonal.Basic
 
 open Complex MeasureTheory
 open scoped InnerProductSpace
-open Spectra.QuantumMechanics
-open OneParameterUnitaryGroup
+open Spectra.OneParameterUnitaryGroup
 open Spectra.Fourier
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
-variable (U_grp : OneParameterUnitaryGroup (H := H))
 namespace Spectra.Borel
+variable (U_grp : OneParameterUnitaryGroup (H := H))
 
 /-- Integrate `key_identity`'s integrand
 against `e^{-δ|λ|}`, swap, evaluate. -/

@@ -4,7 +4,7 @@ Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
 Filename: Convergence/JOperator.lean
 -/
-import Spectra.QuantumMechanics.Stone.Yosida.Symmetry
+import Spectra.Stone.Yosida.Symmetry
 /-!
 # Convergence of the J Operator
 
@@ -20,7 +20,7 @@ strongly to the identity on the domain, and extends this to all of H by density.
 -/
 open Complex Filter Topology Spectra.Resolvent
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
-namespace Spectra.QuantumMechanics.Stone.Yosida
+namespace Spectra.Stone.Yosida
 variable {U_grp : OneParameterUnitaryGroup (H := H)}
 
 lemma yosidaJ_eq_sub_resolvent_A {A : H →ₗ.[ℂ] H}
@@ -147,4 +147,4 @@ lemma yosida_J_tendsto_id {A : H →ₗ.[ℂ] H}
         · exact Metric.mem_ball'.mp hφ_close
     _ = ε := by ring
 
-end Spectra.QuantumMechanics.Stone.Yosida
+end Spectra.Stone.Yosida

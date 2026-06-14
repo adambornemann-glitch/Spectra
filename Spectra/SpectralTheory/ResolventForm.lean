@@ -4,12 +4,12 @@ Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
 Filename: SpectralTheory/Keystone.lean
 -/
-import Spectra.ProjValMeasure.Basic              -- ProjValMeasure, ext_of_diag
-import Spectra.Herglotz.CauchyInjective          -- measure_ext_of_cauchyTransform
-import Spectra.QuantumMechanics.Stone.Basic      -- genToGroup, generator_genToGroup
-import Spectra.QuantumMechanics.Stone.Helpers    -- isSelfAdjoint_to_surjective
+import Spectra.ProjValMeasure.Basic               -- ProjValMeasure, ext_of_diag
+import Spectra.Herglotz.CauchyInjective           -- measure_ext_of_cauchyTransform
+import Spectra.Stone.Basic                        -- genToGroup, generator_genToGroup
+import Spectra.Stone.Helpers                      -- isSelfAdjoint_to_surjective
 import Spectra.Resolvent.Diagonal.IntegralZ.Basic -- inner_resolvent_diag_eq_integral
-import Spectra.SpectralTheory.StoneFormula.Basic -- stonesFormula (for the coda)
+import Spectra.SpectralTheory.StoneFormula.Basic  -- stonesFormula (for the coda)
 import Spectra.Resolvent.Range
 import Spectra.Bochner.Borel.CDF
 /-!
@@ -52,16 +52,12 @@ is phrased through `resolvent_integrand`, adjust `spectralPVM_resolvent_formula`
 
 open InnerProductSpace Complex MeasureTheory Filter Topology
 open scoped InnerProductSpace
-open Spectra
+open Spectra.OneParameterUnitaryGroup
 open Spectra.Resolvent
 open Spectra.Borel
-open Spectra.QuantumMechanics
-open Stoneslemma
-open StonesTheorem
-open Spectra.QuantumMechanics.SpectralTheory
-open Spectra.QuantumMechanics.OneParameterUnitaryGroup
+open Spectra.Stoneslemma
+open Spectra.StonesTheorem
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
-
 namespace Spectra.QuantumMechanics.SpectralTheory
 
 /-! ## The resolvent of a self-adjoint operator, canonically packaged -/
@@ -202,5 +198,20 @@ theorem stonesFormula_spectralPVM {A : H →ₗ.[ℂ] H} (hA : IsSelfAdjoint A)
                 + (1 / 2 : ℂ) • (spectralPVM hA).proj {b}
                     (measurableSet_singleton b))) ξ)) :=
   stonesFormula (genToGroup hA) a b hab ξ
+
+/-- Operator form: `e^{itA}` is the spectral-calculus exponential of A's spectral measure. -/
+theorem genToGroup_eq_spectralCalculus_char {A : H →ₗ.[ℂ] H} (hA : IsSelfAdjoint A) (t : ℝ) :
+    (genToGroup hA).U t
+      = spectralCalculus (genToGroup hA) (fun l => cexp (I * l * t))
+          (char_measurable t) (char_bdd t) :=
+  (spectralCalculus_char (genToGroup hA) t).symm
+
+/-- Scalar form: `⟪ξ, e^{itA} ξ⟫ = ∫ e^{itλ} dE_A(λ)`, against the diagonal of A's spectral PVM. -/
+theorem inner_genToGroup_eq_integral {A : H →ₗ.[ℂ] H} (hA : IsSelfAdjoint A) (t : ℝ) (ξ : H) :
+    ⟪ξ, (genToGroup hA).U t ξ⟫_ℂ
+      = ∫ l, cexp (I * l * t) ∂((spectralPVM hA).diag ξ) := by
+  simp only [spectralPVM_diag]
+  rw [← spectralForm_self (genToGroup hA) ξ (char_measurable t) (char_bdd t)]
+  exact (spectralForm_char (genToGroup hA) ξ ξ t).symm
 
 end Spectra.QuantumMechanics.SpectralTheory

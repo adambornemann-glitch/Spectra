@@ -4,7 +4,7 @@ Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
 Filename: UnitaryEvolution/Schrodinger.lean
 -/
-import Spectra.QuantumMechanics.Stone.Basic
+import Spectra.Stone.Basic
 /-!
 # The Schrödinger Equation
 
@@ -20,10 +20,10 @@ outside (`A ψ(t)` rather than `U(t)(Aψ₀)`).
 * Stone, "On one-parameter unitary groups in Hilbert space" (1932)
 -/
 open InnerProductSpace Complex Filter Topology
-open Spectra.QuantumMechanics.Stone.Yosida
-open Spectra.QuantumMechanics.StonesTheorem
-open Spectra.QuantumMechanics.Stoneslemma
-open Spectra.QuantumMechanics.OneParameterUnitaryGroup
+open Spectra.Stone.Yosida
+open Spectra.StonesTheorem
+open Spectra.Stoneslemma
+open Spectra.OneParameterUnitaryGroup
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
 namespace Spectra.QuantumMechanics.Schrodinger
 

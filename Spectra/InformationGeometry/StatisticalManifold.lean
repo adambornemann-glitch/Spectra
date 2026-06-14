@@ -52,7 +52,7 @@ canonically `ParamSpace n = EuclideanSpace ℝ (Fin n)`.
 
 ## Future work
 
-* `KLDivergence.lean` — the Fisher metric as the Hessian of the
+* `Divergence.lean` — the Fisher metric as the Hessian of the
   KL divergence: `D_KL(p_θ ‖ p_{θ+δ}) ≈ ½ δᵀ G(θ) δ`.
 * `CramerRao.lean` — the Cramér–Rao inequality
   `Cov_θ(T) ≥ G(θ)⁻¹` for unbiased estimators `T`.
@@ -309,27 +309,11 @@ This is the deep geometric reason the Fisher metric is the
 *unique* (up to scale) monotone metric on statistical manifolds
 (Chentsov's lemma). The formal proof requires additional
 smoothness conditions and Taylor expansion machinery and is
-deferred to `KLDivergence.lean`.
+deferred to `Divergence.lean`.
 
-For now we record the *definition* of the KL divergence
-and state the key lemma as an axiom to be discharged later. -/
-
-/-- The **Kullback–Leibler divergence** from `P_{θ₁}` to `P_{θ₂}`:
-  `D_KL(θ₁ ‖ θ₂) = ∫ p(θ₁, ω) · log(p(θ₁, ω) / p(θ₂, ω)) dμ(ω)`.
-
-This is nonneg by Gibbs' inequality (Jensen + concavity of `log`)
-and zero iff `P_{θ₁} = P_{θ₂}` a.e. -/
-noncomputable def klDivergence (θ₁ θ₂ : ParamSpace n) : ℝ :=
-  ∫ ω, S.density θ₁ ω *
-    Real.log (S.density θ₁ ω / S.density θ₂ ω)
-    ∂S.refMeasure
-
-/-- `D_KL(θ ‖ θ) = 0`. -/
-lemma klDivergence_self {θ : ParamSpace n}
-    (_hθ : θ ∈ S.domain) :
-    S.klDivergence θ θ = 0 := by
-  simp only [klDivergence]
-  simp [mul_zero, MeasureTheory.integral_zero]
+The KL divergence itself is defined once at the model level as `StatisticalModel.klDiv`, so it
+is available here as `S.klDiv`; the Hessian theorem `∂²D = g` is established in
+`Divergence.lean`. -/
 
 end StatisticalManifold
 
