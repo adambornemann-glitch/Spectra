@@ -3,7 +3,7 @@ Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
-import Spectra.InformationGeometry.Fisher.StatisticalModel
+import Spectra.InformationGeometry.StatisticalModel
 import Mathlib.Analysis.Calculus.ParametricIntegral
 import Mathlib.Topology.MetricSpace.Basic
 import Mathlib.Analysis.Normed.Operator.Basic

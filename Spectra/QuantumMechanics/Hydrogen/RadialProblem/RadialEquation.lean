@@ -1247,24 +1247,48 @@ theorem radial_continuum (ℓ : ℕ) (E : ℝ) (hE : 0 ≤ E) :
 
 /-! ## Completeness of discrete eigenfunctions -/
 
+/-- **[Analytic gap — one-dimensionality of the radial eigenspace.]**
+
+    Every `C²` square-integrable bound state at the eigenvalue `Eₙ` is a scalar
+    multiple of `R_{nℓ}`. Equivalently, the eigenspace of `H_ℓ` at `Eₙ` is
+    (at most) one-dimensional.
+
+    **Intended proof (reusing what is already formalised).** The weighted
+    Wronskian `W(r) = r²(ψ R' − ψ' R)` is constant on `(0,∞)` (Abel; this is the
+    `hZderiv` computation inside `radial_eigenfunction_unique`). Square-integrability
+    forces `W ≡ 0`: the second solution of the radial ODE at `Eₙ` is irregular at
+    `0` (`∼ r^{−ℓ−1}`) and grows at `∞` (`∼ e^{+r/n}`), so a nonzero Wronskian would
+    make `ψ` non-`L²`. With `W = 0` at one point, `radial_eigenfunction_unique`
+    propagates `ψ R' = ψ' R` to all of `(0,∞)`, and dividing by `R²` (where `R ≠ 0`)
+    gives `ψ = c·R`. The remaining analytic input — `W ≡ 0` from L², i.e. excluding
+    the irregular/growing solution — is the same decay-selection asymptotics as
+    `reduced_radial_L2_quantized` and is not yet available in Mathlib. -/
+theorem bound_state_eq_smul_eigenfunction (n ℓ : ℕ) (hn : ℓ + 1 ≤ n) (ψ : ℝ → ℝ)
+    (hL2 : RadialL2 ψ)
+    (hψ1 : ∀ r, 0 < r → HasDerivAt ψ (deriv ψ r) r)
+    (hψ2 : ∀ r, 0 < r → HasDerivAt (deriv ψ) (deriv^[2] ψ r) r)
+    (heq : ∀ r, 0 < r → radialHamiltonian ℓ ψ r = hydrogenEigenvalue n (by omega) * ψ r) :
+    ∃ c : ℝ, ∀ r, 0 < r → ψ r = c * hydrogenRadialWavefunction n ℓ hn r := by
+  sorry
+
 /-- **Completeness of {R_{nℓ}}_{n ≥ ℓ+1} in the discrete subspace.**
 
-    The radial eigenfunctions span the negative-energy subspace of H_ℓ:
-    every negative-energy bound state ψ (i.e. ψ ∈ L²(ℝ⁺, r²dr) with
-    H_ℓ ψ = E ψ for some E < 0) can be approximated arbitrarily well in the
-    L²(r²dr) norm by finite linear combinations of the R_{nℓ}. We index the
-    eigenfunctions by k ≥ 0 via n = k + ℓ + 1 (so the constraint n ≥ ℓ+1 is
-    automatic).
+    Every `C²` negative-energy bound state `ψ` (i.e. `ψ ∈ L²(ℝ⁺, r²dr)` with
+    `H_ℓ ψ = E ψ` for some `E < 0`) can be approximated arbitrarily well in the
+    `L²(r²dr)` norm by finite linear combinations of the `R_{nℓ}` (indexed by
+    `k ≥ 0` via `n = k + ℓ + 1`).
 
-    **[Analytic/spectral gap — not yet in Mathlib.]** Unlike a fixed-scale
-    Laguerre basis, the `R_{nℓ}` live at *different* scales `e^{−r/n}`, so this is
-    **not** a direct corollary of `laguerre_complete`; the `R_{nℓ}` span only the
-    discrete (bound-state) subspace, not all of `L²((0,∞), r²dr)`. The honest
-    statement that the closed span equals the range of the spectral projection
-    `E((−∞,0))` requires the self-adjoint realisation of `H_ℓ` on the Hilbert
-    space and its spectral decomposition, which is not yet formalised here. As in
-    `radial_quantization`, the `C²` hypotheses make the `deriv`-based eigen-equation
-    a genuine classical ODE. -/
+    **Reduction (proved here).** This is *not* the full spectral theorem: with the
+    bound-state hypothesis it collapses to one-dimensionality of the eigenspaces.
+    Concretely, if `ψ ≡ 0` on `(0,∞)` the empty sum works; otherwise
+    `radial_quantization` gives `E = Eₙ` for some `n ≥ ℓ+1`, and
+    `bound_state_eq_smul_eigenfunction` gives `ψ = c·R_{nℓ}`, so a *single* term
+    `c·R_{nℓ}` makes the error integral exactly `0`. The proof is therefore
+    complete modulo the two documented analytic gaps it invokes
+    (`reduced_radial_L2_quantized`, via `radial_quantization`, and
+    `bound_state_eq_smul_eigenfunction`). The unrestricted statement — approximating
+    an *arbitrary* `L²` function, where the differing scales `e^{−r/n}` of the
+    `R_{nℓ}` matter — would instead need the self-adjoint spectral decomposition. -/
 theorem radial_completeness (ℓ : ℕ) :
     ∀ ψ : ℝ → ℝ, RadialL2 ψ →
       (∀ r, 0 < r → HasDerivAt ψ (deriv ψ r) r) →
@@ -1273,8 +1297,38 @@ theorem radial_completeness (ℓ : ℕ) :
       ∀ ε : ℝ, 0 < ε → ∃ (N : ℕ) (c : ℕ → ℝ),
         ∫ r in Set.Ioi 0,
           (ψ r - ∑ k ∈ Finset.range N,
-            c k * hydrogenRadialWavefunction (k + ℓ + 1) ℓ (by omega) r) ^ 2 * r ^ 2 < ε :=
-  sorry
+            c k * hydrogenRadialWavefunction (k + ℓ + 1) ℓ (by omega) r) ^ 2 * r ^ 2 < ε := by
+  intro ψ hL2 hψ1 hψ2 hbound ε hε
+  obtain ⟨E, hElt, heqE⟩ := hbound
+  by_cases hnz : ∃ r₀, 0 < r₀ ∧ ψ r₀ ≠ 0
+  · -- Nondegenerate bound state: quantize, then it is a scalar multiple of R_{nℓ}.
+    obtain ⟨n, hn, hEeq⟩ := (radial_quantization ℓ E hElt).mp
+      ⟨ψ, hnz, hL2, hψ1, hψ2, heqE⟩
+    have heqn : ∀ r, 0 < r → radialHamiltonian ℓ ψ r = hydrogenEigenvalue n (by omega) * ψ r := by
+      intro r hr; rw [heqE r hr, hEeq]
+    obtain ⟨c, hc⟩ := bound_state_eq_smul_eigenfunction n ℓ hn ψ hL2 hψ1 hψ2 heqn
+    obtain ⟨k₀, rfl⟩ : ∃ k₀, n = k₀ + ℓ + 1 := ⟨n - ℓ - 1, by omega⟩
+    refine ⟨k₀ + 1, fun k => if k = k₀ then c else 0, ?_⟩
+    -- The finite sum collapses to the single term c·R_{nℓ}.
+    have hsum : ∀ r, (∑ k ∈ Finset.range (k₀ + 1),
+        (if k = k₀ then c else 0) * hydrogenRadialWavefunction (k + ℓ + 1) ℓ (by omega) r)
+        = c * hydrogenRadialWavefunction (k₀ + ℓ + 1) ℓ hn r := by
+      intro r
+      rw [Finset.sum_eq_single k₀]
+      · simp
+      · intro b _ hb; rw [if_neg hb, zero_mul]
+      · intro h; exact absurd (Finset.mem_range.mpr (Nat.lt_succ_self k₀)) h
+    rw [setIntegral_congr_fun measurableSet_Ioi (g := fun _ => (0 : ℝ))
+      (fun r hr => by rw [hsum r, hc r hr]; ring)]
+    simpa using hε
+  · -- ψ vanishes on (0,∞): the empty sum already gives error 0.
+    have hzero : ∀ r, 0 < r → ψ r = 0 := fun r hr => not_not.1 (fun h => hnz ⟨r, hr, h⟩)
+    refine ⟨0, fun _ => 0, ?_⟩
+    rw [setIntegral_congr_fun measurableSet_Ioi (g := fun _ => (0 : ℝ))
+      (fun r hr => by
+        simp only [Finset.range_zero, Finset.sum_empty, sub_zero]
+        rw [hzero r hr]; ring)]
+    simpa using hε
 
 /-! ## Explicit wavefunctions for small n -/
 

@@ -3,7 +3,7 @@ Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
-import Spectra.InformationGeometry.StoneLike.Generator
+import Spectra.InformationGeometry.Flow.Generator
 
 import Mathlib.Analysis.SpecialFunctions.Log.Deriv
 import Mathlib.Analysis.Calculus.ParametricIntegral

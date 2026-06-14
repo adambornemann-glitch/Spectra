@@ -3,9 +3,9 @@ Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
-import Spectra.InformationGeometry.Dynamics.BartlettIdentities
-import Spectra.InformationGeometry.StoneLike.FaaDiBruno.Basic
-import Spectra.InformationGeometry.StoneLike.mConnect
+import Spectra.InformationGeometry.Connection.Bartlett
+import Spectra.InformationGeometry.Flow.FaaDiBruno
+import Spectra.InformationGeometry.Flow.MixtureConnection
 
 /-!
 # Divergence Preservation Implies Cubic-Tensor Preservation

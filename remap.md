@@ -71,11 +71,13 @@ others). — `open`
 
 ---
 
-## 3. InformationGeometry (DRAFT — pending §2 decisions)
+## 3. InformationGeometry — APPLIED 2026-06-13 (builds green)
 
-From the design discussion. Marked **draft**: the internal breakdown should follow whatever
-§2 ratifies. The move dissolves `Dynamics/` (it mixed static geometry with a foundational
-regularity file) and renames the `StoneLike/` flow theory.
+All moves/renames below were performed; `FaaDiBruno/{Basic,Helpers}` merged into a single
+`Flow/FaaDiBruno.lean`; imports + `Spectra.lean` rewritten; `lake build` green (3959 jobs). The
+move dissolved `Dynamics/` (it mixed static geometry with a foundational regularity file) and
+renamed the `StoneLike/` flow theory to `Flow/`. Done as plain `mv` (not `git mv`), so `git`
+shows deletes+adds — run `git add -A` to let rename-detection pair them.
 
 ### Proposed tree
 ```
@@ -96,29 +98,62 @@ InformationGeometry/
   CramerRao/
     Basic.lean                 (unchanged)
     CauchySchwarz.lean         (unchanged)
-    Cross.lean                 (→ Covariance.lean? — open, depends on content)
+    Covariance.lean            (was Cross — score↔estimator covariance identity + Leibniz)
     Bound.lean                 (unchanged)
     Quantum.lean               (was SchrodingerRLD)
   Flow/                        (was StoneLike/)
     Basic.lean                 (unchanged path within area)
     Family.lean                (unchanged)
     Generator.lean             (unchanged)
+    Schrodinger.lean           (was SchrodingerLike — IG Schrödinger/Ehrenfest eqns for flows)
     FaaDiBruno.lean            (merge FaaDiBruno/Basic + Helpers)
     MixtureConnection.lean     (was mConnect)
     CubicInvariance.lean       (was PreservesCubic)
-  Quantum/                     (or leave Dichotomy/Schrodinger at root)
-    Dichotomy.lean             (was Dichotomy)
-    Schrodinger.lean           (was SchrodingerLike — open: what is this file?)
+  Dichotomy.lean               (stays at root — classical↔quantum capstone over GeometricData)
 ```
 
-### Open questions blocking this draft
-1. **Possible duplication:** `InfoGeometricGenerator` appears in *both* `GeometricData.lean`
-   and `StoneLike/Basic.lean`; two divergence defs exist (`klDivergence` in
-   `StatisticalManifold`, `klDiv` in `Hessian`). Intentional (abstract vs concrete) or
-   leftover overlap to merge? Reorganizing around a duplicated generator would bake the
-   duplication in.
-2. **`SchrodingerLike.lean`** returned no title/objects — stub, or a QM bridge?
-3. **`CramerRao/Cross.lean`** — cross-covariance for the bound, or something else?
+### Duplication audit (RESOLVED 2026-06-13)
+1. **KL divergence — REAL duplication, consolidate.** `StatisticalManifold.klDivergence`
+   (StatisticalManifold.lean:322) and `TwiceDifferentiableModel.klDiv` (Hessian.lean:48)
+   have the *identical* integrand `∫ p(θ₁)·log(p(θ₁)/p(θ₂)) dμ`; only the carrier differs
+   (manifold vs model). The author's own comment calls `klDiv` a "redefine … at the model
+   level." **Action:** define KL once on the underlying `RegularStatisticalModel` (which both
+   already project to — so `M.klDiv` keeps resolving via `extends`), keep canonical name
+   **`klDiv`** (workhorse: 8 files vs `klDivergence`'s single file; also the short form Mathlib
+   uses), retire `klDivergence` (→ `@[deprecated] alias` or delete). Surface it from
+   `Divergence.lean` in the new tree.
+2. **`InfoGeometricGenerator` — NOT duplication, keep both.** `InfoGeometricGenerator M`
+   (StoneLike/Basic.lean:79, concrete, model-tied) and `GeometricData.Generator Γ`
+   (GeometricData.lean:97, abstract, over a bare `(domain, g, C)` triple) are *deliberately*
+   parallel, joined by `InfoGeometricGenerator.equivAbstract` (a `rfl`-on-both-sides ≃). The
+   abstraction exists so the quantum pure-state case (no classical model) can share one
+   definition — see `Dichotomy.lean`. **No merge, no rename**: the shared core name
+   "Generator" is the point, and the lowercase analytic `generator` (Generator.lean, the
+   d/dt of a flow) is a distinct, correctly-named object. Leave as-is.
+
+### Non-blockers (RESOLVED 2026-06-13)
+- **`SchrodingerLike.lean`** is NOT a stub — 4 theorems (`infoGeometric_schrodinger₁/₂/₃`,
+  `infoGeometric_ehrenfest`): the IG Schrödinger/Ehrenfest *evolution equations* for
+  divergence-preserving flows, deliberately mirroring the quantum `Schrodinger.lean`. It lives
+  entirely on `DivergencePreservingFamily`, so it belongs in **`Flow/`, not Quantum** →
+  `Flow/Schrodinger.lean` (drop "-Like"). (My earlier draft mis-filed it under Quantum/.)
+- **`CramerRao/Cross.lean`** = the score↔estimator **cross-covariance identity**
+  (`covariance_score_eq_deriv_target`: `Cov_θ(T, s) = ∇E_θ[T]`) plus its Leibniz /
+  differentiate-under-the-integral and centered-integrability support. It's the step between
+  `Basic` (defs) and `CauchySchwarz` (which imports it) → `Bound`. → `CramerRao/Covariance.lean`.
+- **Minor:** `GeometricData.lean` header carries cruft (`Target:` line + a `NOTE:` paragraph
+  inside the copyright block) — clean during the rename pass.
+
+### Remaining follow-ups (post-move, none block the build)
+1. **Module-title gap** — 7 files have only `/-! ### section -/` blocks, no titled
+   `/-! # Title … -/`: `CramerRao/{Bound, CauchySchwarz, Covariance}`,
+   `Connection/{Basic, AmariChentsov}`, `Flow/Schrodinger`, `Flow/Family`. Additive, no build risk.
+2. **Stale prose filename refs** (8, cosmetic — docstrings mention old paths): `Connection/Bartlett`
+   (`CubicTensor.lean`), `Flow/CubicInvariance` (`mConnect.lean` ×3), `Flow/FaaDiBruno` (`Hessian.lean`),
+   `Regularity` (`InformationGeometry.Dynamics`), `StatisticalManifold` (`KLDivergence.lean` ×2 — should
+   point to `Divergence.lean`). Sweep alongside #1.
+3. **KL consolidation** (§3.1 of the audit) — still pending: merge `klDivergence` into one model-level
+   `klDiv`. Separate code change.
 
 ---
 
@@ -127,3 +162,13 @@ _(record `accepted` / rejected decisions here as they're made, with date)_
 
 - 2026-06-13 — doc created; InformationGeometry docstring/header first pass already complete
   (see git history), independent of the renames above.
+- 2026-06-13 — duplication audit: KL divergence is real duplication → consolidate to one
+  model-level `klDiv`, retire `klDivergence`. `InfoGeometricGenerator` vs
+  `GeometricData.Generator` is an intentional concrete/abstract pair (proven `≃`) → keep both.
+- 2026-06-13 — content audit: `SchrodingerLike` = IG evolution equations → `Flow/Schrodinger`;
+  `CramerRao/Cross` = score↔estimator covariance identity → `CramerRao/Covariance`. Found 7 IG
+  files still missing a titled module docstring (listed in §3) — to finish.
+- 2026-06-13 — **APPLIED the full IG layout**: 18 moves/renames + FaaDiBruno merge (2→1) +
+  Spectra.lean regenerated; `lake build` green (3959 jobs). (Some renames — Fisher/Metric,
+  Fisher/Information, MConnect — were already on disk from concurrent edits; reconciled.)
+  Remaining: module-title gap (7), KL consolidation, 8 cosmetic prose refs.

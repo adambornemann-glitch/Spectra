@@ -9,7 +9,7 @@ NOTE: adjust the import below to wherever `InfoGeometricGenerator` and
 the bottom is the only part that needs them; `GeometricData` itself needs
 only `ParamSpace`).
 -/
-import Spectra.InformationGeometry.StoneLike.Basic
+import Spectra.InformationGeometry.Flow.Basic
 
 /-!
 # Abstract Geometric Data

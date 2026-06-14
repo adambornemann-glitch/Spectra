@@ -5,7 +5,7 @@ Authors: Adam Bornemann
 Filename: Operator/Composite.lean
 -/
 import Spectra.QuantumMechanics.Uncertainty.SchrodingerRobertson
-import Spectra.InformationGeometry.CramerRao.SchrodingerRLD
+import Spectra.InformationGeometry.CramerRao.Quantum
 import Spectra.QuantumMechanics.Observable.Basic
 /-!
 # Composite Symmetric Operators and the Quantum–Geometric Bridge

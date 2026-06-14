@@ -83,7 +83,7 @@ a(u,·) = ⟨φ,·⟩, and elliptic regularity lifts u to H².
 * `laplacian_isSelfAdjoint` — −Δ is self-adjoint on H²(ℝ³)
   (assembled from the two surjectivity sorries; no other gaps).
 * `laplacian_spectrum_nonneg` — eigenvalues of −Δ are ≥ 0 (**proved**).
-* `laplacian_no_eigenvalues` — −Δ on ℝ³ has no eigenvalues (Fourier; sorry).
+* `laplacian_no_eigenvalues` — −Δ on ℝ³ has no eigenvalues (Fourier; **proved**).
 * `laplacian_resolvent_bound` — ‖(−Δ − z)⁻¹‖ ≤ 1/|Im z| (**proved**, from
   `Spectra.Resolvent.resolvent_bound`).
 
@@ -734,15 +734,54 @@ theorem laplacian_spectrum_nonneg
 
 /-- `−Δ` on `L²(ℝ³)` has no eigenvalues (purely continuous spectrum).
 
-If `−Δψ = λψ` then in Fourier space `(|ξ|² − λ)ψ̂ = 0`, so `ψ̂` is supported on the
-sphere `{|ξ|² = λ}`, a Lebesgue-null set in `ℝ³`; hence `ψ̂ = 0` a.e. and `ψ = 0`.
-This needs the Fourier characterization of `−Δ` (see the note in `CoulombBound`
-on `laplacian_range_add_I`), so it is left open. -/
+If `−Δψ = λψ` then in Fourier space `((2π)²‖ξ‖² − λ)·𝓕ψ = 0` a.e.
+(`fourier_weakLaplacian`).  The symbol `(2π)²‖ξ‖²` equals `λ` only on the sphere
+`‖ξ‖ = √λ/(2π)`, a Lebesgue-null set in `ℝ³` (`Measure.addHaar_sphere`); hence
+`𝓕ψ = 0` a.e. and, since `fourierL2` is a linear isometry (Plancherel), `ψ = 0`. -/
 theorem laplacian_no_eigenvalues
     (lam : ℝ) (ψ : L2_R3) (hψ : MemSobolevH2 ψ)
     (heig : weakLaplacian ψ hψ = (lam : ℂ) • ψ) :
-    ψ = 0 :=
-  sorry
+    ψ = 0 := by
+  -- The frequencies where the symbol `(2π)²‖ξ‖²` hits `λ` form a sphere — null.
+  have hN : volume {ξ : R3 | laplacianSymbol ξ = lam} = 0 := by
+    refine measure_mono_null ?_
+      (Measure.addHaar_sphere (volume : Measure R3) 0 (Real.sqrt lam / (2 * Real.pi)))
+    intro ξ hξ
+    simp only [Set.mem_setOf_eq] at hξ
+    rw [Metric.mem_sphere, dist_zero_right,
+      eq_div_iff (by positivity : (2 * Real.pi : ℝ) ≠ 0)]
+    have hlam : lam = (2 * Real.pi) ^ 2 * ‖ξ‖ ^ 2 := hξ.symm
+    rw [hlam, Real.sqrt_mul (sq_nonneg _),
+      Real.sqrt_sq (by positivity : (0 : ℝ) ≤ 2 * Real.pi), Real.sqrt_sq (norm_nonneg ξ)]
+    ring
+  -- Fourier-transform the eigen-equation: `fourierL2 (−Δψ) = λ · fourierL2 ψ`.
+  have hsmul : fourierL2 (weakLaplacian ψ hψ) = (lam : ℂ) • fourierL2 ψ := by
+    rw [heig]; exact map_smul fourierL2 (lam : ℂ) ψ
+  -- a.e. pointwise: `(2π)²‖ξ‖² · 𝓕ψ ξ = λ · 𝓕ψ ξ`.
+  have hae : ∀ᵐ ξ : R3, (laplacianSymbol ξ : ℂ) * (fourierL2 ψ : R3 → ℂ) ξ
+      = (lam : ℂ) * (fourierL2 ψ : R3 → ℂ) ξ := by
+    have hcoe : (fourierL2 (weakLaplacian ψ hψ) : R3 → ℂ)
+        =ᵐ[volume] fun ξ => (lam : ℂ) * (fourierL2 ψ : R3 → ℂ) ξ := by
+      rw [hsmul]
+      filter_upwards [Lp.coeFn_smul (lam : ℂ) (fourierL2 ψ)] with ξ hξ
+      rw [hξ, Pi.smul_apply, smul_eq_mul]
+    filter_upwards [fourier_weakLaplacian ψ hψ, hcoe] with ξ h1 h2
+    rw [← h1, h2]
+  -- Off the null sphere `𝓕ψ ξ = 0`; hence `𝓕ψ = 0` a.e.
+  have hzero_ae : (fourierL2 ψ : R3 → ℂ) =ᵐ[volume] 0 := by
+    have hne : ∀ᵐ ξ : R3, laplacianSymbol ξ ≠ lam := by
+      rw [ae_iff]; simpa using hN
+    filter_upwards [hae, hne] with ξ h1 h2
+    rw [Pi.zero_apply]
+    have hz : ((laplacianSymbol ξ : ℂ) - lam) * (fourierL2 ψ : R3 → ℂ) ξ = 0 := by
+      rw [sub_mul, h1, sub_self]
+    rcases mul_eq_zero.mp hz with h | h
+    · exact absurd (Complex.ofReal_inj.mp (sub_eq_zero.mp h)) h2
+    · exact h
+  -- Plancherel: `fourierL2` is injective, so `ψ = 0`.
+  have hfourier_zero : fourierL2 ψ = 0 :=
+    Lp.ext (hzero_ae.trans (Lp.coeFn_zero ℂ 2 (volume : Measure R3)).symm)
+  exact fourierL2.injective (by rw [hfourier_zero, map_zero])
 
 /-- Resolvent bound: `‖(−Δ − z)⁻¹‖ ≤ 1/|Im z|`. Purely abstract — from the
 resolvent estimate for self-adjoint operators, no Fourier analysis needed. -/

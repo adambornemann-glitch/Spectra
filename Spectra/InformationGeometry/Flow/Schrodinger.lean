@@ -3,7 +3,7 @@ Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
-import Spectra.InformationGeometry.StoneLike.Basic
+import Spectra.InformationGeometry.Flow.Basic
 
 open MeasureTheory Finset Filter Topology TopologicalSpace
 variable {n : ℕ} {Ω : Type*} [MeasurableSpace Ω]

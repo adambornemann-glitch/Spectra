@@ -5,6 +5,7 @@ Authors: Adam Bornemann
 -/
 import Spectra.QuantumMechanics.Hydrogen.RadialProblem.TensorDecomp
 import Spectra.QuantumMechanics.Hydrogen.RadialProblem.RadialEquation
+import Spectra.QuantumMechanics.Hydrogen.RadialProblem.SphericalLaplacian
 import Spectra.QuantumMechanics.Hydrogen.Hamiltonian
 
 /-!
@@ -64,24 +65,21 @@ open MeasureTheory Complex Filter
 open scoped Topology NNReal ENNReal Nat
 open RadialEq Spectra.QuantumMechanics.Hydrogen Spectra.QuantumMechanics.Hydrogen.Decomposition
 
-/-! ## Separation of the Laplacian -/
+/-! ## Separation of the Laplacian
 
-/-- **The Laplacian separates in spherical coordinates.**
+The pointwise separation `−Δ = −(1/r²)∂_r(r²∂_r) + L̂²/r²` (with `L̂² = laplaceBeltrami`
+the angular Laplacian on S²) is developed in `RadialProblem.SphericalLaplacian`:
 
-    −Δ = −(1/r²)(d/dr)(r² d/dr) + L̂²/r²
-
-    where L̂² is the angular Laplacian (Laplace-Beltrami on S²).
-
-    Equivalently, after the substitution χ = rR:
-    −Δ|_{sector ℓ} = −d²/dr² + ℓ(ℓ+1)/r²    (on ReducedRadialL2)
-
-    **Discharge route:** Direct computation in spherical coordinates.
-    The key identity is:
-      Δf = (1/r²)(d/dr)(r² df/dr) + (1/r²) Δ_{S²} f
-    where Δ_{S²} is the Laplace-Beltrami operator on S². -/
-def laplacian_separates :
-    sorry :=  -- −Δ = radial + L̂²/r² in the decomposition
-  sorry
+* `sphereChart`, `norm_sphereChart` — the spherical chart `(r,θ,φ) ↦ ℝ³` (proved);
+* `radialPart_eq` — the radial operator in divergence form equals the expanded form,
+  `(1/r²)∂_r(r²∂_r R) = R″ + (2/r)R′` (proved); this is the radial half at the operator
+  level, matching `RadialEq.radialHamiltonian`;
+* `laplacian_comp_norm` — `Δ(g∘‖·‖) = g″ + (2/r)g′` (radial Laplacian of a radial
+  function), and `laplacian_separates` — the full pointwise separation on the chart,
+  both stated honestly and left as documented *pure-calculus* gaps (the chain rule
+  through the chart; no missing analytic infrastructure, unlike the
+  confluent-hypergeometric gaps in `RadialEquation.lean`).
+-/
 
 /-- Within angular sector ℓ, the Laplacian becomes:
 

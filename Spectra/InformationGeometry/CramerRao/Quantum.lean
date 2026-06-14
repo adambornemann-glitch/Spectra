@@ -3,8 +3,8 @@ Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
-import Spectra.InformationGeometry.Fisher.FisherMetric
-import Spectra.InformationGeometry.Fisher.StatisticalManifold
+import Spectra.InformationGeometry.Fisher.Metric
+import Spectra.InformationGeometry.StatisticalManifold
 /-!
 # RLD Fisher Information and the Schrödinger–Cramér–Rao Bound
 

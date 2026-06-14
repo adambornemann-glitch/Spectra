@@ -3,7 +3,7 @@ Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
-import Spectra.InformationGeometry.Fisher.FisherInformation
+import Spectra.InformationGeometry.Fisher.Information
 import Mathlib.LinearAlgebra.BilinearMap
 import Mathlib.Analysis.Calculus.ContDiff.Defs
 /-!

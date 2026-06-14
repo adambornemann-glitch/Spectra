@@ -3,7 +3,7 @@ Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
-import Spectra.InformationGeometry.CramerRao.Cross
+import Spectra.InformationGeometry.CramerRao.Covariance
 
 open MeasureTheory ENNReal Real Set Filter Finset Metric
 open scoped Topology

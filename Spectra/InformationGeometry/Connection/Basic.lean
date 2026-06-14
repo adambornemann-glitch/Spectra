@@ -3,7 +3,7 @@ Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
-import Spectra.InformationGeometry.Dynamics.CubicTensor
+import Spectra.InformationGeometry.Connection.AmariChentsov
 open MeasureTheory Finset Filter Topology TopologicalSpace
 namespace Spectra.InformationGeometry
 variable {n : ℕ} {Ω : Type*} [MeasurableSpace Ω]

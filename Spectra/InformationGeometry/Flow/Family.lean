@@ -3,9 +3,9 @@ Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
-import Spectra.InformationGeometry.Dynamics.Hessian
-import Spectra.InformationGeometry.Dynamics.CubicTensor
-import Spectra.InformationGeometry.Dynamics.AlphaConnect
+import Spectra.InformationGeometry.Divergence
+import Spectra.InformationGeometry.Connection.AmariChentsov
+import Spectra.InformationGeometry.Connection.Basic
 
 open MeasureTheory Finset Filter Topology TopologicalSpace
 namespace Spectra.InformationGeometry

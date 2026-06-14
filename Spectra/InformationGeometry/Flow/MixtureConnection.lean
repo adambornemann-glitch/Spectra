@@ -3,14 +3,13 @@ Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
-import Spectra.InformationGeometry.Fisher.StatisticalManifold
-import Spectra.InformationGeometry.CramerRao.SchrodingerRLD
-import Spectra.InformationGeometry.Dynamics.Hessian
-import Spectra.InformationGeometry.Dynamics.CubicTensor
-import Spectra.InformationGeometry.Dynamics.AlphaConnect
-import Spectra.InformationGeometry.StoneLike.Family
-import Spectra.InformationGeometry.StoneLike.FaaDiBruno.Helpers
-import Spectra.InformationGeometry.StoneLike.FaaDiBruno.Basic
+import Spectra.InformationGeometry.StatisticalManifold
+import Spectra.InformationGeometry.CramerRao.Quantum
+import Spectra.InformationGeometry.Divergence
+import Spectra.InformationGeometry.Connection.AmariChentsov
+import Spectra.InformationGeometry.Connection.Basic
+import Spectra.InformationGeometry.Flow.Family
+import Spectra.InformationGeometry.Flow.FaaDiBruno
 import Mathlib.Analysis.SpecialFunctions.Log.Deriv
 import Mathlib.Analysis.Calculus.ParametricIntegral
 import Mathlib.Analysis.Calculus.LocalExtr.Basic
