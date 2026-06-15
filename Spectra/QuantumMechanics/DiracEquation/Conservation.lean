@@ -11,35 +11,31 @@ import Mathlib.Analysis.Calculus.Deriv.Comp
 import Mathlib.Analysis.Calculus.Deriv.Add
 import Mathlib.Analysis.Calculus.Deriv.Mul
 /-!
-# Probability Conservation and the Born Rule
+# Local Conservation of the Dirac Current
 
-This file proves the fundamental physical results: the Dirac equation implies
-conservation of probability, and the probability density satisfies the axioms
-of the Born rule.
+This file proves the **local** continuity equation `∂ᵤjᵘ = 0`: when a spinor field satisfies the
+Dirac equation, its 4-current is divergence-free. This is the local form of probability
+conservation.
+
+The **global** results — `d/dt ∫ρ d³x = 0` (`probability_conserved`) and the Born rule
+(`born_rule_valid`) — are *not* in this file. They are developed in
+`QuantumMechanics/BornRule/Conservation.lean`, which consumes the continuity equation proved here.
 
 ## Main definitions
 
-* `stdBasis`: Standard basis vectors in ℝ⁴
-* `fourDivergence`: The 4-divergence ∂ᵤjᵘ
-* `partialDeriv'`: Partial derivative of a spinor field
-* `normalizedProbability`: P(x,t) = ρ(x,t) / ∫ρ d³x
+* `stdBasis`: standard basis vectors in ℝ⁴
+* `fourDivergence`: the 4-divergence `∂ᵤjᵘ`
+* `partialDeriv'`: partial derivative of a spinor field
 
 ## Main results
 
-* `probability_conserved`: d/dt ∫ρ d³x = 0 (probability is conserved)
-* `born_rule_valid`: P(x,t) = ρ/∫ρ satisfies probability axioms
+* `dirac_current_conserved`: if `ψ` solves the Dirac equation (`h_dirac`) and is differentiable,
+  then `∂ᵤjᵘ = 0`. Assembled from the bilinear product rule (`hasDerivAt_bilinear_self`), the
+  per-`μ` adjoint transfer (`current_adjoint_transfer`), and the mass-term cancellation
+  (`dirac_divergence_bilinear_vanishes`).
 
-## Axioms
-
-The proofs rely on several axioms from analysis and PDE theory:
-
-* `dirac_current_conserved`: The Dirac equation implies ∂ᵤjᵘ = 0
-* `leibniz_integral_rule`: d/dt ∫f(t,x)dx = ∫(∂f/∂t)dx
-* `continuity_equation`: ∂ρ/∂t = -∇·j
-* `divergence_integral_vanishes`: ∫∇·j d³x = 0 with decay conditions
-
-These are standard results that would follow from a complete development of
-Sobolev spaces and distribution theory.
+The conclusion is conditional on `ψ` *being* a solution; the link to the operator dynamics
+`e^{-itH_D}ψ` of `FreeHamiltonian.lean` is not yet made.
 
 ## Physical interpretation
 
@@ -92,7 +88,6 @@ In components: ∂ᵤjᵘ = ∂ρ/∂t + ∂jˣ/∂x + ∂jʸ/∂y + ∂jᶻ/∂
 The continuity equation states ∂ᵤjᵘ = 0 for solutions of the Dirac equation. -/
 noncomputable def fourDivergence (j : (Fin 4 → ℝ) → (Fin 4 → ℂ)) : (Fin 4 → ℝ) → ℂ :=
   fun x => ∑ μ, deriv (fun t => j (Function.update x μ t) μ) (x μ)
---Unknown identifier `deriv`
 
 /-- Partial derivative of a spinor field: ∂ᵤψ.
 
@@ -102,7 +97,6 @@ This is the directional derivative along the μ-th coordinate axis:
 Each spinor component is differentiated separately. -/
 noncomputable def partialDeriv' (μ : Fin 4) (ψ : Spacetime → (Fin 4 → ℂ)) (x : Spacetime) : Fin 4 → ℂ :=
   fun a => fderiv ℝ (fun y => ψ y a) x (stdBasis μ)
--- Unknown identifier `deriv`
 
 /-- **Adjoint transfer**: u†(A†w) = (Au)†w for the spinor bilinear form.
 
@@ -213,7 +207,7 @@ lemma deriv_comp_update (ψ : Spacetime → Fin 4 → ℂ) (x : Spacetime) (μ a
   rw [h_eq] at h_chain
   exact h_chain.deriv
 
-/-! ### Helper C1: Bilinear product rule (sorry) -/
+/-! ### Helper C1: Bilinear product rule -/
 
 /-- Product rule for the sesquilinear form t ↦ star(f t) ⬝ᵥ M.mulVec(f t) -/
 lemma hasDerivAt_bilinear_self

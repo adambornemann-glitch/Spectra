@@ -30,9 +30,11 @@ one-parameter unitary group). It is the relativistic analogue of `Hydrogen/Hamil
   (a bounded self-adjoint perturbation does not change the domain), and Stone's theorem gives the
   evolution `e^{-itH_D}` with generator `H_D`.
 
-Once self-adjoint, `H_D` plugs into the abstract spectral machinery (`spectralProjection`, the
-PVM) used by `Operators.lean`; this is what is needed to eventually discharge the physical
-`h_spectrum_below/above` hypotheses there.
+Once self-adjoint, `H_D` is the operator on which `Operators.lean`'s abstract spectral hypotheses
+(`h_spectrum_below/above`) are meant to be discharged. That bridge — instantiating the abstract
+`DiracHamiltonian` with `diracUnitaryGroup` and identifying its `spectralProjection` with the
+concrete Fourier-multiplier PVM — is **not yet built**, so `diracHamiltonian` has no downstream
+consumer at present.
 
 ## Implementation notes
 

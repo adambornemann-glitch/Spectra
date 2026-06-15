@@ -36,9 +36,9 @@ import Spectra.CayleyTransform.Mobius
 import Spectra.CayleyTransform.MapsResolvent
 import Spectra.CayleyTransform.RieszMarkov
 import Spectra.CayleyTransform.BorelCalculus
-import Spectra.CayleyTransform.Generator
-import Spectra.CayleyTransform.GeneratorResolvent
-import Spectra.CayleyTransform.GeneratorStone
+import Spectra.CayleyTransform.Generator.Resolvent
+import Spectra.CayleyTransform.Generator.Stone
+import Spectra.CayleyTransform.InverseAction
 import Spectra.Fourier.Identity
 import Spectra.Fourier.Inversion
 import Spectra.Fourier.IsUnique

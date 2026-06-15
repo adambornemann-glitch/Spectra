@@ -37,7 +37,7 @@ to the (unbounded) kinetic part.
 * `matrixOp_apply` — `(matrixOp M ψ)_a = Σ_b M_{ab} • ψ_b`.
 * `matrixOp_one`, `matrixOp_add`, `matrixOp_smul` — `matrixOp` is linear and unital.
 * `matrixOp_adjoint` — `(matrixOp M)† = matrixOp Mᴴ`.
-* `matrixOp_isSelfAdjoint_iff` — `matrixOp M` is self-adjoint iff `M` is Hermitian.
+* `matrixOp_isSelfAdjoint_of_hermitian` — `matrixOp M` is self-adjoint when `M` is Hermitian.
 * `matrixOp_diracBeta_isSelfAdjoint` — the mass-term matrix `β` gives a self-adjoint operator.
 
 ## References

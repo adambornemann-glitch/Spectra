@@ -10,9 +10,10 @@ import Mathlib.MeasureTheory.Integral.Bochner.ContinuousLinearMap
 /-!
 # Gamma Matrix Trace Identities
 
-This file develops the trace identities for products of gamma matrices, which are
-the workhorse formulas for computing Feynman diagrams in quantum electrodynamics
-and quantum chromodynamics.
+This file develops the lower-order trace identities for products of gamma matrices — the single,
+two-, and three-gamma traces that are the building blocks of the trace technology used to compute
+Feynman diagrams. The higher identities (four-gamma traces, `γ⁵` traces, contraction formulas) are
+not developed here.
 
 ## Main definitions
 

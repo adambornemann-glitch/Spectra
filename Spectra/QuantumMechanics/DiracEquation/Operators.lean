@@ -94,7 +94,8 @@ structure DiracHamiltonian (H : Type*) [NormedAddCommGroup H] [InnerProductSpace
   U_grp : OneParameterUnitaryGroup (H := H)
   /-- Physical constants ℏ, c, m for this particle. -/
   constants : K
-  /-- Dirac matrices satisfying the Clifford algebra. -/
+  /-- The Dirac matrices for this particle (an opaque carrier: the Clifford relations are not
+  enforced by this structure and must be supplied by whatever instantiates it). -/
   matrices : M
 
 /-- The domain of the Hamiltonian (from the constructed generator). -/

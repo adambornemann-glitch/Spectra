@@ -21,6 +21,9 @@ These are the bounded building blocks of the Dirac Hamiltonian `H_D = c α·p + 
 `matrixOp` is a unital `*`-algebra representation, every relation here is an immediate consequence
 of the corresponding matrix identity in `CliffordAlgebra.lean`.
 
+NB: this packaging is currently standalone — `FreeHamiltonian.lean` builds `H_D` directly from
+`matrixOp` and the raw matrices, so the named operators below have no downstream consumer yet.
+
 ## Main definitions
 
 * `diracAlphaOp1`, `diracAlphaOp2`, `diracAlphaOp3` — the velocity operators `αⁱ` on `L²(ℝ³;ℂ⁴)`.

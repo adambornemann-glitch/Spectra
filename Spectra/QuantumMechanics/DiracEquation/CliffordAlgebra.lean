@@ -9,9 +9,12 @@ import Mathlib.Analysis.InnerProductSpace.LinearPMap
 /-!
 # The Dirac Equation and Relativistic Quantum Mechanics
 
-This file develops the Dirac equation for spin-1/2 particles, from the algebraic
-foundations (Clifford algebra of spacetime) through spectral theory to the
-physical consequences (probability conservation and the Born rule).
+This file fixes the standard (Dirac–Pauli) representation of the velocity matrices
+`α = (α₁, α₂, α₃)`, the mass matrix `β`, and the gamma matrices `γ⁰ = β`, `γⁱ = βαⁱ`, and proves
+their Clifford-algebra relations by brute-force entrywise computation (`dirac_compute`). It is the
+matrix foundation of the directory; the physics those relations *imply* is formalized in the other
+files and is **not** proved here (see "Where the physics is actually proved" below). The "Physical
+interpretation" notes that follow are motivation only.
 
 ## Overview
 
@@ -47,9 +50,17 @@ motivated Dirac's construction. The proof that dP/dt = 0 follows from the
 continuity equation ∂ᵤjᵘ = 0.
 
 ### The Born Rule
-The theorem `born_rule_valid` shows that ρ/∫ρ satisfies the axioms of a
-probability distribution: non-negative and normalized to 1. This connects
-the mathematical formalism to quantum mechanical measurement.
+The theorem `born_rule_valid` (in `QuantumMechanics/BornRule/Conservation.lean`, **not** this
+file) shows that `ρ/∫ρ` satisfies the axioms of a probability distribution. This connects the
+mathematical formalism to quantum mechanical measurement.
+
+## Where the physics is actually proved
+
+This file is pure matrix algebra. The downstream physics lives elsewhere in the directory:
+`Dispersion.lean` (`D² = (|p|²+m²)I`), `FreeHamiltonian.lean` (the concrete self-adjoint `H_D` on
+`L²(ℝ³;ℂ⁴)`), `Chirality.lean` / `Spin.lean` (projectors, spin algebra), `Current.lean` /
+`Conservation.lean` (`j⁰ ≥ 0`, local `∂ᵤjᵘ = 0`). The spectrum `σ(H_D) = (-∞,-mc²]∪[mc²,∞)` and
+the mass gap are so far only abstract (`Operators.lean`), not established for the concrete operator.
 
 ## References
 

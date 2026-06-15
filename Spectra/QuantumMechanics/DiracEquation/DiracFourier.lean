@@ -34,8 +34,8 @@ resolvent symbol `resolventSymbol` from `Hydrogen/Laplacian.lean`.
 * `spinorFourierL2_apply` — `(𝓕ψ)ₐ = 𝓕(ψₐ)` componentwise.
 * `diracKineticSymbol_hermitian` — `D(ξ)` is Hermitian.
 * `diracKineticSymbol_sq` — `D(ξ)² = ((2π)²‖ξ‖²) • 1` (dispersion relation).
-* `diracResolventSymbol_add_inverse` / `_sub_inverse` — `(D(ξ) ± iμ)` is inverted by the resolvent
-  symbol.
+* `diracResolventSymbol_add_inverse` — `(D(ξ) + iμ)` is inverted by the resolvent symbol (the
+  `D(ξ) - iμ` case is recovered by negating `μ`).
 
 ## References
 
