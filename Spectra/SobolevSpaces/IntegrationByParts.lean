@@ -218,4 +218,13 @@ lemma laplacian_nonneg (f : L2_R3) (hf : MemSobolevH2 f) :
   simp only [gradientNormSq, Complex.ofReal_re]
   exact Finset.sum_nonneg fun i _ => sq_nonneg _
 
+/-- **Skew-symmetry of the weak derivative**: `⟨∂ᵢf, g⟩ = −⟨f, ∂ᵢg⟩` for `f, g ∈ H¹(ℝ³)`.
+This is the first-order integration-by-parts identity (no boundary term on `ℝ³`); it is the
+reason the momentum operator `-i∂ᵢ` is symmetric. -/
+lemma weakGradient_inner_skew (f g : L2_R3) (hf : MemSobolevH1 f) (hg : MemSobolevH1 g)
+    (i : Fin 3) :
+    inner (𝕜 := ℂ) (weakGradient f hf i) g = -inner (𝕜 := ℂ) f (weakGradient g hg i) :=
+  ibp_component i f (weakGradient f hf i) g (weakGradient g hg i)
+    (weakGradient_spec f hf i) (weakGradient_spec g hg i)
+
 end Spectra.Sobolev

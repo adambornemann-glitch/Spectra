@@ -47,12 +47,9 @@ open SpectralMeasure
 open Spectra.OneParameterUnitaryGroup
 
 /-! ## The Dirac Hamiltonian -/
-
-namespace Spectra.QuantumMechanics.Dirac
-
 open Spectra.QuantumMechanics.SpectralTheory
-
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
+namespace Spectra.QuantumMechanics.Dirac
 variable {K M : Type*}
 
 /-- The fiber space ℂ⁴ at each spatial point.
