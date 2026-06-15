@@ -56,16 +56,6 @@ lemma withDensity_ofReal_eq_stieltjes_measure
     rw [StieltjesFunction.measure_Iic _ hSF_atBot, hSF_eq, sub_zero]
   rw [hLHS_val, hRHS_val]
 
--- stieltjes_rightLim_const:
-private lemma stieltjes_rightLim_const {F : ℝ → ℝ} (hF : Monotone F) {a M : ℝ}
-    (hconst : ∀ x, a < x → F x = M) :          -- was a ≤ x
-    Function.rightLim F a = M := by
-  have htend : Tendsto F (𝓝[>] a) (𝓝 M) := by
-    have heq : F =ᶠ[𝓝[>] a] (fun _ => M) := by
-      filter_upwards [self_mem_nhdsWithin] with y hy using hconst y hy   -- was (le_of_lt hy)
-    rw [Filter.tendsto_congr' heq]; exact tendsto_const_nhds
-  exact tendsto_nhds_unique (hF.tendsto_rightLim a) htend
-
 /-- **Herglotz's lemma** -/
 lemma herglotz_lemma_stieltjes
     (c : ℤ → ℂ)  -- the correlation sequence c(n) = ⟨ψ, U^n ψ⟩

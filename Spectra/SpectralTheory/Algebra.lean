@@ -46,6 +46,7 @@ open scoped InnerProductSpace
 open Spectra.Borel
 open SpectralMeasure
 open Spectra.OneParameterUnitaryGroup
+open Spectra.Fourier  -- `integrable_of_bounded`
 
 /-! ## Spectral projection algebra (generic; extends `SpectralTheory`) -/
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
@@ -626,5 +627,282 @@ theorem generator_has_arbitrarily_positive_energy
     > bound * ‖spectralProjection U_grp (Set.Icc (bound + 1) (↑M : ℝ))
         measurableSet_Icc φ‖ ^ 2
   nlinarith [hψ_energy, h_pos]
+
+/-! ## Energy expectation ⟹ spectral mass (the bridge to concrete operators)
+
+The headline theorems above run *spectral mass ⟹ energy*: a vector with spectral support
+reaching below `N` realizes energy below any bound.  The concrete Dirac construction needs the
+*converse* one-directional fact — exactly what discharges `h_spectrum_below/above`:
+
+> a single domain vector whose energy **expectation** lies below `N·‖φ‖²` already forces nonzero
+> spectral mass in `(-∞, N]`.
+
+No full PVM↔Fourier identification is needed, only the variational inequality.  The proof is a
+domain-truncation limit: `E([N, M])φ → E([N, ∞))φ = φ` (`tendsto_spectralProjection_Icc_Ici`),
+against `spectralProjection_energy_lower_bound` on each finite truncation. -/
+
+/-- Truncations from above converge: `E([a, M])ξ → E([a, ∞))ξ` as `M → ∞`.  One application of
+`tendsto_spectralCalculus_apply` (DCT) to the indicators `1_{[a,M]} → 1_{[a,∞)}`. -/
+theorem tendsto_spectralProjection_Icc_Ici (a : ℝ) (ξ : H) :
+    Tendsto (fun M : ℕ => spectralProjection U_grp (Set.Icc a (M : ℝ)) measurableSet_Icc ξ)
+      atTop (𝓝 (spectralProjection U_grp (Set.Ici a) measurableSet_Ici ξ)) := by
+  refine tendsto_spectralCalculus_apply U_grp (l := Filter.atTop)
+    (G := fun M : ℕ => Set.indicator (Set.Icc a (M : ℝ)) fun _ => (1 : ℂ))
+    (g := Set.indicator (Set.Ici a) fun _ => (1 : ℂ))
+    (fun _ => measurable_const.indicator measurableSet_Icc) (fun _ => indicator_one_bdd _)
+    (measurable_const.indicator measurableSet_Ici) (indicator_one_bdd _)
+    (C := 1) (fun _ ω => ?_) (fun ω => ?_) ξ
+  · rw [Set.indicator_apply]; split_ifs <;> simp
+  · by_cases hω : a ≤ ω
+    · obtain ⟨n₀, hn₀⟩ := exists_nat_ge ω
+      refine tendsto_const_nhds.congr' ?_
+      filter_upwards [Filter.eventually_ge_atTop n₀] with M hM
+      have hωM : ω ≤ (M : ℝ) := hn₀.trans (Nat.cast_le.mpr hM)
+      rw [Set.indicator_of_mem (Set.mem_Ici.mpr hω),
+        Set.indicator_of_mem (Set.mem_Icc.mpr ⟨hω, hωM⟩)]
+    · refine tendsto_const_nhds.congr' ?_
+      filter_upwards with M
+      rw [Set.indicator_of_notMem (fun h => hω (Set.mem_Ici.mp h)),
+        Set.indicator_of_notMem (fun h => hω (Set.mem_Icc.mp h).1)]
+
+/-- Truncations from below converge: `E([-M, b])ξ → E((-∞, b])ξ` as `M → ∞`. -/
+theorem tendsto_spectralProjection_Icc_Iic (b : ℝ) (ξ : H) :
+    Tendsto (fun M : ℕ => spectralProjection U_grp (Set.Icc (-(M : ℝ)) b) measurableSet_Icc ξ)
+      atTop (𝓝 (spectralProjection U_grp (Set.Iic b) measurableSet_Iic ξ)) := by
+  refine tendsto_spectralCalculus_apply U_grp (l := Filter.atTop)
+    (G := fun M : ℕ => Set.indicator (Set.Icc (-(M : ℝ)) b) fun _ => (1 : ℂ))
+    (g := Set.indicator (Set.Iic b) fun _ => (1 : ℂ))
+    (fun _ => measurable_const.indicator measurableSet_Icc) (fun _ => indicator_one_bdd _)
+    (measurable_const.indicator measurableSet_Iic) (indicator_one_bdd _)
+    (C := 1) (fun _ ω => ?_) (fun ω => ?_) ξ
+  · rw [Set.indicator_apply]; split_ifs <;> simp
+  · by_cases hω : ω ≤ b
+    · obtain ⟨n₀, hn₀⟩ := exists_nat_ge (-ω)
+      refine tendsto_const_nhds.congr' ?_
+      filter_upwards [Filter.eventually_ge_atTop n₀] with M hM
+      have hωM : -(M : ℝ) ≤ ω := by
+        have : (n₀ : ℝ) ≤ (M : ℝ) := Nat.cast_le.mpr hM; linarith [hn₀]
+      rw [Set.indicator_of_mem (Set.mem_Iic.mpr hω),
+        Set.indicator_of_mem (Set.mem_Icc.mpr ⟨hωM, hω⟩)]
+    · refine tendsto_const_nhds.congr' ?_
+      filter_upwards with M
+      rw [Set.indicator_of_notMem (fun h => hω (Set.mem_Iic.mp h)),
+        Set.indicator_of_notMem (fun h => hω (Set.mem_Icc.mp h).2)]
+
+/-- If `E((-∞, N])ξ = 0` then all spectral mass is in `[N, ∞)`: `E([N, ∞))ξ = ξ`. -/
+theorem spectralProjection_Ici_eq_self_of_Iic (N : ℝ) (ξ : H)
+    (h : spectralProjection U_grp (Set.Iic N) measurableSet_Iic ξ = 0) :
+    spectralProjection U_grp (Set.Ici N) measurableSet_Ici ξ = ξ := by
+  have hIio : spectralProjection U_grp (Set.Iio N) measurableSet_Iio ξ = 0 := by
+    rw [spectralProjection_eq_zero_iff_measure_zero]
+    exact measure_mono_null
+      (show Set.Iio N ⊆ Set.Iic N from fun _ hx => Set.mem_Iic.mpr (le_of_lt (Set.mem_Iio.mp hx)))
+      ((spectralProjection_eq_zero_iff_measure_zero U_grp (Set.Iic N) measurableSet_Iic ξ).mp h)
+  have hset : (Set.Iio N)ᶜ = Set.Ici N := Set.compl_Iio
+  have h1 : spectralProjection U_grp (Set.Ici N) measurableSet_Ici
+      = spectralProjection U_grp (Set.Iio N)ᶜ measurableSet_Iio.compl :=
+    spectralProjection_congr U_grp hset.symm measurableSet_Ici measurableSet_Iio.compl
+  rw [h1, spectralProjection_compl U_grp (Set.Iio N) measurableSet_Iio,
+    ContinuousLinearMap.sub_apply, ContinuousLinearMap.id_apply, hIio, sub_zero]
+
+/-- If `E([N, ∞))ξ = 0` then all spectral mass is in `(-∞, N]`: `E((-∞, N])ξ = ξ`. -/
+theorem spectralProjection_Iic_eq_self_of_Ici (N : ℝ) (ξ : H)
+    (h : spectralProjection U_grp (Set.Ici N) measurableSet_Ici ξ = 0) :
+    spectralProjection U_grp (Set.Iic N) measurableSet_Iic ξ = ξ := by
+  have hIoi : spectralProjection U_grp (Set.Ioi N) measurableSet_Ioi ξ = 0 := by
+    rw [spectralProjection_eq_zero_iff_measure_zero]
+    exact measure_mono_null
+      (show Set.Ioi N ⊆ Set.Ici N from fun _ hx => Set.mem_Ici.mpr (le_of_lt (Set.mem_Ioi.mp hx)))
+      ((spectralProjection_eq_zero_iff_measure_zero U_grp (Set.Ici N) measurableSet_Ici ξ).mp h)
+  have hset : (Set.Ioi N)ᶜ = Set.Iic N := Set.compl_Ioi
+  have h1 : spectralProjection U_grp (Set.Iic N) measurableSet_Iic
+      = spectralProjection U_grp (Set.Ioi N)ᶜ measurableSet_Ioi.compl :=
+    spectralProjection_congr U_grp hset.symm measurableSet_Iic measurableSet_Ioi.compl
+  rw [h1, spectralProjection_compl U_grp (Set.Ioi N) measurableSet_Ioi,
+    ContinuousLinearMap.sub_apply, ContinuousLinearMap.id_apply, hIoi, sub_zero]
+
+/-- The generator inherits the spectral support: `E((-∞, N])φ = 0 ⟹ E((-∞, N])(Aφ) = 0`, since
+`E` commutes with the generator on its domain. -/
+theorem spectralProjection_Iic_generator_eq_zero (N : ℝ) (φ : (generator U_grp).domain)
+    (h : spectralProjection U_grp (Set.Iic N) measurableSet_Iic (φ : H) = 0) :
+    spectralProjection U_grp (Set.Iic N) measurableSet_Iic (generator U_grp φ) = 0 := by
+  rw [← generator_spectralProjection_comm U_grp (B := Set.Iic N) measurableSet_Iic φ]
+  have hz : (⟨spectralProjection U_grp (Set.Iic N) measurableSet_Iic (φ : H),
+      spectralProjection_mem_generatorDomain_of_mem U_grp measurableSet_Iic φ⟩
+      : (generator U_grp).domain) = 0 := by
+    apply Subtype.ext; simpa using h
+  rw [hz]; exact LinearPMap.map_zero _
+
+/-- The generator inherits the spectral support (above): `E([N, ∞))φ = 0 ⟹ E([N, ∞))(Aφ) = 0`. -/
+theorem spectralProjection_Ici_generator_eq_zero (N : ℝ) (φ : (generator U_grp).domain)
+    (h : spectralProjection U_grp (Set.Ici N) measurableSet_Ici (φ : H) = 0) :
+    spectralProjection U_grp (Set.Ici N) measurableSet_Ici (generator U_grp φ) = 0 := by
+  rw [← generator_spectralProjection_comm U_grp (B := Set.Ici N) measurableSet_Ici φ]
+  have hz : (⟨spectralProjection U_grp (Set.Ici N) measurableSet_Ici (φ : H),
+      spectralProjection_mem_generatorDomain_of_mem U_grp measurableSet_Ici φ⟩
+      : (generator U_grp).domain) = 0 := by
+    apply Subtype.ext; simpa using h
+  rw [hz]; exact LinearPMap.map_zero _
+
+/-- **Energy lower bound from zero low-mass**: if `φ ∈ D(A)` has no spectral mass in `(-∞, N]`,
+its energy expectation is at least `N·‖φ‖²`.  The truncation limit of
+`spectralProjection_energy_lower_bound`. -/
+theorem energy_lower_bound_of_spectralProjection_Iic_eq_zero
+    (N : ℝ) (φ : (generator U_grp).domain)
+    (hE0 : spectralProjection U_grp (Set.Iic N) measurableSet_Iic (φ : H) = 0) :
+    N * ‖(φ : H)‖ ^ 2 ≤ (⟪generator U_grp φ, (φ : H)⟫_ℂ).re := by
+  have hφself : spectralProjection U_grp (Set.Ici N) measurableSet_Ici (φ : H) = (φ : H) :=
+    spectralProjection_Ici_eq_self_of_Iic U_grp N (φ : H) hE0
+  have hAφself :
+      spectralProjection U_grp (Set.Ici N) measurableSet_Ici (generator U_grp φ)
+        = generator U_grp φ :=
+    spectralProjection_Ici_eq_self_of_Iic U_grp N (generator U_grp φ)
+      (spectralProjection_Iic_generator_eq_zero U_grp N φ hE0)
+  have hmem : ∀ M : ℕ,
+      spectralProjection U_grp (Set.Icc N (M : ℝ)) measurableSet_Icc (φ : H)
+        ∈ (generator U_grp).domain := fun _ =>
+    spectralProjection_mem_generatorDomain U_grp measurableSet_Icc
+      (fun _ hx => abs_le_max_of_mem_Icc hx) (φ : H)
+  have hbound : ∀ M : ℕ,
+      N * ‖spectralProjection U_grp (Set.Icc N (M : ℝ)) measurableSet_Icc (φ : H)‖ ^ 2
+        ≤ (⟪spectralProjection U_grp (Set.Icc N (M : ℝ)) measurableSet_Icc (generator U_grp φ),
+            spectralProjection U_grp (Set.Icc N (M : ℝ)) measurableSet_Icc (φ : H)⟫_ℂ).re := by
+    intro M
+    have h := spectralProjection_energy_lower_bound U_grp N (M : ℝ) (φ : H) (hmem M)
+    rwa [generator_spectralProjection_comm U_grp measurableSet_Icc φ] at h
+  have hψφ :
+      Tendsto (fun M : ℕ =>
+          spectralProjection U_grp (Set.Icc N (M : ℝ)) measurableSet_Icc (φ : H))
+        atTop (𝓝 (φ : H)) := by
+    have h := tendsto_spectralProjection_Icc_Ici U_grp N (φ : H); rwa [hφself] at h
+  have hψAφ :
+      Tendsto (fun M : ℕ =>
+          spectralProjection U_grp (Set.Icc N (M : ℝ)) measurableSet_Icc (generator U_grp φ))
+        atTop (𝓝 (generator U_grp φ)) := by
+    have h := tendsto_spectralProjection_Icc_Ici U_grp N (generator U_grp φ); rwa [hAφself] at h
+  exact le_of_tendsto_of_tendsto'
+    ((hψφ.norm.pow 2).const_mul N)
+    ((Complex.continuous_re.tendsto _).comp (hψAφ.inner hψφ)) hbound
+
+/-- **Energy upper bound from zero high-mass**: if `φ ∈ D(A)` has no spectral mass in `[N, ∞)`,
+its energy expectation is at most `N·‖φ‖²`. -/
+theorem energy_upper_bound_of_spectralProjection_Ici_eq_zero
+    (N : ℝ) (φ : (generator U_grp).domain)
+    (hE0 : spectralProjection U_grp (Set.Ici N) measurableSet_Ici (φ : H) = 0) :
+    (⟪generator U_grp φ, (φ : H)⟫_ℂ).re ≤ N * ‖(φ : H)‖ ^ 2 := by
+  have hφself : spectralProjection U_grp (Set.Iic N) measurableSet_Iic (φ : H) = (φ : H) :=
+    spectralProjection_Iic_eq_self_of_Ici U_grp N (φ : H) hE0
+  have hAφself :
+      spectralProjection U_grp (Set.Iic N) measurableSet_Iic (generator U_grp φ)
+        = generator U_grp φ :=
+    spectralProjection_Iic_eq_self_of_Ici U_grp N (generator U_grp φ)
+      (spectralProjection_Ici_generator_eq_zero U_grp N φ hE0)
+  have hmem : ∀ M : ℕ,
+      spectralProjection U_grp (Set.Icc (-(M : ℝ)) N) measurableSet_Icc (φ : H)
+        ∈ (generator U_grp).domain := fun _ =>
+    spectralProjection_mem_generatorDomain U_grp measurableSet_Icc
+      (fun _ hx => abs_le_max_of_mem_Icc hx) (φ : H)
+  have hbound : ∀ M : ℕ,
+      (⟪spectralProjection U_grp (Set.Icc (-(M : ℝ)) N) measurableSet_Icc (generator U_grp φ),
+          spectralProjection U_grp (Set.Icc (-(M : ℝ)) N) measurableSet_Icc (φ : H)⟫_ℂ).re
+        ≤ N * ‖spectralProjection U_grp (Set.Icc (-(M : ℝ)) N) measurableSet_Icc (φ : H)‖ ^ 2 := by
+    intro M
+    have h := spectralProjection_energy_upper_bound U_grp (-(M : ℝ)) N (φ : H) (hmem M)
+    rwa [generator_spectralProjection_comm U_grp measurableSet_Icc φ] at h
+  have hψφ :
+      Tendsto (fun M : ℕ =>
+          spectralProjection U_grp (Set.Icc (-(M : ℝ)) N) measurableSet_Icc (φ : H))
+        atTop (𝓝 (φ : H)) := by
+    have h := tendsto_spectralProjection_Icc_Iic U_grp N (φ : H); rwa [hφself] at h
+  have hψAφ :
+      Tendsto (fun M : ℕ =>
+          spectralProjection U_grp (Set.Icc (-(M : ℝ)) N) measurableSet_Icc (generator U_grp φ))
+        atTop (𝓝 (generator U_grp φ)) := by
+    have h := tendsto_spectralProjection_Icc_Iic U_grp N (generator U_grp φ); rwa [hAφself] at h
+  exact le_of_tendsto_of_tendsto'
+    ((Complex.continuous_re.tendsto _).comp (hψAφ.inner hψφ))
+    ((hψφ.norm.pow 2).const_mul N) hbound
+
+/-- **The bridge, below**: a domain vector whose energy expectation lies below `N·‖φ‖²` has
+nonzero spectral mass in `(-∞, N]`.  Discharges the `h_spectrum_below` hypothesis from a single
+negative-energy witness — no PVM↔Fourier identification required. -/
+theorem spectralProjection_Iic_ne_zero_of_energy_lt
+    (N : ℝ) (φ : (generator U_grp).domain)
+    (hlt : (⟪generator U_grp φ, (φ : H)⟫_ℂ).re < N * ‖(φ : H)‖ ^ 2) :
+    spectralProjection U_grp (Set.Iic N) measurableSet_Iic (φ : H) ≠ 0 := fun hE0 =>
+  absurd hlt
+    (not_lt.mpr (energy_lower_bound_of_spectralProjection_Iic_eq_zero U_grp N φ hE0))
+
+/-- **The bridge, above**: a domain vector whose energy expectation lies above `N·‖φ‖²` has
+nonzero spectral mass in `[N, ∞)`. -/
+theorem spectralProjection_Ici_ne_zero_of_energy_gt
+    (N : ℝ) (φ : (generator U_grp).domain)
+    (hgt : (⟪generator U_grp φ, (φ : H)⟫_ℂ).re > N * ‖(φ : H)‖ ^ 2) :
+    spectralProjection U_grp (Set.Ici N) measurableSet_Ici (φ : H) ≠ 0 := fun hE0 =>
+  absurd hgt
+    (not_lt.mpr (energy_upper_bound_of_spectralProjection_Ici_eq_zero U_grp N φ hE0))
+
+/-! ## Spectral gap from a norm lower bound (the mass-gap engine)
+
+If the generator is bounded below in norm by `c ≥ 0` on its whole domain (`c·‖ψ‖ ≤ ‖Aψ‖`), then it
+has no spectral mass in the open interval `(−c, c)`: every bounded spectral chunk `E([a,b])φ` with
+`[a,b] ⊆ (−c,c)` would satisfy both `c‖·‖ ≤ ‖A·‖` and `‖A·‖ ≤ max(−a,b)‖·‖ < c‖·‖`, forcing it to
+vanish; the open interval is the increasing union of such chunks. -/
+
+/-- `(−c, c) = ⋃ₙ [−c+1/(n+1), c−1/(n+1)]`. -/
+lemma ioo_eq_iUnion_icc_symm (c : ℝ) :
+    Set.Ioo (-c) c = ⋃ n : ℕ, Set.Icc (-c + 1 / ((n : ℝ) + 1)) (c - 1 / ((n : ℝ) + 1)) := by
+  ext x
+  simp only [Set.mem_Ioo, Set.mem_iUnion, Set.mem_Icc]
+  constructor
+  · rintro ⟨hx1, hx2⟩
+    have hmin : 0 < min (c + x) (c - x) := lt_min (by linarith) (by linarith)
+    obtain ⟨n, hn⟩ := exists_nat_gt (1 / min (c + x) (c - x))
+    rw [div_lt_iff₀ hmin] at hn
+    have hsmall : (1 : ℝ) / ((n : ℝ) + 1) ≤ min (c + x) (c - x) := by
+      rw [div_le_iff₀ (by positivity : (0 : ℝ) < (n : ℝ) + 1)]
+      nlinarith [hn, hmin]
+    exact ⟨n, by linarith [hsmall, min_le_left (c + x) (c - x)],
+      by linarith [hsmall, min_le_right (c + x) (c - x)]⟩
+  · rintro ⟨n, hn1, hn2⟩
+    have hpos : 0 < 1 / ((n : ℝ) + 1) := by positivity
+    exact ⟨by linarith, by linarith⟩
+
+/-- **Spectral gap from a uniform norm lower bound**: if `c·‖ψ‖ ≤ ‖Aψ‖` for all domain vectors,
+then `E((−c, c)) = 0`. -/
+theorem spectralProjection_Ioo_eq_zero_of_norm_ge (c : ℝ)
+    (hbound : ∀ ψ : (generator U_grp).domain, c * ‖(ψ : H)‖ ≤ ‖generator U_grp ψ‖) :
+    spectralProjection U_grp (Set.Ioo (-c) c) measurableSet_Ioo = 0 := by
+  haveI : ∀ φ : H, IsFiniteMeasure (borelMeasure U_grp φ) := borelMeasure_isFiniteMeasure U_grp
+  ext φ
+  simp only [ContinuousLinearMap.zero_apply]
+  rw [spectralProjection_eq_zero_iff_measure_zero U_grp (Set.Ioo (-c) c) measurableSet_Ioo,
+    ioo_eq_iUnion_icc_symm]
+  refine measure_iUnion_null fun n => ?_
+  set a := -c + 1 / ((n : ℝ) + 1) with ha
+  set b := c - 1 / ((n : ℝ) + 1) with hb
+  rw [← spectralProjection_eq_zero_iff_measure_zero U_grp (Set.Icc a b) measurableSet_Icc]
+  by_cases hab : a ≤ b
+  · have hmem : spectralProjection U_grp (Set.Icc a b) measurableSet_Icc φ
+        ∈ (generator U_grp).domain :=
+      spectralProjection_mem_generatorDomain U_grp measurableSet_Icc
+        (fun x hx => abs_le_max_of_mem_Icc hx) φ
+    by_contra hne
+    have hnpos : (0 : ℝ) < 1 / ((n : ℝ) + 1) := by positivity
+    have ha0 : a ≤ 0 := by rw [ha]; nlinarith [hab]
+    have hb0 : (0 : ℝ) ≤ b := by rw [hb]; nlinarith [hab]
+    have hsub := generator_sub_smul_norm_le_Icc U_grp a b 0 ha0 hb0 φ hmem
+    rw [zero_smul, sub_zero] at hsub
+    have hmax : max (0 - a) (b - 0) = c - 1 / ((n : ℝ) + 1) := by
+      have e1 : (0 : ℝ) - a = c - 1 / ((n : ℝ) + 1) := by rw [ha]; ring
+      have e2 : b - (0 : ℝ) = c - 1 / ((n : ℝ) + 1) := by rw [hb]; ring
+      rw [e1, e2, max_self]
+    rw [hmax] at hsub
+    have hlow := hbound ⟨spectralProjection U_grp (Set.Icc a b) measurableSet_Icc φ, hmem⟩
+    have hnorm_pos : 0 < ‖spectralProjection U_grp (Set.Icc a b) measurableSet_Icc φ‖ :=
+      norm_pos_iff.mpr hne
+    nlinarith [hlow, hsub, hnorm_pos, hnpos]
+  · rw [spectralProjection_congr U_grp (Set.Icc_eq_empty hab) measurableSet_Icc
+      MeasurableSet.empty, spectralProjection_empty, ContinuousLinearMap.zero_apply]
 
 end Spectra.QuantumMechanics.SpectralTheory

@@ -5,6 +5,7 @@ Authors: Adam Bornemann
 Filename: StonesFormula/Kernel/Defs.lean
 -/
 import Spectra.Resolvent.Analytic
+import Spectra.Resolvent.Defs
 /-!
 # Resolvent Kernel Analysis
 
@@ -56,10 +57,10 @@ open Complex MeasureTheory Filter Topology TopologicalSpace
 open scoped NNReal ENNReal InnerProductSpace
 namespace Spectra.Kernels
 
-/-- A complex number with non-zero imaginary part. -/
-structure OffRealAxis where
-  val : ℂ
-  im_ne_zero : val.im ≠ 0
+/-- A complex number with non-zero imaginary part.
+Re-export of `Spectra.Resolvent.OffRealAxis` (the subtype `{z : ℂ // z.im ≠ 0}`),
+shared so the Kernel and Resolvent modules use a single type. -/
+abbrev OffRealAxis := Spectra.Resolvent.OffRealAxis
 
 /-- Construct `t + iε` as an off-real point. -/
 def offRealPoint (t : ℝ) (ε : ℝ) (hε : ε > 0) : OffRealAxis :=

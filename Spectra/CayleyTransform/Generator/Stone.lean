@@ -2,156 +2,133 @@
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
-Filename: CayleyTransform/GeneratorStone.lean
+Filename: CayleyTransform/GeneratorStoneDirect.lean
 -/
-import Spectra.CayleyTransform.Generator.Resolvent
-import Spectra.SpectralTheory.ResolventForm
-import Mathlib.MeasureTheory.Measure.CharacteristicFunction.Basic
+import Spectra.CayleyTransform.Generator.InverseAction   -- cayley, stoneExp, stoneGroup, resolventSymbol
+import Spectra.CayleyTransform.Generator.Resolvent     -- selfAdjointResolvent_eq_borelCalculus (keystone)
+import Spectra.CayleyTransform.Generator.Pushforward   -- ⚠ see note: the group-free helpers, relocated
+import Spectra.Resolvent.SpectralRepresentation       -- inner_resolvent_diag_eq_integral
+import Spectra.SpectralTheory.StoneFormula.Identities -- resolvent_left_inverse / _mem_domain / _solves
+import Spectra.Resolvent.Integral.Domain              -- generator, generator_isSelfAdjoint, ranges
+import Mathlib.Tactic
 /-!
-# `stoneGroup hA = genToGroup hA` and `generator (stoneGroup hA) = A`
+# `generator (stoneGroup hA) = A`, proved without the Yosida group
 
-The spectral (Cayley/Borel) group and the Yosida group are identified **without** computing the
-generator, closing `generator_stoneGroup` non-circularly.  The keystone
-`selfAdjointResolvent_eq_borelCalculus` expresses `(A − z)⁻¹` through the Cayley Borel calculus;
-a measure pushforward (`borelMeasure_stoneGroup_eq_map`, proved by matching characteristic
-functions, both equal to `t ↦ ⟪ξ, e^{itA}ξ⟫`) turns this into a Cauchy-transform identity, and
-`measure_ext_of_cauchyTransform` (only needing `Im z > 0`, where `i + z ≠ 0`) collapses the two
-groups' spectral measures — hence the groups (`stoneGroup_eq_genToGroup`), hence the generators.
+This closes the spectral construction **on its own terms**.  The single new fact is that the
+generator of `stoneGroup hA` has the same resolvent as `A`:
+
+  `(generator (stoneGroup hA) − z)⁻¹ = selfAdjointResolvent hA z`,    `Im z ≠ 0`, `i + z ≠ 0`,
+
+obtained by comparing diagonals — the left through the generic group identity
+`inner_resolvent_diag_eq_integral`, the right through the keystone
+`selfAdjointResolvent_eq_borelCalculus`, the two joined by the pushforward
+`borelMeasure_stoneGroup_eq_map`.  A self-adjoint operator is determined by its resolvent
+(`resolvent_left_inverse` + `resolvent_mem_domain` + `resolvent_solves`), giving
+`A ≤ generator (stoneGroup hA)`, and `IsSelfAdjoint.eq_of_le` finishes.
+
+`genToGroup` does not appear.  The consistency `stoneGroup_eq_genToGroup` is then a one-line
+corollary (see the bridge note at the end) — and with it, the Cauchy-transform comparison
+`borelMeasure_stoneGroup_eq_genToGroup` and everything it pulled in from the Yosida keystone
+becomes deletable.
+
+## ⚠ Dependency hygiene
+
+`inverseMobiusReal` (+ `_coe`, `_measurable`) and `borelMeasure_stoneGroup_eq_map` are group-free
+but currently live in `GeneratorStone.lean` alongside `genToGroup`.  Move them into a group-free
+file (here imported as `CayleyTransform/Pushforward`) so that *this* file imports nothing that
+mentions the Yosida group.  `borelMeasure_stoneGroup_eq_map` itself only uses `stoneExp`, the
+Riesz measure, and `Measure.ext_of_charFun` — it relocates unchanged.
 -/
 open Complex MeasureTheory Filter Topology InnerProductSpace
 open scoped InnerProductSpace
-open Spectra.Resolvent Spectra.Stoneslemma Spectra.QuantumMechanics.Observable
-open Spectra.QuantumMechanics.SpectralTheory Spectra.BorelCFC Spectra.StonesTheorem
+open Spectra Spectra.Resolvent Spectra.Stoneslemma
+open Spectra.QuantumMechanics.SpectralTheory Spectra.BorelCFC
 open Spectra.OneParameterUnitaryGroup Spectra.Borel
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
 variable {A : H →ₗ.[ℂ] H}
 namespace Spectra.Cayley
 
-/-- Characteristic-function form of `e^{itA}` on the diagonal, against the group's own spectral
-(Bochner–Herglotz) measure: `⟪ξ, stoneExp t ξ⟫ = ∫ e^{ilt} dμ_ξ(l)`.  Mirror of
-`inner_genToGroup_eq_integral`, via `spectralForm_char` + `spectralForm_self`. -/
-theorem inner_stoneExp_eq_integral_borelMeasure (hA : IsSelfAdjoint A) (t : ℝ) (ξ : H) :
-    ⟪ξ, stoneExp hA t ξ⟫_ℂ = ∫ l, cexp (I * l * t) ∂(borelMeasure (stoneGroup hA) ξ) := by
-  rw [← spectralForm_self (stoneGroup hA) ξ (char_measurable t) (char_bdd t)]
-  exact (spectralForm_char (stoneGroup hA) ξ ξ t).symm
 
-/-- The inverse Möbius value as a *real*-valued map on the Cayley spectrum (it is real there). -/
-noncomputable def inverseMobiusReal (hA : IsSelfAdjoint A) : spectrum ℂ (cayley hA) → ℝ :=
-  fun w => (inverseMobius (w : ℂ)).re
+/-! ## The resolvent of the spectral generator is the resolvent of `A` -/
 
-lemma inverseMobiusReal_coe (hA : IsSelfAdjoint A) (w : spectrum ℂ (cayley hA)) :
-    ((inverseMobiusReal hA w : ℝ) : ℂ) = inverseMobius (w : ℂ) := by
-  apply Complex.ext <;>
-    simp only [inverseMobiusReal, Complex.ofReal_re, Complex.ofReal_im,
-      inverseMobius_im_eq_zero_of_mem_spectrum hA w]
-
-lemma inverseMobiusReal_measurable (hA : IsSelfAdjoint A) : Measurable (inverseMobiusReal hA) := by
-  have hmob : Measurable (inverseMobius : ℂ → ℂ) := by
-    unfold inverseMobius
-    exact (measurable_const.mul (measurable_const.add measurable_id)).div
-      (measurable_const.sub measurable_id)
-  exact Complex.measurable_re.comp (hmob.comp continuous_subtype_val.measurable)
-
-/-- **The pushforward identity.**  The group's `ℝ`-valued spectral measure is the pushforward of
-the Cayley-spectrum measure under `inverseMobius`.  Both measures have characteristic function
-`t ↦ ⟪ξ, stoneExp t ξ⟫` — the left by `inner_stoneExp_eq_integral_borelMeasure`, the right by
-`integral_map` + `inner_stoneExp_self_eq_integral` and `inverseMobiusReal_coe` — so
-`Measure.ext_of_charFun` identifies them. -/
-theorem borelMeasure_stoneGroup_eq_map (hA : IsSelfAdjoint A) (ξ : H) :
-    borelMeasure (stoneGroup hA) ξ
-      = Measure.map (inverseMobiusReal hA)
-          (Spectra.Riesz.spectralMeasure (cayley hA) (cayley_isStarNormal hA) ξ) := by
-  haveI : IsFiniteMeasure (borelMeasure (stoneGroup hA) ξ) :=
-    borelMeasure_isFiniteMeasure (stoneGroup hA) ξ
-  haveI : IsFiniteMeasure (Measure.map (inverseMobiusReal hA)
-      (Spectra.Riesz.spectralMeasure (cayley hA) (cayley_isStarNormal hA) ξ)) := by
-    constructor
-    rw [Measure.map_apply (inverseMobiusReal_measurable hA) MeasurableSet.univ, Set.preimage_univ]
-    exact measure_lt_top _ _
-  refine Measure.ext_of_charFun (funext fun t => ?_)
-  have hLHS : charFun (borelMeasure (stoneGroup hA) ξ) t = ⟪ξ, stoneExp hA t ξ⟫_ℂ := by
-    rw [charFun_apply_real, inner_stoneExp_eq_integral_borelMeasure hA t ξ]
-    exact integral_congr_ae (Filter.Eventually.of_forall fun l => by ring_nf)
-  have hRHS : charFun (Measure.map (inverseMobiusReal hA)
-      (Spectra.Riesz.spectralMeasure (cayley hA) (cayley_isStarNormal hA) ξ)) t
-      = ⟪ξ, stoneExp hA t ξ⟫_ℂ := by
-    rw [charFun_apply_real,
-      integral_map (inverseMobiusReal_measurable hA).aemeasurable (by fun_prop),
-      inner_stoneExp_self_eq_integral hA t ξ]
-    refine integral_congr_ae (Filter.Eventually.of_forall fun w => ?_)
-    have hexp : (↑t * (↑(inverseMobiusReal hA w) : ℂ) * I) = I * ↑t * inverseMobius (w : ℂ) := by
-      rw [inverseMobiusReal_coe hA w]; ring
-    simp only [stoneExpSymbol]
-    rw [hexp]
-  rw [hLHS, hRHS]
-
-/-- Two one-parameter groups with the same evolution `U` are equal (the other fields are Props). -/
-lemma group_ext_of_U {V W : OneParameterUnitaryGroup (H := H)} (h : V.U = W.U) : V = W := by
-  obtain ⟨Vu, hV1, hV2, hV3, hV4⟩ := V
-  obtain ⟨Wu, hW1, hW2, hW3, hW4⟩ := W
-  subst h
-  rfl
-
-/-- **The two spectral measures coincide.**  Cauchy transforms agree on `Im z > 0`: the left
-equals `⟪ξ, (A − z)⁻¹ ξ⟫` by the pushforward + the keystone (`i + z ≠ 0` there), the right by
-`spectralPVM_resolvent_formula`; `measure_ext_of_cauchyTransform` finishes. -/
-theorem borelMeasure_stoneGroup_eq_genToGroup [Nontrivial H] (hA : IsSelfAdjoint A) (ξ : H) :
-    borelMeasure (stoneGroup hA) ξ = borelMeasure (genToGroup hA) ξ := by
-  haveI : IsFiniteMeasure (borelMeasure (stoneGroup hA) ξ) := borelMeasure_isFiniteMeasure _ _
-  haveI : IsFiniteMeasure (borelMeasure (genToGroup hA) ξ) := borelMeasure_isFiniteMeasure _ _
-  refine measure_ext_of_cauchyTransform _ _ fun z hz_pos => ?_
-  have hzne : z.im ≠ 0 := hz_pos.ne'
-  have hzi : I + z ≠ 0 := by
-    intro h
-    have him : (1 : ℝ) + z.im = 0 := by
-      have h2 := congrArg Complex.im h
-      simpa [Complex.add_im, Complex.I_im] using h2
-    linarith
+/-- **The keystone of this file.**  The group-theoretic resolvent of `generator (stoneGroup hA)`
+coincides with the operator-theoretic `selfAdjointResolvent hA`.  Both diagonals are integrals of
+the Cauchy kernel: the left against the group's spectral measure (`inner_resolvent_diag_eq_integral`),
+the right against the Cayley spectral measure (`selfAdjointResolvent_eq_borelCalculus` +
+`inner_borelCalculus_self`), and the two measures are pushforwards under `inverseMobius`. -/
+theorem generator_resolvent_eq_selfAdjoint [Nontrivial H] (hA : IsSelfAdjoint A)
+    (z : ℂ) (hz : z.im ≠ 0) (hzi : I + z ≠ 0) :
+    Resolvent.resolvent z hz (generator_isFormalAdjoint (stoneGroup hA))
+        (range_plus_i_eq_top (stoneGroup hA)) (range_minus_i_eq_top (stoneGroup hA))
+      = selfAdjointResolvent hA z hz := by
+  refine op_ext_of_inner_self fun ξ => ?_
   have hzr : ∀ x : ℝ, ((x : ℂ) - z) ≠ 0 := fun x hx => by
-    rw [sub_eq_zero] at hx
-    exact hzne (by rw [← hx, Complex.ofReal_im])
+    rw [sub_eq_zero] at hx; exact hz (by rw [← hx, Complex.ofReal_im])
   have hcont : Continuous (fun x : ℝ => ((x : ℂ) - z)⁻¹) :=
     (Complex.continuous_ofReal.sub continuous_const).inv₀ hzr
-  have hLHS : (∫ x, ((x : ℂ) - z)⁻¹ ∂(borelMeasure (stoneGroup hA) ξ))
-      = ⟪ξ, selfAdjointResolvent hA z hzne ξ⟫_ℂ := by
-    rw [borelMeasure_stoneGroup_eq_map hA ξ,
-      integral_map (inverseMobiusReal_measurable hA).aemeasurable hcont.aestronglyMeasurable,
-      selfAdjointResolvent_eq_borelCalculus hA z hzne hzi,
-      inner_borelCalculus_self (cayley hA) (cayley_isStarNormal hA) (resolventSymbol hA z)
-        (resolventSymbol_measurable hA z) (resolventSymbol_bdd hA z hzne)]
-    refine integral_congr_ae (Filter.Eventually.of_forall fun w => ?_)
-    simp only [resolventSymbol]
-    rw [inverseMobiusReal_coe hA w]
-  have hRHS : (∫ x, ((x : ℂ) - z)⁻¹ ∂(borelMeasure (genToGroup hA) ξ))
-      = ⟪ξ, selfAdjointResolvent hA z hzne ξ⟫_ℂ := by
-    rw [← spectralPVM_diag hA]
-    exact (spectralPVM_resolvent_formula hA z hzne ξ).symm
-  rw [hLHS, hRHS]
+  rw [inner_resolvent_diag_eq_integral (stoneGroup hA) z hz ξ,
+    selfAdjointResolvent_eq_borelCalculus hA z hz hzi,
+    inner_borelCalculus_self (cayley hA) (cayley_isStarNormal hA) (resolventSymbol hA z)
+      (resolventSymbol_measurable hA z) (resolventSymbol_bdd hA z hz),
+    borelMeasure_stoneGroup_eq_map hA ξ,
+    integral_map (inverseMobiusReal_measurable hA).aemeasurable hcont.aestronglyMeasurable]
+  refine integral_congr_ae (Filter.Eventually.of_forall fun w => ?_)
+  simp only [resolventSymbol]
+  rw [inverseMobiusReal_coe hA w]
 
-/-- **The spectral evolution equals the Yosida evolution.**  Equal spectral measures give equal
-characteristic integrals `⟪ξ, e^{itA} ξ⟫`, and complex polarization (`ext_inner_map`) lifts that
-to operator equality. -/
-theorem stoneExp_eq_genToGroup [Nontrivial H] (hA : IsSelfAdjoint A) (t : ℝ) :
-    stoneExp hA t = (genToGroup hA).U t := by
-  have hdiag : ∀ ξ, ⟪ξ, stoneExp hA t ξ⟫_ℂ = ⟪ξ, (genToGroup hA).U t ξ⟫_ℂ := fun ξ => by
-    rw [inner_stoneExp_eq_integral_borelMeasure hA t ξ, borelMeasure_stoneGroup_eq_genToGroup hA ξ,
-      inner_genToGroup_eq_integral hA t ξ, spectralPVM_diag]
-  refine ContinuousLinearMap.coe_injective ((ext_inner_map _ _).mp fun ξ => ?_)
-  show ⟪stoneExp hA t ξ, ξ⟫_ℂ = ⟪(genToGroup hA).U t ξ, ξ⟫_ℂ
-  rw [← inner_conj_symm (stoneExp hA t ξ) ξ, ← inner_conj_symm ((genToGroup hA).U t ξ) ξ, hdiag ξ]
+/-! ## `A ≤ generator (stoneGroup hA)` -/
 
-/-- **The spectral group is the Yosida group.**  `stoneGroup hA = genToGroup hA`, proved with no
-generator (the consistency of the two constructions of `e^{itA}`). -/
-theorem stoneGroup_eq_genToGroup [Nontrivial H] (hA : IsSelfAdjoint A) : stoneGroup hA = genToGroup hA :=
-  group_ext_of_U (funext (stoneExp_eq_genToGroup hA))
+/-- A self-adjoint operator is determined by its resolvent: with the resolvents identified at
+`z = i` (where `i + i = 2i ≠ 0`), `resolvent_left_inverse` sends `A ψ − i ψ ↦ ψ` and
+`resolvent_mem_domain` / `resolvent_solves` read the same `ψ` back as a domain point of the
+spectral generator with the same value. -/
+theorem A_le_generator_stoneGroup [Nontrivial H] (hA : IsSelfAdjoint A) :
+    A ≤ generator (stoneGroup hA) := by
+  have hz : (I : ℂ).im ≠ 0 := by simp
+  have hzi : I + I ≠ 0 := by
+    rw [show I + I = (2 : ℂ) * I from by ring]; exact mul_ne_zero two_ne_zero I_ne_zero
+  have hres := generator_resolvent_eq_selfAdjoint hA I hz hzi
+  -- abbreviations for the spectral generator's deficiency witnesses
+  set hsymB := generator_isFormalAdjoint (stoneGroup hA)
+  set hplusB := range_plus_i_eq_top (stoneGroup hA)
+  set hminusB := range_minus_i_eq_top (stoneGroup hA)
+  refine ⟨fun v hv => ?_, fun x y hxy => ?_⟩
+  · -- domain inclusion
+    have h1 : selfAdjointResolvent hA I hz (A ⟨v, hv⟩ - I • v) = v :=
+      resolvent_left_inverse (isFormalAdjoint_of_isSelfAdjoint hA)
+        (isSelfAdjoint_to_surjective hA).1 (isSelfAdjoint_to_surjective hA).2 I hz ⟨v, hv⟩
+    have hRB : Resolvent.resolvent I hz hsymB hplusB hminusB (A ⟨v, hv⟩ - I • v) = v := by
+      rw [hres]; exact h1
+    rw [← hRB]
+    exact resolvent_mem_domain hsymB hplusB hminusB I hz _
+  · -- value agreement: `A x = generator (stoneGroup hA) y` for `(x : H) = (y : H)`
+    set φ : H := A x - I • (x : H) with hφ
+    have h1 : selfAdjointResolvent hA I hz φ = (x : H) :=
+      resolvent_left_inverse (isFormalAdjoint_of_isSelfAdjoint hA)
+        (isSelfAdjoint_to_surjective hA).1 (isSelfAdjoint_to_surjective hA).2 I hz x
+    have hRB : Resolvent.resolvent I hz hsymB hplusB hminusB φ = (x : H) := by rw [hres]; exact h1
+    have hmem := resolvent_mem_domain hsymB hplusB hminusB I hz φ
+    have hsolve := resolvent_solves hsymB hplusB hminusB I hz φ
+    -- the domain point produced by the resolvent is exactly `y`
+    have hey : (⟨Resolvent.resolvent I hz hsymB hplusB hminusB φ, hmem⟩
+        : (generator (stoneGroup hA)).domain) = y := Subtype.ext (by simp only [hRB, hxy])
+    rw [hey, hRB] at hsolve            -- hsolve : generator (stoneGroup hA) y - I • (x : H) = φ
+    -- cancel the common `- I • (x : H)` against `φ = A x - I • (x : H)`
+    have : generator (stoneGroup hA) y - I • (x : H) = A x - I • (x : H) := by rw [hsolve, hφ]
+    exact (sub_left_inj.mp this).symm
 
-/-- **The generator of the spectral group is `A`.** -/
-theorem generator_stoneGroup [Nontrivial H] (hA : IsSelfAdjoint A) : generator (stoneGroup hA) = A := by
-  rw [stoneGroup_eq_genToGroup hA]; exact generator_genToGroup hA
+/-! ## The generator, and the difference-quotient limit -/
 
-/-- The difference-quotient limit defining the generator, now a corollary of
-`generator_stoneGroup`. -/
-theorem stoneExp_genDiffQuot_tendsto [Nontrivial H] (hA : IsSelfAdjoint A) (ψ : H) (hψ : ψ ∈ A.domain) :
+/-- **The generator of the spectral group is `A`** — no Yosida group involved. -/
+theorem generator_stoneGroup [Nontrivial H] (hA : IsSelfAdjoint A) :
+    generator (stoneGroup hA) = A :=
+  (IsSelfAdjoint.eq_of_le hA (generator_isSelfAdjoint (stoneGroup hA))
+    (A_le_generator_stoneGroup hA)).symm
+
+/-- The defining difference-quotient limit, now a corollary of the *direct* generator computation
+(identical statement to your `Stone.lean`, but no longer routed through `genToGroup`). -/
+theorem stoneExp_genDiffQuot_tendsto [Nontrivial H] (hA : IsSelfAdjoint A)
+    (ψ : H) (hψ : ψ ∈ A.domain) :
     Tendsto (genDiffQuot (stoneGroup hA) ψ) (𝓝[≠] (0 : ℝ)) (𝓝 (A ⟨ψ, hψ⟩)) := by
   have hψgen : ψ ∈ (generator (stoneGroup hA)).domain := by
     rw [generator_stoneGroup hA]; exact hψ
@@ -161,3 +138,26 @@ theorem stoneExp_genDiffQuot_tendsto [Nontrivial H] (hA : IsSelfAdjoint A) (ψ :
   exact generator_tendsto (stoneGroup hA) ⟨ψ, hψgen⟩
 
 end Spectra.Cayley
+
+/-!
+## The bridge file (the *only* place `genToGroup` survives)
+
+With both generators computed independently, the consistency of the two constructions of
+`e^{itA}` is a single `group_unique`.  Put this in `CayleyTransform/StoneBridge.lean`
+(importing this file and `Stone/Basic.lean`):
+
+```
+theorem stoneGroup_eq_genToGroup [Nontrivial H] (hA : IsSelfAdjoint A) :
+    stoneGroup hA = genToGroup hA :=
+  group_unique _ _ (by rw [generator_stoneGroup hA, generator_genToGroup hA])
+
+theorem stoneExp_eq_genToGroup [Nontrivial H] (hA : IsSelfAdjoint A) (t : ℝ) :
+    stoneExp hA t = (genToGroup hA).U t := by
+  rw [show stoneExp hA t = (stoneGroup hA).U t from rfl, stoneGroup_eq_genToGroup hA]
+```
+
+`borelMeasure_stoneGroup_eq_genToGroup` and `inner_stoneExp_eq_integral_borelMeasure` in your
+current `GeneratorStone.lean` are now dead weight: the former consumed the Yosida keystone
+`spectralPVM_resolvent_formula`, which was the whole reason the two developments were welded.
+Delete them, and the spectral route owes the Yosida construction nothing.
+-/

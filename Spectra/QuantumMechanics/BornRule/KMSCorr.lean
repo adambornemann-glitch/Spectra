@@ -254,7 +254,7 @@ on bounded increasing nets.
 semicontinuity, which for states on von Neumann algebras is equivalent
 to normality. Uses the Kaplansky density theorem and the KMS boundary
 conditions. -/
-axiom kms_implies_normal {A : Type*} [CStarAlgebra A] [IsVonNeumannAlgebra A]
+axiom kms_implies_normal {A : Type*} [CStarAlgebra A] [WStarAlgebra A]
     {ω : State A} {α : Dynamics A} {β : ℝ} (hβ : 0 < β)
     (hkms : IsKMSState ω α β) : ω.IsNormal
 
@@ -304,7 +304,7 @@ construction requires unbounded operator theory (polar decomposition of
 densely defined closable operators) not yet available in Mathlib. The
 discharge route is clear once unbounded operators and the modular operator
 Δ are formalized. -/
-axiom tomita_takesaki {A : Type*} [CStarAlgebra A] [IsVonNeumannAlgebra A]
+axiom tomita_takesaki {A : Type*} [CStarAlgebra A] [WStarAlgebra A]
     (ω : FaithfulNormalState A) : ModularTheoryData A ω
 
 
@@ -313,7 +313,7 @@ axiom tomita_takesaki {A : Type*} [CStarAlgebra A] [IsVonNeumannAlgebra A]
 The main theorem: faithful normal states are exactly the KMS-1 states.
 -/
 
-variable {A : Type*} [CStarAlgebra A] [IsVonNeumannAlgebra A]
+variable {A : Type*} [CStarAlgebra A] [WStarAlgebra A]
 
 /-- **Forward direction**: Faithful normal states are KMS at β = 1.
 
@@ -367,7 +367,7 @@ both σ₁ and σ₂, then σ₁ = σ₂. This means the Born-KMS correspondence
 is a genuine bijection, not just a surjection.
 -/
 
-omit [IsVonNeumannAlgebra A] in
+omit [WStarAlgebra A] in
 /-- The KMS-1 dynamics of a faithful normal state is unique.
 
 If ω is KMS at β = 1 with respect to both σ₁ and σ₂, then
@@ -474,15 +474,13 @@ theorem kms_admits_modular_data (ω : State A)
   -- The modular dynamics equals σ by uniqueness
   exact takesaki_kms_unique hmod.dynamics σ hmod.kms_at_one hkms
 
-omit [IsVonNeumannAlgebra A] in
+omit [WStarAlgebra A] in
 /-- **KMS states are invariant**: Every KMS-1 state is invariant under
 its own dynamics. Combines the reverse direction with modular invariance. -/
 theorem kms_state_is_invariant (ω : State A)
-    (σ : Dynamics A) (hkms : IsKMSState ω σ 1) (hβ : (0 : ℝ) < 1 := one_pos)
-    (hMorera : ∀ a : A, ∀ F : KMSFunction ω σ 1 1 a,
-      Differentiable ℂ (periodicExtension F.toFun 1)) :
+    (σ : Dynamics A) (hkms : IsKMSState ω σ 1) (hβ : (0 : ℝ) < 1 := one_pos) :
     IsInvariant ω σ :=
-  IsKMSState.isInvariant hβ hkms hMorera
+  IsKMSState.isInvariant hβ hkms
 
 /-- **The thermal time hypothesis** (Connes-Rovelli): For a faithful normal
 state on a von Neumann algebra, the modular automorphism group is the unique

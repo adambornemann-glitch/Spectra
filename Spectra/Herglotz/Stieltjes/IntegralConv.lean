@@ -304,7 +304,7 @@ lemma stieltjes_leftLim_zero {F : ℝ → ℝ} (hF : Monotone F)
 
 /-- The Stieltjes function of a CDF that is eventually constant `M` to the right of `a`
 has right limit `M` at `a`. -/
-private lemma stieltjes_rightLim_const {F : ℝ → ℝ} (hF : Monotone F) {a M : ℝ}
+lemma stieltjes_rightLim_const {F : ℝ → ℝ} (hF : Monotone F) {a M : ℝ}
     (hconst : ∀ x, a < x → F x = M) :          -- was  a ≤ x
     Function.rightLim F a = M := by
   have htend : Tendsto F (𝓝[>] a) (𝓝 M) := by

@@ -71,14 +71,14 @@ lemma inner_mulVec_self_bound_unitary {n : ℕ} [NeZero n]
   exact Eq.symm (EuclideanSpace.norm_sq_eq x')
 
 
-private lemma nsmul_one_mulVec {m : ℕ} (k : ℕ) (x : Fin m → ℂ) :
+lemma nsmul_one_mulVec {m : ℕ} (k : ℕ) (x : Fin m → ℂ) :
     (k • (1 : Matrix (Fin m) (Fin m) ℂ)).mulVec x = k • x := by
   ext i
   simp only [mulVec, dotProduct, nsmul_eq_mul, Pi.smul_apply, mul_one,
              Matrix.natCast_apply, Nat.cast_ite, CharP.cast_eq_zero, ite_mul,
              zero_mul, Finset.sum_ite_eq, Finset.mem_univ, ↓reduceIte]
 
-private lemma star_dotProduct_nsmul {m : ℕ} (k : ℕ) (x : Fin m → ℂ) :
+lemma star_dotProduct_nsmul {m : ℕ} (k : ℕ) (x : Fin m → ℂ) :
     star x ⬝ᵥ (k • x) = k • (star x ⬝ᵥ x) := by
   simp [dotProduct, Pi.smul_apply, Pi.star_apply, nsmul_eq_mul, Finset.mul_sum]
   grind only

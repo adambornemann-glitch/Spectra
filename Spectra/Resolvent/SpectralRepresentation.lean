@@ -51,6 +51,7 @@ open scoped InnerProductSpace
 open Spectra.Borel Spectra.OneParameterUnitaryGroup
 open SpectralMeasure
 open Spectra.QuantumMechanics.SpectralTheory
+open Spectra.Fourier  -- `integrable_of_bounded`
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
 namespace Spectra.Resolvent
 variable (U_grp : OneParameterUnitaryGroup (H := H))

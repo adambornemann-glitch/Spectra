@@ -241,11 +241,8 @@ theorem spectralForm_smul_left (ξ η : H) (c : ℂ) {g : ℝ → ℂ}
 
 /-! ### Linearity in the function slot -/
 
-/-- Bounded measurable functions are integrable against finite measures.  (Public restatement
-of `CharFunBridge`'s private `integrable_of_bounded`; delete this once that one is promoted.) -/
-lemma integrable_of_bounded {ρ : Measure ℝ} [IsFiniteMeasure ρ] {F : ℝ → ℂ}
-    (hF : Measurable F) {C : ℝ} (hC : ∀ ω, ‖F ω‖ ≤ C) : Integrable F ρ :=
-  (integrable_const C).mono' hF.aestronglyMeasurable (Filter.Eventually.of_forall hC)
+-- `integrable_of_bounded` lives in `Spectra.Fourier` (`CharFunBridge`); it is in scope here
+-- via `open Spectra.Fourier`.
 
 /-- Additivity in the function slot: integrals split (`integral_add`, with integrability
 from boundedness), and the four-term combinations rearrange by `ring`. -/

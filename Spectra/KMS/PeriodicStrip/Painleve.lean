@@ -187,8 +187,6 @@ lemma rect_in_ball_of_corners_in_ball {c : ℂ} {R : ℝ} {z w : ℂ} (hR : 0 < 
     (hwz : (↑w.re + ↑z.im * I : ℂ) ∈ Metric.ball c R) :
     Set.uIcc z.re w.re ×ℂ Set.uIcc z.im w.im ⊆ Metric.ball c R := by
   -- Squared norm in coordinates.
-  -- Fallback B: avoid Complex.abs entirely, route through real inner product
--- Fallback A: change instead of show
   have norm_sq_eq : ∀ q : ℂ, ‖q - c‖^2 = (q.re - c.re)^2 + (q.im - c.im)^2 := fun q => by
     rw [Complex.sq_norm, Complex.normSq_apply, Complex.sub_re, Complex.sub_im]; ring
   -- Reduce ball membership to a squared inequality.

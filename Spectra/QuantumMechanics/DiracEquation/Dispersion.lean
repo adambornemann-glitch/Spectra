@@ -87,4 +87,41 @@ theorem diracMomentumOp_hermitian (p : Fin 3 → ℝ) (m : ℝ) :
   simp only [conjTranspose_add, conjTranspose_smul, diracAlpha1_hermitian, diracAlpha2_hermitian,
     diracAlpha3_hermitian, diracBeta_hermitian, RCLike.star_def, Complex.conj_ofReal]
 
+/-! ## The mass shell and its eigenprojection seed
+
+`diracMomentumOp_sq` says `D(p,m)² = (|p|² + m²)·I`.  Writing `E(p,m) = √(|p|² + m²)` for the
+positive root, this means `D` satisfies its characteristic equation `(D + E)(D − E) = 0`, so its
+eigenvalues are exactly `±E`.  These are the seeds of the Step-(b) negative-energy wavepacket: the
+negative-energy fibre is `ran(D − E·I)`, on which `D` acts as `−E`. -/
+
+/-- The on-shell relativistic energy `E(p, m) = √(|p|² + m²)` (natural units `ℏ = c = 1`). -/
+noncomputable def energyMomentum (p : Fin 3 → ℝ) (m : ℝ) : ℝ :=
+  Real.sqrt (energyMomentumSq p m)
+
+theorem energyMomentumSq_nonneg (p : Fin 3 → ℝ) (m : ℝ) : 0 ≤ energyMomentumSq p m := by
+  unfold energyMomentumSq; positivity
+
+@[simp] theorem energyMomentum_sq (p : Fin 3 → ℝ) (m : ℝ) :
+    energyMomentum p m ^ 2 = energyMomentumSq p m :=
+  Real.sq_sqrt (energyMomentumSq_nonneg p m)
+
+theorem energyMomentum_nonneg (p : Fin 3 → ℝ) (m : ℝ) : 0 ≤ energyMomentum p m :=
+  Real.sqrt_nonneg _
+
+/-- **Mass-shell factorisation**: `(D(p,m) + E)·(D(p,m) − E) = 0`, with `E = √(|p|² + m²)`.
+
+Immediate from `D² = E²·I`: the Dirac symbol satisfies its own characteristic polynomial, so it
+has no eigenvalues beyond `±E`.  In particular every vector of the form `w = (D − E·I)u` is a
+negative-energy eigenvector, `D w = −E w` — the algebraic origin of the antiparticle branch
+`(-∞, -mc²]` of the spectrum. -/
+theorem diracMomentumOp_factor (p : Fin 3 → ℝ) (m : ℝ) :
+    (diracMomentumOp p m + (energyMomentum p m : ℂ) • 1)
+      * (diracMomentumOp p m - (energyMomentum p m : ℂ) • 1) = 0 := by
+  have hcc : (energyMomentum p m : ℂ) * (energyMomentum p m : ℂ)
+      = ((energyMomentumSq p m : ℝ) : ℂ) := by
+    rw [← energyMomentum_sq p m]; push_cast; ring
+  simp only [add_mul, mul_sub, Matrix.smul_mul, Matrix.mul_smul, Matrix.mul_one, Matrix.one_mul,
+    smul_smul, diracMomentumOp_sq, hcc]
+  abel
+
 end Spectra.QuantumMechanics.Dirac

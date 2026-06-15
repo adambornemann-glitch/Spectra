@@ -20,9 +20,8 @@ lemma periodicExtension_continuous
   · -- z is on a boundary line
     obtain ⟨n, hn⟩ := h
     exact periodicExtension_continuous_at_boundary F hβ hcont hperiod z n (id (Eq.symm hn))
-  -- In periodicExtension_continuous, replace the sorry with:
-  · -- z is in the interior of some strip, continuity follows from composition
-  -- Key: since z is NOT on a boundary, toFundamentalStrip β z is in the OPEN strip
+  · -- z is in the interior of some strip, continuity follows from composition.
+    -- Since z is NOT on a boundary, toFundamentalStrip β z is in the OPEN strip.
     have him_pos : 0 < (toFundamentalStrip β z).im := by
       obtain ⟨h1, _⟩ := toFundamentalStrip_im hβ z
       rcases h1.lt_or_eq with hlt | heq
@@ -94,10 +93,6 @@ lemma periodicExtension_continuous
       have : w - ↑n * ↑β * I - (z - ↑n * ↑β * I) = w - z := by ring
       rw [this, ← dist_eq_norm]
       calc dist w z < min ε δ := hw
-      /-invalid 'calc' step, left-hand side is
-  dist w z : Real
-but is expected to be
-  ‖w - z‖ : Real-/
         _ ≤ δ := min_le_right _ _
 
     exact hF_cont.comp hfund_cont
@@ -343,18 +338,13 @@ on a small disk. Then:
 4. Therefore f is holomorphic at z₀
 -/
 
-/-! ## The Main Extension Theorem -/
+/-! ## The Main Extension Theorem
 
-/-- The periodic extension is entire (holomorphic on all of ℂ) -/
-lemma periodicExtension_entire
-    (F : ℂ → ℂ) (_hβ : 0 < β)
-    (_hholo : DifferentiableOn ℂ F (Strip β))
-    (_hcont : ContinuousOn F (ClosedStrip β))
-    (_hperiod : ∀ t : ℝ, F (realToLower t) = F (realToUpper β t))
-    /- Morera extension: continuous + holomorphic off horizontal lines ⟹ entire.
-       This follows from Morera's theorem but is not yet provable from Mathlib. -/
-    (hEntire : Differentiable ℂ (periodicExtension F β)) :
-    Differentiable ℂ (periodicExtension F β) := hEntire
+The entirety of the periodic extension (`periodicExtension_entire`) is proved in
+`PeriodicStrip/Basic.lean`, where the local Painlevé line-removal theorem from
+`PeriodicStrip/LineRemove.lean` is available to combine with the continuity and
+off-boundary holomorphicity established here.
+-/
 
 /-- The periodic extension is bounded -/
 lemma periodicExtension_bounded
@@ -410,16 +400,9 @@ lemma periodicExtension_eq_on_strip
         simp only [this, Int.cast_one]
         norm_num
     simp only [toFundamentalStrip, hstrip]
-    -- Now toFundamentalStrip β z = z - β*I, which is on the lower boundary
-    have hz_shifted : z - (1 : ℂ) * β * I = realToLower z.re := by
-      simp only [realToLower]
-      rw [Complex.ext_iff]
-      constructor
-      · simp [Complex.sub_re, Complex.mul_re, Complex.ofReal_re]
-      · simp [Complex.sub_im, Complex.mul_im, Complex.ofReal_im, hzβ]
-
     simp only [Int.cast_one]
-    -- Now toFundamentalStrip β z = z - 1 * β * I (with 1 : ℂ)
+    -- Now toFundamentalStrip β z = z - 1 * β * I (with 1 : ℂ); this point sits on
+    -- the lower boundary, and periodicity carries F across.
     have hz_shifted : z - (1 : ℂ) * β * I = realToLower z.re := by
       simp only [realToLower]
       rw [Complex.ext_iff]

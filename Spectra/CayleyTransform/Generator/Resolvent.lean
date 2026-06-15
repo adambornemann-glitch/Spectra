@@ -4,7 +4,7 @@ Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
 Filename: CayleyTransform/GeneratorResolvent.lean
 -/
-import Spectra.CayleyTransform.InverseAction
+import Spectra.CayleyTransform.Generator.InverseAction
 import Spectra.CayleyTransform.MapsResolvent
 import Spectra.SpectralTheory.ResolventForm
 /-!

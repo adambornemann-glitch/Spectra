@@ -4,6 +4,7 @@ Released under MIT license as described in the file LICENSE.
 Author: Adam Bornemann
 -/
 import Spectra.KMS.Condition
+import Mathlib.Analysis.VonNeumannAlgebra.Basic
 /-!
 # Tomita-Takesaki Modular Theory and the KMS Condition
 
@@ -27,7 +28,8 @@ Since the full Tomita-Takesaki theory requires:
 - The actual construction of Δ and J
 
 We bundle:
-1. `IsVonNeumannAlgebra` - the property of being a von Neumann algebra
+1. `WStarAlgebra` (from Mathlib) - the property of being a von Neumann algebra, i.e. a
+   C*-algebra with a Banach-space predual (Sakai's definition)
 2. `IsFaithfulNormal` - the property of a state being faithful and normal
 3. `ModularTheoryData` - the modular automorphism group, its invariance, and KMS
 
@@ -52,24 +54,25 @@ variable {A : Type*} [CStarAlgebra A]
 A von Neumann algebra is a C*-algebra that is also closed in the weak operator
 topology (equivalently, equals its double commutant, or has a predual).
 
-For now, we axiomatize this as a property.
+We use Mathlib's `WStarAlgebra` — Sakai's abstract definition of a von Neumann algebra
+as a C*-algebra possessing a Banach-space predual (`WStarAlgebra.exists_predual`). This
+replaces the previous placeholder class and gives the predual assumption real content.
 -/
-
-/-- The property of being a von Neumann algebra. -/
-class IsVonNeumannAlgebra (A : Type*) [CStarAlgebra A] : Prop where
-  /-- A von Neumann algebra has a predual -/
-  has_predual : True  -- Placeholder for actual predual condition
 
 /-- A state is faithful if ω(a*a) = 0 implies a = 0. -/
 def State.IsFaithful (ω : State A) : Prop :=
   ∀ a : A, ω (star a * a) = 0 → a = 0
 
-/-- A state is normal if it is weak*-continuous (equivalently, comes from the predual) -/
-def State.IsNormal [IsVonNeumannAlgebra A] (_ω : State A) : Prop :=
+/-- A state is normal if it is weak*-continuous (equivalently, comes from the predual).
+
+Genuine normality (σ-weak continuity) requires a *chosen* predual / σ-weak topology, which
+`WStarAlgebra.exists_predual` only asserts existentially; we therefore keep this as a
+placeholder until a predual is fixed. -/
+def State.IsNormal [WStarAlgebra A] (_ω : State A) : Prop :=
   True  -- Placeholder
 
 /-- A faithful normal state. These are the states for which modular theory applies. -/
-structure FaithfulNormalState (A : Type*) [CStarAlgebra A] [IsVonNeumannAlgebra A]
+structure FaithfulNormalState (A : Type*) [CStarAlgebra A] [WStarAlgebra A]
     extends State A where
   faithful : toState.IsFaithful
   normal : toState.IsNormal
@@ -103,7 +106,7 @@ Properties:
     Construct this term once from a concrete Tomita-Takesaki construction
     (e.g. via `TomitaTakesaki.modularGroupBundle`); everything downstream
     lights up for free. -/
-structure ModularTheoryData (A : Type*) [CStarAlgebra A] [IsVonNeumannAlgebra A]
+structure ModularTheoryData (A : Type*) [CStarAlgebra A] [WStarAlgebra A]
     (ω : FaithfulNormalState A) where
   /-- The modular automorphism group σ^ω. -/
   dynamics : Dynamics A
@@ -121,7 +124,7 @@ These are now projections from `ModularTheoryData`, not global axioms.
 -/
 
 /-- The modular automorphism group leaves the state invariant. -/
-lemma modularAutomorphismGroup_invariant {A : Type*} [CStarAlgebra A] [IsVonNeumannAlgebra A]
+lemma modularAutomorphismGroup_invariant {A : Type*} [CStarAlgebra A] [WStarAlgebra A]
     {ω : FaithfulNormalState A} (hmod : ModularTheoryData A ω) :
     IsInvariant ω.toState σ[hmod] :=
   hmod.invariant
@@ -133,7 +136,7 @@ normal states, their modular automorphism groups differ by a cocycle.
 
 This means the modular flow is "almost unique" - unique up to inner automorphisms.
 -/
-structure ConnesCocycle {A : Type*} [CStarAlgebra A] [IsVonNeumannAlgebra A]
+structure ConnesCocycle {A : Type*} [CStarAlgebra A] [WStarAlgebra A]
     {ω : FaithfulNormalState A} (hmod : ModularTheoryData A ω) (u : ℝ → A) where
   unitary : ∀ t, u t * star (u t) = 1 ∧ star (u t) * u t = 1
   cocycle_law : ∀ s t, u (s + t) = u s * σ[hmod].evolve s (u t)
@@ -158,7 +161,7 @@ The analyticity comes from the spectral theory of Δ:
 is KMS at β = 1 with respect to its modular automorphism group σ^ω.
 
 This is a direct projection from the bundled modular theory data. -/
-lemma modular_state_is_kms {A : Type*} [CStarAlgebra A] [IsVonNeumannAlgebra A]
+lemma modular_state_is_kms {A : Type*} [CStarAlgebra A] [WStarAlgebra A]
     {ω : FaithfulNormalState A} (hmod : ModularTheoryData A ω) :
     IsKMSState ω.toState σ[hmod] 1 :=
   hmod.kms_at_one
@@ -180,6 +183,24 @@ def Dynamics.rescale (α : Dynamics A) (c : ℝ) : Dynamics A where
   evolve_add := fun s t a => by simp [mul_add, α.evolve_add]
   evolve_zero := fun a => by simp [α.evolve_zero]
   continuous_evolve := fun a => (α.continuous_evolve a).comp (continuous_const_mul c)
+
+/-- Two dynamics agreeing on their evolution maps are equal: the remaining fields
+are propositions, hence determined by proof irrelevance. -/
+@[ext]
+lemma Dynamics.ext {α α' : Dynamics A} (h : α.evolve = α'.evolve) : α = α' := by
+  cases α; cases α'; subst h; rfl
+
+/-- Rescaling by `1` is the identity: `σ_{1·t} = σ_t`. -/
+@[simp]
+lemma Dynamics.rescale_one (α : Dynamics A) : α.rescale 1 = α := by
+  ext t; simp [Dynamics.rescale]
+
+/-- Rescaling is multiplicative in the factor: rescaling by `c` then by `d`
+equals rescaling by `c * d`. Together with `rescale_one` this makes time
+reparametrization a multiplicative action on dynamics. -/
+lemma Dynamics.rescale_rescale (α : Dynamics A) (c d : ℝ) :
+    (α.rescale c).rescale d = α.rescale (c * d) := by
+  ext t; simp [Dynamics.rescale, mul_assoc]
 
 /-! ## Rescaling KMS States
 
@@ -217,66 +238,6 @@ lemma strip_rescale_mem' {β : ℝ} (hβ : 0 < β) {w : ℂ} (hw : w ∈ Strip 1
   · calc (w * β).im = w.im * β := by simp [mul_comm]
       _ < 1 * β := by exact mul_lt_mul_of_pos_right hw.2 hβ
       _ = β := one_mul β
-
-lemma Complex.im_div_ofReal {z : ℂ} {r : ℝ} (hr : r ≠ 0) :
-       (z / r).im = z.im / r := by
-     rw [div_eq_mul_inv]
-     simp only [mul_im, inv_im, ofReal_im, neg_zero, normSq_ofReal, zero_div, mul_zero, inv_re,
-       ofReal_re, div_self_mul_self', zero_add]
-     field_simp
-
-/-- Rescale a KMS function from temperature 1 to temperature β.
-
-If F witnesses KMS at β=1 for dynamics σ, then G(z) = F(z/β) witnesses
-KMS at β for the rescaled dynamics α_t = σ_{t/β}.
--/
-noncomputable def KMSFunction.rescale {A : Type*} [CStarAlgebra A]
-    {ω : State A} {σ : Dynamics A} {a b : A}
-    (F : KMSFunction ω σ 1 a b) (β : ℝ) (hβ : 0 < β) :
-    KMSFunction ω (σ.rescale (1/β)) β a b where
-  toFun := fun z => F.toFun (z / β)
-  holomorphic := by
-    have h1 : DifferentiableOn ℂ (fun z : ℂ => z / (β : ℂ)) (Strip β) := by
-      apply DifferentiableOn.div_const
-      exact differentiableOn_id
-    have h2 : Set.MapsTo (fun z : ℂ => z / (β : ℂ)) (Strip β) (Strip 1) :=
-      fun z hz => strip_rescale_mem hβ hz
-    convert F.holomorphic.comp h1 h2 using 1
-  continuousOn := by
-    have h1 : ContinuousOn (fun z : ℂ => z / (β : ℂ)) (ClosedStrip β) := by
-      apply ContinuousOn.div_const
-      exact continuousOn_id
-    have h2 : Set.MapsTo (fun z : ℂ => z / (β : ℂ)) (ClosedStrip β) (ClosedStrip 1) :=
-      fun z hz => closedStrip_rescale_mem hβ hz
-    convert F.continuousOn.comp h1 h2 using 1
-  bounded := by
-    obtain ⟨M, hM⟩ := F.bounded
-    use M
-    intro x hx
-    obtain ⟨z, hz, rfl⟩ := hx
-    obtain ⟨w, hw, rfl⟩ := hz
-    apply hM
-    exact ⟨F.toFun (w / β), ⟨w / β, closedStrip_rescale_mem hβ hw, rfl⟩, rfl⟩
-  lower_boundary := by
-    intro t
-    have h1 : (realToLower t) / β = realToLower (t / β) := by
-      simp only [realToLower, ofReal_div]
-    rw [h1, F.lower_boundary]
-    congr 2
-    simp only [Dynamics.rescale, one_div]
-    ring_nf
-  upper_boundary := by
-    intro t
-    have hβ' : (β : ℂ) ≠ 0 := ofReal_ne_zero.mpr (ne_of_gt hβ)
-    have h1 : (realToUpper β t) / β = realToUpper 1 (t / β) := by
-      simp only [realToUpper, ofReal_div]
-      rw [add_div, mul_comm (↑β) I, mul_div_assoc, div_self hβ', mul_one]
-      ring_nf
-      simp only [ofReal_one, mul_one]
-    rw [h1, F.upper_boundary]
-    congr 2
-    simp only [Dynamics.rescale, one_div]
-    ring_nf
 
 /-- General rescaling: KMS function at β₁ → KMS function at β₂. -/
 noncomputable def KMSFunction.rescaleGeneral {A : Type*} [CStarAlgebra A]
@@ -339,12 +300,22 @@ noncomputable def KMSFunction.rescaleGeneral {A : Type*} [CStarAlgebra A]
     have hβ₂' : (β₂ : ℂ) ≠ 0 := ofReal_ne_zero.mpr (ne_of_gt hβ₂)
     have h1 : realToUpper β₂ t * (β₁ / β₂ : ℂ) = realToUpper β₁ (t * (β₁ / β₂)) := by
       simp only [realToUpper, ofReal_mul, ofReal_div]
-      have hβ₂' : (β₂ : ℂ) ≠ 0 := ofReal_ne_zero.mpr (ne_of_gt hβ₂)
       field_simp
     rw [h1, F.upper_boundary]
     congr 2
     simp only [Dynamics.rescale]
     ring_nf
+
+/-- Rescale a KMS function from temperature 1 to temperature β.
+
+If F witnesses KMS at β = 1 for dynamics σ, then it rescales to a witness of KMS
+at β for the rescaled dynamics α_t = σ_{t/β}. This is the special case `β₁ = 1`
+of `KMSFunction.rescaleGeneral`. -/
+noncomputable def KMSFunction.rescale {A : Type*} [CStarAlgebra A]
+    {ω : State A} {σ : Dynamics A} {a b : A}
+    (F : KMSFunction ω σ 1 a b) (β : ℝ) (hβ : 0 < β) :
+    KMSFunction ω (σ.rescale (1/β)) β a b :=
+  F.rescaleGeneral β one_pos hβ
 
 /-- General rescaling theorem: KMS at β₁ implies KMS at β₂ for appropriately rescaled dynamics. -/
 lemma IsKMSState.rescale {A : Type*} [CStarAlgebra A]
@@ -357,7 +328,7 @@ lemma IsKMSState.rescale {A : Type*} [CStarAlgebra A]
 
 /-- A faithful normal state is KMS at any inverse temperature β > 0 with respect
 to the rescaled modular automorphism group. -/
-lemma modular_state_is_kms_at_beta {A : Type*} [CStarAlgebra A] [IsVonNeumannAlgebra A]
+lemma modular_state_is_kms_at_beta {A : Type*} [CStarAlgebra A] [WStarAlgebra A]
     {ω : FaithfulNormalState A} (hmod : ModularTheoryData A ω)
     (β : ℝ) (hβ : 0 < β) :
     IsKMSState ω.toState (σ[hmod].rescale (1/β)) β := by

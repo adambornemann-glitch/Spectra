@@ -111,7 +111,7 @@ theorem measure_sum_ext_of_fourier {n m : ℕ}
 /-! ## Helper lemmas for the workhorse -/
 
 /-- Bounded measurable functions are integrable against finite measures. -/
-private lemma integrable_of_bounded {ρ : Measure ℝ} [IsFiniteMeasure ρ] {F : ℝ → ℂ}
+lemma integrable_of_bounded {ρ : Measure ℝ} [IsFiniteMeasure ρ] {F : ℝ → ℂ}
     (hF : Measurable F) {C : ℝ} (hC : ∀ ω, ‖F ω‖ ≤ C) : Integrable F ρ :=
   (integrable_const C).mono' hF.aestronglyMeasurable (Filter.Eventually.of_forall hC)
 

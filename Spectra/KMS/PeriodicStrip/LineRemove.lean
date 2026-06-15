@@ -215,7 +215,6 @@ lemma differentiableOn_of_continuousOn_of_differentiableOn_off_horizLine
       intro ζ ⟨hζ_open, hζ_line⟩
       refine ⟨h_sub ?_, hζ_line⟩
       exact ⟨Set.Ioo_subset_Icc_self hζ_open.1, Set.Ioo_subset_Icc_self hζ_open.2⟩
-      -- (membership-into-uIcc plumbing; may need a small lemma)
   -- Step 2: primitive
   obtain ⟨F, hF⟩ := exists_primitive_of_continuousOn_of_rect_integral_zero
                       hR g hg_cont hg_rect
