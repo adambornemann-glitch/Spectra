@@ -34,10 +34,10 @@ private lemma inner_isBoundedBilinearMap_real {H : Type*}
 `d/dt ⟨f(t), g(t)⟩_ℂ = ⟨f'(t), g(t)⟩_ℂ + ⟨f(t), g'(t)⟩_ℂ`.
 
 The ℂ-inner product is bounded ℝ-bilinear (Cauchy-Schwarz gives the bound,
-conjugate-linearity restricts to ℝ-linearity). The standard product rule
-for bounded bilinear maps applies. The sorry is an API gap in composing
-`IsBoundedBilinearMap.hasFDerivAt` with a product of `HasDerivAt` maps;
-the mathematics is completely standard. -/
+conjugate-linearity restricts to ℝ-linearity), so the standard product rule
+for bounded bilinear maps applies: `inner_isBoundedBilinearMap_real` supplies
+the Fréchet derivative, which we compose with the paired `HasDerivAt` maps
+(`hf.prodMk hg`) and reconcile with the stated derivative via `congr_deriv`. -/
 private lemma hasDerivAt_inner_cplx  {H : Type*}
   [NormedAddCommGroup H] [InnerProductSpace ℂ H]
   [CompleteSpace H] [IsScalarTower ℝ ℂ H]

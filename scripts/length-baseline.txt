@@ -1,0 +1,222 @@
+# Spectra length baseline — grandfathered over-budget items.
+# CI (check_lengths.py --strict --baseline this) fails only on NEW or
+# WORSENED entries, so the list can only shrink. Regenerate after
+# improvements with: python3 scripts/check_lengths.py --write-baseline length-baseline.txt
+# budgets: file=1500 line=100 decl=75
+decl Spectra.Bochner.Borel.Density borelDensity_mass 90
+decl Spectra.Bochner.Borel.Density fourier_regularized_value 89
+decl Spectra.Bochner.Borel.Identity.BoundedCDF integral_Ioc_tendsto_of_cdf_tendsto 276
+decl Spectra.Bochner.Borel.Identity.CauchyTransform borel_cauchy_approx_tendsto 150
+decl Spectra.Bochner.Borel.Identity.CauchyVague borel_cauchy_vague 196
+decl Spectra.Bochner.Borel.Measure.Basic borelMeasure_fourier 150
+decl Spectra.CayleyTransform.BorelCalculus combination_ext_zero_density 119
+decl Spectra.CayleyTransform.BorelCalculus combination_ext_zero_real_density 93
+decl Spectra.CayleyTransform.Eigenvalue cayley_approx_eigenvalue_backward 94
+decl Spectra.CayleyTransform.MapsResolvent cayley_maps_resolvent 77
+decl Spectra.Fourier.Identity fourier_identity 112
+decl Spectra.Fourier.Inversion eq_of_fourier_decay_eq 92
+decl Spectra.Herglotz.Basic herglotz_lemma_stieltjes 104
+decl Spectra.Herglotz.Stieltjes.CumulativeDistFun fejerCDF_eq_measure 87
+decl Spectra.Herglotz.Stieltjes.IntegralConv exists_cont_partition 102
+decl Spectra.Herglotz.Stieltjes.IntegralConv exists_partition_avoiding_countable 90
+decl Spectra.Herglotz.Stieltjes.IntegralConv integral_tendsto_of_cdf_tendsto 188
+decl Spectra.InformationGeometry.Connection.AmariChentsov klDiv_third_deriv_decomposition 150
+decl Spectra.InformationGeometry.Connection.Bartlett bartlett_second 99
+decl Spectra.InformationGeometry.Connection.Bartlett bartlett_third 77
+decl Spectra.InformationGeometry.CramerRao.Bound cramerRao_saturated 128
+decl Spectra.InformationGeometry.CramerRao.CauchySchwarz integral_mul_sq_eq_iff 123
+decl Spectra.InformationGeometry.CramerRao.CauchySchwarz integral_mul_sq_le 109
+decl Spectra.InformationGeometry.Divergence cross_score_differentiableAt 100
+decl Spectra.InformationGeometry.Divergence cross_score_hasFDerivAt 191
+decl Spectra.InformationGeometry.Divergence fderiv_partialDensity_aestronglyMeasurable 119
+decl Spectra.InformationGeometry.Divergence integral_second_partial_eq_zero 117
+decl Spectra.InformationGeometry.Divergence klDiv_hessian_vec 84
+decl Spectra.InformationGeometry.Divergence klDiv_taylor_second_order 242
+decl Spectra.InformationGeometry.Divergence score_deriv_aestronglyMeasurable 176
+decl Spectra.InformationGeometry.Flow.Basic DivergencePreservingFamily.cubic_expansion 373
+decl Spectra.InformationGeometry.Flow.Basic smooth_ode_local_unique 104
+decl Spectra.InformationGeometry.Flow.CubicInvariance preserves_cubic 108
+decl Spectra.InformationGeometry.Flow.FaaDiBruno cross_score_hasFDerivAt' 126
+decl Spectra.InformationGeometry.Flow.FaaDiBruno fderiv_klDiv_phi_apply_live 207
+decl Spectra.InformationGeometry.Flow.FaaDiBruno kl_faa_di_bruno 746
+decl Spectra.InformationGeometry.Flow.Family preserves_fisher 341
+decl Spectra.InformationGeometry.Flow.Generator killing_expansion 303
+decl Spectra.InformationGeometry.Flow.MixtureConnection fisher_derivative_identity 98
+decl Spectra.InformationGeometry.Flow.MixtureConnection klDiv_third_deriv_trilin 145
+decl Spectra.InformationGeometry.Flow.MixtureConnection preserves_cubic_basis 119
+decl Spectra.InformationGeometry.Flow.MixtureConnection pullback_metric_fderiv_split 131
+decl Spectra.InformationGeometry.Regularity ThriceDifferentiableModel 131
+decl Spectra.Kernel.Lorentzian lorentzian_approx_delta 230
+decl Spectra.Mathlib.CharFunBridge combination_ext_zero_real 86
+decl Spectra.Mathlib.CharFunBridge integral_combination_ext 142
+decl Spectra.Mathlib.StochasticCalc.PVariation.Basic ePVariationOn_add_le 90
+decl Spectra.Mathlib.StochasticCalc.SewingLemma.Basic young_integral_holder 85
+decl Spectra.Mathlib.StochasticCalc.SewingLemma.Generalized.Insert riemannSum_insertAt 87
+decl Spectra.Mathlib.StochasticCalc.SewingLemma.Generalized.Map.LeftComp left_comparison_bound 91
+decl Spectra.Mathlib.StochasticCalc.SewingLemma.Generalized.Map.RightComp right_comparison_bound 94
+decl Spectra.Mathlib.StochasticCalc.SewingLemma.Generalized.Map.RightComp right_comparison_tendsto 76
+decl Spectra.Mathlib.StochasticCalc.SewingLemma.Generalized.Map.Unique sewingMap₃_unique 93
+decl Spectra.Mathlib.StochasticCalc.SewingLemma.Generalized.MergeGap refinement_gap_with_exceptions 213
+decl Spectra.Mathlib.StochasticCalc.SewingLemma.Generalized.MinSpacing merge_gap_of_min_spacing 165
+decl Spectra.Mathlib.StochasticCalc.SewingLemma.Generalized.RefiCo riemannSum_refinement_bound₃ 133
+decl Spectra.Mathlib.StochasticCalc.SewingLemma.IntervalLengthControl.Map sewingMap₁_unique 86
+decl Spectra.Mathlib.StochasticCalc.SewingLemma.LipschitzProdControl.Decay dyadicSum₂_diff_bound 138
+decl Spectra.Mathlib.StochasticCalc.SewingLemma.LipschitzProdControl.Map.Additive sewingMap₂_additive 352
+decl Spectra.Mathlib.StochasticCalc.SewingLemma.LipschitzProdControl.Map.GenConv riemannSum_tendsto_sewingMap₂ 155
+decl Spectra.Mathlib.StochasticCalc.SewingLemma.LipschitzProdControl.Map.Partition Partition.mesh_refinement_le 80
+decl Spectra.Mathlib.StochasticCalc.SewingLemma.LipschitzProdControl.Map.Unique sewingMap₂_unique 81
+decl Spectra.Mathlib.StochasticCalc.SewingLemma.LipschitzProdControl.RefiCo riemannSum_refinement_bound₂ 190
+decl Spectra.Mathlib.StochasticCalc.SewingLemma.LipschitzProdControl.ThetaEnergy Partition.IsRefinement.mono_embed 85
+decl Spectra.Mathlib.StochasticCalc.SewingLemma.LipschitzProdControl.ThetaEnergy thetaEnergy_le_of_refinement 148
+decl Spectra.Mathlib.StochasticCalc.SewingLemma.LipschitzProdControl.ThetaEnergy thetaEnergy_tendsto_zero 96
+decl Spectra.Mathlib.StochasticCalc.YoungIntegration.Basic young_integral_continuity_estimate 88
+decl Spectra.Mathlib.StochasticCalc.YoungIntegration.Integral.Unique youngIntegral_unique 98
+decl Spectra.Modular.KMS.AnalyticElements Dynamics.gaussianSmooth_tendsto 113
+decl Spectra.Modular.KMS.Equivalence diff_bound 125
+decl Spectra.Modular.KMS.Equivalence limitKMSFunction 130
+decl Spectra.Modular.KMS.PeriodicStrip.ExtensionProps periodicExtension_continuous 87
+decl Spectra.Modular.KMS.PeriodicStrip.ExtensionProps periodicExtension_differentiableAt_off_boundaries 98
+decl Spectra.Modular.KMS.PeriodicStrip.IndexProps periodicExtension_continuous_at_boundary 169
+decl Spectra.Modular.KMS.PeriodicStrip.LineRemove exists_primitive_of_continuousOn_of_rect_integral_zero 160
+decl Spectra.Modular.KMS.PeriodicStrip.Painleve F_diff_eq_Lpath 98
+decl Spectra.Modular.KMS.PeriodicStrip.Painleve integral_boundary_rect_eq_zero_off_horizLine 116
+decl Spectra.Operator.Unitary.Basic normal_bounded_below_surjective 81
+decl Spectra.ProjValMeasure.PdInterface measure_eq_of_fourier_eq 130
+decl Spectra.QuantumMechanics.BellsTheorem.CHSH_Bounds.CHSH_Basic dichotomic_expectation_bound 79
+decl Spectra.QuantumMechanics.BellsTheorem.CHSH_Bounds.Separable CHSH_separable_bound 161
+decl Spectra.QuantumMechanics.BellsTheorem.CHSH_Bounds.Tsirelson.CommutatorAlgebra comm_prod_ge_neg_four 98
+decl Spectra.QuantumMechanics.BellsTheorem.CHSH_Bounds.Tsirelson.CommutatorAlgebra comm_prod_le_four 99
+decl Spectra.QuantumMechanics.DiracEquation.FreeHamiltonian diracKinetic_add_smul_surjective 82
+decl Spectra.QuantumMechanics.Hydrogen.Laplacian.Spherical laplacian_comp_norm 101
+decl Spectra.QuantumMechanics.Hydrogen.RadialProblem.Equation.Basic radial_wavefunction_orthonormal 94
+decl Spectra.QuantumMechanics.Hydrogen.RadialProblem.Laguerre.Basic ae_zero_of_fourier_zero 82
+decl Spectra.QuantumMechanics.Hydrogen.RadialProblem.Laguerre.Basic laguerre_differential_eq 101
+decl Spectra.QuantumMechanics.Hydrogen.RadialProblem.Laguerre.Basic laguerre_generating_function 115
+decl Spectra.QuantumMechanics.Hydrogen.RadialProblem.Laguerre.Basic laguerre_orthogonality 98
+decl Spectra.QuantumMechanics.Hydrogen.RadialProblem.Laguerre.Basic laguerre_recurrence 91
+decl Spectra.QuantumMechanics.Hydrogen.RadialProblem.Laguerre.Basic laplaceTr_differentiableOn 136
+decl Spectra.QuantumMechanics.Hydrogen.RadialProblem.Laguerre.Basic laplaceTr_eventuallyEq_zero 85
+decl Spectra.QuantumMechanics.Hydrogen.RadialProblem.TensorDecomp.Basic sectorEmbedding_dense 96
+decl Spectra.QuantumMechanics.Perturbation.HardyInequality cs_bound_v_grad_hardy 80
+decl Spectra.QuantumMechanics.Perturbation.HardyInequality exists_hardy_cutoff 95
+decl Spectra.QuantumMechanics.Perturbation.HardyInequality hardy_cutoff_step 98
+decl Spectra.QuantumMechanics.Perturbation.HardyInequality hardy_inequality_smooth_real 94
+decl Spectra.QuantumMechanics.Perturbation.HardyInequality hardy_lintegral_le 96
+decl Spectra.QuantumMechanics.Perturbation.HardyInequality ibp_direction_hardyField 107
+decl Spectra.Resolvent.Analytic resolventFun_hasSum 108
+decl Spectra.Resolvent.Diagonal.IntegralZ.Tendsto tendsto_integral_Ici_expZ_unitary 82
+decl Spectra.Resolvent.Identities resolvent_identity 77
+decl Spectra.Resolvent.Integral.Limits.Helpers tendsto_integral_Ici_exp_unitary 83
+decl Spectra.Resolvent.Range.ClosedRange range_sub_smul_closed 92
+decl Spectra.Resolvent.Range.Orthogonal orthogonal_range_eq_zero 118
+decl Spectra.SobolevSpaces.Density exists_smooth_uniform_approx 224
+decl Spectra.SobolevSpaces.Density smooth_approx_continuous_compactSupport 80
+decl Spectra.SobolevSpaces.Embeddings eLpNorm_fderiv_le_sqrt_sum_partialDeriv 81
+decl Spectra.SobolevSpaces.Embeddings sobolev_embedding_L6 86
+decl Spectra.SobolevSpaces.MeyersCommon exists_smooth_cutoff_scaled 95
+decl Spectra.SobolevSpaces.MeyersMulti truncation_approx_multi 245
+decl Spectra.SobolevSpaces.MeyersSerrin truncation_approx 223
+decl Spectra.SobolevSpaces.Mollification bumpConvolve_fderiv_eq 236
+decl Spectra.SobolevSpaces.Mollification bumpConvolve_tendsto_continuous 171
+decl Spectra.SobolevSpaces.Mollification eLpNorm_bumpConvolve_le 114
+decl Spectra.SobolevSpaces.Mollification eLpNorm_real_convolve_le 197
+decl Spectra.SobolevSpaces.Mollification mollify_compactly_supported_multi 76
+decl Spectra.SpectralTheory.Algebra generator_sub_smul_norm_le_Icc 122
+decl Spectra.SpectralTheory.Algebra spectralProjection_re_inner_eq_integral 106
+decl Spectra.SpectralTheory.Measure.Polarized norm_spectralForm_le 77
+decl Spectra.SpectralTheory.Spectrum mem_resolventSet_of_spectralProjection_Ioo_eq_zero 109
+decl Spectra.SpectralTheory.StoneFormula.Identities resolvent_norm_blowup_at_spectrum 110
+decl Spectra.SpectralTheory.Weak weak_second_moment 78
+decl Spectra.SphericalHarmonics.Basic ae_eq_zero_of_forall_integral_fourier_eq_zero 152
+decl Spectra.SphericalHarmonics.Basic ae_eq_zero_of_forall_integral_polyCos_eq_zero 98
+decl Spectra.SphericalHarmonics.Basic sphericalHarmonic_complete 157
+decl Spectra.SphericalHarmonics.Basic sphericalHarmonic_eigenvalue 118
+decl Spectra.SphericalHarmonics.Basic sphericalHarmonic_orthonormal 217
+decl Spectra.Stone.Yosida.Exponential exponential_group_law 78
+decl Spectra.Stone.Yosida.Exponential exponential_strong_continuous 169
+decl Spectra.Stone.Yosida.Exponential exponential_sub_eq_integral 95
+file Spectra.QuantumMechanics.Hydrogen.RadialProblem.Laguerre.Basic 1893
+file Spectra.QuantumMechanics.Perturbation.HardyInequality 1832
+file Spectra.SphericalHarmonics.Basic 2424
+line Spectra.Bochner.Borel.Fubini 1
+line Spectra.Bochner.Borel.Measure.Basic 2
+line Spectra.Bochner.GNS.Continuity 1
+line Spectra.Bochner.GNS.PreHilbert 1
+line Spectra.CayleyTransform.BorelCalculus 2
+line Spectra.CayleyTransform.Defs 1
+line Spectra.CayleyTransform.Eigenvalue 2
+line Spectra.CayleyTransform.Generator.InverseAction 1
+line Spectra.CayleyTransform.Generator.Stone 5
+line Spectra.CayleyTransform.Inverse 8
+line Spectra.CayleyTransform.MapsResolvent 1
+line Spectra.CayleyTransform.UnitaryGroup 3
+line Spectra.Herglotz.CauchyInjective 1
+line Spectra.Herglotz.FejerMeans 1
+line Spectra.Herglotz.FejerMeasure 1
+line Spectra.Herglotz.Stieltjes.IntegralConv 1
+line Spectra.InformationGeometry.CramerRao.Basic 1
+line Spectra.InformationGeometry.Fisher.Information 1
+line Spectra.InformationGeometry.Flow.Basic 4
+line Spectra.InformationGeometry.GaussianModel 1
+line Spectra.Kernel.Arctan 2
+line Spectra.Kernel.Poisson.Lemmas 1
+line Spectra.Mathlib.MeasureTheory.Integral.Basic 3
+line Spectra.Mathlib.StochasticCalc.PVariation.Basic 1
+line Spectra.Mathlib.StochasticCalc.SewingLemma.LipschitzProdControl.Map.Unique 1
+line Spectra.Modular.KMS.AnalyticElements 10
+line Spectra.Modular.KMS.Equivalence 1
+line Spectra.Modular.KMS.ExtremalKMS 1
+line Spectra.Modular.KMS.Generator 5
+line Spectra.Modular.KMS.Modular 3
+line Spectra.Modular.KMS.PeriodicStrip.ExtensionProps 1
+line Spectra.Modular.KMS.PeriodicStrip.LineRemove 1
+line Spectra.Modular.KMS.StateTopology 1
+line Spectra.Modular.KMS.UnitaryGroup 2
+line Spectra.Modular.TomitaTakesaki.Basic 1
+line Spectra.Modular.TomitaTakesaki.Closable 1
+line Spectra.Modular.TomitaTakesaki.Duality 2
+line Spectra.QuantumMechanics.BellsTheorem.CHSH_Bounds.CHSH_Basic 2
+line Spectra.QuantumMechanics.BellsTheorem.CHSH_Bounds.Commuting 1
+line Spectra.QuantumMechanics.BellsTheorem.CHSH_Bounds.Op_square 4
+line Spectra.QuantumMechanics.BellsTheorem.CHSH_Bounds.Separable 4
+line Spectra.QuantumMechanics.BellsTheorem.CHSH_Bounds.Tsirelson.Basic 7
+line Spectra.QuantumMechanics.BellsTheorem.CHSH_Bounds.Tsirelson.CommutatorAlgebra 5
+line Spectra.QuantumMechanics.BellsTheorem.CHSH_Bounds.Tsirelson.UnitaryBounds 1
+line Spectra.QuantumMechanics.BellsTheorem.QuantumCHSH.Q_CHSH_Basic 2
+line Spectra.QuantumMechanics.BornRule.Observable 1
+line Spectra.QuantumMechanics.DiracEquation.CliffordAlgebra 1
+line Spectra.QuantumMechanics.DiracEquation.CliffordOperators 3
+line Spectra.QuantumMechanics.DiracEquation.Conservation 1
+line Spectra.QuantumMechanics.DiracEquation.Current 13
+line Spectra.QuantumMechanics.DiracEquation.FreeHamiltonian 3
+line Spectra.QuantumMechanics.DiracEquation.NegativeEnergy 1
+line Spectra.QuantumMechanics.DiracEquation.Operators 3
+line Spectra.QuantumMechanics.Hydrogen.RadialProblem.Equation.Basic 5
+line Spectra.QuantumMechanics.Hydrogen.RadialProblem.Laguerre.Basic 33
+line Spectra.QuantumMechanics.Perturbation.HardyInequality 5
+line Spectra.QuantumMechanics.Uncertainty.Heisenberg 1
+line Spectra.QuantumMechanics.Uncertainty.SchrodingerRobertson 5
+line Spectra.QuantumMechanics.Unitarity.FirstLawIff 16
+line Spectra.Resolvent.Diagonal.IntegralZ.DiffQuotient 2
+line Spectra.Resolvent.Diagonal.IntegralZ.Shift 2
+line Spectra.Resolvent.Diagonal.IntegralZ.Tendsto 1
+line Spectra.Resolvent.Identities 4
+line Spectra.Resolvent.Integral.Domain 3
+line Spectra.Resolvent.Range 2
+line Spectra.SobolevSpaces.Density 3
+line Spectra.SobolevSpaces.Embeddings 1
+line Spectra.SobolevSpaces.MeyersCommon 3
+line Spectra.SobolevSpaces.Mollification 1
+line Spectra.SpectralTheory.Algebra 3
+line Spectra.SpectralTheory.StoneFormula.Identities 3
+line Spectra.SpectralTheory.Weak 2
+line Spectra.SphericalHarmonics.Basic 5
+line Spectra.Stone.Yosida.Bounds 4
+line Spectra.Stone.Yosida.Convergence.Approximants 41
+line Spectra.Stone.Yosida.Convergence.JNegOperator 10
+line Spectra.Stone.Yosida.Convergence.JOperator 3
+line Spectra.Stone.Yosida.ExpBounded.Unitary 1
+line Spectra.Stone.Yosida.Exponential 6
+line Spectra.Stone.Yosida.Helpers 2
+line Spectra.Stone.Yosida.Symmetry 1
+line Spectra.StoneBridge.Basic 3

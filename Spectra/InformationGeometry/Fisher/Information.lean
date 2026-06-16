@@ -44,9 +44,9 @@ where `⟨v, s⟩ = ∑ᵢ vᵢ sᵢ` is the *directional score*.
 
 The Fisher matrix entries `g_{ij}(θ) = E_θ[sᵢ sⱼ]` are finite iff the
 score is square-integrable under the *model* distribution `P_θ`, i.e.,
-`∫ sᵢ² · p dμ < ∞`.  The `score_sq_integrable` field in
-`RegularStatisticalModel` gives `∫ sᵢ² dμ < ∞` (reference measure),
-which is an incomparable condition.
+`∫ sᵢ² · p dμ < ∞`.  This is exactly the `score_sq_integrable` field in
+`RegularStatisticalModel`; `ScoreSqIntegrableModel` below repackages it as
+a standalone predicate for results that take it as an explicit hypothesis.
 
 Algebraic properties (symmetry, positive semidefiniteness) hold
 unconditionally — they are pointwise identities or consequences of
@@ -83,10 +83,9 @@ variable (M : RegularStatisticalModel n Ω)
 /-- The score is square-integrable under the *model* distribution:
   `E_θ[sᵢ²] = ∫ sᵢ(θ, ω)² · p(θ, ω) dμ(ω) < ∞`.
 
-This is logically independent of the `score_sq_integrable` field
-(which gives `∫ sᵢ² dμ < ∞`, integrability under the reference
-measure rather than `P_θ = p · μ`).  The condition here is the
-standard one in information geometry textbooks. -/
+This is the standalone-predicate form of the `score_sq_integrable` field of
+`RegularStatisticalModel`; it is the standard condition in information geometry
+textbooks, and `score_memLp` exhibits it directly from the field. -/
 def ScoreSqIntegrableModel (θ : ParamSpace n) : Prop :=
   ∀ i : Fin n,
     Integrable

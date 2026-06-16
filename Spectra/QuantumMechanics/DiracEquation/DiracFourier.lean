@@ -5,7 +5,7 @@ Authors: Adam Bornemann
 -/
 import Spectra.QuantumMechanics.DiracEquation.SpinorSpaceL2
 import Spectra.QuantumMechanics.DiracEquation.Dispersion
-import Spectra.QuantumMechanics.Hydrogen.Laplacian
+import Spectra.QuantumMechanics.Hydrogen.Laplacian.Basic
 /-!
 # Fourier analysis of the free Dirac operator
 

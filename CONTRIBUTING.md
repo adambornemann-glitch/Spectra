@@ -88,9 +88,21 @@ Spectra inherits Mathlib's linters. At minimum, before opening a PR:
   docstrings, unused arguments, simp-normal-form issues, and more.
 - Re-read [STYLE.md §6](STYLE.md) and walk the checklist.
 
-> Spectra does not yet vendor PhysLean's `lake exe lint_all` / `scripts/lint-style.sh` tooling or a
-> CI workflow. Adding a text-style linter and CI is a welcome contribution; until then, the build +
-> `#lint` + the STYLE.md checklist are the bar.
+> Spectra ships a CI workflow ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) with two gates:
+>
+> - the **axiom gate** ([`AxiomCheck.lean`](AxiomCheck.lean)) — Mathlib's `assert_no_sorry` on every
+>   headline result, wired as a default build target, so a `sorry` reaching one fails CI; and
+> - the **length ratchet** ([`scripts/check_lengths.py`](scripts/check_lengths.py)) — file (≤ 1500
+>   lines) and line-width (≤ 100 chars) budgets matching Mathlib's `longFile` / `longLine` linters, plus
+>   a declaration-span budget (≤ 75 lines, a *house* guideline, not a Mathlib rule). It is checked
+>   against [`scripts/length-baseline.txt`](scripts/length-baseline.txt), so only *new or worsened*
+>   offenders fail — the grandfathered list can only shrink. After improving a long file/proof,
+>   regenerate the baseline (`python3 scripts/check_lengths.py --write-baseline scripts/length-baseline.txt`)
+>   to lock in the gain.
+>
+> Spectra does not yet vendor PhysLean's full `lake exe lint_all` / `scripts/lint-style.sh` text-style
+> suite — adding more checks is welcome; until then, the gates above + `#lint` + the STYLE.md checklist
+> are the bar.
 
 ---
 

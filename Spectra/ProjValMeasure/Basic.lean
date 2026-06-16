@@ -2,7 +2,6 @@
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
-Filename: ProjValMeasure/Basic.lean
 -/
 import Mathlib.Analysis.InnerProductSpace.Adjoint
 import Mathlib.Analysis.InnerProductSpace.LinearMap
@@ -227,35 +226,3 @@ theorem ext_iff_proj {P Q : ProjValMeasure H} :
 end ProjValMeasure
 
 end Spectra
-
-/-!
-## Appendix: the canonical instance (place in a file importing your spectral stack)
-
-With `Spectra.SpectralTheory.Measure` and `Bochner.Borel` in scope (adjust the
-`open`s to your namespace nesting), the bundling of your existing API is
-definitional — every field is one of your theorems verbatim:
-
-```lean
-/-- The canonical PVM of a strongly continuous one-parameter unitary group. -/
-noncomputable def OneParameterUnitaryGroup.toPVM
-    (U_grp : OneParameterUnitaryGroup (H := H)) : Spectra.ProjValMeasure H where
-  proj := spectralProjection U_grp
-  diag := borelMeasure U_grp
-  diag_finite := borelMeasure_isFiniteMeasure U_grp
-  inner_proj := inner_spectralProjection_self U_grp
-  proj_univ := spectralProjection_univ U_grp
-  proj_inter := spectralProjection_inter U_grp
-
-/-- The spectral measure of a self-adjoint operator. -/
-noncomputable def spectralPVM {A : H →ₗ.[ℂ] H} (hA : IsSelfAdjoint A) :
-    Spectra.ProjValMeasure H :=
-  (StonesTheorem.genToGroup hA).toPVM
-```
-
-Free upgrades now derivable with no new axioms, in case the mood strikes:
-`proj_compl` (via `measure_compl` and `ENNReal.toReal_sub_of_le`),
-monotonicity `proj B₁ ≤ proj B₂` for `B₁ ⊆ B₂`, and σ-additivity in the strong
-operator topology — for pairwise disjoint `Bₙ`, `norm_sq_proj_apply` turns
-`‖P.proj (⋃ n, B n) ξ - ∑ n < N, P.proj (B n) ξ‖ ^ 2` into the tail mass
-`diag ξ (⋃ n ≥ N, B n)`, which vanishes by continuity of measures from above.
--/

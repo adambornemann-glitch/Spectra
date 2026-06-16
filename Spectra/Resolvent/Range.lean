@@ -173,4 +173,27 @@ theorem resolvent_bound {A : H →ₗ.[ℂ] H}
     · exact abs_nonneg _
   · exact h_pointwise
 
+/-- `R(z) φ` lies in `dom A` — the resolvent is a *right* inverse landing in the domain.
+(Public restatement of the private `resolventSolution_mem`, since `R(z) φ` is defeq to it.) -/
+theorem resolvent_apply_mem_domain {A : H →ₗ.[ℂ] H}
+    (z : ℂ) (hz : z.im ≠ 0)
+    (hsym : A.IsFormalAdjoint A)
+    (hplus : ∀ φ : H, ∃ ψ : A.domain, A ψ + I • (ψ : H) = φ)
+    (hminus : ∀ φ : H, ∃ ψ : A.domain, A ψ - I • (ψ : H) = φ)
+    (φ : H) :
+    resolvent z hz hsym hplus hminus φ ∈ A.domain :=
+  resolventSolution_mem z hz hsym hplus hminus φ
+
+/-- `(A - z)(R(z) φ) = φ` — the resolvent is a right inverse of `A - z`. -/
+theorem resolvent_sub_smul_apply {A : H →ₗ.[ℂ] H}
+    (z : ℂ) (hz : z.im ≠ 0)
+    (hsym : A.IsFormalAdjoint A)
+    (hplus : ∀ φ : H, ∃ ψ : A.domain, A ψ + I • (ψ : H) = φ)
+    (hminus : ∀ φ : H, ∃ ψ : A.domain, A ψ - I • (ψ : H) = φ)
+    (φ : H) :
+    A ⟨resolvent z hz hsym hplus hminus φ,
+        resolvent_apply_mem_domain z hz hsym hplus hminus φ⟩
+      - z • (resolvent z hz hsym hplus hminus φ) = φ :=
+  resolventSolution_eq z hz hsym hplus hminus φ
+
 end Spectra.Resolvent

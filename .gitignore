@@ -4,7 +4,7 @@
 /packages/*
 /@DEP/
 /@EXPORT/
-/@META/
+/@Meta/
 /@MONOLITH/
 /@PY/
 /@REFACTOR/
@@ -16,5 +16,6 @@
 /@PLAN/
 .claude
 .gitignore
+/.DS_Store/
 /Spectra-Vault
 /todo.md

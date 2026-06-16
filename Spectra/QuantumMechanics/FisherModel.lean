@@ -5,6 +5,8 @@ Authors: Adam Bornemann
 Filename: QuantumMechanics/FisherModel.lean
 -/
 import Spectra.Operator.Composite
+import Spectra.InformationGeometry.GaussianModel
+import Mathlib.Analysis.InnerProductSpace.Positive
 /-!
 # The Quantum Fisher Model: Discharging the Kähler Axiom
 
@@ -177,5 +179,84 @@ noncomputable def quantumRLDFisherModel (D : QuantumRLDData n H)
     -- From quantum_schrodinger_bilinear, multiplied by 16.
     have h := quantum_schrodinger_bilinear D v w
     nlinarith
+
+/-! ## The total weld: `QuantumRLDData → RLDFisherModel` with no assumed Fisher hypothesis
+
+`quantumRLDFisherModel` above still *consumes* a classical model `M` and *assumes*
+`g_{ij} = 4 Cov`.  We now discharge both: the quantum metric `G_{ij} = 4 Cov(Oᵢ,Oⱼ)_ψ` is a
+symmetric PSD matrix (its quadratic form is `4 Var(O_v) ≥ 0`), hence factors as `G = Rᵀ R`,
+and `gaussianShiftModel R` is an honest classical model whose Fisher matrix is exactly that
+`G`.  Feeding it in turns the construction into a genuine, total functor. -/
+
+open Matrix Spectra.InformationGeometry
+
+variable {n : ℕ}
+
+/-- The **quantum metric matrix** `G_{ij} = 4 · Cov(Oᵢ, Oⱼ)_ψ`. -/
+noncomputable def quantumMetric (D : QuantumRLDData n H) : Matrix (Fin n) (Fin n) ℝ :=
+  Matrix.of fun i j => 4 * covariance (D.O i) (D.O j) D.ψ (pairwise_shiftedDC D i j)
+
+/-- Covariance is symmetric in its two operators (it is the real part of the Gram inner
+product `Re⟪Õᵢψ, Õⱼψ⟫`). -/
+lemma covariance_comm (D : QuantumRLDData n H) (i j : Fin n) :
+    covariance (D.O j) (D.O i) D.ψ (pairwise_shiftedDC D j i) =
+    covariance (D.O i) (D.O j) D.ψ (pairwise_shiftedDC D i j) := by
+  rw [← re_inner_shifted_eq_covariance, ← re_inner_shifted_eq_covariance,
+      ← inner_conj_symm ((pairwise_shiftedDC D i j).A'ψ) ((pairwise_shiftedDC D i j).B'ψ),
+      Complex.conj_re]
+  rfl
+
+/-- The quantum metric is symmetric positive-semidefinite: its quadratic form is
+`v ↦ 4 · Var(O_v)_ψ ≥ 0`. -/
+lemma quantumMetric_posSemidef (D : QuantumRLDData n H) :
+    Matrix.PosSemidef (quantumMetric D) := by
+  rw [Matrix.posSemidef_iff_dotProduct_mulVec]
+  refine ⟨?_, fun x => ?_⟩
+  · ext i j
+    simp only [quantumMetric, Matrix.conjTranspose_apply, Matrix.of_apply, star_trivial]
+    rw [covariance_comm]
+  · have hquad : star x ⬝ᵥ (quantumMetric D *ᵥ x) =
+        4 * (compositeSymmetric D.O x D.h_dense).variance D.ψ D.h_norm D.ψ_mem_commonDomain := by
+      rw [variance_composite]
+      simp only [dotProduct, mulVec, quantumMetric, Matrix.of_apply, star_trivial, Finset.mul_sum]
+      apply Finset.sum_congr rfl; intro i _
+      apply Finset.sum_congr rfl; intro j _
+      ring
+    rw [hquad]
+    exact mul_nonneg (by norm_num)
+      (variance_nonneg (compositeSymmetric D.O x D.h_dense) D.ψ D.h_norm D.ψ_mem_commonDomain)
+
+/-- Every quantum metric factors as `Rᵀ R` for some (rectangular) real matrix `R` — the
+mean map of the realizing Gaussian model. -/
+lemma exists_meanMap (D : QuantumRLDData n H) :
+    ∃ (k : ℕ) (R : Matrix (Fin k) (Fin n) ℝ), Rᵀ * R = quantumMetric D := by
+  obtain ⟨k, v, hv⟩ := Matrix.posSemidef_iff_eq_sum_vecMulVec.mp (quantumMetric_posSemidef D)
+  refine ⟨k, Matrix.of v, ?_⟩
+  rw [hv]
+  ext a b
+  simp only [Matrix.mul_apply, Matrix.transpose_apply, Matrix.of_apply, Matrix.sum_apply,
+    Matrix.vecMulVec_apply, star_trivial]
+
+/-- The sample-space dimension of the realizing classical model. -/
+noncomputable def weldDim (D : QuantumRLDData n H) : ℕ := (exists_meanMap D).choose
+
+/-- The mean map of the realizing Gaussian model: a square root of the quantum metric. -/
+noncomputable def weldMatrix (D : QuantumRLDData n H) :
+    Matrix (Fin (weldDim D)) (Fin n) ℝ := (exists_meanMap D).choose_spec.choose
+
+lemma weldMatrix_spec (D : QuantumRLDData n H) :
+    (weldMatrix D)ᵀ * weldMatrix D = quantumMetric D :=
+  (exists_meanMap D).choose_spec.choose_spec
+
+/-- **The quantum information-geometry weld, as a total functor.**  Every `QuantumRLDData`
+gives rise to an `RLDFisherModel` whose SLD metric is the quantum covariance form and whose
+symplectic form is the commutator form — with **no** assumed `fisherMatrix = 4 Cov`
+hypothesis (it is now derived, via `gaussianShiftModel`). -/
+noncomputable def toRLDFisherModel (D : QuantumRLDData n H) :
+    RLDFisherModel n (Fin (weldDim D) → ℝ) :=
+  quantumRLDFisherModel D (gaussianShiftModel (weldMatrix D)) <| by
+    intro θ hθ i j
+    rw [gaussianShiftModel_fisherMatrix (weldMatrix D) hθ i j, weldMatrix_spec D]
+    rfl
 
 end Spectra.QuantumMechanics.FisherModel

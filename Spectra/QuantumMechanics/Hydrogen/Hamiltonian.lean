@@ -4,9 +4,9 @@ Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Spectra.QuantumMechanics.Perturbation.CoulombBound
+import Spectra.SpectralTheory.ResolventForm
 import Spectra.OneParameterUnitaryGroup.Basic
 import Spectra.Stone.Basic
-import Spectra.SpectralTheory.ResolventForm
 /-!
 # The Hydrogen Hamiltonian
 

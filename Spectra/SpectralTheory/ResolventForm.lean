@@ -214,4 +214,5 @@ theorem inner_genToGroup_eq_integral {A : H →ₗ.[ℂ] H} (hA : IsSelfAdjoint 
   rw [← spectralForm_self (genToGroup hA) ξ (char_measurable t) (char_bdd t)]
   exact (spectralForm_char (genToGroup hA) ξ ξ t).symm
 
+
 end Spectra.QuantumMechanics.SpectralTheory

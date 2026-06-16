@@ -295,14 +295,20 @@ structure RegularStatisticalModel (n : ℕ) (Ω : Type*)
     ∀ θ ∈ paramDomain, ∀ ω,
       ‖fderiv ℝ (fun θ' => density θ' ω) θ‖ ≤ derivBound ω
   /-- For each direction `i`, the score component
-  `∂ᵢ log p(θ, ·)` is square-integrable under `P_θ`.
-  Equivalently, `E_θ[(∂ᵢ p / p)²] < ∞`. -/
+  `∂ᵢ log p(θ, ·)` is square-integrable under the *model* distribution `P_θ`:
+  `E_θ[(∂ᵢ p / p)²] = ∫ (∂ᵢ p / p)² · p dμ < ∞`.
+
+  This is the standard information-geometry regularity condition (it makes the
+  Fisher matrix entries finite), and it is what `ScoreSqIntegrableModel` in
+  `Fisher/Information.lean` packages.  Note the density weight `· p`: against the
+  bare reference measure the condition would be unsatisfiable for any
+  absolutely-continuous family (e.g. a Gaussian, whose score is affine). -/
   score_sq_integrable :
     ∀ θ ∈ paramDomain, ∀ i : Fin n,
       Integrable
         (fun ω => ((fderiv ℝ (fun θ' => density θ' ω) θ
             (EuclideanSpace.single i 1)) /
-              density θ ω) ^ 2)
+              density θ ω) ^ 2 * density θ ω)
         refMeasure
   /-- The Fréchet derivative of the density is ae strongly measurable -/
   density_fderiv_aestronglyMeasurable :
@@ -326,11 +332,13 @@ def partialDensity (θ : ParamSpace n) (i : Fin n) (ω : Ω) : ℝ :=
 def score (θ : ParamSpace n) (i : Fin n) (ω : Ω) : ℝ :=
   M.partialDensity θ i ω / M.density θ ω
 
-/-- The score is square-integrable under the model distribution. -/
+/-- The score is square-integrable under the model distribution:
+`∫ sᵢ² · p dμ < ∞`.  This is the density-weighted (`E_θ`) condition — the
+`score_sq_integrable` field expressed via `score`/`density`. -/
 lemma score_memLp {θ : ParamSpace n}
     (hθ : θ ∈ M.paramDomain) (i : Fin n) :
-    Integrable (fun ω => M.score θ i ω ^ 2) M.refMeasure := by
-  exact M.score_sq_integrable θ hθ i
+    Integrable (fun ω => M.score θ i ω ^ 2 * M.density θ ω) M.refMeasure :=
+  M.score_sq_integrable θ hθ i
 
 end RegularStatisticalModel
 

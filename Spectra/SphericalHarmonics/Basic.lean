@@ -71,19 +71,18 @@ a chosen axis. These are the s, p, d, f orbitals of chemistry.
    triangular (degree-`j`) family, so `sin^{|m|}θ·q(cos θ)·e^{imφ}` lies in
    the span of the `Y_ℓ^m` for *every* polynomial `q`.
 
-4. **Remaining `sorry` (1):**
-   * `assocLegendreNat_normalization` — ∫_{-1}^1 (P_ℓ^m)² = (2/(2ℓ+1))(ℓ+m)!/(ℓ-m)!.
-     A clean, isolated 1-dimensional integral identity (route: induction on m
-     via the SL form, or the classical Rodrigues integration-by-parts).
-   Everything else in this file is fully proved (modulo that one),
-   including `sphericalHarmonic_eigenvalue`, `sphericalHarmonic_orthonormal`
-   (which consumes the normalization sorry), `angularSector_dim`,
+4. **This file is now `sorry`-free.** `assocLegendreNat_normalization`
+   (∫_{-1}^1 (P_ℓ^m)² = (2/(2ℓ+1))(ℓ+m)!/(ℓ-m)!) — formerly the last open
+   lemma — is now proved by induction on m via the SL/ladder form. Every
+   result in this file is fully proved, including
+   `sphericalHarmonic_eigenvalue`, `sphericalHarmonic_orthonormal`
+   (which consumes the normalization lemma), `angularSector_dim`,
    `angularSector_orthogonal`, and `sphericalHarmonic_complete`.
    (Note `sphericalHarmonic_complete` does *not* depend on the normalization
-   sorry: the completeness proof never uses orthonormality.)
+   lemma: the completeness proof never uses orthonormality.)
 
 5. **`AssociatedLegendre` is a real definition** (Rodrigues formula via
-   `Polynomial.derivative^[k]`), not a `sorry`. Mathlib has no Legendre
+   `Polynomial.derivative^[k]`), not a stub. Mathlib has no Legendre
    polynomials (verified against v4.31.0-rc1: only number-theoretic
    `LegendreSymbol`), so this is original infrastructure. For `|x| ≤ 1` and
    even `m` it agrees with the polynomial form `(1-x²)^{m/2}`; for `|x| > 1`
@@ -1158,7 +1157,7 @@ theorem sphericalHarmonic_eigenvalue (ℓ : ℕ) (m : ℤ) (hm : |m| ≤ ℓ)
     - θ-integral: substitute x = cos θ
       (`intervalIntegral.integral_deriv_smul_comp`); ℓ ≠ ℓ' dies by
       `assocLegendreNat_orthogonality`.
-    - Diagonal: `assocLegendreNat_normalization` (the remaining sorry) plus
+    - Diagonal: `assocLegendreNat_normalization` (now proved) plus
       the factorial algebra of `sphericalNorm` — which is where the corrected
       (signed-m) normalisation is essential. -/
 theorem sphericalHarmonic_orthonormal (ℓ ℓ' : ℕ) (m m' : ℤ)

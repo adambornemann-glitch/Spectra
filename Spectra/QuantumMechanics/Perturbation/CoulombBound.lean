@@ -3,6 +3,7 @@ Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
+import Spectra.QuantumMechanics.Hydrogen.Laplacian.Basic
 import Spectra.OneParameterUnitaryGroup.Basic
 import Spectra.Stone.Basic
 import Spectra.QuantumMechanics.Perturbation.HardyInequality
@@ -12,7 +13,7 @@ import Spectra.QuantumMechanics.Observable.Basic
 import Spectra.SobolevSpaces.DensityResults
 import Spectra.SpectralTheory.ResolventForm
 import Spectra.Resolvent.Range
-import Spectra.QuantumMechanics.Hydrogen.Laplacian
+
 
 -- ^ adjust the three module paths above to the actual file locations
 

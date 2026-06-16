@@ -1,0 +1,63 @@
+# Continuous integration for Spectra.
+#
+# Builds the library and runs the axiom gate. The `AxiomCheck` default target
+# `assert_no_sorry`s every headline theorem, so a `sorry` reaching any of them
+# fails `lake build` — and therefore the PR.
+#
+# Mathlib oleans are restored with `lake exe cache get`. Spectra has no cache
+# server of its own, so its sources compile on the runner; the actions/cache
+# step persists `.lake/build` between runs so only changed files recompile.
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build & axiom gate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install elan (Lean toolchain manager)
+        run: |
+          curl https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh -sSf \
+            | sh -s -- -y --default-toolchain none
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+
+      - name: Restore Spectra build cache
+        uses: actions/cache@v4
+        with:
+          path: .lake/build
+          key: spectra-${{ runner.os }}-${{ hashFiles('lean-toolchain', 'lake-manifest.json') }}-${{ github.sha }}
+          restore-keys: |
+            spectra-${{ runner.os }}-${{ hashFiles('lean-toolchain', 'lake-manifest.json') }}-
+
+      - name: Fetch Mathlib build cache
+        run: lake exe cache get
+
+      - name: Build Spectra and run the axiom gate
+        run: lake build
+
+  lint:
+    name: Length ratchet
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Pure-Python text check (no Lean build) — fast feedback in parallel with the
+      # build job. Fails only on files/lines/declarations that are new or worse than
+      # scripts/length-baseline.txt, so the grandfathered list can only shrink.
+      - name: File / line / declaration length ratchet
+        run: python3 scripts/check_lengths.py --strict --baseline scripts/length-baseline.txt

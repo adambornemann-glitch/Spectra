@@ -59,9 +59,9 @@ H¹ convergence, so the bound passes to the closure.
 * `hardy_constant_sharp` — The constant 4 is optimal.
 * `inverse_r_sq_integrable` — ∫|ψ|²/|x|² < ∞ for ψ ∈ H¹.
 
-## Sorry strategy
+## Proof strategy
 
-**Every sorry is dischargeable.**
+Each statement below is fully proved, by the following routes:
 - `hardy_inequality_smooth`: IBP in spherical coordinates + Cauchy-Schwarz.
 - `hardy_inequality`: density of C_c^∞ in H¹ + lower semicontinuity.
 - `hardy_constant_sharp`: explicit optimising sequence ψ_n(r) = r^{−1/2+ε} χ(r).
