@@ -232,4 +232,327 @@ lemma Dynamics.integrable_gaussian_smul (α : Dynamics A) (a : A) {b : ℝ} (hb 
 noncomputable def Dynamics.gaussianSmooth (α : Dynamics A) (a : A) (n : ℕ) : A :=
   Real.sqrt ((n : ℝ) / Real.pi) • ∫ t : ℝ, Real.exp (-(n : ℝ) * t ^ 2) • α.evolve t a
 
+/-! ## Density: each `aₙ` is analytic, and `aₙ → a`
+
+The two hard limbs of the Bratteli–Robinson density argument. `gaussianSmooth_isAnalyticElement`
+shows `aₙ` extends to an entire `ℂ → A` map (differentiation under the integral, with a bespoke
+Gaussian×linear dominating bound). `gaussianSmooth_tendsto` shows `aₙ → a` (rescale `s = √n·t`, then
+dominated convergence with strong continuity). Together: the analytic elements are dense. -/
+
+private noncomputable def gsKern (α : Dynamics A) (a : A) (n : ℕ) (z : ℂ) (u : ℝ) : A :=
+  Complex.exp (-(n : ℂ) * (((u : ℂ)) - z) ^ 2) • α.evolve u a
+
+private noncomputable def gsKernDer (α : Dynamics A) (a : A) (n : ℕ) (z : ℂ) (u : ℝ) : A :=
+  ((2 * (n : ℂ) * (((u : ℂ)) - z)) * Complex.exp (-(n : ℂ) * (((u : ℂ)) - z) ^ 2)) • α.evolve u a
+
+private theorem hasDerivAt_gsKern (α : Dynamics A) (a : A) (n : ℕ) (z : ℂ) (u : ℝ) :
+    HasDerivAt (fun z => gsKern α a n z u) (gsKernDer α a n z u) z := by
+  unfold gsKern gsKernDer
+  have hinner : HasDerivAt (fun z : ℂ => -(n : ℂ) * (((u : ℂ)) - z) ^ 2)
+      (2 * (n : ℂ) * (((u : ℂ)) - z)) z := by
+    have h1 : HasDerivAt (fun z : ℂ => ((u : ℂ)) - z) (-1) z := by
+      simpa using (hasDerivAt_id z).const_sub (u : ℂ)
+    have h2 : HasDerivAt (fun z : ℂ => (((u : ℂ)) - z) ^ 2)
+        (2 * (((u : ℂ)) - z) ^ 1 * (-1)) z := h1.pow 2
+    have h3 := h2.const_mul (-(n : ℂ))
+    convert h3 using 1
+    ring
+  have hexp := hinner.cexp
+  have := hexp.smul_const (α.evolve u a)
+  convert this using 2
+  ring
+
+private theorem continuous_gsKern (α : Dynamics A) (a : A) (n : ℕ) (z : ℂ) :
+    Continuous (fun u : ℝ => gsKern α a n z u) := by
+  unfold gsKern
+  exact (Complex.continuous_exp.comp (by fun_prop)).smul (α.continuous_evolve a)
+
+private theorem gsKern_re (n : ℕ) (z : ℂ) (u : ℝ) :
+    (-(n : ℂ) * (((u : ℂ)) - z) ^ 2).re = -(n : ℝ) * ((u - z.re)^2 - z.im^2) := by
+  simp only [Complex.neg_re, Complex.neg_im, Complex.mul_re, Complex.mul_im,
+    Complex.natCast_re, Complex.natCast_im, Complex.sub_re, Complex.ofReal_re,
+    Complex.sub_im, Complex.ofReal_im, pow_two]
+  ring
+
+private theorem integrable_gsKern (α : Dynamics A) (a : A) (n : ℕ) (hn : 0 < (n : ℝ)) (z : ℂ) :
+    Integrable (fun u : ℝ => gsKern α a n z u) := by
+  unfold gsKern
+  have hb : 0 < (n / 2 : ℝ) := by positivity
+  refine Integrable.mono'
+    ((integrable_exp_neg_mul_sq hb).const_mul
+      (Real.exp (2 * (n:ℝ) * (|z.re|^2 + |z.im|^2)) * ‖a‖))
+    (continuous_gsKern α a n z).aestronglyMeasurable ?_
+  filter_upwards with u
+  rw [norm_smul, norm_exp, gsKern_re, α.norm_evolve]
+  have hkey : (u - z.re)^2 ≥ u^2/2 - z.re^2 := by nlinarith [sq_nonneg (u - 2*z.re)]
+  have hbound : -(n:ℝ) * ((u - z.re)^2 - z.im^2)
+      ≤ 2 * (n:ℝ) * (|z.re|^2 + |z.im|^2) + (-(n/2:ℝ) * u^2) := by
+    have h1 : z.re^2 = |z.re|^2 := (sq_abs z.re).symm
+    have h2 : z.im^2 ≤ |z.im|^2 := by rw [sq_abs]
+    nlinarith [hn.le, sq_nonneg z.re, sq_nonneg z.im]
+  calc Real.exp (-(n:ℝ) * ((u - z.re)^2 - z.im^2)) * ‖a‖
+      ≤ Real.exp (2 * (n:ℝ) * (|z.re|^2 + |z.im|^2) + (-(n/2:ℝ) * u^2)) * ‖a‖ := by gcongr
+    _ = Real.exp (2 * (n:ℝ) * (|z.re|^2 + |z.im|^2)) * ‖a‖ * Real.exp (-(n/2:ℝ) * u^2) := by
+        rw [Real.exp_add]; ring
+
+private theorem integrable_gsKern_bound (n : ℕ) (hn : 0 < (n : ℝ)) (C R : ℝ) :
+    Integrable (fun u : ℝ => C * (|u| + R) * Real.exp (-(n / 2 : ℝ) * u ^ 2)) := by
+  have hb : 0 < (n / 2 : ℝ) := by positivity
+  have h1 : Integrable (fun u : ℝ => |u| * Real.exp (-(n / 2 : ℝ) * u ^ 2)) := by
+    have hmul := (integrable_mul_exp_neg_mul_sq hb)
+    rw [← integrable_norm_iff hmul.aestronglyMeasurable] at hmul
+    refine hmul.congr ?_
+    filter_upwards with u
+    rw [norm_mul, Real.norm_eq_abs, Real.norm_eq_abs (Real.exp _),
+      abs_of_nonneg (Real.exp_nonneg _)]
+  have h2 : Integrable (fun u : ℝ => R * Real.exp (-(n / 2 : ℝ) * u ^ 2)) :=
+    (integrable_exp_neg_mul_sq hb).const_mul R
+  have h4 : Integrable (fun u : ℝ => C * (|u| * Real.exp (-(n / 2 : ℝ) * u ^ 2)
+      + R * Real.exp (-(n / 2 : ℝ) * u ^ 2))) := (h1.add h2).const_mul C
+  refine h4.congr ?_
+  filter_upwards with u
+  ring
+
+private theorem norm_gsKernDer_le (α : Dynamics A) (a : A) (n : ℕ) (hn : 0 < (n : ℝ)) (z0 : ℂ)
+    (z : ℂ) (hz : z ∈ Metric.ball z0 1) (u : ℝ) :
+    ‖gsKernDer α a n z u‖
+      ≤ (2 * (n:ℝ) * Real.exp (2 * (n:ℝ) * (‖z0‖ + 1)^2) * ‖a‖)
+          * (|u| + (‖z0‖ + 1)) * Real.exp (-(n / 2 : ℝ) * u ^ 2) := by
+  unfold gsKernDer
+  set R := ‖z0‖ + 1 with hR
+  have hRpos : 0 ≤ R := by positivity
+  have hzn : ‖z‖ ≤ R := by
+    have hsum : ‖z‖ ≤ ‖z0‖ + ‖z - z0‖ := by
+      have := norm_add_le z0 (z - z0); simpa using this
+    have hd : ‖z - z0‖ < 1 := by
+      rw [Metric.mem_ball, dist_eq_norm] at hz; exact hz
+    rw [hR]; linarith
+  have hzre : |z.re| ≤ R := (Complex.abs_re_le_norm z).trans hzn
+  have hzim : |z.im| ≤ R := (Complex.abs_im_le_norm z).trans hzn
+  rw [norm_smul, norm_mul, α.norm_evolve, norm_exp, gsKern_re]
+  have hf1 : ‖2 * (n : ℂ) * (((u : ℂ)) - z)‖ ≤ 2 * (n:ℝ) * (|u| + R) := by
+    rw [norm_mul, norm_mul]
+    have hcoeff : ‖(2 : ℂ)‖ * ‖(n : ℂ)‖ = 2 * (n:ℝ) := by
+      rw [Complex.norm_natCast]; norm_num
+    rw [hcoeff]
+    refine mul_le_mul_of_nonneg_left ?_ (by positivity)
+    calc ‖(((u : ℂ)) - z)‖ ≤ ‖(u : ℂ)‖ + ‖z‖ := norm_sub_le _ _
+      _ = |u| + ‖z‖ := by rw [Complex.norm_real, Real.norm_eq_abs]
+      _ ≤ |u| + R := by gcongr
+  have hf2 : Real.exp (-(n:ℝ) * ((u - z.re)^2 - z.im^2))
+      ≤ Real.exp (2 * (n:ℝ) * R^2) * Real.exp (-(n / 2 : ℝ) * u ^ 2) := by
+    rw [← Real.exp_add]
+    apply Real.exp_le_exp.mpr
+    have hkey : (u - z.re)^2 ≥ u^2/2 - z.re^2 := by nlinarith [sq_nonneg (u - 2*z.re)]
+    have hre2 : z.re^2 ≤ R^2 := by
+      have := abs_le.mp hzre; nlinarith [abs_nonneg z.re, hRpos]
+    have him2 : z.im^2 ≤ R^2 := by
+      have := abs_le.mp hzim; nlinarith [abs_nonneg z.im, hRpos]
+    nlinarith [hn.le]
+  calc ‖2 * (n : ℂ) * (((u : ℂ)) - z)‖ * Real.exp (-(n:ℝ) * ((u - z.re)^2 - z.im^2)) * ‖a‖
+      ≤ (2 * (n:ℝ) * (|u| + R))
+          * (Real.exp (2 * (n:ℝ) * R^2) * Real.exp (-(n / 2 : ℝ) * u ^ 2)) * ‖a‖ := by gcongr
+    _ = (2 * (n:ℝ) * Real.exp (2 * (n:ℝ) * R^2) * ‖a‖) * (|u| + R)
+          * Real.exp (-(n / 2 : ℝ) * u ^ 2) := by ring
+
+private theorem hasDerivAt_integral_gsKern (α : Dynamics A) (a : A) (n : ℕ) (hn : 0 < (n : ℝ))
+    (z0 : ℂ) :
+    HasDerivAt (fun z => ∫ u : ℝ, gsKern α a n z u)
+      (∫ u : ℝ, gsKernDer α a n z0 u) z0 := by
+  set R := ‖z0‖ + 1 with hRdef
+  set C := 2 * (n:ℝ) * Real.exp (2 * (n:ℝ) * R^2) * ‖a‖ with hCdef
+  have hball : Metric.ball z0 1 ∈ 𝓝 z0 := Metric.ball_mem_nhds z0 one_pos
+  have hmeas : ∀ᶠ z in 𝓝 z0, AEStronglyMeasurable (fun u : ℝ => gsKern α a n z u) volume := by
+    filter_upwards with z
+    exact (continuous_gsKern α a n z).aestronglyMeasurable
+  have hint : Integrable (fun u : ℝ => gsKern α a n z0 u) volume := integrable_gsKern α a n hn z0
+  have hder_meas : AEStronglyMeasurable (fun u : ℝ => gsKernDer α a n z0 u) volume := by
+    unfold gsKernDer
+    refine Continuous.aestronglyMeasurable ?_
+    exact (((continuous_const.mul (Complex.continuous_ofReal.sub continuous_const)).mul
+      (Complex.continuous_exp.comp (by fun_prop))).smul (α.continuous_evolve a))
+  have hbound : ∀ᵐ u ∂(volume : Measure ℝ), ∀ z ∈ Metric.ball z0 1,
+      ‖gsKernDer α a n z u‖ ≤ C * (|u| + R) * Real.exp (-(n / 2 : ℝ) * u ^ 2) := by
+    filter_upwards with u z hz
+    have := norm_gsKernDer_le α a n hn z0 z hz u
+    rw [hCdef, hRdef]
+    convert this using 2
+  have hbound_int : Integrable
+      (fun u : ℝ => C * (|u| + R) * Real.exp (-(n / 2 : ℝ) * u ^ 2)) volume :=
+    integrable_gsKern_bound n hn C R
+  have hdiff : ∀ᵐ u ∂(volume : Measure ℝ), ∀ z ∈ Metric.ball z0 1,
+      HasDerivAt (fun z => gsKern α a n z u) (gsKernDer α a n z u) z := by
+    filter_upwards with u z _
+    exact hasDerivAt_gsKern α a n z u
+  exact (hasDerivAt_integral_of_dominated_loc_of_deriv_le hball hmeas hint hder_meas
+    hbound hbound_int hdiff).2
+
+theorem Dynamics.gaussianSmooth_isAnalyticElement (α : Dynamics A) (a : A) (n : ℕ)
+    (hn : 0 < (n : ℝ)) : α.IsAnalyticElement (α.gaussianSmooth a n) := by
+  refine ⟨fun z => Real.sqrt ((n : ℝ) / Real.pi) • ∫ u : ℝ, gsKern α a n z u, ?_, ?_⟩
+  · intro z0
+    apply DifferentiableAt.const_smul
+    exact (hasDerivAt_integral_gsKern α a n hn z0).differentiableAt
+  · intro s
+    show Real.sqrt ((n : ℝ) / Real.pi) • ∫ u : ℝ, gsKern α a n (s : ℂ) u
+      = α.evolve s (α.gaussianSmooth a n)
+    unfold Dynamics.gaussianSmooth
+    have hker : ∀ u : ℝ, gsKern α a n (s : ℂ) u
+        = Real.exp (-(n : ℝ) * (u - s) ^ 2) • α.evolve u a := by
+      intro u
+      unfold gsKern
+      have hcast : Complex.exp (-(n : ℂ) * (((u : ℂ)) - (s : ℂ)) ^ 2)
+          = ((Real.exp (-(n : ℝ) * (u - s) ^ 2) : ℝ) : ℂ) := by
+        rw [Complex.ofReal_exp]
+        congr 1
+        push_cast
+        ring
+      rw [hcast, Complex.coe_smul]
+    simp only [hker]
+    rw [show (∫ u : ℝ, Real.exp (-(n : ℝ) * (u - s) ^ 2) • α.evolve u a)
+        = ∫ u : ℝ, Real.exp (-(n : ℝ) * ((u + s) - s) ^ 2) • α.evolve (u + s) a from
+      (integral_add_right_eq_self
+        (fun u : ℝ => Real.exp (-(n : ℝ) * (u - s) ^ 2) • α.evolve u a) s).symm]
+    simp only [add_sub_cancel_right]
+    have hev : (fun u : ℝ => Real.exp (-(n : ℝ) * u ^ 2) • α.evolve (u + s) a)
+        = fun u : ℝ => α.evolveL s (Real.exp (-(n : ℝ) * u ^ 2) • α.evolve u a) := by
+      funext u
+      rw [← Complex.coe_smul, ← Complex.coe_smul, map_smul, evolveL_apply]
+      congr 1
+      rw [add_comm, α.evolve_add]
+    rw [hev]
+    rw [ContinuousLinearMap.integral_comp_comm _ (α.integrable_gaussian_smul a hn)]
+    set Z := ∫ u : ℝ, Real.exp (-(n : ℝ) * u ^ 2) • α.evolve u a with hZ
+    have hpull : α.evolve s (Real.sqrt ((n : ℝ) / Real.pi) • Z)
+        = Real.sqrt ((n : ℝ) / Real.pi) • α.evolve s Z := by
+      rw [← Complex.coe_smul, ← evolveL_apply, map_smul, evolveL_apply, Complex.coe_smul]
+    rw [hpull, evolveL_apply]
+
+/-- **Gaussian approximate identity.** The Gaussian-smoothed elements converge to `a`:
+`a_n = √(n/π) ∫ e^{-n t²} α_t(a) dt → a`. This is the Bratteli–Robinson approximation showing
+that, together with analyticity of each `a_n`, the analytic elements are dense. -/
+theorem Dynamics.gaussianSmooth_tendsto (α : Dynamics A) (a : A) :
+    Filter.Tendsto (fun n : ℕ => α.gaussianSmooth a n) Filter.atTop (nhds a) := by
+  -- Reduce to the norm of the difference tending to 0.
+  rw [← tendsto_sub_nhds_zero_iff]
+  -- The rescaled scalar integral, whose limit drives everything.
+  have hresc : Filter.Tendsto
+      (fun n : ℕ => ∫ s : ℝ, Real.exp (-s ^ 2) * ‖α.evolve (s / Real.sqrt (n : ℝ)) a - a‖)
+      Filter.atTop (nhds 0) := by
+    -- pointwise limit
+    have hptw : ∀ s : ℝ, Filter.Tendsto
+        (fun n : ℕ => Real.exp (-s ^ 2) * ‖α.evolve (s / Real.sqrt (n : ℝ)) a - a‖)
+        Filter.atTop (nhds 0) := by
+      intro s
+      have htz : Filter.Tendsto (fun n : ℕ => s / Real.sqrt (n : ℝ)) Filter.atTop (nhds 0) := by
+        have h1 : Filter.Tendsto (fun n : ℕ => (Real.sqrt (n : ℝ))⁻¹) Filter.atTop (nhds 0) :=
+          tendsto_inv_atTop_zero.comp (Real.tendsto_sqrt_atTop.comp tendsto_natCast_atTop_atTop)
+        have h2 := h1.const_mul s
+        simp only [mul_zero] at h2
+        simpa only [div_eq_mul_inv] using h2
+      have hcont : Filter.Tendsto (fun n : ℕ => α.evolve (s / Real.sqrt (n : ℝ)) a)
+          Filter.atTop (nhds a) := by
+        have h0 := ((α.continuous_evolve a).tendsto 0).comp htz
+        simpa [Function.comp_def, α.evolve_zero] using h0
+      have hnorm : Filter.Tendsto (fun n : ℕ => ‖α.evolve (s / Real.sqrt (n : ℝ)) a - a‖)
+          Filter.atTop (nhds 0) := by simpa using (hcont.sub_const a).norm
+      simpa using hnorm.const_mul (Real.exp (-s ^ 2))
+    -- bound
+    set bnd : ℝ → ℝ := fun s => Real.exp (-1 * s ^ 2) * (2 * ‖a‖) with hbnd
+    have hbnd_int : Integrable bnd :=
+      (integrable_exp_neg_mul_sq (by norm_num : (0:ℝ) < 1)).mul_const _
+    have hlim : (∫ _s : ℝ, (0 : ℝ)) = 0 := by simp
+    rw [← hlim]
+    apply tendsto_integral_filter_of_dominated_convergence bnd
+    · filter_upwards with n
+      apply Continuous.aestronglyMeasurable
+      apply Continuous.mul (by fun_prop)
+      apply Continuous.norm
+      exact (α.continuous_evolve a).comp (by fun_prop) |>.sub continuous_const
+    · filter_upwards with n
+      filter_upwards with s
+      rw [Real.norm_eq_abs, abs_of_nonneg (by positivity)]
+      simp only [hbnd]
+      have hexp : Real.exp (-1 * s ^ 2) = Real.exp (-s ^ 2) := by norm_num
+      rw [hexp]
+      apply mul_le_mul_of_nonneg_left _ (Real.exp_nonneg _)
+      calc ‖α.evolve (s / Real.sqrt (n : ℝ)) a - a‖
+          ≤ ‖α.evolve (s / Real.sqrt (n : ℝ)) a‖ + ‖a‖ := norm_sub_le _ _
+        _ = 2 * ‖a‖ := by rw [α.norm_evolve]; ring
+    · exact hbnd_int
+    · filter_upwards with s
+      exact hptw s
+  -- Squeeze `‖a_n - a‖` by `(1/√π) * (rescaled integral)`, eventually for `n ≥ 1`.
+  have hsq : Filter.Tendsto
+      (fun n : ℕ => (1 / Real.sqrt Real.pi)
+        * ∫ s : ℝ, Real.exp (-s ^ 2) * ‖α.evolve (s / Real.sqrt (n : ℝ)) a - a‖)
+      Filter.atTop (nhds 0) := by
+    have := hresc.const_mul (1 / Real.sqrt Real.pi)
+    simpa using this
+  refine squeeze_zero_norm'
+    (a := fun n : ℕ => (1 / Real.sqrt Real.pi)
+      * ∫ s : ℝ, Real.exp (-s ^ 2) * ‖α.evolve (s / Real.sqrt (n : ℝ)) a - a‖) ?_ ?_
+  · -- ‖a_n - a‖ ≤ (1/√π) * rescaled,  eventually for n ≥ 1
+    filter_upwards [Filter.eventually_ge_atTop 1] with n hn
+    have hnpos : (0 : ℝ) < (n : ℝ) := by exact_mod_cast Nat.lt_of_lt_of_le Nat.zero_lt_one hn
+    -- normalization representation of `a`
+    have hrep : a = Real.sqrt ((n : ℝ) / Real.pi)
+        • ∫ t : ℝ, Real.exp (-(n : ℝ) * t ^ 2) • a := by
+      rw [integral_smul_const, integral_gaussian, smul_smul, ← Real.sqrt_mul (by positivity),
+        div_mul_div_comm, mul_comm (n : ℝ) Real.pi, div_self (by positivity), Real.sqrt_one,
+        one_smul]
+    -- difference formula
+    have hdiff : α.gaussianSmooth a n - a
+        = Real.sqrt ((n : ℝ) / Real.pi)
+            • ∫ t : ℝ, Real.exp (-(n : ℝ) * t ^ 2) • (α.evolve t a - a) := by
+      unfold Dynamics.gaussianSmooth
+      have hsub : (fun t : ℝ => Real.exp (-(n : ℝ) * t ^ 2) • (α.evolve t a - a))
+          = (fun t : ℝ => Real.exp (-(n : ℝ) * t ^ 2) • α.evolve t a
+              - Real.exp (-(n : ℝ) * t ^ 2) • a) := by
+        ext t; rw [smul_sub]
+      rw [hsub, integral_sub (α.integrable_gaussian_smul a hnpos)
+        ((integrable_exp_neg_mul_sq hnpos).smul_const a), smul_sub, ← hrep]
+    -- norm bound (scalar integral)
+    have hnb : ‖α.gaussianSmooth a n - a‖
+        ≤ Real.sqrt ((n : ℝ) / Real.pi)
+            * ∫ t : ℝ, Real.exp (-(n : ℝ) * t ^ 2) * ‖α.evolve t a - a‖ := by
+      rw [hdiff, norm_smul, Real.norm_eq_abs, abs_of_nonneg (Real.sqrt_nonneg _)]
+      apply mul_le_mul_of_nonneg_left _ (Real.sqrt_nonneg _)
+      refine le_trans (norm_integral_le_integral_norm _) (le_of_eq ?_)
+      congr 1; ext t
+      rw [norm_smul, Real.norm_eq_abs, abs_of_nonneg (Real.exp_nonneg _)]
+    -- rescaling
+    have hres : Real.sqrt ((n : ℝ) / Real.pi)
+          * ∫ t : ℝ, Real.exp (-(n : ℝ) * t ^ 2) * ‖α.evolve t a - a‖
+        = (1 / Real.sqrt Real.pi)
+            * ∫ s : ℝ, Real.exp (-s ^ 2) * ‖α.evolve (s / Real.sqrt (n : ℝ)) a - a‖ := by
+      set g : ℝ → ℝ := fun s => Real.exp (-s ^ 2) * ‖α.evolve (s / Real.sqrt (n : ℝ)) a - a‖
+        with hg
+      have hcomp : (fun t : ℝ => Real.exp (-(n : ℝ) * t ^ 2) * ‖α.evolve t a - a‖)
+          = (fun t : ℝ => g (Real.sqrt (n : ℝ) * t)) := by
+        ext t
+        simp only [hg]
+        have hsqn : Real.sqrt (n : ℝ) * t / Real.sqrt (n : ℝ) = t := by
+          rw [mul_comm, mul_div_assoc, div_self (by positivity : Real.sqrt (n : ℝ) ≠ 0), mul_one]
+        rw [hsqn]
+        congr 2
+        rw [mul_pow, Real.sq_sqrt hnpos.le]; ring
+      rw [hcomp, MeasureTheory.Measure.integral_comp_mul_left g (Real.sqrt (n : ℝ)), smul_eq_mul,
+        abs_of_nonneg (by positivity : (0:ℝ) ≤ (Real.sqrt (n : ℝ))⁻¹), ← mul_assoc,
+        Real.sqrt_div hnpos.le Real.pi, div_mul_eq_mul_div,
+        mul_inv_cancel₀ (by positivity : Real.sqrt (n : ℝ) ≠ 0)]
+    rw [← hres]
+    exact hnb
+  · exact hsq
+
+/-- **Density of the analytic elements** (Bratteli–Robinson). Every `a : A` is the limit of the
+analytic sequence `a_n := α.gaussianSmooth a n` — each analytic by `gaussianSmooth_isAnalyticElement`,
+converging to `a` by `gaussianSmooth_tendsto` — so the analytic elements are norm-dense in `A`. -/
+theorem Dynamics.analyticElements_dense (α : Dynamics A) : Dense (α.analyticElements) := by
+  intro a
+  refine mem_closure_of_tendsto (α.gaussianSmooth_tendsto a) ?_
+  filter_upwards [Filter.eventually_ge_atTop 1] with n hn
+  have hnpos : (0 : ℝ) < (n : ℝ) := by exact_mod_cast Nat.lt_of_lt_of_le Nat.zero_lt_one hn
+  exact (α.mem_analyticElements).mpr (α.gaussianSmooth_isAnalyticElement a n hnpos)
+
 end Spectra.KMS

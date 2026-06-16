@@ -137,6 +137,7 @@ import Spectra.KMS.Modular
 import Spectra.KMS.GroundState
 import Spectra.KMS.StateTopology
 import Spectra.KMS.AnalyticElements
+import Spectra.KMS.ImaginaryTime
 import Spectra.Operator.Symmetric
 import Spectra.Operator.Composite
 import Spectra.Operator.Unitary.Basic

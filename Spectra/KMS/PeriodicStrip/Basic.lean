@@ -10,7 +10,7 @@ import Spectra.KMS.PeriodicStrip.ExtensionProps
 import Spectra.KMS.PeriodicStrip.Hadamard
 import Spectra.KMS.PeriodicStrip.LineRemove
 
-open Complex Set Metric
+open Complex Set Metric Filter Topology
 
 namespace Spectra.PeriodicHolomorphic
 
@@ -224,6 +224,97 @@ lemma eqOn_closedStrip_of_boundary_eq
   have key := eqZero_of_strip_boundary_zero (fun w => F w - G w) hβ
     (hFholo.sub hGholo) (hFcont.sub hGcont) hHbdd
     (fun t => by simp [hlow t]) (fun t => by simp [hup t]) z hz
+  exact sub_eq_zero.mp key
+
+/-- **One-boundary uniqueness on the strip.** A function holomorphic on the open strip, continuous
+and bounded on the closed strip, that vanishes on the *lower* boundary line, already vanishes on the
+entire closed strip.
+
+On `{Im < β}` this is immediate from Hadamard three-lines: the lower-edge supremum is `0`, so
+`‖H z‖ ≤ 0^{(β-Im z)/β} · M^{Im z/β} = 0` since the first exponent is positive. The upper edge
+`Im = β` then follows by continuity (approach it vertically from inside). Only the lower boundary is
+needed — unlike `eqZero_of_strip_boundary_zero`, which uses both. -/
+lemma eqZero_of_strip_lower_boundary_zero
+    (H : ℂ → ℂ) (hβ : 0 < β)
+    (hholo : DifferentiableOn ℂ H (Strip β))
+    (hcont : ContinuousOn H (ClosedStrip β))
+    (hbdd : BddAbove (norm '' (H '' ClosedStrip β)))
+    (hlow : ∀ t : ℝ, H (realToLower t) = 0) :
+    ∀ z ∈ ClosedStrip β, H z = 0 := by
+  -- The supremum of `‖H‖` along the lower line is `0`.
+  have hsup0 : sSup ((norm ∘ H) '' (Complex.im ⁻¹' {(0 : ℝ)})) = 0 := by
+    have hset : (norm ∘ H) '' (Complex.im ⁻¹' {(0 : ℝ)}) = {0} := by
+      rw [Set.eq_singleton_iff_unique_mem]
+      refine ⟨⟨0, ?_, ?_⟩, ?_⟩
+      · simp [Set.mem_preimage]
+      · show ‖H 0‖ = 0
+        rw [show (0 : ℂ) = realToLower 0 from by simp [realToLower], hlow 0, norm_zero]
+      · rintro y ⟨w, hw, rfl⟩
+        simp only [Set.mem_preimage, Set.mem_singleton_iff] at hw
+        show ‖H w‖ = 0
+        rw [show w = realToLower w.re from by apply Complex.ext <;> simp [realToLower, hw],
+          hlow, norm_zero]
+    rw [hset, csSup_singleton]
+  -- On the half-open strip `{Im < β}`, Hadamard forces `H = 0`.
+  have hopen : ∀ z ∈ ClosedStrip β, z.im < β → H z = 0 := by
+    intro z hz hzlt
+    have hbound := Spectra.ThreeLines.hadamard_three_lines_horizontal H hβ hholo hcont hbdd z hz
+    rw [hsup0] at hbound
+    have hp : (β - z.im) / β ≠ 0 := div_ne_zero (sub_ne_zero.mpr (ne_of_gt hzlt)) (ne_of_gt hβ)
+    rw [Real.zero_rpow hp, zero_mul] at hbound
+    exact norm_eq_zero.mp (le_antisymm hbound (norm_nonneg _))
+  -- Extend to the upper edge by vertical approach.
+  intro z hz
+  rcases lt_or_eq_of_le hz.2 with hlt | heq
+  · exact hopen z hz hlt
+  set c : ℕ → ℝ := fun k => 1 / ((k : ℝ) + 1) with hc_def
+  set zk : ℕ → ℂ := fun k => z - (c k : ℂ) * I with hzk_def
+  have hc_pos : ∀ k, 0 < c k := fun k => by positivity
+  have hc_tend : Tendsto c atTop (𝓝 (0 : ℝ)) := tendsto_one_div_add_atTop_nhds_zero_nat
+  have hzk_im : ∀ k, (zk k).im = β - c k := by
+    intro k
+    have h : (zk k).im = z.im - c k := by simp [hzk_def]
+    rw [h, heq]
+  have hzk_tend : Tendsto zk atTop (𝓝 z) := by
+    have h0 : Tendsto (fun k => (c k : ℂ) * I) atTop (𝓝 0) := by
+      simpa using ((Complex.continuous_ofReal.tendsto (0 : ℝ)).comp hc_tend).mul_const I
+    simpa [hzk_def] using tendsto_const_nhds.sub h0
+  have hev_mem : ∀ᶠ k in atTop, zk k ∈ ClosedStrip β := by
+    filter_upwards [hc_tend.eventually_lt_const hβ] with k hk
+    exact ⟨by rw [hzk_im k]; linarith [hc_pos k], by rw [hzk_im k]; linarith [hc_pos k]⟩
+  have hev_zero : ∀ᶠ k in atTop, H (zk k) = 0 := by
+    filter_upwards [hev_mem] with k hk
+    exact hopen (zk k) hk (by rw [hzk_im k]; linarith [hc_pos k])
+  have htend_within : Tendsto zk atTop (𝓝[ClosedStrip β] z) :=
+    tendsto_nhdsWithin_of_tendsto_nhds_of_eventually_within zk hzk_tend hev_mem
+  have hHtend : Tendsto (fun k => H (zk k)) atTop (𝓝 (H z)) :=
+    Filter.Tendsto.comp (hcont z hz) htend_within
+  have hHtend0 : Tendsto (fun k => H (zk k)) atTop (𝓝 0) :=
+    (tendsto_congr' hev_zero).mpr tendsto_const_nhds
+  exact tendsto_nhds_unique hHtend hHtend0
+
+/-- **One-boundary uniqueness on the strip** (difference form). Two functions holomorphic on the
+open strip, continuous and bounded on the closed strip, agreeing on the *lower* boundary line, agree
+on the entire closed strip. -/
+lemma eqOn_closedStrip_of_lower_boundary_eq
+    (F G : ℂ → ℂ) (hβ : 0 < β)
+    (hFholo : DifferentiableOn ℂ F (Strip β)) (hGholo : DifferentiableOn ℂ G (Strip β))
+    (hFcont : ContinuousOn F (ClosedStrip β)) (hGcont : ContinuousOn G (ClosedStrip β))
+    (hFbdd : BddAbove (norm '' (F '' ClosedStrip β)))
+    (hGbdd : BddAbove (norm '' (G '' ClosedStrip β)))
+    (hlow : ∀ t : ℝ, F (realToLower t) = G (realToLower t)) :
+    Set.EqOn F G (ClosedStrip β) := by
+  intro z hz
+  have hHbdd : BddAbove (norm '' ((fun w => F w - G w) '' ClosedStrip β)) := by
+    obtain ⟨MF, hMF⟩ := hFbdd
+    obtain ⟨MG, hMG⟩ := hGbdd
+    refine ⟨MF + MG, ?_⟩
+    rintro y ⟨v, ⟨w, hw, rfl⟩, rfl⟩
+    calc ‖F w - G w‖ ≤ ‖F w‖ + ‖G w‖ := norm_sub_le _ _
+      _ ≤ MF + MG :=
+          add_le_add (hMF ⟨F w, ⟨w, hw, rfl⟩, rfl⟩) (hMG ⟨G w, ⟨w, hw, rfl⟩, rfl⟩)
+  have key := eqZero_of_strip_lower_boundary_zero (fun w => F w - G w) hβ
+    (hFholo.sub hGholo) (hFcont.sub hGcont) hHbdd (fun t => by simp [hlow t]) z hz
   exact sub_eq_zero.mp key
 
 end Spectra.PeriodicHolomorphic
