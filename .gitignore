@@ -16,6 +16,6 @@
 /@PLAN/
 .claude
 .gitignore
-/.DS_Store/
+.DS_Store
 /Spectra-Vault
 /todo.md
