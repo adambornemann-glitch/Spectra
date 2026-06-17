@@ -221,7 +221,7 @@ PhysLean has dedicated tooling (`informal_def`, `informal_lemma`, `semiformal_re
 does, use plain conventions:
 
 - **TODO**: a normal comment, `-- TODO: <what is to be done>`, placed where the work belongs.
-  A whole-file plan can live in a `TODO.lean` module (as under `Mathlib/StochasticCalc/`).
+  A whole-file plan can live in a `TODO.lean` module.
 - **`sorry`**: only in clearly-marked work-in-progress, never in a file imported by a "finished"
   result. Note it in the module docstring so it isn't mistaken for complete.
 - **Informal statements**: write the intended statement in the module docstring's prose, or as a

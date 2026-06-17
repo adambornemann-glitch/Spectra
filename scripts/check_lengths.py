@@ -6,8 +6,10 @@ Spectra house guideline:
 
   * ``file``  — file longer than the budget (default 1500 lines).
                 Mathlib rule: ``linter.style.longFile`` (default 1500).
-  * ``line``  — source line wider than the budget (default 100 chars).
-                Mathlib rule: ``linter.style.longLine`` (URLs are exempt).
+  * ``line``  — source line wider than the budget (default 100 chars), measured
+                in Unicode codepoints (as Lean's column count does, so multi-byte
+                math symbols count as one). Mathlib rule: ``linter.style.longLine``;
+                like it, URL lines and ``import`` lines are exempt.
   * ``decl``  — declaration whose source span exceeds the budget (default 75).
                 NOT a Mathlib rule — a Spectra house guideline. Mathlib has no
                 numeric proof-length limit; long proofs are only discouraged
@@ -48,6 +50,16 @@ MAX_FILE_DEFAULT = 1500   # Mathlib linter.style.longFile default
 MAX_LINE_DEFAULT = 100    # Mathlib linter.style.longLine
 MAX_DECL_DEFAULT = 75     # Spectra house guideline (not a Mathlib rule)
 ALL_CHECKS = ("file", "line", "decl")
+
+# Mathlib's longLine linter (Style.lean `isImport`) exempts URLs and import lines,
+# since neither can be wrapped. We mirror that so the counts match.
+_IMPORT_PREFIXES = ("import ", "public import ", "meta import ",
+                    "public meta import ", "import all ", "meta import all ")
+
+
+def is_long_line(line: str, limit: int) -> bool:
+    return (len(line) > limit and "http" not in line
+            and not line.startswith(_IMPORT_PREFIXES))
 
 
 # --------------------------------------------------------------------------- #
@@ -173,8 +185,7 @@ def scan(repo_root, max_file, max_line, max_decl, checks):
                                    "name": None, "value": tl})
 
         if "line" in checks:
-            long = sum(1 for ln in text.splitlines()
-                       if len(ln) > max_line and "http" not in ln)
+            long = sum(1 for ln in text.splitlines() if is_long_line(ln, max_line))
             if long:
                 violations.append({"check": "line", "module": module,
                                    "name": None, "value": long})

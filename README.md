@@ -94,12 +94,11 @@ all in `SobolevSpaces/`, all `sorry`-free.
 
 ### Headed for Mathlib
 
-`Spectra/Mathlib/` holds general-purpose infrastructure written to be upstreamed, kept free of
-Spectra-specific assumptions: the **Sewing Lemma** (three control regimes, with existence,
-uniqueness, and additivity), **p-variation**, and **Young integration** (`youngIntegral`, with
-additivity, linearity, and integration by parts), plus a characteristic-function uniqueness
-bridge. Two refinements remain work-in-progress and are held out of the build (Riemann–Stieltjes
-consistency; continuity of p-variation).
+`Spectra/Mathlib/` holds small, Spectra-agnostic bridges written for eventual upstreaming —
+chiefly `CharFunBridge` (a finite measure is determined by its characteristic function), on which
+the Bochner and spectral-uniqueness proofs depend. The rough-path development that once lived here
+(the Sewing Lemma, p-variation, Young integration) has been split into its own repository: it is
+orthogonal to the spectral-theory goal and large enough to stand on its own.
 
 ---
 
@@ -124,7 +123,7 @@ Applications
   SobolevSpaces/  SphericalHarmonics/   supporting analysis
 
 Upstream-bound
-  Mathlib/                 Sewing lemma, p-variation, Young integration (general infrastructure)
+  Mathlib/                 small upstreamable bridges (characteristic-function uniqueness)
 ```
 
 The directory path and namespace always match: `Spectra/Resolvent/Defs.lean` declares
@@ -146,7 +145,6 @@ confirms this is upheld:
   commented out of the root so they are not compiled:
   - `QuantumMechanics/Hydrogen/Spectrum/`, `…/RadialProblem/Equation/`, `…/Laplacian/{FreeGreens,Spherical}` — the assembly of the hydrogen discrete spectrum `E_n = −Z²/2n²`. The *operator scaffolding* it will rest on (the self-adjoint Laplacian, the radial/angular decomposition, Laguerre polynomials) **is** proved and in the build; the spectral assembly is not yet finished.
   - `QuantumMechanics/Perturbation/HardySharp.lean` — sharpness of the Hardy constant (the inequality itself is proved and in the build).
-  - `Mathlib/StochasticCalc/YoungIntegration/Integral/Consistency.lean` and `…/PVariation/TODO.lean` — the two upstream refinements noted above.
 - **Interface bundles.** A few advanced structures are stated as bundles of defining properties
   whose *constructor* is future work — most notably `ModularData` (the Tomita–Takesaki modular
   operator and conjugation), which is blocked on Mathlib infrastructure (antilinear unbounded
@@ -210,5 +208,4 @@ Copyright © 2026 Spectra Project, Adam Bornemann.
 The formalization follows standard sources, cited per-file in `## References` blocks. The main
 ones: Reed & Simon, *Methods of Modern Mathematical Physics*; Kato, *Perturbation Theory for
 Linear Operators*; Bratteli & Robinson, *Operator Algebras and Quantum Statistical Mechanics*
-(KMS / modular theory); Amari & Nagaoka, *Methods of Information Geometry*; and Friz & Victoir,
-*Multidimensional Stochastic Processes as Rough Paths* (sewing / Young integration).
+(KMS / modular theory); and Amari & Nagaoka, *Methods of Information Geometry*.

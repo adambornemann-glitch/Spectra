@@ -34,18 +34,6 @@ def freeGreensFunction (z : ℂ) : R3 → ℂ := fun x =>
   else Complex.exp (-((-z) ^ ((1 : ℂ) / 2)) * (‖x‖ : ℂ)) /
     ((4 * Real.pi * ‖x‖ : ℝ) : ℂ)
 
-/-- The Green's function is the integral kernel of the free resolvent.
-
-Verify `𝓕[G_z](ξ) = 1/(|ξ|² − z)` by the radial contour computation, then
-Plancherel turns multiplication by `1/(|ξ|² − z)` into convolution with `G_z`.
-Needs the Fourier characterization of `−Δ`; left open. -/
-theorem freeGreensFunction_is_resolvent_kernel
-    (z : ℂ) (hz : z.im ≠ 0) (f : L2_R3) :
-    ∀ᵐ x : R3,
-      (selfAdjointResolvent laplacian_isSelfAdjoint z hz f : R3 → ℂ) x =
-      ∫ y, freeGreensFunction z (x - y) * (f : R3 → ℂ) y :=
-  sorry
-
 /-- The Green's function decays exponentially with rate `Re √(−z) > 0`.
 
 Direct from the explicit formula: the witness is `c = Re((−z)^{1/2}) > 0`, since
@@ -84,5 +72,19 @@ theorem freeGreensFunction_decay (z : ℂ) (hz : z.im ≠ 0) :
       simp [Complex.mul_re, Complex.ofReal_re, Complex.ofReal_im]
     rw [hval, norm_div, Complex.norm_exp, Complex.norm_real, Real.norm_eq_abs,
       abs_of_pos hdenom_pos, hre]
+
+/-
+/-- The Green's function is the integral kernel of the free resolvent.
+
+Verify `𝓕[G_z](ξ) = 1/(|ξ|² − z)` by the radial contour computation, then
+Plancherel turns multiplication by `1/(|ξ|² − z)` into convolution with `G_z`.
+Needs the Fourier characterization of `−Δ`; left open. -/
+theorem freeGreensFunction_is_resolvent_kernel
+    (z : ℂ) (hz : z.im ≠ 0) (f : L2_R3) :
+    ∀ᵐ x : R3,
+      (selfAdjointResolvent laplacian_isSelfAdjoint z hz f : R3 → ℂ) x =
+      ∫ y, freeGreensFunction z (x - y) * (f : R3 → ℂ) y :=
+  sorry
+-/
 
 end Spectra.QuantumMechanics.Hydrogen

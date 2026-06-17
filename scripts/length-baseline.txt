@@ -49,28 +49,6 @@ decl Spectra.InformationGeometry.Regularity ThriceDifferentiableModel 131
 decl Spectra.Kernel.Lorentzian lorentzian_approx_delta 230
 decl Spectra.Mathlib.CharFunBridge combination_ext_zero_real 86
 decl Spectra.Mathlib.CharFunBridge integral_combination_ext 142
-decl Spectra.Mathlib.StochasticCalc.PVariation.Basic ePVariationOn_add_le 90
-decl Spectra.Mathlib.StochasticCalc.SewingLemma.Basic young_integral_holder 85
-decl Spectra.Mathlib.StochasticCalc.SewingLemma.Generalized.Insert riemannSum_insertAt 87
-decl Spectra.Mathlib.StochasticCalc.SewingLemma.Generalized.Map.LeftComp left_comparison_bound 91
-decl Spectra.Mathlib.StochasticCalc.SewingLemma.Generalized.Map.RightComp right_comparison_bound 94
-decl Spectra.Mathlib.StochasticCalc.SewingLemma.Generalized.Map.RightComp right_comparison_tendsto 76
-decl Spectra.Mathlib.StochasticCalc.SewingLemma.Generalized.Map.Unique sewingMap₃_unique 93
-decl Spectra.Mathlib.StochasticCalc.SewingLemma.Generalized.MergeGap refinement_gap_with_exceptions 213
-decl Spectra.Mathlib.StochasticCalc.SewingLemma.Generalized.MinSpacing merge_gap_of_min_spacing 165
-decl Spectra.Mathlib.StochasticCalc.SewingLemma.Generalized.RefiCo riemannSum_refinement_bound₃ 133
-decl Spectra.Mathlib.StochasticCalc.SewingLemma.IntervalLengthControl.Map sewingMap₁_unique 86
-decl Spectra.Mathlib.StochasticCalc.SewingLemma.LipschitzProdControl.Decay dyadicSum₂_diff_bound 138
-decl Spectra.Mathlib.StochasticCalc.SewingLemma.LipschitzProdControl.Map.Additive sewingMap₂_additive 352
-decl Spectra.Mathlib.StochasticCalc.SewingLemma.LipschitzProdControl.Map.GenConv riemannSum_tendsto_sewingMap₂ 155
-decl Spectra.Mathlib.StochasticCalc.SewingLemma.LipschitzProdControl.Map.Partition Partition.mesh_refinement_le 80
-decl Spectra.Mathlib.StochasticCalc.SewingLemma.LipschitzProdControl.Map.Unique sewingMap₂_unique 81
-decl Spectra.Mathlib.StochasticCalc.SewingLemma.LipschitzProdControl.RefiCo riemannSum_refinement_bound₂ 190
-decl Spectra.Mathlib.StochasticCalc.SewingLemma.LipschitzProdControl.ThetaEnergy Partition.IsRefinement.mono_embed 85
-decl Spectra.Mathlib.StochasticCalc.SewingLemma.LipschitzProdControl.ThetaEnergy thetaEnergy_le_of_refinement 148
-decl Spectra.Mathlib.StochasticCalc.SewingLemma.LipschitzProdControl.ThetaEnergy thetaEnergy_tendsto_zero 96
-decl Spectra.Mathlib.StochasticCalc.YoungIntegration.Basic young_integral_continuity_estimate 88
-decl Spectra.Mathlib.StochasticCalc.YoungIntegration.Integral.Unique youngIntegral_unique 98
 decl Spectra.Modular.KMS.AnalyticElements Dynamics.gaussianSmooth_tendsto 113
 decl Spectra.Modular.KMS.Equivalence diff_bound 125
 decl Spectra.Modular.KMS.Equivalence limitKMSFunction 130
@@ -123,6 +101,7 @@ decl Spectra.SobolevSpaces.Mollification eLpNorm_real_convolve_le 197
 decl Spectra.SobolevSpaces.Mollification mollify_compactly_supported_multi 76
 decl Spectra.SpectralTheory.Algebra generator_sub_smul_norm_le_Icc 122
 decl Spectra.SpectralTheory.Algebra spectralProjection_re_inner_eq_integral 106
+decl Spectra.SpectralTheory.Essential.Weyl essSpectrum_subset_of_isCompactOperator_resolvent_sub 115
 decl Spectra.SpectralTheory.Measure.Polarized norm_spectralForm_le 77
 decl Spectra.SpectralTheory.Spectrum mem_resolventSet_of_spectralProjection_Ioo_eq_zero 109
 decl Spectra.SpectralTheory.StoneFormula.Identities resolvent_norm_blowup_at_spectrum 110
@@ -142,15 +121,13 @@ line Spectra.Bochner.Borel.Fubini 1
 line Spectra.Bochner.Borel.Measure.Basic 2
 line Spectra.Bochner.GNS.Continuity 1
 line Spectra.Bochner.GNS.PreHilbert 1
-line Spectra.CayleyTransform.BorelCalculus 2
+line Spectra.CayleyTransform.BorelCalculus 1
 line Spectra.CayleyTransform.Defs 1
 line Spectra.CayleyTransform.Eigenvalue 2
-line Spectra.CayleyTransform.Generator.InverseAction 1
-line Spectra.CayleyTransform.Generator.Stone 5
+line Spectra.CayleyTransform.Generator.Stone 1
 line Spectra.CayleyTransform.Inverse 8
 line Spectra.CayleyTransform.MapsResolvent 1
 line Spectra.CayleyTransform.UnitaryGroup 3
-line Spectra.Herglotz.CauchyInjective 1
 line Spectra.Herglotz.FejerMeans 1
 line Spectra.Herglotz.FejerMeasure 1
 line Spectra.Herglotz.Stieltjes.IntegralConv 1
@@ -161,8 +138,6 @@ line Spectra.InformationGeometry.GaussianModel 1
 line Spectra.Kernel.Arctan 2
 line Spectra.Kernel.Poisson.Lemmas 1
 line Spectra.Mathlib.MeasureTheory.Integral.Basic 3
-line Spectra.Mathlib.StochasticCalc.PVariation.Basic 1
-line Spectra.Mathlib.StochasticCalc.SewingLemma.LipschitzProdControl.Map.Unique 1
 line Spectra.Modular.KMS.AnalyticElements 10
 line Spectra.Modular.KMS.Equivalence 1
 line Spectra.Modular.KMS.ExtremalKMS 1
@@ -191,6 +166,7 @@ line Spectra.QuantumMechanics.DiracEquation.Current 13
 line Spectra.QuantumMechanics.DiracEquation.FreeHamiltonian 3
 line Spectra.QuantumMechanics.DiracEquation.NegativeEnergy 1
 line Spectra.QuantumMechanics.DiracEquation.Operators 3
+line Spectra.QuantumMechanics.Hydrogen.Laplacian.Spherical 2
 line Spectra.QuantumMechanics.Hydrogen.RadialProblem.Equation.Basic 5
 line Spectra.QuantumMechanics.Hydrogen.RadialProblem.Laguerre.Basic 33
 line Spectra.QuantumMechanics.Perturbation.HardyInequality 5
@@ -208,6 +184,7 @@ line Spectra.SobolevSpaces.Embeddings 1
 line Spectra.SobolevSpaces.MeyersCommon 3
 line Spectra.SobolevSpaces.Mollification 1
 line Spectra.SpectralTheory.Algebra 3
+line Spectra.SpectralTheory.Essential.Weyl 1
 line Spectra.SpectralTheory.StoneFormula.Identities 3
 line Spectra.SpectralTheory.Weak 2
 line Spectra.SphericalHarmonics.Basic 5
@@ -219,4 +196,4 @@ line Spectra.Stone.Yosida.ExpBounded.Unitary 1
 line Spectra.Stone.Yosida.Exponential 6
 line Spectra.Stone.Yosida.Helpers 2
 line Spectra.Stone.Yosida.Symmetry 1
-line Spectra.StoneBridge.Basic 3
+line Spectra.StoneBridge.Basic 2

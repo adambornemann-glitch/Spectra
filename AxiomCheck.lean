@@ -37,6 +37,12 @@ assert_no_sorry Spectra.Bochner.bochner_theorem
 assert_no_sorry Spectra.Bochner.GNS.gns_theorem
 assert_no_sorry Spectra.Herglotz.helly_selection
 
+/-! ## Essential spectrum · Weyl's theorem -/
+
+assert_no_sorry Spectra.Essential.essSpectrum_subset_spectrum
+assert_no_sorry Spectra.Essential.essSpectrum_subset_of_isCompactOperator_resolvent_sub
+assert_no_sorry Spectra.Essential.essSpectrum_eq_of_isCompactOperator_resolvent_sub
+
 /-! ## Quantum mechanics -/
 
 assert_no_sorry Spectra.QuantumInfo.CHSH_lhv_bound
@@ -59,11 +65,10 @@ assert_no_sorry Spectra.KMS.isKMSState_iff_imaginaryTime
 assert_no_sorry Spectra.InformationGeometry.RegularStatisticalModel.cramerRao_scalar
 assert_no_sorry Spectra.InformationGeometry.TwiceDifferentiableModel.klDiv_hessian_eq_fisher
 
-/-! ## Sobolev spaces & Mathlib-bound infrastructure -/
+/-! ## Sobolev spaces -/
 
 assert_no_sorry Spectra.Sobolev.meyers_serrin_approx
 assert_no_sorry Spectra.Sobolev.sobolev_embedding_L6
-assert_no_sorry Spectra.Mathlib.StochCalc.youngIntegral
 
 /-! ## Axiom transparency
 
