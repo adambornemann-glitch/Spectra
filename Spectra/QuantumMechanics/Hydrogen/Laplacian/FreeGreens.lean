@@ -4,6 +4,7 @@ Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Spectra.QuantumMechanics.Hydrogen.Laplacian.Basic
+import Spectra.SpectralTheory.Essential.Weyl
 
 noncomputable section
 
@@ -13,6 +14,7 @@ open Spectra.OneParameterUnitaryGroup
 open Spectra.Stoneslemma
 open Spectra.StonesTheorem
 open Spectra.Resolvent
+open Spectra.Essential
 open Spectra.QuantumMechanics.Observable
 open Spectra.QuantumMechanics.SpectralTheory
 open FourierTransform
@@ -26,6 +28,50 @@ For explicit spectral computations we record the free Green's function
 (so `Re √(−z) > 0` whenever `Im z ≠ 0`). Tying it to `selfAdjointResolvent`, and
 the exponential decay, both require the radial Fourier computation, so the two
 identities below are left open. -/
+
+/-- **A Laplace-type integral** `∫₀^∞ e^{−w r} sin(a r) dr = a / (w² + a²)` for `Re w > 0`.
+
+After the angular integration, the 3-D Fourier transform of the radial Yukawa profile `e^{−w r}`
+reduces to exactly this one-dimensional integral (with `w = (−z)^{1/2}`, `a = 2π‖ξ‖`). Proof:
+expand `sin` via complex exponentials and integrate the two decaying exponentials `e^{−(w ± ia) r}`,
+both of which have strictly negative real part in the exponent. -/
+theorem integral_exp_neg_mul_sin (w : ℂ) (hw : 0 < w.re) (a : ℝ) :
+    ∫ r in Set.Ioi (0 : ℝ), Complex.exp (-w * r) * (Real.sin (a * r) : ℂ)
+      = (a : ℂ) / (w ^ 2 + (a : ℂ) ^ 2) := by
+  have hp : (-(w + (a : ℂ) * Complex.I)).re < 0 := by
+    simp only [Complex.neg_re, Complex.add_re, Complex.mul_re, Complex.ofReal_re, Complex.I_re,
+      Complex.ofReal_im, Complex.I_im, mul_zero, mul_one, sub_zero]; linarith
+  have hm : (-(w - (a : ℂ) * Complex.I)).re < 0 := by
+    simp only [Complex.neg_re, Complex.sub_re, Complex.mul_re, Complex.ofReal_re, Complex.I_re,
+      Complex.ofReal_im, Complex.I_im, mul_zero, mul_one, sub_zero]; linarith
+  have hne1 : w + (a : ℂ) * Complex.I ≠ 0 := by intro h; rw [h] at hp; simp at hp
+  have hne2 : w - (a : ℂ) * Complex.I ≠ 0 := by intro h; rw [h] at hm; simp at hm
+  have hfactor : w ^ 2 + (a : ℂ) ^ 2
+      = (w + (a : ℂ) * Complex.I) * (w - (a : ℂ) * Complex.I) := by
+    linear_combination ((a : ℂ) ^ 2) * Complex.I_sq
+  -- rewrite the integrand as a difference of two decaying exponentials.
+  have hcongr : ∀ r : ℝ, Complex.exp (-w * r) * (Real.sin (a * r) : ℂ)
+      = Complex.I / 2 * Complex.exp (-(w + (a : ℂ) * Complex.I) * (r : ℂ))
+        - Complex.I / 2 * Complex.exp (-(w - (a : ℂ) * Complex.I) * (r : ℂ)) := by
+    intro r
+    rw [Complex.ofReal_sin, Complex.ofReal_mul]
+    simp only [Complex.sin]
+    rw [show -(w + (a : ℂ) * Complex.I) * (r : ℂ)
+          = -w * (r : ℂ) + -((a : ℂ) * (r : ℂ)) * Complex.I from by ring,
+        show -(w - (a : ℂ) * Complex.I) * (r : ℂ)
+          = -w * (r : ℂ) + (a : ℂ) * (r : ℂ) * Complex.I from by ring,
+        Complex.exp_add, Complex.exp_add]
+    ring
+  rw [MeasureTheory.setIntegral_congr_fun measurableSet_Ioi (fun r _ => hcongr r),
+    MeasureTheory.integral_sub
+      ((integrableOn_exp_mul_complex_Ioi hp 0).const_mul (Complex.I / 2))
+      ((integrableOn_exp_mul_complex_Ioi hm 0).const_mul (Complex.I / 2)),
+    MeasureTheory.integral_const_mul, MeasureTheory.integral_const_mul,
+    integral_exp_mul_complex_Ioi hp 0, integral_exp_mul_complex_Ioi hm 0]
+  simp only [Complex.ofReal_zero, mul_zero, Complex.exp_zero, neg_div_neg_eq, mul_one_div]
+  rw [div_sub_div _ _ hne1 hne2, ← hfactor]
+  congr 1
+  linear_combination (-(a : ℂ)) * Complex.I_sq
 
 /-- The free Green's function `G_z(x) = e^{−√(−z)|x|}/(4π|x|)`, principal branch of
 the square root; `0` at the origin. -/
@@ -73,18 +119,79 @@ theorem freeGreensFunction_decay (z : ℂ) (hz : z.im ≠ 0) :
     rw [hval, norm_div, Complex.norm_exp, Complex.norm_real, Real.norm_eq_abs,
       abs_of_pos hdenom_pos, hre]
 
-/-
+
+/-- **The free resolvent acts as the Fourier multiplier `(laplacianSymbol ξ − z)⁻¹`.**
+
+In momentum space `(−Δ − z)⁻¹` is division by `laplacianSymbol ξ − z = (2π)²‖ξ‖² − z`, which
+never vanishes because `z.im ≠ 0` forces `Im(laplacianSymbol ξ − z) = −z.im ≠ 0`.
+
+This is the operator-theoretic half of `freeGreensFunction_is_resolvent_kernel`: it expresses the
+resolvent as multiplication on the Fourier side, with **no Green's-function analytics**. The proof
+applies the (linear, isometric) Fourier transform to the resolvent equation
+`(−Δ − z)(R_z f) = f` (`selfAdjointResolvent_solves`) and diagonalises `−Δ` with
+`fourier_weakLaplacian`. The remaining content of the kernel identity is then purely the Fourier
+transform of `G_z` (see the roadmap on `freeGreensFunction_is_resolvent_kernel`). -/
+theorem fourierL2_selfAdjointResolvent (z : ℂ) (hz : z.im ≠ 0) (f : L2_R3) :
+    (fourierL2 (selfAdjointResolvent laplacian_isSelfAdjoint z hz f) : R3 → ℂ)
+      =ᵐ[volume] fun ξ => ((laplacianSymbol ξ : ℂ) - z)⁻¹ * (fourierL2 f : R3 → ℂ) ξ := by
+  have hmem : MemSobolevH2 (selfAdjointResolvent laplacian_isSelfAdjoint z hz f) :=
+    selfAdjointResolvent_mem_domain laplacian_isSelfAdjoint z hz f
+  -- the resolvent equation in L²: `(−Δ)(R_z f) − z • (R_z f) = f`.
+  have hsolve : weakLaplacian (selfAdjointResolvent laplacian_isSelfAdjoint z hz f) hmem
+      - z • selfAdjointResolvent laplacian_isSelfAdjoint z hz f = f := by
+    have h := selfAdjointResolvent_solves laplacian_isSelfAdjoint z hz f
+    rwa [laplacianPMap_apply] at h
+  set u : L2_R3 := selfAdjointResolvent laplacian_isSelfAdjoint z hz f with hu
+  -- apply the linear isometry `fourierL2` to the resolvent equation.
+  have hF : fourierL2 (weakLaplacian u hmem) - z • fourierL2 u = fourierL2 f := by
+    rw [← hsolve, map_sub, map_smul]
+  -- a.e. identities of the L² representatives, using `fourier_weakLaplacian`.
+  have hWL := fourier_weakLaplacian u hmem
+  have hf_ae : (fourierL2 f : R3 → ℂ)
+      =ᵐ[volume] fun ξ => ((laplacianSymbol ξ : ℂ) - z) * (fourierL2 u : R3 → ℂ) ξ := by
+    rw [← hF]
+    filter_upwards [Lp.coeFn_sub (fourierL2 (weakLaplacian u hmem)) (z • fourierL2 u),
+      Lp.coeFn_smul z (fourierL2 u), hWL] with ξ hsub hsmul hwl
+    rw [hsub, Pi.sub_apply, hsmul, Pi.smul_apply, smul_eq_mul, hwl]; ring
+  -- divide through by the non-vanishing symbol.
+  filter_upwards [hf_ae] with ξ hξ
+  have hne : (laplacianSymbol ξ : ℂ) - z ≠ 0 := by
+    intro hcontra
+    apply hz
+    have him : -z.im = 0 := by
+      have := congrArg Complex.im hcontra
+      simpa [Complex.sub_im, Complex.ofReal_im] using this
+    linarith
+  rw [hξ, ← mul_assoc, inv_mul_cancel₀ hne, one_mul]
+
 /-- The Green's function is the integral kernel of the free resolvent.
 
-Verify `𝓕[G_z](ξ) = 1/(|ξ|² − z)` by the radial contour computation, then
-Plancherel turns multiplication by `1/(|ξ|² − z)` into convolution with `G_z`.
-Needs the Fourier characterization of `−Δ`; left open. -/
+**Status: open.** The operator-theoretic half is now discharged in
+`fourierL2_selfAdjointResolvent`, which gives `𝓕(R_z f) =ᵐ (laplacianSymbol ξ − z)⁻¹ · 𝓕 f`. By
+Fourier injectivity (`fourierL2` is a `≃ₗᵢ`, hence injective) the kernel identity reduces to
+
+  `𝓕(G_z ⋆ f) =ᵐ (laplacianSymbol ξ − z)⁻¹ · 𝓕 f`,
+
+i.e. to two genuinely analytic facts, each an isolated Mathlib gap:
+
+* **`fourier_freeGreensFunction`** — the Yukawa Fourier transform
+  `𝓕[G_z](ξ) = (laplacianSymbol ξ − z)⁻¹`. Mathlib has Gaussian Fourier transforms but nothing
+  for `e^{−m‖x‖}/‖x‖`. Requires (i) a 3-D spherical-coordinate angular reduction
+  `∫_{ℝ³} g(‖x‖) e^{−2πi⟨ξ,x⟩} dx = (2/‖ξ‖) ∫₀^∞ r g(r) sin(2π‖ξ‖r) dr` (Mathlib's
+  `integral_fun_norm_addHaar` only handles *radial* integrands, so this must be built), and
+  (ii) the Laplace integral `∫₀^∞ e^{−mr} sin(ar) dr = a/(m²+a²)` for `Re m > 0` (also absent).
+* **convolution theorem for a singular L¹ kernel** — `𝓕(G_z ⋆ f) = 𝓕[G_z] · 𝓕 f`. Mathlib's
+  `Real.fourier_mul_convolution_eq` needs *both* factors continuous and integrable; `G_z` is
+  singular at `0` and `f ∈ L²`, so this needs a density/Young's-inequality argument.
+
+These three pieces (Yukawa FT, its two sub-lemmas, and the L¹×L² convolution theorem) are each
+substantial and largely independent; see the project roadmap. Left open. -/
 theorem freeGreensFunction_is_resolvent_kernel
     (z : ℂ) (hz : z.im ≠ 0) (f : L2_R3) :
     ∀ᵐ x : R3,
       (selfAdjointResolvent laplacian_isSelfAdjoint z hz f : R3 → ℂ) x =
       ∫ y, freeGreensFunction z (x - y) * (f : R3 → ℂ) y :=
   sorry
--/
+
 
 end Spectra.QuantumMechanics.Hydrogen

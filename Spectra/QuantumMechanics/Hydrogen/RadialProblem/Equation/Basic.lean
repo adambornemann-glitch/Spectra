@@ -3,7 +3,9 @@ Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
-import Spectra.QuantumMechanics.Hydrogen.RadialProblem.Laguerre.Basic
+import Spectra.QuantumMechanics.Hydrogen.RadialProblem.Laguerre.Orthogonality
+import Spectra.QuantumMechanics.Hydrogen.RadialProblem.Laguerre.Complete
+import Spectra.QuantumMechanics.Hydrogen.RadialProblem.Laguerre.GenFun
 import Spectra.QuantumMechanics.Hydrogen.RadialProblem.TensorDecomp.Basic
 /-!
 # The Radial Equation and Eigenvalue Quantization

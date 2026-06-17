@@ -40,8 +40,22 @@ assert_no_sorry Spectra.Herglotz.helly_selection
 /-! ## Essential spectrum · Weyl's theorem -/
 
 assert_no_sorry Spectra.Essential.essSpectrum_subset_spectrum
+assert_no_sorry Spectra.Essential.isClosed_essSpectrum
 assert_no_sorry Spectra.Essential.essSpectrum_subset_of_isCompactOperator_resolvent_sub
 assert_no_sorry Spectra.Essential.essSpectrum_eq_of_isCompactOperator_resolvent_sub
+assert_no_sorry Spectra.Essential.isCompactOperator_resolvent_sub_of_isCompactOperator_perturb
+assert_no_sorry Spectra.Essential.essSpectrum_eq_of_isCompactOperator_perturb
+
+/-! ### σ_ess(−Δ) = [0, ∞) -/
+
+assert_no_sorry Spectra.QuantumMechanics.Hydrogen.mem_essSpectrum_laplacian
+assert_no_sorry Spectra.QuantumMechanics.Hydrogen.essSpectrum_laplacian_subset_Ici
+assert_no_sorry Spectra.QuantumMechanics.Hydrogen.essSpectrum_laplacian
+
+/-! ### Free resolvent as a Fourier multiplier -/
+
+assert_no_sorry Spectra.QuantumMechanics.Hydrogen.fourierL2_selfAdjointResolvent
+assert_no_sorry Spectra.QuantumMechanics.Hydrogen.integral_exp_neg_mul_sin
 
 /-! ## Quantum mechanics -/
 

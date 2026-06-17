@@ -3,7 +3,7 @@ Copyright (c) 2026 Logos Library Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
-import Spectra.SphericalHarmonics.Basic
+import Spectra.SphericalHarmonics.Completeness
 /-!
 # Tensor Decomposition: Radial × Angular
 

@@ -62,8 +62,10 @@ noncomputable section
 namespace QuantumMechanics.Hydrogen.Spectrum
 
 open MeasureTheory Complex Filter
-open scoped Topology NNReal ENNReal Nat
+open scoped Topology NNReal ENNReal Laplacian
 open RadialEq Spectra.QuantumMechanics.Hydrogen Spectra.QuantumMechanics.Hydrogen.Decomposition
+open Spectra.SphericalHarmonics (SphericalHarmonic sphericalHarmonic_eigenvalue
+  laplaceBeltrami_const_mul)
 
 /-! ## Separation of the Laplacian
 
@@ -81,45 +83,114 @@ the angular Laplacian on S²) is developed in `RadialProblem.SphericalLaplacian`
   confluent-hypergeometric gaps in `RadialEquation.lean`).
 -/
 
-/-- Within angular sector ℓ, the Laplacian becomes:
+/-- **The Laplacian within a fixed angular sector `ℓ` (pointwise on the chart).**
 
-    −Δ|_{V_ℓ} acts on R(r) as:
-      −R''(r) − (2/r)R'(r) + ℓ(ℓ+1)/r² R(r)
+    If a globally `C²` function `f : ℝ³ → ℂ` separates on the spherical chart as a pure
+    tensor in the `ℓ`-sector, `f(sphereChart r θ φ) = R(r) · Y_ℓ^m(θ, φ)`, then at every
+    interior chart point (`r > 0`, `θ ∈ (0, π)`) the Laplacian acts as the radial
+    operator dressed with the centrifugal term:
 
-    or equivalently, on χ(r) = rR(r):
-      −χ''(r) + ℓ(ℓ+1)/r² χ(r) -/
-def laplacian_in_sector (ℓ : ℕ) :
-    sorry :=  -- −Δ restricted to sector ℓ = radial operator with centrifugal term
-  sorry
+      `Δ f = (R″ + (2/r) R′ − ℓ(ℓ+1)/r² · R) · Y_ℓ^m`,
+
+    equivalently `−Δ f = (−R″ − (2/r) R′ + ℓ(ℓ+1)/r² · R) · Y_ℓ^m`. This is the operator
+    content of separation of variables inside one sector, assembled from three sorry-free
+    ingredients:
+    * `laplacian_separates` — `Δ = (1/r²)∂_r(r²∂_r) − (1/r²) L̂²` on the chart;
+    * `radialPart_eq` — `(1/r²)∂_r(r²∂_r R) = R″ + (2/r) R′`;
+    * `sphericalHarmonic_eigenvalue` — `L̂² Y_ℓ^m = ℓ(ℓ+1) Y_ℓ^m`;
+    with `laplaceBeltrami_const_mul` detaching the radial factor `R(r)` from `L̂²`.
+
+    The separated realization `f` is supplied as a hypothesis (`hf`, `hsep`): producing
+    such a global `C²` `f` from `R` and `Y_ℓ^m` is the chart-realization step that the
+    spherical-`L²` ↔ `Sobolev.L2_R3` unitary will eventually furnish (cf. the note on
+    `hydrogen_degeneracy`). No Laplacian *analysis* is missing — only that packaging. -/
+theorem laplacian_in_sector (ℓ : ℕ) (m : ℤ) (hm : |m| ≤ ℓ)
+    (R : ℝ → ℂ) (hR : ContDiff ℝ 2 R)
+    (f : Spectra.Sobolev.R3 → ℂ) (hf : ContDiff ℝ 2 f)
+    (hsep : ∀ a b c, f (sphereChart a b c) = R a * SphericalHarmonic ℓ m hm (b, c))
+    {r θ φ : ℝ} (hr : 0 < r) (hθ : θ ∈ Set.Ioo 0 Real.pi) :
+    Δ f (sphereChart r θ φ)
+      = (deriv (deriv R) r + (2 / (r : ℂ)) * deriv R r
+          - ((ℓ * (ℓ + 1) : ℝ) / (r : ℂ) ^ 2) * R r) * SphericalHarmonic ℓ m hm (θ, φ) := by
+  have hr0 : (r : ℝ) ≠ 0 := hr.ne'
+  have hRp : ContDiff ℝ 2 (fun s => R s * SphericalHarmonic ℓ m hm (θ, φ)) :=
+    hR.mul contDiff_const
+  -- The radial chart-curve is `R(·) · Y_ℓ^m(θ,φ)` (angular factor frozen).
+  have hcurve : (fun u : ℝ => f (sphereChart u θ φ))
+      = (fun u : ℝ => R u * SphericalHarmonic ℓ m hm (θ, φ)) := by
+    funext u; rw [hsep u θ φ]
+  -- The angular chart-surface is `R(r) · Y_ℓ^m(·)` (radial factor frozen).
+  have hsurf : (fun p : ℝ × ℝ => f (sphereChart r p.1 p.2))
+      = (fun p : ℝ × ℝ => R r * SphericalHarmonic ℓ m hm p) := by
+    funext p; rw [hsep r p.1 p.2]
+  -- Pull the frozen angular constant through the radial derivatives.
+  have hd1 : ∀ s, deriv (fun u => R u * SphericalHarmonic ℓ m hm (θ, φ)) s
+      = deriv R s * SphericalHarmonic ℓ m hm (θ, φ) := fun s =>
+    ((hR.differentiable (by norm_num) s).hasDerivAt.mul_const _).deriv
+  have hd2 : deriv (deriv (fun u => R u * SphericalHarmonic ℓ m hm (θ, φ))) r
+      = deriv (deriv R) r * SphericalHarmonic ℓ m hm (θ, φ) := by
+    have hfun : deriv (fun u => R u * SphericalHarmonic ℓ m hm (θ, φ))
+        = fun s => deriv R s * SphericalHarmonic ℓ m hm (θ, φ) := funext hd1
+    rw [hfun]
+    exact ((hR.differentiable_deriv_two r).hasDerivAt.mul_const _).deriv
+  rw [laplacian_separates f hf hr hθ, hcurve, hsurf,
+    radialPart_eq (fun s => R s * SphericalHarmonic ℓ m hm (θ, φ)) hRp hr0,
+    laplaceBeltrami_const_mul (R r) (SphericalHarmonic ℓ m hm) (θ, φ),
+    sphericalHarmonic_eigenvalue ℓ m hm (θ, φ) hθ, hd2, hd1 r]
+  ring
 
 /-! ## The Coulomb potential respects angular sectors -/
 
-/-- **1/r commutes with L̂²**, hence preserves each angular sector.
+/-- **The Coulomb factor `−Z/r` preserves the angular sector `ℓ`.**
 
-    This is because 1/r depends only on r, not on (θ, φ), so it acts
-    as the identity on the angular part.
+    `coulombMultiplier p x = −Z/‖x‖` depends only on the radius, so multiplying a pure
+    tensor `f = R(r)·Y_ℓ^m` by it leaves the angular factor untouched and merely rescales
+    the radial factor: away from the origin (`r > 0`),
 
-    **Discharge route:** For f(r, ω) = R(r) Y_ℓ^m(ω):
-      (1/r) f(r, ω) = (R(r)/r) Y_ℓ^m(ω)
-    which is still in the ℓ-sector. -/
-def coulomb_preserves_sectors (ℓ : ℕ) :
-    sorry :=  -- (1/r) maps sector ℓ to itself
-  sorry
+      `coulombMultiplier p · f = (−Z/r · R(r)) · Y_ℓ^m`,
 
-/-- **The hydrogen Hamiltonian reduces to radial operators.**
+    still a pure tensor in sector `ℓ`. Pure algebra (`norm_sphereChart` evaluates the
+    radius); no smoothness needed. -/
+theorem coulomb_preserves_sectors (p : CoulombParams) (ℓ : ℕ) (m : ℤ) (hm : |m| ≤ ℓ)
+    (R : ℝ → ℂ) (f : Spectra.Sobolev.R3 → ℂ)
+    (hsep : ∀ a b c, f (sphereChart a b c) = R a * SphericalHarmonic ℓ m hm (b, c))
+    {r θ φ : ℝ} (hr : 0 < r) :
+    (coulombMultiplier p (sphereChart r θ φ) : ℂ) * f (sphereChart r θ φ)
+      = (-(p.Z : ℂ) / (r : ℂ) * R r) * SphericalHarmonic ℓ m hm (θ, φ) := by
+  have hnorm : ‖sphereChart r θ φ‖ = r := by rw [norm_sphereChart, abs_of_pos hr]
+  have hne : ‖sphereChart r θ φ‖ ≠ 0 := by rw [hnorm]; exact hr.ne'
+  have hval : coulombMultiplier p (sphereChart r θ φ) = -p.Z / ‖sphereChart r θ φ‖ := by
+    unfold coulombMultiplier; exact if_neg hne
+  rw [hval, hnorm, hsep r θ φ]
+  push_cast
+  ring
 
-    H = −Δ − Z/r reduces on sector ℓ to:
-      H_ℓ = −d²/dr² − (2/r)d/dr + ℓ(ℓ+1)/r² − Z/r
+/-- **The hydrogen Hamiltonian reduces to the radial operator on each sector (pointwise).**
 
-    acting on RadialL2.
+    For a separated `C²` realization `f(sphereChart r θ φ) = R(r)·Y_ℓ^m(θ,φ)`, the hydrogen
+    Hamiltonian `H = −Δ + coulombMultiplier` (i.e. `−Δ − Z/r`) acts at every interior chart
+    point (`r > 0`, `θ ∈ (0, π)`) as the radial hydrogen operator `H_ℓ` applied to `R`,
+    tensored with the angular factor:
 
-    Or equivalently, on χ(r) = rR(r):
-      h_ℓ = −d²/dr² + ℓ(ℓ+1)/r² − Z/r
+      `(−Δ f − (Z/r)·f) = (−R″ − (2/r)R′ + (ℓ(ℓ+1)/r² − Z/r)·R) · Y_ℓ^m`.
 
-    acting on ReducedRadialL2.-/
-def hydrogen_reduces (ℓ : ℕ) :
-    sorry :=  -- H|_{sector ℓ} = H_ℓ (radial Hamiltonian)
-  sorry
+    The right factor is `H_ℓ R = radialHamiltonian ℓ Z R` in complex form. This is just
+    `laplacian_in_sector` (the `−Δ` half) combined with `coulomb_preserves_sectors` (the
+    `−Z/r` half). The reduction onto `RadialL2`/`ReducedRadialL2` as Hilbert-space operators
+    still awaits the spherical-`L²` ↔ `Sobolev.L2_R3` unitary. -/
+theorem hydrogen_reduces (p : CoulombParams) (ℓ : ℕ) (m : ℤ) (hm : |m| ≤ ℓ)
+    (R : ℝ → ℂ) (hR : ContDiff ℝ 2 R)
+    (f : Spectra.Sobolev.R3 → ℂ) (hf : ContDiff ℝ 2 f)
+    (hsep : ∀ a b c, f (sphereChart a b c) = R a * SphericalHarmonic ℓ m hm (b, c))
+    {r θ φ : ℝ} (hr : 0 < r) (hθ : θ ∈ Set.Ioo 0 Real.pi) :
+    (- Δ f (sphereChart r θ φ))
+        + (coulombMultiplier p (sphereChart r θ φ) : ℂ) * f (sphereChart r θ φ)
+      = (- deriv (deriv R) r - (2 / (r : ℂ)) * deriv R r
+          + ((ℓ * (ℓ + 1) : ℝ) / (r : ℂ) ^ 2 - (p.Z : ℂ) / (r : ℂ)) * R r)
+        * SphericalHarmonic ℓ m hm (θ, φ) := by
+  rw [laplacian_in_sector ℓ m hm R hR f hf hsep hr hθ,
+    coulomb_preserves_sectors p ℓ m hm R f hsep hr]
+  ring
 
 /-! ## The radial Hamiltonian -/
 

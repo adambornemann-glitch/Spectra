@@ -202,4 +202,59 @@ theorem essSpectrum_eq_of_isCompactOperator_resolvent_sub
     rw [hCLM]
     exact hcompact.neg
 
+/-! ### On-ramp: relatively compact perturbations -/
+
+/-- **On-ramp from a relatively compact perturbation.**  If `B − A` is represented on `D(A)` by a
+*bounded compact* operator post-composed with the resolvent — i.e. there is a compact
+`W : H →L[ℂ] H` with `(B − A)χ = W ((A − i)χ)` for every `χ ∈ D(A)` (think `W = V·(A − i)⁻¹`) —
+then the resolvent difference `R_B(i) − R_A(i)` is compact.
+
+The proof is the second resolvent identity in disguise: `R_B(i)ψ = R_A(i)ψ − R_B(i)(W ψ)`, so
+`R_B(i) − R_A(i) = −R_B(i) ∘ W`, compact because `W` is. -/
+theorem isCompactOperator_resolvent_sub_of_isCompactOperator_perturb
+    {A B : H →ₗ.[ℂ] H} (hA : IsSelfAdjoint A) (hB : IsSelfAdjoint B)
+    (hdom : A.domain = B.domain) (W : H →L[ℂ] H) (hW : IsCompactOperator (W : H → H))
+    (hVW : ∀ (χ : H) (hχ : χ ∈ A.domain),
+        B ⟨χ, hdom ▸ hχ⟩ - A ⟨χ, hχ⟩ = W (A ⟨χ, hχ⟩ - I • χ)) :
+    IsCompactOperator ((selfAdjointResolvent hB I I_im_ne_zero
+        - selfAdjointResolvent hA I I_im_ne_zero : H →L[ℂ] H) : H → H) := by
+  have key : (selfAdjointResolvent hB I I_im_ne_zero - selfAdjointResolvent hA I I_im_ne_zero)
+      = -((selfAdjointResolvent hB I I_im_ne_zero).comp W) := by
+    ext ψ
+    simp only [ContinuousLinearMap.sub_apply, ContinuousLinearMap.neg_apply,
+      ContinuousLinearMap.comp_apply]
+    set χ := selfAdjointResolvent hA I I_im_ne_zero ψ with hχ
+    have memA : χ ∈ A.domain := selfAdjointResolvent_mem_domain hA I I_im_ne_zero ψ
+    have hsolveA : A ⟨χ, memA⟩ - I • χ = ψ := selfAdjointResolvent_solves hA I I_im_ne_zero ψ
+    have hinvB : selfAdjointResolvent hB I I_im_ne_zero (B ⟨χ, hdom ▸ memA⟩ - I • χ) = χ :=
+      selfAdjointResolvent_left_inverse hB I I_im_ne_zero ⟨χ, hdom ▸ memA⟩
+    have hWχ : B ⟨χ, hdom ▸ memA⟩ - A ⟨χ, memA⟩ = W ψ := by rw [hVW χ memA, hsolveA]
+    have hRBψ : selfAdjointResolvent hB I I_im_ne_zero ψ
+        = χ - selfAdjointResolvent hB I I_im_ne_zero (W ψ) := by
+      have h1 : ψ = (B ⟨χ, hdom ▸ memA⟩ - I • χ) - (B ⟨χ, hdom ▸ memA⟩ - A ⟨χ, memA⟩) := by
+        rw [← hsolveA]; abel
+      calc selfAdjointResolvent hB I I_im_ne_zero ψ
+          = selfAdjointResolvent hB I I_im_ne_zero
+              ((B ⟨χ, hdom ▸ memA⟩ - I • χ) - (B ⟨χ, hdom ▸ memA⟩ - A ⟨χ, memA⟩)) := by rw [h1]
+        _ = selfAdjointResolvent hB I I_im_ne_zero (B ⟨χ, hdom ▸ memA⟩ - I • χ)
+              - selfAdjointResolvent hB I I_im_ne_zero (B ⟨χ, hdom ▸ memA⟩ - A ⟨χ, memA⟩) := by
+            rw [map_sub]
+        _ = χ - selfAdjointResolvent hB I I_im_ne_zero (W ψ) := by rw [hinvB, hWχ]
+    rw [hRBψ]; abel
+  rw [key]
+  exact (hW.clm_comp (selfAdjointResolvent hB I I_im_ne_zero)).neg
+
+/-- **Weyl's theorem for relatively compact perturbations.**  If `B − A` is given on `D(A)` by a
+compact `W = V·(A − i)⁻¹` (see `isCompactOperator_resolvent_sub_of_isCompactOperator_perturb`),
+then `A` and `B` have the same essential spectrum.  This is the form that applies to Schrödinger
+operators `B = −Δ + V` with `V` relatively compact (e.g. the hydrogen Hamiltonian). -/
+theorem essSpectrum_eq_of_isCompactOperator_perturb
+    {A B : H →ₗ.[ℂ] H} (hA : IsSelfAdjoint A) (hB : IsSelfAdjoint B)
+    (hdom : A.domain = B.domain) (W : H →L[ℂ] H) (hW : IsCompactOperator (W : H → H))
+    (hVW : ∀ (χ : H) (hχ : χ ∈ A.domain),
+        B ⟨χ, hdom ▸ hχ⟩ - A ⟨χ, hχ⟩ = W (A ⟨χ, hχ⟩ - I • χ)) :
+    essSpectrum hA = essSpectrum hB :=
+  essSpectrum_eq_of_isCompactOperator_resolvent_sub hA hB
+    (isCompactOperator_resolvent_sub_of_isCompactOperator_perturb hA hB hdom W hW hVW)
+
 end Spectra.Essential
