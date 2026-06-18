@@ -57,6 +57,11 @@ assert_no_sorry Spectra.QuantumMechanics.Hydrogen.essSpectrum_laplacian
 assert_no_sorry Spectra.QuantumMechanics.Hydrogen.fourierL2_selfAdjointResolvent
 assert_no_sorry Spectra.QuantumMechanics.Hydrogen.integral_exp_neg_mul_sin
 
+/-! ### Radial disintegration (sphere integration infrastructure) -/
+
+assert_no_sorry Spectra.SphereIntegral.integral_eq_integral_prod_toSphere
+assert_no_sorry Spectra.SphereIntegral.integral_eq_integral_toSphere
+
 /-! ## Quantum mechanics -/
 
 assert_no_sorry Spectra.QuantumInfo.CHSH_lhv_bound

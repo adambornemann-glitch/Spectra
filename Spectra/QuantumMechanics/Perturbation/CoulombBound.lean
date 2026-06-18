@@ -5,7 +5,7 @@ Authors: Adam Bornemann
 -/
 import Spectra.QuantumMechanics.Hydrogen.Laplacian.Basic
 import Spectra.OneParameterUnitaryGroup.Basic
-import Spectra.Stone.Basic
+import Spectra.YosidaHille.Basic
 import Spectra.QuantumMechanics.Perturbation.HardyInequality
 import Spectra.QuantumMechanics.Perturbation.KatoRellich
 import Spectra.SobolevSpaces.DensityResults

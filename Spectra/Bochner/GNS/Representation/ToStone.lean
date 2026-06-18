@@ -6,7 +6,7 @@ Filename: BochnerTheorem/GNS/Completion/ToStone.lean
 -/
 import Spectra.Bochner.GNS.Representation.StronglyEx
 import Spectra.Bochner.GNS.Representation.Cyclic
-import Spectra.Stone.Basic
+import Spectra.YosidaHille.Basic
 open Complex Finsupp Filter Topology
 namespace Spectra.Bochner.GNS
 

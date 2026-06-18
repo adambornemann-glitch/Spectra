@@ -4,7 +4,7 @@ Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
 Filename: ExpBounded/Adjoint.lean
 -/
-import Spectra.Stone.Yosida.ExpBounded.Helpers
+import Spectra.YosidaHille.Approximation.ExpBounded.Helpers
 
 /-!
 # Adjoint Properties of Bounded Exponentials

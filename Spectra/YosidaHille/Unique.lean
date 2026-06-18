@@ -4,7 +4,7 @@ Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
 Filename: UnitaryEvolution/Stone/Unique.lean
 -/
-import Spectra.Stone.Yosida.Exponential
+import Spectra.YosidaHille.Approximation.Exponential
 import Spectra.Resolvent.Integral.Domain
 /-!
 

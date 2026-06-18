@@ -4,7 +4,7 @@ Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
 Filename: Duhamel/Commutation.lean
 -/
-import Spectra.Stone.Yosida.ExpBounded.Unitary
+import Spectra.YosidaHille.Approximation.ExpBounded.Unitary
 
 /-!
 # Commutation Properties for Duhamel's Formula

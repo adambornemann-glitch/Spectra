@@ -7,7 +7,7 @@ Target: Mathlib master (2026-06-10)
 -/
 import Mathlib.Analysis.InnerProductSpace.Basic
 import Mathlib.Algebra.Module.LinearMap.Star
-import Spectra.Stone.Basic
+import Spectra.YosidaHille.Basic
 /-!
 # Antiunitary conjugations
 

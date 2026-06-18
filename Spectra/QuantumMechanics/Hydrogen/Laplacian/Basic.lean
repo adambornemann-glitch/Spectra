@@ -4,7 +4,7 @@ Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Spectra.OneParameterUnitaryGroup.Basic
-import Spectra.Stone.Basic
+import Spectra.YosidaHille.Basic
 import Spectra.QuantumMechanics.Observable.Basic
 import Spectra.SobolevSpaces.DensityResults
 import Spectra.SpectralTheory.ResolventForm

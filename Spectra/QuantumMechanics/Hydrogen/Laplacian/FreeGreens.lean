@@ -175,17 +175,27 @@ Fourier injectivity (`fourierL2` is a `≃ₗᵢ`, hence injective) the kernel i
 i.e. to two genuinely analytic facts, each an isolated Mathlib gap:
 
 * **`fourier_freeGreensFunction`** — the Yukawa Fourier transform
-  `𝓕[G_z](ξ) = (laplacianSymbol ξ − z)⁻¹`. Mathlib has Gaussian Fourier transforms but nothing
-  for `e^{−m‖x‖}/‖x‖`. Requires (i) a 3-D spherical-coordinate angular reduction
-  `∫_{ℝ³} g(‖x‖) e^{−2πi⟨ξ,x⟩} dx = (2/‖ξ‖) ∫₀^∞ r g(r) sin(2π‖ξ‖r) dr` (Mathlib's
-  `integral_fun_norm_addHaar` only handles *radial* integrands, so this must be built), and
-  (ii) the Laplace integral `∫₀^∞ e^{−mr} sin(ar) dr = a/(m²+a²)` for `Re m > 0` (also absent).
+  `𝓕[G_z](ξ) = (laplacianSymbol ξ − z)⁻¹`, with `m = (−z)^{1/2}` (`Re m > 0`). The **direct
+  spherical route** is the right one (it handles complex `z` head-on; the heat-kernel /
+  Gaussian-subordination route is a dead end here because `e^{−m²t}` *grows* when `Re(m²) < 0`,
+  so its `t`-integral representation of `G_z` diverges for `Re z > 0` and would need analytic
+  continuation). The direct route is:
+  - (i) **radial Fourier / angular reduction** `∫_{ℝ³} g(‖x‖) e^{−2πi⟨ξ,x⟩} dx
+    = (2/‖ξ‖) ∫₀^∞ r g(r) sin(2π‖ξ‖r) dr` for `ξ ≠ 0`. Its core is the **angular integral**
+    `∫_{S²} e^{−2πi r⟨ξ,ω⟩} dσ(ω) = 4π·sin(2πr‖ξ‖)/(2πr‖ξ‖)`. Mathlib's `integral_fun_norm_addHaar`
+    only does *radial* integrands; the general disintegration
+    `measurePreserving_homeomorphUnitSphereProd` (`MeasureTheory/Constructions/HaarToSphere`)
+    exists but evaluating this angular integral over the abstract `Measure.toSphere` still needs
+    an S²-coordinate parametrization (the colatitude `sin θ` Jacobian) that Mathlib lacks. This is
+    a foundational sphere-integration sub-project.
+  - (ii) the 1-D Laplace integral `∫₀^∞ e^{−w r} sin(a r) dr = a/(w²+a²)` (`Re w > 0`) — **DONE**:
+    `integral_exp_neg_mul_sin` (above), stated for complex `w` so it applies with `w = (−z)^{1/2}`.
 * **convolution theorem for a singular L¹ kernel** — `𝓕(G_z ⋆ f) = 𝓕[G_z] · 𝓕 f`. Mathlib's
   `Real.fourier_mul_convolution_eq` needs *both* factors continuous and integrable; `G_z` is
   singular at `0` and `f ∈ L²`, so this needs a density/Young's-inequality argument.
 
-These three pieces (Yukawa FT, its two sub-lemmas, and the L¹×L² convolution theorem) are each
-substantial and largely independent; see the project roadmap. Left open. -/
+Remaining gaps: the angular integral / S²-integration infrastructure (i) and the L¹×L²
+convolution theorem — each substantial and independent; see the project roadmap. Left open. -/
 theorem freeGreensFunction_is_resolvent_kernel
     (z : ℂ) (hz : z.im ≠ 0) (f : L2_R3) :
     ∀ᵐ x : R3,

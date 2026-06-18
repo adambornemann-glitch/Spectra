@@ -6,8 +6,8 @@ Filename: SpectralTheory/Keystone.lean
 -/
 import Spectra.ProjValMeasure.Basic               -- ProjValMeasure, ext_of_diag
 import Spectra.Herglotz.CauchyInjective           -- measure_ext_of_cauchyTransform
-import Spectra.Stone.Basic                        -- genToGroup, generator_genToGroup
-import Spectra.Stone.Helpers                      -- isSelfAdjoint_to_surjective
+import Spectra.YosidaHille.Basic                        -- genToGroup, generator_genToGroup
+import Spectra.YosidaHille.Helpers                      -- isSelfAdjoint_to_surjective
 import Spectra.Resolvent.Diagonal.IntegralZ.Basic -- inner_resolvent_diag_eq_integral
 import Spectra.SpectralTheory.StoneFormula.Basic  -- stonesFormula (for the coda)
 import Spectra.Resolvent.Range

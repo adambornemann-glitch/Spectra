@@ -4,7 +4,7 @@ Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Spectra.Resolvent.Range
-import Spectra.Stone.Helpers
+import Spectra.YosidaHille.Helpers
 /-!
 # The spectrum of an unbounded self-adjoint operator
 

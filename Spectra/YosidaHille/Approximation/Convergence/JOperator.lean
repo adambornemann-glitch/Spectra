@@ -4,7 +4,7 @@ Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
 Filename: Convergence/JOperator.lean
 -/
-import Spectra.Stone.Yosida.Symmetry
+import Spectra.YosidaHille.Approximation.Symmetry
 /-!
 # Convergence of the J Operator
 

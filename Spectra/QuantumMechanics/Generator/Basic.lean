@@ -5,7 +5,7 @@ Authors: Adam Bornemann
 Filename: QuantumMechanics/Generator.lean
 Target: Mathlib v4.31.0-rc1
 -/
-import Spectra.Stone.Basic
+import Spectra.YosidaHille.Basic
 import Spectra.QuantumMechanics.Observable.Basic
 import Spectra.Resolvent.Integral.Domain
 /-!

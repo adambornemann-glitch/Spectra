@@ -4,7 +4,7 @@ Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
 Filename: UnitaryEvolution/Schrodinger.lean
 -/
-import Spectra.Stone.Basic
+import Spectra.YosidaHille.Basic
 /-!
 # The Schrödinger Equation
 

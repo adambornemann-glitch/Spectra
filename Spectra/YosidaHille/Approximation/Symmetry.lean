@@ -4,7 +4,7 @@ Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
 Filename: Yosida/Symmetry.lean
 -/
-import Spectra.Stone.Yosida.Bounds
+import Spectra.YosidaHille.Approximation.Bounds
 
 /-!
 # Symmetry Properties of Yosida Operators

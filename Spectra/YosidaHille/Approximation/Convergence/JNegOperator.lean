@@ -4,7 +4,7 @@ Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
 Filename: Convergence/JNegOperator.lean
 -/
-import Spectra.Stone.Yosida.Convergence.JOperator
+import Spectra.YosidaHille.Approximation.Convergence.JOperator
 
 /-!
 # Convergence of the JNeg Operator

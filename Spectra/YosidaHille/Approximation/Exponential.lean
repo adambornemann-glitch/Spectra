@@ -4,8 +4,8 @@ Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
 Filename: Yosida/Exponential.lean
 -/
-import Spectra.Stone.Yosida.Commutation
-import Spectra.Stone.Yosida.Symmetry
+import Spectra.YosidaHille.Approximation.Commutation
+import Spectra.YosidaHille.Approximation.Symmetry
 /-!
 # The Exponential Map and Stone's lemma (Converse)
 

@@ -4,7 +4,7 @@ Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
 Filename: ExpBounded/Unitary.lean
 -/
-import Spectra.Stone.Yosida.ExpBounded.Adjoint
+import Spectra.YosidaHille.Approximation.ExpBounded.Adjoint
 /-!
 # Unitarity of Exponentials of Skew-Adjoint Operators
 

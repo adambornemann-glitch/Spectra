@@ -8,7 +8,7 @@ import Spectra.CayleyTransform.BorelCalculus
 import Spectra.CayleyTransform.Defs
 import Spectra.CayleyTransform.Inverse        -- inverse-Cayley action: one_minus/one_plus_cayley_apply
 import Spectra.OneParameterUnitaryGroup.Basic
-import Spectra.Stone.Basic
+import Spectra.YosidaHille.Basic
 import Spectra.Resolvent.Integral.Domain   -- genToGroup, generator_genToGroup, group_unique
 
 

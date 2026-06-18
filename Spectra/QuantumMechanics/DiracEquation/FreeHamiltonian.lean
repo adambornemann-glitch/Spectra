@@ -10,7 +10,7 @@ import Spectra.SobolevSpaces.IntegrationByParts
 import Spectra.SobolevSpaces.DensityResults
 import Spectra.QuantumMechanics.Perturbation.KatoRellich
 import Spectra.QuantumMechanics.Observable.Basic
-import Spectra.Stone.Basic
+import Spectra.YosidaHille.Basic
 /-!
 # The free Dirac operator on `L²(ℝ³; ℂ⁴)`
 

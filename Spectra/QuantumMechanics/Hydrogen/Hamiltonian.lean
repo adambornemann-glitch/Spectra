@@ -6,7 +6,7 @@ Authors: Adam Bornemann
 import Spectra.QuantumMechanics.Perturbation.CoulombBound
 import Spectra.SpectralTheory.ResolventForm
 import Spectra.OneParameterUnitaryGroup.Basic
-import Spectra.Stone.Basic
+import Spectra.YosidaHille.Basic
 /-!
 # The Hydrogen Hamiltonian
 

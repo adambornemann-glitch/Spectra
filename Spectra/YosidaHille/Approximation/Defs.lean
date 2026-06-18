@@ -4,7 +4,7 @@ Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
 Filename: Yosida/Defs.lean
 -/
-import Spectra.Stone.Yosida.Helpers
+import Spectra.YosidaHille.Approximation.Helpers
 import Spectra.OneParameterUnitaryGroup.Basic
 /-!
 # Yosida Approximation Operators

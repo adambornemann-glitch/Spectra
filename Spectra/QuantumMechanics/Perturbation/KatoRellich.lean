@@ -5,7 +5,7 @@ File: KatoRellich.lean
 Authors: Adam Bornemann
 -/
 import Spectra.OneParameterUnitaryGroup.Basic
-import Spectra.Stone.Basic
+import Spectra.YosidaHille.Basic
 import Spectra.QuantumMechanics.Observable.Basic
 import Spectra.Resolvent.Defs
 import Spectra.Resolvent.NormExpansion

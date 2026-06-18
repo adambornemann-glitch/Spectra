@@ -5,9 +5,9 @@ Authors: Adam Bornemann
 Filename: UnitaryEvolution/Stone/Converse.lean
 -/
 import Spectra.OneParameterUnitaryGroup.Basic
-import Spectra.Stone.Yosida.Exponential
-import Spectra.Stone.Helpers
-import Spectra.Stone.Unique
+import Spectra.YosidaHille.Approximation.Exponential
+import Spectra.YosidaHille.Helpers
+import Spectra.YosidaHille.Unique
 /-!
 # Stone's lemma: Complete Statement
 

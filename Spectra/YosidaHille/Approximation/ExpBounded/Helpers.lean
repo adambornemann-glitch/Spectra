@@ -4,7 +4,7 @@ Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
 Filename: ExpBounded/Basic.lean
 -/
-import Spectra.Stone.Yosida.Convergence.Approximants
+import Spectra.YosidaHille.Approximation.Convergence.Approximants
 /-!
 # Exponential of Bounded Operators
 

@@ -4,7 +4,7 @@ Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
 Filename: Convergence/Approximants.lean
 -/
-import Spectra.Stone.Yosida.Convergence.JNegOperator
+import Spectra.YosidaHille.Approximation.Convergence.JNegOperator
 /-!
 # Convergence of Yosida Approximants
 

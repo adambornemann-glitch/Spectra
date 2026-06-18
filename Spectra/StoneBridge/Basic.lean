@@ -5,7 +5,7 @@ Authors: Adam Bornemann
 Filename: CayleyTransform/StoneBridge.lean
 -/
 import Spectra.CayleyTransform.Generator.Stone         -- stoneGroup, stoneExp, generator_stoneGroup
-import Spectra.Stone.Basic                             -- genToGroup, generator_genToGroup, stoneEquiv
+import Spectra.YosidaHille.Basic                             -- genToGroup, generator_genToGroup, stoneEquiv
                                                        --   (⚠ the module with `Spectra.StonesTheorem`;
                                                        --    you have been importing it as Stone.Basic)
 /-!

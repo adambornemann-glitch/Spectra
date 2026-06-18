@@ -4,7 +4,7 @@ Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
 Filename: CayleyTransform/Transform.lean
 -/
-import Spectra.Stone.Basic
+import Spectra.YosidaHille.Basic
 import Spectra.QuantumMechanics.Observable.Basic
 import Spectra.Resolvent.SpecialCases
 import Spectra.Resolvent.NormExpansion

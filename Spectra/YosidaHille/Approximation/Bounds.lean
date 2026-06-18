@@ -4,7 +4,7 @@ Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
 Filename: Yosida/Bounds.lean
 -/
-import Spectra.Stone.Yosida.Defs
+import Spectra.YosidaHille.Approximation.Defs
 /-!
 # Norm Bounds on Yosida Operators
 
