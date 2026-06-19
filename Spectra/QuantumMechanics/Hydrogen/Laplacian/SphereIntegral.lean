@@ -69,4 +69,39 @@ theorem integral_eq_integral_toSphere (F : E → G) (hF : Integrable F μ) :
   rw [hcomp, ← integrableOn_iff_comap_subtypeVal (measurableSet_singleton (0 : E)).compl]
   exact hF.integrableOn
 
+/-! ## A rotation mapping one vector to any other of equal norm
+
+Needed to align the frequency `ξ` with a coordinate axis before the cylindrical reduction. -/
+
+section Rotation
+open scoped InnerProductSpace
+open Submodule
+
+variable {F : Type*} [NormedAddCommGroup F] [InnerProductSpace ℝ F]
+
+/-- **Any two vectors of equal norm are related by a linear isometry** (a reflection that swaps
+them).  In particular any unit vector can be rotated onto a coordinate axis. -/
+theorem exists_linearIsometryEquiv_apply_eq (u v : F) (h : ‖u‖ = ‖v‖) :
+    ∃ R : F ≃ₗᵢ[ℝ] F, R u = v := by
+  rcases eq_or_ne u v with rfl | hne
+  · exact ⟨LinearIsometryEquiv.refl ℝ F, rfl⟩
+  · -- reflect across the hyperplane orthogonal to `u - v`.
+    have hinner : ⟪u + v, u - v⟫_ℝ = 0 := by
+      rw [inner_add_left, inner_sub_right, inner_sub_right, real_inner_comm v u,
+        real_inner_self_eq_norm_sq, real_inner_self_eq_norm_sq, h]; ring
+    have hsum : u + v ∈ (ℝ ∙ (u - v))ᗮ :=
+      (mem_orthogonal_singleton_iff_inner_left).2 hinner
+    have hdiff : u - v ∈ ((ℝ ∙ (u - v))ᗮ)ᗮ :=
+      le_orthogonal_orthogonal _ (mem_span_singleton_self _)
+    refine ⟨reflection ((ℝ ∙ (u - v))ᗮ), ?_⟩
+    have hlin : reflection ((ℝ ∙ (u - v))ᗮ) u
+        = (2 : ℝ)⁻¹ • reflection ((ℝ ∙ (u - v))ᗮ) (u + v)
+          + (2 : ℝ)⁻¹ • reflection ((ℝ ∙ (u - v))ᗮ) (u - v) := by
+      rw [← map_smul, ← map_smul, ← map_add]; congr 1; module
+    rw [hlin, reflection_mem_subspace_eq_self hsum,
+      reflection_mem_subspace_orthogonalComplement_eq_neg hdiff]
+    module
+
+end Rotation
+
 end Spectra.SphereIntegral

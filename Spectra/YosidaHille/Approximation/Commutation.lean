@@ -2,22 +2,31 @@
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
-Filename: Duhamel/Commutation.lean
 -/
 import Spectra.YosidaHille.Approximation.ExpBounded.Unitary
 
 /-!
-# Commutation Properties for Duhamel's Formula
+# Commutation properties for Duhamel's formula
 
-This file proves that resolvents and Yosida approximants commute with the
-unitary group, and that certain norms are constant along orbits.
+Resolvents and Yosida approximants commute with the unitary exponentials, the skew-adjoint
+exponentials are isometries, and — via Duhamel's formula — the symmetric approximants `Aₙˢʸᵐ`
+generate a Cauchy sequence of unitaries. That Cauchy property is the analytic heart of the
+convergence of the approximating evolutions.
 
+## Main statements
+
+* `yosidaApproxSym_commute` — the symmetric approximants commute with each other.
+* `commute_exp` — anything commuting with `B` commutes with `exp(τB)`.
+* `norm_expBounded_skewAdjoint` — the skew-adjoint exponential is an isometry.
+* `norm_expBounded_pairwise_le` — the Duhamel estimate `‖exp(tBₘ)ψ - exp(tBₙ)ψ‖ ≤ |t|·‖(Bₘ-Bₙ)ψ‖`.
+* `expBounded_yosidaApproxSym_cauchy_intrinsic` — `exp(i·Aₙˢʸᵐ·t)ψ` is Cauchy in `n`.
 -/
 open Complex MeasureTheory Filter Topology InnerProductSpace
 open Spectra.Resolvent
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
-namespace Spectra.Stone.Yosida
+namespace Spectra.YosidaHille.Approximation
 
+/-- The symmetric Yosida approximants commute: `[Aₘˢʸᵐ, Aₙˢʸᵐ] = 0`. -/
 lemma yosidaApproxSym_commute
     {A : H →ₗ.[ℂ] H} (hsym : A.IsFormalAdjoint A)
     (hplus  : ∀ φ : H, ∃ ψ : A.domain, A ψ + I • (ψ : H) = φ)
@@ -38,11 +47,13 @@ lemma yosidaApproxSym_commute
 
 
 omit [CompleteSpace H] in
+/-- If `C` commutes with `B`, it commutes with `exp(τB)`. -/
 lemma commute_exp (C B : H →L[ℂ] H) (τ : ℝ) (h : Commute C B) :
     Commute C (expBounded B τ) := by
   rw [expBounded_eq_exp]
   exact (h.smul_right (τ : ℂ)).exp_right
 
+/-- For skew-adjoint `B`, the exponential is an isometry: `‖exp(τB) v‖ = ‖v‖`. -/
 lemma norm_expBounded_skewAdjoint (B : H →L[ℂ] H) (hB : B.adjoint = -B)
     (τ : ℝ) (v : H) : ‖expBounded B τ v‖ = ‖v‖ := by
   set u := expBounded B τ
@@ -59,6 +70,8 @@ lemma norm_expBounded_skewAdjoint (B : H →L[ℂ] H) (hB : B.adjoint = -B)
   have := congrArg Real.sqrt hsq
   rwa [Real.sqrt_sq (norm_nonneg _), Real.sqrt_sq (norm_nonneg _)] at this
 
+/-- Duhamel estimate: for commuting skew-adjoint `Bₘ`, `Bₙ`,
+`‖exp(tBₘ)ψ - exp(tBₙ)ψ‖ ≤ |t|·‖(Bₘ - Bₙ)ψ‖`. -/
 lemma norm_expBounded_pairwise_le
     (Bm Bn : H →L[ℂ] H) (hcomm : Commute Bm Bn)
     (hm : Bm.adjoint = -Bm) (hn : Bn.adjoint = -Bn) (t : ℝ) (ψ : H) :
@@ -124,6 +137,7 @@ lemma norm_expBounded_pairwise_le
         exact le_of_eq (hnorm_const s)
     _ = |t| * ‖(Bm - Bn) ψ‖ := by rw [sub_zero, mul_comm]
 
+/-- The unitaries `exp(i·Aₙˢʸᵐ·t)ψ` form a Cauchy sequence in `n`, for every `ψ`. -/
 lemma expBounded_yosidaApproxSym_cauchy_intrinsic
     {A : H →ₗ.[ℂ] H} (hsym : A.IsFormalAdjoint A)
     (hplus  : ∀ φ : H, ∃ ψ : A.domain, A ψ + I • (ψ : H) = φ)
@@ -195,4 +209,4 @@ lemma expBounded_yosidaApproxSym_cauchy_intrinsic
         linarith [hN m hm n hn, hφ_close]
     _ = ε := by ring
 
-end Spectra.Stone.Yosida
+end Spectra.YosidaHille.Approximation

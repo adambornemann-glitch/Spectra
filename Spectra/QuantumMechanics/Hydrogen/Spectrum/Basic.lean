@@ -66,6 +66,7 @@ open scoped Topology NNReal ENNReal Laplacian
 open RadialEq Spectra.QuantumMechanics.Hydrogen Spectra.QuantumMechanics.Hydrogen.Decomposition
 open Spectra.SphericalHarmonics (SphericalHarmonic sphericalHarmonic_eigenvalue
   laplaceBeltrami_const_mul)
+open Spectra.QuantumMechanics.Hydrogen.Radial (laguerrePolynomial laguerre_smooth)
 
 /-! ## Separation of the Laplacian
 
@@ -190,6 +191,35 @@ theorem hydrogen_reduces (p : CoulombParams) (ℓ : ℕ) (m : ℤ) (hm : |m| ≤
         * SphericalHarmonic ℓ m hm (θ, φ) := by
   rw [laplacian_in_sector ℓ m hm R hR f hf hsep hr hθ,
     coulomb_preserves_sectors p ℓ m hm R f hsep hr]
+  ring
+
+/-- **The textbook (half-Laplacian) hydrogen Hamiltonian reduces to the radial operator
+    on each sector (pointwise).**
+
+    Identical in spirit to `hydrogen_reduces`, but for the textbook kinetic convention
+    `−½Δ` (rather than the full `−Δ`). For a separated `C²` realization
+    `f(sphereChart r θ φ) = R(r)·Y_ℓ^m(θ,φ)`, the operator `H = −½Δ + coulombMultiplier`
+    (`= −½Δ − Z/r`) acts at every interior chart point (`r > 0`, `θ ∈ (0, π)`) as
+
+      `(−½Δ f − (Z/r)·f) = (−½R″ − (1/r)R′ + (ℓ(ℓ+1)/(2r²) − Z/r)·R) · Y_ℓ^m`.
+
+    Obtained by scaling the `−Δ` half (`laplacian_in_sector`) by `½` and adding the
+    Coulomb half (`coulomb_preserves_sectors`). The right factor is exactly
+    `RadialEq.radialHamiltonian ℓ R` (when `Z = 1`) in complex form. -/
+theorem hydrogen_reduces_half (p : CoulombParams) (ℓ : ℕ) (m : ℤ) (hm : |m| ≤ ℓ)
+    (R : ℝ → ℂ) (hR : ContDiff ℝ 2 R)
+    (f : Spectra.Sobolev.R3 → ℂ) (hf : ContDiff ℝ 2 f)
+    (hsep : ∀ a b c, f (sphereChart a b c) = R a * SphericalHarmonic ℓ m hm (b, c))
+    {r θ φ : ℝ} (hr : 0 < r) (hθ : θ ∈ Set.Ioo 0 Real.pi) :
+    ((-(1/2 : ℂ)) * Δ f (sphereChart r θ φ))
+        + (coulombMultiplier p (sphereChart r θ φ) : ℂ) * f (sphereChart r θ φ)
+      = ((-(1/2:ℂ)) * (deriv (deriv R) r) - (1/(r:ℂ)) * deriv R r
+          + (((ℓ*(ℓ+1):ℝ)/(2*(r:ℂ)^2)) - (p.Z:ℂ)/(r:ℂ)) * R r)
+        * SphericalHarmonic ℓ m hm (θ, φ) := by
+  rw [laplacian_in_sector ℓ m hm R hR f hf hsep hr hθ,
+    coulomb_preserves_sectors p ℓ m hm R f hsep hr]
+  have hr0 : (r : ℂ) ≠ 0 := by exact_mod_cast hr.ne'
+  field_simp
   ring
 
 /-! ## The radial Hamiltonian -/
@@ -356,19 +386,96 @@ def hydrogenEigenfunction (n : ℕ) (ℓ : ℕ) (m : ℤ)
 
 /-! ## The eigenvalue equation -/
 
-/-- **H ψ_{nℓm} = E_n ψ_{nℓm}.**
+/-- The radial wavefunction `R_{nℓ}` is `C²` (in fact `C^∞`), built from the smooth
+    Laguerre polynomial, `(2r/n)^ℓ`, and `exp(−r/n)`. -/
+lemma contDiff_hydrogenRadial (n ℓ : ℕ) (hn : ℓ + 1 ≤ n) :
+    ContDiff ℝ 2 (hydrogenRadialWavefunction n ℓ hn) := by
+  unfold hydrogenRadialWavefunction
+  have hL : ContDiff ℝ 2 (fun r : ℝ =>
+      laguerrePolynomial (n - ℓ - 1) (2 * ℓ + 1) (2 * r / n)) :=
+    ((laguerre_smooth _ _).of_le le_top).comp (by fun_prop)
+  fun_prop
 
-    The hydrogen eigenfunction is an eigenfunction of H with eigenvalue E_n.
+/-- The complex lift `R_{nℓ} : ℝ → ℂ` of the (real) radial wavefunction, for feeding the
+    `ℂ`-valued separation lemma `hydrogen_reduces`. -/
+noncomputable def Rc (n ℓ : ℕ) (hn : ℓ + 1 ≤ n) : ℝ → ℂ :=
+  fun r => ((hydrogenRadialWavefunction n ℓ hn r : ℝ) : ℂ)
+
+/-- The derivative of the complex lift is the complex lift of the real derivative. -/
+lemma deriv_Rc (n ℓ : ℕ) (hn : ℓ + 1 ≤ n) :
+    deriv (Rc n ℓ hn) = fun r => ((deriv (hydrogenRadialWavefunction n ℓ hn) r : ℝ) : ℂ) := by
+  funext r
+  exact (((((contDiff_hydrogenRadial n ℓ hn).differentiable
+    (by norm_num)).differentiableAt).hasDerivAt).ofReal_comp).deriv
+
+/-- The second derivative of the complex lift is the complex lift of the real second
+    derivative. -/
+lemma deriv2_Rc (n ℓ : ℕ) (hn : ℓ + 1 ≤ n) :
+    deriv (deriv (Rc n ℓ hn)) = fun r =>
+      ((deriv (deriv (hydrogenRadialWavefunction n ℓ hn)) r : ℝ) : ℂ) := by
+  rw [deriv_Rc n ℓ hn]
+  funext r
+  exact ((((contDiff_hydrogenRadial n ℓ hn).differentiable_deriv_two).differentiableAt).hasDerivAt.ofReal_comp).deriv
+
+/-- The complex lift `R_{nℓ} : ℝ → ℂ` is `C²`. -/
+lemma contDiff_Rc (n ℓ : ℕ) (hn : ℓ + 1 ≤ n) : ContDiff ℝ 2 (Rc n ℓ hn) :=
+  Complex.ofRealCLM.contDiff.of_le le_top |>.comp (contDiff_hydrogenRadial n ℓ hn)
+
+/-- **H ψ_{nℓm} = E_n ψ_{nℓm} (pointwise, on the separated chart realization).**
+
+    For the pure tensor `f(sphereChart r θ φ) = R_{nℓ}(r)·Y_ℓ^m(θ,φ)` realizing the
+    eigenfunction `ψ_{nℓm}`, the textbook hydrogen Hamiltonian `H = −½Δ + coulombMultiplier`
+    (`= −½Δ − Z/r`) at `Z = 1` acts at every interior chart point as multiplication by the
+    eigenvalue:
+
+      `H ψ_{nℓm} = E_n·ψ_{nℓm}`,  with `E_n = hydrogenEigenvalue n = −1/(2n²)`.
 
     **Discharge route:**
-    From the tensor decomposition:
-    1. H reduces to H_ℓ on angular sector ℓ (`hydrogen_reduces`).
-    2. H_ℓ R_{nℓ} = E_n R_{nℓ} (`radial_eigenvalue_eq`).
-    3. Hence H(R_{nℓ} ⊗ Y_ℓ^m) = E_n (R_{nℓ} ⊗ Y_ℓ^m). -/
-def hydrogen_eigenfunction_eq (p : CoulombParams)
-    (n : ℕ) (ℓ : ℕ) (m : ℤ) (hn : ℓ + 1 ≤ n) (hm : |m| ≤ ℓ) :
-    sorry :=  -- H ψ_{nℓm} = E_n ψ_{nℓm}
-  sorry
+    1. `H` reduces to the radial operator on sector `ℓ` (`hydrogen_reduces_half`, the
+       `−½Δ` version of `hydrogen_reduces`).
+    2. `R_{nℓ}` solves the radial equation `H_ℓ R_{nℓ} = E_n R_{nℓ}`
+       (`radial_eigenvalue_eq`), where `H_ℓ = RadialEq.radialHamiltonian ℓ` is exactly
+       `−½ψ″ − (1/r)ψ′ + ℓ(ℓ+1)/(2r²)·ψ − (1/r)·ψ`.
+    3. At `Z = 1` the radial factor produced by `hydrogen_reduces_half`,
+       `−½R″ − (1/r)R′ + (ℓ(ℓ+1)/(2r²) − 1/r)R`, is *literally* `H_ℓ R`; combine after the
+       `ℝ → ℂ` lift of the radial identity (`deriv_Rc`/`deriv2_Rc`). No factor-of-2
+       normalization mismatch survives: the `½` kinetic factor and `Z = 1` together make the
+       textbook convention exact, with the textbook eigenvalue `E_n = −1/(2n²)`. -/
+theorem hydrogen_eigenfunction_eq (p : CoulombParams)
+    (n : ℕ) (ℓ : ℕ) (m : ℤ) (hn : ℓ + 1 ≤ n) (hm : |m| ≤ ℓ)
+    (hZ : p.Z = 1)
+    (f : Spectra.Sobolev.R3 → ℂ) (hf : ContDiff ℝ 2 f)
+    (hsep : ∀ a b c, f (sphereChart a b c)
+      = ((hydrogenRadialWavefunction n ℓ hn a : ℝ) : ℂ) * SphericalHarmonic ℓ m hm (b, c))
+    {r θ φ : ℝ} (hr : 0 < r) (hθ : θ ∈ Set.Ioo 0 Real.pi) :
+    ((-(1/2 : ℂ)) * Δ f (sphereChart r θ φ))
+        + (coulombMultiplier p (sphereChart r θ φ) : ℂ) * f (sphereChart r θ φ)
+      = ((hydrogenEigenvalue n (by omega) : ℝ) : ℂ) * f (sphereChart r θ φ) := by
+  rw [hydrogen_reduces_half p ℓ m hm (Rc n ℓ hn) (contDiff_Rc n ℓ hn) f hf hsep hr hθ]
+  rw [hsep r θ φ]
+  rw [deriv2_Rc n ℓ hn, deriv_Rc n ℓ hn, hZ]
+  have hrne : (r : ℝ) ≠ 0 := ne_of_gt hr
+  have heig := radial_eigenvalue_eq n ℓ hn r hr
+  simp only [Rc]
+  -- The real radial bracket identity: at `Z = 1` the factor is exactly `H_ℓ R = E_n·R`.
+  have heig' : -(1/2 : ℝ) * deriv (deriv (hydrogenRadialWavefunction n ℓ hn)) r
+      - (1 / r) * deriv (hydrogenRadialWavefunction n ℓ hn) r
+      + ((ℓ * (ℓ + 1) : ℝ) / (2 * r ^ 2) - 1 / r) * hydrogenRadialWavefunction n ℓ hn r
+      = hydrogenEigenvalue n (by omega) * hydrogenRadialWavefunction n ℓ hn r := by
+    have h2 : deriv^[2] (hydrogenRadialWavefunction n ℓ hn) r
+        = deriv (deriv (hydrogenRadialWavefunction n ℓ hn)) r := by
+      simp [Function.iterate_succ]
+    have hbridge : -(1/2 : ℝ) * deriv (deriv (hydrogenRadialWavefunction n ℓ hn)) r
+        - (1 / r) * deriv (hydrogenRadialWavefunction n ℓ hn) r
+        + ((ℓ * (ℓ + 1) : ℝ) / (2 * r ^ 2) - 1 / r) * hydrogenRadialWavefunction n ℓ hn r
+        = RadialEq.radialHamiltonian ℓ (hydrogenRadialWavefunction n ℓ hn) r := by
+      unfold RadialEq.radialHamiltonian
+      rw [h2]; ring
+    rw [hbridge, heig]
+  -- Lift the real identity to ℂ and multiply by the shared angular factor `Y_ℓ^m`.
+  have hC := congrArg (fun x : ℝ => (x : ℂ)) heig'
+  push_cast at hC ⊢
+  linear_combination (SphericalHarmonic ℓ m hm (θ, φ)) * hC
 
 /-! ## Orthonormality -/
 
@@ -495,15 +602,66 @@ theorem hydrogen_degeneracy (_p : CoulombParams) (n : ℕ) (_hn : 1 ≤ n) :
 
     σ_disc(H) = { E_n : n ≥ 1 } = { −Z²/(2n²) : n ≥ 1 }
 
-    Each E_n is an eigenvalue with finite multiplicity n².
+    For every `E < 0`, `E` is an eigenvalue of `H = −½Δ − Z/r` (with some nonzero
+    `ψ ∈ Dom(H) = H²(ℝ³)`) **iff** `E = E_n = −Z²/(2n²)` for some `n ≥ 1`.
 
-    **Discharge route:**
-    1. Each E_n is an eigenvalue: `hydrogen_eigenfunction_eq`.
-    2. The eigenspace is finite-dimensional: `hydrogen_degeneracy` below.
-    3. These are the *only* eigenvalues: from `radial_quantization`,
-       any eigenfunction of H must decompose into angular sectors,
-       and within each sector ℓ, the radial part must satisfy
-       H_ℓ R = E R with E < 0, which forces E = E_n. -/
+    **[Blocked on one geometric unitary — left as a documented `sorry`.]**
+
+    The obstruction is a *coordinate* mismatch, not a missing piece of analysis. The
+    operator `hydrogenHamiltonian p` lives on the **Cartesian** space
+    `Spectra.Sobolev.L2_R3 = Lp ℂ 2 (volume : Measure ℝ³)`, whereas every eigenfunction
+    object in this development (`hydrogenEigenfunction`, `radialLp`, `sectorEmbedding`,
+    `sphericalDecomposition`) lives on the **spherical-coordinate** space
+    `Decomposition.L2_R3 = Lp ℂ 2 (radialMeasure.prod sphereMeasure)`. These are
+    *different types*; nothing connects them yet. The single load-bearing missing object
+    is the 3D spherical change-of-variables unitary
+
+      `chartRealization : Spectra.Sobolev.L2_R3 ≃ₗᵢ[ℂ] Decomposition.L2_R3`,
+
+    realizing `∫_{ℝ³} |f|² dx = ∫₀^∞ ∫_{S²} |f ∘ sphereChart|² r² dr dΩ` (Jacobian
+    `r² sin θ`), together with its **Hamiltonian-intertwining** property: it carries
+    `Dom(H)` onto `⊕_ℓ Dom(H_ℓ)` and conjugates `H` into the sector operators `H_ℓ`
+    (`sphericalDecomposition` of `chartRealization ψ`, sector-by-sector
+    `RadialEq.radialHamiltonian ℓ`). Mathlib (v4.31) provides only the 2D `polarCoord`,
+    so `chartRealization` is genuinely new infrastructure and is the *only* gap shared by
+    both directions of the proof. Bundling it as an axiom is rejected (it is honest new
+    work to be discharged); it is therefore stated as a single named, documented unitary
+    when built, mirroring how `RadialEq.reduced_radial_L2_quantized` isolates its
+    analytic gap.
+
+    **Discharge route — `←` (E = E_n ⟹ eigenpair exists).** Closeable *modulo
+    `chartRealization` alone*:
+    1. transport the bound state `Ψ_{nℓm} = hydrogenEigenfunction n ℓ m` (sector
+       `(ℓ, m)`, e.g. `ℓ = 0`, `m = 0`) back to the Cartesian side via
+       `chartRealization.symm`; it lands in `Dom(H) = SobolevH2` by the
+       domain-preservation half of the intertwining;
+    2. the eigen-equation `H Ψ = E_n • Ψ` follows from the intertwining together with
+       the pointwise sector identity `hydrogen_eigenfunction_eq` (the `−½Δ` convention)
+       and the radial ODE `RadialEq.radial_eigenvalue_eq` (`H_ℓ R_{nℓ} = E_n R_{nℓ}`);
+    3. `Ψ ≠ 0` from `chartRealization.norm_map` and `inner_radialLp` (unit radial norm).
+    Caveat: the explicit radial layer (`hydrogenEigenvalue n = −1/(2n²)`,
+    `radial_eigenvalue_eq`, `hydrogen_eigenfunction_eq`) is currently specialised to
+    `p.Z = 1`. General `Z` needs the dilation `r ↦ Z r` of the radial wavefunctions, an
+    isolated and routine extra step; until then this direction is honest only at `Z = 1`.
+
+    **Discharge route — `→` (eigenpair ⟹ E = E_n).** Needs `chartRealization` **and** the
+    pre-existing analytic gap:
+    1. push a Cartesian eigenfunction through `chartRealization` then
+       `sphericalDecomposition`, and project onto sector `(ℓ, m)` to obtain a `RadialL2`
+       solution of `H_ℓ R = E R`;
+    2. a weak-eigen ⟹ classical-`C²`-radial-ODE *regularity* step (elliptic regularity in
+       the radial variable) puts that solution in the hypotheses of `radial_quantization`;
+    3. `RadialEq.radial_quantization` then forces `E = E_n` — this bottoms out at the one
+       documented analytic gap `RadialEq.reduced_radial_L2_quantized`
+       (confluent-hypergeometric / Levinson–Poincaré asymptotics, not yet in Mathlib).
+
+    **Proved and ready to be consumed by the above:** `sphericalDecomposition`
+    (`Decomposition.L2_R3 ≃ₗᵢ ⊕_ℓ RadialL2`, sorry-free), `hydrogen_reduces_half`
+    (pointwise sector reduction of `H`), `hydrogen_eigenfunction_eq`,
+    `radial_eigenvalue_eq`, `hydrogen_isSelfAdjoint`, and `hydrogen_degeneracy`
+    (giving `dim ker(H − E_n) ≥ n²` at the orthonormal-family level). The remaining
+    leaves are exactly `chartRealization` (+ its intertwining) and
+    `reduced_radial_L2_quantized`. -/
 theorem hydrogen_discrete_spectrum (p : CoulombParams) :
     ∀ (E : ℝ), E < 0 →
     (∃ ψ : (hydrogenHamiltonian p).domain,

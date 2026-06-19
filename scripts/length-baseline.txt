@@ -111,9 +111,9 @@ decl Spectra.SphericalHarmonics.Basic ae_eq_zero_of_forall_integral_polyCos_eq_z
 decl Spectra.SphericalHarmonics.Basic sphericalHarmonic_complete 157
 decl Spectra.SphericalHarmonics.Basic sphericalHarmonic_eigenvalue 118
 decl Spectra.SphericalHarmonics.Basic sphericalHarmonic_orthonormal 217
-decl Spectra.Stone.Yosida.Exponential exponential_group_law 78
-decl Spectra.Stone.Yosida.Exponential exponential_strong_continuous 169
-decl Spectra.Stone.Yosida.Exponential exponential_sub_eq_integral 95
+decl Spectra.YosidaHille.Approximation.Exponential exponential_group_law 78
+decl Spectra.YosidaHille.Approximation.Exponential exponential_strong_continuous 169
+decl Spectra.YosidaHille.Approximation.Exponential exponential_sub_eq_integral 95
 file Spectra.QuantumMechanics.Hydrogen.RadialProblem.Laguerre.Basic 1893
 file Spectra.QuantumMechanics.Perturbation.HardyInequality 1832
 file Spectra.SphericalHarmonics.Basic 2424
@@ -188,12 +188,12 @@ line Spectra.SpectralTheory.Essential.Weyl 1
 line Spectra.SpectralTheory.StoneFormula.Identities 3
 line Spectra.SpectralTheory.Weak 2
 line Spectra.SphericalHarmonics.Basic 5
-line Spectra.Stone.Yosida.Bounds 4
-line Spectra.Stone.Yosida.Convergence.Approximants 41
-line Spectra.Stone.Yosida.Convergence.JNegOperator 10
-line Spectra.Stone.Yosida.Convergence.JOperator 3
-line Spectra.Stone.Yosida.ExpBounded.Unitary 1
-line Spectra.Stone.Yosida.Exponential 6
-line Spectra.Stone.Yosida.Helpers 2
-line Spectra.Stone.Yosida.Symmetry 1
+line Spectra.YosidaHille.Approximation.Bounds 4
+line Spectra.YosidaHille.Approximation.Convergence.Approximants 41
+line Spectra.YosidaHille.Approximation.Convergence.JNegOperator 10
+line Spectra.YosidaHille.Approximation.Convergence.JOperator 3
+line Spectra.YosidaHille.Approximation.ExpBounded.Unitary 1
+line Spectra.YosidaHille.Approximation.Exponential 6
+line Spectra.YosidaHille.Approximation.Helpers 2
+line Spectra.YosidaHille.Approximation.Symmetry 1
 line Spectra.StoneBridge.Basic 2

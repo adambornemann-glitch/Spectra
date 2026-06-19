@@ -34,7 +34,7 @@ For a self-adjoint `A`, `A - z` is bijective with bounded inverse for **every** 
 * [Reed, Simon, *Methods of Modern Mathematical Physics I*][reed1980], Section VIII.
 -/
 open Complex
-open Spectra.Stoneslemma
+open Spectra.YosidaHille
 open scoped InnerProductSpace
 namespace Spectra.Resolvent
 

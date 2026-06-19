@@ -6,7 +6,7 @@ Filename: CayleyTransform/StoneBridge.lean
 -/
 import Spectra.CayleyTransform.Generator.Stone         -- stoneGroup, stoneExp, generator_stoneGroup
 import Spectra.YosidaHille.Basic                             -- genToGroup, generator_genToGroup, stoneEquiv
-                                                       --   (⚠ the module with `Spectra.StonesTheorem`;
+                                                       --   (⚠ the module with `Spectra.YosidaHille`;
                                                        --    you have been importing it as Stone.Basic)
 /-!
 # Stone's theorem as a bijection, spectrally — and its agreement with the Yosida bijection
@@ -29,10 +29,10 @@ agreement is exactly `stoneGroup_eq_genToGroup` (`§1`), itself a one-line conse
 depend on it.
 -/
 open InnerProductSpace Complex Filter Topology
-open Spectra Spectra.OneParameterUnitaryGroup Spectra.Resolvent Spectra.Stoneslemma Spectra.Cayley
+open Spectra Spectra.OneParameterUnitaryGroup Spectra.Resolvent Spectra.YosidaHille Spectra.Cayley
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
 variable {A : H →ₗ.[ℂ] H}
-namespace Spectra.StonesTheorem
+namespace Spectra.YosidaHille
 
 /-! ## §1  Consistency of the two constructions of `e^{itA}` -/
 
@@ -87,4 +87,4 @@ theorem stoneEquivSpectral_symm_coe_eq [Nontrivial H] :
     (stoneEquivSpectral.symm : {A : H →ₗ.[ℂ] H // IsSelfAdjoint A} → _) = stoneEquiv.symm := by
   rw [stoneEquivSpectral_eq_stoneEquiv]
 
-end Spectra.StonesTheorem
+end Spectra.YosidaHille

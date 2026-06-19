@@ -2,7 +2,6 @@
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
-Filename: Yosida/Exponential.lean
 -/
 import Spectra.YosidaHille.Approximation.Commutation
 import Spectra.YosidaHille.Approximation.Symmetry
@@ -20,15 +19,14 @@ operator generates a strongly continuous unitary group.
 
 * `exponential`: The unitary group `exp(itA)` defined as the limit of `exp(it·Aₙˢʸᵐ)`
 
-## Main results
+## Main statements
 
-* `exponential_tendsto`: The Yosida exponentials converge to `exponential`
-* `exponential_unitary`: `exp(itA)` preserves inner products
-* `exponential_group_law`: `exp(i(s+t)A) = exp(isA) ∘ exp(itA)`
-* `exponential_identity`: `exp(i·0·A) = I`
-* `exponential_strong_continuous`: `t ↦ exp(itA)ψ` is continuous
-* `exponential_generator_eq`: The generator of `exp(itA)` is `iA`
-* `exponential_derivative_on_domain`: Differentiability on the domain
+* `exponential_unitary` — `exp(itA)` preserves inner products.
+* `exponential_group_law` — `exp(i(s+t)A) = exp(isA) ∘ exp(itA)`.
+* `exponential_identity` — `exp(i·0·A) = I`.
+* `exponential_strong_continuous` — `t ↦ exp(itA)ψ` is continuous.
+* `exponential_sub_eq_integral` — the Duhamel integral identity for `exp(itA)`.
+* `exponential_generator_eq` / `exponential_generator_eq'` — the generator of `exp(itA)` is `iA`.
 
 ## References
 
@@ -38,7 +36,7 @@ operator generates a strongly continuous unitary group.
 -/
 open Complex Filter Topology InnerProductSpace
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
-namespace Spectra.Stone.Yosida
+namespace Spectra.YosidaHille.Approximation
 
 /-! ### Definition of the exponential -/
 
@@ -46,10 +44,12 @@ variable {A : H →ₗ.[ℂ] H} (hsym : A.IsFormalAdjoint A)
   (hplus  : ∀ φ : H, ∃ ψ : A.domain, A ψ + I • (ψ : H) = φ)
   (hminus : ∀ φ : H, ∃ ψ : A.domain, A ψ - I • (ψ : H) = φ)
 
+/-- The exponential `exp(itA)ψ` as a bare vector: the limit of the Yosida approximant evolutions. -/
 private noncomputable def exponentialFun
     (_hdense : Dense (A.domain : Set H)) (t : ℝ) (ψ : H) : H :=
   limUnder atTop (fun n => expBounded (I • yosidaApproxSym hsym hplus hminus n) t ψ)
 
+/-- The Yosida approximant evolutions `exp(it·Aₙˢʸᵐ)ψ` converge to `exponentialFun`. -/
 lemma exponentialFun_tendsto
     (hdense : Dense (A.domain : Set H)) (t : ℝ) (ψ : H) :
     Tendsto (fun n : ℕ+ => expBounded (I • yosidaApproxSym hsym hplus hminus n) t ψ) atTop
@@ -58,6 +58,7 @@ lemma exponentialFun_tendsto
     (cauchySeq_tendsto_of_complete
       (expBounded_yosidaApproxSym_cauchy_intrinsic hsym hplus hminus hdense t ψ))
 
+/-- `exponentialFun` is additive in `ψ`. -/
 private lemma exponentialFun_add
     (h_dense : Dense (A.domain : Set H)) (t : ℝ) (ψ₁ ψ₂ : H) :
     exponentialFun hsym hplus hminus h_dense t (ψ₁ + ψ₂)
@@ -73,6 +74,7 @@ private lemma exponentialFun_add
   rw [hadd] at h₁₂
   exact tendsto_nhds_unique h₁₂ (h₁.add h₂)
 
+/-- `exponentialFun` is `ℂ`-homogeneous in `ψ`. -/
 private lemma exponentialFun_smul
     (h_dense : Dense (A.domain : Set H)) (t : ℝ) (c : ℂ) (ψ : H) :
     exponentialFun hsym hplus hminus h_dense t (c • ψ)
@@ -85,6 +87,7 @@ private lemma exponentialFun_smul
   rw [hsmul] at hc
   exact tendsto_nhds_unique hc (tendsto_const_nhds.smul h)
 
+/-- `exponentialFun` is norm-nonexpansive: `‖exp(itA)ψ‖ ≤ ‖ψ‖`. -/
 private lemma exponentialFun_norm_le
     (h_dense : Dense (A.domain : Set H)) (t : ℝ) (ψ : H) :
     ‖exponentialFun hsym hplus hminus h_dense t ψ‖ ≤ 1 * ‖ψ‖ := by
@@ -106,6 +109,7 @@ private lemma exponentialFun_norm_le
   simp_rw [h_norm] at h_tendsto_norm
   exact le_of_eq (tendsto_nhds_unique h_tendsto_norm tendsto_const_nhds)
 
+/-- The exponential `exp(itA)` as a bounded operator: the strong limit of `exp(it·Aₙˢʸᵐ)`. -/
 noncomputable def exponential
     (hdense : Dense (A.domain : Set H)) (t : ℝ) : H →L[ℂ] H :=
   LinearMap.mkContinuous
@@ -117,6 +121,7 @@ noncomputable def exponential
 
 /-! ### Unitarity -/
 
+/-- `exp(itA)` preserves the inner product. -/
 lemma exponential_unitary
     (h_dense : Dense (A.domain : Set H))
     (t : ℝ) (ψ φ : H) :
@@ -143,6 +148,7 @@ lemma exponential_unitary
 
 /-! ### Group law -/
 
+/-- The group law: `exp(i(s+t)A) = exp(isA) ∘ exp(itA)`. -/
 lemma exponential_group_law
     (h_dense : Dense (A.domain : Set H))
     (s t : ℝ) (ψ : H) :
@@ -159,9 +165,6 @@ lemma exponential_group_law
       (fun n : ℕ+ => expBounded (I • yosidaApproxSym hsym hplus hminus n) (s + t) ψ)
       atTop (𝓝 (exponential hsym hplus hminus h_dense (s + t) ψ)) :=
    exponentialFun_tendsto hsym hplus hminus h_dense (s + t) ψ
-  have h_conv_t : Tendsto (fun n : ℕ+ => expBounded (I • yosidaApproxSym hsym hplus hminus n) t ψ)
-                          atTop (𝓝 (exponential hsym hplus hminus h_dense t ψ)) :=
-    exponentialFun_tendsto hsym hplus hminus h_dense t ψ
   have h_conv_rhs : Tendsto (fun n : ℕ+ =>
       expBounded (I • yosidaApproxSym hsym hplus hminus n) s
         (expBounded (I • yosidaApproxSym hsym hplus hminus n) t ψ))
@@ -223,6 +226,7 @@ lemma exponential_group_law
   exact tendsto_nhds_unique h_conv_lhs (h_conv_rhs.congr (fun n => (h_approx_group n).symm))
 
 /-! ### Identity -/
+/-- At `t = 0`, `exp(itA)` is the identity. -/
 lemma exponential_identity
     (h_dense : Dense (A.domain : Set H))
     (ψ : H) :
@@ -240,6 +244,7 @@ lemma exponential_identity
 
 /-! ### Strong continuity -/
 
+/-- Strong continuity: `t ↦ exp(itA)ψ` is continuous. -/
 lemma exponential_strong_continuous
     (h_dense : Dense (A.domain : Set H))
     (ψ : H) :
@@ -595,11 +600,10 @@ lemma exponential_generator_eq'
   rw [show (-I : ℂ) • (I • A ⟨φ, hφ⟩) = A ⟨φ, hφ⟩ by
         rw [smul_smul, neg_mul, Complex.I_mul_I]; simp] at h
   refine h.congr' ?_
-  filter_upwards [self_mem_nhdsWithin] with t ht
+  filter_upwards [self_mem_nhdsWithin] with t _
   rw [smul_smul]
   congr 1
-  have htC : (t : ℂ) ≠ 0 := by exact_mod_cast ht
   rw [mul_inv, Complex.inv_I]
 
 
-end Spectra.Stone.Yosida
+end Spectra.YosidaHille.Approximation

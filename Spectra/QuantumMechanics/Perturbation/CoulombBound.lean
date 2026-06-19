@@ -4,6 +4,7 @@ Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Spectra.QuantumMechanics.Hydrogen.Laplacian.Basic
+import Spectra.QuantumMechanics.Hydrogen.Laplacian.HalfLaplacian
 import Spectra.OneParameterUnitaryGroup.Basic
 import Spectra.YosidaHille.Basic
 import Spectra.QuantumMechanics.Perturbation.HardyInequality
@@ -301,14 +302,56 @@ theorem coulomb_kato_rellich (p : CoulombParams) (lam : ℝ) :
   kato_rellich_bound_zero laplacian_isSelfAdjoint (coulombPotential p)
     (coulomb_isSymmetricOn p) (coulomb_relative_bound_is_zero p) lam
 
-/-- **The hydrogen Hamiltonian H = −Δ − Z/r is self-adjoint on H²(ℝ³).**
+/-! ## The textbook kinetic operator `−½Δ`
+
+Re-threading symmetry, the (zero) relative bound, and Kato–Rellich
+self-adjointness against `halfLaplacianPMap = (½ : ℂ) • laplacianPMap`. -/
+
+/-- The Coulomb potential is symmetric on `Dom(−½Δ)` (= `Dom(−Δ)` definitionally). -/
+theorem coulomb_isSymmetricOn_half (p : CoulombParams) :
+    IsSymmetricOn halfLaplacianPMap (coulombPotential p) :=
+  coulomb_isSymmetricOn p
+
+/-- The Coulomb potential is `(−½Δ)`-bounded with relative bound `0`.
+
+    Halving the kinetic operator at most doubles its norm slope; applying the
+    `(−Δ)`-bound at `ε/2` and using `‖−½Δψ‖ = ½‖−Δψ‖` recovers slope `ε`. -/
+theorem coulomb_relative_bound_is_zero_half (p : CoulombParams) :
+    ∀ ε : ℝ, 0 < ε → ∃ b : ℝ, 0 ≤ b ∧
+      ∀ ψ : halfLaplacianPMap.domain,
+        ‖coulombPotential p ψ‖ ≤ ε * ‖halfLaplacianPMap ψ‖ + b * ‖(ψ : L2_R3)‖ := by
+  intro ε hε
+  obtain ⟨b, hb0, hb⟩ := coulomb_relative_bound_is_zero p (ε / 2) (by positivity)
+  refine ⟨b, hb0, fun ψ => ?_⟩
+  have hdom : (ψ : L2_R3) ∈ laplacianPMap.domain := ψ.2
+  have hb' := hb ⟨(ψ : L2_R3), hdom⟩
+  have hnorm : ‖halfLaplacianPMap ψ‖ = (1 / 2 : ℝ) * ‖laplacianPMap ⟨(ψ : L2_R3), hdom⟩‖ := by
+    rw [halfLaplacianPMap_apply ψ, norm_smul]
+    have hc : ‖((1 / 2 : ℝ) : ℂ)‖ = (1 / 2 : ℝ) := by
+      rw [Complex.norm_real, Real.norm_eq_abs]; norm_num
+    rw [hc]
+    rfl
+  rw [hnorm]
+  have hVeq : ‖coulombPotential p ψ‖ = ‖coulombPotential p ⟨(ψ : L2_R3), hdom⟩‖ := by congr 1
+  rw [hVeq]
+  calc ‖coulombPotential p ⟨(ψ : L2_R3), hdom⟩‖
+      ≤ (ε / 2) * ‖laplacianPMap ⟨(ψ : L2_R3), hdom⟩‖ + b * ‖(ψ : L2_R3)‖ := hb'
+    _ = ε * (1 / 2 * ‖laplacianPMap ⟨(ψ : L2_R3), hdom⟩‖) + b * ‖(ψ : L2_R3)‖ := by ring
+
+/-- **The textbook hydrogen Hamiltonian `H = −½Δ − Z/r` is self-adjoint on `H²(ℝ³)`.** -/
+theorem hydrogen_isSelfAdjoint_half (p : CoulombParams) :
+    IsSelfAdjoint (perturbedOp halfLaplacianPMap (coulombPotential p)) := by
+  have h := kato_rellich_bound_zero halfLaplacian_isSelfAdjoint (coulombPotential p)
+    (coulomb_isSymmetricOn_half p) (coulomb_relative_bound_is_zero_half p) 1
+  rwa [Complex.ofReal_one, one_smul] at h
+
+/-- **The hydrogen Hamiltonian `H = −½Δ − Z/r` is self-adjoint on `H²(ℝ³)`.**
 
     (The sign and charge are already inside `coulombMultiplier`;
-    this is the λ = 1 specialisation.) -/
+    the kinetic term is the textbook `−½Δ`.) -/
 theorem hydrogen_isSelfAdjoint (p : CoulombParams) :
-    IsSelfAdjoint (perturbedOp laplacianPMap (coulombPotential p)) := by
-  have h := coulomb_kato_rellich p 1
-  rwa [Complex.ofReal_one, one_smul] at h
+    IsSelfAdjoint (perturbedOp halfLaplacianPMap (coulombPotential p)) :=
+  hydrogen_isSelfAdjoint_half p
 
 /-! ## Interface summary
 

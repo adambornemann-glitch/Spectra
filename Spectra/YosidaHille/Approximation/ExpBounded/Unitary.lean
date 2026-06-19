@@ -2,33 +2,35 @@
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
-Filename: ExpBounded/Unitary.lean
 -/
 import Spectra.YosidaHille.Approximation.ExpBounded.Adjoint
+
 /-!
-# Unitarity of Exponentials of Skew-Adjoint Operators
+# Unitarity of exponentials of skew-adjoint operators
 
-This file proves that the exponential of a skew-adjoint operator is unitary,
-and establishes derivative formulas for the bounded exponential.
+The exponential of a skew-adjoint operator is unitary, and the bounded exponential has the expected
+derivative formulas. Specializing to `I • Aₙˢʸᵐ` (skew-adjoint, since `Aₙˢʸᵐ` is self-adjoint) gives
+that `exp(i·Aₙˢʸᵐ·t)` is an isometry — the unitary approximants whose limit is the evolution group.
 
-## Main results
+## Main statements
 
-* `expBounded_skewAdjoint_unitary`: If `B* = -B`, then `exp(tB)*exp(tB) = exp(tB)exp(tB)* = 1`
-* `expBounded_mem_unitary`: `exp(tB) ∈ unitary` when `B` is skew-adjoint
-* `expBounded_yosidaApproxSym_unitary`: `exp(i·Aₙˢʸᵐ·t)` preserves inner products
-* `expBounded_yosidaApproxSym_isometry`: `exp(i·Aₙˢʸᵐ·t)` is an isometry
-* `expBounded_hasDerivAt`: Derivative of the exponential
-
+* `expBounded_skewAdjoint_unitary` — for `B* = -B`, both composites of `exp(tB)` with its adjoint
+  are the identity.
+* `expBounded_mem_unitary` — `exp(tB) ∈ unitary` when `B` is skew-adjoint.
+* `expBounded_yosidaApproxSym_unitary` / `expBounded_yosidaApproxSym_isometry` — `exp(i·Aₙˢʸᵐ·t)`
+  preserves inner products and norms.
+* `expBounded_hasDerivAt` — the derivative of the exponential.
 -/
 open Complex Filter Topology InnerProductSpace
 open Spectra.Resolvent
 open Spectra.OneParameterUnitaryGroup
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
-namespace Spectra.Stone.Yosida
-variable {U_grp : OneParameterUnitaryGroup (H := H)}
+namespace Spectra.YosidaHille.Approximation
 
 /-! ### Skew-adjoint implies unitary exponential -/
 
+/-- If `B` is skew-adjoint (`B* = -B`), then `exp(tB)` is two-sided unitary: both composites with
+its adjoint are the identity. -/
 lemma expBounded_skewAdjoint_unitary (B : H →L[ℂ] H) (hB : B.adjoint = -B) (t : ℝ) :
     (expBounded B t).adjoint.comp (expBounded B t) = ContinuousLinearMap.id ℂ H ∧
     (expBounded B t).comp (expBounded B t).adjoint = ContinuousLinearMap.id ℂ H := by
@@ -42,6 +44,12 @@ lemma expBounded_skewAdjoint_unitary (B : H →L[ℂ] H) (hB : B.adjoint = -B) (
     congr 2
     ext x
     simp only [ofReal_neg, neg_smul, smul_neg]
+  have h_eq : (fun k : ℕ => (1 / k.factorial : ℂ) • (0 : H →L[ℂ] H) ^ k) =
+              (fun k : ℕ => if k = 0 then 1 else 0) := by
+    ext k
+    cases k with
+    | zero => simp
+    | succ k => simp [pow_succ]
   constructor
   · -- exp(tB)* ∘ exp(tB) = exp(-tB) ∘ exp(tB) = exp(0) = I
     rw [h_adj]
@@ -49,12 +57,6 @@ lemma expBounded_skewAdjoint_unitary (B : H →L[ℂ] H) (hB : B.adjoint = -B) (
     simp only [neg_add_cancel]
     unfold expBounded
     simp only [ofReal_zero, zero_smul]
-    have h_eq : (fun k : ℕ => (1 / k.factorial : ℂ) • (0 : H →L[ℂ] H) ^ k) =
-                (fun k : ℕ => if k = 0 then 1 else 0) := by
-      ext k
-      cases k with
-      | zero => simp
-      | succ k => simp [pow_succ]
     rw [h_eq]
     rw [tsum_eq_single 0]
     · abel
@@ -66,27 +68,22 @@ lemma expBounded_skewAdjoint_unitary (B : H →L[ℂ] H) (hB : B.adjoint = -B) (
     simp only [add_neg_cancel]
     unfold expBounded
     simp only [ofReal_zero, zero_smul]
-    have h_eq : (fun k : ℕ => (1 / k.factorial : ℂ) • (0 : H →L[ℂ] H) ^ k) =
-                (fun k : ℕ => if k = 0 then 1 else 0) := by
-      ext k
-      cases k with
-      | zero => simp
-      | succ k => simp [pow_succ]
     rw [h_eq]
     rw [tsum_eq_single 0]
     · abel
     · intro k hk
       simp [hk]
 
+/-- For skew-adjoint `B`, `exp(tB)` lies in the unitary group. -/
 lemma expBounded_mem_unitary (B : H →L[ℂ] H) (hB : ContinuousLinearMap.adjoint B = -B) (t : ℝ) :
     expBounded B t ∈ unitary (H →L[ℂ] H) := by
   haveI : NormedAlgebra ℚ (H →L[ℂ] H) :=
     NormedAlgebra.restrictScalars ℚ ℂ _
   rw [Unitary.mem_iff]
+  have h1 : star (expBounded B t) = expBounded (-B) t := by
+    rw [ContinuousLinearMap.star_eq_adjoint, adjoint_expBounded, hB]
   constructor
   · -- star (exp B t) * exp B t = 1
-    have h1 : star (expBounded B t) = expBounded (-B) t := by
-      rw [ContinuousLinearMap.star_eq_adjoint, adjoint_expBounded, hB]
     rw [h1, expBounded_eq_exp, expBounded_eq_exp]
     have h_comm : Commute ((t : ℂ) • (-B)) ((t : ℂ) • B) := by
       unfold Commute SemiconjBy
@@ -96,8 +93,6 @@ lemma expBounded_mem_unitary (B : H →L[ℂ] H) (hB : ContinuousLinearMap.adjoi
     simp only [smul_neg, neg_add_cancel, NormedSpace.exp_zero] at h2
     simp_all only [smul_neg, coe_smul, Commute.neg_left_iff, Commute.refl]
   · -- exp B t * star (exp B t) = 1
-    have h1 : star (expBounded B t) = expBounded (-B) t := by
-      rw [ContinuousLinearMap.star_eq_adjoint, adjoint_expBounded, hB]
     rw [h1, expBounded_eq_exp, expBounded_eq_exp]
     have h_comm : Commute ((t : ℂ) • B) ((t : ℂ) • (-B)) := by
       unfold Commute SemiconjBy
@@ -109,12 +104,14 @@ lemma expBounded_mem_unitary (B : H →L[ℂ] H) (hB : ContinuousLinearMap.adjoi
 
 /-! ### Unitarity for Yosida approximants -/
 
+/-- If `A` is self-adjoint then `I • A` is skew-adjoint: `(I·A)* = -(I·A)`. -/
 lemma smul_I_skewSelfAdjoint (A : H →L[ℂ] H) (hA : ContinuousLinearMap.adjoint A = A) :
     ContinuousLinearMap.adjoint (I • A) = -(I • A) := by
   have h := ContinuousLinearMap.adjoint.map_smulₛₗ I A
   rw [h, hA, starRingEnd_apply, star_def, conj_I]
   simp only [neg_smul]
 
+/-- `exp(i·Aₙˢʸᵐ·t)` preserves the inner product. -/
 lemma expBounded_yosidaApproxSym_unitary {A : H →ₗ.[ℂ] H}
     (hsym : A.IsFormalAdjoint A)
     (hplus : ∀ φ : H, ∃ ψ : A.domain, A ψ + I • (ψ : H) = φ)
@@ -131,6 +128,7 @@ lemma expBounded_yosidaApproxSym_unitary {A : H →ₗ.[ℂ] H}
     _ = ⟪ψ, (ContinuousLinearMap.id ℂ H) φ⟫_ℂ := by rw [h_unitary.1]
     _ = ⟪ψ, φ⟫_ℂ := by simp
 
+/-- `exp(i·Aₙˢʸᵐ·t)` is an isometry: it preserves norms. -/
 theorem expBounded_yosidaApproxSym_isometry {A : H →ₗ.[ℂ] H}
     (hsym : A.IsFormalAdjoint A)
     (hplus : ∀ φ : H, ∃ ψ : A.domain, A ψ + I • (ψ : H) = φ)
@@ -147,6 +145,7 @@ theorem expBounded_yosidaApproxSym_isometry {A : H →ₗ.[ℂ] H}
   have h_nonneg2 : 0 ≤ ‖ψ‖ := norm_nonneg _
   nlinarith [sq_nonneg (‖U ψ‖ - ‖ψ‖), sq_nonneg (‖U ψ‖ + ‖ψ‖), h_sq, h_nonneg1, h_nonneg2]
 
+/-- Norm bound for the (non-symmetric) Yosida exponential, via `expBounded_norm_bound`. -/
 theorem expBounded_yosida_norm_le {A : H →ₗ.[ℂ] H}
     (hsym : A.IsFormalAdjoint A)
     (hplus : ∀ φ : H, ∃ ψ : A.domain, A ψ + I • (ψ : H) = φ)
@@ -163,7 +162,7 @@ lemma expBounded_hasDerivAt_zero (B : H →L[ℂ] H) :
     HasDerivAt (fun τ : ℝ => expBounded B τ) B 0 := by
   haveI : IsScalarTower ℝ ℂ H := RestrictScalars.isScalarTower ℝ ℂ H
   haveI : CompleteSpace (H →L[ℂ] H) := inferInstance
-  letI : NormedAlgebra ℝ (H →L[ℂ] H) := NormedAlgebra.restrictScalars ℝ ℂ _  -- letI not haveI!
+  letI : NormedAlgebra ℝ (H →L[ℂ] H) := NormedAlgebra.restrictScalars ℝ ℂ _
   haveI : IsScalarTower ℝ ℂ (H →L[ℂ] H) :=
     ⟨fun r c f => ContinuousLinearMap.ext fun x => smul_assoc r c (f x)⟩
   simp_rw [expBounded_eq_exp]
@@ -203,7 +202,7 @@ lemma expBounded_hasDerivAt (B : H →L[ℂ] H) (τ : ℝ) :
                              ((ContinuousLinearMap.compL ℂ H H H) A)
                              (expBounded B (τ - τ)) :=
       ((ContinuousLinearMap.compL ℂ H H H) A).hasFDerivAt
-    have h_clm' := h_clm.restrictScalars ℝ   -- was: ℂ (no-op)
+    have h_clm' := h_clm.restrictScalars ℝ
     have h_comp := h_clm'.comp_hasDerivAt τ h_shift
     convert h_comp using 1
   have h_comm : (expBounded B τ).comp B = B.comp (expBounded B τ) := by
@@ -215,4 +214,4 @@ lemma expBounded_hasDerivAt (B : H →L[ℂ] H) (τ : ℝ) :
   rw [h_comm] at h_post
   exact h_post.congr_of_eventuallyEq (Eventually.of_forall (fun t => (h_eq t)))
 
-end Spectra.Stone.Yosida
+end Spectra.YosidaHille.Approximation

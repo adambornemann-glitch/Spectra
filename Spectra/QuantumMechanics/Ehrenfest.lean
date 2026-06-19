@@ -9,7 +9,7 @@ import Mathlib.Analysis.InnerProductSpace.Continuous
 
 open InnerProductSpace Complex Filter Topology
 open Spectra.OneParameterUnitaryGroup
-open Spectra.StonesTheorem
+open Spectra.YosidaHille
 open Spectra.QuantumMechanics.Schrodinger
 
 namespace Spectra.QuantumMechanics.Ehrenfest

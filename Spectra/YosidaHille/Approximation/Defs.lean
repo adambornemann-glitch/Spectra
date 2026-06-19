@@ -2,34 +2,35 @@
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
-Filename: Yosida/Defs.lean
 -/
 import Spectra.YosidaHille.Approximation.Helpers
 import Spectra.OneParameterUnitaryGroup.Basic
-/-!
-# Yosida Approximation Operators
 
-This file defines the Yosida approximation operators used to construct the
-exponential of a self-adjoint operator.
+/-!
+# Yosida approximation operators
+
+The Yosida approximation operators used to construct the exponential (one-parameter group) of a
+self-adjoint operator. The construction evaluates the resolvent at the off-axis points `z = ± in`
+and assembles the bounded approximants `Aₙ`, their symmetric variant, and the contractions `Jₙ`.
 
 ## Main definitions
 
-* `resolventAtIn`: The resolvent `R(in)` at `z = in`
-* `resolventAtNegIn`: The resolvent `R(-in)` at `z = -in`
-* `yosidaApprox`: The Yosida approximant `Aₙ = n²R(in) - in·I`
-* `yosidaApproxSym`: The symmetric Yosida approximant `(n²/2)(R(in) + R(-in))`
-* `yosidaJ`: The contractive operator `Jₙ = -in·R(in)`
-* `yosidaJNeg`: The contractive operator `Jₙ⁻ = in·R(-in)`
-* `yosidaApproxNeg`: The approximant using `R(-in)`
+* `resolventAtIn` / `resolventAtNegIn` — the resolvent `R(± in)` at `z = ± in`.
+* `yosidaApprox` — the Yosida approximant `Aₙ = n²R(in) - in·I`.
+* `yosidaApproxSym` — the symmetric Yosida approximant `(n²/2)(R(in) + R(-in))`.
+* `yosidaJ` / `yosidaJNeg` — the contractive operators `Jₙ = -in·R(in)`, `Jₙ⁻ = in·R(-in)`.
+* `yosidaApproxNeg` — the approximant `Aₙ⁻ = n²R(-in) + in·I` built from `R(-in)`.
 
-## Main results
+## Main statements
 
-* `resolventAtIn_bound`: `‖R(in)‖ ≤ 1/n`
-
+* `resolventAtIn_bound` — `‖R(in)‖ ≤ 1/n`.
 -/
+
 open Complex Spectra.Resolvent
+
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
-namespace Spectra.Stone.Yosida
+
+namespace Spectra.YosidaHille.Approximation
 
 /-! ### Resolvent at specific points -/
 
@@ -93,6 +94,7 @@ noncomputable def yosidaApproxNeg {A : H →ₗ.[ℂ] H}
 
 /-! ### Resolvent bounds -/
 
+/-- The resolvent at `z = in` is bounded by `1/n`: `‖R(in)‖ ≤ 1/n`. -/
 lemma resolventAtIn_bound {A : H →ₗ.[ℂ] H}
     (hsym : A.IsFormalAdjoint A)
     (hplus : ∀ φ : H, ∃ ψ : A.domain, A ψ + I • (ψ : H) = φ)
@@ -105,4 +107,4 @@ lemma resolventAtIn_bound {A : H →ₗ.[ℂ] H}
         resolvent_bound hsym hplus hminus (I * (n : ℂ)) (I_mul_pnat_im_ne_zero n)
     _ = 1 / (n : ℝ) := by rw [abs_I_mul_pnat_im]
 
-end Spectra.Stone.Yosida
+end Spectra.YosidaHille.Approximation

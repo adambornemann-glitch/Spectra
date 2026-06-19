@@ -2,15 +2,31 @@
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
-Filename: UnitaryEvolution/Stone/Helpers.lean
 -/
 import Spectra.OneParameterUnitaryGroup.Basic
+
+/-!
+# Operator lower bounds and the self-adjoint surjectivity criterion
+
+Off-axis lower bounds for a symmetric operator and their consequences. For `z` off the real axis,
+`|z.im|·‖x‖ ≤ ‖A x - z•x‖`, from which the range of `A - z` is closed and dense — hence all of `H`.
+Specialized to `z = ± I`, this gives the deficiency-index criterion (`A ± I` surjective) that
+underlies Stone's theorem, and shows a self-adjoint operator has no proper self-adjoint extension.
+
+## Main statements
+
+* `op_lower_bound` — `|z.im|·‖x‖ ≤ ‖A x - z•x‖` for symmetric `A`.
+* `op_range_isClosed` / `op_range_dense` — the range of `A - z` is closed and dense.
+* `selfAdjoint_surjective_sub_smul` — `A - z` is surjective for `z` off the real axis.
+* `isSelfAdjoint_to_surjective` — `A ± I` are surjective for self-adjoint `A`.
+* `IsSelfAdjoint.eq_of_le` — a self-adjoint operator has no proper self-adjoint extension.
+-/
 
 open InnerProductSpace Complex Filter Topology
 open scoped ComplexConjugate
 
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
-namespace Spectra.Stoneslemma
+namespace Spectra.YosidaHille
 
 omit [CompleteSpace H] in
 /-- Lower bound for a symmetric operator off the real axis: `|z.im|·‖x‖ ≤ ‖A x − z•x‖`.
@@ -64,7 +80,7 @@ lemma op_range_isClosed {A : H →ₗ.[ℂ] H} (hsym : A.IsFormalAdjoint A)
     have hsub : (↑(xn m) - ↑(xn k) : H) ∈ A.domain := A.domain.sub_mem (xn m).2 (xn k).2
     have hAsub : A ⟨↑(xn m) - ↑(xn k), hsub⟩ - z • (↑(xn m) - ↑(xn k)) = φn m - φn k := by
       have hms : A ⟨↑(xn m) - ↑(xn k), hsub⟩ = A (xn m) - A (xn k) := by
-        have := A.map_sub (xn m) (xn k); convert this using 2     -- ⚠ verify depth
+        have := A.map_sub (xn m) (xn k); convert this using 2
       rw [hms, smul_sub, ← hxn m, ← hxn k]; abel_nf
       grind only
     have hlb := op_lower_bound hsym z ⟨↑(xn m) - ↑(xn k), hsub⟩
@@ -79,8 +95,8 @@ lemma op_range_isClosed {A : H →ₗ.[ℂ] H} (hsym : A.IsFormalAdjoint A)
       funext n; rw [← hxn n]; abel_nf; grind only
     rw [heq]; exact hlim.add (hu.const_smul z)
   have hpair : (u, φ + z • u) ∈ A.graph :=
-    hgr.mem_of_tendsto (hu.prodMk_nhds hAx)                       -- ⚠ verify: prodMk_nhds
-      (Filter.Eventually.of_forall fun n => A.mem_graph (xn n))   -- ⚠ verify: A.mem_graph
+    hgr.mem_of_tendsto (hu.prodMk_nhds hAx)
+      (Filter.Eventually.of_forall fun n => A.mem_graph (xn n))
   rw [LinearPMap.mem_graph_iff] at hpair
   obtain ⟨y, hy1, hy2⟩ := hpair
   have e1 : (y : H) = u := hy1
@@ -94,7 +110,7 @@ lemma op_range_dense {A : H →ₗ.[ℂ] H} (hA : IsSelfAdjoint A) (z : ℂ) (hz
   have hsym : A.IsFormalAdjoint A := by
     have h : A.adjoint.IsFormalAdjoint A := LinearPMap.adjoint_isFormalAdjoint hdense
     rwa [LinearPMap.isSelfAdjoint_def.mp hA] at h
-  have hadj : A.adjoint = A := LinearPMap.isSelfAdjoint_def.mp hA  -- ⚠ verify: adjoint no dense arg
+  have hadj : A.adjoint = A := LinearPMap.isSelfAdjoint_def.mp hA
   set R : Submodule ℂ H := LinearMap.range (A.toFun - z • A.domain.subtype) with hRdef
   have hRset : (Set.range fun x : A.domain => A x - z • (x : H)) = (R : Set H) := by
     ext y; constructor
@@ -105,7 +121,7 @@ lemma op_range_dense {A : H →ₗ.[ℂ] H} (hA : IsSelfAdjoint A) (z : ℂ) (hz
     rw [Submodule.eq_bot_iff]
     intro χ hχ
     have horth : ∀ x : A.domain, ⟪A x - z • (x : H), χ⟫_ℂ = 0 := by
-      intro x; exact hχ _ ⟨x, by simp [LinearMap.sub_apply]⟩     -- ⚠ verify: mem_orthogonal dir
+      intro x; exact hχ _ ⟨x, by simp [LinearMap.sub_apply]⟩
     -- χ lies in the adjoint domain (the functional x ↦ ⟪χ, A x⟫ is continuous)
     have hcont : Continuous fun x : A.domain => ⟪χ, A x⟫_ℂ := by
       have hfun : (fun x : A.domain => ⟪χ, A x⟫_ℂ)
@@ -116,9 +132,9 @@ lemma op_range_dense {A : H →ₗ.[ℂ] H} (hA : IsSelfAdjoint A) (z : ℂ) (hz
         have hc := congrArg (starRingEnd ℂ) h0
         rwa [inner_conj_symm, map_mul, Complex.conj_conj, inner_conj_symm] at hc
       rw [hfun]
-      exact continuous_const.mul (continuous_const.inner A.domain.subtypeL.continuous)  -- ⚠
+      exact continuous_const.mul (continuous_const.inner A.domain.subtypeL.continuous)
     have hχdom : χ ∈ A.adjoint.domain :=
-      (LinearPMap.mem_adjoint_domain_iff A χ).mpr hcont          -- ⚠ verify name/args
+      (LinearPMap.mem_adjoint_domain_iff A χ).mpr hcont
     -- A† χ = conj z • χ, hence (via self-adjointness) A χ = conj z • χ
     have hval : A.adjoint ⟨χ, hχdom⟩ = conj z • χ := by
       have hkey : ∀ x : A.domain, ⟪A.adjoint ⟨χ, hχdom⟩ - conj z • χ, (x : H)⟫_ℂ = 0 := by
@@ -141,7 +157,7 @@ lemma op_range_dense {A : H →ₗ.[ℂ] H} (hA : IsSelfAdjoint A) (z : ℂ) (hz
         exact inner_self_eq_zero.mp this
       rwa [hd, sub_eq_zero] at hd0
     -- transport across A† = A and kill via the lower bound
-    have hχdomA : χ ∈ A.domain := hadj ▸ hχdom                    -- ⚠ verify cast
+    have hχdomA : χ ∈ A.domain := hadj ▸ hχdom
     have hAχ : A ⟨χ, hχdomA⟩ = conj z • χ := by
       have hle := (le_of_eq hadj).2 (x := ⟨χ, hχdom⟩) (y := ⟨χ, hχdomA⟩) rfl
       rw [← hle]; exact hval
@@ -156,7 +172,7 @@ lemma op_range_dense {A : H →ₗ.[ℂ] H} (hA : IsSelfAdjoint A) (z : ℂ) (hz
     simpa using le_antisymm this (norm_nonneg χ)
   have hcl : R.topologicalClosure = ⊤ := by
     rw [← Submodule.orthogonal_orthogonal_eq_closure, hbot, Submodule.bot_orthogonal_eq_top]
-  exact (Submodule.dense_iff_topologicalClosure_eq_top).mpr hcl  -- ⚠ verify name
+  exact (Submodule.dense_iff_topologicalClosure_eq_top).mpr hcl
 
 /-- Self-adjoint ⇒ `A − z` surjective for `z` off the real axis. -/
 lemma selfAdjoint_surjective_sub_smul {A : H →ₗ.[ℂ] H} (hA : IsSelfAdjoint A)
@@ -213,4 +229,4 @@ lemma IsSelfAdjoint.eq_of_le {A B : H →ₗ.[ℂ] H}
     ⟨fun w hw => hdom w hw, fun x y hxy => (hle.2 (x := y) (y := x) hxy.symm).symm⟩
   exact le_antisymm hle hB_le
 
-end Spectra.Stoneslemma
+end Spectra.YosidaHille

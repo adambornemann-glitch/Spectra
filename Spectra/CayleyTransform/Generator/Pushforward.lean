@@ -20,8 +20,8 @@ groups' spectral measures — hence the groups (`stoneGroup_eq_genToGroup`), hen
 -/
 open Complex MeasureTheory Filter Topology InnerProductSpace
 open scoped InnerProductSpace
-open Spectra.Resolvent Spectra.Stoneslemma Spectra.QuantumMechanics.Observable
-open Spectra.QuantumMechanics.SpectralTheory Spectra.BorelCFC Spectra.StonesTheorem
+open Spectra.Resolvent Spectra.YosidaHille Spectra.QuantumMechanics.Observable
+open Spectra.QuantumMechanics.SpectralTheory Spectra.BorelCFC
 open Spectra.OneParameterUnitaryGroup Spectra.Borel
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
 variable {A : H →ₗ.[ℂ] H}

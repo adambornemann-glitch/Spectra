@@ -43,7 +43,7 @@ under hydrogen-specific names and bundles it as an `UnboundedObservable` and a
 -/
 open MeasureTheory Complex Filter InnerProductSpace
 open Spectra.Sobolev
-open Spectra.OneParameterUnitaryGroup Spectra.StonesTheorem Spectra.Resolvent
+open Spectra.OneParameterUnitaryGroup Spectra.YosidaHille Spectra.Resolvent
 open Spectra.QuantumMechanics.Hamiltonian
 open Spectra.QuantumMechanics.SpectralTheory
 open Spectra.QuantumMechanics.Observable
@@ -53,10 +53,11 @@ namespace Spectra.QuantumMechanics.Hydrogen
 
 /-! ## The hydrogen Hamiltonian -/
 
-/-- The hydrogen Hamiltonian `H = −Δ − Z/r` as a partial linear map on `L²(ℝ³)`,
-with domain `H²(ℝ³)`. (The sign and charge are inside `coulombMultiplier`.) -/
+/-- The hydrogen Hamiltonian `H = −½Δ − Z/r` as a partial linear map on `L²(ℝ³)`,
+with domain `H²(ℝ³)`. (The sign and charge are inside `coulombMultiplier`; the
+kinetic term is the textbook `−½Δ`.) -/
 def hydrogenHamiltonian (p : CoulombParams) : L2_R3 →ₗ.[ℂ] L2_R3 :=
-  perturbedOp laplacianPMap (coulombPotential p)
+  perturbedOp halfLaplacianPMap (coulombPotential p)
 
 /-- The hydrogen Hamiltonian is self-adjoint on `H²(ℝ³)` (Kato–Rellich, via Hardy);
 this is `hydrogen_isSelfAdjoint` from `CoulombBound`. -/
@@ -70,10 +71,10 @@ domain. -/
     (hydrogenHamiltonian p).domain = SobolevH2 :=
   rfl
 
-/-- `Hψ = −Δψ − (Z/r)ψ` for `ψ ∈ H²`. -/
+/-- `Hψ = −½Δψ − (Z/r)ψ` for `ψ ∈ H²`. -/
 theorem hydrogenHamiltonian_apply (p : CoulombParams)
     (ψ : (hydrogenHamiltonian p).domain) :
-    hydrogenHamiltonian p ψ = laplacianPMap ψ + coulombPotential p ψ :=
+    hydrogenHamiltonian p ψ = halfLaplacianPMap ψ + coulombPotential p ψ :=
   rfl
 
 /-- The hydrogen Hamiltonian bundled as an `UnboundedObservable`. -/

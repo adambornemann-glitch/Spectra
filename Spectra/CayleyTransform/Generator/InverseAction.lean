@@ -14,9 +14,8 @@ import Spectra.Resolvent.Integral.Domain   -- genToGroup, generator_genToGroup, 
 
 open Complex MeasureTheory Filter Topology InnerProductSpace
 open scoped InnerProductSpace ComplexConjugate ENNReal NNReal
-open Spectra.StonesTheorem
+open Spectra.YosidaHille
 open Spectra.OneParameterUnitaryGroup
-open Spectra.Stoneslemma
 open Spectra.Resolvent
 open Spectra.QuantumMechanics.Observable
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]

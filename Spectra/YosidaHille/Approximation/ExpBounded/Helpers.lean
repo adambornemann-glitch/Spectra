@@ -2,31 +2,31 @@
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
-Filename: ExpBounded/Basic.lean
 -/
 import Spectra.YosidaHille.Approximation.Convergence.Approximants
-/-!
-# Exponential of Bounded Operators
 
-This file defines the exponential of a bounded linear operator via power series
-and establishes its basic properties including the group law and norm bounds.
+/-!
+# Exponential of bounded operators
+
+The exponential of a bounded linear operator `B` at time `t`, defined via the power series
+`exp(tB) = Σₖ (tB)ᵏ/k!`, together with its basic properties: summability, the norm bound, the
+group law for scalar multiples, special values, and agreement with Mathlib's `NormedSpace.exp`.
 
 ## Main definitions
 
-* `expBounded`: The exponential `exp(tB) = Σₖ (tB)^k / k!`
+* `expBounded` — the exponential `exp(tB) = Σₖ (tB)ᵏ/k!`.
 
-## Main results
+## Main statements
 
-* `expBounded_group_law`: `exp((s+t)B) = exp(sB) ∘ exp(tB)`
-* `expBounded_norm_bound`: `‖exp(tB)‖ ≤ exp(|t| * ‖B‖)`
-* `expBounded_summable`: The defining series is summable
-* `expBounded_at_zero`: `exp(0·B) = id`
-* `expBounded_eq_exp`: Equivalence with `NormedSpace.exp`
-
+* `expBounded_summable` — the defining series is summable.
+* `expBounded_norm_bound` — `‖exp(tB)‖ ≤ exp(|t|·‖B‖)`.
+* `expBounded_add_smul` — the group law `exp((s+t)B) = exp(sB) ∘ exp(tB)`.
+* `expBounded_at_zero` / `expBounded_at_zero'` — `exp(0·B) = id`.
+* `expBounded_eq_exp` — agreement with `NormedSpace.exp`.
 -/
 open Complex Filter Topology Spectra.Resolvent
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
-namespace Spectra.Stone.Yosida
+namespace Spectra.YosidaHille.Approximation
 
 
 /-! ### Definition -/
@@ -37,6 +37,7 @@ noncomputable def expBounded (B : H →L[ℂ] H) (t : ℝ) : H →L[ℂ] H :=
 
 /-! ### Summability -/
 
+/-- The defining series of `expBounded B t` is summable. -/
 lemma expBounded_summable (B : H →L[ℂ] H) (t : ℝ) :
     Summable (fun k : ℕ => (1 / k.factorial : ℂ) • ((t : ℂ) • B) ^ k) := by
   apply Summable.of_norm
@@ -45,9 +46,8 @@ lemma expBounded_summable (B : H →L[ℂ] H) (t : ℝ) :
     intro k
     rw [norm_smul]
     calc ‖(1 / k.factorial : ℂ)‖ * ‖((t : ℂ) • B) ^ k‖
-        ≤ ‖(1 / k.factorial : ℂ)‖ * ‖(t : ℂ) • B‖ ^ k := by
-            apply mul_le_mul_of_nonneg_left (opNorm_pow_le _ _)
-            exact norm_nonneg _
+        ≤ ‖(1 / k.factorial : ℂ)‖ * ‖(t : ℂ) • B‖ ^ k :=
+            mul_le_mul_of_nonneg_left (opNorm_pow_le _ _) (norm_nonneg _)
       _ = (1 / k.factorial) * ‖(t : ℂ) • B‖ ^ k := by
             congr 1
             simp only [norm_div]
@@ -61,6 +61,7 @@ lemma expBounded_summable (B : H →L[ℂ] H) (t : ℝ) :
 
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H]
 
+/-- The series of norms of the `expBounded B t` terms is summable. -/
 lemma expBounded_norm_summable (B : H →L[ℂ] H) (t : ℝ) :
     Summable (fun k : ℕ => ‖(1 / k.factorial : ℂ) • ((t : ℂ) • B) ^ k‖) := by
   have h_bound : ∀ k, ‖(1 / k.factorial : ℂ) • ((t : ℂ) • B) ^ k‖ ≤
@@ -68,9 +69,8 @@ lemma expBounded_norm_summable (B : H →L[ℂ] H) (t : ℝ) :
     intro k
     rw [norm_smul]
     calc ‖(1 / k.factorial : ℂ)‖ * ‖((t : ℂ) • B) ^ k‖
-        ≤ ‖(1 / k.factorial : ℂ)‖ * ‖(t : ℂ) • B‖ ^ k := by
-            apply mul_le_mul_of_nonneg_left (opNorm_pow_le _ _)
-            exact norm_nonneg _
+        ≤ ‖(1 / k.factorial : ℂ)‖ * ‖(t : ℂ) • B‖ ^ k :=
+            mul_le_mul_of_nonneg_left (opNorm_pow_le _ _) (norm_nonneg _)
       _ = ‖(t : ℂ) • B‖ ^ k / k.factorial := by
             have h1 : ‖(1 / k.factorial : ℂ)‖ = 1 / k.factorial := by
               simp_all only [one_div, norm_inv]
@@ -85,6 +85,7 @@ lemma expBounded_norm_summable (B : H →L[ℂ] H) (t : ℝ) :
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
 /-! ### Norm bounds -/
 
+/-- The exponential is norm-bounded: `‖exp(tB)‖ ≤ exp(|t|·‖B‖)`. -/
 lemma expBounded_norm_bound (B : H →L[ℂ] H) (t : ℝ) :
     ‖expBounded B t‖ ≤ Real.exp (|t| * ‖B‖) := by
   unfold expBounded
@@ -129,6 +130,7 @@ lemma expBounded_norm_bound (B : H →L[ℂ] H) (t : ℝ) :
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H]
 /-! ### Special values -/
 
+/-- At `t = 0` the exponential acts as the identity, pointwise: `exp(0·B) ψ = ψ`. -/
 lemma expBounded_at_zero (B : H →L[ℂ] H) (ψ : H) :
     expBounded B 0 ψ = ψ := by
   unfold expBounded
@@ -148,6 +150,7 @@ lemma expBounded_at_zero (B : H →L[ℂ] H) (ψ : H) :
   simp_all only [one_div, smul_ite, Nat.factorial_zero, Nat.cast_one, inv_one, one_smul,
     smul_zero, tsum_ite_eq, ContinuousLinearMap.one_apply]
 
+/-- At `t = 0` the exponential is the identity operator: `exp(0·B) = 1`. -/
 lemma expBounded_at_zero' (B : H →L[ℂ] H) : expBounded B 0 = 1 := by
   unfold expBounded
   simp only [ofReal_zero, zero_smul, one_div]
@@ -157,6 +160,7 @@ lemma expBounded_at_zero' (B : H →L[ℂ] H) : expBounded B 0 = 1 := by
   rw [tsum_eq_single 0 h_single]
   simp only [Nat.factorial_zero, Nat.cast_one, inv_one, pow_zero, one_smul]
 
+/-- The exponential of the zero operator is the identity: `exp(t·0) = 1`. -/
 lemma expBounded_zero_op (t : ℝ) : expBounded (0 : H →L[ℂ] H) t = 1 := by
   unfold expBounded
   simp only [smul_zero]
@@ -171,6 +175,7 @@ lemma expBounded_zero_op (t : ℝ) : expBounded (0 : H →L[ℂ] H) t = 1 := by
   · intro k hk
     simp only [hk, ↓reduceIte]
 
+/-- `expBounded` agrees with Mathlib's `NormedSpace.exp`: `exp(tB) = exp((t : ℂ) • B)`. -/
 lemma expBounded_eq_exp (B : H →L[ℂ] H) (t : ℝ) :
     expBounded B t = NormedSpace.exp ((t : ℂ) • B) := by
   unfold expBounded
@@ -224,4 +229,4 @@ lemma expBounded_add_smul (B : H →L[ℂ] H) (s t : ℝ) :
   rw [NormedSpace.exp_add_of_commute h_comm]
   rfl
 
-end Spectra.Stone.Yosida
+end Spectra.YosidaHille.Approximation

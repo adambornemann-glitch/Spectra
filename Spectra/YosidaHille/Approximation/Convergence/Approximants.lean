@@ -2,31 +2,31 @@
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
-Filename: Convergence/Approximants.lean
 -/
 import Spectra.YosidaHille.Approximation.Convergence.JNegOperator
+
 /-!
-# Convergence of Yosida Approximants
+# Convergence of the Yosida approximants
 
-This file proves that the Yosida approximants `Aₙ`, `Aₙ⁻`, and `Aₙˢʸᵐ` converge
-strongly to the generator `A` on its domain.
+The Yosida approximants `Aₙ`, `Aₙ⁻`, and the symmetric `Aₙˢʸᵐ` converge strongly to the generator
+`A` on its domain. Each factors through the corresponding contraction (`Aₙφ = Jₙ(Aφ)`), so the
+convergence `Jₙ → 1` lifts to `Aₙ → A`. The symmetric approximant is their average.
 
-## Main results
+## Main statements
 
-* `yosidaApprox_eq_J_comp_A`: `Aₙφ = Jₙ(Aφ)` for `φ ∈ D(A)`
-* `yosidaApprox_tendsto_on_domain`: `Aₙφ → Aφ` for `φ ∈ D(A)`
-* `yosidaApproxNeg_eq_JNeg_A`: `Aₙ⁻φ = Jₙ⁻(Aφ)` for `φ ∈ D(A)`
-* `yosidaApproxNeg_tendsto_on_domain`: `Aₙ⁻φ → Aφ` for `φ ∈ D(A)`
-* `yosidaApproxSym_eq_avg`: `Aₙˢʸᵐ = ½(Aₙ + Aₙ⁻)`
-* `yosidaApproxSym_tendsto_on_domain`: `Aₙˢʸᵐφ → Aφ` for `φ ∈ D(A)`
-* `yosidaApprox_commutes_resolvent`: `Aₙ` commutes with resolvents
-
+* `yosidaApprox_eq_J_comp_A` — `Aₙφ = Jₙ(Aφ)` for `φ ∈ D(A)`.
+* `yosidaApprox_tendsto_on_domain` — `Aₙφ → Aφ` for `φ ∈ D(A)`.
+* `yosidaApproxNeg_eq_JNeg_A` — `Aₙ⁻φ = Jₙ⁻(Aφ)` for `φ ∈ D(A)`.
+* `yosidaApproxNeg_tendsto_on_domain` — `Aₙ⁻φ → Aφ` for `φ ∈ D(A)`.
+* `yosidaApproxSym_eq_avg` — `Aₙˢʸᵐ = ½(Aₙ + Aₙ⁻)`.
+* `yosidaApproxSym_tendsto_on_domain` — `Aₙˢʸᵐφ → Aφ` for `φ ∈ D(A)`.
+* `yosidaApprox_commutes_resolvent` — `Aₙ` commutes with every resolvent.
 -/
 open Complex Filter Topology Spectra.Resolvent
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
-namespace Spectra.Stone.Yosida
-variable {U_grp : OneParameterUnitaryGroup (H := H)}
+namespace Spectra.YosidaHille.Approximation
 
+/-- On the domain, `Aₙ` factors through `Jₙ`: `Aₙφ = Jₙ(Aφ)` for `φ ∈ D(A)`. -/
 lemma yosidaApprox_eq_J_comp_A {A : H →ₗ.[ℂ] H}
     (hsym : A.IsFormalAdjoint A)
     (hplus : ∀ φ : H, ∃ ψ : A.domain, A ψ + I • (ψ : H) = φ)
@@ -72,11 +72,9 @@ lemma yosidaApprox_eq_J_comp_A {A : H →ₗ.[ℂ] H}
     _ = ((n : ℂ)^2) • Resolvent.resolvent (I * (n : ℂ)) _ hsym hplus hminus φ + (-I * (n : ℂ)) • φ := by
           rw [add_comm]
     _ = ((n : ℂ)^2) • Resolvent.resolvent (I * (n : ℂ)) _ hsym hplus hminus φ - (I * (n : ℂ)) • φ := by
-          have h_neg : -I * (n : ℂ) = -(I * (n : ℂ)) := by ring
-          have h : (-I * (n : ℂ)) • φ = -((I * (n : ℂ)) • φ) := by
-            rw [h_neg, neg_smul]
-          rw [h, ← sub_eq_add_neg]
+          rw [neg_mul, neg_smul, ← sub_eq_add_neg]
 
+/-- `Aₙ` converges strongly to the generator on its domain: `Aₙφ → Aφ` for `φ ∈ D(A)`. -/
 lemma yosidaApprox_tendsto_on_domain {A : H →ₗ.[ℂ] H}
     (hsym : A.IsFormalAdjoint A)
     (hplus : ∀ φ : H, ∃ ψ : A.domain, A ψ + I • (ψ : H) = φ)
@@ -87,6 +85,7 @@ lemma yosidaApprox_tendsto_on_domain {A : H →ₗ.[ℂ] H}
   simp only [fun n => yosidaApprox_eq_J_comp_A hsym hplus hminus n ψ hψ]
   exact yosida_J_tendsto_id hsym hplus hminus h_dense (A ⟨ψ, hψ⟩)
 
+/-- On the domain, `Aₙ⁻` factors through `Jₙ⁻`: `Aₙ⁻φ = Jₙ⁻(Aφ)` for `φ ∈ D(A)`. -/
 lemma yosidaApproxNeg_eq_JNeg_A {A : H →ₗ.[ℂ] H}
     (hsym : A.IsFormalAdjoint A)
     (hplus : ∀ φ : H, ∃ ψ : A.domain, A ψ + I • (ψ : H) = φ)
@@ -99,7 +98,7 @@ lemma yosidaApproxNeg_eq_JNeg_A {A : H →ₗ.[ℂ] H}
   set R := Resolvent.resolvent (-I * (n : ℂ)) (neg_I_mul_pnat_im_ne_zero n) hsym hplus hminus
   have h := yosidaJNeg_eq_sub_resolvent_A hsym hplus hminus n φ hφ
   have h_RAφ : R (A ⟨φ, hφ⟩) = φ - (I * (n : ℂ)) • R φ := by
-    abel_nf ; rw [h, ← h];
+    abel_nf
     simp_all only [neg_mul, Int.reduceNeg, neg_smul, one_smul, neg_sub, add_sub_cancel, R]
   have h_in_sq : (I * (n : ℂ)) * (I * (n : ℂ)) = -((n : ℂ)^2) := by
     calc (I * (n : ℂ)) * (I * (n : ℂ))
@@ -115,6 +114,7 @@ lemma yosidaApproxNeg_eq_JNeg_A {A : H →ₗ.[ℂ] H}
     _ = (I * (n : ℂ)) • φ + (n : ℂ)^2 • R φ := by rw [neg_smul, sub_neg_eq_add]
     _ = (n : ℂ)^2 • R φ + (I * (n : ℂ)) • φ := by abel
 
+/-- `Aₙ⁻` converges strongly to the generator on its domain: `Aₙ⁻φ → Aφ` for `φ ∈ D(A)`. -/
 lemma yosidaApproxNeg_tendsto_on_domain {A : H →ₗ.[ℂ] H}
     (hsym : A.IsFormalAdjoint A)
     (hplus : ∀ φ : H, ∃ ψ : A.domain, A ψ + I • (ψ : H) = φ)
@@ -127,6 +127,7 @@ lemma yosidaApproxNeg_tendsto_on_domain {A : H →ₗ.[ℂ] H}
   simp_rw [h_eq]
   exact yosidaJNeg_tendsto_id hsym hplus hminus h_dense (A ⟨φ, hφ⟩)
 
+/-- The symmetric approximant is the average of the two one-sided ones: `Aₙˢʸᵐ = ½(Aₙ + Aₙ⁻)`. -/
 lemma yosidaApproxSym_eq_avg {A : H →ₗ.[ℂ] H}
     (hsym : A.IsFormalAdjoint A)
     (hplus : ∀ φ : H, ∃ ψ : A.domain, A ψ + I • (ψ : H) = φ)
@@ -147,9 +148,8 @@ lemma yosidaApproxSym_eq_avg {A : H →ₗ.[ℂ] H}
     _ = (1 / 2 : ℂ) • ((n : ℂ)^2 • R_pos ψ + (n : ℂ)^2 • R_neg ψ) := by rw [← smul_add]
     _ = (1 / 2 : ℂ) • ((n : ℂ)^2 • R_pos ψ - (I * (n : ℂ)) • ψ + ((n : ℂ)^2 • R_neg ψ + (I * (n : ℂ)) • ψ)) := by
         congr 1; abel
-    _ = (1 / 2 : ℂ) • (((n : ℂ)^2 • R_pos ψ - (I * (n : ℂ)) • ψ) + ((n : ℂ)^2 • R_neg ψ + (I * (n : ℂ)) • ψ)) := by
-        congr 1
 
+/-- `Aₙˢʸᵐ` converges strongly to the generator on its domain: `Aₙˢʸᵐφ → Aφ` for `φ ∈ D(A)`. -/
 lemma yosidaApproxSym_tendsto_on_domain {A : H →ₗ.[ℂ] H}
     (hsym : A.IsFormalAdjoint A)
     (hplus : ∀ φ : H, ∃ ψ : A.domain, A ψ + I • (ψ : H) = φ)
@@ -178,6 +178,7 @@ lemma yosidaApproxSym_tendsto_on_domain {A : H →ₗ.[ℂ] H}
   rw [h_simp] at h_half
   exact h_half
 
+/-- `Aₙ` commutes with every resolvent `R(z)` (`z` off the real axis). -/
 lemma yosidaApprox_commutes_resolvent {A : H →ₗ.[ℂ] H}
     (hsym : A.IsFormalAdjoint A)
     (hplus : ∀ φ : H, ∃ ψ : A.domain, A ψ + I • (ψ : H) = φ)
@@ -231,4 +232,4 @@ lemma yosidaApprox_commutes_resolvent {A : H →ₗ.[ℂ] H}
   simp only [resolventAtIn] at h_resolvent_comm
   rw [h_resolvent_comm]
 
-end Spectra.Stone.Yosida
+end Spectra.YosidaHille.Approximation

@@ -11,6 +11,6 @@ namespace PVM
 /-- The spectral measure of a self-adjoint operator. -/
 noncomputable def spectralPVM {A : H →ₗ.[ℂ] H} (hA : IsSelfAdjoint A) :
     Spectra.ProjValMeasure H :=
-  (StonesTheorem.genToGroup hA).toPVM
+  (YosidaHille.genToGroup hA).toPVM
 
 end Spectra.QuantumMechanics.SpectralTheory.PVM

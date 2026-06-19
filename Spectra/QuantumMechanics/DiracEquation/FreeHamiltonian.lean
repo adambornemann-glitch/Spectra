@@ -80,7 +80,7 @@ open Spectra.Sobolev
 open Spectra.QuantumMechanics.Hamiltonian
 open Spectra.QuantumMechanics.Observable
 open Spectra.OneParameterUnitaryGroup
-open Spectra.StonesTheorem
+open Spectra.YosidaHille
 open Spectra.QuantumMechanics.Hydrogen
 
 noncomputable section

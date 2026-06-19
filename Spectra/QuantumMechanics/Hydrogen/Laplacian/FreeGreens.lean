@@ -11,8 +11,7 @@ noncomputable section
 open MeasureTheory Complex Filter InnerProductSpace
 open Spectra.Sobolev
 open Spectra.OneParameterUnitaryGroup
-open Spectra.Stoneslemma
-open Spectra.StonesTheorem
+open Spectra.YosidaHille
 open Spectra.Resolvent
 open Spectra.Essential
 open Spectra.QuantumMechanics.Observable

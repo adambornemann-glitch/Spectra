@@ -2,31 +2,30 @@
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
-Filename: ExpBounded/Adjoint.lean
 -/
 import Spectra.YosidaHille.Approximation.ExpBounded.Helpers
 
 /-!
-# Adjoint Properties of Bounded Exponentials
+# Adjoint properties of bounded exponentials
 
-This file establishes that the adjoint of `exp(tB)` equals `exp(tB*)`.
-This is crucial for proving unitarity of exponentials of skew-adjoint operators.
+The adjoint of `exp(tB)` equals `exp(tB*)`, the key fact behind unitarity of the exponential of a
+skew-adjoint operator. Along the way we record how a `tsum` of operators interacts with application
+and with the inner product.
 
-## Main results
+## Main statements
 
-* `adjoint_pow`: `(B^k)* = (B*)^k`
-* `adjoint_expBounded`: `exp(tB)* = exp(tB*)`
-* `tsum_apply_of_summable`: Applying a tsum of operators to a vector
-* `inner_tsum_right'`: Inner product with tsum on the right
-* `tsum_inner_left'`: Inner product with tsum on the left
-
+* `adjoint_pow` — `(Bᵏ)* = (B*)ᵏ`.
+* `adjoint_expBounded` — `exp(tB)* = exp(tB*)`.
+* `tsum_apply_of_summable` — applying a `tsum` of operators to a vector.
+* `inner_tsum_right'` / `tsum_inner_left'` — inner product with a `tsum` on each side.
 -/
 open Complex Filter Topology InnerProductSpace
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
-namespace Spectra.Stone.Yosida
+namespace Spectra.YosidaHille.Approximation
 
 /-! ### Power of adjoint -/
 
+/-- The adjoint commutes with powers: `(Bᵏ)* = (B*)ᵏ`. -/
 lemma adjoint_pow (B : H →L[ℂ] H) (k : ℕ) :
     (B ^ k).adjoint = B.adjoint ^ k := by
   induction k with
@@ -59,6 +58,7 @@ variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H]
 
 /-! ### Tsum lemmas -/
 
+/-- A summable `tsum` of operators applied to a vector equals the `tsum` of the applications. -/
 lemma tsum_apply_of_summable (f : ℕ → H →L[ℂ] H) (hf : Summable f) (x : H) :
     (∑' n, f n) x = ∑' n, f n x := by
   let evalx : (H →L[ℂ] H) →L[ℂ] H := ContinuousLinearMap.apply ℂ H x
@@ -67,6 +67,7 @@ lemma tsum_apply_of_summable (f : ℕ → H →L[ℂ] H) (hf : Summable f) (x : 
     _ = ∑' n, evalx (f n) := evalx.map_tsum hf
     _ = ∑' n, f n x := rfl
 
+/-- The inner product distributes over a summable `tsum` on the right. -/
 lemma inner_tsum_right' (x : H) (f : ℕ → H) (hf : Summable f) :
     ⟪x, ∑' n, f n⟫_ℂ = ∑' n, ⟪x, f n⟫_ℂ := by
   let L : H →L[ℂ] ℂ := innerSL ℂ x
@@ -76,6 +77,7 @@ lemma inner_tsum_right' (x : H) (f : ℕ → H) (hf : Summable f) :
     _ = ∑' n, L (f n) := L.map_tsum hf
     _ = ∑' n, ⟪x, f n⟫_ℂ := by simp only [hL]
 
+/-- The inner product distributes over a summable `tsum` on the left. -/
 lemma tsum_inner_left' (f : ℕ → H) (y : H) (hf : Summable f) :
     ⟪∑' n, f n, y⟫_ℂ = ∑' n, ⟪f n, y⟫_ℂ := by
   have h_conj : ⟪∑' n, f n, y⟫_ℂ = (starRingEnd ℂ) ⟪y, ∑' n, f n⟫_ℂ :=
@@ -90,6 +92,7 @@ variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteS
 
 /-! ### Adjoint of exponential -/
 
+/-- The adjoint of the exponential is the exponential of the adjoint: `exp(tB)* = exp(tB*)`. -/
 lemma adjoint_expBounded (B : H →L[ℂ] H) (t : ℝ) :
     (expBounded B t).adjoint = expBounded B.adjoint t := by
   unfold expBounded
@@ -135,17 +138,7 @@ lemma adjoint_expBounded (B : H →L[ℂ] H) (t : ℝ) :
     simp only [map_div₀, map_one, map_natCast]
   rw [h_real]
   congr 1
-  have h_smul_pow : ∀ (c : ℂ) (T : H →L[ℂ] H) (n : ℕ), (c • T) ^ n = c ^ n • T ^ n := by
-    intro c T n
-    induction n with
-    | zero => simp
-    | succ n ih =>
-      rw [pow_succ, pow_succ, pow_succ, ih]
-      ext x
-      simp only [ContinuousLinearMap.mul_apply, ContinuousLinearMap.smul_apply]
-      rw [ContinuousLinearMap.map_smul]
-      rw [smul_smul]
-  rw [h_smul_pow, h_smul_pow]
+  rw [smul_pow, smul_pow]
   simp only [ContinuousLinearMap.smul_apply]
   rw [inner_smul_right, inner_smul_left]
   have h_t_real : (starRingEnd ℂ) ((t : ℂ) ^ k) = (t : ℂ) ^ k := by
@@ -160,4 +153,4 @@ lemma expBounded_adjoint (B : H →L[ℂ] H) (t : ℝ) :
     ContinuousLinearMap.adjoint (expBounded B t) = expBounded (ContinuousLinearMap.adjoint B) t :=
   adjoint_expBounded B t
 
-end Spectra.Stone.Yosida
+end Spectra.YosidaHille.Approximation

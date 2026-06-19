@@ -2,11 +2,24 @@
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
-Filename: UnitaryEvolution/Stone/Unique.lean
 -/
 import Spectra.YosidaHille.Approximation.Exponential
 import Spectra.Resolvent.Integral.Domain
+
 /-!
+# Uniqueness for Stone's lemma
+
+A strongly continuous one-parameter unitary group is determined by its generator: two groups with
+the same generator are equal. The proof differentiates the curve `σ ↦ V(t-σ)(W(σ)ψ)`, shows its
+derivative vanishes (from the generator's defining derivative and the group law), concludes it is
+constant, and so `V(t) = W(t)` on the dense generator domain — hence everywhere.
+
+## Main statements
+
+* `unitary_orbit_hasDerivAt` — the orbit `t ↦ U(t)x` solves `f'(t) = i·U(t)(gen U x)`.
+* `generator_comm` — the generator commutes with the group: `gen U (U(s)x) = U(s)(gen U x)`.
+* `group_apply_curve_hasDerivAt` — product/chain rule for `σ ↦ V(r σ)(v σ)`.
+* `group_unique` — equal generators imply equal groups.
 
 ## References
 
@@ -22,8 +35,9 @@ open InnerProductSpace Complex Filter Topology
 open Spectra.OneParameterUnitaryGroup
 
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
-namespace Spectra.Stoneslemma
+namespace Spectra.YosidaHille
 
+/-- The orbit `t ↦ U(t)x` is differentiable, with derivative `i·U(s)(gen U x)`. -/
 lemma unitary_orbit_hasDerivAt (U : OneParameterUnitaryGroup (H := H))
     (x : (generator U).domain) (s : ℝ) :
     HasDerivAt (fun t : ℝ => U.U t (x : H)) (I • U.U s (generator U x)) s := by
@@ -58,6 +72,7 @@ lemma unitary_orbit_hasDerivAt (U : OneParameterUnitaryGroup (H := H))
   rwa [show (fun t : ℝ => U.U (s + (t - s)) (x : H)) = fun t : ℝ => U.U t (x : H) by
         funext t; rw [show s + (t - s) = t from by ring]] at hC
 
+/-- The generator commutes with the group: `gen U (U(s)x) = U(s)(gen U x)`. -/
 lemma generator_comm (U : OneParameterUnitaryGroup (H := H)) (s : ℝ) (x : (generator U).domain) :
     generator U ⟨U.U s (x : H), generator_domain_invariant U s x⟩ = U.U s (generator U x) := by
   refine tendsto_nhds_unique
@@ -78,6 +93,7 @@ lemma generator_comm (U : OneParameterUnitaryGroup (H := H)) (s : ℝ) (x : (gen
   exact ((U.U s).continuous.tendsto _).comp (generator_tendsto U x)
 
 open Asymptotics in
+/-- Product/chain rule for the derivative of `σ ↦ V(r σ)(v σ)` along differentiable `v`, `r`. -/
 lemma group_apply_curve_hasDerivAt (V : OneParameterUnitaryGroup (H := H))
     {v : ℝ → H} {v' : H} {r : ℝ → ℝ} {r' : ℝ} {s : ℝ}
     (hv : HasDerivAt v v' s) (hr : HasDerivAt r r' s)
@@ -134,6 +150,7 @@ lemma group_apply_curve_hasDerivAt (V : OneParameterUnitaryGroup (H := H))
   norm_num; abel
 
 open Spectra.Resolvent in
+/-- A one-parameter unitary group is determined by its generator. -/
 lemma group_unique (V W : OneParameterUnitaryGroup (H := H))
     (h : generator V = generator W) : V = W := by
   have hdom : (generator V).domain = (generator W).domain := by rw [h]
@@ -173,4 +190,4 @@ lemma group_unique (V W : OneParameterUnitaryGroup (H := H))
   exact ContinuousLinearMap.ext fun ψ =>
     congrFun (Continuous.ext_on hdense (V.U t).continuous (W.U t).continuous hpt) ψ
 
-end Spectra.Stoneslemma
+end Spectra.YosidaHille

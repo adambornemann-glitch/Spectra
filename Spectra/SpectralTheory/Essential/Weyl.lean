@@ -35,7 +35,7 @@ asymptotically normalized and weakly null.  Finally `(B − i)φ n = (A − i)ψ
 
 open Filter Topology Complex
 open scoped InnerProductSpace
-open Spectra.Resolvent Spectra.QuantumMechanics.SpectralTheory Spectra.Stoneslemma
+open Spectra.Resolvent Spectra.QuantumMechanics.SpectralTheory Spectra.YosidaHille
 
 namespace Spectra.Essential
 

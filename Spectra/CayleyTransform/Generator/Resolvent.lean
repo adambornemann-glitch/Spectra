@@ -25,7 +25,7 @@ is `resolvent_at_neg_i_eq_cfc`.
 open Complex MeasureTheory
 open scoped InnerProductSpace
 open Spectra.Resolvent
-open Spectra.Stoneslemma
+open Spectra.YosidaHille
 open Spectra.QuantumMechanics.Observable
 open Spectra.QuantumMechanics.SpectralTheory
 open Spectra.BorelCFC

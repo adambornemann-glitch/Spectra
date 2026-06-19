@@ -20,9 +20,8 @@ outside (`A ψ(t)` rather than `U(t)(Aψ₀)`).
 * Stone, "On one-parameter unitary groups in Hilbert space" (1932)
 -/
 open InnerProductSpace Complex Filter Topology
-open Spectra.Stone.Yosida
-open Spectra.StonesTheorem
-open Spectra.Stoneslemma
+open Spectra.YosidaHille.Approximation
+open Spectra.YosidaHille
 open Spectra.OneParameterUnitaryGroup
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
 namespace Spectra.QuantumMechanics.Schrodinger

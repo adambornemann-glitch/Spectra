@@ -35,7 +35,7 @@ measure back to the operator and still need the weak spectral theorem
 /-- `[done]` **The keystone construction.**  The projection-valued measure of a self-adjoint
 operator, i.e. the existence half of `∃! P, (resolvent formula against P.diag)`.
 
-Defined as `SpectralTheory.spectralPVM A.selfAdjoint = (StonesTheorem.genToGroup A.selfAdjoint).toPVM`:
+Defined as `SpectralTheory.spectralPVM A.selfAdjoint = (YosidaHille.genToGroup A.selfAdjoint).toPVM`:
 the self-adjoint generator is exponentiated to a strongly continuous one-parameter unitary
 group by Stone's theorem, and that group's `toPVM` bundles the resolution of the identity.
 All five `ProjValMeasure` fields are genuinely discharged through the Stone / Cayley / Herglotz

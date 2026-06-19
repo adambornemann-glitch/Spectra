@@ -327,10 +327,10 @@ Liouvillian / thermal Hamiltonian) is exactly the self-adjoint operator that Sto
 its Cayley/Stone–von Neumann spectral form `stoneEquivSpectral`, which agrees with the Yosida–Hilde
 bijection `stoneEquiv` — assigns to `U_ω`. -/
 lemma invariantUnitaryGroup_stoneEquivSpectral (hinv : IsInvariant ω α) :
-    (Spectra.StonesTheorem.stoneEquivSpectral (invariantUnitaryGroup ω α hinv) :
+    (Spectra.YosidaHille.stoneEquivSpectral (invariantUnitaryGroup ω α hinv) :
         ω.gnsSpace →ₗ.[ℂ] ω.gnsSpace)
       = Spectra.OneParameterUnitaryGroup.generator (invariantUnitaryGroup ω α hinv) :=
-  Spectra.StonesTheorem.stoneEquivSpectral_apply _
+  Spectra.YosidaHille.stoneEquivSpectral_apply _
 
 /-! ## The KMS specialization -/
 
@@ -411,7 +411,7 @@ lemma ModularTheoryData.modularHamiltonian_apply_cyclicVector :
 `Δ^{it}` (the modular Hamiltonian) is exactly the self-adjoint operator that Stone's theorem — in
 its Cayley/spectral form `stoneEquivSpectral` — assigns to it. -/
 lemma ModularTheoryData.modularUnitaryGroup_stoneEquivSpectral :
-    (Spectra.StonesTheorem.stoneEquivSpectral hmod.modularUnitaryGroup :
+    (Spectra.YosidaHille.stoneEquivSpectral hmod.modularUnitaryGroup :
         ω.toState.gnsSpace →ₗ.[ℂ] ω.toState.gnsSpace)
       = Spectra.OneParameterUnitaryGroup.generator hmod.modularUnitaryGroup :=
   invariantUnitaryGroup_stoneEquivSpectral ω.toState hmod.dynamics hmod.invariant

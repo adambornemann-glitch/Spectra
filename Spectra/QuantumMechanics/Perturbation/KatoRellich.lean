@@ -98,8 +98,7 @@ estimate) are produced downstream and plugged into `kato_rellich_bound_zero`.
 -/
 open Complex Filter InnerProductSpace
 open Spectra.OneParameterUnitaryGroup
-open Spectra.Stoneslemma
-open Spectra.StonesTheorem
+open Spectra.YosidaHille
 open Spectra.Resolvent
 open Spectra.QuantumMechanics.Observable
 open Spectra.QuantumMechanics.SpectralTheory

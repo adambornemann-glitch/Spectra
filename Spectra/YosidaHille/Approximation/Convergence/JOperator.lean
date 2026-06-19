@@ -2,27 +2,27 @@
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
-Filename: Convergence/JOperator.lean
 -/
 import Spectra.YosidaHille.Approximation.Symmetry
+
 /-!
-# Convergence of the J Operator
+# Convergence of the J operator
 
-This file proves that the contractive operator `Jₙ = -in·R(in)` converges
-strongly to the identity on the domain, and extends this to all of H by density.
+The contraction `Jₙ = -in·R(in)` converges strongly to the identity: first on the domain `D(A)`
+(where `Jₙφ = φ - R(in)(Aφ)`), then on all of `H` by density together with the uniform bound
+`‖Jₙ‖ ≤ 1`.
 
-## Main results
+## Main statements
 
-* `yosidaJ_eq_sub_resolvent_A`: `Jₙφ = φ - R(in)(Aφ)` for `φ ∈ D(A)`
-* `yosidaJ_tendsto_on_domain`: `Jₙφ → φ` for `φ ∈ D(A)`
-* `yosida_J_tendsto_id`: `Jₙψ → ψ` for all `ψ ∈ H`
-
+* `yosidaJ_eq_sub_resolvent_A` — `Jₙφ = φ - R(in)(Aφ)` for `φ ∈ D(A)`.
+* `yosidaJ_tendsto_on_domain` — `Jₙφ → φ` for `φ ∈ D(A)`.
+* `yosida_J_tendsto_id` — `Jₙψ → ψ` for all `ψ ∈ H`.
 -/
 open Complex Filter Topology Spectra.Resolvent
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
-namespace Spectra.Stone.Yosida
-variable {U_grp : OneParameterUnitaryGroup (H := H)}
+namespace Spectra.YosidaHille.Approximation
 
+/-- On the domain, `Jₙ` splits off the resolvent of `Aφ`: `Jₙφ = φ - R(in)(Aφ)` for `φ ∈ D(A)`. -/
 lemma yosidaJ_eq_sub_resolvent_A {A : H →ₗ.[ℂ] H}
     (hsym : A.IsFormalAdjoint A)
     (hplus : ∀ φ : H, ∃ ψ : A.domain, A ψ + I • (ψ : H) = φ)
@@ -32,21 +32,14 @@ lemma yosidaJ_eq_sub_resolvent_A {A : H →ₗ.[ℂ] H}
       φ - Resolvent.resolvent (I * (n : ℂ)) (I_mul_pnat_im_ne_zero n) hsym hplus hminus (A ⟨φ, hφ⟩) := by
   set z := I * (n : ℂ) with hz_def
   set R := Resolvent.resolvent z (I_mul_pnat_im_ne_zero n) hsym hplus hminus with hR_def
-  obtain ⟨hRφ_domain, hRφ_eq⟩ := resolvent_spec hsym hplus hminus z (I_mul_pnat_im_ne_zero n) φ
-  have h_ARφ : A ⟨R φ, hRφ_domain⟩ = φ + z • (R φ) := by
-    calc A ⟨R φ, hRφ_domain⟩
-        = (A ⟨R φ, hRφ_domain⟩ - z • R φ) + z • R φ := by abel
-      _ = φ + z • R φ := by rw [hRφ_eq]
-  obtain ⟨hRAφ_domain, hRAφ_eq⟩ := resolvent_spec hsym hplus hminus z (I_mul_pnat_im_ne_zero n) (A ⟨φ, hφ⟩)
   have h_R_AzI : R (A ⟨φ, hφ⟩ - z • φ) = φ := by
     let ψ_sub : A.domain := Classical.choose (self_adjoint_range_all_z hsym hplus hminus z
                                (I_mul_pnat_im_ne_zero n) (A ⟨φ, hφ⟩ - z • φ)).exists
     have h_ψ_eq := Classical.choose_spec (self_adjoint_range_all_z hsym hplus hminus z
                     (I_mul_pnat_im_ne_zero n) (A ⟨φ, hφ⟩ - z • φ)).exists
-    have h_φ_solves : A ⟨φ, hφ⟩ - z • φ = A ⟨φ, hφ⟩ - z • φ := rfl
     have h_subtype : (⟨φ, hφ⟩ : A.domain) = ψ_sub :=
       (self_adjoint_range_all_z hsym hplus hminus z (I_mul_pnat_im_ne_zero n)
-        (A ⟨φ, hφ⟩ - z • φ)).unique h_φ_solves h_ψ_eq
+        (A ⟨φ, hφ⟩ - z • φ)).unique rfl h_ψ_eq
     calc R (A ⟨φ, hφ⟩ - z • φ)
         = ψ_sub.val := rfl
       _ = (⟨φ, hφ⟩ : A.domain).val := by rw [← h_subtype]
@@ -66,6 +59,7 @@ lemma yosidaJ_eq_sub_resolvent_A {A : H →ₗ.[ℂ] H}
     _ = φ - (φ + z • R φ) := by abel
     _ = φ - R (A ⟨φ, hφ⟩) := by rw [← h_RAφ_explicit]
 
+/-- On the domain, `Jₙ` converges strongly to the identity: `Jₙφ → φ` for `φ ∈ D(A)`. -/
 lemma yosidaJ_tendsto_on_domain {A : H →ₗ.[ℂ] H}
     (hsym : A.IsFormalAdjoint A)
     (hplus : ∀ φ : H, ∃ ψ : A.domain, A ψ + I • (ψ : H) = φ)
@@ -99,9 +93,7 @@ lemma yosidaJ_tendsto_on_domain {A : H →ₗ.[ℂ] H}
           ContinuousLinearMap.le_opNorm _ _
       _ ≤ (1 / (n : ℝ)) * ‖A ⟨φ, hφ⟩‖ := by
           gcongr
-          calc ‖Resolvent.resolvent (I * (n : ℂ)) (I_mul_pnat_im_ne_zero n) hsym hplus hminus‖
-              ≤ 1 / |(I * (n : ℂ)).im| := resolvent_bound hsym hplus hminus _ _
-            _ = 1 / (n : ℝ) := by rw [abs_I_mul_pnat_im]
+          exact resolventAtIn_bound hsym hplus hminus n
       _ < ε := by
           rw [one_div, inv_mul_lt_iff₀ hn_pos]
           have h1 : (⌈‖A ⟨φ, hφ⟩‖ / ε⌉₊ + 1 : ℕ) ≤ n := hn
@@ -111,6 +103,7 @@ lemma yosidaJ_tendsto_on_domain {A : H →ₗ.[ℂ] H}
             _ < (↑⌈‖A ⟨φ, hφ⟩‖ / ε⌉₊ + 1) * ε := by nlinarith
             _ ≤ (n : ℝ) * ε := by gcongr; exact_mod_cast h1
 
+/-- By density and the bound `‖Jₙ‖ ≤ 1`, `Jₙ` converges strongly to the identity on all of `H`. -/
 lemma yosida_J_tendsto_id {A : H →ₗ.[ℂ] H}
     (hsym : A.IsFormalAdjoint A)
     (hplus : ∀ φ : H, ∃ ψ : A.domain, A ψ + I • (ψ : H) = φ)
@@ -147,4 +140,4 @@ lemma yosida_J_tendsto_id {A : H →ₗ.[ℂ] H}
         · exact Metric.mem_ball'.mp hφ_close
     _ = ε := by ring
 
-end Spectra.Stone.Yosida
+end Spectra.YosidaHille.Approximation

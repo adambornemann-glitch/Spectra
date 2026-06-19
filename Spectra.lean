@@ -160,7 +160,14 @@ import Spectra.QuantumMechanics.Hydrogen.Laplacian.Basic
 import Spectra.QuantumMechanics.Hydrogen.Laplacian.FreeGreens
 import Spectra.QuantumMechanics.Hydrogen.Laplacian.Spherical
 import Spectra.QuantumMechanics.Hydrogen.Laplacian.EssentialSpectrum
+import Spectra.QuantumMechanics.Hydrogen.Laplacian.HalfLaplacian
 import Spectra.QuantumMechanics.Hydrogen.Laplacian.SphereIntegral
+import Spectra.QuantumMechanics.Hydrogen.Laplacian.ResolventL2
+import Spectra.QuantumMechanics.Hydrogen.Laplacian.GreensL2
+import Spectra.QuantumMechanics.Hydrogen.Laplacian.FreeGreensFourier
+import Spectra.QuantumMechanics.Hydrogen.Laplacian.FreeGreensConvolution
+import Spectra.QuantumMechanics.Hydrogen.Spectrum.Continuous.Defs
+import Spectra.QuantumMechanics.Hydrogen.Spectrum.Continuous.Compact
 --import Spectra.QuantumMechanics.Hydrogen.Spectrum
 import Spectra.QuantumMechanics.Observable.Basic
 import Spectra.OneParameterUnitaryGroup.Basic
@@ -168,6 +175,8 @@ import Spectra.QuantumMechanics.PauliMatrices
 import Spectra.QuantumMechanics.Perturbation.KatoRellich
 import Spectra.QuantumMechanics.Perturbation.HardyInequality
 import Spectra.QuantumMechanics.Perturbation.CoulombBound
+import Spectra.QuantumMechanics.Perturbation.TruncatedCoulombL2
+import Spectra.QuantumMechanics.Perturbation.ResolventKernelL2
 import Spectra.QuantumMechanics.SchrodingerEquation
 import Spectra.QuantumMechanics.Uncertainty.Heisenberg
 import Spectra.QuantumMechanics.Uncertainty.SchrodingerRobertson
@@ -239,6 +248,12 @@ import Spectra.SpectralTheory.Essential.WeakCompact
 import Spectra.SpectralTheory.Essential.Defs
 import Spectra.SpectralTheory.Essential.Weyl
 import Spectra.SpectralTheory.Essential.Closed
+import Spectra.SpectralTheory.Essential.Smul
+import Spectra.SpectralTheory.RectangleSimple
+import Spectra.SpectralTheory.IntegralOperator
+import Spectra.SpectralTheory.IntegralOperatorCompact
+import Spectra.SpectralTheory.TranslationKernel
+import Spectra.SpectralTheory.YoungConvolution
 import Spectra.SpectralTheory.Weak
 import Spectra.SphericalHarmonics.AssociatedLegendre
 import Spectra.SphericalHarmonics.Basic

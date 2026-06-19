@@ -26,7 +26,7 @@ open scoped InnerProductSpace
 open Spectra.Borel
 open SpectralMeasure
 open Spectra.OneParameterUnitaryGroup
-open Spectra.StonesTheorem
+open Spectra.YosidaHille
 open Spectra.Resolvent
 
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]

@@ -21,7 +21,7 @@ fundamental properties: it is an isometry, surjective, and unitary.
 open Complex
 open Spectra.Resolvent
 open Spectra.OneParameterUnitaryGroup
-open Spectra.Stoneslemma
+open Spectra.YosidaHille
 open Spectra.Operator
 open Spectra.QuantumMechanics.Observable
 open UnboundedObservable

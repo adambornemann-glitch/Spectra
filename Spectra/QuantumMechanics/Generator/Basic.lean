@@ -60,7 +60,7 @@ open scoped ComplexConjugate
 
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
 open Spectra.Resolvent
-open Spectra.OneParameterUnitaryGroup Spectra.Stoneslemma Spectra.StonesTheorem
+open Spectra.OneParameterUnitaryGroup Spectra.YosidaHille
 namespace Spectra.QuantumMechanics
 
 open Observable UnboundedObservable

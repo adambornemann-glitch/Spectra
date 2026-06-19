@@ -41,7 +41,7 @@ Riesz measure, and `Measure.ext_of_charFun` — it relocates unchanged.
 -/
 open Complex MeasureTheory Filter Topology InnerProductSpace
 open scoped InnerProductSpace
-open Spectra Spectra.Resolvent Spectra.Stoneslemma
+open Spectra Spectra.Resolvent Spectra.YosidaHille
 open Spectra.QuantumMechanics.SpectralTheory Spectra.BorelCFC
 open Spectra.OneParameterUnitaryGroup Spectra.Borel
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]

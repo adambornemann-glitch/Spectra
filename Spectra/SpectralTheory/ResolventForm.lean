@@ -55,8 +55,7 @@ open scoped InnerProductSpace
 open Spectra.OneParameterUnitaryGroup
 open Spectra.Resolvent
 open Spectra.Borel
-open Spectra.Stoneslemma
-open Spectra.StonesTheorem
+open Spectra.YosidaHille
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
 namespace Spectra.QuantumMechanics.SpectralTheory
 
