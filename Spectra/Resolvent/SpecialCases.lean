@@ -33,11 +33,6 @@ variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H]
 namespace Spectra.Resolvent
 /-! ## Resolvent at i -/
 
-/-- The defining surjectivity at `z = i`: `A - iI` hits every `φ`. -/
-lemma resolvent_at_i_spec {A : H →ₗ.[ℂ] H}
-    (hminus : ∀ φ : H, ∃ ψ : A.domain, A ψ - I • (ψ : H) = φ) (φ : H) :
-    ∃ ψ : A.domain, A ψ - I • (ψ : H) = φ := hminus φ
-
 /-- Solutions to `(A - iI)ψ = φ` are unique. -/
 lemma resolvent_at_i_unique {A : H →ₗ.[ℂ] H} (hsym : A.IsFormalAdjoint A)
     (φ ψ₁ ψ₂ : H)
@@ -274,23 +269,6 @@ lemma resolvent_at_i_bound {A : H →ₗ.[ℂ] H} (hsym : A.IsFormalAdjoint A)
     _ = ‖φ‖ := by rw [h_eq]
     _ = 1 * ‖φ‖ := by ring
 
-/-- The resolvent at `-i` is a contraction: `‖R(-i)‖ ≤ 1`. -/
-lemma resolvent_at_neg_i_bound {A : H →ₗ.[ℂ] H} (hsym : A.IsFormalAdjoint A)
-    (hplus : ∀ φ : H, ∃ ψ : A.domain, A ψ + I • (ψ : H) = φ) :
-    ‖resolvent_at_neg_i hsym hplus‖ ≤ 1 := by
-  apply ContinuousLinearMap.opNorm_le_bound _ (by norm_num)
-  intro φ
-  let ψ := resolvent_at_neg_i hsym hplus φ
-  have h_mem : ψ ∈ A.domain := Rplus_mem hplus φ
-  have h_eq : A ⟨ψ, h_mem⟩ + I • ψ = φ := Rplus_eq hplus φ
-  have h_le := norm_le_norm_add_I_smul hsym ⟨ψ, h_mem⟩
-  simp only at h_le
-  calc ‖resolvent_at_neg_i hsym hplus φ‖ = ‖ψ‖ := rfl
-    _ ≤ ‖A ⟨ψ, h_mem⟩ + I • ψ‖ := h_le
-    _ = ‖φ‖ := by rw [h_eq]
-    _ = 1 * ‖φ‖ := by ring
-
-
 /-! ## Left inverse property -/
 
 /-- `R(-i)` left-inverts `A + iI` on the domain: `R(-i)((A + iI)ψ) = ψ`. -/
@@ -303,16 +281,5 @@ lemma resolvent_at_neg_i_left_inverse {A : H →ₗ.[ℂ] H} (hsym : A.IsFormalA
   have hχ_mem : χ ∈ A.domain := Rplus_mem hplus φ
   have hχ_eq : A ⟨χ, hχ_mem⟩ + I • χ = φ := Rplus_eq hplus φ
   exact resolvent_at_neg_i_unique hsym φ χ ψ hχ_mem hψ hχ_eq rfl
-
-/-- `R(i)` left-inverts `A - iI` on the domain: `R(i)((A - iI)ψ) = ψ`. -/
-lemma resolvent_at_i_left_inverse {A : H →ₗ.[ℂ] H} (hsym : A.IsFormalAdjoint A)
-    (hminus : ∀ φ : H, ∃ ψ : A.domain, A ψ - I • (ψ : H) = φ)
-    (ψ : H) (hψ : ψ ∈ A.domain) :
-    resolvent_at_i hsym hminus (A ⟨ψ, hψ⟩ - I • ψ) = ψ := by
-  set φ := A ⟨ψ, hψ⟩ - I • ψ
-  set χ := resolvent_at_i hsym hminus φ
-  have hχ_mem : χ ∈ A.domain := Rminus_mem hminus φ
-  have hχ_eq : A ⟨χ, hχ_mem⟩ - I • χ = φ := Rminus_eq hminus φ
-  exact resolvent_at_i_unique hsym φ χ ψ hχ_mem hψ hχ_eq rfl
 
 end Spectra.Resolvent

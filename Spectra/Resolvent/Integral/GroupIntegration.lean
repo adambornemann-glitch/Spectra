@@ -57,16 +57,6 @@ lemma integrable_exp_neg_unitary (φ : H) :
   intro t _ht
   exact le_of_eq (norm_preserving U_grp t φ)
 
-/-- `e^{-t} • U(-t)φ` is integrable on `[0, ∞)`. -/
-lemma integrable_exp_neg_unitary_neg (φ : H) :
-    IntegrableOn (fun t => Real.exp (-t) • U_grp.U (-t) φ) (Set.Ici 0) volume := by
-  apply integrable_exp_decay_continuous
-    (fun t => U_grp.U (-t) φ)
-    ((U_grp.strong_continuous φ).comp continuous_neg)
-    ‖φ‖
-  intro t _ht
-  exact le_of_eq (norm_preserving U_grp (-t) φ)
-
 /-- The norm of the exponential-decay integral is bounded by `‖φ‖`. -/
 lemma norm_integral_exp_neg_unitary_le (φ : H) :
     ‖∫ t in Set.Ici 0, Real.exp (-t) • U_grp.U t φ‖ ≤ ‖φ‖ := by
@@ -77,11 +67,6 @@ lemma norm_integral_exp_neg_unitary_le (φ : H) :
   · intro t _ht
     exact le_of_eq (norm_preserving U_grp t φ)
   · exact norm_nonneg φ
-
-/-- `t ↦ U(t)φ` is integrable on the interval `(0, h]`. -/
-lemma integrable_unitary_Ioc (φ : H) (h : ℝ) (_ : 0 < h) :
-    IntegrableOn (fun t => U_grp.U t φ) (Set.Ioc 0 h) volume := by
-  exact (U_grp.strong_continuous φ).integrableOn_Icc.mono_set Set.Ioc_subset_Icc_self
 
 end UnitaryGroupIntegration
 
@@ -98,18 +83,6 @@ noncomputable def resolventIntegralPlus (φ : H) : H :=
     This solves `(A - iI)ψ = φ` where `A` is the generator. -/
 noncomputable def resolventIntegralMinus (φ : H) : H :=
   I • ∫ t in Set.Ici 0, Real.exp (-t) • U_grp.U (-t) φ
-
-lemma resolventIntegralPlus_add (φ₁ φ₂ : H) :
-    resolventIntegralPlus U_grp (φ₁ + φ₂) =
-    resolventIntegralPlus U_grp φ₁ + resolventIntegralPlus U_grp φ₂ := by
-  unfold resolventIntegralPlus
-  have h_int₁ := integrable_exp_neg_unitary U_grp φ₁
-  have h_int₂ := integrable_exp_neg_unitary U_grp φ₂
-  have h_eq : (fun t => Real.exp (-t) • U_grp.U t (φ₁ + φ₂)) =
-              (fun t => Real.exp (-t) • U_grp.U t φ₁ + Real.exp (-t) • U_grp.U t φ₂) := by
-    ext t
-    rw [map_add, smul_add]
-  rw [h_eq, integral_add h_int₁ h_int₂, DistribMulAction.smul_add]
 
 lemma norm_resolventIntegralPlus_le (φ : H) :
     ‖resolventIntegralPlus U_grp φ‖ ≤ ‖φ‖ := by

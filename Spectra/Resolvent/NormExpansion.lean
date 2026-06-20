@@ -45,14 +45,6 @@ lemma inner_self_im_eq_zero_of_symmetric
   simp only [Complex.conj_im] at h_parts
   linarith [h_parts.2]
 
-/-- Variant: the inner product `⟪Aψ, ψ⟫` equals its real part. -/
-lemma inner_self_eq_re_of_symmetric
-    {A : H →ₗ.[ℂ] H} (hsym : A.IsFormalAdjoint A) (ψ : A.domain) :
-    ⟪A ψ, (ψ : H)⟫_ℂ = (⟪A ψ, (ψ : H)⟫_ℂ).re := by
-  conv_lhs => rw [← Complex.re_add_im ⟪A ψ, (ψ : H)⟫_ℂ]
-  rw [inner_self_im_eq_zero_of_symmetric hsym ψ]
-  simp
-
 /-! ## Cross term vanishing for purely imaginary scalars -/
 
 /-- For symmetric `A` and purely imaginary `λ`, the cross term `⟪Aψ, λψ⟫` has zero real part. -/
@@ -66,18 +58,6 @@ lemma cross_term_re_eq_zero_of_symmetric
     simp
   rw [h_inner_eq, Complex.mul_re]
   simp [hs]
-
-/-- Special case: cross term for `I`. -/
-lemma cross_term_I_re_eq_zero
-    {A : H →ₗ.[ℂ] H} (hsym : A.IsFormalAdjoint A) (ψ : A.domain) :
-    (⟪A ψ, I • (ψ : H)⟫_ℂ).re = 0 :=
-  cross_term_re_eq_zero_of_symmetric hsym ψ I (by simp)
-
-/-- Special case: cross term for `-I`. -/
-lemma cross_term_neg_I_re_eq_zero
-    {A : H →ₗ.[ℂ] H} (hsym : A.IsFormalAdjoint A) (ψ : A.domain) :
-    (⟪A ψ, (-I) • (ψ : H)⟫_ℂ).re = 0 :=
-  cross_term_re_eq_zero_of_symmetric hsym ψ (-I) (by simp)
 
 /-- **Key Lemma**: For symmetric `A` and purely imaginary `λ`,
     `‖Aψ - λψ‖² = ‖Aψ‖² + |λ|²‖ψ‖²`. -/
