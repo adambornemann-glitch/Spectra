@@ -2,7 +2,6 @@
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
-Filename: Spectral/Resolvent/SpecialCases.lean
 -/
 import Spectra.Resolvent.NormExpansion
 /-!
@@ -29,15 +28,17 @@ The self-adjointness criterion states that `ran(A ± iI) = H`. We use
 `Classical.choose` to extract solutions and prove they are unique using
 the lower bound estimate from `NormExpansion`.
 -/
-open InnerProductSpace MeasureTheory Complex Filter Topology
+open InnerProductSpace Complex
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H]
 namespace Spectra.Resolvent
 /-! ## Resolvent at i -/
 
+/-- The defining surjectivity at `z = i`: `A - iI` hits every `φ`. -/
 lemma resolvent_at_i_spec {A : H →ₗ.[ℂ] H}
     (hminus : ∀ φ : H, ∃ ψ : A.domain, A ψ - I • (ψ : H) = φ) (φ : H) :
     ∃ ψ : A.domain, A ψ - I • (ψ : H) = φ := hminus φ
 
+/-- Solutions to `(A - iI)ψ = φ` are unique. -/
 lemma resolvent_at_i_unique {A : H →ₗ.[ℂ] H} (hsym : A.IsFormalAdjoint A)
     (φ ψ₁ ψ₂ : H)
     (hψ₁ : ψ₁ ∈ A.domain) (hψ₂ : ψ₂ ∈ A.domain)
@@ -68,11 +69,13 @@ noncomputable def Rminus {A : H →ₗ.[ℂ] H}
     (hminus : ∀ φ : H, ∃ ψ : A.domain, A ψ - I • (ψ : H) = φ) (φ : H) : H :=
   ↑(Classical.choose (hminus φ))
 
+/-- The minus-resolvent solution `R⁻φ` lies in `dom A`. -/
 lemma Rminus_mem {A : H →ₗ.[ℂ] H}
     (hminus : ∀ φ : H, ∃ ψ : A.domain, A ψ - I • (ψ : H) = φ) (φ : H) :
     Rminus hminus φ ∈ A.domain :=
   (Classical.choose (hminus φ)).property
 
+/-- The minus-resolvent solution satisfies `(A - iI)(R⁻φ) = φ`. -/
 lemma Rminus_eq {A : H →ₗ.[ℂ] H}
     (hminus : ∀ φ : H, ∃ ψ : A.domain, A ψ - I • (ψ : H) = φ) (φ : H) :
     A ⟨Rminus hminus φ, Rminus_mem hminus φ⟩ - I • Rminus hminus φ = φ :=
@@ -145,6 +148,7 @@ noncomputable def resolvent_at_i {A : H →ₗ.[ℂ] H} (hsym : A.IsFormalAdjoin
 
 /-! ## Resolvent at -i -/
 
+/-- Solutions to `(A + iI)ψ = φ` are unique. -/
 lemma resolvent_at_neg_i_unique {A : H →ₗ.[ℂ] H} (hsym : A.IsFormalAdjoint A)
     (φ ψ₁ ψ₂ : H)
     (hψ₁ : ψ₁ ∈ A.domain) (hψ₂ : ψ₂ ∈ A.domain)
@@ -175,11 +179,13 @@ noncomputable def Rplus {A : H →ₗ.[ℂ] H}
     (hplus : ∀ φ : H, ∃ ψ : A.domain, A ψ + I • (ψ : H) = φ) (φ : H) : H :=
   ↑(Classical.choose (hplus φ))
 
+/-- The plus-resolvent solution `R⁺φ` lies in `dom A`. -/
 lemma Rplus_mem {A : H →ₗ.[ℂ] H}
     (hplus : ∀ φ : H, ∃ ψ : A.domain, A ψ + I • (ψ : H) = φ) (φ : H) :
     Rplus hplus φ ∈ A.domain :=
   (Classical.choose (hplus φ)).property
 
+/-- The plus-resolvent solution satisfies `(A + iI)(R⁺φ) = φ`. -/
 lemma Rplus_eq {A : H →ₗ.[ℂ] H}
     (hplus : ∀ φ : H, ∃ ψ : A.domain, A ψ + I • (ψ : H) = φ) (φ : H) :
     A ⟨Rplus hplus φ, Rplus_mem hplus φ⟩ + I • Rplus hplus φ = φ :=
@@ -252,6 +258,7 @@ noncomputable def resolvent_at_neg_i {A : H →ₗ.[ℂ] H} (hsym : A.IsFormalAd
 
 /-! ## Bounds -/
 
+/-- The resolvent at `i` is a contraction: `‖R(i)‖ ≤ 1`. -/
 lemma resolvent_at_i_bound {A : H →ₗ.[ℂ] H} (hsym : A.IsFormalAdjoint A)
     (hminus : ∀ φ : H, ∃ ψ : A.domain, A ψ - I • (ψ : H) = φ) :
     ‖resolvent_at_i hsym hminus‖ ≤ 1 := by
@@ -267,6 +274,7 @@ lemma resolvent_at_i_bound {A : H →ₗ.[ℂ] H} (hsym : A.IsFormalAdjoint A)
     _ = ‖φ‖ := by rw [h_eq]
     _ = 1 * ‖φ‖ := by ring
 
+/-- The resolvent at `-i` is a contraction: `‖R(-i)‖ ≤ 1`. -/
 lemma resolvent_at_neg_i_bound {A : H →ₗ.[ℂ] H} (hsym : A.IsFormalAdjoint A)
     (hplus : ∀ φ : H, ∃ ψ : A.domain, A ψ + I • (ψ : H) = φ) :
     ‖resolvent_at_neg_i hsym hplus‖ ≤ 1 := by
@@ -285,6 +293,7 @@ lemma resolvent_at_neg_i_bound {A : H →ₗ.[ℂ] H} (hsym : A.IsFormalAdjoint 
 
 /-! ## Left inverse property -/
 
+/-- `R(-i)` left-inverts `A + iI` on the domain: `R(-i)((A + iI)ψ) = ψ`. -/
 lemma resolvent_at_neg_i_left_inverse {A : H →ₗ.[ℂ] H} (hsym : A.IsFormalAdjoint A)
     (hplus : ∀ φ : H, ∃ ψ : A.domain, A ψ + I • (ψ : H) = φ)
     (ψ : H) (hψ : ψ ∈ A.domain) :
@@ -295,6 +304,7 @@ lemma resolvent_at_neg_i_left_inverse {A : H →ₗ.[ℂ] H} (hsym : A.IsFormalA
   have hχ_eq : A ⟨χ, hχ_mem⟩ + I • χ = φ := Rplus_eq hplus φ
   exact resolvent_at_neg_i_unique hsym φ χ ψ hχ_mem hψ hχ_eq rfl
 
+/-- `R(i)` left-inverts `A - iI` on the domain: `R(i)((A - iI)ψ) = ψ`. -/
 lemma resolvent_at_i_left_inverse {A : H →ₗ.[ℂ] H} (hsym : A.IsFormalAdjoint A)
     (hminus : ∀ φ : H, ∃ ψ : A.domain, A ψ - I • (ψ : H) = φ)
     (ψ : H) (hψ : ψ ∈ A.domain) :

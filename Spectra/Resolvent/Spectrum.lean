@@ -25,7 +25,7 @@ For a self-adjoint `A`, `A - z` is bijective with bounded inverse for **every** 
 * `Spectra.Resolvent.resolventSet`
 * `Spectra.Resolvent.spectrum`
 
-## Main results
+## Main statements
 
 * `mem_resolventSet_of_im_ne_zero` : off the real axis lies in the resolvent set (self-adjoint `A`).
 

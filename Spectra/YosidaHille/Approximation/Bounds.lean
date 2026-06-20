@@ -59,7 +59,8 @@ lemma yosidaJ_norm_bound {A : H →ₗ.[ℂ] H}
     (hplus : ∀ φ : H, ∃ ψ : A.domain, A ψ + I • (ψ : H) = φ)
     (hminus : ∀ φ : H, ∃ ψ : A.domain, A ψ - I • (ψ : H) = φ)
     (n : ℕ+) :
-    ‖(-I * (n : ℂ)) • resolvent (I * (n : ℂ)) (I_mul_pnat_im_ne_zero n) hsym hplus hminus‖ ≤ 1 := by
+    ‖yosidaJ hsym hplus hminus n‖ ≤ 1 := by
+  unfold yosidaJ resolventAtIn
   have h_coeff : ‖(-I * (n : ℂ))‖ = (n : ℝ) := by
     rw [neg_mul, norm_neg, norm_I_mul_pnat]
   have h_res : ‖resolvent (I * (n : ℂ)) (I_mul_pnat_im_ne_zero n) hsym hplus hminus‖ ≤ 1 / (n : ℝ) := by

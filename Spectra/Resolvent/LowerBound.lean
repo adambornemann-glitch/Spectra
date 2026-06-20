@@ -2,7 +2,6 @@
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
-Filename: Spectra/Resolvent/LowerBound.lean
 -/
 import Spectra.Resolvent.Defs
 import Mathlib.Analysis.InnerProductSpace.LinearPMap
@@ -26,7 +25,7 @@ The spectrum of a self-adjoint operator is real, so moving `z` off the real axis
 creates a "gap" proportional to `|Im(z)|`.
 -/
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H]
-open InnerProductSpace MeasureTheory Complex Filter Topology
+open InnerProductSpace Complex
 namespace Spectra.Resolvent
 
 /-- The fundamental lower bound: for symmetric `A` and `Im(z) ≠ 0`,
@@ -80,7 +79,7 @@ lemma lower_bound_estimate {A : H →ₗ.[ℂ] H} (hsym : A.IsFormalAdjoint A)
                     Complex.ofReal_im, h_inner_real, mul_zero, zero_mul, add_zero]
       simp only [sub_im]
       simp [h_xreal]
-      exact Eq.symm (Real.ext_cauchy (congrArg Real.cauchy (id (Eq.symm h_Areal))))
+      linarith [h_Areal]
     have h_as_real : ⟪A ⟨ψ, hψ⟩ - x • ψ, ψ⟫_ℂ =
         ((⟪A ⟨ψ, hψ⟩ - x • ψ, ψ⟫_ℂ).re : ℂ) := by
       conv_lhs => rw [← Complex.re_add_im (⟪A ⟨ψ, hψ⟩ - x • ψ, ψ⟫_ℂ), h_real]

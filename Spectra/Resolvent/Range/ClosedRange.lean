@@ -2,7 +2,6 @@
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
-Filename: Resolvent/Range/CloasedRange.lean
 -/
 import Spectra.Resolvent.SpecialCases
 import Spectra.Resolvent.LowerBound
@@ -16,17 +15,16 @@ The key insight is the lower bound `|Im(z)| · ‖ψ‖ ≤ ‖(A - zI)ψ‖`, w
 implies that preimages of Cauchy sequences are Cauchy. The limit is shown
 to lie in the domain by routing through `R(i)`.
 
-## Main results
+## Main statements
 
 * `preimage_cauchySeq`: Preimages of Cauchy sequences under `(A - zI)` are Cauchy
-* `range_limit_mem`: Sequential limits of range elements are in the range
 * `range_sub_smul_closed`: The range of `(A - zI)` is closed
 
 ## References
 
 * [Reed, Simon, *Methods of Modern Mathematical Physics I*][reed1980], Section VIII.3
 -/
-open InnerProductSpace MeasureTheory Complex Filter Topology
+open InnerProductSpace Complex Filter Topology
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H]
 namespace Spectra.Resolvent
 
@@ -72,73 +70,6 @@ lemma preimage_cauchySeq {A : H →ₗ.[ℂ] H} (hsym : A.IsFormalAdjoint A)
   have h_pos : 0 < |z.im| := abs_pos.mpr hz
   rw [dist_eq_norm]
   exact (mul_lt_mul_iff_of_pos_left h_pos).mp h_chain
-
-/-- The limit of a convergent sequence in ran(A - zI) is in ran(A - zI). -/
-lemma range_limit_mem {A : H →ₗ.[ℂ] H} (hsym : A.IsFormalAdjoint A)
-    (hminus : ∀ φ : H, ∃ ψ : A.domain, A ψ - I • (ψ : H) = φ)
-    (z : ℂ) (_ /-hz-/ : z.im ≠ 0)
-    (ψ_seq : ℕ → A.domain) (φ_lim : H)
-    (hψ_seq : ∀ n, A (ψ_seq n) - z • (ψ_seq n : H) = φ_lim)
-    (hψ_lim : ∃ ψ_lim, Tendsto (fun n => (ψ_seq n : H)) atTop (𝓝 ψ_lim)) :
-    ∃ (ψ : A.domain), A ψ - z • (ψ : H) = φ_lim := by
-  obtain ⟨ψ_lim, hψ_tendsto⟩ := hψ_lim
-  let R := resolvent_at_i hsym hminus
-  have h_AiI_lim : Tendsto (fun n => A (ψ_seq n) - I • (ψ_seq n : H))
-                          atTop (𝓝 (φ_lim + (z - I) • ψ_lim)) := by
-    have h1 : Tendsto (fun n => A (ψ_seq n) - z • (ψ_seq n : H)) atTop (𝓝 φ_lim) := by
-      simp only [hψ_seq]
-      exact tendsto_const_nhds
-    have h2 : Tendsto (fun n => (z - I) • (ψ_seq n : H)) atTop (𝓝 ((z - I) • ψ_lim)) :=
-      Tendsto.const_smul hψ_tendsto (z - I)
-    have h3 := Tendsto.add h1 h2
-    have h_eq : ∀ n, A (ψ_seq n) - I • (ψ_seq n : H) =
-                (A (ψ_seq n) - z • (ψ_seq n : H)) + (z - I) • (ψ_seq n : H) := fun n => by
-      simp only [sub_smul]; abel
-    exact h3.congr (fun n => (h_eq n).symm)
-  have h_R_inverse : ∀ (ψ : H) (hψ : ψ ∈ A.domain),
-                      R (A ⟨ψ, hψ⟩ - I • ψ) = ψ := fun ψ hψ =>
-    resolvent_at_i_unique hsym _ (R _) ψ (Rminus_mem hminus _) hψ
-      (Rminus_eq hminus _) rfl
-  have h_R_lim : Tendsto (fun n => R (A (ψ_seq n) - I • (ψ_seq n : H)))
-                        atTop (𝓝 (R (φ_lim + (z - I) • ψ_lim))) :=
-    R.continuous.tendsto _ |>.comp h_AiI_lim
-  have h_R_eq : ∀ n, R (A (ψ_seq n) - I • (ψ_seq n : H)) = (ψ_seq n : H) := fun n =>
-    h_R_inverse (ψ_seq n : H) (ψ_seq n).property
-  have h_ψ_lim_alt : Tendsto (fun n => (ψ_seq n : H)) atTop
-      (𝓝 (R (φ_lim + (z - I) • ψ_lim))) := h_R_lim.congr (fun n => (h_R_eq n))
-  have h_ψ_lim_eq : ψ_lim = R (φ_lim + (z - I) • ψ_lim) :=
-    tendsto_nhds_unique hψ_tendsto h_ψ_lim_alt
-  have h_ψ_lim_domain : ψ_lim ∈ A.domain := by
-    rw [h_ψ_lim_eq]
-    exact Rminus_mem hminus (φ_lim + (z - I) • ψ_lim)
-  refine ⟨⟨ψ_lim, h_ψ_lim_domain⟩, ?_⟩
-  have h_AiI_ψ_lim := Rminus_eq hminus (φ_lim + (z - I) • ψ_lim)
-  have h_op_eq : A ⟨ψ_lim, h_ψ_lim_domain⟩ =
-                 A ⟨R (φ_lim + (z - I) • ψ_lim),
-                        Rminus_mem hminus (φ_lim + (z - I) • ψ_lim)⟩ := by
-    congr 1
-    exact Subtype.ext h_ψ_lim_eq
-  calc A ⟨ψ_lim, h_ψ_lim_domain⟩ - z • ψ_lim
-      = A ⟨R (φ_lim + (z - I) • ψ_lim),
-              Rminus_mem hminus (φ_lim + (z - I) • ψ_lim)⟩ -
-      z • R (φ_lim + (z - I) • ψ_lim) := by
-        rw [h_op_eq]
-        exact
-          congrArg
-            (HSub.hSub
-              (A
-                ⟨R (φ_lim + (z - I) • ψ_lim),
-                  Rminus_mem hminus (φ_lim + (z - I) • ψ_lim)⟩))
-            (congrArg (HSMul.hSMul z) h_ψ_lim_eq)
-    _ = (A ⟨R (φ_lim + (z - I) • ψ_lim),
-                Rminus_mem hminus (φ_lim + (z - I) • ψ_lim)⟩ -
-        I • R (φ_lim + (z - I) • ψ_lim)) - (z - I) • R (φ_lim + (z - I) • ψ_lim) := by
-        simp only [sub_smul]; abel
-    _ = (φ_lim + (z - I) • ψ_lim) - (z - I) • R (φ_lim + (z - I) • ψ_lim) := by
-      exact congrFun (congrArg HSub.hSub h_AiI_ψ_lim) ((z - I) • R (φ_lim + (z - I) • ψ_lim))
-    _ = (φ_lim + (z - I) • ψ_lim) - (z - I) • ψ_lim := by rw [← h_ψ_lim_eq]
-    _ = φ_lim := by abel
-
 
 /-- The range of (A - zI) is closed. -/
 lemma range_sub_smul_closed [CompleteSpace H] {A : H →ₗ.[ℂ] H}

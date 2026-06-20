@@ -2,7 +2,6 @@
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
-Filename: Integral/Limits/Minus.lean
 -/
 import Spectra.Resolvent.Integral.Limits.Helpers
 import Mathlib.MeasureTheory.Function.LpSpace.Complete
@@ -17,7 +16,7 @@ lies in the generator domain and satisfies `A(R₋φ) = φ + iR₋φ`.
 
 generator, resolvent, limit
 -/
-open MeasureTheory Measure Filter Topology Complex
+open MeasureTheory Filter Topology Complex
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
 namespace Spectra.Resolvent
 

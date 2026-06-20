@@ -2,7 +2,6 @@
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
-Filename: Resolvent/Integral/Limits/Helpers.lean
 -/
 import Spectra.Resolvent.Integral.GroupIntegration
 /-!
@@ -11,7 +10,7 @@ import Spectra.Resolvent.Integral.GroupIntegration
 This file contains shared analytical lemmas used in proving that the resolvent
 integrals `R±(φ)` lie in the generator domain.
 
-## Main results
+## Main statements
 
 * `tendsto_exp_sub_one_div`: `(e^h - 1)/h → 1` as `h → 0`
 * `tendsto_integral_Ici_exp_unitary`: continuity of `∫_{[h,∞)} e^{-t} U(t)φ dt` at `h = 0`

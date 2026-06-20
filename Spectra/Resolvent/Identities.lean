@@ -2,7 +2,6 @@
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
-Filename: Resolvent/Identities.lean
 -/
 import Spectra.Resolvent.Range
 /-!
@@ -25,7 +24,7 @@ This file proves the fundamental algebraic identities satisfied by the resolvent
 * `resolventFun_adjoint`: Adjoint relation for `resolventFun`
 
 -/
-open InnerProductSpace MeasureTheory Complex Filter Topology
+open InnerProductSpace Complex Filter Topology
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
 namespace Spectra.Resolvent
 
@@ -181,6 +180,7 @@ that's the file to add it to as well, right alongside — keeps the whole
 "resolvents at different points relate thus" story in one place.
 -/
 
+/-- Resolvents at different points commute: `R(z₁) ∘ R(z₂) = R(z₂) ∘ R(z₁)`. -/
 lemma resolvent_commute
     {A : H →ₗ.[ℂ] H} (hsym : A.IsFormalAdjoint A)
     (hplus  : ∀ φ : H, ∃ ψ : A.domain, A ψ + I • (ψ : H) = φ)

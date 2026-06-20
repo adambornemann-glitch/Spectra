@@ -2,7 +2,6 @@
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
-Filename: Resolvent/Range/Orthogonal.lean
 -/
 import Spectra.Resolvent.SpecialCases
 /-!
@@ -16,7 +15,7 @@ a "weak eigenvalue equation" `⟪Aψ, χ⟫ = z̄⟪ψ, χ⟫` for all `ψ` in t
 Using surjectivity at `±i`, we construct test vectors and derive `z̄ = z`,
 contradicting `Im(z) ≠ 0` unless `χ = 0`.
 
-## Main results
+## Main statements
 
 * `weak_eigenvalue_of_orthogonal_to_range`: Orthogonality implies weak eigenvalue equation
 * `relation_from_plus_i`: Algebraic identity from the `+i` resolvent
@@ -170,6 +169,8 @@ lemma orthogonal_range_eq_zero {A : H →ₗ.[ℂ] H} (hsym : A.IsFormalAdjoint 
     calc (z + I) * ⟪χ, ξ⟫_ℂ
         = (z_bar + I) * ⟪η, χ⟫_ℂ := h_cancel
       _ = (z + I) * ‖χ‖^2 := h_relation_η
+  have hχ0 : (‖χ‖^2 : ℂ) = 0 → χ = 0 := fun h =>
+    norm_eq_zero.mp (Complex.ofReal_eq_zero.mp (sq_eq_zero_iff.mp h))
   by_cases h_z_eq_neg_I : z = -I
   · have h_zbar_eq : z_bar = I := by
       simp only [hz_bar_def, h_z_eq_neg_I, map_neg, Complex.conj_I]; ring
@@ -185,10 +186,7 @@ lemma orthogonal_range_eq_zero {A : H →ₗ.[ℂ] H} (hsym : A.IsFormalAdjoint 
       cases this with
       | inl h => exact absurd h h_two_I_ne
       | inr h => exact h
-    have h_norm_zero : ‖χ‖ = 0 := by
-      have h : (‖χ‖ : ℂ) = 0 := sq_eq_zero_iff.mp h_norm_sq_zero
-      exact Complex.ofReal_eq_zero.mp h
-    exact norm_eq_zero.mp h_norm_zero
+    exact hχ0 h_norm_sq_zero
   · have h_z_plus_i_ne : z + I ≠ 0 := by
       intro h_eq
       apply h_z_eq_neg_I
@@ -230,9 +228,6 @@ lemma orthogonal_range_eq_zero {A : H →ₗ.[ℂ] H} (hsym : A.IsFormalAdjoint 
       cases this with
       | inl h => exact absurd h h_zbar_minus_z_ne
       | inr h => exact h
-    have h_norm_zero : ‖χ‖ = 0 := by
-      have h : (‖χ‖ : ℂ) = 0 := sq_eq_zero_iff.mp h_norm_sq_zero
-      exact Complex.ofReal_eq_zero.mp h
-    exact norm_eq_zero.mp h_norm_zero
+    exact hχ0 h_norm_sq_zero
 
 end Spectra.Resolvent

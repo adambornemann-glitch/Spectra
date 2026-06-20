@@ -2,7 +2,6 @@
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
-Filename: Resolvent/Core.lean
 -/
 import Spectra.Resolvent.Range.Orthogonal
 import Spectra.Resolvent.Range.ClosedRange
@@ -27,7 +26,7 @@ The resolvent is constructed via `LinearMap.mkContinuous` using the existence
 and uniqueness from `self_adjoint_range_all_z` together with the lower bound
 estimate which provides the continuity bound.
 -/
-open InnerProductSpace MeasureTheory Complex Filter Topology
+open InnerProductSpace Complex
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
 namespace Spectra.Resolvent
 
@@ -40,6 +39,7 @@ private noncomputable def resolventSolution {A : H →ₗ.[ℂ] H}
     (φ : H) : H :=
   ((Classical.choose (self_adjoint_range_all_z hsym hplus hminus z hz φ).exists : A.domain) : H)
 
+/-- `resolventSolution z hz hsym hplus hminus φ` lies in the domain of `A`. -/
 private lemma resolventSolution_mem {A : H →ₗ.[ℂ] H}
     (z : ℂ) (hz : z.im ≠ 0)
     (hsym : A.IsFormalAdjoint A)
@@ -49,6 +49,7 @@ private lemma resolventSolution_mem {A : H →ₗ.[ℂ] H}
     resolventSolution z hz hsym hplus hminus φ ∈ A.domain :=
   (Classical.choose (self_adjoint_range_all_z hsym hplus hminus z hz φ).exists : A.domain).property
 
+/-- `resolventSolution` solves the resolvent equation: `(A - z)ψ = φ`. -/
 private lemma resolventSolution_eq {A : H →ₗ.[ℂ] H}
     (z : ℂ) (hz : z.im ≠ 0)
     (hsym : A.IsFormalAdjoint A)
@@ -59,6 +60,7 @@ private lemma resolventSolution_eq {A : H →ₗ.[ℂ] H}
       - z • resolventSolution z hz hsym hplus hminus φ = φ :=
   Classical.choose_spec (self_adjoint_range_all_z hsym hplus hminus z hz φ).exists
 
+/-- `resolventSolution` is additive in its target `φ`. -/
 private lemma resolventSolution_add {A : H →ₗ.[ℂ] H}
     (z : ℂ) (hz : z.im ≠ 0)
     (hsym : A.IsFormalAdjoint A)
@@ -86,6 +88,7 @@ private lemma resolventSolution_add {A : H →ₗ.[ℂ] H}
     (resolventSolution_eq z hz hsym hplus hminus (φ₁ + φ₂)) hab_eq
   exact congrArg Subtype.val huniq
 
+/-- `resolventSolution` respects scalar multiplication of its target `φ`. -/
 private lemma resolventSolution_smul {A : H →ₗ.[ℂ] H}
     (z : ℂ) (hz : z.im ≠ 0)
     (hsym : A.IsFormalAdjoint A)
@@ -106,6 +109,7 @@ private lemma resolventSolution_smul {A : H →ₗ.[ℂ] H}
     (resolventSolution_eq z hz hsym hplus hminus (c • φ)) hcs_eq
   exact congrArg Subtype.val huniq
 
+/-- The resolvent bound at the vector level: `‖resolventSolution …‖ ≤ (1/|Im z|)·‖φ‖`. -/
 private lemma resolventSolution_norm_le {A : H →ₗ.[ℂ] H}
     (z : ℂ) (hz : z.im ≠ 0)
     (hsym : A.IsFormalAdjoint A)

@@ -2,7 +2,6 @@
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
-Filename: Resolvent/NormExpansion.lean
 -/
 import Spectra.Resolvent.Defs
 import Mathlib.Analysis.InnerProductSpace.LinearPMap
@@ -16,7 +15,7 @@ in `‖Aψ - λψ‖²` vanishes, giving `‖Aψ - λψ‖² = ‖Aψ‖² + |λ
 ## Main statements
 
 * `inner_self_im_eq_zero_of_symmetric`: `⟪Aψ, ψ⟫` is real for symmetric `A`
-* `cross_term_re_eq_zero`: The cross term `⟪Aψ, λψ⟫` has zero real part when `λ` is purely imaginary
+* `cross_term_re_eq_zero_of_symmetric`: The cross term `⟪Aψ, λψ⟫` has zero real part for imaginary `λ`
 * `norm_sq_sub_smul_of_symmetric`: `‖Aψ - λψ‖² = ‖Aψ‖² + |λ|²‖ψ‖²`
 * `norm_sq_sub_I_smul`: Special case for `λ = I`
 * `norm_sq_add_I_smul`: Special case for `λ = -I` (written as `Aψ + Iψ`)
@@ -85,21 +84,13 @@ lemma cross_term_neg_I_re_eq_zero
 lemma norm_sq_sub_smul_of_symmetric
     {A : H →ₗ.[ℂ] H} (hsym : A.IsFormalAdjoint A) (ψ : A.domain) (s : ℂ) (hs : s.re = 0) :
     ‖A ψ - s • (ψ : H)‖^2 = ‖A ψ‖^2 + ‖s‖^2 * ‖(ψ : H)‖^2 := by
+  have hre : ∀ x : H, (⟪x, x⟫_ℂ).re = ‖x‖^2 := fun x => by
+    rw [inner_self_eq_norm_sq_to_K (𝕜 := ℂ) x]; norm_cast
   have h_expand : ‖A ψ - s • (ψ : H)‖^2 =
       ‖A ψ‖^2 + ‖s • (ψ : H)‖^2 - 2 * (⟪A ψ, s • (ψ : H)⟫_ℂ).re := by
-    have h_inner : (⟪A ψ - s • (ψ : H), A ψ - s • (ψ : H)⟫_ℂ).re =
-        ‖A ψ - s • (ψ : H)‖^2 := by
-      have := inner_self_eq_norm_sq_to_K (𝕜 := ℂ) (A ψ - s • (ψ : H))
-      rw [this]; norm_cast
-    rw [← h_inner, inner_sub_left, inner_sub_right, inner_sub_right]
+    rw [← hre (A ψ - s • (ψ : H)), inner_sub_left, inner_sub_right, inner_sub_right]
     simp only [Complex.sub_re]
-    have h1 : (⟪A ψ, A ψ⟫_ℂ).re = ‖A ψ‖^2 := by
-      have := inner_self_eq_norm_sq_to_K (𝕜 := ℂ) (A ψ)
-      rw [this]; norm_cast
-    have h2 : (⟪s • (ψ : H), s • (ψ : H)⟫_ℂ).re = ‖s • (ψ : H)‖^2 := by
-      have := inner_self_eq_norm_sq_to_K (𝕜 := ℂ) (s • (ψ : H))
-      rw [this]; norm_cast
-    rw [h1, h2]
+    rw [hre (A ψ), hre (s • (ψ : H))]
     have h_cross : (⟪A ψ, s • (ψ : H)⟫_ℂ).re + (⟪s • (ψ : H), A ψ⟫_ℂ).re =
         2 * (⟪A ψ, s • (ψ : H)⟫_ℂ).re := by
       have h_eq : (⟪s • (ψ : H), A ψ⟫_ℂ).re = (⟪A ψ, s • (ψ : H)⟫_ℂ).re := by
@@ -118,19 +109,14 @@ lemma norm_sq_sub_I_smul
     {A : H →ₗ.[ℂ] H} (hsym : A.IsFormalAdjoint A) (ψ : A.domain) :
     ‖A ψ - I • (ψ : H)‖^2 = ‖A ψ‖^2 + ‖(ψ : H)‖^2 := by
   have h := norm_sq_sub_smul_of_symmetric hsym ψ I (by simp)
-  simp at h
-  exact h
+  simpa using h
 
 /-- **Corollary**: For `λ = -I`, we have `‖Aψ + Iψ‖² = ‖Aψ‖² + ‖ψ‖²`. -/
 lemma norm_sq_add_I_smul
     {A : H →ₗ.[ℂ] H} (hsym : A.IsFormalAdjoint A) (ψ : A.domain) :
     ‖A ψ + I • (ψ : H)‖^2 = ‖A ψ‖^2 + ‖(ψ : H)‖^2 := by
-  have h_eq : A ψ + I • (ψ : H) = A ψ - (-I) • (ψ : H) := by
-    rw [neg_smul, sub_neg_eq_add]
-  rw [h_eq]
   have h := norm_sq_sub_smul_of_symmetric hsym ψ (-I) (by simp)
-  simp at h
-  simp only [neg_smul, sub_neg_eq_add]
+  simp only [neg_smul, sub_neg_eq_add, norm_neg, Complex.norm_I, one_pow, one_mul] at h
   exact h
 
 /-- From the norm expansion, `‖ψ‖ ≤ ‖Aψ - Iψ‖`. -/

@@ -2,7 +2,6 @@
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
-Filename: Resolvent/Analytic.lean
 -/
 import Spectra.Resolvent.Identities
 
@@ -20,7 +19,7 @@ lemma resolventFun_hasSum {A : H →ₗ.[ℂ] H}
     ∃ (hz' : z.im ≠ 0),
     HasSum (fun n => (z - z₀.val)^n • (resolventFun hsym hplus hminus z₀)^(n+1))
            (resolvent z hz' hsym hplus hminus) := by
-  have hz' : z.im ≠ 0 := im_ne_zero_of_near z₀.property hz
+  have hz' : z.im ≠ 0 := im_ne_zero_of_near hz
   use hz'
   set R₀ := resolventFun hsym hplus hminus z₀ with hR₀_def
   set T := (z - z₀.val) • R₀ with hT_def

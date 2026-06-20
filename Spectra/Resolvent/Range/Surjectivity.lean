@@ -2,12 +2,11 @@
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
-Filename: Resolvent/Range/Surjectivity.lean
 -/
 import Spectra.Resolvent.Range.Orthogonal
 import Spectra.Resolvent.Range.ClosedRange
 
-open InnerProductSpace MeasureTheory Complex Filter Topology
+open InnerProductSpace Complex Topology
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
 namespace Spectra.Resolvent
 
@@ -68,6 +67,7 @@ lemma range_sub_smul_dense {A : H →ₗ.[ℂ] H} (hsym : A.IsFormalAdjoint A)
 /-! ### Uniqueness from lower bound -/
 
 omit [CompleteSpace H] in
+/-- If `(A - zI)ψ = 0` for `ψ ∈ dom A` and `Im(z) ≠ 0`, then `ψ = 0`. -/
 lemma resolvent_unique {A : H →ₗ.[ℂ] H} (hsym : A.IsFormalAdjoint A) (z : ℂ) (hz : z.im ≠ 0)
     (ψ : H) (hψ : ψ ∈ A.domain) (h : A ⟨ψ, hψ⟩ - z • ψ = 0) : ψ = 0 := by
   have hb := lower_bound_estimate hsym z hz ψ hψ

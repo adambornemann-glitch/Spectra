@@ -2,7 +2,6 @@
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
-Filename: Resolvent/Integral/Domain.lean
 -/
 import Spectra.Resolvent.Integral.Limits.Plus
 import Spectra.Resolvent.Integral.Limits.Minus
@@ -27,7 +26,7 @@ and these averaged vectors lie in the domain.
 
 generator, self-adjoint, domain, Stone's lemma
 -/
-open InnerProductSpace MeasureTheory Complex Filter Topology
+open MeasureTheory Complex Filter Topology
 open Spectra.OneParameterUnitaryGroup
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
 namespace Spectra.Resolvent

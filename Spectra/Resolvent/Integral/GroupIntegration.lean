@@ -2,7 +2,6 @@
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
-Filename: BochnerIntegration/ResolventII.lean
 -/
 import Spectra.OneParameterUnitaryGroup.Basic
 import Spectra.Mathlib.MeasureTheory.Integral.Basic
@@ -21,7 +20,7 @@ surjectivity of `A ± iI` and hence self-adjointness of the generator.
 * `resolventIntegralPlus`: the integral `(-i) ∫₀^∞ e^{-t} U(t)φ dt`
 * `resolventIntegralMinus`: the integral `i ∫₀^∞ e^{-t} U(-t)φ dt`
 
-## Main results
+## Main statements
 
 * `integrable_exp_neg_unitary`: `e^{-t} • U(t)φ` is integrable on `[0, ∞)`
 * `norm_resolventIntegralPlus_le`: `‖R₊(φ)‖ ≤ ‖φ‖`
@@ -31,7 +30,7 @@ surjectivity of `A ± iI` and hence self-adjointness of the generator.
 
 resolvent, unitary group, Laplace transform
 -/
-open MeasureTheory Measure Filter Topology Complex
+open MeasureTheory Topology Complex
 open MeasureTheory.Integral
 open Spectra.OneParameterUnitaryGroup
 
@@ -42,11 +41,13 @@ section UnitaryGroupIntegration
 
 variable (U_grp : OneParameterUnitaryGroup (H := H))
 
+/-- `t ↦ U(t)φ` is continuous for a fixed vector `φ`. -/
 lemma continuous_unitary_apply (φ : H) :
     Continuous (fun t => U_grp.U t φ) :=
   U_grp.strong_continuous φ
 
 
+/-- `e^{-t} • U(t)φ` is integrable on `[0, ∞)`. -/
 lemma integrable_exp_neg_unitary (φ : H) :
     IntegrableOn (fun t => Real.exp (-t) • U_grp.U t φ) (Set.Ici 0) volume := by
   apply integrable_exp_decay_continuous
@@ -56,6 +57,7 @@ lemma integrable_exp_neg_unitary (φ : H) :
   intro t _ht
   exact le_of_eq (norm_preserving U_grp t φ)
 
+/-- `e^{-t} • U(-t)φ` is integrable on `[0, ∞)`. -/
 lemma integrable_exp_neg_unitary_neg (φ : H) :
     IntegrableOn (fun t => Real.exp (-t) • U_grp.U (-t) φ) (Set.Ici 0) volume := by
   apply integrable_exp_decay_continuous
@@ -65,6 +67,7 @@ lemma integrable_exp_neg_unitary_neg (φ : H) :
   intro t _ht
   exact le_of_eq (norm_preserving U_grp (-t) φ)
 
+/-- The norm of the exponential-decay integral is bounded by `‖φ‖`. -/
 lemma norm_integral_exp_neg_unitary_le (φ : H) :
     ‖∫ t in Set.Ici 0, Real.exp (-t) • U_grp.U t φ‖ ≤ ‖φ‖ := by
   apply norm_integral_exp_decay_le
@@ -75,6 +78,7 @@ lemma norm_integral_exp_neg_unitary_le (φ : H) :
     exact le_of_eq (norm_preserving U_grp t φ)
   · exact norm_nonneg φ
 
+/-- `t ↦ U(t)φ` is integrable on the interval `(0, h]`. -/
 lemma integrable_unitary_Ioc (φ : H) (h : ℝ) (_ : 0 < h) :
     IntegrableOn (fun t => U_grp.U t φ) (Set.Ioc 0 h) volume := by
   exact (U_grp.strong_continuous φ).integrableOn_Icc.mono_set Set.Ioc_subset_Icc_self
