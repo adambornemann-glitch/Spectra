@@ -4,7 +4,7 @@ Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Spectra.Resolvent.Diagonal.IntegralZ.Tendsto
-import Spectra.Resolvent.Integral.Limits.Helpers
+import Spectra.Resolvent.Integral.Limits
 
 open Complex
 open Spectra.OneParameterUnitaryGroup

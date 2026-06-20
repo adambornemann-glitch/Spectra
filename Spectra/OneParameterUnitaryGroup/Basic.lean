@@ -264,5 +264,26 @@ lemma isSelfAdjoint_of_surjective_addSub
   subst hwx
   exact ⟨hw, x.2, hxeq⟩
 
+/-! ### The time-reversed group -/
+
+/-- The time-reversed group `U'(t) = U(-t)`. It is again a one-parameter unitary group, with
+generator `-A`; this lets `A - iI` results be read off from the `A + iI` results. -/
+def reversedGroup (U : OneParameterUnitaryGroup (H := H)) : OneParameterUnitaryGroup (H := H) where
+  U t := U.U (-t)
+  unitary t ψ φ := U.unitary (-t) ψ φ
+  group_law s t := by rw [show -(s + t) = -s + -t by ring]; exact U.group_law (-s) (-t)
+  identity := by simp [U.identity]
+  strong_continuous ψ := (U.strong_continuous ψ).comp continuous_neg
+
+@[simp] lemma reversedGroup_apply (U : OneParameterUnitaryGroup (H := H)) (t : ℝ) :
+    (reversedGroup U).U t = U.U (-t) := rfl
+
+/-- The reversed group's difference quotient is the negated, time-reversed original:
+`genDiffQuot (reversedGroup U) ψ t = - genDiffQuot U ψ (-t)`. -/
+lemma genDiffQuot_reversedGroup (U : OneParameterUnitaryGroup (H := H)) (ψ : H) (t : ℝ) :
+    genDiffQuot (reversedGroup U) ψ t = - genDiffQuot U ψ (-t) := by
+  simp only [genDiffQuot_apply, reversedGroup_apply]
+  rw [Complex.ofReal_neg, mul_neg, inv_neg, neg_smul, neg_neg]
+
 end OneParameterUnitaryGroup
 end Spectra

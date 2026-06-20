@@ -4,7 +4,6 @@ Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Spectra.Resolvent.Diagonal.IntegralZ.GeneratorLim
-import Spectra.Resolvent.Integral.Limits.Minus
 import Mathlib.Probability.Distributions.Gaussian.Real
 /-!
 # Generator Domain and Self-Adjointness
@@ -71,6 +70,52 @@ lemma range_plus_i_eq_top :
   show generator U_grp ⟨resolventIntegralPlus U_grp φ, hmem⟩
         + I • resolventIntegralPlus U_grp φ = φ
   rw [hval]; abel
+
+/-- `R₋` is `-R(-i)` for the time-reversed group: `resolventIntegralMinus U φ` equals
+`-resolventIntegralZ (reversedGroup U) (-i) φ`, because `(reversedGroup U).U t = U(-t)` and
+`I*(-I)=1` makes `e^{-(I·(-I)·t)} = e^{-t}`. -/
+lemma resolventIntegralMinus_eq_neg_resolventIntegralZ (φ : H) :
+    resolventIntegralMinus U_grp φ = - resolventIntegralZ (reversedGroup U_grp) (-I) φ := by
+  unfold resolventIntegralMinus resolventIntegralZ
+  have hJ : (∫ t in Set.Ici (0 : ℝ), Real.exp (-t) • U_grp.U (-t) φ)
+      = ∫ t in Set.Ici (0 : ℝ), cexp (-(I * (-I) * (t : ℂ))) • (reversedGroup U_grp).U t φ := by
+    refine setIntegral_congr_fun measurableSet_Ici (fun t _ => ?_)
+    rw [reversedGroup_apply]
+    have hexp : cexp (-(I * (-I) * (t : ℂ))) = (Real.exp (-t) : ℂ) := by
+      rw [show I * (-I) = 1 from by rw [mul_neg, Complex.I_mul_I, neg_neg], one_mul,
+          ← Complex.ofReal_neg, ← Complex.ofReal_exp]
+    rw [hexp, Complex.coe_smul]
+  rw [hJ, neg_smul, neg_neg]
+
+/-- Difference-quotient limit for `R₋`, obtained from the general-`z` limit on the time-reversed
+group at `z = -i` via the `h ↦ -h` reflection: `(ih)⁻¹(U(h)R₋φ - R₋φ) → φ + i R₋φ`. -/
+lemma generator_limit_resolventIntegralMinus (φ : H) :
+    Tendsto (fun h : ℝ => ((I * h)⁻¹ : ℂ) • (U_grp.U h (resolventIntegralMinus U_grp φ) -
+        resolventIntegralMinus U_grp φ))
+      (𝓝[≠] 0) (𝓝 (φ + I • resolventIntegralMinus U_grp φ)) := by
+  have hz : (-I : ℂ).im < 0 := by rw [Complex.neg_im, Complex.I_im]; norm_num
+  set R := resolventIntegralMinus U_grp φ with hRdef
+  rw [show (fun h : ℝ => ((I * h)⁻¹ : ℂ) • (U_grp.U h R - R)) = genDiffQuot U_grp R from by
+        funext h; rw [genDiffQuot_apply]]
+  have hZ := generator_limit_resolventIntegralZ (reversedGroup U_grp) hz φ
+  rw [show resolventIntegralZ (reversedGroup U_grp) (-I) φ = -R from by
+        rw [hRdef, resolventIntegralMinus_eq_neg_resolventIntegralZ, neg_neg]] at hZ
+  rw [show (fun h : ℝ => ((I * h)⁻¹ : ℂ) • ((reversedGroup U_grp).U h (-R) - -R))
+        = genDiffQuot (reversedGroup U_grp) (-R) from by funext h; rw [genDiffQuot_apply]] at hZ
+  rw [show genDiffQuot (reversedGroup U_grp) (-R) = - genDiffQuot (reversedGroup U_grp) R from by
+        rw [show (-R) = (-1 : ℂ) • R from by rw [neg_one_smul], genDiffQuot_smul, neg_one_smul]] at hZ
+  have hneg : Tendsto (fun t : ℝ => -t) (𝓝[≠] (0 : ℝ)) (𝓝[≠] (0 : ℝ)) := by
+    apply tendsto_nhdsWithin_of_tendsto_nhds_of_eventually_within
+    · simpa using (continuous_neg.tendsto (0 : ℝ)).mono_left nhdsWithin_le_nhds
+    · filter_upwards [self_mem_nhdsWithin] with t ht; simpa using ht
+  have hcomp := hZ.comp hneg
+  have hfun : ((- genDiffQuot (reversedGroup U_grp) R) ∘ (fun t : ℝ => -t)) = genDiffQuot U_grp R := by
+    funext t
+    simp only [Function.comp_apply, Pi.neg_apply, genDiffQuot_reversedGroup, neg_neg]
+  have htgt : ((-I : ℂ) • (-R) + φ) = φ + I • R := by
+    rw [neg_smul, smul_neg, neg_neg]; abel
+  rw [hfun, htgt] at hcomp
+  exact hcomp
 
 /-- Surjectivity of `A - iI`: for every `φ` there is `ψ` in the generator domain with
     `Aψ - I • ψ = φ`, witnessed by `resolventIntegralMinus φ`. -/

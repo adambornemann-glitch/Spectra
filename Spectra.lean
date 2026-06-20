@@ -210,8 +210,7 @@ import Spectra.Resolvent.Diagonal.IntegralZ.DiffQuotient
 import Spectra.Resolvent.Diagonal.IntegralZ.Basic
 import Spectra.Resolvent.Identities
 import Spectra.Resolvent.Integral.GroupIntegration
-import Spectra.Resolvent.Integral.Limits.Helpers
-import Spectra.Resolvent.Integral.Limits.Minus
+import Spectra.Resolvent.Integral.Limits
 import Spectra.Resolvent.Integral.Domain
 import Spectra.Resolvent.LowerBound
 import Spectra.Resolvent.NormExpansion
