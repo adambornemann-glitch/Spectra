@@ -2,7 +2,6 @@
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
-Filename: UnitaryEvolution/Resolvent/IntegralZ.lean
 -/
 import Spectra.Resolvent.Diagonal.IntegralZ.Tendsto
 import Spectra.Resolvent.Integral.Limits.Helpers
@@ -12,11 +11,13 @@ open Spectra.OneParameterUnitaryGroup
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
 namespace Spectra.Resolvent
 variable (U_grp : OneParameterUnitaryGroup (H := H))
+/-- The orbit integrand `t ↦ e^{-izt}U(t)φ` is continuous in `t`. -/
 lemma expZ_orbit_continuous {z : ℂ} (φ : H) :
     Continuous (fun t : ℝ => cexp (-(I * z * (t : ℂ))) • U_grp.U t φ) :=
   (Complex.continuous_exp.comp ((Complex.continuous_ofReal.const_mul (I * z)).neg)).smul
     (U_grp.strong_continuous φ)
 
+/-- For `Im z < 0` and `a ≤ b`, the orbit integral over `Ici a` splits as `Ioc a b` plus `Ici b`. -/
 lemma integral_Ici_orbit_split_Z {z : ℂ} (hz : z.im < 0) (φ : H) {a b : ℝ} (hab : a ≤ b) :
     ∫ t in Set.Ici a, cexp (-(I * z * (t : ℂ))) • U_grp.U t φ =
     (∫ t in Set.Ioc a b, cexp (-(I * z * (t : ℂ))) • U_grp.U t φ) +
@@ -24,6 +25,8 @@ lemma integral_Ici_orbit_split_Z {z : ℂ} (hz : z.im < 0) (φ : H) {a b : ℝ} 
   integral_Ici_split_of (expZ_orbit_continuous U_grp (z := z) φ)
     (integrable_expZ_unitary U_grp hz φ) hab
 
+/-- For `Im z < 0` and `h > 0`, the shift `U(h)R(z)φ - R(z)φ` of the resolvent integral splits
+into a tail term over `Ici h` and a head term over `Ioc 0 h`. -/
 lemma unitary_shift_resolventIntegralZ {z : ℂ} (hz : z.im < 0) (φ : H) (h : ℝ) (hh : h > 0) :
     U_grp.U h (resolventIntegralZ U_grp z φ) - resolventIntegralZ U_grp z φ =
     (-I) • ((cexp (I * z * (h : ℂ)) - 1) •
@@ -40,6 +43,8 @@ lemma unitary_shift_resolventIntegralZ {z : ℂ} (hz : z.im < 0) (φ : H) (h : �
     _ = -I • (cexp (I * z * (h : ℂ)) • X - X) - -I • Y := by rw [← smul_sub]
     _ = -I • ((cexp (I * z * (h : ℂ)) - 1) • X) - -I • Y := by rw [sub_smul, one_smul]
 
+/-- For `Im z < 0` and `h < 0`, the shift `U(h)R(z)φ - R(z)φ` of the resolvent integral splits
+into a term over `Ioc h 0` and a term over `Ici 0`. -/
 lemma unitary_shift_resolventIntegralZ_neg {z : ℂ} (hz : z.im < 0) (φ : H) (h : ℝ) (hh : h < 0) :
     U_grp.U h (resolventIntegralZ U_grp z φ) - resolventIntegralZ U_grp z φ =
     (-I) • (cexp (I * z * (h : ℂ)) •
@@ -59,12 +64,14 @@ lemma unitary_shift_resolventIntegralZ_neg {z : ℂ} (hz : z.im < 0) (φ : H) (h
     _ = -I • cexp (I * z * (h : ℂ)) • X + -I • ((cexp (I * z * (h : ℂ)) - 1) • Y) := by
         rw [sub_smul, one_smul]
 
+/-- The generator target `z·R(z)φ + φ` equals `-(iz)∫₀^∞ e^{-izt}U(t)φ dt + φ`. -/
 lemma genZ_target_eq {z : ℂ} (φ : H) :
     z • resolventIntegralZ U_grp z φ + φ =
       -((I * z) • ∫ t in Set.Ici (0 : ℝ), cexp (-(I * z * (t : ℂ))) • U_grp.U t φ) + φ := by
   unfold resolventIntegralZ
   rw [smul_smul, mul_neg, neg_smul, mul_comm z I]
 
+/-- The scalar identity `(ih)⁻¹·(-i) = -h⁻¹` used in the generator difference quotient. -/
 lemma genZ_scalar (h : ℝ) : ((I * (h : ℂ))⁻¹ * (-I) : ℂ) = -(h : ℂ)⁻¹ := by
   rw [mul_inv_rev, mul_assoc, mul_neg, inv_mul_cancel₀ I_ne_zero, mul_neg_one]
 

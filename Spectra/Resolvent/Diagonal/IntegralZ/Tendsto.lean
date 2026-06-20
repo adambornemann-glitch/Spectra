@@ -2,7 +2,6 @@
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
-Filename: UnitaryEvolution/Resolvent/IntegralZ.lean
 -/
 import Spectra.Resolvent.Diagonal.IntegralZ.Defs
 open Complex MeasureTheory Filter Topology
@@ -29,6 +28,8 @@ lemma tendsto_cexp_mul_sub_one_div {z : ℂ} :
   simp only [slope_def_module, sub_zero, Complex.ofReal_zero, mul_zero, Complex.exp_zero]
   rw [← Complex.coe_smul, smul_eq_mul, ofReal_inv, div_eq_inv_mul]
 
+/-- Continuity in the lower endpoint: `∫_{Ici h} e^{-izt}U(t)φ dt → ∫_{Ici 0} e^{-izt}U(t)φ dt`
+as `h → 0`, for `Im z < 0`. -/
 lemma tendsto_integral_Ici_expZ_unitary {z : ℂ} (hz : z.im < 0) (φ : H) :
     Tendsto (fun h : ℝ => ∫ t in Set.Ici h, cexp (-(I * z * (t : ℂ))) • U_grp.U t φ)
             (𝓝 0)
@@ -112,6 +113,8 @@ lemma tendsto_integral_Ici_expZ_unitary {z : ℂ} (hz : z.im < 0) (φ : H) :
       rw [h_eq1, h_eq2]; abel
   · simp only [sub_zero]
 
+/-- Right-hand average tends to the initial vector: `h⁻¹ ∫_{Ioc 0 h} e^{-izt}U(t)φ dt → φ`
+as `h → 0⁺`. -/
 lemma tendsto_average_integral_expZ_unitary {z : ℂ} (φ : H) :
     Tendsto (fun h : ℝ => (h⁻¹ : ℂ) • ∫ t in Set.Ioc 0 h, cexp (-(I * z * (t : ℂ))) • U_grp.U t φ)
             (𝓝[>] 0)
@@ -153,6 +156,8 @@ lemma tendsto_average_integral_expZ_unitary {z : ℂ} (φ : H) :
   filter_upwards [self_mem_nhdsWithin] with h hh
   rw [h_eq h hh, ← ofReal_inv, @Complex.coe_smul]
 
+/-- Left-hand average tends to the initial vector: `(-h)⁻¹ ∫_{Ioc h 0} e^{-izt}U(t)φ dt → φ`
+as `h → 0⁻`. -/
 lemma tendsto_average_integral_expZ_unitary_neg {z : ℂ} (φ : H) :
     Tendsto (fun h : ℝ => ((-h)⁻¹ : ℂ) • ∫ t in Set.Ioc h 0, cexp (-(I * z * (t : ℂ))) • U_grp.U t φ)
             (𝓝[<] 0)

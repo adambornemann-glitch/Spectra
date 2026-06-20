@@ -23,11 +23,13 @@ section GeneratorLimitPlus
 
 variable (U_grp : OneParameterUnitaryGroup (H := H))
 
+/-- The orbit integrand `e^{-t} U(t)φ` is integrable on `[b, ∞)` for every `b`. -/
 lemma integrableOn_exp_neg_orbit_Ici_plus (φ : H) (b : ℝ) :
     IntegrableOn (fun t => Real.exp (-t) • U_grp.U t φ) (Set.Ici b) :=
   integrableOn_Ici_of_Ici_zero (exp_neg_orbit_continuous_plus U_grp φ)
     (integrable_exp_neg_unitary U_grp φ) b
 
+/-- For `a ≤ b`, splits `∫_{[a,∞)} e^{-t} U(t)φ dt` into the `(a,b]` and `[b,∞)` pieces. -/
 lemma integral_Ici_orbit_split_plus (φ : H) {a b : ℝ} (hab : a ≤ b) :
     ∫ t in Set.Ici a, Real.exp (-t) • U_grp.U t φ =
     (∫ t in Set.Ioc a b, Real.exp (-t) • U_grp.U t φ) +
@@ -35,6 +37,7 @@ lemma integral_Ici_orbit_split_plus (φ : H) {a b : ℝ} (hab : a ≤ b) :
   integral_Ici_split_of (exp_neg_orbit_continuous_plus U_grp φ)
     (integrable_exp_neg_unitary U_grp φ) hab
 
+/-- `U(h)` applied to `∫_{[0,∞)} e^{-t} U(t)φ dt` equals `e^h ∫_{[h,∞)} e^{-s} U(s)φ ds`. -/
 lemma unitary_apply_Ici_orbit_integral_plus (φ : H) (h : ℝ) :
     U_grp.U h (∫ t in Set.Ici 0, Real.exp (-t) • U_grp.U t φ) =
     Real.exp h • ∫ s in Set.Ici h, Real.exp (-s) • U_grp.U s φ := by
@@ -84,6 +87,7 @@ lemma unitary_apply_Ici_orbit_integral_plus (φ : H) (h : ℝ) :
   rw [h_subst]
 
 
+/-- For `h > 0`, the shift `U(h)R₊φ - R₊φ` in terms of the `[h,∞)` and `(0,h]` orbit integrals. -/
 lemma unitary_shift_resolventIntegralPlus (φ : H) (h : ℝ) (hh : h > 0) :
     U_grp.U h (resolventIntegralPlus U_grp φ) - resolventIntegralPlus U_grp φ =
     (-I) • ((Real.exp h - 1) • ∫ t in Set.Ici h, Real.exp (-t) • U_grp.U t φ) -
@@ -100,6 +104,7 @@ lemma unitary_shift_resolventIntegralPlus (φ : H) (h : ℝ) (hh : h > 0) :
     _ = -I • ((Real.exp h - 1) • X) - -I • Y := by rw [sub_smul, one_smul]
 
 
+/-- For `h < 0`, the shift `U(h)R₊φ - R₊φ` in terms of the `(h,0]` and `[0,∞)` orbit integrals. -/
 lemma unitary_shift_resolventIntegralPlus_neg (φ : H) (h : ℝ) (hh : h < 0) :
     U_grp.U h (resolventIntegralPlus U_grp φ) - resolventIntegralPlus U_grp φ =
     (-I) • (Real.exp h • ∫ t in Set.Ioc h 0, Real.exp (-t) • U_grp.U t φ) +
@@ -116,15 +121,18 @@ lemma unitary_shift_resolventIntegralPlus_neg (φ : H) (h : ℝ) (hh : h < 0) :
     _ = -I • Real.exp h • X + -I • (Real.exp h • Y - Y) := by rw [← smul_sub]
     _ = -I • Real.exp h • X + -I • ((Real.exp h - 1) • Y) := by rw [sub_smul, one_smul]
 
+/-- The limit target `φ - i R₊φ` equals `φ - ∫_{[0,∞)} e^{-t} U(t)φ dt`. -/
 lemma genPlus_target_eq (φ : H) :
     φ - I • resolventIntegralPlus U_grp φ =
       φ - ∫ t in Set.Ici 0, Real.exp (-t) • U_grp.U t φ := by
   unfold resolventIntegralPlus
   rw [smul_smul, mul_neg, I_mul_I, neg_neg, one_smul]
 
+/-- The scalar identity `(i h)⁻¹ · (-i) = -h⁻¹` in `ℂ`. -/
 lemma genPlus_scalar (h : ℝ) : ((I * (h : ℂ))⁻¹ * (-I) : ℂ) = -(h : ℂ)⁻¹ := by
   rw [mul_inv_rev, mul_assoc, mul_neg, inv_mul_cancel₀ I_ne_zero, mul_neg_one]
 
+/-- For `h > 0`, the difference quotient `(i h)⁻¹(U(h)R₊φ - R₊φ)` as a sum of two orbit terms. -/
 lemma genPlus_diffQuotient_pos (φ : H) (h : ℝ) (hh : h > 0) :
     ((I * (h : ℂ))⁻¹ : ℂ) • (U_grp.U h (resolventIntegralPlus U_grp φ) -
         resolventIntegralPlus U_grp φ) =
@@ -134,6 +142,7 @@ lemma genPlus_diffQuotient_pos (φ : H) (h : ℝ) (hh : h > 0) :
       smul_sub, smul_smul, smul_smul, genPlus_scalar h,
       neg_smul, neg_smul, sub_neg_eq_add]
 
+/-- For `h < 0`, the difference quotient `(i h)⁻¹(U(h)R₊φ - R₊φ)` as a sum of two orbit terms. -/
 lemma genPlus_diffQuotient_neg (φ : H) (h : ℝ) (hh : h < 0) :
     ((I * (h : ℂ))⁻¹ : ℂ) • (U_grp.U h (resolventIntegralPlus U_grp φ) -
         resolventIntegralPlus U_grp φ) =
@@ -142,6 +151,7 @@ lemma genPlus_diffQuotient_neg (φ : H) (h : ℝ) (hh : h < 0) :
   rw [unitary_shift_resolventIntegralPlus_neg U_grp φ h hh,
       smul_add, smul_smul, smul_smul, genPlus_scalar h]
 
+/-- As `h → 0⁺`, the bulk term tends to `-∫_{[0,∞)} e^{-t} U(t)φ dt`. -/
 lemma genPlus_bulk_pos (φ : H) :
     Tendsto (fun h : ℝ => -((h : ℂ)⁻¹ • (Real.exp h - 1) •
         ∫ t in Set.Ici h, Real.exp (-t) • U_grp.U t φ))
@@ -169,6 +179,7 @@ lemma genPlus_bulk_pos (φ : H) :
     rw [← smul_smul]
   rfl
 
+/-- As `h → 0⁻`, the boundary term `-h⁻¹ e^h ∫_{(h,0]} e^{-t} U(t)φ dt` tends to `φ`. -/
 lemma genPlus_boundary_neg (φ : H) :
     Tendsto (fun h : ℝ => -(h : ℂ)⁻¹ • Real.exp h •
         ∫ t in Set.Ioc h 0, Real.exp (-t) • U_grp.U t φ) (𝓝[<] 0) (𝓝 φ) := by
@@ -184,6 +195,7 @@ lemma genPlus_boundary_neg (φ : H) :
   filter_upwards [self_mem_nhdsWithin] with h hh
   rw [smul_comm, @inv_neg]
 
+/-- As `h → 0⁻`, the bulk term tends to `-∫_{[0,∞)} e^{-t} U(t)φ dt`. -/
 lemma genPlus_bulk_neg (φ : H) :
     Tendsto (fun h : ℝ => -(h : ℂ)⁻¹ • (Real.exp h - 1) •
         ∫ t in Set.Ici 0, Real.exp (-t) • U_grp.U t φ)
@@ -213,6 +225,7 @@ lemma genPlus_bulk_neg (φ : H) :
   filter_upwards with h
   rw [neg_smul]
 
+/-- The difference quotient `(i h)⁻¹(U(h)R₊φ - R₊φ)` tends to `φ - i R₊φ` as `h → 0`. -/
 lemma generator_limit_resolventIntegralPlus (φ : H) :
     Tendsto (fun h : ℝ => ((I * h)⁻¹ : ℂ) • (U_grp.U h (resolventIntegralPlus U_grp φ) -
         resolventIntegralPlus U_grp φ))

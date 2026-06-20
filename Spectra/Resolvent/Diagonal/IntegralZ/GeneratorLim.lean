@@ -2,7 +2,6 @@
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
-Filename: UnitaryEvolution/Resolvent/IntegralZ/DiffQuotient.lean
 -/
 import Spectra.Resolvent.Diagonal.IntegralZ.DiffQuotient
 import Spectra.Resolvent.Diagonal.IntegralZ.Bulk
@@ -13,6 +12,8 @@ variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteS
 namespace Spectra.Resolvent
 variable (U_grp : OneParameterUnitaryGroup (H := H))
 
+/-- As `h → 0⁻`, the boundary term
+`-(h)⁻¹ • cexp(I*z*h) • ∫_{(h,0]} cexp(-(I*z*t)) • U(t)φ dt` tends to `φ`. -/
 lemma genZ_boundary_neg {z : ℂ} (φ : H) :
     Tendsto (fun h : ℝ => -(h : ℂ)⁻¹ • cexp (I * z * (h : ℂ)) •
         ∫ t in Set.Ioc h 0, cexp (-(I * z * (t : ℂ))) • U_grp.U t φ) (𝓝[<] 0) (𝓝 φ) := by

@@ -2,7 +2,6 @@
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
-Filename: StonesFormula/SpectralRepresentation.lean
 -/
 import Spectra.SpectralTheory.Measure.GeneratorLink
 import Spectra.Resolvent.Diagonal.IntegralZ.Basic
@@ -213,7 +212,6 @@ theorem im_inner_resolvent_diag (t : ℝ) {ε : ℝ} (hε : 0 < ε) (ξ : H) :
   ← Complex.imCLM_apply, ← ContinuousLinearMap.integral_comp_comm Complex.imCLM hint]
   refine integral_congr_ae (.of_forall fun s => ?_)
   simp only [Complex.imCLM_apply, Complex.inv_im]
-  -- … h_im, h_sq, neg_neg unchanged
   -- Pointwise: `Im (s − (t + iε))⁻¹ = ε/((s − t)² + ε²)`.
   have h_im : ((s : ℂ) - ⟨t, ε⟩).im = -ε := by
     rw [Complex.sub_im, Complex.ofReal_im]

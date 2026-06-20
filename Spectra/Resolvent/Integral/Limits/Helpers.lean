@@ -30,6 +30,7 @@ section Helpers
 
 variable (U_grp : OneParameterUnitaryGroup (H := H))
 
+/-- The difference quotient `(e^h - 1)/h → 1` as `h → 0` along `𝓝[≠] 0`. -/
 lemma tendsto_exp_sub_one_div :
     Tendsto (fun h : ℝ => (Real.exp h - 1) / h) (𝓝[≠] 0) (𝓝 1) := by
   have h : HasDerivAt Real.exp 1 0 := by
@@ -41,6 +42,7 @@ lemma tendsto_exp_sub_one_div :
   simp only [slope, Real.exp_zero, sub_zero, vsub_eq_sub, smul_eq_mul]
   exact div_eq_inv_mul (Real.exp y - 1) y
 
+/-- The half-line integral `∫_{[h,∞)} e^{-t} U(t)φ dt` is continuous at `h = 0`. -/
 lemma tendsto_integral_Ici_exp_unitary (φ : H) :
     Tendsto (fun h : ℝ => ∫ t in Set.Ici h, Real.exp (-t) • U_grp.U t φ)
             (𝓝 0)
@@ -125,6 +127,7 @@ lemma tendsto_integral_Ici_exp_unitary (φ : H) :
           (∫ (t : ℝ) in Set.Ici 0, Real.exp (-t) • (U_grp.U t) φ)
   · simp only [sub_zero]
 
+/-- The right average `h⁻¹ ∫_{(0,h]} e^{-t} U(t)φ dt → φ` as `h → 0⁺`. -/
 lemma tendsto_average_integral_unitary (φ : H) :
     Tendsto (fun h : ℝ => (h⁻¹ : ℂ) • ∫ t in Set.Ioc 0 h, Real.exp (-t) • U_grp.U t φ)
             (𝓝[>] 0)
@@ -164,6 +167,7 @@ lemma tendsto_average_integral_unitary (φ : H) :
   filter_upwards [self_mem_nhdsWithin] with h hh
   rw [h_eq h hh, ← ofReal_inv, @Complex.coe_smul]
 
+/-- The left average `(-h)⁻¹ ∫_{(h,0]} e^{-t} U(t)φ dt → φ` as `h → 0⁻`. -/
 lemma tendsto_average_integral_unitary_neg (φ : H) :
     Tendsto (fun h : ℝ => ((-h)⁻¹ : ℂ) • ∫ t in Set.Ioc h 0, Real.exp (-t) • U_grp.U t φ)
             (𝓝[<] 0)
@@ -213,17 +217,20 @@ lemma tendsto_average_integral_unitary_neg (φ : H) :
   rw [@neg_inv]
   simp_all only [neg_zero, Real.exp_zero, one_smul, intervalIntegral.integral_same, neg_neg]
 
+/-- The reverse orbit integrand `t ↦ e^{-t} • U(-t)φ` is continuous. -/
 lemma exp_neg_orbit_continuous (φ : H) :
     Continuous (fun t : ℝ => Real.exp (-t) • U_grp.U (-t) φ) :=
   (Real.continuous_exp.comp continuous_neg).smul
     ((U_grp.strong_continuous φ).comp continuous_neg)
 
+/-- The reverse orbit integrand at `t = 0` equals `φ`, i.e. `e^{0} • U(0)φ = φ`. -/
 lemma exp_neg_orbit_at_zero (φ : H) :
     Real.exp (-(0 : ℝ)) • U_grp.U (-(0 : ℝ)) φ = φ := by
   simp only [neg_zero, Real.exp_zero, one_smul]
   rw [U_grp.identity]
   simp only [ContinuousLinearMap.id_apply]
 
+/-- Negation maps `𝓝[>] 0` to `𝓝[<] 0`, i.e. `h ↦ -h` sends right neighborhoods to left ones. -/
 lemma tendsto_neg_nhdsWithin_Ioi :
     Tendsto (fun h : ℝ => -h) (𝓝[>] 0) (𝓝[<] 0) := by
   rw [tendsto_nhdsWithin_iff]
@@ -236,6 +243,7 @@ lemma tendsto_neg_nhdsWithin_Ioi :
     simp only [Set.mem_Iio, Left.neg_neg_iff]
     exact hh
 
+/-- Negation maps `𝓝[<] 0` to `𝓝[>] 0`, i.e. `h ↦ -h` sends left neighborhoods to right ones. -/
 lemma tendsto_neg_nhdsWithin_Iio :
     Tendsto (fun h : ℝ => -h) (𝓝[<] 0) (𝓝[>] 0) := by
   rw [tendsto_nhdsWithin_iff]
@@ -249,6 +257,7 @@ lemma tendsto_neg_nhdsWithin_Iio :
     exact Left.neg_pos_iff.mpr hh
 
 
+/-- The difference quotient `(e^{-h} - 1)/h → -1` along any filter `l` with `-h → 0` in `𝓝[≠] 0`. -/
 lemma exp_neg_sub_one_div_tendsto_neg_one {l : Filter ℝ}
     (hl : Tendsto (fun h : ℝ => -h) l (𝓝[≠] 0)) :
     Tendsto (fun h : ℝ => (Real.exp (-h) - 1) / h) l (𝓝 (-1)) := by
@@ -264,6 +273,7 @@ lemma exp_neg_sub_one_div_tendsto_neg_one {l : Filter ℝ}
   · simp [hh]
   · field_simp
 
+/-- Complex-valued form: `((e^{-h} - 1)/h : ℂ) → -1` along `l` with `-h → 0` in `𝓝[≠] 0`. -/
 lemma exp_neg_sub_one_div_ofReal_tendsto_neg_one {l : Filter ℝ}
     (hl : Tendsto (fun h : ℝ => -h) l (𝓝[≠] 0)) :
     Tendsto (fun h : ℝ => ((Real.exp (-h) - 1) / h : ℂ)) l (𝓝 (-1)) := by
@@ -271,6 +281,7 @@ lemma exp_neg_sub_one_div_ofReal_tendsto_neg_one {l : Filter ℝ}
     (continuous_ofReal.tendsto _).comp (exp_neg_sub_one_div_tendsto_neg_one hl)
   simpa using this
 
+/-- The reverse orbit average `h⁻¹ ∫₀^h e^{-t} U(-t)φ dt → φ` as `h → 0` along `𝓝[≠] 0`. -/
 lemma avg_exp_neg_orbit_tendsto (φ : H) :
     Tendsto (fun h : ℝ => h⁻¹ • ∫ t in (0:ℝ)..h, Real.exp (-t) • U_grp.U (-t) φ)
       (𝓝[≠] 0) (𝓝 φ) := by
@@ -295,6 +306,7 @@ lemma avg_exp_neg_orbit_tendsto (φ : H) :
   · congr 1
     exact Set.compl_eq_univ_diff {(0:ℝ)}
 
+/-- Translating the orbit integrand by `h` shifts the half-line lower limit from `0` to `-h`. -/
 lemma integral_Ici_sub_shift (φ : H) (h : ℝ) :
     ∫ t in Set.Ici 0, Real.exp (-(t - h)) • U_grp.U (-(t - h)) φ =
     ∫ s in Set.Ici (-h), Real.exp (-s) • U_grp.U (-s) φ := by
@@ -345,6 +357,7 @@ lemma unitary_apply_Ici_orbit_integral (φ : H) (h : ℝ) :
   rw [h_smul_comm, integral_Ici_sub_shift U_grp φ h]
 
 omit [InnerProductSpace ℂ H] [CompleteSpace H] in
+/-- A continuous `f` integrable on `[0,∞)` is integrable on every half-line `[b,∞)`. -/
 lemma integrableOn_Ici_of_Ici_zero {f : ℝ → H} (hcont : Continuous f)
     (h0 : IntegrableOn f (Set.Ici 0)) (b : ℝ) :
     IntegrableOn f (Set.Ici b) := by
@@ -363,6 +376,7 @@ lemma integrableOn_Ici_of_Ici_zero {f : ℝ → H} (hcont : Continuous f)
     exact (hcont.integrableOn_Icc.mono_set Set.Ico_subset_Icc_self).union h0
 
 omit [CompleteSpace H] in
+/-- For `a ≤ b`, the half-line integral of `f` splits as `∫_{(a,b]} f + ∫_{[b,∞)} f`. -/
 lemma integral_Ici_split_of {f : ℝ → H} (hcont : Continuous f)
     (h0 : IntegrableOn f (Set.Ici 0)) {a b : ℝ} (hab : a ≤ b) :
     ∫ t in Set.Ici a, f t = (∫ t in Set.Ioc a b, f t) + ∫ t in Set.Ici b, f t := by
@@ -385,6 +399,7 @@ lemma integral_Ici_split_of {f : ℝ → H} (hcont : Continuous f)
         ((integrableOn_Ici_of_Ici_zero hcont h0 b).mono_set Set.Ioi_subset_Ici_self),
       h_ae_eqb.symm]
 
+/-- The forward orbit integrand `t ↦ e^{-t} • U(t)φ` is continuous. -/
 lemma exp_neg_orbit_continuous_plus (φ : H) :
     Continuous (fun t : ℝ => Real.exp (-t) • U_grp.U t φ) :=
   (Real.continuous_exp.comp continuous_neg).smul (U_grp.strong_continuous φ)
@@ -405,4 +420,3 @@ lemma integral_Ici_orbit_split (φ : H) {a b : ℝ} (hab : a ≤ b) :
     (integrable_exp_neg_unitary_neg U_grp φ) hab
 
 end Helpers
-namespace Spectra.Resolvent

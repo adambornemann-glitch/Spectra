@@ -2,7 +2,6 @@
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
-Filename: UnitaryEvolution/Resolvent/IntegralZ/Bulk.lean
 -/
 import Spectra.Resolvent.Diagonal.IntegralZ.Tendsto
 
@@ -12,6 +11,8 @@ variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteS
 namespace Spectra.Resolvent
 variable (U_grp : OneParameterUnitaryGroup (H := H))
 
+/-- For `Im z < 0`, the right difference quotient of `∫_{Ici h} e^{-izt}U(t)φ dt` tends to
+`-(iz)•∫_{Ici 0} e^{-izt}U(t)φ dt` as `h → 0⁺`. -/
 lemma genZ_bulk_pos {z : ℂ} (hz : z.im < 0) (φ : H) :
     Tendsto (fun h : ℝ => -((h : ℂ)⁻¹ • (cexp (I * z * (h : ℂ)) - 1) •
         ∫ t in Set.Ici h, cexp (-(I * z * (t : ℂ))) • U_grp.U t φ))
@@ -33,6 +34,8 @@ lemma genZ_bulk_pos {z : ℂ} (hz : z.im < 0) (φ : H) :
   filter_upwards [self_mem_nhdsWithin] with h hh
   rw [div_eq_inv_mul, ← smul_smul]
 
+/-- The left difference quotient of `(e^{izh}-1)•∫_{Ici 0} e^{-izt}U(t)φ dt` tends to
+`-(iz)•∫_{Ici 0} e^{-izt}U(t)φ dt` as `h → 0⁻`. -/
 lemma genZ_bulk_neg {z : ℂ} (φ : H) :
     Tendsto (fun h : ℝ => -(h : ℂ)⁻¹ • (cexp (I * z * (h : ℂ)) - 1) •
         ∫ t in Set.Ici (0 : ℝ), cexp (-(I * z * (t : ℂ))) • U_grp.U t φ)

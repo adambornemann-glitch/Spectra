@@ -2,7 +2,6 @@
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
-Filename: UnitaryEvolution/Resolvent/IntegralZ.lean
 -/
 import Spectra.Resolvent.Identities
 import Spectra.YosidaHille.Basic
@@ -21,7 +20,7 @@ noncomputable def resolventIntegralZ (z : ℂ) (φ : H) : H :=
 /-- Integrability needs `Im z < 0`; bound `‖e^{-izt} • U(t)φ‖ = e^{(Im z)t} ‖φ‖ ≤ ‖φ‖`. -/
 lemma integrable_expZ_unitary {z : ℂ} (hz : z.im < 0) (φ : H) :
     IntegrableOn (fun t : ℝ => cexp (-(I * z * (t : ℂ))) • U_grp.U t φ) (Set.Ici 0) := by
-  -- ── two facts from the `OneParameterUnitaryGroup` API (supply the names) ──────
+  -- ── two facts from the `OneParameterUnitaryGroup` API ──────
   have h_orbit_cont : Continuous (fun t : ℝ => U_grp.U t φ) := U_grp.strong_continuous φ
   have h_normU : ∀ t : ℝ, ‖U_grp.U t φ‖ ≤ ‖φ‖ := fun t => (norm_preserving U_grp t φ).le
   -- ── dominating function  ‖φ‖ · e^{(Im z)·t},  integrable since  Im z < 0 ──────

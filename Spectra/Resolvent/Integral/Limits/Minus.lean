@@ -24,6 +24,8 @@ section GeneratorLimitMinus
 
 variable (U_grp : OneParameterUnitaryGroup (H := H))
 
+/-- For `h > 0`, the shift `U(h)R₋φ - R₋φ` splits into a boundary integral over `(-h, 0]` and a
+`(e^{-h} - 1)`-scaled tail integral over `[0, ∞)`. -/
 lemma unitary_shift_resolventIntegralMinus (φ : H) (h : ℝ) (hh : h > 0) :
     U_grp.U h (resolventIntegralMinus U_grp φ) - resolventIntegralMinus U_grp φ =
     I • (Real.exp (-h) • ∫ t in Set.Ioc (-h) 0, Real.exp (-t) • U_grp.U (-t) φ) +
@@ -41,6 +43,8 @@ lemma unitary_shift_resolventIntegralMinus (φ : H) (h : ℝ) (hh : h > 0) :
     _ = I • Real.exp (-h) • X + I • ((Real.exp (-h) - 1) • Y) := by rw [sub_smul, one_smul]
 
 
+/-- For `h < 0`, the shift `U(h)R₋φ - R₋φ` splits into a `(e^{-h} - 1)`-scaled tail integral over
+`[-h, ∞)` minus a boundary integral over `(0, -h]`. -/
 lemma unitary_shift_resolventIntegralMinus_neg (φ : H) (h : ℝ) (hh : h < 0) :
     U_grp.U h (resolventIntegralMinus U_grp φ) - resolventIntegralMinus U_grp φ =
     I • ((Real.exp (-h) - 1) • ∫ t in Set.Ici (-h), Real.exp (-t) • U_grp.U (-t) φ) -
@@ -57,15 +61,19 @@ lemma unitary_shift_resolventIntegralMinus_neg (φ : H) (h : ℝ) (hh : h < 0) :
     _ = I • ((Real.exp (-h) - 1) • Y) - I • X := by rw [sub_smul, one_smul]
 
 
+/-- The generator target `φ + iR₋φ` equals `φ` minus the tail integral `∫₀^∞ e^{-t}U(-t)φ dt`. -/
 private lemma genMinus_target_eq (φ : H) :
     φ + I • resolventIntegralMinus U_grp φ =
       φ - ∫ t in Set.Ici 0, Real.exp (-t) • U_grp.U (-t) φ := by
   unfold resolventIntegralMinus
   rw [smul_smul, I_mul_I, neg_one_smul, sub_eq_add_neg]
 
+/-- The scalar identity `(i·h)⁻¹ · i = h⁻¹` in `ℂ`. -/
 private lemma genMinus_scalar (h : ℝ) : ((I * (h : ℂ))⁻¹ * I : ℂ) = (h : ℂ)⁻¹ := by
   rw [mul_inv_rev, mul_assoc, inv_mul_cancel₀ I_ne_zero, mul_one]
 
+/-- For `h > 0`, the difference quotient `(i·h)⁻¹(U(h)R₋φ - R₋φ)` equals the sum of an `h⁻¹`-scaled
+boundary term over `(-h, 0]` and an `h⁻¹(e^{-h} - 1)`-scaled tail term over `[0, ∞)`. -/
 private lemma genMinus_diffQuotient_pos (φ : H) (h : ℝ) (hh : h > 0) :
     ((I * (h : ℂ))⁻¹ : ℂ) • (U_grp.U h (resolventIntegralMinus U_grp φ) -
         resolventIntegralMinus U_grp φ) =
@@ -74,6 +82,8 @@ private lemma genMinus_diffQuotient_pos (φ : H) (h : ℝ) (hh : h > 0) :
   rw [unitary_shift_resolventIntegralMinus U_grp φ h hh, smul_add, smul_smul, smul_smul,
       genMinus_scalar h]
 
+/-- For `h < 0`, the difference quotient `(i·h)⁻¹(U(h)R₋φ - R₋φ)` equals the sum of an
+`h⁻¹(e^{-h} - 1)`-scaled tail term over `[-h, ∞)` and a `-h⁻¹`-scaled boundary term over `(0, -h]`. -/
 private lemma genMinus_diffQuotient_neg (φ : H) (h : ℝ) (hh : h < 0) :
     ((I * (h : ℂ))⁻¹ : ℂ) • (U_grp.U h (resolventIntegralMinus U_grp φ) -
         resolventIntegralMinus U_grp φ) =
@@ -83,6 +93,8 @@ private lemma genMinus_diffQuotient_neg (φ : H) (h : ℝ) (hh : h < 0) :
       smul_sub, smul_smul, smul_smul, genMinus_scalar h,
       sub_eq_add_neg, neg_smul]
 
+/-- As `h → 0⁺`, the tail term `h⁻¹(e^{-h} - 1)∫₀^∞ e^{-t}U(-t)φ dt` tends to
+`-∫₀^∞ e^{-t}U(-t)φ dt`. -/
 private lemma genMinus_bulk_pos (φ : H) :
     Tendsto (fun h : ℝ => (h : ℂ)⁻¹ • (Real.exp (-h) - 1) •
         ∫ t in Set.Ici 0, Real.exp (-t) • U_grp.U (-t) φ)
@@ -103,6 +115,7 @@ private lemma genMinus_bulk_pos (φ : H) :
     rw [← smul_smul]
   rw [@Complex.coe_smul]
 
+/-- As `h → 0⁺`, the boundary term `h⁻¹ e^{-h} ∫_{(-h,0]} e^{-t}U(-t)φ dt` tends to `φ`. -/
 private lemma genMinus_boundary_pos (φ : H) :
     Tendsto (fun h : ℝ => (h : ℂ)⁻¹ • Real.exp (-h) •
         ∫ t in Set.Ioc (-h) 0, Real.exp (-t) • U_grp.U (-t) φ) (𝓝[>] 0) (𝓝 φ) := by
@@ -136,6 +149,7 @@ private lemma genMinus_boundary_pos (φ : H) :
   filter_upwards [self_mem_nhdsWithin] with h hh
   rw [smul_comm]
 
+/-- As `h → 0⁻`, the tail integral `∫_{[-h,∞)} e^{-t}U(-t)φ dt` tends to `∫₀^∞ e^{-t}U(-t)φ dt`. -/
 private lemma genMinus_tail_continuous_neg (φ : H) :
     Tendsto (fun h : ℝ => ∫ t in Set.Ici (-h), Real.exp (-t) • U_grp.U (-t) φ)
       (𝓝[<] 0) (𝓝 (∫ t in Set.Ici 0, Real.exp (-t) • U_grp.U (-t) φ)) := by
@@ -170,6 +184,8 @@ private lemma genMinus_tail_continuous_neg (φ : H) :
   filter_upwards [self_mem_nhdsWithin] with h hh
   exact (h_split h hh).symm
 
+/-- As `h → 0⁻`, the tail term `h⁻¹(e^{-h} - 1)∫_{[-h,∞)} e^{-t}U(-t)φ dt` tends to
+`-∫₀^∞ e^{-t}U(-t)φ dt`. -/
 private lemma genMinus_bulk_neg (φ : H) :
     Tendsto (fun h : ℝ => (h : ℂ)⁻¹ • (Real.exp (-h) - 1) •
         ∫ t in Set.Ici (-h), Real.exp (-t) • U_grp.U (-t) φ)
@@ -189,6 +205,7 @@ private lemma genMinus_bulk_neg (φ : H) :
     rw [← smul_smul]
   rw [@Complex.coe_smul]
 
+/-- As `h → 0⁻`, the boundary term `-h⁻¹ ∫_{(0,-h]} e^{-t}U(-t)φ dt` tends to `φ`. -/
 private lemma genMinus_boundary_neg (φ : H) :
     Tendsto (fun h : ℝ => (-(h : ℂ)⁻¹) •
         ∫ t in Set.Ioc 0 (-h), Real.exp (-t) • U_grp.U (-t) φ) (𝓝[<] 0) (𝓝 φ) := by
@@ -210,6 +227,8 @@ private lemma genMinus_boundary_neg (φ : H) :
   simp only [ofReal_neg, inv_neg, neg_smul]
 
 
+/-- As `h → 0`, the difference quotient `(i·h)⁻¹(U(h)R₋φ - R₋φ)` tends to `φ + iR₋φ`, so `R₋φ`
+lies in the generator domain with `A(R₋φ) = φ + iR₋φ`. -/
 lemma generator_limit_resolventIntegralMinus (φ : H) :
     Tendsto (fun h : ℝ => ((I * h)⁻¹ : ℂ) • (U_grp.U h (resolventIntegralMinus U_grp φ) -
         resolventIntegralMinus U_grp φ))

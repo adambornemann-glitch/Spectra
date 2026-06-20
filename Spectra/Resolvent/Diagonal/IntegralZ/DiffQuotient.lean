@@ -2,7 +2,6 @@
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
-Filename: UnitaryEvolution/Resolvent/IntegralZ/DiffQuotient.lean
 -/
 import Spectra.Resolvent.Diagonal.IntegralZ.Shift
 open Complex
@@ -11,6 +10,8 @@ variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteS
 namespace Spectra.Resolvent
 variable (U_grp : OneParameterUnitaryGroup (H := H))
 
+/-- For `h > 0` the difference quotient `(I·h)⁻¹ · (U(h) - 1)` applied to `resolventIntegralZ z φ`
+splits into a boundary `Set.Ici h` term and a bulk `Set.Ioc 0 h` term. -/
 lemma genZ_diffQuotient_pos {z : ℂ} (hz : z.im < 0) (φ : H) (h : ℝ) (hh : h > 0) :
     ((I * (h : ℂ))⁻¹ : ℂ) • (U_grp.U h (resolventIntegralZ U_grp z φ) -
         resolventIntegralZ U_grp z φ) =
@@ -24,6 +25,8 @@ lemma genZ_diffQuotient_pos {z : ℂ} (hz : z.im < 0) (φ : H) (h : ℝ) (hh : h
       key (∫ t in Set.Ioc 0 h, cexp (-(I * z * (t : ℂ))) • U_grp.U t φ),
       sub_neg_eq_add]
 
+/-- For `h < 0` the difference quotient `(I·h)⁻¹ · (U(h) - 1)` applied to `resolventIntegralZ z φ`
+splits into a `Set.Ioc h 0` term and a boundary `Set.Ici 0` term. -/
 lemma genZ_diffQuotient_neg {z : ℂ} (hz : z.im < 0) (φ : H) (h : ℝ) (hh : h < 0) :
     ((I * (h : ℂ))⁻¹ : ℂ) • (U_grp.U h (resolventIntegralZ U_grp z φ) -
         resolventIntegralZ U_grp z φ) =

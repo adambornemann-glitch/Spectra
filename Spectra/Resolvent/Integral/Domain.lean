@@ -32,6 +32,8 @@ variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteS
 namespace Spectra.Resolvent
 variable (U_grp : OneParameterUnitaryGroup (H := H))
 
+/-- Surjectivity of `A + iI`: for every `φ` there is `ψ` in the generator domain with
+    `Aψ + I • ψ = φ`, witnessed by `resolventIntegralPlus φ`. -/
 lemma range_plus_i_eq_top :
     ∀ φ : H, ∃ ψ : (generator U_grp).domain,
       generator U_grp ψ + I • (ψ : H) = φ := by
@@ -49,6 +51,8 @@ lemma range_plus_i_eq_top :
         + I • resolventIntegralPlus U_grp φ = φ
   rw [hval]; abel
 
+/-- Surjectivity of `A - iI`: for every `φ` there is `ψ` in the generator domain with
+    `Aψ - I • ψ = φ`, witnessed by `resolventIntegralMinus φ`. -/
 lemma range_minus_i_eq_top :
     ∀ φ : H, ∃ ψ : (generator U_grp).domain,
       generator U_grp ψ - I • (ψ : H) = φ := by
@@ -68,6 +72,7 @@ lemma range_minus_i_eq_top :
 noncomputable def averagedVector (h : ℝ) (_ : h ≠ 0) (φ : H) : H :=
   (h⁻¹ : ℂ) • ∫ t in Set.Ioc 0 h, U_grp.U t φ
 
+/-- The time-averaged vectors converge to `φ`: `h⁻¹ ∫₀ʰ U(t)φ dt → φ` as `h → 0⁺`. -/
 lemma averagedVector_tendsto (φ : H) :
     Tendsto (fun h : ℝ => if hh : h ≠ 0 then averagedVector U_grp h hh φ else φ)
             (𝓝[>] 0) (𝓝 φ) := by
@@ -99,6 +104,7 @@ lemma averagedVector_tendsto (φ : H) :
   rw [intervalIntegral.integral_of_le (le_of_lt hh)]
   rw [(Complex.coe_smul h⁻¹ _).symm, ofReal_inv]
 
+/-- Applying `U(s)` shifts the orbit integral: `U(s) ∫₀ʰ U(t)φ dt = ∫ₛ^{s+h} U(t)φ dt`. -/
 lemma averagedVector_orbit_shift_integral (s h : ℝ) (φ : H) :
     U_grp.U s (∫ t in Set.Ioc 0 h, U_grp.U t φ) = ∫ t in Set.Ioc s (s + h), U_grp.U t φ := by
   have h_cont : Continuous (fun t => U_grp.U t φ) := U_grp.strong_continuous φ
@@ -127,6 +133,8 @@ lemma averagedVector_orbit_shift_integral (s h : ℝ) (φ : H) :
     · exact (measurable_sub_const s).aemeasurable
   exact h_shift_int
 
+/-- Additivity rearrangement of orbit integrals:
+    `∫ₛ^{s+h} - ∫₀ʰ = ∫_h^{h+s} - ∫₀ˢ` of `U(t)φ`. -/
 lemma integral_orbit_shift_arith (s h : ℝ) (φ : H) :
     (∫ t in s..(s + h), U_grp.U t φ) - ∫ t in (0:ℝ)..h, U_grp.U t φ
       = (∫ t in (h:ℝ)..(h + s), U_grp.U t φ) - ∫ t in (0:ℝ)..s, U_grp.U t φ := by
@@ -153,6 +161,7 @@ lemma integral_orbit_shift_arith (s h : ℝ) (φ : H) :
     exact h_sub _ _ _ _ key
   exact h_arith
 
+/-- The orbit difference quotient at `0` converges to `φ`: `s⁻¹ ∫₀ˢ U(t)φ dt → φ` as `s → 0`. -/
 lemma averagedVector_quotient_tendsto_zero (φ : H) :
     Tendsto (fun s : ℝ => (s⁻¹ : ℂ) • ∫ t in (0:ℝ)..s, U_grp.U t φ) (𝓝[≠] 0) (𝓝 φ) := by
   have h_cont : Continuous (fun t => U_grp.U t φ) := U_grp.strong_continuous φ
@@ -171,6 +180,8 @@ lemma averagedVector_quotient_tendsto_zero (φ : H) :
     rw [(Complex.coe_smul s⁻¹ _).symm, ofReal_inv]
   exact h_FTC1
 
+/-- The orbit difference quotient at `h` converges to `U(h)φ`:
+    `s⁻¹ ∫_h^{h+s} U(t)φ dt → U(h)φ` as `s → 0`. -/
 lemma averagedVector_quotient_tendsto_at (h : ℝ) (φ : H) :
     Tendsto (fun s : ℝ => (s⁻¹ : ℂ) • ∫ t in (h:ℝ)..(h + s), U_grp.U t φ)
       (𝓝[≠] 0) (𝓝 (U_grp.U h φ)) := by
@@ -201,6 +212,8 @@ lemma averagedVector_quotient_tendsto_at (h : ℝ) (φ : H) :
     rw [(Complex.coe_smul s⁻¹ _).symm, ofReal_inv]
   exact h_FTC2
 
+/-- The generator difference quotient of `averagedVector h φ` equals
+    `(I·h)⁻¹` times the difference of the orbit quotients at `h` and at `0`. -/
 lemma averagedVector_difference_quotient
     (h : ℝ) (hh : h ≠ 0) (hpos : 0 < h) (φ : H) (s : ℝ) (_hs : s ≠ 0) :
     ((I * s)⁻¹ : ℂ) • (U_grp.U s (averagedVector U_grp h hh φ) - averagedVector U_grp h hh φ)
@@ -219,6 +232,7 @@ lemma averagedVector_difference_quotient
   rw [h_scalar, ← smul_smul, smul_sub]
 
 
+/-- Every time-averaged vector `averagedVector h φ` lies in the generator domain. -/
 lemma averagedVector_in_domain (h : ℝ) (hh : h ≠ 0) (φ : H) :
     averagedVector U_grp h hh φ ∈ generatorDomain U_grp := by
   by_cases hpos : 0 < h
@@ -237,6 +251,7 @@ lemma averagedVector_in_domain (h : ℝ) (hh : h ≠ 0) (φ : H) :
     exact (generatorDomain U_grp).zero_mem
 
 
+/-- The generator domain is dense in `H`, via the time-averaged vectors `h⁻¹ ∫₀ʰ U(t)φ dt → φ`. -/
 lemma generatorDomain_dense_via_average :
     Dense (generatorDomain U_grp : Set H) := by
   rw [Metric.dense_iff]
@@ -263,10 +278,13 @@ lemma generatorDomain_dense_via_average :
     exact this
   · exact averagedVector_in_domain U_grp (δ / 2) hh φ
 
+/-- Membership criterion for the generator domain: `ψ ∈ generatorDomain` iff the difference
+    quotient `(I·t)⁻¹ • (U(t)ψ - ψ)` converges as `t → 0`. -/
 lemma generatorDomain_maximal (ψ : H)
     (h : ∃ η : H, Tendsto (fun t : ℝ => ((I : ℂ) * t)⁻¹ • (U_grp.U t ψ - ψ)) (𝓝[≠] 0) (𝓝 η)) :
     ψ ∈ generatorDomain U_grp := h
 
+/-- The generator of a strongly continuous one-parameter unitary group is self-adjoint. -/
 lemma generator_isSelfAdjoint : IsSelfAdjoint (generator U_grp) :=
   isSelfAdjoint_of_surjective_addSub (generator U_grp)
     (generator_isFormalAdjoint U_grp)
