@@ -3,8 +3,8 @@ Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
+import Spectra.OneParameterUnitaryGroup.Basic
 import Spectra.Resolvent.Identities
-import Spectra.YosidaHille.Basic
 
 open Complex MeasureTheory
 open Spectra.OneParameterUnitaryGroup
@@ -52,7 +52,7 @@ lemma integrable_expZ_unitary {z : ℂ} (hz : z.im < 0) (φ : H) :
       _ = ‖φ‖ * Real.exp (z.im * t) := mul_comm _ _
   exact Integrable.mono' h_g_int h_meas h_bound
 
-/-- The shift lemma, generalizing `unitary_apply_Ici_orbit_integral_plus`:
+/-- The shift lemma, generalizing the `e^h` half-line orbit shift to general `z`:
     the prefactor `e^h` becomes `e^{izh}`. -/
 lemma unitary_apply_expZ_integral {z : ℂ} (hz : z.im < 0) (φ : H) (h : ℝ) :
     U_grp.U h (∫ t in Set.Ici (0 : ℝ), cexp (-(I * z * (t : ℂ))) • U_grp.U t φ) =

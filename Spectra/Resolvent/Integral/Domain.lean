@@ -3,7 +3,7 @@ Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
-import Spectra.Resolvent.Integral.Limits.Plus
+import Spectra.Resolvent.Diagonal.IntegralZ.GeneratorLim
 import Spectra.Resolvent.Integral.Limits.Minus
 import Mathlib.Probability.Distributions.Gaussian.Real
 /-!
@@ -32,14 +32,35 @@ variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteS
 namespace Spectra.Resolvent
 variable (U_grp : OneParameterUnitaryGroup (H := H))
 
+/-- `R₊` is the general resolvent integral at `z = -i`: `resolventIntegralPlus φ = R(-i)φ`,
+since `I * (-I) = 1` makes `e^{-(I·(-I)·t)} = e^{-t}`. -/
+lemma resolventIntegralPlus_eq_resolventIntegralZ_neg_I (φ : H) :
+    resolventIntegralPlus U_grp φ = resolventIntegralZ U_grp (-I) φ := by
+  unfold resolventIntegralPlus resolventIntegralZ
+  congr 1
+  refine setIntegral_congr_fun measurableSet_Ici (fun t _ => ?_)
+  have hexp : cexp (-(I * (-I) * (t : ℂ))) = (Real.exp (-t) : ℂ) := by
+    rw [show I * (-I) = 1 from by rw [mul_neg, Complex.I_mul_I, neg_neg], one_mul,
+        ← Complex.ofReal_neg, ← Complex.ofReal_exp]
+  rw [hexp, Complex.coe_smul]
+
 /-- Surjectivity of `A + iI`: for every `φ` there is `ψ` in the generator domain with
     `Aψ + I • ψ = φ`, witnessed by `resolventIntegralPlus φ`. -/
 lemma range_plus_i_eq_top :
     ∀ φ : H, ∃ ψ : (generator U_grp).domain,
       generator U_grp ψ + I • (ψ : H) = φ := by
   intro φ
-  -- the difference quotient of `resolventIntegralPlus φ` converges to `φ - I • (·)`
-  have hlim := generator_limit_resolventIntegralPlus U_grp φ
+  -- `R₊ = R(-i)`, so the generator limit is the general-`z` limit specialized at `z = -i`
+  have hlim : Tendsto (fun h : ℝ => ((I * h)⁻¹ : ℂ) •
+        (U_grp.U h (resolventIntegralPlus U_grp φ) - resolventIntegralPlus U_grp φ))
+      (𝓝[≠] 0) (𝓝 (φ - I • resolventIntegralPlus U_grp φ)) := by
+    have hz : (-I : ℂ).im < 0 := by rw [Complex.neg_im, Complex.I_im]; norm_num
+    have h := generator_limit_resolventIntegralZ U_grp hz φ
+    have htgt : (-I : ℂ) • resolventIntegralZ U_grp (-I) φ + φ
+              = φ - I • resolventIntegralPlus U_grp φ := by
+      rw [resolventIntegralPlus_eq_resolventIntegralZ_neg_I, neg_smul]; abel
+    rw [htgt] at h
+    simpa only [resolventIntegralPlus_eq_resolventIntegralZ_neg_I] using h
   -- so that vector lies in the domain ...
   have hmem : resolventIntegralPlus U_grp φ ∈ (generator U_grp).domain := ⟨_, hlim⟩
   -- ... and the generator's value there is that same limit, by uniqueness of limits

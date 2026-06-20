@@ -212,7 +212,6 @@ import Spectra.Resolvent.Identities
 import Spectra.Resolvent.Integral.GroupIntegration
 import Spectra.Resolvent.Integral.Limits.Helpers
 import Spectra.Resolvent.Integral.Limits.Minus
-import Spectra.Resolvent.Integral.Limits.Plus
 import Spectra.Resolvent.Integral.Domain
 import Spectra.Resolvent.LowerBound
 import Spectra.Resolvent.NormExpansion

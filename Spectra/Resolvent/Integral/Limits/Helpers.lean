@@ -399,18 +399,6 @@ lemma integral_Ici_split_of {f : ℝ → H} (hcont : Continuous f)
         ((integrableOn_Ici_of_Ici_zero hcont h0 b).mono_set Set.Ioi_subset_Ici_self),
       h_ae_eqb.symm]
 
-/-- The forward orbit integrand `t ↦ e^{-t} • U(t)φ` is continuous. -/
-lemma exp_neg_orbit_continuous_plus (φ : H) :
-    Continuous (fun t : ℝ => Real.exp (-t) • U_grp.U t φ) :=
-  (Real.continuous_exp.comp continuous_neg).smul (U_grp.strong_continuous φ)
-
-/-- The orbit integrand `e^{-t} • U(-t)φ` is integrable on every half-line `[b,∞)`.
-Norm is `e^{-t}‖φ‖` by unitarity; bootstrap from the `Ici 0` case. -/
-lemma integrableOn_exp_neg_orbit_Ici (φ : H) (b : ℝ) :
-    IntegrableOn (fun t => Real.exp (-t) • U_grp.U (-t) φ) (Set.Ici b) :=
-  integrableOn_Ici_of_Ici_zero (exp_neg_orbit_continuous U_grp φ)
-    (integrable_exp_neg_unitary_neg U_grp φ) b
-
 /-- Split the half-line orbit integral at an interior point. -/
 lemma integral_Ici_orbit_split (φ : H) {a b : ℝ} (hab : a ≤ b) :
     ∫ t in Set.Ici a, Real.exp (-t) • U_grp.U (-t) φ =
