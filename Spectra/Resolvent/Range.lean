@@ -119,7 +119,7 @@ private lemma resolventSolution_norm_le {A : H →ₗ.[ℂ] H}
     ‖resolventSolution z hz hsym hplus hminus φ‖ ≤ (1 / |z.im|) * ‖φ‖ := by
   have hmem := resolventSolution_mem z hz hsym hplus hminus φ
   have heq := resolventSolution_eq z hz hsym hplus hminus φ
-  have hbound := lower_bound_estimate hsym z hz (resolventSolution z hz hsym hplus hminus φ) hmem
+  have hbound := lower_bound_estimate hsym z (resolventSolution z hz hsym hplus hminus φ) hmem
   rw [heq] at hbound
   have him : 0 < |z.im| := abs_pos.mpr hz
   calc ‖resolventSolution z hz hsym hplus hminus φ‖
@@ -155,7 +155,7 @@ theorem resolvent_bound {A : H →ₗ.[ℂ] H}
     have h_domain : ψ ∈ A.domain := ψ_sub.property
     have h_eq : A ψ_sub - z • ψ = φ :=
       Classical.choose_spec (self_adjoint_range_all_z hsym hplus hminus z hz φ).exists
-    have h_lower := lower_bound_estimate hsym z hz ψ h_domain
+    have h_lower := lower_bound_estimate hsym z ψ h_domain
     rw [h_eq] at h_lower
     have h_im_pos : 0 < |z.im| := abs_pos.mpr hz
     have h_ψ_bound : ‖ψ‖ ≤ ‖φ‖ / |z.im| := by

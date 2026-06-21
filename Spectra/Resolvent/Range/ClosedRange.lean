@@ -42,7 +42,7 @@ lemma preimage_cauchySeq {A : H →ₗ.[ℂ] H} (hsym : A.IsFormalAdjoint A)
   intro m hm n hn
   have h_sub_mem : (ψ_seq m : H) - (ψ_seq n : H) ∈ A.domain :=
     A.domain.sub_mem (ψ_seq m).property (ψ_seq n).property
-  have h_bound := lower_bound_estimate hsym z hz ((ψ_seq m : H) - (ψ_seq n : H)) h_sub_mem
+  have h_bound := lower_bound_estimate hsym z ((ψ_seq m : H) - (ψ_seq n : H)) h_sub_mem
   have h_diff : A ⟨(ψ_seq m : H) - (ψ_seq n : H), h_sub_mem⟩ -
                 z • ((ψ_seq m : H) - (ψ_seq n : H)) =
                 (A (ψ_seq m) - z • (ψ_seq m : H)) - (A (ψ_seq n) - z • (ψ_seq n : H)) := by

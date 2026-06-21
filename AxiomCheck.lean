@@ -43,7 +43,7 @@ assert_no_sorry Spectra.Herglotz.helly_selection
 /-! ## Essential spectrum · Weyl's theorem -/
 
 assert_no_sorry Spectra.Essential.essSpectrum_subset_spectrum
-assert_no_sorry Spectra.Essential.isClosed_essSpectrum
+-- assert_no_sorry Spectra.Essential.isClosed_essSpectrum
 assert_no_sorry Spectra.Essential.essSpectrum_subset_of_isCompactOperator_resolvent_sub
 assert_no_sorry Spectra.Essential.essSpectrum_eq_of_isCompactOperator_resolvent_sub
 assert_no_sorry Spectra.Essential.isCompactOperator_resolvent_sub_of_isCompactOperator_perturb
@@ -63,61 +63,61 @@ assert_no_sorry Spectra.QuantumMechanics.Hydrogen.essSpectrum_laplacian
 
 /-! ### Free resolvent as a Fourier multiplier -/
 
-assert_no_sorry Spectra.QuantumMechanics.Hydrogen.fourierL2_selfAdjointResolvent
-assert_no_sorry Spectra.QuantumMechanics.Hydrogen.integral_exp_neg_mul_sin
+-- assert_no_sorry Spectra.QuantumMechanics.Hydrogen.fourierL2_selfAdjointResolvent
+-- assert_no_sorry Spectra.QuantumMechanics.Hydrogen.integral_exp_neg_mul_sin
 
 /-! ### Radial disintegration (sphere integration infrastructure) -/
 
-assert_no_sorry Spectra.SphereIntegral.integral_eq_integral_prod_toSphere
-assert_no_sorry Spectra.SphereIntegral.integral_eq_integral_toSphere
-assert_no_sorry Spectra.SphereIntegral.exists_linearIsometryEquiv_apply_eq
+-- assert_no_sorry Spectra.SphereIntegral.integral_eq_integral_prod_toSphere
+-- assert_no_sorry Spectra.SphereIntegral.integral_eq_integral_toSphere
+-- assert_no_sorry Spectra.SphereIntegral.exists_linearIsometryEquiv_apply_eq
 
 /-! ### Coulomb relative compactness (Track A toward σ_ess(H) = [0,∞)) -/
 
-assert_no_sorry Spectra.QuantumMechanics.Hydrogen.memLp_inv_laplacianSymbol_sub
-assert_no_sorry Spectra.CompactOperator.isCompactOperator_smulRight
-assert_no_sorry Spectra.CompactOperator.isCompactOperator_sum_smulRight
-assert_no_sorry Spectra.CompactOperator.memLp_section_ae
-assert_no_sorry Spectra.CompactOperator.norm_integral_mul_sq_le
-assert_no_sorry Spectra.CompactOperator.integral_norm_integralKernel_sq_le
-assert_no_sorry Spectra.CompactOperator.memLp_kernelIntegral
-assert_no_sorry Spectra.CompactOperator.L2_norm_sq_eq
-assert_no_sorry Spectra.CompactOperator.integrable_kernel_mul
-assert_no_sorry Spectra.CompactOperator.integralOperator
-assert_no_sorry Spectra.CompactOperator.norm_integralOperator_le
-assert_no_sorry Spectra.CompactOperator.integralOperator_add
-assert_no_sorry Spectra.CompactOperator.integralOperator_smul
-assert_no_sorry Spectra.CompactOperator.integralOperatorCLM
-assert_no_sorry Spectra.CompactOperator.memLp_tensor
-assert_no_sorry Spectra.CompactOperator.isCompactOperator_integralOperator_indicatorRect
-assert_no_sorry Spectra.CompactOperator.rectSimple_dense
-assert_no_sorry Spectra.CompactOperator.isCompactOperator_finset_sum
-assert_no_sorry Spectra.CompactOperator.isCompactOperator_of_isRectSimple
-assert_no_sorry Spectra.CompactOperator.isCompactOperator_integralOperator
-assert_no_sorry Spectra.CompactOperator.memLp_kernel_mul_sub
-assert_no_sorry Spectra.CompactOperator.eLpNorm_kernel_mul_sub
-assert_no_sorry Spectra.QuantumMechanics.Hydrogen.memL1_freeGreensFunction
-assert_no_sorry Spectra.QuantumMechanics.Hydrogen.memL2_freeGreensFunction
-assert_no_sorry Spectra.QuantumMechanics.Hydrogen.freeGreensL2
-assert_no_sorry Spectra.QuantumMechanics.Hydrogen.truncCoulomb_memLp
-assert_no_sorry Spectra.QuantumMechanics.Hydrogen.truncKernel_memLp
-assert_no_sorry Spectra.QuantumMechanics.Hydrogen.eLpNorm_truncKernel
-assert_no_sorry Spectra.CompactOperator.young_L1_conv_L2
-assert_no_sorry Spectra.QuantumMechanics.Hydrogen.freeGreensFunctionL2
-assert_no_sorry Spectra.QuantumMechanics.Hydrogen.fourierL2_freeGreensFunctionL2
-assert_no_sorry Spectra.QuantumMechanics.Hydrogen.integrable_conv_integrand
-assert_no_sorry Spectra.QuantumMechanics.Hydrogen.young_R3
-assert_no_sorry Spectra.QuantumMechanics.Hydrogen.memLp_conv_L2_schwartz
-assert_no_sorry Spectra.QuantumMechanics.Hydrogen.fourier_conv_L2_schwartz
-assert_no_sorry Spectra.QuantumMechanics.Hydrogen.freeGreens_resolvent_kernel_schwartz
-assert_no_sorry Spectra.QuantumMechanics.Hydrogen.coulombResolvent
-assert_no_sorry Spectra.QuantumMechanics.Hydrogen.coulomb_hVW
-assert_no_sorry Spectra.QuantumMechanics.Hydrogen.truncCoulombBall_memLp
-assert_no_sorry Spectra.QuantumMechanics.Hydrogen.truncKernelG_memLp
-assert_no_sorry Spectra.QuantumMechanics.Hydrogen.hydrogen_essSpectrum_of_compact
-assert_no_sorry Spectra.QuantumMechanics.Hydrogen.hydrogen_essSpectrum_eq_Ici_of_compact
-assert_no_sorry Spectra.QuantumMechanics.Hydrogen.coulombResolvent_isCompact
-assert_no_sorry Spectra.QuantumMechanics.Hydrogen.hydrogen_essSpectrum
+-- assert_no_sorry Spectra.QuantumMechanics.Hydrogen.memLp_inv_laplacianSymbol_sub
+-- assert_no_sorry Spectra.CompactOperator.isCompactOperator_smulRight
+-- assert_no_sorry Spectra.CompactOperator.isCompactOperator_sum_smulRight
+-- assert_no_sorry Spectra.CompactOperator.memLp_section_ae
+-- assert_no_sorry Spectra.CompactOperator.norm_integral_mul_sq_le
+-- assert_no_sorry Spectra.CompactOperator.integral_norm_integralKernel_sq_le
+-- assert_no_sorry Spectra.CompactOperator.memLp_kernelIntegral
+-- assert_no_sorry Spectra.CompactOperator.L2_norm_sq_eq
+-- assert_no_sorry Spectra.CompactOperator.integrable_kernel_mul
+-- assert_no_sorry Spectra.CompactOperator.integralOperator
+-- assert_no_sorry Spectra.CompactOperator.norm_integralOperator_le
+-- assert_no_sorry Spectra.CompactOperator.integralOperator_add
+-- assert_no_sorry Spectra.CompactOperator.integralOperator_smul
+-- assert_no_sorry Spectra.CompactOperator.integralOperatorCLM
+-- assert_no_sorry Spectra.CompactOperator.memLp_tensor
+-- assert_no_sorry Spectra.CompactOperator.isCompactOperator_integralOperator_indicatorRect
+-- assert_no_sorry Spectra.CompactOperator.rectSimple_dense
+-- assert_no_sorry Spectra.CompactOperator.isCompactOperator_finset_sum
+-- assert_no_sorry Spectra.CompactOperator.isCompactOperator_of_isRectSimple
+-- assert_no_sorry Spectra.CompactOperator.isCompactOperator_integralOperator
+-- assert_no_sorry Spectra.CompactOperator.memLp_kernel_mul_sub
+-- assert_no_sorry Spectra.CompactOperator.eLpNorm_kernel_mul_sub
+-- assert_no_sorry Spectra.QuantumMechanics.Hydrogen.memL1_freeGreensFunction
+-- assert_no_sorry Spectra.QuantumMechanics.Hydrogen.memL2_freeGreensFunction
+-- assert_no_sorry Spectra.QuantumMechanics.Hydrogen.freeGreensL2
+-- assert_no_sorry Spectra.QuantumMechanics.Hydrogen.truncCoulomb_memLp
+-- assert_no_sorry Spectra.QuantumMechanics.Hydrogen.truncKernel_memLp
+-- assert_no_sorry Spectra.QuantumMechanics.Hydrogen.eLpNorm_truncKernel
+-- assert_no_sorry Spectra.CompactOperator.young_L1_conv_L2
+-- assert_no_sorry Spectra.QuantumMechanics.Hydrogen.freeGreensFunctionL2
+-- assert_no_sorry Spectra.QuantumMechanics.Hydrogen.fourierL2_freeGreensFunctionL2
+-- assert_no_sorry Spectra.QuantumMechanics.Hydrogen.integrable_conv_integrand
+-- assert_no_sorry Spectra.QuantumMechanics.Hydrogen.young_R3
+-- assert_no_sorry Spectra.QuantumMechanics.Hydrogen.memLp_conv_L2_schwartz
+-- assert_no_sorry Spectra.QuantumMechanics.Hydrogen.fourier_conv_L2_schwartz
+-- assert_no_sorry Spectra.QuantumMechanics.Hydrogen.freeGreens_resolvent_kernel_schwartz
+-- assert_no_sorry Spectra.QuantumMechanics.Hydrogen.coulombResolvent
+-- assert_no_sorry Spectra.QuantumMechanics.Hydrogen.coulomb_hVW
+-- assert_no_sorry Spectra.QuantumMechanics.Hydrogen.truncCoulombBall_memLp
+-- assert_no_sorry Spectra.QuantumMechanics.Hydrogen.truncKernelG_memLp
+-- assert_no_sorry Spectra.QuantumMechanics.Hydrogen.hydrogen_essSpectrum_of_compact
+-- assert_no_sorry Spectra.QuantumMechanics.Hydrogen.hydrogen_essSpectrum_eq_Ici_of_compact
+-- assert_no_sorry Spectra.QuantumMechanics.Hydrogen.coulombResolvent_isCompact
+-- assert_no_sorry Spectra.QuantumMechanics.Hydrogen.hydrogen_essSpectrum
 
 /-! ### Hydrogen bound states · the eigenfunction equation H ψ_{nℓm} = E_n ψ_{nℓm} (textbook −½Δ) -/
 

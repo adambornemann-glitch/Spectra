@@ -84,6 +84,7 @@ noncomputable def resolventIntegralPlus (φ : H) : H :=
 noncomputable def resolventIntegralMinus (φ : H) : H :=
   I • ∫ t in Set.Ici 0, Real.exp (-t) • U_grp.U (-t) φ
 
+/-- `R₊` is a contraction: `‖resolventIntegralPlus φ‖ ≤ ‖φ‖`. -/
 lemma norm_resolventIntegralPlus_le (φ : H) :
     ‖resolventIntegralPlus U_grp φ‖ ≤ ‖φ‖ := by
   unfold resolventIntegralPlus
@@ -93,6 +94,7 @@ lemma norm_resolventIntegralPlus_le (φ : H) :
     _ = ‖∫ t in Set.Ici 0, Real.exp (-t) • U_grp.U t φ‖ := one_mul _
     _ ≤ ‖φ‖ := norm_integral_exp_neg_unitary_le U_grp φ
 
+/-- `R₋` is a contraction: `‖resolventIntegralMinus φ‖ ≤ ‖φ‖`. -/
 lemma norm_resolventIntegralMinus_le (φ : H) :
     ‖resolventIntegralMinus U_grp φ‖ ≤ ‖φ‖ := by
   unfold resolventIntegralMinus

@@ -9,7 +9,7 @@ import Mathlib.Analysis.InnerProductSpace.LinearPMap
 # Lower Bound Estimate for Self-Adjoint Generators
 
 This file proves the fundamental estimate for self-adjoint operators:
-for `A` self-adjoint and `Im(z) ≠ 0`, we have `‖(A - zI)ψ‖ ≥ |Im(z)| · ‖ψ‖`.
+for `A` self-adjoint, `‖(A - zI)ψ‖ ≥ |Im(z)| · ‖ψ‖` (most useful when `Im(z) ≠ 0`).
 
 This estimate is the key to proving that the resolvent is bounded and that
 `(A - zI)` has closed range.
@@ -28,11 +28,10 @@ variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H]
 open InnerProductSpace Complex
 namespace Spectra.Resolvent
 
-/-- The fundamental lower bound: for symmetric `A` and `Im(z) ≠ 0`,
-    we have `‖(A - zI)ψ‖ ≥ |Im(z)| · ‖ψ‖`. -/
+/-- The fundamental lower bound: for symmetric `A`,
+    `‖(A - zI)ψ‖ ≥ |Im(z)| · ‖ψ‖` (most useful off the real axis, where `|Im(z)| > 0`). -/
 lemma lower_bound_estimate {A : H →ₗ.[ℂ] H} (hsym : A.IsFormalAdjoint A)
-    (z : ℂ) (_ : z.im ≠ 0)
-    (ψ : H) (hψ : ψ ∈ A.domain) :
+    (z : ℂ) (ψ : H) (hψ : ψ ∈ A.domain) :
     ‖A ⟨ψ, hψ⟩ - z • ψ‖ ≥ |z.im| * ‖ψ‖ := by
   set x := z.re
   set y := z.im

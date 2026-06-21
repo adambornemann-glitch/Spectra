@@ -70,7 +70,7 @@ omit [CompleteSpace H] in
 /-- If `(A - zI)ψ = 0` for `ψ ∈ dom A` and `Im(z) ≠ 0`, then `ψ = 0`. -/
 lemma resolvent_unique {A : H →ₗ.[ℂ] H} (hsym : A.IsFormalAdjoint A) (z : ℂ) (hz : z.im ≠ 0)
     (ψ : H) (hψ : ψ ∈ A.domain) (h : A ⟨ψ, hψ⟩ - z • ψ = 0) : ψ = 0 := by
-  have hb := lower_bound_estimate hsym z hz ψ hψ
+  have hb := lower_bound_estimate hsym z ψ hψ
   rw [h, norm_zero] at hb
   have him : 0 < |z.im| := abs_pos.mpr hz
   have h0 : ‖ψ‖ ≤ 0 := by nlinarith [norm_nonneg ψ]
