@@ -21,35 +21,7 @@ eigenvalue problem with the angular decomposition.
 For the hydrogen Hamiltonian H = −Δ − Z/r (Z = 1 in atomic units):
 
   **Discrete spectrum**: σ_disc(H) = { −1/(2n²) : n = 1, 2, 3, ... }
-  **Continuous spectrum**: σ_cont(H) = [0, ∞)
-  **Degeneracy**: dim ker(H − E_n) = n²
-  **Eigenfunctions**: ψ_{nℓm}(r,θ,φ) = R_{nℓ}(r) Y_ℓ^m(θ,φ)
 
-These results reproduce, with complete mathematical rigour, the spectral
-series I computed in January 1926 in Arosa. The eigenvalues agree exactly
-with Bohr's 1913 formula — but now they are *derived*, not postulated.
-
-## Architecture
-
-```
-  RadialEquation.lean     SphericalHarmonics.lean    HydrogenHamiltonian.lean
-  ┌─────────────────┐     ┌───────────────────┐      ┌──────────────────────┐
-  │ E_n = -1/(2n²)  │     │ Y_ℓ^m eigenvalue  │      │ hydrogenGenerator    │
-  │ R_{nℓ} eigfunc  │     │ Y_ℓ^m orthonormal │      │ hydrogen_isSA        │
-  │ radial_quantiz  │     │ Y_ℓ^m complete    │      │ IsSpectralMeasureFor │
-  └────────┬────────┘     └────────┬──────────┘      └──────────┬───────────┘
-           │                       │                            │
-           └───────────┬───────────┘                            │
-                       │                                        │
-              ┌────────▼──────────┐                             │
-              │ THIS FILE         │←────────────────────────────┘
-              │                   │
-              │ hydrogen_discrete │
-              │ hydrogen_continuum│
-              │ hydrogen_degener  │
-              │ hydrogen_bohr     │
-              └───────────────────┘
-```
 
 ## References
 

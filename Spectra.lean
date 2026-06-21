@@ -166,6 +166,7 @@ import Spectra.QuantumMechanics.Hydrogen.Laplacian.Spherical
 import Spectra.QuantumMechanics.Hydrogen.Laplacian.EssentialSpectrum
 import Spectra.QuantumMechanics.Hydrogen.Laplacian.HalfLaplacian
 import Spectra.QuantumMechanics.Hydrogen.Laplacian.SphereIntegral
+import Spectra.QuantumMechanics.Hydrogen.Laplacian.ChartRealization
 import Spectra.QuantumMechanics.Hydrogen.Spectrum.Continuous.Defs
 import Spectra.QuantumMechanics.Hydrogen.Spectrum.Continuous.Compact
 --import Spectra.QuantumMechanics.Hydrogen.Spectrum.Continous.Basic
