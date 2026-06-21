@@ -2,7 +2,6 @@
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
-Filename: SpectralTheory/HerglotzTheorem/Basic.lean
 -/
 import Spectra.Herglotz.Stieltjes.IntegralConv
 import Spectra.Herglotz.Stieltjes.Hellys

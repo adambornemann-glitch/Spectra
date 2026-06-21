@@ -2,7 +2,6 @@
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
-Filename: SpectralTheory/HerglotzTheorem/Stieltjes/CumulativeDistFun.lean
 -/
 import Spectra.PositiveDefinite.Unitary
 import Spectra.Herglotz.FejerMeasure
@@ -13,7 +12,7 @@ namespace Spectra.Herglotz
 
 /-! ### §1. The cumulative distribution function of the Fejér measure -/
 
-variable (U : H →L[ℂ] H) -- (hU : Operator.Unitary U)
+variable (U : H →L[ℂ] H)
 
 /-- The **cumulative distribution function** of the `N`-th Fejér mean:
 `F_N(x) = σ_N([0, x])` for `x ∈ [0, 2π]`, extended flat outside.

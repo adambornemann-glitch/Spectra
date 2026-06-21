@@ -2,7 +2,6 @@
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
-Filename: SpectralTheory/HerglotzTheorem/FejerMeans.lean
 -/
 import Spectra.PositiveDefinite.Unitary
 import Mathlib.MeasureTheory.Integral.IntervalIntegral.FundThmCalculus
@@ -47,6 +46,7 @@ noncomputable def fejerMeanDensity (ψ : H) (N : ℕ) (θ : ℝ) : ℂ :=
   ∑ n ∈ Finset.Icc (-(N : ℤ)) N,
     (fejerWeight N n : ℂ) * unitaryCorrelation U ψ n * exp (-I * n * θ)
 
+/-- `conj(e^{-ijθ}) · e^{-ikθ} = e^{-i(k-j)θ}`: collapsing a conjugate-times product of phases. -/
 private lemma exp_conj_mul (j k : ℤ) (θ : ℝ) :
     starRingEnd ℂ (exp (-I * ↑j * ↑θ)) * exp (-I * ↑k * ↑θ) =
     exp (-I * ↑(k - j) * ↑θ) := by
@@ -122,7 +122,7 @@ private lemma fiber_count (N : ℕ) (n : ℤ) (hn : n ∈ Finset.Icc (-(N : ℤ)
                   true_and]
       push_cast; omega
 
-/-- Private lemma for fejer_reindex-/
+/-- Diagonal reindex: `∑_{j,k < N+1} g(k-j) = ∑_{n=-N}^{N} (N+1-|n|)·g(n)`. -/
 private lemma double_sum_eq_weighted (g : ℤ → ℂ) (N : ℕ) :
     ∑ j : Fin (N + 1), ∑ k : Fin (N + 1), g ((↑k : ℤ) - ↑j) =
     ∑ n ∈ Finset.Icc (-(N : ℤ)) N, (↑(N + 1 - n.natAbs) : ℂ) * g n := by
@@ -153,7 +153,7 @@ private lemma double_sum_eq_weighted (g : ℤ → ℂ) (N : ℕ) :
   rw [h_filt]
   exact Nat.cast_inj.mpr rfl
 
-/-- Private lemma for fejer_reindex-/
+/-- Clearing the Fejér weight's denominator: `(N+1)·w_N(n) = N+1-|n|` for `|n| ≤ N`. -/
 private lemma fejerWeight_mul_eq (N : ℕ) (n : ℤ) (hn : n.natAbs ≤ N) :
     (↑(N + 1) : ℂ) * (↑(fejerWeight N n) : ℂ) = ↑(N + 1 - n.natAbs) := by
   simp only [fejerWeight, if_pos hn]

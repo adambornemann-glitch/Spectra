@@ -2,12 +2,9 @@
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
-Filename: Herglotz/CauchyInjective.lean
 
 The second stone: no two finite measures can hide behind one Herglotz function.
 -/
--- Adjust these imports/opens to your namespace nesting; the catalogue says the
--- borrowed declarations live in the indicated files:
 import Spectra.Kernel.Poisson.Lemmas          -- fourier_two_sided_exp, integrable_two_sided_exp
 import Spectra.Kernel.Resolvent               -- resolvent_kernel_im, resolvent_integrand_bound
 import Spectra.Fourier.Inversion              -- eq_of_fourier_decay_eq
