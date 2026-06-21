@@ -4,7 +4,6 @@ Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Spectra.QuantumMechanics.Perturbation.CoulombBound
-
 /-!
 # The annulus-truncated Coulomb potential is `L²` (brick M3)
 
@@ -33,9 +32,6 @@ The key Mathlib lemma chain is
 `MemLp.of_bound` (bounded on a finite measure ⟹ `Lᵖ`), with `IsFiniteMeasure (volume.restrict A)`
 supplied by `isFiniteMeasure_restrict` and `IsCompact.measure_ne_top`.
 -/
-
-noncomputable section
-
 open MeasureTheory Metric Set
 open Spectra.Sobolev
 open scoped ENNReal
@@ -61,7 +57,7 @@ lemma volume_coulombAnnulus_ne_top (n : ℕ) : volume (coulombAnnulus n) ≠ ∞
 
 /-- The annulus-truncated Coulomb potential: the (real) Coulomb multiplier `−Z/‖x‖`, coerced to
 `ℂ` and cut off to the annulus `A_n` by the set indicator. -/
-def truncCoulomb (p : CoulombParams) (n : ℕ) : R3 → ℂ :=
+noncomputable def truncCoulomb (p : CoulombParams) (n : ℕ) : R3 → ℂ :=
   (coulombAnnulus n).indicator (fun x => ((coulombMultiplier p x : ℝ) : ℂ))
 
 /-- **Brick M3.** The annulus-truncated Coulomb potential is square-integrable over `ℝ³`.

@@ -4,7 +4,7 @@ Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Spectra.QuantumMechanics.Hydrogen.Spectrum.Continuous.Defs
-import Spectra.QuantumMechanics.Hydrogen.Laplacian.FreeGreensConvolution
+import Spectra.QuantumMechanics.Hydrogen.Laplacian.FreeGreens.Convolution
 import Spectra.SpectralTheory.IntegralOperatorCompact
 
 open MeasureTheory Complex Filter InnerProductSpace Metric Set

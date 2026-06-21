@@ -7,8 +7,8 @@ import Spectra.QuantumMechanics.Perturbation.CoulombBound
 import Spectra.QuantumMechanics.Hydrogen.Hamiltonian
 import Spectra.QuantumMechanics.Hydrogen.Laplacian.EssentialSpectrum
 import Spectra.SpectralTheory.Essential.Weyl
-import Spectra.QuantumMechanics.Hydrogen.Laplacian.FreeGreensFourier
-import Spectra.QuantumMechanics.Hydrogen.Laplacian.FreeGreensConvolution
+import Spectra.QuantumMechanics.Hydrogen.Laplacian.FreeGreens.Fourier
+import Spectra.QuantumMechanics.Hydrogen.Laplacian.FreeGreens.Convolution
 import Spectra.SpectralTheory.TranslationKernel
 import Spectra.SpectralTheory.IntegralOperatorCompact
 

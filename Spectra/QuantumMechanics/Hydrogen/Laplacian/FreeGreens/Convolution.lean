@@ -3,9 +3,9 @@ Copyright (c) 2026 Spectra Project, Adam Bornemann. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
-import Mathlib
-import Spectra.QuantumMechanics.Hydrogen.Laplacian.FreeGreensFourier
+import Spectra.QuantumMechanics.Hydrogen.Laplacian.FreeGreens.Fourier
 import Spectra.SpectralTheory.YoungConvolution
+import Mathlib.Analysis.Fourier.Convolution
 
 /-!
 # The `L²` convolution theorem and the resolvent-kernel identity for `G̃_z`
@@ -30,10 +30,6 @@ open FourierTransform SchwartzMap Filter
 open Spectra.Resolvent Spectra.Essential Spectra.QuantumMechanics.SpectralTheory
 
 namespace Spectra.QuantumMechanics.Hydrogen
-
-noncomputable section
-
-set_option maxHeartbeats 1000000
 
 /-! ## S1: Schwartz × Schwartz convolution–Fourier identity -/
 
@@ -257,7 +253,7 @@ theorem fourierL2_toLp_ae (φ : 𝓢(R3, ℂ)) :
   rw [hx, SchwartzMap.fourier_coe]
 
 /-! ## The two convergences powering the density argument -/
-
+set_option maxHeartbeats 270000 in
 /-- Per-index estimate for `Fₙ → B`: the `L²` distance between `fourierL2 (φ ⋆ χ).toLp` and the
 `L²` symbol `(fourierL2 g · 𝓕χ).toLp` is bounded by `‖𝓕χ‖_∞ · ‖fourierL2 (φ.toLp) − fourierL2 g‖`. -/
 theorem fourier_conv_seqB_bound (g : L2_R3) (χ : 𝓢(R3, ℂ)) (φ : 𝓢(R3, ℂ))
@@ -389,7 +385,5 @@ theorem freeGreens_resolvent_kernel_schwartz (z : ℂ) (hz : z.im ≠ 0) (ψ : �
   rw [hR_conv]
   filter_upwards [(memLp_conv_L2_schwartz (freeGreensFunctionL2 z hz) ψ).coeFn_toLp] with x hx
   rw [hx, convolution_mul_swap]
-
-end
 
 end Spectra.QuantumMechanics.Hydrogen

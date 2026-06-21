@@ -3,7 +3,7 @@ Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
-import Spectra.QuantumMechanics.Hydrogen.Laplacian.FreeGreens
+import Spectra.QuantumMechanics.Hydrogen.Laplacian.FreeGreens.Basic
 import Mathlib.MeasureTheory.Constructions.HaarToSphere
 import Mathlib.MeasureTheory.Integral.ExpDecay
 
@@ -27,9 +27,6 @@ profile via `Integrable.mono'`.
 We package the `L²` witness as an honest `Lp` element `freeGreensL2 z hz` together with the a.e.
 identification `coeFn_freeGreensL2` with `freeGreensFunction z`.
 -/
-
-noncomputable section
-
 open MeasureTheory Set Complex Filter Asymptotics
 open Spectra.Sobolev
 
@@ -37,12 +34,12 @@ namespace Spectra.QuantumMechanics.Hydrogen
 
 /-- The radial dominating profile coming from the exponential decay bound, raised to the power `p`:
 `(e^{−c r}/(4π r))^p`.  (Junk value `0` at `r = 0` since `1/0 = 0`.) -/
-private def greensRadial (c : ℝ) (p : ℕ) (r : ℝ) : ℝ :=
+private noncomputable def greensRadial (c : ℝ) (p : ℕ) (r : ℝ) : ℝ :=
   (Real.exp (-c * r) / (4 * Real.pi * r)) ^ p
 
 /-- The off-origin closed-form representative of `freeGreensFunction z`, defined on all of `ℝ³`
 with the harmless junk value at `0` (division by `0`).  It is measurable everywhere. -/
-private def greensFormula (z : ℂ) : R3 → ℂ := fun x =>
+private noncomputable def greensFormula (z : ℂ) : R3 → ℂ := fun x =>
   Complex.exp (-((-z) ^ ((1 : ℂ) / 2)) * (‖x‖ : ℂ)) / ((4 * Real.pi * ‖x‖ : ℝ) : ℂ)
 
 /-- `freeGreensFunction z` agrees with its closed form `greensFormula z` away from the origin. -/
@@ -155,7 +152,7 @@ theorem memL2_freeGreensFunction (z : ℂ) (hz : z.im ≠ 0) :
   exact pow_le_pow_left₀ (norm_nonneg _) hb 2
 
 /-- The packaged `L²` element represented by the free Green's function. -/
-def freeGreensL2 (z : ℂ) (hz : z.im ≠ 0) : Lp ℂ 2 (volume : Measure R3) :=
+noncomputable def freeGreensL2 (z : ℂ) (hz : z.im ≠ 0) : Lp ℂ 2 (volume : Measure R3) :=
   (memL2_freeGreensFunction z hz).toLp _
 
 /-- The `L²` element `freeGreensL2 z hz` is a.e. equal to `freeGreensFunction z`. -/

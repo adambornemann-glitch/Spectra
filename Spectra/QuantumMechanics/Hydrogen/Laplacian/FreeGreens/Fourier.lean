@@ -3,8 +3,8 @@ Copyright (c) 2026 Spectra Project, Adam Bornemann. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
-import Spectra.QuantumMechanics.Hydrogen.Laplacian.FreeGreens
-import Spectra.QuantumMechanics.Hydrogen.Laplacian.ResolventL2
+import Spectra.QuantumMechanics.Hydrogen.Laplacian.FreeGreens.Basic
+import Spectra.QuantumMechanics.Hydrogen.Laplacian.FreeGreens.ResolventL2
 
 /-!
 # The Fourier-defined free Green's function (Option B)
@@ -24,8 +24,6 @@ of this in `FreeGreensConvolution.lean`, via the `L²×Schwartz` convolution the
 only the parts that need no convolution theorem.
 -/
 
-noncomputable section
-
 open MeasureTheory
 open Spectra.Sobolev
 
@@ -34,7 +32,7 @@ namespace Spectra.QuantumMechanics.Hydrogen
 /-- The free Green's function defined directly as an `L²` element: the inverse `L²`-Fourier
 transform of the resolvent symbol `m_z(ξ) = (laplacianSymbol ξ − z)⁻¹`.  No explicit Yukawa
 formula, no sphere integral — just the isometric equivalence `fourierL2`. -/
-def freeGreensFunctionL2 (z : ℂ) (hz : z.im ≠ 0) : L2_R3 :=
+noncomputable def freeGreensFunctionL2 (z : ℂ) (hz : z.im ≠ 0) : L2_R3 :=
   fourierL2.symm ((memLp_inv_laplacianSymbol_sub z hz).toLp _)
 
 /-- `𝓕 (G̃_z) =ᵐ m_z`, where `m_z(ξ) = (laplacianSymbol ξ − z)⁻¹`.  Immediate from

@@ -29,14 +29,14 @@ noncomputable def halfLaplacianPMap : L2_R3 →ₗ.[ℂ] L2_R3 :=
   ((1 / 2 : ℝ) : ℂ) • laplacianPMap
 
 /-- `−½Δ` is self-adjoint (real scaling of the self-adjoint `−Δ`). -/
-theorem halfLaplacian_isSelfAdjoint : IsSelfAdjoint halfLaplacianPMap :=
+lemma halfLaplacian_isSelfAdjoint : IsSelfAdjoint halfLaplacianPMap :=
   isSelfAdjoint_smul_real laplacian_isSelfAdjoint (1 / 2) (by norm_num)
 
-@[simp] theorem halfLaplacianPMap_domain :
+@[simp] lemma halfLaplacianPMap_domain :
     halfLaplacianPMap.domain = laplacianPMap.domain := by
   rw [halfLaplacianPMap, LinearPMap.smul_domain]
 
-theorem halfLaplacianPMap_apply (ψ : halfLaplacianPMap.domain) :
+lemma halfLaplacianPMap_apply (ψ : halfLaplacianPMap.domain) :
     halfLaplacianPMap ψ = ((1 / 2 : ℝ) : ℂ) • laplacianPMap ψ :=
   smul_pmap_apply _ _ ψ
 

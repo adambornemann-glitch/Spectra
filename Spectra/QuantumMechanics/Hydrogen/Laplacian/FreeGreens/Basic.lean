@@ -6,8 +6,6 @@ Authors: Adam Bornemann
 import Spectra.QuantumMechanics.Hydrogen.Laplacian.Basic
 import Spectra.SpectralTheory.Essential.Weyl
 
-noncomputable section
-
 open MeasureTheory Complex Filter InnerProductSpace
 open Spectra.Sobolev
 open Spectra.OneParameterUnitaryGroup
@@ -74,7 +72,7 @@ theorem integral_exp_neg_mul_sin (w : ℂ) (hw : 0 < w.re) (a : ℝ) :
 
 /-- The free Green's function `G_z(x) = e^{−√(−z)|x|}/(4π|x|)`, principal branch of
 the square root; `0` at the origin. -/
-def freeGreensFunction (z : ℂ) : R3 → ℂ := fun x =>
+noncomputable def freeGreensFunction (z : ℂ) : R3 → ℂ := fun x =>
   if ‖x‖ = 0 then 0
   else Complex.exp (-((-z) ^ ((1 : ℂ) / 2)) * (‖x‖ : ℂ)) /
     ((4 * Real.pi * ‖x‖ : ℝ) : ℂ)
@@ -162,45 +160,5 @@ theorem fourierL2_selfAdjointResolvent (z : ℂ) (hz : z.im ≠ 0) (f : L2_R3) :
       simpa [Complex.sub_im, Complex.ofReal_im] using this
     linarith
   rw [hξ, ← mul_assoc, inv_mul_cancel₀ hne, one_mul]
-
-/-- The Green's function is the integral kernel of the free resolvent.
-
-**Status: open.** The operator-theoretic half is now discharged in
-`fourierL2_selfAdjointResolvent`, which gives `𝓕(R_z f) =ᵐ (laplacianSymbol ξ − z)⁻¹ · 𝓕 f`. By
-Fourier injectivity (`fourierL2` is a `≃ₗᵢ`, hence injective) the kernel identity reduces to
-
-  `𝓕(G_z ⋆ f) =ᵐ (laplacianSymbol ξ − z)⁻¹ · 𝓕 f`,
-
-i.e. to two genuinely analytic facts, each an isolated Mathlib gap:
-
-* **`fourier_freeGreensFunction`** — the Yukawa Fourier transform
-  `𝓕[G_z](ξ) = (laplacianSymbol ξ − z)⁻¹`, with `m = (−z)^{1/2}` (`Re m > 0`). The **direct
-  spherical route** is the right one (it handles complex `z` head-on; the heat-kernel /
-  Gaussian-subordination route is a dead end here because `e^{−m²t}` *grows* when `Re(m²) < 0`,
-  so its `t`-integral representation of `G_z` diverges for `Re z > 0` and would need analytic
-  continuation). The direct route is:
-  - (i) **radial Fourier / angular reduction** `∫_{ℝ³} g(‖x‖) e^{−2πi⟨ξ,x⟩} dx
-    = (2/‖ξ‖) ∫₀^∞ r g(r) sin(2π‖ξ‖r) dr` for `ξ ≠ 0`. Its core is the **angular integral**
-    `∫_{S²} e^{−2πi r⟨ξ,ω⟩} dσ(ω) = 4π·sin(2πr‖ξ‖)/(2πr‖ξ‖)`. Mathlib's `integral_fun_norm_addHaar`
-    only does *radial* integrands; the general disintegration
-    `measurePreserving_homeomorphUnitSphereProd` (`MeasureTheory/Constructions/HaarToSphere`)
-    exists but evaluating this angular integral over the abstract `Measure.toSphere` still needs
-    an S²-coordinate parametrization (the colatitude `sin θ` Jacobian) that Mathlib lacks. This is
-    a foundational sphere-integration sub-project.
-  - (ii) the 1-D Laplace integral `∫₀^∞ e^{−w r} sin(a r) dr = a/(w²+a²)` (`Re w > 0`) — **DONE**:
-    `integral_exp_neg_mul_sin` (above), stated for complex `w` so it applies with `w = (−z)^{1/2}`.
-* **convolution theorem for a singular L¹ kernel** — `𝓕(G_z ⋆ f) = 𝓕[G_z] · 𝓕 f`. Mathlib's
-  `Real.fourier_mul_convolution_eq` needs *both* factors continuous and integrable; `G_z` is
-  singular at `0` and `f ∈ L²`, so this needs a density/Young's-inequality argument.
-
-Remaining gaps: the angular integral / S²-integration infrastructure (i) and the L¹×L²
-convolution theorem — each substantial and independent; see the project roadmap. Left open. -/
-theorem freeGreensFunction_is_resolvent_kernel
-    (z : ℂ) (hz : z.im ≠ 0) (f : L2_R3) :
-    ∀ᵐ x : R3,
-      (selfAdjointResolvent laplacian_isSelfAdjoint z hz f : R3 → ℂ) x =
-      ∫ y, freeGreensFunction z (x - y) * (f : R3 → ℂ) y :=
-  sorry
-
 
 end Spectra.QuantumMechanics.Hydrogen

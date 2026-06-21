@@ -3,8 +3,10 @@ Copyright (c) 2026 Spectra Project, Adam Bornemann. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
-import Mathlib
-
+import Mathlib.Analysis.InnerProductSpace.PiL2
+import Mathlib.MeasureTheory.Integral.DominatedConvergence
+import Mathlib.Analysis.InnerProductSpace.Dual
+import Spectra.Mathlib.CharFunBridge
 /-!
 # Translation-invariant product kernels are `L²`
 
@@ -30,8 +32,6 @@ to `EuclideanSpace ℝ (Fin 3)` with `volume` with no extra glue.
 
 open MeasureTheory ENNReal
 open scoped ENNReal NNReal
-
-noncomputable section
 
 namespace Spectra.CompactOperator
 

@@ -1049,9 +1049,21 @@ lemma laguerre_ansatz_reduced_iff (ℓ : ℕ) (κ : ℝ) (w : ℝ → ℝ)
 
     *Square-integrable bound states of the reduced radial operator are quantized.*
     If `χ` is a `C²` function on `(0,∞)`, square-integrable there, nonzero at some
-    point, and solving the reduced radial equation
+    point, regular at the origin (`χ(r) → 0` as `r → 0⁺`, hypothesis `hχ0`), and
+    solving the reduced radial equation
     `χ''(r) = (ℓ(ℓ+1)/r² − 2/r + κ²)·χ(r)` with decay rate `κ > 0`,
     then `1/κ` is an integer `m ≥ ℓ+1`, i.e. `κ = 1/m`.
+
+    **Why `hχ0` (the Dirichlet boundary condition) is essential.** Without it the
+    statement is *false for `ℓ = 0`*: there the operator `−d²/dr² − 2/r` is in the
+    Weyl limit-circle case at `0` (inverse-square coefficient `ℓ(ℓ+1) = 0 < 3/4`),
+    so the recessive-at-∞ ("irregular") Coulomb solution `W_{1/κ,1/2}(2κr)` is
+    bounded (`→ const ≠ 0`) at the origin and `~ e^{−κr}` at infinity — hence
+    globally `L²` for *every* `κ > 0`, including non-quantized `κ`. The condition
+    `χ → 0` at `0⁺` excludes it (for `ℓ = 0` the regular solution `~ r → 0`, the
+    irregular one `→ const ≠ 0`; for `ℓ ≥ 1` the irregular one `~ r^{−ℓ} → ∞`),
+    and is satisfied by every genuine reduced eigenfunction
+    `χ_{nℓ} = r·R_{nℓ} ~ r^{ℓ+1} → 0` (`radial_boundary_r_zero`).
 
     **Why this is the hard core.** Writing `χ = r^{ℓ+1} e^{−κr} w`, the factor `w`
     solves the confluent (Laguerre/Kummer) ODE — this substitution is *proved*, as
@@ -1073,6 +1085,7 @@ theorem reduced_radial_L2_quantized (ℓ : ℕ) (κ : ℝ) (hκ : 0 < κ) (χ : 
     (hχ2 : ∀ r, 0 < r → HasDerivAt (deriv χ) (deriv^[2] χ r) r)
     (hode : ∀ r, 0 < r → deriv^[2] χ r
       = ((ℓ : ℝ) * ((ℓ : ℝ) + 1) / r ^ 2 - 2 / r + κ ^ 2) * χ r)
+    (hχ0 : Filter.Tendsto χ (nhdsWithin 0 (Set.Ioi 0)) (nhds 0))
     (hL2 : IntegrableOn (fun r => χ r ^ 2) (Set.Ioi 0))
     (hnz : ∃ r, 0 < r ∧ χ r ≠ 0) :
     ∃ m : ℕ, ℓ + 1 ≤ m ∧ κ = 1 / (m : ℝ) := by
@@ -1136,21 +1149,26 @@ theorem reduced_radial_continuum (ℓ : ℕ) (E : ℝ) (hE : 0 ≤ E) (χ : ℝ 
 /-- **The quantization theorem.**
 
     A *classical* (`C²` on `(0,∞)`) square-integrable solution of the radial
-    equation `H_ℓ ψ = E ψ` with `E < 0` that is nonzero somewhere on `(0,∞)`
-    exists if and only if `E = −1/(2n²)` for some integer `n ≥ ℓ + 1`.
+    equation `H_ℓ ψ = E ψ` with `E < 0` that is nonzero somewhere on `(0,∞)` and
+    regular at the origin (`r·ψ(r) → 0` as `r → 0⁺`) exists if and only if
+    `E = −1/(2n²)` for some integer `n ≥ ℓ + 1`.
 
-    **On the hypotheses.** Both the `C²` hypotheses (`HasDerivAt`) and the
-    nondegeneracy `∃ r₀ > 0, ψ r₀ ≠ 0` are essential. `radialHamiltonian` is built
-    from Mathlib's junk-extended `deriv`, so *without* differentiability a `ψ`
-    supported on a single point (or supported off `(0,∞)`) satisfies the equation
-    vacuously for an arbitrary `E < 0` — making the bare statement false. The
-    `C²`/nondegeneracy form here is the genuine classical-solution theorem, and
-    matches the hypotheses of `radial_eigenfunction_unique`.
+    **On the hypotheses.** The `C²` hypotheses (`HasDerivAt`), the nondegeneracy
+    `∃ r₀ > 0, ψ r₀ ≠ 0`, and the regularity `r·ψ(r) → 0` at `0⁺` are all
+    essential. `radialHamiltonian` is built from Mathlib's junk-extended `deriv`,
+    so *without* differentiability a `ψ` supported on a single point (or supported
+    off `(0,∞)`) satisfies the equation vacuously for an arbitrary `E < 0`. And
+    *without* the regularity condition the statement is false for `ℓ = 0`: the
+    irregular Coulomb solution `ψ = W_{1/κ,1/2}(2κr)/r` is `C²` on `(0,∞)`,
+    `L²(r²dr)`, nonzero, and solves the equation for *every* `E < 0` (limit-circle
+    case at `0`; see `reduced_radial_L2_quantized`). The
+    `C²`/nondegeneracy/regularity form here is the genuine classical-solution
+    theorem, and matches the hypotheses of `radial_eigenfunction_unique`.
 
     **`←` (E = Eₙ ⟹ a solution exists): proved.** Take `ψ = R_{nℓ}`; it is `C²`
     (`differentiable_hydrogenRadial`), L² (`radial_wavefunction_L2`), nonzero
-    (from `radial_wavefunction_norm`), and solves the equation
-    (`radial_eigenvalue_eq`).
+    (from `radial_wavefunction_norm`), solves the equation (`radial_eigenvalue_eq`),
+    and is regular at `0` — `r·R_{nℓ}(r)` is continuous with value `0` at `r = 0`.
 
     **`→` (a solution exists ⟹ E = Eₙ): reduced to a documented analytic gap.**
     Set `κ = √(−2E) > 0` and pass to the reduced wavefunction `χ = r·ψ`, which by
@@ -1164,11 +1182,12 @@ theorem radial_quantization (ℓ : ℕ) (E : ℝ) (hE : E < 0) :
         (∃ r₀, 0 < r₀ ∧ ψ r₀ ≠ 0) ∧ RadialL2 ψ ∧
         (∀ r, 0 < r → HasDerivAt ψ (deriv ψ r) r) ∧
         (∀ r, 0 < r → HasDerivAt (deriv ψ) (deriv^[2] ψ r) r) ∧
-        (∀ r, 0 < r → radialHamiltonian ℓ ψ r = E * ψ r)) ↔
+        (∀ r, 0 < r → radialHamiltonian ℓ ψ r = E * ψ r) ∧
+        Filter.Tendsto (fun r => r * ψ r) (nhdsWithin 0 (Set.Ioi 0)) (nhds 0)) ↔
     ∃ (n : ℕ) (hn : ℓ + 1 ≤ n), E = hydrogenEigenvalue n (by omega) := by
   constructor
   · -- (→) a classical L² bound state forces quantization (via the reduced equation).
-    rintro ⟨ψ, hnz, hL2, hψ1, hψ2, heq⟩
+    rintro ⟨ψ, hnz, hL2, hψ1, hψ2, heq, hψ0⟩
     obtain ⟨hκpos, hκ2⟩ := kappa_pos_sq E hE
     set κ := Real.sqrt (-2 * E) with hκdef
     set χ : ℝ → ℝ := fun s => s * ψ s with hχdef
@@ -1189,14 +1208,18 @@ theorem radial_quantization (ℓ : ℕ) (E : ℝ) (hE : E < 0) :
       ring
     have hχL2 : IntegrableOn (fun r => χ r ^ 2) (Set.Ioi 0) := reduced_integrableOn_sq ψ hL2
     have hχnz : ∃ r, 0 < r ∧ χ r ≠ 0 := reduced_nonzero ψ hnz
-    obtain ⟨m, hm_le, hκm⟩ := reduced_radial_L2_quantized ℓ κ hκpos χ hχ1 hχ2 hode hχL2 hχnz
+    have hχ0 : Filter.Tendsto χ (nhdsWithin 0 (Set.Ioi 0)) (nhds 0) := hψ0
+    obtain ⟨m, hm_le, hκm⟩ :=
+      reduced_radial_L2_quantized ℓ κ hκpos χ hχ1 hχ2 hode hχ0 hχL2 hχnz
     exact ⟨m, hm_le, energy_eq_of_kappa E κ m (by omega) hκ2 hκm⟩
   · -- (←) construct the eigenfunction R_{nℓ}.
     rintro ⟨n, hn, rfl⟩
     refine ⟨hydrogenRadialWavefunction n ℓ hn, ?_, radial_wavefunction_L2 n ℓ hn,
       fun r _ => (differentiable_hydrogenRadial n ℓ hn r).hasDerivAt,
       fun r _ => (differentiable_deriv_hydrogenRadial n ℓ hn r).hasDerivAt,
-      fun r hr => radial_eigenvalue_eq n ℓ hn r hr⟩
+      fun r hr => radial_eigenvalue_eq n ℓ hn r hr,
+      ((continuous_id'.mul (continuous_hydrogenRadialWavefunction n ℓ hn)).tendsto'
+        0 0 (by simp)).mono_left nhdsWithin_le_nhds⟩
     -- nondegeneracy: if R_{nℓ} vanished on all of (0,∞) its unit norm would be 0.
     by_contra hcon
     have hz : ∀ r, 0 < r → hydrogenRadialWavefunction n ℓ hn r = 0 :=
@@ -1276,9 +1299,11 @@ theorem bound_state_eq_smul_eigenfunction (n ℓ : ℕ) (hn : ℓ + 1 ≤ n) (ψ
 /-- **Completeness of {R_{nℓ}}_{n ≥ ℓ+1} in the discrete subspace.**
 
     Every `C²` negative-energy bound state `ψ` (i.e. `ψ ∈ L²(ℝ⁺, r²dr)` with
-    `H_ℓ ψ = E ψ` for some `E < 0`) can be approximated arbitrarily well in the
-    `L²(r²dr)` norm by finite linear combinations of the `R_{nℓ}` (indexed by
-    `k ≥ 0` via `n = k + ℓ + 1`).
+    `H_ℓ ψ = E ψ` for some `E < 0`) that is regular at the origin (`r·ψ(r) → 0` as
+    `r → 0⁺`) can be approximated arbitrarily well in the `L²(r²dr)` norm by finite
+    linear combinations of the `R_{nℓ}` (indexed by `k ≥ 0` via `n = k + ℓ + 1`).
+    The regularity hypothesis is inherited from `radial_quantization` (it is needed
+    to exclude the irregular Coulomb solution at `ℓ = 0`).
 
     **Reduction (proved here).** This is *not* the full spectral theorem: with the
     bound-state hypothesis it collapses to one-dimensionality of the eigenspaces.
@@ -1295,17 +1320,18 @@ theorem radial_completeness (ℓ : ℕ) :
     ∀ ψ : ℝ → ℝ, RadialL2 ψ →
       (∀ r, 0 < r → HasDerivAt ψ (deriv ψ r) r) →
       (∀ r, 0 < r → HasDerivAt (deriv ψ) (deriv^[2] ψ r) r) →
+      Filter.Tendsto (fun r => r * ψ r) (nhdsWithin 0 (Set.Ioi 0)) (nhds 0) →
       (∃ E : ℝ, E < 0 ∧ ∀ r, 0 < r → radialHamiltonian ℓ ψ r = E * ψ r) →
       ∀ ε : ℝ, 0 < ε → ∃ (N : ℕ) (c : ℕ → ℝ),
         ∫ r in Set.Ioi 0,
           (ψ r - ∑ k ∈ Finset.range N,
             c k * hydrogenRadialWavefunction (k + ℓ + 1) ℓ (by omega) r) ^ 2 * r ^ 2 < ε := by
-  intro ψ hL2 hψ1 hψ2 hbound ε hε
+  intro ψ hL2 hψ1 hψ2 hψ0 hbound ε hε
   obtain ⟨E, hElt, heqE⟩ := hbound
   by_cases hnz : ∃ r₀, 0 < r₀ ∧ ψ r₀ ≠ 0
   · -- Nondegenerate bound state: quantize, then it is a scalar multiple of R_{nℓ}.
     obtain ⟨n, hn, hEeq⟩ := (radial_quantization ℓ E hElt).mp
-      ⟨ψ, hnz, hL2, hψ1, hψ2, heqE⟩
+      ⟨ψ, hnz, hL2, hψ1, hψ2, heqE, hψ0⟩
     have heqn : ∀ r, 0 < r → radialHamiltonian ℓ ψ r = hydrogenEigenvalue n (by omega) * ψ r := by
       intro r hr; rw [heqE r hr, hEeq]
     obtain ⟨c, hc⟩ := bound_state_eq_smul_eigenfunction n ℓ hn ψ hL2 hψ1 hψ2 heqn

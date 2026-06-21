@@ -3,7 +3,13 @@ Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
-import Mathlib
+import Mathlib.Order.CompletePartialOrder
+import Mathlib.Tactic.SetNotationForOrder
+import Mathlib.Analysis.CStarAlgebra.Classes
+import Mathlib.MeasureTheory.Function.SimpleFuncDenseLp
+import Mathlib.MeasureTheory.Measure.MeasuredSets
+import Mathlib.SetTheory.ZFC.PSet
+import Mathlib.Algebra.Order.Ring.Star
 
 /-!
 # Density of rectangle-simple kernels in `L²(μ × ν)`

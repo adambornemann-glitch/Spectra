@@ -3,7 +3,11 @@ Copyright (c) 2026 Spectra Project, Adam Bornemann. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
-import Mathlib
+import Mathlib.Analysis.Convolution
+import Mathlib.AlgebraicTopology.SimplexCategory.Basic
+import Mathlib.Analysis.CStarAlgebra.Classes
+import Mathlib.Analysis.Normed.Lp.MeasurableSpace
+import Mathlib.MeasureTheory.Measure.Haar.Unique
 
 /-!
 # Young's convolution inequality `L¹ ⋆ L² → L²`

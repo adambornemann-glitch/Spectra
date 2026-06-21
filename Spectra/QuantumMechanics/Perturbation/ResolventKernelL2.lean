@@ -3,7 +3,7 @@ Copyright (c) 2026 Spectra Project, Adam Bornemann. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
-import Spectra.QuantumMechanics.Hydrogen.Laplacian.GreensL2
+import Spectra.QuantumMechanics.Hydrogen.Laplacian.FreeGreens.L2
 import Spectra.QuantumMechanics.Perturbation.TruncatedCoulombL2
 import Spectra.SpectralTheory.TranslationKernel
 
@@ -34,14 +34,14 @@ namespace Spectra.QuantumMechanics.Hydrogen
 
 /-- **Brick M5.** The truncated resolvent kernel `Kₙ(x, y) = Vⁿ(x) · G_z(x − y)` lies in
 `L²(ℝ³ × ℝ³)`. -/
-theorem truncKernel_memLp (p : CoulombParams) (n : ℕ) (z : ℂ) (hz : z.im ≠ 0) :
+lemma truncKernel_memLp (p : CoulombParams) (n : ℕ) (z : ℂ) (hz : z.im ≠ 0) :
     MemLp (fun q : R3 × R3 => truncCoulomb p n q.1 * freeGreensFunction z (q.1 - q.2)) 2
       ((volume : Measure R3).prod (volume : Measure R3)) :=
   memLp_kernel_mul_sub (truncCoulomb_memLp p n) (memL2_freeGreensFunction z hz)
 
 /-- The exact `L²` tensor-norm of the truncated resolvent kernel:
 `‖Kₙ‖₂ = ‖Vⁿ‖₂ · ‖G_z‖₂`. -/
-theorem eLpNorm_truncKernel (p : CoulombParams) (n : ℕ) (z : ℂ) (hz : z.im ≠ 0) :
+lemma eLpNorm_truncKernel (p : CoulombParams) (n : ℕ) (z : ℂ) (hz : z.im ≠ 0) :
     eLpNorm (fun q : R3 × R3 => truncCoulomb p n q.1 * freeGreensFunction z (q.1 - q.2)) 2
         ((volume : Measure R3).prod (volume : Measure R3))
       = eLpNorm (truncCoulomb p n) 2 volume * eLpNorm (freeGreensFunction z) 2 volume :=
