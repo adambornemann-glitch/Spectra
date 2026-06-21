@@ -2,7 +2,6 @@
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
-Filename: CayleyTransform/GeneratorStone.lean
 -/
 import Spectra.CayleyTransform.Generator.Resolvent
 import Spectra.SpectralTheory.ResolventForm
@@ -39,12 +38,15 @@ theorem inner_stoneExp_eq_integral_borelMeasure (hA : IsSelfAdjoint A) (t : ℝ)
 noncomputable def inverseMobiusReal (hA : IsSelfAdjoint A) : spectrum ℂ (cayley hA) → ℝ :=
   fun w => (inverseMobius (w : ℂ)).re
 
+/-- On the Cayley spectrum the real-valued `inverseMobiusReal hA w` agrees with the complex
+`inverseMobius (w : ℂ)`, since the latter is real there. -/
 lemma inverseMobiusReal_coe (hA : IsSelfAdjoint A) (w : spectrum ℂ (cayley hA)) :
     ((inverseMobiusReal hA w : ℝ) : ℂ) = inverseMobius (w : ℂ) := by
   apply Complex.ext <;>
     simp only [inverseMobiusReal, Complex.ofReal_re, Complex.ofReal_im,
       inverseMobius_im_eq_zero_of_mem_spectrum hA w]
 
+/-- The map `inverseMobiusReal hA` is measurable. -/
 lemma inverseMobiusReal_measurable (hA : IsSelfAdjoint A) : Measurable (inverseMobiusReal hA) := by
   have hmob : Measurable (inverseMobius : ℂ → ℂ) := by
     unfold inverseMobius

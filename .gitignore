@@ -3,6 +3,7 @@
 /config/*
 /packages/*
 /@Meta/
+/@DEP/
 .claude
 .gitignore
 .DS_Store

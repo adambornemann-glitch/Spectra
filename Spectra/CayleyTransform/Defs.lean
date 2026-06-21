@@ -2,7 +2,6 @@
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
-Filename: CayleyTransform/Transform.lean
 -/
 import Spectra.YosidaHille.Basic
 import Spectra.QuantumMechanics.Observable.Basic
@@ -59,12 +58,6 @@ theorem cayleyTransform_isometry
   nlinarith [hsq, norm_nonneg (cayleyTransform hsym hplus φ), norm_nonneg φ,
              sq_nonneg (‖cayleyTransform hsym hplus φ‖ - ‖φ‖)]
 
-variable [CompleteSpace H] in
-noncomputable def cayleyTransformOfGroup
-    (U : OneParameterUnitaryGroup H) : H →L[ℂ] H :=
-  cayleyTransform (generator_isFormalAdjoint U)
-    ((isSelfAdjoint_to_surjective (generator_isSelfAdjoint U)).1)
-
 /-- The Cayley transform is surjective (full lower deficiency). -/
 theorem cayleyTransform_surjective
     {A : H →ₗ.[ℂ] H} (hsym : A.IsFormalAdjoint A)
@@ -74,14 +67,6 @@ theorem cayleyTransform_surjective
   intro χ
   obtain ⟨ψ, hψ⟩ := hminus χ
   exact ⟨A ψ + I • (ψ : H), by rw [cayleyTransform_apply_resolvent hsym hplus ψ]; exact hψ⟩
-
-/-- For a self-adjoint operator the Cayley transform is surjective. -/
-theorem cayleyTransform_surjective_of_isSelfAdjoint [CompleteSpace H]
-    {A : H →ₗ.[ℂ] H} (hA : IsSelfAdjoint A) :
-    Function.Surjective
-      (cayleyTransform (isFormalAdjoint_self_of_isSelfAdjoint hA)
-                       (isSelfAdjoint_to_surjective hA).1) :=
-  cayleyTransform_surjective _ _ (isSelfAdjoint_to_surjective hA).2
 
 open InnerProductSpace in
 /-- The Cayley transform of a self-adjoint operator is unitary. -/
@@ -134,13 +119,6 @@ lemma cayleyTransform_spectrum_subset_circle [CompleteSpace H]
     spectrum ℂ (cayleyTransform hsym hplus) ⊆ Metric.sphere (0 : ℂ) 1 :=
   spectrum.subset_circle_of_unitary (cayleyTransform_mem_unitary hsym hplus hminus)
 
-/-- The Cayley transform of a self-adjoint operator is unitary. -/
-theorem cayleyTransform_unitary_of_isSelfAdjoint [CompleteSpace H]
-    {A : H →ₗ.[ℂ] H} (hA : IsSelfAdjoint A) :
-    Unitary (cayleyTransform (isFormalAdjoint_self_of_isSelfAdjoint hA)
-                             (isSelfAdjoint_to_surjective hA).1) :=
-  cayleyTransform_unitary _ _ (isSelfAdjoint_to_surjective hA).2
-
 /-- `U U⋆ = I` for the Cayley transform. -/
 lemma cayleyTransform_comp_adjoint [CompleteSpace H]
     {A : H →ₗ.[ℂ] H} (hsym : A.IsFormalAdjoint A)
@@ -169,13 +147,6 @@ lemma cayleyTransform_isUnit [CompleteSpace H]
   · exact cayleyTransform_comp_adjoint hsym hplus hminus
   · exact cayleyTransform_adjoint_comp hsym hplus hminus
 
-/-- Wrapper for cayleyTransform_isUnit-/
-lemma cayleyTransform_isUnit_of_isSelfAdjoint [CompleteSpace H]
-    {A : H →ₗ.[ℂ] H} (hA : IsSelfAdjoint A) :
-    IsUnit (cayleyTransform (isFormalAdjoint_self_of_isSelfAdjoint hA)
-                            (isSelfAdjoint_to_surjective hA).1) :=
-  cayleyTransform_isUnit _ _ (isSelfAdjoint_to_surjective hA).2
-
 /-- The operator norm of the Cayley transform is `1`. -/
 theorem cayleyTransform_norm_one [Nontrivial H]
     {A : H →ₗ.[ℂ] H} (hsym : A.IsFormalAdjoint A)
@@ -197,30 +168,6 @@ lemma symmetric_norm_sq_add
     {A : H →ₗ.[ℂ] H} (hsym : A.IsFormalAdjoint A) (ψ : A.domain) :
     ‖A ψ + I • (ψ : H)‖ ^ 2 = ‖A ψ‖ ^ 2 + ‖(ψ : H)‖ ^ 2 :=
   norm_sq_add_I_smul hsym ψ
-
-/-- `1` is not an eigenvalue of the Cayley transform: `C χ = χ → χ = 0`,
-    i.e. `ker (C − I) = ⊥`. Uses only symmetry and the upper range condition. -/
-lemma cayleyTransform_eq_self_imp_zero
-    {A : H →ₗ.[ℂ] H} (hsym : A.IsFormalAdjoint A)
-    (hplus : ∀ φ : H, ∃ ψ : A.domain, A ψ + I • (ψ : H) = φ)
-    {χ : H} (hχ : cayleyTransform hsym hplus χ = χ) : χ = 0 := by
-  obtain ⟨ψ, hψ⟩ := hplus χ
-  have hCχ : cayleyTransform hsym hplus χ = A ψ - I • (ψ : H) := by
-    rw [← hψ]; exact cayleyTransform_apply_resolvent hsym hplus ψ
-  have hχ2 : χ = A ψ - I • (ψ : H) := hχ ▸ hCχ
-  have heq : A ψ + I • (ψ : H) = A ψ - I • (ψ : H) := hψ.trans hχ2
-  have hIψ : (I : ℂ) • (ψ : H) = 0 := by
-    have e : (A ψ + I • (ψ : H)) - (A ψ - I • (ψ : H)) = (2 : ℂ) • (I • (ψ : H)) := by module
-    have hzero : (2 : ℂ) • (I • (ψ : H)) = 0 := by rw [← e]; exact sub_eq_zero.mpr heq
-    rcases smul_eq_zero.mp hzero with h | h
-    · exact absurd h two_ne_zero
-    · exact h
-  have hψ0 : (ψ : H) = 0 := by
-    rcases smul_eq_zero.mp hIψ with h | h
-    · exact absurd h Complex.I_ne_zero
-    · exact h
-  have hψ0' : ψ = 0 := Subtype.ext hψ0
-  rw [← hψ, hIψ, add_zero, hψ0', LinearPMap.map_zero]
 
 /-- The Cayley transform of a self-adjoint operator is a normal element of the
 C⋆-algebra `H →L[ℂ] H`. This is the gate to Mathlib's `cfc`. -/

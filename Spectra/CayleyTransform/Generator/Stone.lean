@@ -2,7 +2,6 @@
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
-Filename: CayleyTransform/GeneratorStoneDirect.lean
 -/
 import Spectra.CayleyTransform.Generator.InverseAction   -- cayley, stoneExp, stoneGroup, resolventSymbol
 import Spectra.CayleyTransform.Generator.Resolvent     -- selfAdjointResolvent_eq_borelCalculus (keystone)

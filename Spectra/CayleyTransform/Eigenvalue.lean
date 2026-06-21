@@ -2,7 +2,6 @@
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
-Filename: CayleyTransform/EigenValue.lean
 -/
 import Spectra.CayleyTransform.Defs
 import Spectra.CayleyTransform.Mobius

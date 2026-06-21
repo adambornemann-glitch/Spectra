@@ -58,6 +58,7 @@ noncomputable def complexify (U : H →L[ℂ] H) :
   ContinuousLinearMap.compLeftContinuous ℝ ↥(spectrum ℂ U) Complex.ofRealCLM
 
 omit [CompleteSpace H] in
+/-- `complexify U ψ` evaluated at `z` is the complexification `(ψ z : ℂ)` of the real value. -/
 @[simp] lemma complexify_apply (U : H →L[ℂ] H) (ψ : C(spectrum ℂ U, ℝ))
     (z : spectrum ℂ U) : complexify U ψ z = (ψ z : ℂ) := rfl
 
@@ -138,6 +139,7 @@ instance instIsFiniteMeasureOnCompacts_spectralMeasure
      unfold spectralMeasure RealRMK.rieszMeasure; infer_instance
   infer_instance
 
+/-- `μ_ξ` is a finite measure: `σ(U)` is compact, so its total mass is finite. -/
 instance instIsFiniteMeasure_spectralMeasure
     (U : H →L[ℂ] H) (hn : IsStarNormal U) (ξ : H) :
     IsFiniteMeasure (spectralMeasure U hn ξ) :=

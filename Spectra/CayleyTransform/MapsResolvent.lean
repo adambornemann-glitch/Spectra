@@ -2,7 +2,6 @@
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
-Filename: CayleyTransform/MapsResolvent.lean
 -/
 import Spectra.CayleyTransform.Eigenvalue
 import Spectra.Resolvent.SpecialCases
@@ -41,21 +40,6 @@ lemma resolvent_at_neg_i_eq_cfc
     rw [hfun, cfc_const_mul (2 * I)⁻¹ (fun w : ℂ => 1 - w) (cayleyTransform hsym hplus), hinner]
   -- assemble: both sides are `(2i)⁻¹ • (1 - U)`
   rw [key, hcay, sub_sub_cancel, smul_smul, inv_mul_cancel₀ h2I, one_smul]
-
-/-- **Spectral mapping for the resolvent at `-i`.** With `U` the Cayley transform of `A`,
-the spectrum of `(A + i)⁻¹` is the image of `σ(U)` under the Möbius map `w ↦ (1 - w)/(2i)`;
-concretely `σ((A + i)⁻¹) = {(λ + i)⁻¹ : λ ∈ σ(A)} ∪ {0}`, the `0` being the image of `w = 1`,
-the spectral point at infinity. -/
-lemma spectrum_resolvent_at_neg_i
-    {A : H →ₗ.[ℂ] H} (hsym : A.IsFormalAdjoint A)
-    (hplus  : ∀ φ : H, ∃ ψ : A.domain, A ψ + I • (ψ : H) = φ)
-    (hminus : ∀ φ : H, ∃ ψ : A.domain, A ψ - I • (ψ : H) = φ) :
-    spectrum ℂ (resolvent_at_neg_i hsym hplus)
-      = (fun w : ℂ => (1 - w) / (2 * I)) '' (spectrum ℂ (cayleyTransform hsym hplus)) := by
-  have hn : IsStarNormal (cayleyTransform hsym hplus) :=
-    cayleyTransform_isStarNormal hsym hplus hminus
-  rw [resolvent_at_neg_i_eq_cfc hsym hplus hminus,
-      cfc_map_spectrum (fun w : ℂ => (1 - w) / (2 * I)) (cayleyTransform hsym hplus)]
 
 /-- The Cayley transform sends non-real points to the resolvent set:
 for `Im z ≠ 0` the Möbius image `w = (z-i)/(z+i)` lies off the unit circle, so `U - w` is a unit. -/

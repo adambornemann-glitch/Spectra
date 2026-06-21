@@ -2,7 +2,6 @@
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
-Filename: SpectralTheory/BorelCalculus.lean
 -/
 import Spectra.CayleyTransform.Defs        -- cayleyTransform, *_isStarNormal, *_unitary
 import Spectra.CayleyTransform.Mobius           -- inverseMobius, inverseMobius_real
@@ -80,12 +79,14 @@ by Riesz uniqueness: continuous functions separate finite Borel measures on the 
 variable {ι : Type*} [Fintype ι]
 
 omit [CompleteSpace H] in
+/-- A bounded measurable `ℂ`-valued symbol is integrable against a finite measure. -/
 private lemma integrable_of_bdd {ν : Measure (spectrum ℂ U)} [IsFiniteMeasure ν]
     {g : spectrum ℂ U → ℂ} (hg : Measurable g) {C : ℝ} (hC : ∀ z, ‖g z‖ ≤ C) :
     Integrable g ν :=
   (integrable_const C).mono' hg.aestronglyMeasurable (.of_forall hC)
 
 omit [CompleteSpace H] in
+/-- A bounded measurable `ℝ`-valued symbol is integrable against a finite measure. -/
 private lemma integrable_of_bdd_real {ν : Measure (spectrum ℂ U)} [IsFiniteMeasure ν]
     {g : spectrum ℂ U → ℝ} (hg : Measurable g) {C : ℝ} (hC : ∀ z, ‖g z‖ ≤ C) :
     Integrable g ν :=
@@ -670,6 +671,7 @@ theorem borelForm_add_left (g : spectrum ℂ U → ℂ)
   simp only [borelForm]
   linear_combination key
 
+/-- Conjugate-homogeneity of the form in the left slot: `borelForm g (c • ξ) η = c̄ · borelForm g ξ η`. -/
 theorem borelForm_smul_left (g : spectrum ℂ U → ℂ)
     (hg_meas : Measurable g) (hg_bdd : ∃ C, ∀ z, ‖g z‖ ≤ C) (c : ℂ) (ξ η : H) :
     borelForm U hn g (c • ξ) η = conj c * borelForm U hn g ξ η := by
@@ -692,6 +694,7 @@ theorem borelForm_smul_left (g : spectrum ℂ U → ℂ)
   simp only [borelForm]
   linear_combination key
 
+/-- Additivity of the form in the right slot. -/
 theorem borelForm_add_right (g : spectrum ℂ U → ℂ)
     (hg_meas : Measurable g) (hg_bdd : ∃ C, ∀ z, ‖g z‖ ≤ C) (ξ η₁ η₂ : H) :
     borelForm U hn g ξ (η₁ + η₂) = borelForm U hn g ξ η₁ + borelForm U hn g ξ η₂ := by
@@ -712,6 +715,7 @@ theorem borelForm_add_right (g : spectrum ℂ U → ℂ)
   simp only [borelForm]
   linear_combination key
 
+/-- Homogeneity of the form in the right slot: `borelForm g ξ (c • η) = c · borelForm g ξ η`. -/
 theorem borelForm_smul_right (g : spectrum ℂ U → ℂ)
     (hg_meas : Measurable g) (hg_bdd : ∃ C, ∀ z, ‖g z‖ ≤ C) (c : ℂ) (ξ η : H) :
     borelForm U hn g ξ (c • η) = c * borelForm U hn g ξ η := by
@@ -789,6 +793,7 @@ noncomputable def borelCalculusBilin (g : spectrum ℂ U → ℂ)
     (2 * hg_bdd.choose)
     (fun ξ η => norm_borelForm_le' U hn g hg_meas hg_bdd.choose_spec ξ η)
 
+/-- The bundled form evaluates to the underlying `borelForm`. -/
 @[simp] lemma borelCalculusBilin_apply (g : spectrum ℂ U → ℂ)
     (hg_meas : Measurable g) (hg_bdd : ∃ C, ∀ z, ‖g z‖ ≤ C) (ξ η : H) :
     borelCalculusBilin U hn g hg_meas hg_bdd ξ η = borelForm U hn g ξ η :=
@@ -873,6 +878,7 @@ theorem borelCalculus_one :
   rw [map_one, ContinuousLinearMap.one_apply] at h
   exact h.symm
 
+/-- Additivity in the symbol: `Φ(g + h) = Φ(g) + Φ(h)`. -/
 theorem borelCalculus_add (g h : spectrum ℂ U → ℂ)
     (hgm : Measurable g) (hgb : ∃ C, ∀ z, ‖g z‖ ≤ C)
     (hhm : Measurable h) (hhb : ∃ C, ∀ z, ‖h z‖ ≤ C)
@@ -885,6 +891,7 @@ theorem borelCalculus_add (g h : spectrum ℂ U → ℂ)
     inner_add_right, inner_borelCalculus U hn g hgm hgb ξ η,
     inner_borelCalculus U hn h hhm hhb ξ η]
 
+/-- Scalar-homogeneity in the symbol: `Φ(c · g) = c • Φ(g)`. -/
 theorem borelCalculus_smul (c : ℂ) (g : spectrum ℂ U → ℂ)
     (hgm : Measurable g) (hgb : ∃ C, ∀ z, ‖g z‖ ≤ C)
     (hcm : Measurable fun z => c * g z) (hcb : ∃ C, ∀ z, ‖c * g z‖ ≤ C) :

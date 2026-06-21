@@ -2,7 +2,6 @@
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
-Filename: CayleyTransform/Mobius.lean
 -/
 import Mathlib.Analysis.Complex.Basic
 import Mathlib.Analysis.SpecialFunctions.Complex.Log
@@ -40,11 +39,6 @@ lemma mobius_norm_one (hμ_ne : (↑μ : ℂ) + I ≠ 0) :
   have h2 : ‖(↑μ : ℂ) + I‖ ≠ 0 := norm_ne_zero_iff.mpr hμ_ne
   field_simp [h2, h1]
   exact h1
-
-/-- Variant of `mobius_norm_one` with the hypothesis inlined. -/
-lemma mobius_norm_eq_one (hμ_ne : (↑μ : ℂ) + I ≠ 0) :
-    ‖(↑μ - I) * (↑μ + I)⁻¹‖ = 1 :=
-  mobius_norm_one μ hμ_ne
 
 /-- Formula for `1 - w` where `w` is the Möbius image. -/
 lemma one_sub_mobius (hμ_ne : (↑μ : ℂ) + I ≠ 0) :
@@ -112,7 +106,7 @@ lemma inverseMobius_real (w : ℂ) (hw_norm : ‖w‖ = 1) (hw_ne : w ≠ 1) :
   nlinarith [sq_nonneg a, sq_nonneg b, hab]
 
 /-- Möbius composed with inverse Möbius is identity on unit circle minus {1}. -/
-lemma mobius_inverseMobius (w : ℂ) (_ /-hw_norm-/ : ‖w‖ = 1) (hw_ne : w ≠ 1) :
+lemma mobius_inverseMobius (w : ℂ) (hw_ne : w ≠ 1) :
     (inverseMobius w - I) * (inverseMobius w + I)⁻¹ = w := by
   simp only [inverseMobius]
   have h1_sub_ne : 1 - w ≠ 0 := sub_ne_zero.mpr (Ne.symm hw_ne)
@@ -127,14 +121,5 @@ lemma mobius_inverseMobius (w : ℂ) (_ /-hw_norm-/ : ‖w‖ = 1) (hw_ne : w �
   have h_denom_ne : 2 * I / (1 - w) ≠ 0 := div_ne_zero h2I_ne h1_sub_ne
   rw [h_num, h_denom]
   field_simp [h1_sub_ne, h2I_ne]
-
-/-- Inverse Möbius composed with Möbius is identity on reals. -/
-lemma inverseMobius_mobius (μ : ℝ) :
-    inverseMobius ((↑μ - I) * (↑μ + I)⁻¹) = μ := by
-  simp only [inverseMobius]
-  have hμ_ne : (↑μ : ℂ) + I ≠ 0 := real_add_I_ne_zero μ
-  have h1_sub_ne : 1 - (↑μ - I) * (↑μ + I)⁻¹ ≠ 0 := one_sub_mobius_ne_zero μ hμ_ne
-  field_simp [hμ_ne, h1_sub_ne]
-  ring
 
 end Spectra.Cayley

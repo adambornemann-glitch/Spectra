@@ -2,7 +2,6 @@
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
-Filename: SpectralTheory/BorelCalculus.lean
 -/
 import Spectra.CayleyTransform.BorelCalculus
 import Spectra.CayleyTransform.Defs
@@ -26,14 +25,12 @@ open BorelCFC
 
 variable {A : H →ₗ.[ℂ] H} (hA : IsSelfAdjoint A)
 
-/-- The Cayley transform of a self-adjoint operator, as a bounded operator.
-NB: confirm the witness lemma name matches `CayleyTransform/Transform.lean`
-(`isFormalAdjoint_self_of_isSelfAdjoint` there vs. `isFormalAdjoint_of_isSelfAdjoint`
-in the resolvent files). -/
+/-- The Cayley transform of a self-adjoint operator, as a bounded operator. -/
 noncomputable def cayley (hA : IsSelfAdjoint A) : H →L[ℂ] H :=
   cayleyTransform (isFormalAdjoint_self_of_isSelfAdjoint hA)
     (isSelfAdjoint_to_surjective hA).1
 
+/-- The Cayley transform `cayley hA` is star-normal, so it admits a Borel functional calculus. -/
 theorem cayley_isStarNormal (hA : IsSelfAdjoint A) : IsStarNormal (cayley hA) := by
   exact cayleyTransform_isStarNormal _ _ (isSelfAdjoint_to_surjective hA).2
 
@@ -43,6 +40,7 @@ noncomputable def stoneExpSymbol (hA : IsSelfAdjoint A) (t : ℝ) :
     spectrum ℂ (cayley hA) → ℂ :=
   fun z => Complex.exp (I * t * inverseMobius (z : ℂ))
 
+/-- The Stone symbol `stoneExpSymbol hA t` is measurable on `spectrum ℂ (cayley hA)`. -/
 theorem stoneExpSymbol_measurable (hA : IsSelfAdjoint A) (t : ℝ) :
     Measurable (stoneExpSymbol hA t) := by
   have hmob : Measurable (inverseMobius : ℂ → ℂ) := by
@@ -67,6 +65,7 @@ lemma inverseMobius_im_eq_zero_of_mem_spectrum (hA : IsSelfAdjoint A)
     have hnorm : ‖(z : ℂ)‖ = 1 := by simpa [Metric.mem_sphere, dist_zero_right] using hmem
     exact inverseMobius_real (z : ℂ) hnorm hz1
 
+/-- The Stone symbol is unimodular: `‖stoneExpSymbol hA t z‖ ≤ 1` (in fact `= 1`) on the spectrum. -/
 theorem stoneExpSymbol_norm_le_one (hA : IsSelfAdjoint A) (t : ℝ)
     (z : spectrum ℂ (cayley hA)) : ‖stoneExpSymbol hA t z‖ ≤ 1 := by
   have him : (inverseMobius (z : ℂ)).im = 0 := inverseMobius_im_eq_zero_of_mem_spectrum hA z
@@ -75,6 +74,7 @@ theorem stoneExpSymbol_norm_le_one (hA : IsSelfAdjoint A) (t : ℝ)
       Complex.ofReal_re, Complex.ofReal_im, him]
   rw [stoneExpSymbol, Complex.norm_exp, hre, Real.exp_zero]
 
+/-- The Stone symbol is bounded on the spectrum, with bound `1`. -/
 theorem stoneExpSymbol_bdd (hA : IsSelfAdjoint A) (t : ℝ) :
     ∃ C, ∀ z, ‖stoneExpSymbol hA t z‖ ≤ C :=
   ⟨1, stoneExpSymbol_norm_le_one hA t⟩
@@ -99,6 +99,7 @@ theorem stoneExpSymbol_mul (hA : IsSelfAdjoint A) (s t : ℝ) :
   push_cast
   ring
 
+/-- At `t = 0` the Stone symbol is the constant `1`. -/
 @[simp] theorem stoneExpSymbol_zero (hA : IsSelfAdjoint A) :
     stoneExpSymbol hA 0 = fun _ => (1 : ℂ) := by
   funext z
@@ -112,6 +113,7 @@ noncomputable def stoneExp (hA : IsSelfAdjoint A) (t : ℝ) : H →L[ℂ] H :=
   borelCalculus (cayley hA) (cayley_isStarNormal hA) (stoneExpSymbol hA t)
     (stoneExpSymbol_measurable hA t) (stoneExpSymbol_bdd hA t)
 
+/-- The identity element: `e^{i·0·A} = 1`, i.e. `stoneExp hA 0 ψ = ψ`. -/
 theorem stoneExp_identity (hA : IsSelfAdjoint A) (ψ : H) : stoneExp hA 0 ψ = ψ := by
   have h : stoneExp hA 0 = ContinuousLinearMap.id ℂ H := by
     refine (borelCalculus_congr (cayley hA) (cayley_isStarNormal hA) (stoneExpSymbol_zero hA)
@@ -120,6 +122,7 @@ theorem stoneExp_identity (hA : IsSelfAdjoint A) (ψ : H) : stoneExp hA 0 ψ = �
     exact borelCalculus_one (cayley hA) (cayley_isStarNormal hA)
   rw [h, ContinuousLinearMap.id_apply]
 
+/-- The group law: `e^{i(s+t)A} = e^{isA} e^{itA}`, i.e. `stoneExp hA (s + t) = stoneExp hA s ∘ stoneExp hA t`. -/
 theorem stoneExp_group_law (hA : IsSelfAdjoint A) (s t : ℝ) (ψ : H) :
     stoneExp hA (s + t) ψ = stoneExp hA s (stoneExp hA t ψ) := by
   have hprodm : Measurable fun z => stoneExpSymbol hA s z * stoneExpSymbol hA t z :=
@@ -147,6 +150,7 @@ theorem stoneExp_group_law (hA : IsSelfAdjoint A) (s t : ℝ) (ψ : H) :
     rw [hmul, hcongr]
   rw [hop, ContinuousLinearMap.comp_apply]
 
+/-- `stoneExp hA t` is unitary: it preserves the inner product, `⟪e^{itA}ψ, e^{itA}φ⟫ = ⟪ψ, φ⟫`. -/
 theorem stoneExp_inner (hA : IsSelfAdjoint A) (t : ℝ) (ψ φ : H) :
     ⟪stoneExp hA t ψ, stoneExp hA t φ⟫_ℂ = ⟪ψ, φ⟫_ℂ := by
   have hcm : Measurable fun z => conj (stoneExpSymbol hA t z) :=
@@ -185,6 +189,7 @@ theorem stoneExp_inner (hA : IsSelfAdjoint A) (t : ℝ) (ψ φ : H) :
         rw [ContinuousLinearMap.comp_apply]
     _ = ⟪ψ, φ⟫_ℂ := by rw [hid, ContinuousLinearMap.id_apply]
 
+/-- Strong continuity: `t ↦ stoneExp hA t ψ` is continuous for each `ψ`. -/
 theorem stoneExp_strong_continuous (hA : IsSelfAdjoint A) (ψ : H) :
     Continuous (fun t => stoneExp hA t ψ) := by
   rw [continuous_iff_continuousAt]
@@ -237,6 +242,7 @@ noncomputable def resolventSymbol (hA : IsSelfAdjoint A) (z : ℂ) :
     spectrum ℂ (cayley hA) → ℂ :=
   fun w => (inverseMobius (w : ℂ) - z)⁻¹
 
+/-- The resolvent symbol `resolventSymbol hA z` is measurable on `spectrum ℂ (cayley hA)`. -/
 theorem resolventSymbol_measurable (hA : IsSelfAdjoint A) (z : ℂ) :
     Measurable (resolventSymbol hA z) := by
   have hmob : Measurable (inverseMobius : ℂ → ℂ) := by

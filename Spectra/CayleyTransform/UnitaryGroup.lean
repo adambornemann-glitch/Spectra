@@ -100,6 +100,7 @@ noncomputable def borelUnitaryGroup (V : H →L[ℂ] H) (hn : IsStarNormal V)
         (C := 1) (fun t z => le_of_eq (hunimod t z))
         (fun z => (hcont z).continuousAt) ψ }
 
+/-- The operator at parameter `t` of `borelUnitaryGroup` is `borelCalculus V hn (g t)`. -/
 @[simp] lemma borelUnitaryGroup_U (V : H →L[ℂ] H) (hn : IsStarNormal V)
     (g : ℝ → spectrum ℂ V → ℂ) (hmeas : ∀ t, Measurable (g t))
     (hunimod : ∀ t z, ‖g t z‖ = 1) (hzero : ∀ z, g 0 z = 1)
@@ -122,6 +123,7 @@ noncomputable def modularSymbol (V : H →L[ℂ] H) (t : ℝ) (z : spectrum ℂ 
   exp (I * (t : ℂ) * (↑(Real.log (inverseMobius (z : ℂ)).re) : ℂ))
 
 omit [CompleteSpace H] in
+/-- The modular symbol `modularSymbol V t` is measurable in `z`. -/
 lemma measurable_modularSymbol (V : H →L[ℂ] H) (t : ℝ) : Measurable (modularSymbol V t) := by
   have hiM : Measurable fun z : spectrum ℂ V => inverseMobius (z : ℂ) := by
     have : Measurable fun w : ℂ => inverseMobius w := by
@@ -134,6 +136,7 @@ lemma measurable_modularSymbol (V : H →L[ℂ] H) (t : ℝ) : Measurable (modul
     measurable_ofReal.comp <| Real.measurable_log.comp <| measurable_re.comp hiM
 
 omit [CompleteSpace H] in
+/-- The modular symbol is unimodular: `‖modularSymbol V t z‖ = 1`. -/
 lemma norm_modularSymbol (V : H →L[ℂ] H) (t : ℝ) (z : spectrum ℂ V) :
     ‖modularSymbol V t z‖ = 1 := by
   rw [modularSymbol, norm_exp]
@@ -142,10 +145,13 @@ lemma norm_modularSymbol (V : H →L[ℂ] H) (t : ℝ) (z : spectrum ℂ V) :
   rw [hre, Real.exp_zero]
 
 omit [CompleteSpace H] in
+/-- The modular symbol is normalized: `modularSymbol V 0 z = 1`. -/
 lemma modularSymbol_zero (V : H →L[ℂ] H) (z : spectrum ℂ V) : modularSymbol V 0 z = 1 := by
   simp [modularSymbol]
 
 omit [CompleteSpace H] in
+/-- The modular symbol is multiplicative: `modularSymbol V (s + t) z = modularSymbol V s z *
+modularSymbol V t z`. -/
 lemma modularSymbol_add (V : H →L[ℂ] H) (s t : ℝ) (z : spectrum ℂ V) :
     modularSymbol V (s + t) z = modularSymbol V s z * modularSymbol V t z := by
   rw [modularSymbol, modularSymbol, modularSymbol, ← Complex.exp_add]
@@ -154,6 +160,7 @@ lemma modularSymbol_add (V : H →L[ℂ] H) (s t : ℝ) (z : spectrum ℂ V) :
   ring
 
 omit [CompleteSpace H] in
+/-- The modular symbol is continuous in the parameter: `t ↦ modularSymbol V t z` is continuous. -/
 lemma continuous_modularSymbol (V : H →L[ℂ] H) (z : spectrum ℂ V) :
     Continuous fun t => modularSymbol V t z := by
   unfold modularSymbol
@@ -168,6 +175,7 @@ noncomputable def borelModularGroup (V : H →L[ℂ] H) (hn : IsStarNormal V) :
   borelUnitaryGroup V hn (modularSymbol V) (measurable_modularSymbol V) (norm_modularSymbol V)
     (modularSymbol_zero V) (modularSymbol_add V) (continuous_modularSymbol V)
 
+/-- The operator at parameter `t` of `borelModularGroup` is `borelCalculus V hn (modularSymbol V t)`. -/
 @[simp] lemma borelModularGroup_U (V : H →L[ℂ] H) (hn : IsStarNormal V) (t : ℝ) :
     (borelModularGroup V hn).U t
       = borelCalculus V hn (modularSymbol V t) (measurable_modularSymbol V t)
