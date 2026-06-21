@@ -151,11 +151,11 @@ import Spectra.QuantumMechanics.Ehrenfest
 import Spectra.QuantumMechanics.FisherModel
 import Spectra.QuantumMechanics.Generator.Basic
 import Spectra.QuantumMechanics.Hydrogen.RadialProblem.TensorDecomp.Basic
+import Spectra.QuantumMechanics.Hydrogen.RadialProblem.Equation.Basic
 import Spectra.QuantumMechanics.Hydrogen.RadialProblem.Equation.Kummer
 import Spectra.QuantumMechanics.Hydrogen.RadialProblem.Laguerre.Complete
 import Spectra.QuantumMechanics.Hydrogen.RadialProblem.Laguerre.GenFun
 import Spectra.QuantumMechanics.Hydrogen.RadialProblem.Laguerre.Orthogonality
---import Spectra.QuantumMechanics.Hydrogen.RadialProblem.RadialEquation
 import Spectra.QuantumMechanics.Hydrogen.Hamiltonian
 import Spectra.QuantumMechanics.Hydrogen.Laplacian.Basic
 import Spectra.QuantumMechanics.Hydrogen.Laplacian.FreeGreens.Basic
@@ -168,7 +168,13 @@ import Spectra.QuantumMechanics.Hydrogen.Laplacian.HalfLaplacian
 import Spectra.QuantumMechanics.Hydrogen.Laplacian.SphereIntegral
 import Spectra.QuantumMechanics.Hydrogen.Spectrum.Continuous.Defs
 import Spectra.QuantumMechanics.Hydrogen.Spectrum.Continuous.Compact
---import Spectra.QuantumMechanics.Hydrogen.Spectrum
+--import Spectra.QuantumMechanics.Hydrogen.Spectrum.Continous.Basic
+import Spectra.QuantumMechanics.Hydrogen.Spectrum.BohrFormula
+--import Spectra.QuantumMechanics.Hydrogen.Spectrum.Complete
+import Spectra.QuantumMechanics.Hydrogen.Spectrum.Degeneracy
+--import Spectra.QuantumMechanics.Hydrogen.Spectrum.Discrete
+import Spectra.QuantumMechanics.Hydrogen.Spectrum.Eigenvalue
+import Spectra.QuantumMechanics.Hydrogen.Spectrum.Projections
 import Spectra.QuantumMechanics.Observable.Basic
 import Spectra.OneParameterUnitaryGroup.Basic
 import Spectra.QuantumMechanics.PauliMatrices

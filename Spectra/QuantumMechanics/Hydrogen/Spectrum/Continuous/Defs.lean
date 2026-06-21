@@ -47,7 +47,7 @@ def freeResolventAt (z : ℂ) (hz : z.im ≠ 0) : L2_R3 →L[ℂ] L2_R3 :=
   selfAdjointResolvent laplacian_isSelfAdjoint z hz
 
 /-- `R_z ψ` lands in the Laplacian domain. -/
-theorem freeResolventAt_mem_domain (z : ℂ) (hz : z.im ≠ 0) (ψ : L2_R3) :
+lemma freeResolventAt_mem_domain (z : ℂ) (hz : z.im ≠ 0) (ψ : L2_R3) :
     (freeResolventAt z hz ψ) ∈ laplacianPMap.domain :=
   selfAdjointResolvent_mem_domain laplacian_isSelfAdjoint z hz ψ
 
@@ -58,7 +58,7 @@ def freeResolventCodAt (z : ℂ) (hz : z.im ≠ 0) :
     (freeResolventAt z hz : L2_R3 →L[ℂ] L2_R3).toLinearMap
     (freeResolventAt_mem_domain z hz)
 
-@[simp] theorem freeResolventCodAt_coe (z : ℂ) (hz : z.im ≠ 0) (ψ : L2_R3) :
+@[simp] lemma freeResolventCodAt_coe (z : ℂ) (hz : z.im ≠ 0) (ψ : L2_R3) :
     ((freeResolventCodAt z hz ψ : laplacianPMap.domain) : L2_R3) = freeResolventAt z hz ψ := rfl
 
 /-- The Coulomb-perturbed resolvent `W = V · R_z`, as a `ℂ`-linear map. -/
@@ -70,10 +70,10 @@ def coulombResolventLinearAt (p : CoulombParams) (z : ℂ) (hz : z.im ≠ 0) :
 def coulombB (p : CoulombParams) : ℝ :=
   (coulomb_relative_bound_is_zero p 1 (by norm_num)).choose
 
-theorem coulombB_nonneg (p : CoulombParams) : 0 ≤ coulombB p :=
+lemma coulombB_nonneg (p : CoulombParams) : 0 ≤ coulombB p :=
   (coulomb_relative_bound_is_zero p 1 (by norm_num)).choose_spec.1
 
-theorem coulombB_bound (p : CoulombParams) (ψ : laplacianPMap.domain) :
+lemma coulombB_bound (p : CoulombParams) (ψ : laplacianPMap.domain) :
     ‖coulombPotential p ψ‖ ≤ 1 * ‖laplacianPMap ψ‖ + coulombB p * ‖(ψ : L2_R3)‖ :=
   (coulomb_relative_bound_is_zero p 1 (by norm_num)).choose_spec.2 ψ
 
@@ -82,7 +82,7 @@ def coulombResolventCAt (p : CoulombParams) (z : ℂ) (hz : z.im ≠ 0) : ℝ :=
   1 + (1 + coulombB p) * (1 + ‖z‖) * ‖freeResolventAt z hz‖
 
 /-- The norm bound `‖W ψ‖ ≤ C ‖ψ‖`. -/
-theorem coulombResolventLinearAt_bound (p : CoulombParams) (z : ℂ) (hz : z.im ≠ 0) (ψ : L2_R3) :
+lemma coulombResolventLinearAt_bound (p : CoulombParams) (z : ℂ) (hz : z.im ≠ 0) (ψ : L2_R3) :
     ‖coulombResolventLinearAt p z hz ψ‖ ≤ coulombResolventCAt p z hz * ‖ψ‖ := by
   set χ : laplacianPMap.domain := freeResolventCodAt z hz ψ with hχdef
   have hχval : (χ : L2_R3) = freeResolventAt z hz ψ := rfl
@@ -126,7 +126,7 @@ def coulombResolventAt (p : CoulombParams) (z : ℂ) (hz : z.im ≠ 0) : L2_R3 �
   LinearMap.mkContinuous (coulombResolventLinearAt p z hz) (coulombResolventCAt p z hz)
     (coulombResolventLinearAt_bound p z hz)
 
-theorem coulombResolventAt_apply (p : CoulombParams) (z : ℂ) (hz : z.im ≠ 0) (ψ : L2_R3) :
+lemma coulombResolventAt_apply (p : CoulombParams) (z : ℂ) (hz : z.im ≠ 0) (ψ : L2_R3) :
     coulombResolventAt p z hz ψ = coulombPotential p (freeResolventCodAt z hz ψ) := rfl
 
 /-! ## The `z = i` instance (drives the `−Δ` essential-spectrum proof) -/
@@ -136,7 +136,7 @@ def freeResolvent : L2_R3 →L[ℂ] L2_R3 :=
   freeResolventAt Complex.I I_im_ne_zero
 
 /-- `R_i ψ` lands in the Laplacian domain. -/
-theorem freeResolvent_mem_domain (ψ : L2_R3) :
+lemma freeResolvent_mem_domain (ψ : L2_R3) :
     (freeResolvent ψ) ∈ laplacianPMap.domain :=
   freeResolventAt_mem_domain Complex.I I_im_ne_zero ψ
 
@@ -145,21 +145,21 @@ def freeResolventCod :
     L2_R3 →ₗ[ℂ] laplacianPMap.domain :=
   freeResolventCodAt Complex.I I_im_ne_zero
 
-@[simp] theorem freeResolventCod_coe (ψ : L2_R3) :
+@[simp] lemma freeResolventCod_coe (ψ : L2_R3) :
     ((freeResolventCod ψ : laplacianPMap.domain) : L2_R3) = freeResolvent ψ := rfl
 
 /-- The Coulomb-perturbed resolvent `W = V · R_i : L²(ℝ³) →L[ℂ] L²(ℝ³)`. -/
 def coulombResolvent (p : CoulombParams) : L2_R3 →L[ℂ] L2_R3 :=
   coulombResolventAt p Complex.I I_im_ne_zero
 
-theorem coulombResolvent_apply (p : CoulombParams) (ψ : L2_R3) :
+lemma coulombResolvent_apply (p : CoulombParams) (ψ : L2_R3) :
     coulombResolvent p ψ = coulombPotential p (freeResolventCod ψ) :=
   coulombResolventAt_apply p Complex.I I_im_ne_zero ψ
 
 /-! ## The `z = 2i` instance (drives the `−½Δ` essential-spectrum proof) -/
 
 /-- `2i` is off the real axis: the spectral parameter for the `−½Δ` reduction. -/
-theorem h2I : (2 * Complex.I).im ≠ 0 := by
+lemma h2I : (2 * Complex.I).im ≠ 0 := by
   simp [Complex.mul_im, Complex.I_im, Complex.I_re]
 
 /-- The compact perturbation for the textbook hydrogen Hamiltonian: `W = V·(−½Δ − i)⁻¹`,
@@ -173,7 +173,7 @@ The reduction `A = −½Δ`, `B = H` gives `Bχ − Aχ = V·χ`; we exhibit it 
 `W(Aχ − i·χ)` with `W = coulombResolventHalf`.  Algebra: `½Δχ − iχ = ½(Δχ − 2iχ)`,
 the free resolvent at `2i` is linear and a left inverse on `Dom(−Δ)`, so
 `R_{2i}(½Δχ − iχ) = ½χ`, and `2 • V(½χ) = V(χ)`. -/
-theorem coulomb_hVW (p : CoulombParams) (χ : L2_R3) (hχ : χ ∈ halfLaplacianPMap.domain) :
+lemma coulomb_hVW (p : CoulombParams) (χ : L2_R3) (hχ : χ ∈ halfLaplacianPMap.domain) :
     (hydrogenHamiltonian p) ⟨χ, hχ⟩ - halfLaplacianPMap ⟨χ, hχ⟩
       = coulombResolventHalf p (halfLaplacianPMap ⟨χ, hχ⟩ - Complex.I • χ) := by
   -- `Dom(−½Δ) = Dom(−Δ)` definitionally.
@@ -210,7 +210,7 @@ theorem coulomb_hVW (p : CoulombParams) (χ : L2_R3) (hχ : χ ∈ halfLaplacian
 /-- **Reduction.**  If the Coulomb-perturbed resolvent `W = coulombResolventHalf` is compact, then
 the hydrogen Hamiltonian and the textbook kinetic operator `−½Δ` have the same essential
 spectrum. -/
-theorem hydrogen_essSpectrum_of_compact (p : CoulombParams)
+lemma hydrogen_essSpectrum_of_compact (p : CoulombParams)
     (hW : IsCompactOperator (⇑(coulombResolventHalf p))) :
     Spectra.Essential.essSpectrum (hydrogen_isSelfAdjoint p)
       = Spectra.Essential.essSpectrum halfLaplacian_isSelfAdjoint :=
@@ -219,7 +219,7 @@ theorem hydrogen_essSpectrum_of_compact (p : CoulombParams)
     (coulombResolventHalf p) hW (coulomb_hVW p)).symm
 
 /-- The same, with the RHS rewritten to `[0, ∞)`. -/
-theorem hydrogen_essSpectrum_eq_Ici_of_compact (p : CoulombParams)
+lemma hydrogen_essSpectrum_eq_Ici_of_compact (p : CoulombParams)
     (hW : IsCompactOperator (⇑(coulombResolventHalf p))) :
     Spectra.Essential.essSpectrum (hydrogen_isSelfAdjoint p) = Set.Ici (0 : ℝ) :=
   (hydrogen_essSpectrum_of_compact p hW).trans essSpectrum_halfLaplacian
@@ -231,7 +231,7 @@ theorem hydrogen_essSpectrum_eq_Ici_of_compact (p : CoulombParams)
 def truncCoulombBall (p : CoulombParams) (n : ℕ) : R3 → ℂ :=
   (closedBall (0 : R3) (n + 1 : ℝ)).indicator (fun x => ((coulombMultiplier p x : ℝ) : ℂ))
 
-theorem truncCoulombBall_memLp (p : CoulombParams) (n : ℕ) :
+lemma truncCoulombBall_memLp (p : CoulombParams) (n : ℕ) :
     MemLp (truncCoulombBall p n) 2 volume := by
   rw [truncCoulombBall, memLp_indicator_iff_restrict measurableSet_closedBall]
   have haesm : AEStronglyMeasurable (fun x => ((coulombMultiplier p x : ℝ) : ℂ))
@@ -248,7 +248,7 @@ theorem truncCoulombBall_memLp (p : CoulombParams) (n : ℕ) :
   rw [Complex.norm_real, Real.norm_eq_abs, sq_abs, coulombMultiplier_sq]
 
 /-- The truncated free-resolvent kernel `Kₙ(x,y) = Vⁿ(x)·G̃_z(x−y)` lies in `L²(ℝ³×ℝ³)`. -/
-theorem truncKernelG_memLp (p : CoulombParams) (n : ℕ) (z : ℂ) (hz : z.im ≠ 0) :
+lemma truncKernelG_memLp (p : CoulombParams) (n : ℕ) (z : ℂ) (hz : z.im ≠ 0) :
     MemLp (fun q : R3 × R3 =>
         truncCoulombBall p n q.1 * (freeGreensFunctionL2 z hz : R3 → ℂ) (q.1 - q.2)) 2
       ((volume : Measure R3).prod (volume : Measure R3)) :=

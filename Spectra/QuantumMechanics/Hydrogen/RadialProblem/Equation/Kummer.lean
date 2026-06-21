@@ -6,6 +6,8 @@ Authors: Adam Bornemann
 import Mathlib.Analysis.SpecificLimits.Normed
 import Mathlib.Analysis.Calculus.SmoothSeries
 import Mathlib.Analysis.Calculus.Deriv.Pow
+import Mathlib.Analysis.SpecialFunctions.Exponential
+import Mathlib.Analysis.SpecialFunctions.Pow.Asymptotics
 
 /-!
 # The confluent hypergeometric (Kummer) function `₁F₁`
@@ -37,8 +39,9 @@ condition.
 * `kummerM_hasDerivAt` / `kummerM_deriv` — `M'(z) = ∑' k, (k+1) c_{k+1} zᵏ`.
 * `kummerM_hasDerivAt2` / `kummerM_deriv2` — `M''(z) = ∑' k, (k+1)(k+2) c_{k+2} zᵏ`.
 * `kummerM_ode` — **Kummer's ODE** `z M''(z) + (b − z) M'(z) − a M(z) = 0`.
-* `abs_kummerCoeff_geom_lower` — for non-terminating `a`, `|c_k| ≥ C·(1/2)ᵏ/k!` eventually
-  (the coefficient growth that ultimately breaks square-integrability).
+* `abs_kummerCoeff_geom_lower` — for non-terminating `a`, `|c_k| ≥ C·(1/2)ᵏ/k!` eventually.
+* `kummerM_abs_exp_lower` — for non-terminating `a`, `|M(a,b,ρ)| ≥ C·e^{ρ/2}` for large `ρ`
+  (the exponential growth that breaks square-integrability of the radial wavefunction).
 
 The unit ball is the whole line: the coefficients decay super-geometrically (ratio `→ 0`),
 because `b > 0` keeps every denominator `(b + k) > 0`. The ODE collapses, via the index shifts
@@ -47,17 +50,15 @@ to the termwise recurrence `(k+1)(b+k) c_{k+1} = (a+k) c_k` (`kummerCoeff_rec`).
 
 ## Roadmap (next steps toward hydrogen quantization)
 
-The coefficient-level growth analysis of the non-terminating series is complete here
-(`kummerCoeff_ne_zero`, `kummerCoeff_eventually_signed`, `abs_kummerCoeff_ratio_lower`,
-`abs_kummerCoeff_geom_lower`). The remaining analytic infrastructure:
-* the **function-level exponential lower bound** `|M(a,b,ρ)| ≥ C·e^{ρ/2}` for large `ρ`
-  (non-terminating `a`): combine `abs_kummerCoeff_geom_lower` + `kummerCoeff_eventually_signed`
-  with the exp series `∑ (1/2)ᵏρᵏ/k! = e^{ρ/2}` (`NormedSpace.exp_eq_tsum`), splitting the series
-  at `K` (the head is a polynomial dominated by `e^{ρ/2}`);
+The full growth analysis of the non-terminating series is complete here — both the coefficient
+bound (`abs_kummerCoeff_geom_lower`) and the **function-level exponential lower bound**
+(`kummerM_abs_exp_lower`). The remaining infrastructure connects this to the radial problem:
 * connecting `M(ℓ+1−1/κ, 2ℓ+2, 2κr)` to the reduced radial solution `w` via
-  `laguerre_ansatz_reduced_iff` (in `Equation.Basic`) and ODE-uniqueness identification;
-* the resulting non-`L²`-ness unless the series terminates (`χ ∼ r^{ℓ+1} e^{+κr}`), which is the
-  final crux of `reduced_radial_L2_quantized`.
+  `laguerre_ansatz_reduced_iff` (in `Equation.Basic`) and ODE-uniqueness identification of the
+  regular-at-`0` solution;
+* the resulting non-`L²`-ness unless the series terminates: with `z = 2κr`, the bound gives
+  `|w(r)| ≳ e^{κr}`, so `χ ∼ r^{ℓ+1} e^{+κr}` and `∫ r^{2ℓ+2} = ∞` — the final crux of
+  `reduced_radial_L2_quantized`, which then forces `a = ℓ+1−1/κ ∈ ℤ≤0`, i.e. `κ = 1/m`.
 -/
 
 open Filter
@@ -477,7 +478,7 @@ lemma kummerCoeff_ne_zero (a b : ℝ) (hb : 0 < b) (ha : ∀ p : ℕ, a ≠ -(p 
     exact div_ne_zero (mul_ne_zero ih hank) (kummer_den_pos b hb n).ne'
 
 /-- Beyond some index, `a + k > 0` and `(a+k)/(b+k) ≥ 1/2`. -/
-lemma kummerCoeff_ratio_eventually (a b : ℝ) (hb : 0 < b) :
+lemma kummerCoeff_ratio_eventually (a b : ℝ) (_hb : 0 < b) :
     ∃ K : ℕ, ∀ k ≥ K, 0 < a + (k : ℝ) ∧ (1 / 2) * (b + (k : ℝ)) ≤ a + (k : ℝ) := by
   obtain ⟨K, hK⟩ := exists_nat_ge (max (1 - a) (b - 2 * a))
   refine ⟨K, fun k hk => ?_⟩
@@ -554,5 +555,116 @@ lemma kummerCoeff_eventually_signed (a b : ℝ) (hb : 0 < b) (ha : ∀ p : ℕ, 
   · exact ⟨K, -1, Or.inr rfl, hstep (-1) (by simp only [neg_one_mul]; linarith)⟩
   · exact absurd h (kummerCoeff_ne_zero a b hb ha K)
   · exact ⟨K, 1, Or.inl rfl, hstep 1 (by rwa [one_mul])⟩
+
+/-- The scaled exponential series: `∑ₖ (1/2)ᵏ ρᵏ / k! = e^{ρ/2}`. -/
+lemma kummer_exp_series_eq (ρ : ℝ) :
+    ∑' k : ℕ, (1 / 2 : ℝ) ^ k * ρ ^ k / (k.factorial : ℝ) = Real.exp (ρ / 2) := by
+  have h1 : Real.exp (ρ / 2) = ∑' k : ℕ, (ρ / 2) ^ k / (k.factorial : ℝ) := by
+    rw [Real.exp_eq_exp_ℝ, NormedSpace.exp_eq_tsum ℝ]
+    refine tsum_congr (fun k => ?_)
+    rw [smul_eq_mul]; ring
+  rw [h1]
+  refine tsum_congr (fun k => ?_)
+  rw [show (1 / 2 : ℝ) ^ k * ρ ^ k = (ρ / 2) ^ k from by rw [← mul_pow]; congr 1; ring]
+
+/-- A power is eventually dominated by `C·e^{ρ/2}` (exponential beats polynomial). -/
+lemma kummer_poly_le_exp (M C : ℝ) (hC : 0 < C) (K : ℕ) :
+    ∀ᶠ ρ : ℝ in Filter.atTop, M * ρ ^ K ≤ C * Real.exp (ρ / 2) := by
+  have htend : Filter.Tendsto (fun ρ : ℝ => M * (ρ ^ K * Real.exp (-(1 / 2) * ρ)))
+      Filter.atTop (𝓝 0) := by
+    have h0 : Filter.Tendsto (fun ρ : ℝ => ρ ^ K * Real.exp (-(1 / 2) * ρ))
+        Filter.atTop (𝓝 0) := by
+      refine (tendsto_rpow_mul_exp_neg_mul_atTop_nhds_zero (K : ℝ) (1 / 2) (by norm_num)).congr' ?_
+      filter_upwards with ρ
+      rw [Real.rpow_natCast]
+    simpa using h0.const_mul M
+  filter_upwards [htend.eventually (Iio_mem_nhds hC)] with ρ hρ
+  have he : (0 : ℝ) < Real.exp (ρ / 2) := Real.exp_pos _
+  rw [show Real.exp (-(1 / 2) * ρ) = (Real.exp (ρ / 2))⁻¹ from by rw [← Real.exp_neg]; congr 1; ring,
+    show M * (ρ ^ K * (Real.exp (ρ / 2))⁻¹) = M * ρ ^ K / Real.exp (ρ / 2) from by ring,
+    div_lt_iff₀ he] at hρ
+  linarith
+
+/-- **Function-level exponential lower bound for the non-terminating Kummer function.**
+If `a` is not a non-positive integer, then `|M(a,b,ρ)| ≥ C · e^{ρ/2}` for all large `ρ`
+(some `C > 0`). This is the growth that breaks square-integrability of the radial wavefunction
+unless the Kummer series terminates (i.e. unless `κ = 1/m`). -/
+theorem kummerM_abs_exp_lower (a b : ℝ) (hb : 0 < b) (ha : ∀ p : ℕ, a ≠ -(p : ℝ)) :
+    ∃ (C R : ℝ), 0 < C ∧ ∀ ρ, R ≤ ρ → C * Real.exp (ρ / 2) ≤ |kummerM a b ρ| := by
+  obtain ⟨K₁, C, hC, hgeom⟩ := abs_kummerCoeff_geom_lower a b hb ha
+  obtain ⟨K₂, σ, hσval, hsign⟩ := kummerCoeff_eventually_signed a b hb ha
+  set K := max K₁ K₂ with hKdef
+  have hσabs : |σ| = 1 := by rcases hσval with h | h <;> rw [h] <;> norm_num
+  -- `σ c_k = |c_k| ≥ C (1/2)^k/k!` for `k ≥ K`.
+  have hge : ∀ k, K ≤ k → C * (1 / 2) ^ k / (k.factorial : ℝ) ≤ σ * kummerCoeff a b k := by
+    intro k hk
+    have h2 : 0 < σ * kummerCoeff a b k := hsign k (le_trans (le_max_right _ _) hk)
+    have h3 : σ * kummerCoeff a b k = |kummerCoeff a b k| := by
+      rw [← abs_of_pos h2, abs_mul, hσabs, one_mul]
+    rw [h3]; exact hgeom k (le_trans (le_max_left _ _) hk)
+  set d : ℕ → ℝ := fun k => σ * kummerCoeff a b k - C * (1 / 2) ^ k / (k.factorial : ℝ) with hd
+  -- Core: `σ M(ρ) ≥ C e^{ρ/2} + P(ρ)`, `P(ρ) = ∑_{k<K} d_k ρ^k`, for `ρ ≥ 0`.
+  have hlb : ∀ ρ : ℝ, 0 ≤ ρ →
+      C * Real.exp (ρ / 2) + (∑ k ∈ Finset.range K, d k * ρ ^ k) ≤ σ * kummerM a b ρ := by
+    intro ρ hρ
+    have sf : Summable (fun k => σ * kummerCoeff a b k * ρ ^ k) :=
+      ((kummerM_summable a b hb ρ).mul_left σ).congr (fun k => by ring)
+    have sg : Summable (fun k => C * (1 / 2) ^ k / (k.factorial : ℝ) * ρ ^ k) :=
+      ((Real.summable_pow_div_factorial (ρ / 2)).mul_left C).congr (fun k => by
+        rw [show (ρ / 2 : ℝ) ^ k = (1 / 2) ^ k * ρ ^ k from by rw [← mul_pow]; congr 1; ring]; ring)
+    have hsumf : ∑' k, σ * kummerCoeff a b k * ρ ^ k = σ * kummerM a b ρ := by
+      rw [show kummerM a b ρ = ∑' k, kummerCoeff a b k * ρ ^ k from rfl, ← tsum_mul_left]
+      exact tsum_congr (fun k => by ring)
+    have hsumg : ∑' k, C * (1 / 2) ^ k / (k.factorial : ℝ) * ρ ^ k = C * Real.exp (ρ / 2) := by
+      rw [← kummer_exp_series_eq ρ, ← tsum_mul_left]
+      exact tsum_congr (fun k => by ring)
+    have hdiff : σ * kummerM a b ρ - C * Real.exp (ρ / 2)
+        = ∑' k, (σ * kummerCoeff a b k * ρ ^ k
+            - C * (1 / 2) ^ k / (k.factorial : ℝ) * ρ ^ k) := by
+      rw [← hsumf, ← hsumg, ← Summable.tsum_sub sf sg]
+    have hsplit := (sf.sub sg).sum_add_tsum_nat_add K
+    have htail : 0 ≤ ∑' k, (σ * kummerCoeff a b (k + K) * ρ ^ (k + K)
+        - C * (1 / 2) ^ (k + K) / ((k + K).factorial : ℝ) * ρ ^ (k + K)) :=
+      tsum_nonneg (fun k => by
+        rw [sub_nonneg]
+        exact mul_le_mul_of_nonneg_right (hge (k + K) (Nat.le_add_left K k))
+          (pow_nonneg hρ (k + K)))
+    have hheadeq : (∑ k ∈ Finset.range K,
+        (σ * kummerCoeff a b k * ρ ^ k - C * (1 / 2) ^ k / (k.factorial : ℝ) * ρ ^ k))
+        = ∑ k ∈ Finset.range K, d k * ρ ^ k :=
+      Finset.sum_congr rfl (fun k _ => by rw [hd]; ring)
+    have hassemble : σ * kummerM a b ρ - C * Real.exp (ρ / 2)
+        = (∑ k ∈ Finset.range K, d k * ρ ^ k)
+          + ∑' k, (σ * kummerCoeff a b (k + K) * ρ ^ (k + K)
+            - C * (1 / 2) ^ (k + K) / ((k + K).factorial : ℝ) * ρ ^ (k + K)) := by
+      rw [hdiff, ← hsplit, hheadeq]
+    linarith [hassemble, htail]
+  -- `|P(ρ)| ≤ M ρ^K` for `ρ ≥ 1`.
+  set Mc : ℝ := ∑ k ∈ Finset.range K, |d k| with hMc
+  have hPbound : ∀ ρ : ℝ, 1 ≤ ρ → |∑ k ∈ Finset.range K, d k * ρ ^ k| ≤ Mc * ρ ^ K := by
+    intro ρ hρ
+    calc |∑ k ∈ Finset.range K, d k * ρ ^ k|
+        ≤ ∑ k ∈ Finset.range K, |d k * ρ ^ k| := Finset.abs_sum_le_sum_abs _ _
+      _ = ∑ k ∈ Finset.range K, |d k| * ρ ^ k :=
+          Finset.sum_congr rfl (fun k _ => by
+            rw [abs_mul, abs_of_nonneg (pow_nonneg (zero_le_one.trans hρ) k)])
+      _ ≤ ∑ k ∈ Finset.range K, |d k| * ρ ^ K := Finset.sum_le_sum (fun k hk => by
+            gcongr
+            exact le_of_lt (Finset.mem_range.1 hk))
+      _ = Mc * ρ ^ K := by rw [hMc, Finset.sum_mul]
+  -- Combine with the asymptotic.
+  obtain ⟨R₀, hR₀⟩ := Filter.eventually_atTop.1 (kummer_poly_le_exp Mc (C / 2) (by positivity) K)
+  refine ⟨C / 2, max 1 R₀, by positivity, fun ρ hρR => ?_⟩
+  have hρ1 : 1 ≤ ρ := le_trans (le_max_left _ _) hρR
+  have h1 := hlb ρ (by linarith)
+  have h3 := hR₀ ρ (le_trans (le_max_right _ _) hρR)
+  have h4 : σ * kummerM a b ρ ≤ |kummerM a b ρ| := by
+    calc σ * kummerM a b ρ ≤ |σ * kummerM a b ρ| := le_abs_self _
+      _ = |kummerM a b ρ| := by rw [abs_mul, hσabs, one_mul]
+  have hPge : -(C / 2) * Real.exp (ρ / 2) ≤ ∑ k ∈ Finset.range K, d k * ρ ^ k := by
+    have h5 := neg_le_abs (∑ k ∈ Finset.range K, d k * ρ ^ k)
+    have h2 := hPbound ρ hρ1
+    linarith
+  linarith [h1, h4, hPge]
 
 end Spectra.Kummer

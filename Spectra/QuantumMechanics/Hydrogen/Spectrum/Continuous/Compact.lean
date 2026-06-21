@@ -39,7 +39,7 @@ noncomputable def multIndicatorBallLM (n : ℕ) : L2_R3 →ₗ[ℂ] L2_R3 where
     · simp only [Set.indicator_of_notMem h, smul_zero]
 
 /-- The coeFn of the underlying map. -/
-theorem multIndicatorBallLM_coeFn (n : ℕ) (f : L2_R3) :
+lemma multIndicatorBallLM_coeFn (n : ℕ) (f : L2_R3) :
     (multIndicatorBallLM n f : R3 → ℂ) =ᵐ[volume]
       (closedBall (0 : R3) (n + 1 : ℝ)).indicator (f : R3 → ℂ) :=
   MemLp.coeFn_toLp (MemLp.indicator (s := closedBall (0 : R3) (n + 1 : ℝ))
@@ -47,7 +47,7 @@ theorem multIndicatorBallLM_coeFn (n : ℕ) (f : L2_R3) :
     measurableSet_closedBall (Lp.memLp f))
 
 /-- Boundedness: `‖𝟙·f‖₂ ≤ 1 · ‖f‖₂`. -/
-theorem multIndicatorBallLM_bound (n : ℕ) (f : L2_R3) :
+lemma multIndicatorBallLM_bound (n : ℕ) (f : L2_R3) :
     ‖multIndicatorBallLM n f‖ ≤ 1 * ‖f‖ := by
   rw [one_mul, Lp.norm_def, Lp.norm_def]
   apply ENNReal.toReal_mono (Lp.eLpNorm_ne_top f)
@@ -63,7 +63,7 @@ theorem multIndicatorBallLM_bound (n : ℕ) (f : L2_R3) :
 noncomputable def multIndicatorBall (n : ℕ) : L2_R3 →L[ℂ] L2_R3 :=
   LinearMap.mkContinuous (multIndicatorBallLM n) 1 (multIndicatorBallLM_bound n)
 
-theorem multIndicatorBall_coeFn (n : ℕ) (f : L2_R3) :
+lemma multIndicatorBall_coeFn (n : ℕ) (f : L2_R3) :
     (multIndicatorBall n f : R3 → ℂ) =ᵐ[volume]
       (closedBall (0 : R3) (n + 1 : ℝ)).indicator (f : R3 → ℂ) :=
   multIndicatorBallLM_coeFn n f
@@ -71,7 +71,7 @@ theorem multIndicatorBall_coeFn (n : ℕ) (f : L2_R3) :
 /-! ## W coeFn -/
 
 /-- The Coulomb resolvent acts a.e. as multiplication by `coulombMultiplier` on `R_z ψ`. -/
-theorem coulombResolventAt_coeFn (p : CoulombParams) (z : ℂ) (hz : z.im ≠ 0) (ψ : L2_R3) :
+lemma coulombResolventAt_coeFn (p : CoulombParams) (z : ℂ) (hz : z.im ≠ 0) (ψ : L2_R3) :
     (coulombResolventAt p z hz ψ : R3 → ℂ) =ᵐ[volume]
       fun x => (coulombMultiplier p x : ℂ) * (freeResolventAt z hz ψ : R3 → ℂ) x := by
   rw [coulombResolventAt_apply]
@@ -84,7 +84,7 @@ theorem coulombResolventAt_coeFn (p : CoulombParams) (z : ℂ) (hz : z.im ≠ 0)
     (coulomb_mul_memLp_H2 p (freeResolventAt z hz ψ) (freeResolventAt_mem_domain z hz ψ))
 
 /-- The `z = i` instance. -/
-theorem coulombResolvent_coeFn (p : CoulombParams) (ψ : L2_R3) :
+lemma coulombResolvent_coeFn (p : CoulombParams) (ψ : L2_R3) :
     (coulombResolvent p ψ : R3 → ℂ) =ᵐ[volume]
       fun x => (coulombMultiplier p x : ℂ) * (freeResolvent ψ : R3 → ℂ) x :=
   coulombResolventAt_coeFn p Complex.I I_im_ne_zero ψ
@@ -103,7 +103,7 @@ noncomputable def truncKernelGLp (p : CoulombParams) (n : ℕ) :
 
 /-- **Step B.**  On Schwartz inputs, the integral operator `integralOperator Kₙ` agrees with
 `multIndicatorBall n ∘ coulombResolventAt p z hz`. -/
-theorem step_B_at (p : CoulombParams) (n : ℕ) (z : ℂ) (hz : z.im ≠ 0) (ψ : 𝓢(R3, ℂ)) :
+lemma step_B_at (p : CoulombParams) (n : ℕ) (z : ℂ) (hz : z.im ≠ 0) (ψ : 𝓢(R3, ℂ)) :
     (integralOperator (truncKernelGLpAt p n z hz) (ψ.toLp 2 volume) : R3 → ℂ) =ᵐ[volume]
       ⇑(multIndicatorBall n (coulombResolventAt p z hz (ψ.toLp 2 volume))) := by
   -- ψ.toLp 2 volume =ᵐ ψ
@@ -157,7 +157,7 @@ theorem step_B_at (p : CoulombParams) (n : ℕ) (z : ℂ) (hz : z.im ≠ 0) (ψ 
     rw [truncCoulombBall, Set.indicator_of_notMem hball, zero_mul]
 
 /-- The `z = i` instance. -/
-theorem step_B (p : CoulombParams) (n : ℕ) (ψ : 𝓢(R3, ℂ)) :
+lemma step_B (p : CoulombParams) (n : ℕ) (ψ : 𝓢(R3, ℂ)) :
     (integralOperator (truncKernelGLp p n) (ψ.toLp 2 volume) : R3 → ℂ) =ᵐ[volume]
       ⇑(multIndicatorBall n (coulombResolvent p (ψ.toLp 2 volume))) :=
   step_B_at p n Complex.I I_im_ne_zero ψ
@@ -166,7 +166,7 @@ theorem step_B (p : CoulombParams) (n : ℕ) (ψ : 𝓢(R3, ℂ)) :
 
 /-- **Step C.**  `integralOperator Kₙ = (multIndicatorBall n) ∘ (coulombResolventAt p z hz)`
 as CLMs. -/
-theorem step_C_at (p : CoulombParams) (n : ℕ) (z : ℂ) (hz : z.im ≠ 0) :
+lemma step_C_at (p : CoulombParams) (n : ℕ) (z : ℂ) (hz : z.im ≠ 0) :
     integralOperator (truncKernelGLpAt p n z hz)
       = (multIndicatorBall n).comp (coulombResolventAt p z hz) := by
   -- dense range of Schwartz → L²
@@ -185,7 +185,7 @@ theorem step_C_at (p : CoulombParams) (n : ℕ) (z : ℂ) (hz : z.im ≠ 0) :
   simpa only [SchwartzMap.toLpCLM_apply, ContinuousLinearMap.comp_apply] using hB
 
 /-- The `z = i` instance. -/
-theorem step_C (p : CoulombParams) (n : ℕ) :
+lemma step_C (p : CoulombParams) (n : ℕ) :
     integralOperator (truncKernelGLp p n)
       = (multIndicatorBall n).comp (coulombResolvent p) :=
   step_C_at p n Complex.I I_im_ne_zero
@@ -193,7 +193,7 @@ theorem step_C (p : CoulombParams) (n : ℕ) :
 /-! ## STEP D — op-norm tail bound -/
 
 /-- Pointwise: on the complement of `closedBall 0 (n+1)`, `|coulombMultiplier x| ≤ Z/(n+1)`. -/
-theorem coulombMultiplier_le_on_compl (p : CoulombParams) (n : ℕ) {x : R3}
+lemma coulombMultiplier_le_on_compl (p : CoulombParams) (n : ℕ) {x : R3}
     (hx : x ∉ closedBall (0 : R3) (n + 1 : ℝ)) :
     ‖(coulombMultiplier p x : ℂ)‖ ≤ p.Z / (n + 1) := by
   rw [Complex.norm_real, Real.norm_eq_abs, coulombMultiplier_abs]
@@ -206,7 +206,7 @@ theorem coulombMultiplier_le_on_compl (p : CoulombParams) (n : ℕ) {x : R3}
   exact div_le_div_of_nonneg_left (le_of_lt p.hZ) hnpos (le_of_lt hx)
 
 /-- **Step D.**  Operator-norm tail bound for the integral-operator approximants. -/
-theorem step_D_at (p : CoulombParams) (n : ℕ) (z : ℂ) (hz : z.im ≠ 0) :
+lemma step_D_at (p : CoulombParams) (n : ℕ) (z : ℂ) (hz : z.im ≠ 0) :
     ‖coulombResolventAt p z hz - integralOperator (truncKernelGLpAt p n z hz)‖
       ≤ p.Z / (n + 1) * ‖freeResolventAt z hz‖ := by
   have hZnn : (0 : ℝ) ≤ p.Z / (n + 1) :=
@@ -265,7 +265,7 @@ theorem step_D_at (p : CoulombParams) (n : ℕ) (z : ℂ) (hz : z.im ≠ 0) :
     _ = p.Z / (n + 1) * ‖freeResolventAt z hz‖ * ‖ψ‖ := by ring
 
 /-- The `z = i` instance. -/
-theorem step_D (p : CoulombParams) (n : ℕ) :
+lemma step_D (p : CoulombParams) (n : ℕ) :
     ‖coulombResolvent p - integralOperator (truncKernelGLp p n)‖
       ≤ p.Z / (n + 1) * ‖freeResolvent‖ :=
   step_D_at p n Complex.I I_im_ne_zero
@@ -273,7 +273,7 @@ theorem step_D (p : CoulombParams) (n : ℕ) :
 /-! ## STEP E — limit + compactness -/
 
 /-- The integral-operator approximants converge to `coulombResolventAt p z hz` in operator norm. -/
-theorem step_E_tendsto_at (p : CoulombParams) (z : ℂ) (hz : z.im ≠ 0) :
+lemma step_E_tendsto_at (p : CoulombParams) (z : ℂ) (hz : z.im ≠ 0) :
     Tendsto (fun n => integralOperator (truncKernelGLpAt p n z hz)) atTop
       (𝓝 (coulombResolventAt p z hz)) := by
   rw [tendsto_iff_norm_sub_tendsto_zero]
@@ -296,14 +296,14 @@ theorem step_E_tendsto_at (p : CoulombParams) (z : ℂ) (hz : z.im ≠ 0) :
     simpa using h2
 
 /-- **Step E.**  `coulombResolventAt p z hz` is a compact operator, for any non-real `z`. -/
-theorem coulombResolventAt_isCompact (p : CoulombParams) (z : ℂ) (hz : z.im ≠ 0) :
+lemma coulombResolventAt_isCompact (p : CoulombParams) (z : ℂ) (hz : z.im ≠ 0) :
     IsCompactOperator (⇑(coulombResolventAt p z hz)) := by
   apply isCompactOperator_of_tendsto (step_E_tendsto_at p z hz)
   exact Eventually.of_forall
     (fun n => isCompactOperator_integralOperator (truncKernelGLpAt p n z hz))
 
 /-- The `z = i` instance. -/
-theorem step_E_tendsto (p : CoulombParams) :
+lemma step_E_tendsto (p : CoulombParams) :
     Tendsto (fun n => integralOperator (truncKernelGLp p n)) atTop
       (𝓝 (coulombResolvent p)) :=
   step_E_tendsto_at p Complex.I I_im_ne_zero

@@ -43,13 +43,13 @@ private noncomputable def greensFormula (z : ℂ) : R3 → ℂ := fun x =>
   Complex.exp (-((-z) ^ ((1 : ℂ) / 2)) * (‖x‖ : ℂ)) / ((4 * Real.pi * ‖x‖ : ℝ) : ℂ)
 
 /-- `freeGreensFunction z` agrees with its closed form `greensFormula z` away from the origin. -/
-private theorem freeGreensFunction_eq_formula (z : ℂ) {x : R3} (hx : x ≠ 0) :
+private lemma freeGreensFunction_eq_formula (z : ℂ) {x : R3} (hx : x ≠ 0) :
     freeGreensFunction z x = greensFormula z x := by
   have hxn : ‖x‖ ≠ 0 := norm_ne_zero_iff.mpr hx
   rw [freeGreensFunction, if_neg hxn, greensFormula]
 
 /-- The closed-form representative `greensFormula z` is measurable. -/
-private theorem measurable_greensFormula (z : ℂ) : Measurable (greensFormula z) := by
+private lemma measurable_greensFormula (z : ℂ) : Measurable (greensFormula z) := by
   unfold greensFormula
   have hnorm : Measurable (fun x : R3 => (‖x‖ : ℂ)) :=
     Complex.measurable_ofReal.comp measurable_norm
@@ -70,7 +70,7 @@ theorem aestronglyMeasurable_freeGreensFunction (z : ℂ) :
 
 /-- The 1-D radial profile `r^{2} • greensRadial c 1 r = (1/4π) · r · e^{−c r}` is integrable on
 `(0,∞)`: continuous (the `1/r` singularity cancels) and `O(e^{−c r})` at infinity. -/
-private theorem integrableOn_radial_one (c : ℝ) (hc : 0 < c) :
+private lemma integrableOn_radial_one (c : ℝ) (hc : 0 < c) :
     IntegrableOn (fun r : ℝ => r ^ 2 • greensRadial c 1 r) (Ioi 0) := by
   -- On `(0,∞)`, `r² • greensRadial c 1 r = (1/4π) · r · e^{−c r}`.
   have hcongr : ∀ r ∈ Ioi (0 : ℝ),
@@ -94,7 +94,7 @@ private theorem integrableOn_radial_one (c : ℝ) (hc : 0 < c) :
 
 /-- The 1-D radial profile `r^{2} • greensRadial c 2 r = (1/16π²) · e^{−2c r}` is integrable on
 `(0,∞)`: continuous (the `1/r²` singularity fully cancels) and `O(e^{−2c r})` at infinity. -/
-private theorem integrableOn_radial_two (c : ℝ) (hc : 0 < c) :
+private lemma integrableOn_radial_two (c : ℝ) (hc : 0 < c) :
     IntegrableOn (fun r : ℝ => r ^ 2 • greensRadial c 2 r) (Ioi 0) := by
   have hcongr : ∀ r ∈ Ioi (0 : ℝ),
       r ^ 2 • greensRadial c 2 r = (1 / (4 * Real.pi) ^ 2) * Real.exp (-(2 * c) * r) := by

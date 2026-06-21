@@ -16,21 +16,18 @@ resolvent symbol `(laplacianSymbol ξ − z)⁻¹` is in `L²` because `∫_{ℝ
 (the integrand is **radial**, decaying like `‖ξ‖⁻⁴`).  This file proves that, sidestepping the
 whole Yukawa-Fourier-transform / sphere-integration thread.
 -/
-
-noncomputable section
-
 open MeasureTheory Set Complex
 open Spectra.Sobolev
 
 namespace Spectra.QuantumMechanics.Hydrogen
 
 /-- The radial profile of `‖(laplacianSymbol ξ − z)⁻¹‖²`: `1/(((2π)²r² − a)² + b²)`. -/
-private def resolventRadial (a b r : ℝ) : ℝ :=
+private noncomputable def resolventRadial (a b r : ℝ) : ℝ :=
   (((2 * Real.pi) ^ 2 * r ^ 2 - a) ^ 2 + b ^ 2)⁻¹
 
 /-- The one-dimensional radial integrand `r² · resolventRadial` is integrable on `(0,∞)`:
 continuous near `0`, and `O(r⁻²)` at infinity. -/
-private theorem integrableOn_sq_resolventRadial (a b : ℝ) (hb : b ≠ 0) :
+private lemma integrableOn_sq_resolventRadial (a b : ℝ) (hb : b ≠ 0) :
     IntegrableOn (fun r : ℝ => r ^ 2 * resolventRadial a b r) (Ioi 0) := by
   have hden_pos : ∀ r : ℝ, (0 : ℝ) < ((2 * Real.pi) ^ 2 * r ^ 2 - a) ^ 2 + b ^ 2 := by
     intro r; have : (0 : ℝ) < b ^ 2 := by positivity

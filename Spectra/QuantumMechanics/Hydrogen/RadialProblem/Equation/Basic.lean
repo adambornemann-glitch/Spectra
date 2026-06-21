@@ -7,6 +7,8 @@ import Spectra.QuantumMechanics.Hydrogen.RadialProblem.Laguerre.Orthogonality
 import Spectra.QuantumMechanics.Hydrogen.RadialProblem.Laguerre.Complete
 import Spectra.QuantumMechanics.Hydrogen.RadialProblem.Laguerre.GenFun
 import Spectra.QuantumMechanics.Hydrogen.RadialProblem.TensorDecomp.Basic
+import Spectra.QuantumMechanics.Hydrogen.RadialProblem.Equation.Kummer
+import Mathlib.Analysis.ODE.Gronwall
 /-!
 # The Radial Equation and Eigenvalue Quantization
 
@@ -50,6 +52,7 @@ of the energy eigenvalues E_n = −1/(2n²) (in atomic units).
 open MeasureTheory Complex Filter Real
 open scoped Topology NNReal ENNReal Nat
 open Spectra.QuantumMechanics.Hydrogen.Radial
+open Spectra.Kummer
 namespace QuantumMechanics.Hydrogen.RadialEq
 
 /-! ## Energy eigenvalues -/
@@ -747,8 +750,9 @@ theorem radial_wavefunction_norm (n : ℕ) (ℓ : ℕ) (hn : ℓ + 1 ≤ n) :
     vanishing at `r₀` forces `Z ≡ 0`, and `r² ≠ 0` gives `ψ R' = ψ' R` throughout.
 
     It is the 1-dimensionality of the eigenspace at `E_n` — the no-degeneracy fact
-    that, together with the (still open) quantization `→` direction, would give that
-    every negative-energy bound state is a scalar multiple of some `R_{nℓ}`. -/
+    that, together with the (now proved) quantization `→` direction
+    (`reduced_radial_L2_quantized`), would give that every negative-energy bound state
+    is a scalar multiple of some `R_{nℓ}`. -/
 theorem radial_eigenfunction_unique (n ℓ : ℕ) (hn : ℓ + 1 ≤ n) (ψ : ℝ → ℝ)
     (hψ1 : ∀ r, 0 < r → HasDerivAt ψ (deriv ψ r) r)
     (hψ2 : ∀ r, 0 < r → HasDerivAt (deriv ψ) (deriv^[2] ψ r) r)
@@ -1045,9 +1049,613 @@ lemma laguerre_ansatz_reduced_iff (ℓ : ℕ) (κ : ℝ) (w : ℝ → ℝ)
     laguerre_ansatz_residual ℓ κ w hw1 hw2 hr, mul_eq_zero]
   exact or_iff_right hfac
 
-/-- **[Analytic gap — confluent-hypergeometric asymptotics, not yet in Mathlib]**
+/-- **Non-`L²` from a positive lower bound at infinity.** If `|χ(r)| ≥ A > 0` for all large `r`,
+    then `χ` is not square-integrable on `(0,∞)`: `χ(r)² ≥ A² > 0` on the infinite-measure set
+    `(max R 1, ∞)`. This is the mechanism by which exponential growth of the Kummer factor
+    (`Spectra.Kummer.kummerM_abs_exp_lower`) breaks normalisability of a non-terminating solution. -/
+lemma not_radialL2_of_eventually_ge (χ : ℝ → ℝ) {A R : ℝ} (hA : 0 < A)
+    (hlb : ∀ r, R ≤ r → A ≤ |χ r|) :
+    ¬ IntegrableOn (fun r => χ r ^ 2) (Set.Ioi 0) := by
+  intro hint
+  have hc0 : (0 : ℝ) < max R 1 := lt_of_lt_of_le one_pos (le_max_right R 1)
+  have hint2 : IntegrableOn (fun r => χ r ^ 2) (Set.Ioi (max R 1)) :=
+    hint.mono_set (Set.Ioi_subset_Ioi (le_of_lt hc0))
+  have hbound : ∀ r ∈ Set.Ioi (max R 1), A ^ 2 ≤ χ r ^ 2 := by
+    intro r hr
+    rw [Set.mem_Ioi] at hr
+    have hrR : R ≤ r := le_of_lt (lt_of_le_of_lt (le_max_left R 1) hr)
+    nlinarith [hlb r hrR, hA, abs_nonneg (χ r), sq_abs (χ r)]
+  have hconst : IntegrableOn (fun _ : ℝ => A ^ 2) (Set.Ioi (max R 1)) :=
+    hint2.mono' aestronglyMeasurable_const
+      (ae_restrict_of_forall_mem measurableSet_Ioi (fun r hr => by
+        rw [Real.norm_eq_abs, abs_of_nonneg (by positivity)]; exact hbound r hr))
+  rw [integrableOn_const_iff] at hconst
+  rcases hconst with h | h
+  · rw [enorm_eq_zero] at h; nlinarith [hA, h]
+  · rw [Real.volume_Ioi] at h; exact absurd h (lt_irrefl _)
 
-    *Square-integrable bound states of the reduced radial operator are quantized.*
+/-! ### The explicit regular solution `φ = r^{ℓ+1} e^{−κr} M(a, 2ℓ+2, 2κr)`
+
+The analytic core of `reduced_radial_L2_quantized`: the confluent-hypergeometric
+(Kummer) machinery of `Spectra.Kummer` is assembled into the regular solution `φ`
+of the reduced radial equation, whose growth at `∞` (unless the series terminates)
+breaks square-integrability. -/
+
+/-- The regular-at-`0` solution `φ(r) = r^{ℓ+1} e^{−κr} M(ℓ+1−1/κ, 2ℓ+2, 2κr)` of the reduced
+radial equation. -/
+noncomputable def kummerRadial (ℓ : ℕ) (κ : ℝ) : ℝ → ℝ :=
+  fun r => r ^ (ℓ + 1) * Real.exp (-κ * r) *
+    kummerM ((ℓ : ℝ) + 1 - 1 / κ) (2 * (ℓ : ℝ) + 2) (2 * κ * r)
+
+/-! ### Chain-rule derivatives of `w(s) = M(a,b,2κs)` -/
+
+private lemma kummerComp_hasDerivAt (a b κ : ℝ) (hb : 0 < b) (r : ℝ) :
+    HasDerivAt (fun s => kummerM a b (2 * κ * s)) (2 * κ * deriv (kummerM a b) (2 * κ * r)) r := by
+  have h1 : HasDerivAt (kummerM a b) (deriv (kummerM a b) (2 * κ * r)) (2 * κ * r) :=
+    (kummerM_hasDerivAt a b hb (2 * κ * r)).differentiableAt.hasDerivAt
+  have h2 : HasDerivAt (fun s : ℝ => 2 * κ * s) (2 * κ) r := by
+    simpa using (hasDerivAt_id r).const_mul (2 * κ)
+  have hc : HasDerivAt (fun s => kummerM a b (2 * κ * s))
+      (deriv (kummerM a b) (2 * κ * r) * (2 * κ)) r := h1.comp r h2
+  convert hc using 1
+  ring
+
+private lemma kummerComp_deriv (a b κ : ℝ) (hb : 0 < b) (r : ℝ) :
+    deriv (fun s => kummerM a b (2 * κ * s)) r = 2 * κ * deriv (kummerM a b) (2 * κ * r) :=
+  (kummerComp_hasDerivAt a b κ hb r).deriv
+
+private lemma kummerComp_hasDerivAt2 (a b κ : ℝ) (hb : 0 < b) (r : ℝ) :
+    HasDerivAt (deriv (fun s => kummerM a b (2 * κ * s)))
+      (4 * κ ^ 2 * deriv (deriv (kummerM a b)) (2 * κ * r)) r := by
+  have hfun : deriv (fun s => kummerM a b (2 * κ * s))
+      = fun s => 2 * κ * deriv (kummerM a b) (2 * κ * s) :=
+    funext (fun s => kummerComp_deriv a b κ hb s)
+  rw [hfun]
+  have h1 : HasDerivAt (deriv (kummerM a b)) (deriv (deriv (kummerM a b)) (2 * κ * r)) (2 * κ * r) :=
+    (kummerM_hasDerivAt2 a b hb (2 * κ * r)).differentiableAt.hasDerivAt
+  have h2 : HasDerivAt (fun s : ℝ => 2 * κ * s) (2 * κ) r := by
+    simpa using (hasDerivAt_id r).const_mul (2 * κ)
+  have hc : HasDerivAt (fun s => 2 * κ * deriv (kummerM a b) (2 * κ * s))
+      (2 * κ * (deriv (deriv (kummerM a b)) (2 * κ * r) * (2 * κ))) r :=
+    (h1.comp r h2).const_mul (2 * κ)
+  convert hc using 1
+  ring
+
+private lemma kummerComp_deriv2 (a b κ : ℝ) (hb : 0 < b) (r : ℝ) :
+    deriv^[2] (fun s => kummerM a b (2 * κ * s)) r
+      = 4 * κ ^ 2 * deriv (deriv (kummerM a b)) (2 * κ * r) := by
+  show deriv (deriv (fun s => kummerM a b (2 * κ * s))) r = _
+  exact (kummerComp_hasDerivAt2 a b κ hb r).deriv
+
+/-! ### Part A: `φ` solves the reduced radial ODE -/
+
+theorem kummerRadial_solves (ℓ : ℕ) (κ : ℝ) (hκ : 0 < κ) {r : ℝ} (hr : 0 < r) :
+    deriv^[2] (kummerRadial ℓ κ) r
+      = ((ℓ : ℝ) * ((ℓ : ℝ) + 1) / r ^ 2 - 2 / r + κ ^ 2) * kummerRadial ℓ κ r := by
+  have hκ0 : κ ≠ 0 := ne_of_gt hκ
+  set a := (ℓ : ℝ) + 1 - 1 / κ with ha_def
+  set b := 2 * (ℓ : ℝ) + 2 with hb_def
+  have hb : 0 < b := by rw [hb_def]; positivity
+  set w := fun s => kummerM a b (2 * κ * s) with hw_def
+  have hw1 : ∀ s, 0 < s → HasDerivAt w (deriv w s) s := by
+    intro s _
+    rw [hw_def, kummerComp_deriv a b κ hb s]
+    exact kummerComp_hasDerivAt a b κ hb s
+  have hw2 : ∀ s, 0 < s → HasDerivAt (deriv w) (deriv^[2] w s) s := by
+    intro s _
+    rw [hw_def, kummerComp_deriv2 a b κ hb s]
+    exact kummerComp_hasDerivAt2 a b κ hb s
+  have hφ : kummerRadial ℓ κ = fun s => s ^ (ℓ + 1) * Real.exp (-κ * s) * w s := by
+    funext s; rw [kummerRadial, hw_def]
+  rw [hφ]
+  rw [laguerre_ansatz_reduced_iff ℓ κ w hw1 hw2 hr]
+  rw [hw_def, kummerComp_deriv2 a b κ hb r, kummerComp_deriv a b κ hb r]
+  have hdict : (2 : ℝ) - 2 * ((ℓ : ℝ) + 1) * κ = -2 * κ * a := by
+    rw [ha_def]; field_simp; ring
+  rw [hdict]
+  linear_combination (2 * κ) * kummerM_ode a b hb (2 * κ * r)
+
+/-! ### Differentiability / continuity of `M` and `φ` -/
+
+private lemma kummerM_differentiable (a b : ℝ) (hb : 0 < b) : Differentiable ℝ (kummerM a b) :=
+  fun z => (kummerM_hasDerivAt a b hb z).differentiableAt
+
+private lemma kummerM_deriv_differentiable (a b : ℝ) (hb : 0 < b) :
+    Differentiable ℝ (deriv (kummerM a b)) :=
+  fun z => (kummerM_hasDerivAt2 a b hb z).differentiableAt
+
+private lemma kummerM_continuous (a b : ℝ) (hb : 0 < b) : Continuous (kummerM a b) :=
+  (kummerM_differentiable a b hb).continuous
+
+private lemma kummerRadial_eq (ℓ : ℕ) (κ : ℝ) :
+    kummerRadial ℓ κ = fun r => r ^ (ℓ + 1) * Real.exp (-κ * r) *
+      kummerM ((ℓ : ℝ) + 1 - 1 / κ) (2 * (ℓ : ℝ) + 2) (2 * κ * r) := rfl
+
+private lemma kummerRadial_factor (ℓ : ℕ) (κ : ℝ) (r : ℝ) :
+    kummerRadial ℓ κ r = r ^ (ℓ + 1) *
+      (Real.exp (-κ * r) * kummerM ((ℓ : ℝ) + 1 - 1 / κ) (2 * (ℓ : ℝ) + 2) (2 * κ * r)) := by
+  rw [kummerRadial]; ring
+
+private lemma kummerRadial_differentiable (ℓ : ℕ) (κ : ℝ) :
+    Differentiable ℝ (kummerRadial ℓ κ) := by
+  set a := (ℓ : ℝ) + 1 - 1 / κ
+  set b := 2 * (ℓ : ℝ) + 2 with hb_def
+  have hb : 0 < b := by rw [hb_def]; positivity
+  rw [kummerRadial_eq]
+  have hM : Differentiable ℝ (fun r : ℝ => kummerM a b (2 * κ * r)) :=
+    (kummerM_differentiable a b hb).comp (by fun_prop)
+  exact (((differentiable_id.pow (ℓ + 1)).mul (Real.differentiable_exp.comp (by fun_prop))).mul hM)
+
+private lemma kummerRadial_continuous (ℓ : ℕ) (κ : ℝ) : Continuous (kummerRadial ℓ κ) :=
+  (kummerRadial_differentiable ℓ κ).continuous
+
+/-- Closed form of `deriv φ`. -/
+private lemma kummerRadial_deriv_eq (ℓ : ℕ) (κ : ℝ) :
+    deriv (kummerRadial ℓ κ) = fun r =>
+      ((ℓ : ℝ) + 1) * r ^ ℓ * Real.exp (-κ * r) *
+          kummerM ((ℓ : ℝ) + 1 - 1 / κ) (2 * (ℓ : ℝ) + 2) (2 * κ * r)
+      + r ^ (ℓ + 1) * (Real.exp (-κ * r) * (-κ)) *
+          kummerM ((ℓ : ℝ) + 1 - 1 / κ) (2 * (ℓ : ℝ) + 2) (2 * κ * r)
+      + r ^ (ℓ + 1) * Real.exp (-κ * r) *
+          (2 * κ * deriv (kummerM ((ℓ : ℝ) + 1 - 1 / κ) (2 * (ℓ : ℝ) + 2)) (2 * κ * r)) := by
+  have hb : (0 : ℝ) < 2 * (ℓ : ℝ) + 2 := by positivity
+  funext r
+  have hp : HasDerivAt (fun s : ℝ => s ^ (ℓ + 1)) (((ℓ : ℝ) + 1) * r ^ ℓ) r := by
+    simpa using hasDerivAt_pow (ℓ + 1) r
+  have he : HasDerivAt (fun s : ℝ => Real.exp (-κ * s)) (Real.exp (-κ * r) * (-κ)) r := by
+    have hin : HasDerivAt (fun s : ℝ => -κ * s) (-κ) r := by
+      simpa using (hasDerivAt_id r).const_mul (-κ)
+    simpa using hin.exp
+  have hwc : HasDerivAt
+      (fun s => kummerM ((ℓ : ℝ) + 1 - 1 / κ) (2 * (ℓ : ℝ) + 2) (2 * κ * s))
+      (2 * κ * deriv (kummerM ((ℓ : ℝ) + 1 - 1 / κ) (2 * (ℓ : ℝ) + 2)) (2 * κ * r)) r :=
+    kummerComp_hasDerivAt ((ℓ : ℝ) + 1 - 1 / κ) (2 * (ℓ : ℝ) + 2) κ hb r
+  have hF : HasDerivAt (fun s => s ^ (ℓ + 1) * Real.exp (-κ * s) *
+      kummerM ((ℓ : ℝ) + 1 - 1 / κ) (2 * (ℓ : ℝ) + 2) (2 * κ * s)) _ r :=
+    (hp.mul he).mul hwc
+  rw [kummerRadial_eq, hF.deriv]
+  simp only [Pi.mul_apply]
+  ring
+
+private lemma kummerRadial_deriv_differentiable (ℓ : ℕ) (κ : ℝ) :
+    Differentiable ℝ (deriv (kummerRadial ℓ κ)) := by
+  set a := (ℓ : ℝ) + 1 - 1 / κ
+  set b := 2 * (ℓ : ℝ) + 2 with hb_def
+  have hb : 0 < b := by rw [hb_def]; positivity
+  rw [kummerRadial_deriv_eq]
+  have hM : Differentiable ℝ (fun r : ℝ => kummerM a b (2 * κ * r)) :=
+    (kummerM_differentiable a b hb).comp (by fun_prop)
+  have hM' : Differentiable ℝ (fun r : ℝ => deriv (kummerM a b) (2 * κ * r)) :=
+    (kummerM_deriv_differentiable a b hb).comp (by fun_prop)
+  fun_prop
+
+/-! ### Part B: behaviour of `φ` near `0` and at `∞` -/
+
+private lemma kummerRadial_zero (ℓ : ℕ) (κ : ℝ) : kummerRadial ℓ κ 0 = 0 := by
+  rw [kummerRadial]; simp
+
+private lemma kummerRadial_tendsto_zero (ℓ : ℕ) (κ : ℝ) :
+    Filter.Tendsto (kummerRadial ℓ κ) (nhdsWithin 0 (Set.Ioi 0)) (nhds 0) := by
+  have h := ((kummerRadial_continuous ℓ κ).tendsto 0)
+  rw [kummerRadial_zero] at h
+  exact h.mono_left nhdsWithin_le_nhds
+
+/-- `1/2 r^{ℓ+1} ≤ φ(r) ≤ 2 r^{ℓ+1}` and `φ(r) > 0` for small `r > 0`. -/
+private lemma kummerRadial_near_zero (ℓ : ℕ) (κ : ℝ) :
+    ∃ δ : ℝ, 0 < δ ∧ ∀ r, 0 < r → r < δ →
+      (1 / 2) * r ^ (ℓ + 1) ≤ kummerRadial ℓ κ r ∧
+      kummerRadial ℓ κ r ≤ 2 * r ^ (ℓ + 1) ∧ 0 < kummerRadial ℓ κ r := by
+  set a := (ℓ : ℝ) + 1 - 1 / κ
+  set b := 2 * (ℓ : ℝ) + 2 with hb_def
+  have hb : 0 < b := by rw [hb_def]; positivity
+  have ht : Filter.Tendsto (fun r => Real.exp (-κ * r) * kummerM a b (2 * κ * r)) (nhds 0)
+      (nhds 1) := by
+    have hc : Continuous (fun r => Real.exp (-κ * r) * kummerM a b (2 * κ * r)) :=
+      (Real.continuous_exp.comp (by fun_prop)).mul ((kummerM_continuous a b hb).comp (by fun_prop))
+    have := hc.tendsto 0
+    simpa using this
+  have key : ∀ᶠ r in nhds (0 : ℝ),
+      1 / 2 < Real.exp (-κ * r) * kummerM a b (2 * κ * r) ∧
+      Real.exp (-κ * r) * kummerM a b (2 * κ * r) < 2 := by
+    filter_upwards [ht.eventually (Ioo_mem_nhds (by norm_num : (1 : ℝ) / 2 < 1)
+      (by norm_num : (1 : ℝ) < 2))] with r hr using ⟨hr.1, hr.2⟩
+  rw [Metric.eventually_nhds_iff] at key
+  obtain ⟨δ, hδ, hball⟩ := key
+  refine ⟨δ, hδ, fun r hr hrδ => ?_⟩
+  have hmem : dist r 0 < δ := by rw [Real.dist_eq, sub_zero, abs_of_pos hr]; exact hrδ
+  obtain ⟨hlo, hhi⟩ := hball hmem
+  have hpow : 0 < r ^ (ℓ + 1) := by positivity
+  have hfac := kummerRadial_factor ℓ κ r
+  rw [show ((ℓ : ℝ) + 1 - 1 / κ) = a from rfl, show (2 * (ℓ : ℝ) + 2) = b from rfl] at hfac
+  refine ⟨?_, ?_, ?_⟩
+  · rw [hfac]; nlinarith [hlo, hpow]
+  · rw [hfac]; nlinarith [hhi, hpow]
+  · rw [hfac]; nlinarith [hlo, hpow]
+
+/-- `|φ(r)| ≥ C > 0` for all large `r`, when the Kummer series does not terminate. -/
+private lemma kummerRadial_growth (ℓ : ℕ) (κ : ℝ) (hκ : 0 < κ)
+    (ha : ∀ p : ℕ, (ℓ : ℝ) + 1 - 1 / κ ≠ -(p : ℝ)) :
+    ∃ C R : ℝ, 0 < C ∧ ∀ r, R ≤ r → C ≤ |kummerRadial ℓ κ r| := by
+  set a := (ℓ : ℝ) + 1 - 1 / κ with ha_def
+  set b := 2 * (ℓ : ℝ) + 2 with hb_def
+  have hb : 0 < b := by rw [hb_def]; positivity
+  obtain ⟨C, R₀, hC, hlb⟩ := kummerM_abs_exp_lower a b hb ha
+  refine ⟨C, max 1 (R₀ / (2 * κ)), hC, fun r hr => ?_⟩
+  have hr1 : 1 ≤ r := le_trans (le_max_left _ _) hr
+  have hrpos : 0 < r := lt_of_lt_of_le one_pos hr1
+  have hrR : R₀ / (2 * κ) ≤ r := le_trans (le_max_right _ _) hr
+  have h2κ : 0 < 2 * κ := by positivity
+  have hρ : R₀ ≤ 2 * κ * r := by
+    rw [div_le_iff₀ h2κ] at hrR; linarith [hrR]
+  have hMlb : C * Real.exp (2 * κ * r / 2) ≤ |kummerM a b (2 * κ * r)| := hlb _ hρ
+  have hexp : Real.exp (2 * κ * r / 2) = Real.exp (κ * r) := by congr 1; ring
+  rw [hexp] at hMlb
+  have hfac := kummerRadial_factor ℓ κ r
+  rw [show ((ℓ : ℝ) + 1 - 1 / κ) = a from rfl, show (2 * (ℓ : ℝ) + 2) = b from rfl] at hfac
+  rw [hfac]
+  rw [abs_mul, abs_mul, abs_of_pos (by positivity : (0:ℝ) < r ^ (ℓ + 1)),
+    abs_of_pos (Real.exp_pos _)]
+  have hpow1 : 1 ≤ r ^ (ℓ + 1) := one_le_pow₀ hr1
+  have hexpn : 0 ≤ Real.exp (-κ * r) := (Real.exp_pos _).le
+  have hkey : Real.exp (-κ * r) * (C * Real.exp (κ * r)) = C := by
+    rw [show Real.exp (-κ * r) * (C * Real.exp (κ * r))
+        = C * (Real.exp (-κ * r) * Real.exp (κ * r)) from by ring,
+      ← Real.exp_add, show -κ * r + κ * r = 0 from by ring, Real.exp_zero, mul_one]
+  have step1 : Real.exp (-κ * r) * (C * Real.exp (κ * r))
+      ≤ Real.exp (-κ * r) * |kummerM a b (2 * κ * r)| :=
+    mul_le_mul_of_nonneg_left hMlb hexpn
+  have hMnn : 0 ≤ Real.exp (-κ * r) * |kummerM a b (2 * κ * r)| :=
+    mul_nonneg hexpn (abs_nonneg _)
+  calc C = Real.exp (-κ * r) * (C * Real.exp (κ * r)) := hkey.symm
+    _ ≤ Real.exp (-κ * r) * |kummerM a b (2 * κ * r)| := step1
+    _ ≤ r ^ (ℓ + 1) * (Real.exp (-κ * r) * |kummerM a b (2 * κ * r)|) := by
+          nlinarith [hpow1, hMnn]
+
+/-! ### Part C: the Wronskian `W = χ φ' − χ' φ` vanishes -/
+
+/-- The Wronskian of `χ` (a solution of the reduced equation) and `φ = kummerRadial` has
+zero derivative on `(0,∞)`. -/
+private lemma wronskian_hasDerivAt_zero (ℓ : ℕ) (κ : ℝ) (hκ : 0 < κ) (χ : ℝ → ℝ)
+    (hχ1 : ∀ r, 0 < r → HasDerivAt χ (deriv χ r) r)
+    (hχ2 : ∀ r, 0 < r → HasDerivAt (deriv χ) (deriv^[2] χ r) r)
+    (hode : ∀ r, 0 < r → deriv^[2] χ r
+      = ((ℓ : ℝ) * ((ℓ : ℝ) + 1) / r ^ 2 - 2 / r + κ ^ 2) * χ r)
+    {r : ℝ} (hr : 0 < r) :
+    HasDerivAt (fun s => χ s * deriv (kummerRadial ℓ κ) s - deriv χ s * kummerRadial ℓ κ s) 0 r := by
+  have hχd : HasDerivAt χ (deriv χ r) r := hχ1 r hr
+  have hχd2 : HasDerivAt (deriv χ) (deriv^[2] χ r) r := hχ2 r hr
+  have hφd : HasDerivAt (kummerRadial ℓ κ) (deriv (kummerRadial ℓ κ) r) r :=
+    (kummerRadial_differentiable ℓ κ r).hasDerivAt
+  have hφd2 : HasDerivAt (deriv (kummerRadial ℓ κ)) (deriv^[2] (kummerRadial ℓ κ) r) r :=
+    (kummerRadial_deriv_differentiable ℓ κ r).hasDerivAt
+  have h1 : HasDerivAt (fun s => χ s * deriv (kummerRadial ℓ κ) s)
+      (deriv χ r * deriv (kummerRadial ℓ κ) r + χ r * deriv^[2] (kummerRadial ℓ κ) r) r :=
+    hχd.mul hφd2
+  have h2 : HasDerivAt (fun s => deriv χ s * kummerRadial ℓ κ s)
+      (deriv^[2] χ r * kummerRadial ℓ κ r + deriv χ r * deriv (kummerRadial ℓ κ) r) r :=
+    hχd2.mul hφd
+  convert h1.sub h2 using 1
+  rw [hode r hr, kummerRadial_solves ℓ κ hκ hr]
+  ring
+
+/-- The Wronskian is constant on `(0,∞)`. -/
+private lemma wronskian_const (ℓ : ℕ) (κ : ℝ) (hκ : 0 < κ) (χ : ℝ → ℝ)
+    (hχ1 : ∀ r, 0 < r → HasDerivAt χ (deriv χ r) r)
+    (hχ2 : ∀ r, 0 < r → HasDerivAt (deriv χ) (deriv^[2] χ r) r)
+    (hode : ∀ r, 0 < r → deriv^[2] χ r
+      = ((ℓ : ℝ) * ((ℓ : ℝ) + 1) / r ^ 2 - 2 / r + κ ^ 2) * χ r)
+    {r₀ s : ℝ} (hr₀ : 0 < r₀) (hs : 0 < s) :
+    χ s * deriv (kummerRadial ℓ κ) s - deriv χ s * kummerRadial ℓ κ s
+      = χ r₀ * deriv (kummerRadial ℓ κ) r₀ - deriv χ r₀ * kummerRadial ℓ κ r₀ := by
+  set W : ℝ → ℝ := fun s => χ s * deriv (kummerRadial ℓ κ) s - deriv χ s * kummerRadial ℓ κ s
+    with hWdef
+  have hb := Convex.norm_image_sub_le_of_norm_hasDerivWithin_le
+    (f := W) (f' := fun _ => (0 : ℝ)) (s := Set.Ioi 0) (C := 0)
+    (fun x hx => (wronskian_hasDerivAt_zero ℓ κ hκ χ hχ1 hχ2 hode hx).hasDerivWithinAt)
+    (fun x _ => by simp) (convex_Ioi 0) hr₀ (Set.mem_Ioi.2 hs)
+  simpa [hWdef, sub_eq_zero] using hb
+
+/-- **Reduction-of-order lower bound.** `φ(r)·∫_r^d ds/φ(s)² ≥ 1/(8·2^{2ℓ+2})` for small `r`,
+using only that `(1/2)r^{ℓ+1} ≤ φ ≤ 2 r^{ℓ+1}` near `0`. The integral is bounded below by its
+restriction to `[r,2r]` (length × minimum), avoiding any explicit power integral. -/
+private lemma reduction_order_lower (ℓ : ℕ) (κ : ℝ) {d : ℝ}
+    (hbpos : ∀ s, 0 < s → s ≤ d → 0 < kummerRadial ℓ κ s)
+    (hbub : ∀ s, 0 < s → s ≤ d → kummerRadial ℓ κ s ≤ 2 * s ^ (ℓ + 1))
+    {r : ℝ} (hr : 0 < r) (h2r : 2 * r ≤ d) (hr1 : r ≤ 1)
+    (hblb : (1 / 2) * r ^ (ℓ + 1) ≤ kummerRadial ℓ κ r) :
+    1 / (8 * 2 ^ (2 * ℓ + 2)) ≤
+      kummerRadial ℓ κ r * ∫ s in r..d, 1 / (kummerRadial ℓ κ s) ^ 2 := by
+  have hrd : r ≤ d := le_trans (by linarith) h2r
+  have hr2r : r ≤ 2 * r := by linarith
+  set f := fun s => 1 / (kummerRadial ℓ κ s) ^ 2 with hf
+  have hfnn : ∀ s, 0 ≤ f s := fun s => by rw [hf]; positivity
+  have hcont : ContinuousOn f (Set.uIcc r d) := by
+    rw [hf]
+    apply ContinuousOn.div continuousOn_const ((kummerRadial_continuous ℓ κ).pow 2).continuousOn
+    intro s hs
+    rw [Set.uIcc_of_le hrd] at hs
+    exact pow_ne_zero 2 (ne_of_gt (hbpos s (lt_of_lt_of_le hr hs.1) hs.2))
+  have hsub1 : Set.uIcc r (2 * r) ⊆ Set.uIcc r d :=
+    Set.uIcc_subset_uIcc Set.left_mem_uIcc (by rw [Set.uIcc_of_le hrd]; exact ⟨hr2r, h2r⟩)
+  have hsub2 : Set.uIcc (2 * r) d ⊆ Set.uIcc r d :=
+    Set.uIcc_subset_uIcc (by rw [Set.uIcc_of_le hrd]; exact ⟨hr2r, h2r⟩) Set.right_mem_uIcc
+  have hii_1 : IntervalIntegrable f volume r (2 * r) := (hcont.mono hsub1).intervalIntegrable
+  have hii_2 : IntervalIntegrable f volume (2 * r) d := (hcont.mono hsub2).intervalIntegrable
+  have hsplit : (∫ s in r..(2 * r), f s) + ∫ s in (2 * r)..d, f s = ∫ s in r..d, f s :=
+    intervalIntegral.integral_add_adjacent_intervals hii_1 hii_2
+  have htail : 0 ≤ ∫ s in (2 * r)..d, f s := intervalIntegral.integral_nonneg h2r (fun s _ => hfnn s)
+  have hΦ1 : (∫ s in r..(2 * r), f s) ≤ ∫ s in r..d, f s := by rw [← hsplit]; linarith
+  set c₁ := 1 / (4 * (2 * r) ^ (2 * ℓ + 2)) with hc₁
+  have hc₁pos : 0 < c₁ := by rw [hc₁]; positivity
+  have hptwise : ∀ s ∈ Set.Icc r (2 * r), c₁ ≤ f s := by
+    intro s hs
+    have hs0 : 0 < s := lt_of_lt_of_le hr hs.1
+    have hsd : s ≤ d := le_trans hs.2 h2r
+    have hφs : kummerRadial ℓ κ s ≤ 2 * (2 * r) ^ (ℓ + 1) := by
+      refine le_trans (hbub s hs0 hsd) ?_
+      have hp : s ^ (ℓ + 1) ≤ (2 * r) ^ (ℓ + 1) := pow_le_pow_left₀ (le_of_lt hs0) hs.2 _
+      linarith
+    have hφspos : 0 < kummerRadial ℓ κ s := hbpos s hs0 hsd
+    have hsq : (kummerRadial ℓ κ s) ^ 2 ≤ 4 * (2 * r) ^ (2 * ℓ + 2) := by
+      have h1 : (kummerRadial ℓ κ s) ^ 2 ≤ (2 * (2 * r) ^ (ℓ + 1)) ^ 2 :=
+        pow_le_pow_left₀ (le_of_lt hφspos) hφs 2
+      rwa [show (2 * (2 * r) ^ (ℓ + 1)) ^ 2 = 4 * (2 * r) ^ (2 * ℓ + 2) from by
+        rw [mul_pow, ← pow_mul]; ring_nf] at h1
+    rw [hf, hc₁]
+    exact one_div_le_one_div_of_le (by positivity) hsq
+  have hintc : (2 * r - r) * c₁ ≤ ∫ s in r..(2 * r), f s := by
+    have hmono := intervalIntegral.integral_mono_on hr2r intervalIntegrable_const hii_1 hptwise
+    rwa [intervalIntegral.integral_const, smul_eq_mul] at hmono
+  have hΦlb : (2 * r - r) * c₁ ≤ ∫ s in r..d, f s := le_trans hintc hΦ1
+  have hφrpos : 0 < kummerRadial ℓ κ r := hbpos r hr hrd
+  have hpow_le : r ^ (2 * ℓ + 2) ≤ r ^ (ℓ + 2) := by
+    have hsplit : r ^ (2 * ℓ + 2) = r ^ (ℓ + 2) * r ^ ℓ := by rw [← pow_add]; congr 1; omega
+    rw [hsplit]
+    have hrℓ : r ^ ℓ ≤ 1 := pow_le_one₀ (le_of_lt hr) hr1
+    nlinarith [pow_nonneg (le_of_lt hr) (ℓ + 2), hrℓ]
+  calc 1 / (8 * 2 ^ (2 * ℓ + 2))
+      ≤ (1 / 2 * r ^ (ℓ + 1)) * ((2 * r - r) * c₁) := by
+        have hX : (1 / 2 * r ^ (ℓ + 1)) * ((2 * r - r) * c₁)
+            = r ^ (ℓ + 2) / (8 * 2 ^ (2 * ℓ + 2) * r ^ (2 * ℓ + 2)) := by
+          rw [hc₁, show (2 * r) ^ (2 * ℓ + 2) = 2 ^ (2 * ℓ + 2) * r ^ (2 * ℓ + 2) from by
+            rw [mul_pow]]
+          have hrne : r ≠ 0 := ne_of_gt hr
+          field_simp
+          ring
+        rw [hX, le_div_iff₀ (by positivity)]
+        rw [show (1 : ℝ) / (8 * 2 ^ (2 * ℓ + 2)) * (8 * 2 ^ (2 * ℓ + 2) * r ^ (2 * ℓ + 2))
+          = r ^ (2 * ℓ + 2) from by field_simp]
+        exact hpow_le
+    _ ≤ kummerRadial ℓ κ r * ∫ s in r..d, f s :=
+        mul_le_mul hblb hΦlb (le_of_lt (mul_pos (by linarith) hc₁pos)) (le_of_lt hφrpos)
+
+/-- **Reduction-of-order FTC identity.** With `W₀` the (constant) Wronskian
+`χ φ' − χ' φ`, integrating `(χ/φ)' = -W₀/φ²` gives
+`χ(r) − φ(r)·(χ(d)/φ(d)) = W₀·(φ(r)·∫_r^d ds/φ²)`. -/
+private lemma reduction_order_ftc (ℓ : ℕ) (κ : ℝ) (χ : ℝ → ℝ)
+    (hχ1 : ∀ r, 0 < r → HasDerivAt χ (deriv χ r) r)
+    (hχ2 : ∀ r, 0 < r → HasDerivAt (deriv χ) (deriv^[2] χ r) r)
+    {d : ℝ} (W₀ : ℝ)
+    (hW₀ : ∀ s, 0 < s →
+      χ s * deriv (kummerRadial ℓ κ) s - deriv χ s * kummerRadial ℓ κ s = W₀)
+    (hbpos : ∀ s, 0 < s → s ≤ d → 0 < kummerRadial ℓ κ s)
+    {r : ℝ} (hr : 0 < r) (hrd : r < d) :
+    χ r - kummerRadial ℓ κ r * (χ d / kummerRadial ℓ κ d)
+      = W₀ * (kummerRadial ℓ κ r * ∫ s in r..d, 1 / (kummerRadial ℓ κ s) ^ 2) := by
+  have hrd' : r ≤ d := le_of_lt hrd
+  have hxpos : ∀ x ∈ Set.uIcc r d, 0 < x := by
+    intro x hx; rw [Set.uIcc_of_le hrd'] at hx; exact lt_of_lt_of_le hr hx.1
+  have hφpos : ∀ x ∈ Set.uIcc r d, 0 < kummerRadial ℓ κ x := by
+    intro x hx
+    have hx' := hx; rw [Set.uIcc_of_le hrd'] at hx'
+    exact hbpos x (hxpos x hx) hx'.2
+  have hφrne : kummerRadial ℓ κ r ≠ 0 := ne_of_gt (hbpos r hr hrd')
+  have hφdne : kummerRadial ℓ κ d ≠ 0 := ne_of_gt (hbpos d (lt_trans hr hrd) le_rfl)
+  set rawf := fun x => (deriv χ x * kummerRadial ℓ κ x - χ x * deriv (kummerRadial ℓ κ) x) /
+    (kummerRadial ℓ κ x) ^ 2 with hrawf
+  have hderiv : ∀ x ∈ Set.uIcc r d, HasDerivAt (fun s => χ s / kummerRadial ℓ κ s) (rawf x) x := by
+    intro x hx
+    exact (hχ1 x (hxpos x hx)).div ((kummerRadial_differentiable ℓ κ x).hasDerivAt)
+      (ne_of_gt (hφpos x hx))
+  have hint : IntervalIntegrable rawf volume r d := by
+    rw [hrawf]
+    have hχc : ContinuousOn χ (Set.uIcc r d) :=
+      fun x hx => (hχ1 x (hxpos x hx)).continuousAt.continuousWithinAt
+    have hdχc : ContinuousOn (deriv χ) (Set.uIcc r d) :=
+      fun x hx => (hχ2 x (hxpos x hx)).continuousAt.continuousWithinAt
+    have hφc : ContinuousOn (kummerRadial ℓ κ) (Set.uIcc r d) :=
+      (kummerRadial_continuous ℓ κ).continuousOn
+    have hdφc : ContinuousOn (deriv (kummerRadial ℓ κ)) (Set.uIcc r d) :=
+      (kummerRadial_deriv_differentiable ℓ κ).continuous.continuousOn
+    apply ContinuousOn.intervalIntegrable
+    apply ContinuousOn.div ((hdχc.mul hφc).sub (hχc.mul hdφc))
+      ((hφc.pow 2))
+    intro x hx
+    exact pow_ne_zero 2 (ne_of_gt (hφpos x hx))
+  have hFTC : ∫ s in r..d, rawf s = χ d / kummerRadial ℓ κ d - χ r / kummerRadial ℓ κ r :=
+    intervalIntegral.integral_eq_sub_of_hasDerivAt hderiv hint
+  have hcongr : Set.EqOn rawf (fun s => -W₀ * (1 / (kummerRadial ℓ κ s) ^ 2)) (Set.uIcc r d) := by
+    intro s hs
+    have hnum : deriv χ s * kummerRadial ℓ κ s - χ s * deriv (kummerRadial ℓ κ) s = -W₀ := by
+      have := hW₀ s (hxpos s hs); linarith
+    rw [hrawf]
+    simp only
+    rw [hnum]; ring
+  have hΦ : ∫ s in r..d, rawf s = -W₀ * ∫ s in r..d, 1 / (kummerRadial ℓ κ s) ^ 2 := by
+    rw [intervalIntegral.integral_congr hcongr, intervalIntegral.integral_const_mul]
+  rw [hΦ] at hFTC
+  -- rearrange
+  have key : χ r - kummerRadial ℓ κ r * (χ d / kummerRadial ℓ κ d)
+      = kummerRadial ℓ κ r *
+        (χ r / kummerRadial ℓ κ r - χ d / kummerRadial ℓ κ d) := by
+    field_simp
+  rw [key, show χ r / kummerRadial ℓ κ r - χ d / kummerRadial ℓ κ d
+    = W₀ * ∫ s in r..d, 1 / (kummerRadial ℓ κ s) ^ 2 from by linarith [hFTC]]
+  ring
+
+/-- **The Wronskian vanishes.** A square-integrable-near-`0` solution `χ` with `χ → 0` at `0⁺`
+has zero Wronskian with the regular solution `φ`: `χ φ' − χ' φ ≡ 0`. -/
+private lemma wronskian_zero (ℓ : ℕ) (κ : ℝ) (hκ : 0 < κ) (χ : ℝ → ℝ)
+    (hχ1 : ∀ r, 0 < r → HasDerivAt χ (deriv χ r) r)
+    (hχ2 : ∀ r, 0 < r → HasDerivAt (deriv χ) (deriv^[2] χ r) r)
+    (hode : ∀ r, 0 < r → deriv^[2] χ r
+      = ((ℓ : ℝ) * ((ℓ : ℝ) + 1) / r ^ 2 - 2 / r + κ ^ 2) * χ r)
+    (hχ0 : Filter.Tendsto χ (nhdsWithin 0 (Set.Ioi 0)) (nhds 0)) :
+    ∀ s, 0 < s → χ s * deriv (kummerRadial ℓ κ) s - deriv χ s * kummerRadial ℓ κ s = 0 := by
+  obtain ⟨δ, hδ, hbounds⟩ := kummerRadial_near_zero ℓ κ
+  set δ' := δ / 2 with hδ'def
+  have hδ'pos : 0 < δ' := by rw [hδ'def]; linarith
+  have hδ'lt : δ' < δ := by rw [hδ'def]; linarith
+  have hbpos : ∀ s, 0 < s → s ≤ δ' → 0 < kummerRadial ℓ κ s :=
+    fun s hs0 hsd => (hbounds s hs0 (lt_of_le_of_lt hsd hδ'lt)).2.2
+  have hbub : ∀ s, 0 < s → s ≤ δ' → kummerRadial ℓ κ s ≤ 2 * s ^ (ℓ + 1) :=
+    fun s hs0 hsd => (hbounds s hs0 (lt_of_le_of_lt hsd hδ'lt)).2.1
+  set W₀ := χ δ' * deriv (kummerRadial ℓ κ) δ' - deriv χ δ' * kummerRadial ℓ κ δ' with hW₀def
+  have hWconst : ∀ s, 0 < s →
+      χ s * deriv (kummerRadial ℓ κ) s - deriv χ s * kummerRadial ℓ κ s = W₀ :=
+    fun s hs => wronskian_const ℓ κ hκ χ hχ1 hχ2 hode hδ'pos hs
+  suffices hW₀ : W₀ = 0 by
+    intro s hs; rw [hWconst s hs]; exact hW₀
+  by_contra hW₀ne
+  set ρ := min (δ / 4) 1 with hρdef
+  have hρpos : 0 < ρ := lt_min (by linarith) one_pos
+  have hAtend : Filter.Tendsto
+      (fun r => χ r - kummerRadial ℓ κ r * (χ δ' / kummerRadial ℓ κ δ'))
+      (nhdsWithin 0 (Set.Ioi 0)) (nhds 0) := by
+    have h2 := (kummerRadial_tendsto_zero ℓ κ).mul_const (χ δ' / kummerRadial ℓ κ δ')
+    simpa using hχ0.sub h2
+  have hc0pos : (0 : ℝ) < 1 / (8 * 2 ^ (2 * ℓ + 2)) := by positivity
+  have hWc0pos : 0 < |W₀| * (1 / (8 * 2 ^ (2 * ℓ + 2))) := mul_pos (abs_pos.2 hW₀ne) hc0pos
+  have hev1 : ∀ᶠ r in nhdsWithin (0 : ℝ) (Set.Ioi 0),
+      |W₀| * (1 / (8 * 2 ^ (2 * ℓ + 2)))
+        ≤ |χ r - kummerRadial ℓ κ r * (χ δ' / kummerRadial ℓ κ δ')| := by
+    have hmem : Set.Iio ρ ∈ nhds (0 : ℝ) := Iio_mem_nhds hρpos
+    filter_upwards [self_mem_nhdsWithin, mem_nhdsWithin_of_mem_nhds hmem] with r hr0 hrρ
+    rw [Set.mem_Ioi] at hr0
+    rw [Set.mem_Iio] at hrρ
+    have hrδ4 : r < δ / 4 := lt_of_lt_of_le hrρ (min_le_left _ _)
+    have hr_lt_δ' : r < δ' := by rw [hδ'def]; linarith
+    have h2r : 2 * r ≤ δ' := by rw [hδ'def]; linarith
+    have hr1 : r ≤ 1 := le_of_lt (lt_of_lt_of_le hrρ (min_le_right _ _))
+    have hblb : (1 / 2) * r ^ (ℓ + 1) ≤ kummerRadial ℓ κ r :=
+      (hbounds r hr0 (lt_trans hr_lt_δ' hδ'lt)).1
+    have hA := reduction_order_ftc ℓ κ χ hχ1 hχ2 W₀ hWconst hbpos hr0 hr_lt_δ'
+    have hlb := reduction_order_lower ℓ κ hbpos hbub hr0 h2r hr1 hblb
+    have hPos : 0 ≤ kummerRadial ℓ κ r * ∫ s in r..δ', 1 / (kummerRadial ℓ κ s) ^ 2 :=
+      le_trans (le_of_lt hc0pos) hlb
+    rw [hA, abs_mul, abs_of_nonneg hPos]
+    exact mul_le_mul_of_nonneg_left hlb (abs_nonneg W₀)
+  have hev2 : ∀ᶠ r in nhdsWithin (0 : ℝ) (Set.Ioi 0),
+      |χ r - kummerRadial ℓ κ r * (χ δ' / kummerRadial ℓ κ δ')|
+        < |W₀| * (1 / (8 * 2 ^ (2 * ℓ + 2))) := by
+    filter_upwards [hAtend.eventually_mem (Metric.ball_mem_nhds 0 hWc0pos)] with r hr
+    rw [Metric.mem_ball, Real.dist_eq, sub_zero] at hr
+    exact hr
+  obtain ⟨r, hr1, hr2⟩ := (hev1.and hev2).exists
+  linarith
+
+/-! ### Part D: global identification `χ = c₀ φ` and the final contradiction -/
+
+/-- **Forward identification.** If `χ − c₀ φ` and its derivative both vanish at `r₁ > 0`
+(and `χ` solves the reduced equation), then `χ = c₀ φ` on `[r₁, ∞)`. This is linear ODE
+uniqueness, via Grönwall on the first-order system `(u, u')`. -/
+private lemma forward_identification (ℓ : ℕ) (κ : ℝ) (hκ : 0 < κ) (χ : ℝ → ℝ)
+    (hχ1 : ∀ r, 0 < r → HasDerivAt χ (deriv χ r) r)
+    (hχ2 : ∀ r, 0 < r → HasDerivAt (deriv χ) (deriv^[2] χ r) r)
+    (hode : ∀ r, 0 < r → deriv^[2] χ r
+      = ((ℓ : ℝ) * ((ℓ : ℝ) + 1) / r ^ 2 - 2 / r + κ ^ 2) * χ r)
+    (c₀ : ℝ) {r₁ : ℝ} (hr₁ : 0 < r₁)
+    (h0 : χ r₁ - c₀ * kummerRadial ℓ κ r₁ = 0)
+    (h0' : deriv χ r₁ - c₀ * deriv (kummerRadial ℓ κ) r₁ = 0) :
+    ∀ r, r₁ ≤ r → χ r = c₀ * kummerRadial ℓ κ r := by
+  intro r hr
+  set V : ℝ → ℝ := fun x => (ℓ : ℝ) * ((ℓ : ℝ) + 1) / x ^ 2 - 2 / x + κ ^ 2 with hVdef
+  set u : ℝ → ℝ := fun s => χ s - c₀ * kummerRadial ℓ κ s with hudef
+  set du : ℝ → ℝ := fun s => deriv χ s - c₀ * deriv (kummerRadial ℓ κ) s with hdudef
+  set F : ℝ → ℝ × ℝ := fun t => (u t, du t) with hFdef
+  set M : ℝ := (ℓ : ℝ) * ((ℓ : ℝ) + 1) / r₁ ^ 2 + 2 / r₁ + κ ^ 2 with hMdef
+  have hMnn : 0 ≤ M := by rw [hMdef]; positivity
+  set K : ℝ := M + 1 with hKdef
+  have hxpos : ∀ x ∈ Set.Icc r₁ r, 0 < x := fun x hx => lt_of_lt_of_le hr₁ hx.1
+  -- continuity of F on [r₁, r]
+  have hχcont : ContinuousOn χ (Set.Icc r₁ r) :=
+    fun x hx => (hχ1 x (hxpos x hx)).continuousAt.continuousWithinAt
+  have hdχcont : ContinuousOn (deriv χ) (Set.Icc r₁ r) :=
+    fun x hx => (hχ2 x (hxpos x hx)).continuousAt.continuousWithinAt
+  have hφcont : ContinuousOn (kummerRadial ℓ κ) (Set.Icc r₁ r) :=
+    (kummerRadial_continuous ℓ κ).continuousOn
+  have hdφcont : ContinuousOn (deriv (kummerRadial ℓ κ)) (Set.Icc r₁ r) :=
+    (kummerRadial_deriv_differentiable ℓ κ).continuous.continuousOn
+  have hcont : ContinuousOn F (Set.Icc r₁ r) :=
+    (hχcont.sub (continuousOn_const.mul hφcont)).prodMk
+      (hdχcont.sub (continuousOn_const.mul hdφcont))
+  -- derivative of F
+  have hderiv : ∀ x ∈ Set.Ico r₁ r, HasDerivWithinAt F (du x, V x * u x) (Set.Ici x) x := by
+    intro x hx
+    have hx0 : 0 < x := lt_of_lt_of_le hr₁ hx.1
+    have hud : HasDerivAt u (du x) x :=
+      (hχ1 x hx0).sub ((kummerRadial_differentiable ℓ κ x).hasDerivAt.const_mul c₀)
+    have hdud : HasDerivAt du (V x * u x) x := by
+      have hb := (hχ2 x hx0).sub
+        ((kummerRadial_deriv_differentiable ℓ κ x).hasDerivAt.const_mul c₀)
+      convert hb using 1
+      rw [show deriv (deriv (kummerRadial ℓ κ)) x = deriv^[2] (kummerRadial ℓ κ) x from rfl,
+        hode x hx0, kummerRadial_solves ℓ κ hκ hx0]
+      simp only [hVdef, hudef]
+      ring
+    exact (hud.prodMk hdud).hasDerivWithinAt
+  -- initial condition
+  have hinit : F r₁ = 0 := by
+    simp only [hFdef, hudef, hdudef, Prod.mk_eq_zero]
+    exact ⟨h0, h0'⟩
+  -- the norm bound
+  have hbound : ∀ x ∈ Set.Ico r₁ r, ‖(du x, V x * u x)‖ ≤ K * ‖F x‖ := by
+    intro x hx
+    have hx0 : 0 < x := lt_of_lt_of_le hr₁ hx.1
+    have hxr₁ : r₁ ≤ x := hx.1
+    have hVbound : |V x| ≤ M := by
+      have hb1 : 1 / x ^ 2 ≤ 1 / r₁ ^ 2 :=
+        one_div_le_one_div_of_le (by positivity) (by nlinarith [hxr₁, hr₁])
+      have hb2 : 1 / x ≤ 1 / r₁ := one_div_le_one_div_of_le hr₁ hxr₁
+      have hℓ : (0 : ℝ) ≤ (ℓ : ℝ) * ((ℓ : ℝ) + 1) := by positivity
+      have h1 : (ℓ : ℝ) * ((ℓ : ℝ) + 1) / x ^ 2 ≤ (ℓ : ℝ) * ((ℓ : ℝ) + 1) / r₁ ^ 2 := by
+        rw [div_eq_mul_one_div, div_eq_mul_one_div ((ℓ : ℝ) * ((ℓ : ℝ) + 1)) (r₁ ^ 2)]
+        exact mul_le_mul_of_nonneg_left hb1 hℓ
+      have h2 : (2 : ℝ) / x ≤ 2 / r₁ := by
+        rw [div_eq_mul_one_div, div_eq_mul_one_div (2 : ℝ) r₁]
+        exact mul_le_mul_of_nonneg_left hb2 (by norm_num)
+      have hx2nn : 0 ≤ (ℓ : ℝ) * ((ℓ : ℝ) + 1) / x ^ 2 := by positivity
+      have hr1nn : 0 ≤ (ℓ : ℝ) * ((ℓ : ℝ) + 1) / r₁ ^ 2 := by positivity
+      have h2xpos : 0 < (2 : ℝ) / x := by positivity
+      have h2r1pos : 0 < (2 : ℝ) / r₁ := by positivity
+      simp only [hVdef, hMdef]
+      rw [abs_le]
+      refine ⟨?_, ?_⟩
+      · linarith [h1, h2, hx2nn, hr1nn, h2xpos, h2r1pos, sq_nonneg κ]
+      · linarith [h1, h2, hx2nn, hr1nn, h2xpos, h2r1pos, sq_nonneg κ]
+    have hFnorm : ‖F x‖ = max |u x| |du x| := by
+      rw [hFdef]; simp only [Prod.norm_def, Real.norm_eq_abs]
+    have hF'norm : ‖(du x, V x * u x)‖ = max |du x| |V x * u x| := by
+      simp only [Prod.norm_def, Real.norm_eq_abs]
+    have hmax_nn : 0 ≤ max |u x| |du x| := le_trans (abs_nonneg _) (le_max_left _ _)
+    rw [hF'norm, hFnorm]
+    apply max_le
+    · calc |du x| ≤ max |u x| |du x| := le_max_right _ _
+        _ ≤ K * max |u x| |du x| := by rw [hKdef]; nlinarith [mul_nonneg hMnn hmax_nn]
+    · rw [abs_mul]
+      calc |V x| * |u x| ≤ M * |u x| := mul_le_mul_of_nonneg_right hVbound (abs_nonneg _)
+        _ ≤ M * max |u x| |du x| := mul_le_mul_of_nonneg_left (le_max_left _ _) hMnn
+        _ ≤ K * max |u x| |du x| := by rw [hKdef]; nlinarith [hmax_nn]
+  have hzero := eq_zero_of_abs_deriv_le_mul_abs_self_of_eq_zero_right hcont hderiv hinit hbound
+  have hFr : F r = 0 := hzero r (Set.right_mem_Icc.2 hr)
+  have hur : u r = 0 := by
+    have := congrArg Prod.fst hFr
+    simpa [hFdef] using this
+  rw [hudef] at hur
+  linarith
+
+/-- **Square-integrable bound states of the reduced radial operator are quantized.**
+
     If `χ` is a `C²` function on `(0,∞)`, square-integrable there, nonzero at some
     point, regular at the origin (`χ(r) → 0` as `r → 0⁺`, hypothesis `hχ0`), and
     solving the reduced radial equation
@@ -1065,21 +1673,21 @@ lemma laguerre_ansatz_reduced_iff (ℓ : ℕ) (κ : ℝ) (w : ℝ → ℝ)
     and is satisfied by every genuine reduced eigenfunction
     `χ_{nℓ} = r·R_{nℓ} ~ r^{ℓ+1} → 0` (`radial_boundary_r_zero`).
 
-    **Why this is the hard core.** Writing `χ = r^{ℓ+1} e^{−κr} w`, the factor `w`
-    solves the confluent (Laguerre/Kummer) ODE — this substitution is *proved*, as
-    `laguerre_ansatz_reduced_iff`. In the variable `ρ = 2κr` the regular-at-`0`
-    solution `w` is `₁F₁(ℓ+1 − 1/κ; 2ℓ+2; ρ)`, whose coefficients obey
-    `c_{k+1}/c_k = (k + ℓ + 1 − 1/κ)/((k+1)(k+2ℓ+2))`. Unless this terminates —
-    i.e. `1/κ = ℓ+1+p` for some `p ∈ ℕ` — the ratio tends to `1/k`, so `w(ρ)`
-    grows like `e^ρ` and `χ(r) ∼ r^{ℓ+1} e^{+κr}` fails to be square-integrable.
-    Formalising this growth estimate needs asymptotics of power-series solutions of
-    linear ODEs (a Levinson/Poincaré-type theorem) not yet available in Mathlib.
-
-    Every *mechanical* reduction feeding this lemma is proved: the reduced equation
-    (`reduced_ode`), the Kummer substitution (`laguerre_ansatz_reduced_iff`,
-    `laguerre_ansatz_residual`), the L²/nondegeneracy transfer
-    (`reduced_integrableOn_sq`, `reduced_nonzero`), and the `κ ↔ Eₙ` dictionary
-    (`kappa_pos_sq`, `energy_eq_of_kappa`). -/
+    **Proof.** Argue by contradiction: if `κ ≠ 1/m` for every `m ≥ ℓ+1`, then the
+    Kummer parameter `a = ℓ+1 − 1/κ` is never a non-positive integer, so the
+    regular-at-`0` solution `φ = kummerRadial ℓ κ = r^{ℓ+1} e^{−κr} M(a, 2ℓ+2, 2κr)`
+    (which solves the reduced equation, `kummerRadial_solves`, via
+    `laguerre_ansatz_reduced_iff` and `Spectra.Kummer.kummerM_ode`) grows like
+    `|φ(r)| ≳ r^{ℓ+1}` at infinity (`Spectra.Kummer.kummerM_abs_exp_lower`, packaged
+    as `kummerRadial_growth`). The Wronskian `χ φ' − χ' φ` is constant on `(0,∞)`;
+    the regularity `χ → 0` at `0⁺` forces it to vanish (`wronskian_zero`, a
+    reduction-of-order estimate that bounds `∫ dr/φ²` below by integrating over
+    `[r, 2r]`). Linear second-order ODE uniqueness — Grönwall on the first-order
+    system `(u, u')` with `u = χ − c₀ φ`, `forward_identification` — then propagates
+    `χ = c₀ φ` to all of `(0,∞)`, with `c₀ ≠ 0` since `χ` is nonzero somewhere. Thus
+    `|χ(r)| = |c₀|·|φ(r)|` is bounded below by a positive constant at infinity, so
+    `χ ∉ L²` (`not_radialL2_of_eventually_ge`), contradicting `hL2`. Hence `a` is a
+    non-positive integer, i.e. `κ = 1/m` with `m ≥ ℓ+1`. -/
 theorem reduced_radial_L2_quantized (ℓ : ℕ) (κ : ℝ) (hκ : 0 < κ) (χ : ℝ → ℝ)
     (hχ1 : ∀ r, 0 < r → HasDerivAt χ (deriv χ r) r)
     (hχ2 : ∀ r, 0 < r → HasDerivAt (deriv χ) (deriv^[2] χ r) r)
@@ -1089,7 +1697,49 @@ theorem reduced_radial_L2_quantized (ℓ : ℕ) (κ : ℝ) (hκ : 0 < κ) (χ : 
     (hL2 : IntegrableOn (fun r => χ r ^ 2) (Set.Ioi 0))
     (hnz : ∃ r, 0 < r ∧ χ r ≠ 0) :
     ∃ m : ℕ, ℓ + 1 ≤ m ∧ κ = 1 / (m : ℝ) := by
-  sorry
+  by_contra hcon
+  have hκ0 : κ ≠ 0 := ne_of_gt hκ
+  -- the Kummer parameter `a = ℓ+1−1/κ` does not terminate
+  have ha : ∀ p : ℕ, (ℓ : ℝ) + 1 - 1 / κ ≠ -(p : ℝ) := by
+    intro p hp
+    refine hcon ⟨ℓ + 1 + p, by omega, ?_⟩
+    have h1κ : 1 / κ = (ℓ : ℝ) + 1 + (p : ℝ) := by linarith
+    have hcast : (((ℓ + 1 + p : ℕ)) : ℝ) = (ℓ : ℝ) + 1 + (p : ℝ) := by push_cast; ring
+    rw [hcast, ← h1κ, one_div_one_div]
+  -- the Wronskian vanishes
+  have hW := wronskian_zero ℓ κ hκ χ hχ1 hχ2 hode hχ0
+  -- choose a base point `r₁` (small, below the nonzero point of `χ`)
+  obtain ⟨δ, hδ, hbounds⟩ := kummerRadial_near_zero ℓ κ
+  obtain ⟨rs, hrs_pos, hrs_ne⟩ := hnz
+  set r₁ := min (δ / 2) rs with hr₁def
+  have hr₁pos : 0 < r₁ := lt_min (by linarith) hrs_pos
+  have hr₁δ : r₁ < δ := lt_of_le_of_lt (min_le_left _ _) (by linarith)
+  have hr₁rs : r₁ ≤ rs := min_le_right _ _
+  have hφr₁pos : 0 < kummerRadial ℓ κ r₁ := (hbounds r₁ hr₁pos hr₁δ).2.2
+  have hφr₁ne : kummerRadial ℓ κ r₁ ≠ 0 := ne_of_gt hφr₁pos
+  set c₀ := χ r₁ / kummerRadial ℓ κ r₁ with hc₀def
+  -- the two initial conditions for `u = χ − c₀ φ`
+  have h0 : χ r₁ - c₀ * kummerRadial ℓ κ r₁ = 0 := by
+    rw [hc₀def, div_mul_cancel₀ _ hφr₁ne, sub_self]
+  have h0' : deriv χ r₁ - c₀ * deriv (kummerRadial ℓ κ) r₁ = 0 := by
+    have hWr := hW r₁ hr₁pos
+    rw [hc₀def]; field_simp; linarith [hWr]
+  -- global identification `χ = c₀ φ` on `[r₁, ∞)`
+  have hident := forward_identification ℓ κ hκ χ hχ1 hχ2 hode c₀ hr₁pos h0 h0'
+  -- `c₀ ≠ 0` (else `χ` would vanish at the nonzero point)
+  have hc₀ne : c₀ ≠ 0 := by
+    intro h
+    apply hrs_ne
+    rw [hident rs hr₁rs, h, zero_mul]
+  -- exponential growth of `φ`, transported to `χ`, breaks square-integrability
+  obtain ⟨C, R, hC, hgrow⟩ := kummerRadial_growth ℓ κ hκ ha
+  have hlb : ∀ r, max r₁ R ≤ r → |c₀| * C ≤ |χ r| := by
+    intro r hr
+    have hr_r₁ : r₁ ≤ r := le_trans (le_max_left _ _) hr
+    have hr_R : R ≤ r := le_trans (le_max_right _ _) hr
+    rw [hident r hr_r₁, abs_mul]
+    exact mul_le_mul_of_nonneg_left (hgrow r hr_R) (abs_nonneg c₀)
+  exact not_radialL2_of_eventually_ge χ (mul_pos (abs_pos.2 hc₀ne) hC) hlb hL2
 
 /-- **Consistency of the analytic core on the known eigenfunctions.**
 
@@ -1099,7 +1749,7 @@ theorem reduced_radial_L2_quantized (ℓ : ℕ) (κ : ℝ) (hκ : 0 < κ) (χ : 
     `radial_wavefunction_norm` (nonvanishing), this exhibits `χ_{mℓ}` as a witness
     satisfying *every* hypothesis of `reduced_radial_L2_quantized`, with the
     expected conclusion `κ = 1/m`. It confirms that the reduced equation
-    (`reduced_ode`) and the analytic gap lemma's hypotheses are correctly stated
+    (`reduced_ode`) and `reduced_radial_L2_quantized`'s hypotheses are correctly stated
     and non-vacuous (a mis-stated reduced ODE would fail to compile here). -/
 theorem reduced_eigenfunction_solves (m ℓ : ℕ) (hm : ℓ + 1 ≤ m) {r : ℝ} (hr : 0 < r) :
     deriv^[2] (fun s => s * hydrogenRadialWavefunction m ℓ hm s) r
@@ -1123,18 +1773,313 @@ theorem reduced_eigenfunction_solves (m ℓ : ℕ) (hm : ℓ + 1 ≤ m) {r : ℝ
     rw [hydrogenEigenvalue]; field_simp
   rw [h, ← hE]; ring
 
-/-- **[Analytic gap — Coulomb-wave asymptotics, not yet in Mathlib]**
+/-! ### Non-existence of `L²` solutions at `E ≥ 0` (continuous spectrum)
 
-    *No square-integrable solutions for `E ≥ 0`.* For `E ≥ 0`, any `C²`
-    square-integrable solution of the reduced radial equation
-    `χ''(r) = (ℓ(ℓ+1)/r² − 2/r − 2E)·χ(r)` vanishes identically on `(0,∞)`.
+Elementary energy/Grönwall machinery for `reduced_radial_continuum`: the potential
+`W = ℓ(ℓ+1)/r² − 2/r − 2E` is eventually negative and increasing, the energy
+`χ'² − Wχ²` controls the solution, and an `L²` solution is forced to vanish. -/
 
-    With `k = √(2E)`, the solutions are the regular/irregular Coulomb wave
-    functions, oscillating like `sin(kr − …)`, `cos(kr − …)` as `r → ∞`; both are
-    bounded but not square-integrable, so the only L² solution is `0`. (For
-    `E = 0` the solutions involve Bessel functions, again non-L².) The reduction
-    `ψ ↦ χ = r·ψ` (`reduced_ode`) is proved; the non-existence of L² oscillatory
-    solutions is the analytic gap. -/
+/-- The reduced-radial potential at energy `E`: `W(r) = ℓ(ℓ+1)/r² − 2/r − 2E`. -/
+private noncomputable def contW (ℓ : ℕ) (E : ℝ) : ℝ → ℝ :=
+  fun r => (ℓ : ℝ) * ((ℓ : ℝ) + 1) / r ^ 2 - 2 / r - 2 * E
+
+private lemma contW_hasDerivAt (ℓ : ℕ) (E : ℝ) {r : ℝ} (hr : 0 < r) :
+    HasDerivAt (contW ℓ E)
+      (-2 * (ℓ : ℝ) * ((ℓ : ℝ) + 1) / r ^ 3 + 2 / r ^ 2) r := by
+  have hr2 : (r : ℝ) ^ 2 ≠ 0 := by positivity
+  have hrne : r ≠ 0 := ne_of_gt hr
+  have h1 : HasDerivAt (fun s : ℝ => (ℓ : ℝ) * ((ℓ : ℝ) + 1) / s ^ 2)
+      (((0 : ℝ) * r ^ 2 - (ℓ : ℝ) * ((ℓ : ℝ) + 1) * (2 * r ^ (2 - 1))) / (r ^ 2) ^ 2) r :=
+    (hasDerivAt_const r ((ℓ : ℝ) * ((ℓ : ℝ) + 1))).div (hasDerivAt_pow 2 r) hr2
+  have h2 : HasDerivAt (fun s : ℝ => 2 / s)
+      (((0 : ℝ) * r - 2 * 1) / r ^ 2) r :=
+    (hasDerivAt_const r (2 : ℝ)).div (hasDerivAt_id r) hrne
+  have h3 : HasDerivAt (fun _ : ℝ => 2 * E) 0 r := hasDerivAt_const r _
+  have hsum := (h1.sub h2).sub h3
+  convert hsum using 1
+  field_simp
+  ring
+
+/-- Threshold facts: for `r ≥ ℓ(ℓ+1)+1` (and `E ≥ 0`) the potential is negative with
+`−W ≥ 1/r` and increasing (`W' ≥ 0`). -/
+private lemma contW_thresh (ℓ : ℕ) (E : ℝ) (hE : 0 ≤ E) {r : ℝ}
+    (hr : (ℓ : ℝ) * ((ℓ : ℝ) + 1) + 1 ≤ r) :
+    0 < r ∧ 1 / r ≤ -contW ℓ E r ∧ contW ℓ E r < 0 ∧
+      0 ≤ -2 * (ℓ : ℝ) * ((ℓ : ℝ) + 1) / r ^ 3 + 2 / r ^ 2 := by
+  have hℓ : (0 : ℝ) ≤ (ℓ : ℝ) * ((ℓ : ℝ) + 1) := by positivity
+  have hr0 : 0 < r := by nlinarith
+  have hrge : (ℓ : ℝ) * ((ℓ : ℝ) + 1) < r := by nlinarith
+  -- ℓ(ℓ+1)/r² ≤ 1/r  (since ℓ(ℓ+1) < r)
+  have hkey : (ℓ : ℝ) * ((ℓ : ℝ) + 1) / r ^ 2 ≤ 1 / r := by
+    rw [← sub_nonneg, show (1 : ℝ) / r - (ℓ : ℝ) * ((ℓ : ℝ) + 1) / r ^ 2
+      = (r - (ℓ : ℝ) * ((ℓ : ℝ) + 1)) / r ^ 2 from by field_simp]
+    apply div_nonneg _ (by positivity)
+    linarith [hrge]
+  have hW : -contW ℓ E r = 2 / r + 2 * E - (ℓ : ℝ) * ((ℓ : ℝ) + 1) / r ^ 2 := by
+    simp only [contW]; ring
+  have h2E : (0 : ℝ) ≤ 2 * E := by linarith
+  have e1 : (2 : ℝ) / r = 2 * (1 / r) := by ring
+  have h1r : (0 : ℝ) < 1 / r := by positivity
+  refine ⟨hr0, ?_, ?_, ?_⟩
+  · rw [hW]; linarith [hkey, h2E, e1, h1r]
+  · rw [show contW ℓ E r = -(-contW ℓ E r) from by ring, hW]; linarith [hkey, h2E, e1, h1r]
+  · -- W' = 2/r² − 2ℓ(ℓ+1)/r³ ≥ 0
+    have h3 : (0 : ℝ) < r ^ 3 := by positivity
+    rw [show -2 * (ℓ : ℝ) * ((ℓ : ℝ) + 1) / r ^ 3 + 2 / r ^ 2
+        = (2 * (r - (ℓ : ℝ) * ((ℓ : ℝ) + 1))) / r ^ 3 from by field_simp; ring]
+    apply div_nonneg _ (le_of_lt h3)
+    nlinarith [hrge]
+
+/-- **Energy differential inequality.** With `G = χ'² − Wχ²`, on `[r₀,∞)` (`r₀ ≥ ℓ(ℓ+1)+1`)
+`G` is decreasing and `G/(−W)` is increasing (`G'(−W) + GW' = W'χ'² ≥ 0`), giving the
+cross-multiplied lower bound `G(r₀)·(−W r) ≤ G(r)·(−W r₀)`. -/
+private lemma energy_diff_ineq (ℓ : ℕ) (E : ℝ) (hE : 0 ≤ E) (χ : ℝ → ℝ)
+    (hχ1 : ∀ r, 0 < r → HasDerivAt χ (deriv χ r) r)
+    (hχ2 : ∀ r, 0 < r → HasDerivAt (deriv χ) (deriv^[2] χ r) r)
+    (hode : ∀ r, 0 < r → deriv^[2] χ r
+      = ((ℓ : ℝ) * ((ℓ : ℝ) + 1) / r ^ 2 - 2 / r - 2 * E) * χ r)
+    {r₀ : ℝ} (hr₀R : (ℓ : ℝ) * ((ℓ : ℝ) + 1) + 1 ≤ r₀) :
+    (∀ r, r₀ ≤ r → (deriv χ r) ^ 2 - contW ℓ E r * (χ r) ^ 2
+        ≤ (deriv χ r₀) ^ 2 - contW ℓ E r₀ * (χ r₀) ^ 2)
+    ∧ (∀ r, r₀ ≤ r →
+        ((deriv χ r₀) ^ 2 - contW ℓ E r₀ * (χ r₀) ^ 2) * (-contW ℓ E r)
+          ≤ ((deriv χ r) ^ 2 - contW ℓ E r * (χ r) ^ 2) * (-contW ℓ E r₀)) := by
+  have hr₀pos : 0 < r₀ := (contW_thresh ℓ E hE hr₀R).1
+  set G : ℝ → ℝ := fun r => (deriv χ r) ^ 2 - contW ℓ E r * (χ r) ^ 2 with hGdef
+  set Wd : ℝ → ℝ := fun x => -2 * (ℓ : ℝ) * ((ℓ : ℝ) + 1) / x ^ 3 + 2 / x ^ 2 with hWddef
+  have hpos : ∀ x, r₀ ≤ x → 0 < x := fun x hx => lt_of_lt_of_le hr₀pos hx
+  have hWdnn : ∀ x, r₀ ≤ x → 0 ≤ Wd x := fun x hx => (contW_thresh ℓ E hE (le_trans hr₀R hx)).2.2.2
+  have hWneg : ∀ x, r₀ ≤ x → contW ℓ E x < 0 :=
+    fun x hx => (contW_thresh ℓ E hE (le_trans hr₀R hx)).2.2.1
+  have hGderiv : ∀ x, 0 < x → HasDerivAt G (-(Wd x) * (χ x) ^ 2) x := by
+    intro x hx
+    have h1 : HasDerivAt (fun s => deriv χ s ^ 2) (2 * deriv χ x * deriv^[2] χ x) x := by
+      have h := (hχ2 x hx).mul (hχ2 x hx)
+      rw [show (fun s => deriv χ s ^ 2) = (fun s => deriv χ s * deriv χ s) from by
+        funext s; rw [pow_two]]
+      convert h using 1; ring
+    have hp : HasDerivAt (fun s => χ s ^ 2) (2 * χ x * deriv χ x) x := by
+      have h := (hχ1 x hx).mul (hχ1 x hx)
+      rw [show (fun s => χ s ^ 2) = (fun s => χ s * χ s) from by funext s; rw [pow_two]]
+      convert h using 1; ring
+    have h2 : HasDerivAt (fun s => contW ℓ E s * (χ s) ^ 2)
+        (Wd x * (χ x) ^ 2 + contW ℓ E x * (2 * χ x * deriv χ x)) x :=
+      (contW_hasDerivAt ℓ E hx).mul hp
+    have hG := h1.sub h2
+    convert hG using 1
+    rw [hode x hx, show contW ℓ E x = (ℓ : ℝ) * ((ℓ : ℝ) + 1) / x ^ 2 - 2 / x - 2 * E from rfl]
+    ring
+  have hWc : ContinuousOn (contW ℓ E) (Set.Ici r₀) :=
+    fun x hx => (contW_hasDerivAt ℓ E (hpos x hx)).continuousAt.continuousWithinAt
+  have hχc : ContinuousOn χ (Set.Ici r₀) :=
+    fun x hx => (hχ1 x (hpos x hx)).continuousAt.continuousWithinAt
+  have hdχc : ContinuousOn (deriv χ) (Set.Ici r₀) :=
+    fun x hx => (hχ2 x (hpos x hx)).continuousAt.continuousWithinAt
+  have hGc : ContinuousOn G (Set.Ici r₀) := (hdχc.pow 2).sub (hWc.mul (hχc.pow 2))
+  have hGdiff : DifferentiableOn ℝ G (interior (Set.Ici r₀)) := by
+    rw [interior_Ici]
+    exact fun x hx => (hGderiv x (lt_trans hr₀pos hx)).differentiableAt.differentiableWithinAt
+  have hGdec : AntitoneOn G (Set.Ici r₀) := by
+    apply antitoneOn_of_deriv_nonpos (convex_Ici r₀) hGc hGdiff
+    intro x hx
+    rw [interior_Ici] at hx
+    rw [(hGderiv x (lt_trans hr₀pos hx)).deriv]
+    nlinarith [sq_nonneg (χ x), hWdnn x (le_of_lt hx)]
+  set H : ℝ → ℝ := fun s => G s / (-contW ℓ E s) with hHdef
+  have hDne : ∀ x, r₀ ≤ x → -contW ℓ E x ≠ 0 := fun x hx => by have := hWneg x hx; linarith
+  have hHc : ContinuousOn H (Set.Ici r₀) := hGc.div hWc.neg (fun x hx => hDne x hx)
+  have hHderiv : ∀ x, r₀ ≤ x → HasDerivAt H
+      ((-(Wd x) * (χ x) ^ 2 * (-contW ℓ E x) - G x * (-(Wd x))) / (-contW ℓ E x) ^ 2) x :=
+    fun x hx => (hGderiv x (hpos x hx)).div ((contW_hasDerivAt ℓ E (hpos x hx)).neg) (hDne x hx)
+  have hHdiff : DifferentiableOn ℝ H (interior (Set.Ici r₀)) := by
+    rw [interior_Ici]
+    exact fun x hx => (hHderiv x (le_of_lt hx)).differentiableAt.differentiableWithinAt
+  have hHinc : MonotoneOn H (Set.Ici r₀) := by
+    apply monotoneOn_of_deriv_nonneg (convex_Ici r₀) hHc hHdiff
+    intro x hx
+    rw [interior_Ici] at hx
+    rw [(hHderiv x (le_of_lt hx)).deriv]
+    apply div_nonneg _ (sq_nonneg _)
+    rw [show -(Wd x) * (χ x) ^ 2 * (-contW ℓ E x) - G x * (-(Wd x)) = Wd x * (deriv χ x) ^ 2 from by
+      rw [hGdef]; ring]
+    exact mul_nonneg (hWdnn x (le_of_lt hx)) (sq_nonneg _)
+  refine ⟨fun r hr => hGdec Set.self_mem_Ici (Set.mem_Ici.2 hr) hr, fun r hr => ?_⟩
+  have hHle : H r₀ ≤ H r := hHinc Set.self_mem_Ici (Set.mem_Ici.2 hr) hr
+  simp only [hHdef] at hHle
+  have hD0 : 0 < -contW ℓ E r₀ := by have := hWneg r₀ (le_refl r₀); linarith
+  have hDr : 0 < -contW ℓ E r := by have := hWneg r hr; linarith
+  have hD0ne : (-contW ℓ E r₀) ≠ 0 := hD0.ne'
+  have hDrne : (-contW ℓ E r) ≠ 0 := hDr.ne'
+  have hmul := mul_le_mul_of_nonneg_right hHle (le_of_lt (mul_pos hD0 hDr))
+  have key0 : G r₀ / (-contW ℓ E r₀) * (-contW ℓ E r₀ * -contW ℓ E r) = G r₀ * -contW ℓ E r := by
+    rw [← mul_assoc, div_mul_cancel₀ _ hD0ne]
+  have key1 : G r / (-contW ℓ E r) * (-contW ℓ E r₀ * -contW ℓ E r) = G r * -contW ℓ E r₀ := by
+    rw [mul_comm (-contW ℓ E r₀) (-contW ℓ E r), ← mul_assoc, div_mul_cancel₀ _ hDrne]
+  rw [key0, key1] at hmul
+  exact hmul
+
+/-- A function that is `L²` on `(a,∞)` and Lipschitz there tends to `0` at `+∞`.
+Small-tail argument: if `|f r₀| ≥ ε` then `|f| ≥ ε/2` on `[r₀, r₀+δ]`, contributing
+`(ε/2)²δ` to the integral — but the tail past a large `T₁` is smaller. -/
+private lemma l2_tendsto_zero {f : ℝ → ℝ} {a B : ℝ} (hB : 0 ≤ B)
+    (hlip : ∀ x y, a ≤ x → a ≤ y → |f x - f y| ≤ B * |x - y|)
+    (hint : IntegrableOn (fun r => f r ^ 2) (Set.Ioi a)) :
+    Filter.Tendsto f Filter.atTop (𝓝 0) := by
+  rw [Metric.tendsto_atTop]
+  intro ε hε
+  have hBp : (0 : ℝ) < B + 1 := by linarith
+  set δ := ε / (2 * (B + 1)) with hδdef
+  have hδpos : 0 < δ := by positivity
+  have hδeq : ε = 2 * (B * δ) + 2 * δ := by rw [hδdef]; field_simp
+  have htail : Filter.Tendsto (fun T => ∫ x in Set.Ioi T, f x ^ 2) Filter.atTop (𝓝 0) :=
+    tendsto_integral_Ioi_zero (f := fun r => f r ^ 2) (b := id) tendsto_id
+  have hcpos : (0 : ℝ) < (ε / 2) ^ 2 * δ := by positivity
+  obtain ⟨T₁, hT₁tail, hT₁a⟩ :=
+    ((htail.eventually (gt_mem_nhds hcpos)).and (eventually_ge_atTop a)).exists
+  refine ⟨T₁ + 1, fun r hr => ?_⟩
+  rw [Real.dist_eq, sub_zero]
+  by_contra hcon
+  have hcon' : ε ≤ |f r| := not_lt.1 hcon
+  have hrT₁ : T₁ < r := by linarith
+  have hra : a ≤ r := le_trans hT₁a (by linarith)
+  have hBδ : B * δ ≤ ε / 2 := by linarith [hδeq, hδpos]
+  have hlb_pt : ∀ s ∈ Set.Ioc r (r + δ), (ε / 2) ^ 2 ≤ f s ^ 2 := by
+    intro s hs
+    have hsa : a ≤ s := le_trans hra (le_of_lt hs.1)
+    have hsr : |r - s| ≤ δ := by
+      rw [abs_sub_comm, abs_of_nonneg (by linarith [hs.1])]; linarith [hs.2]
+    have h2 : |f r - f s| ≤ B * δ :=
+      le_trans (hlip r s hra hsa) (le_trans (mul_le_mul_of_nonneg_left hsr hB) (le_refl _))
+    have h1 : |f r| - |f s| ≤ |f r - f s| := abs_sub_abs_le_abs_sub (f r) (f s)
+    have hfs : ε / 2 ≤ |f s| := by linarith [h1, h2, hBδ, hcon']
+    have : (ε / 2) ^ 2 ≤ |f s| ^ 2 := pow_le_pow_left₀ (by positivity) hfs 2
+    rwa [sq_abs] at this
+  have hintIoc : IntegrableOn (fun r => f r ^ 2) (Set.Ioc r (r + δ)) :=
+    hint.mono_set (Set.Ioc_subset_Ioi_self.trans (Set.Ioi_subset_Ioi hra))
+  have hlb : (ε / 2) ^ 2 * δ ≤ ∫ x in Set.Ioc r (r + δ), f x ^ 2 := by
+    have hconst : ∫ _x in Set.Ioc r (r + δ), ((ε / 2) ^ 2 : ℝ) = (ε / 2) ^ 2 * δ := by
+      rw [setIntegral_const, volume_real_Ioc_of_le (by linarith : r ≤ r + δ), smul_eq_mul]; ring
+    have hci : IntegrableOn (fun _x : ℝ => ((ε / 2) ^ 2 : ℝ)) (Set.Ioc r (r + δ)) :=
+      integrableOn_const (hs := by rw [Real.volume_Ioc]; exact ENNReal.ofReal_ne_top)
+    rw [← hconst]
+    exact setIntegral_mono_on hci hintIoc measurableSet_Ioc hlb_pt
+  have hintIoiT : IntegrableOn (fun r => f r ^ 2) (Set.Ioi T₁) :=
+    hint.mono_set (Set.Ioi_subset_Ioi hT₁a)
+  have hub : (∫ x in Set.Ioc r (r + δ), f x ^ 2) ≤ ∫ x in Set.Ioi T₁, f x ^ 2 := by
+    apply setIntegral_mono_set hintIoiT (Filter.Eventually.of_forall (fun x => sq_nonneg _))
+    exact (Set.Ioc_subset_Ioi_self.trans (Set.Ioi_subset_Ioi hrT₁.le)).eventuallyLE
+  linarith [hlb, hub, hT₁tail]
+
+/-- **Forward uniqueness** for `u'' = V u` with zero Cauchy data at the left endpoint:
+Grönwall on the system `(u, u')`, needing only the norm bound `‖(u', Vu)‖ ≤ (M+1)‖(u,u')‖`. -/
+private lemma forward_zero {u du V : ℝ → ℝ} {a b : ℝ} (_hab : a ≤ b)
+    (hu : ∀ x ∈ Set.Icc a b, HasDerivAt u (du x) x)
+    (hdu : ∀ x ∈ Set.Icc a b, HasDerivAt du (V x * u x) x)
+    (hVc : ContinuousOn V (Set.Icc a b))
+    (hu0 : u a = 0) (hdu0 : du a = 0) :
+    ∀ x ∈ Set.Icc a b, u x = 0 := by
+  obtain ⟨M, hM⟩ := isCompact_Icc.exists_bound_of_continuousOn hVc
+  set F : ℝ → ℝ × ℝ := fun t => (u t, du t) with hFdef
+  have huc : ContinuousOn u (Set.Icc a b) :=
+    fun x hx => (hu x hx).continuousAt.continuousWithinAt
+  have hduc : ContinuousOn du (Set.Icc a b) :=
+    fun x hx => (hdu x hx).continuousAt.continuousWithinAt
+  have hcont : ContinuousOn F (Set.Icc a b) := huc.prodMk hduc
+  have hderiv : ∀ x ∈ Set.Ico a b, HasDerivWithinAt F (du x, V x * u x) (Set.Ici x) x := by
+    intro x hx
+    have hxab : x ∈ Set.Icc a b := ⟨hx.1, le_of_lt hx.2⟩
+    exact ((hu x hxab).prodMk (hdu x hxab)).hasDerivWithinAt
+  have hinit : F a = 0 := by rw [hFdef]; simp only [Prod.mk_eq_zero]; exact ⟨hu0, hdu0⟩
+  have hbound : ∀ x ∈ Set.Ico a b, ‖(du x, V x * u x)‖ ≤ (M + 1) * ‖F x‖ := by
+    intro x hx
+    have hxab : x ∈ Set.Icc a b := ⟨hx.1, le_of_lt hx.2⟩
+    rw [Prod.norm_def, hFdef, Prod.norm_def]
+    simp only [Real.norm_eq_abs]
+    have hMx : |V x| ≤ M := by have := hM x hxab; rwa [Real.norm_eq_abs] at this
+    have hMnn : 0 ≤ M := le_trans (abs_nonneg _) hMx
+    have hmax_nn : 0 ≤ max |u x| |du x| := le_trans (abs_nonneg _) (le_max_left _ _)
+    apply max_le
+    · calc |du x| ≤ max |u x| |du x| := le_max_right _ _
+        _ ≤ (M + 1) * max |u x| |du x| := by nlinarith [hmax_nn, hMnn]
+    · rw [abs_mul]
+      calc |V x| * |u x| ≤ M * |u x| := mul_le_mul_of_nonneg_right hMx (abs_nonneg _)
+        _ ≤ M * max |u x| |du x| := mul_le_mul_of_nonneg_left (le_max_left _ _) hMnn
+        _ ≤ (M + 1) * max |u x| |du x| := by nlinarith [hmax_nn]
+  have hzero := eq_zero_of_abs_deriv_le_mul_abs_self_of_eq_zero_right hcont hderiv hinit hbound
+  intro x hx
+  have h1 := congrArg Prod.fst (hzero x hx)
+  simpa [hFdef] using h1
+
+/-- Two-sided uniqueness: a `C²` solution of the reduced equation with zero Cauchy data at
+`r₁ > 0` vanishes on all of `(0,∞)` (forward via `forward_zero`, backward via reflection). -/
+private lemma cont_cauchy_zero (ℓ : ℕ) (E : ℝ) (χ : ℝ → ℝ)
+    (hχ1 : ∀ r, 0 < r → HasDerivAt χ (deriv χ r) r)
+    (hχ2 : ∀ r, 0 < r → HasDerivAt (deriv χ) (deriv^[2] χ r) r)
+    (hode : ∀ r, 0 < r → deriv^[2] χ r
+      = ((ℓ : ℝ) * ((ℓ : ℝ) + 1) / r ^ 2 - 2 / r - 2 * E) * χ r)
+    {r₁ : ℝ} (hr₁ : 0 < r₁) (h0 : χ r₁ = 0) (h0' : deriv χ r₁ = 0) :
+    ∀ r, 0 < r → χ r = 0 := by
+  have hodeW : ∀ x, 0 < x → contW ℓ E x * χ x = deriv^[2] χ x := fun x hx => by
+    rw [hode x hx]; simp only [contW]
+  have hlin : ∀ x : ℝ, HasDerivAt (fun t => 2 * r₁ - t) (-1 : ℝ) x :=
+    fun x => (hasDerivAt_id x).const_sub (2 * r₁)
+  have hfwd : ∀ r, r₁ ≤ r → χ r = 0 := by
+    intro r hrr
+    have hVc : ContinuousOn (contW ℓ E) (Set.Icc r₁ r) :=
+      fun x hx => (contW_hasDerivAt ℓ E (lt_of_lt_of_le hr₁ hx.1)).continuousAt.continuousWithinAt
+    refine forward_zero hrr (fun x hx => hχ1 x (lt_of_lt_of_le hr₁ hx.1)) ?_ hVc h0 h0' r
+      (Set.right_mem_Icc.2 hrr)
+    intro x hx
+    rw [hodeW x (lt_of_lt_of_le hr₁ hx.1)]
+    exact hχ2 x (lt_of_lt_of_le hr₁ hx.1)
+  have hbwd : ∀ r, 0 < r → r ≤ r₁ → χ r = 0 := by
+    intro r hrpos hrr₁
+    rcases eq_or_lt_of_le hrr₁ with heq | hlt
+    · rw [heq]; exact h0
+    set b := 2 * r₁ - r with hbdef
+    have hr₁b : r₁ ≤ b := by rw [hbdef]; linarith
+    have hpos2 : ∀ x ∈ Set.Icc r₁ b, 0 < 2 * r₁ - x := by
+      intro x hx; have hxb := hx.2; rw [hbdef] at hxb; linarith
+    have hu : ∀ x ∈ Set.Icc r₁ b, HasDerivAt (fun t => χ (2 * r₁ - t)) (-deriv χ (2 * r₁ - x)) x := by
+      intro x hx
+      have h := (hχ1 (2 * r₁ - x) (hpos2 x hx)).comp x (hlin x)
+      convert h using 1; ring
+    have hdu : ∀ x ∈ Set.Icc r₁ b, HasDerivAt (fun t => -deriv χ (2 * r₁ - t))
+        (contW ℓ E (2 * r₁ - x) * χ (2 * r₁ - x)) x := by
+      intro x hx
+      rw [hodeW (2 * r₁ - x) (hpos2 x hx)]
+      have h := ((hχ2 (2 * r₁ - x) (hpos2 x hx)).comp x (hlin x)).neg
+      convert h using 1; ring
+    have hVc : ContinuousOn (fun t => contW ℓ E (2 * r₁ - t)) (Set.Icc r₁ b) :=
+      fun x hx => (contW_hasDerivAt ℓ E (hpos2 x hx)).continuousAt.comp_continuousWithinAt
+        ((continuous_const.sub continuous_id).continuousWithinAt)
+    have hu0 : (fun t => χ (2 * r₁ - t)) r₁ = 0 := by
+      show χ (2 * r₁ - r₁) = 0; rw [show 2 * r₁ - r₁ = r₁ from by ring]; exact h0
+    have hdu0 : (fun t => -deriv χ (2 * r₁ - t)) r₁ = 0 := by
+      show -deriv χ (2 * r₁ - r₁) = 0; rw [show 2 * r₁ - r₁ = r₁ from by ring, h0']; ring
+    have hfz := forward_zero hr₁b hu hdu hVc hu0 hdu0 b (Set.right_mem_Icc.2 hr₁b)
+    have hfz' : χ (2 * r₁ - b) = 0 := hfz
+    rwa [show 2 * r₁ - b = r from by rw [hbdef]; ring] at hfz'
+  intro r hr
+  rcases le_total r r₁ with h | h
+  · exact hbwd r hr h
+  · exact hfwd r h
+
+/-- **For `E ≥ 0`, every `C²` square-integrable solution of the reduced radial equation
+    vanishes** (the continuous spectrum carries no bound states).
+
+    Any `χ` solving `χ''(r) = (ℓ(ℓ+1)/r² − 2/r − 2E)·χ(r)` on `(0,∞)` and square-integrable
+    there is identically `0`.
+
+    **Proof.** For `r ≥ ℓ(ℓ+1)+1` the potential `W = ℓ(ℓ+1)/r² − 2/r − 2E` is negative,
+    increasing, with `−W ≥ 1/r`. The energy `G = χ'² − Wχ²` is decreasing (`G' = −W'χ²`) and
+    `G/(−W)` is increasing (`(G/(−W))' = W'χ'²/W² ≥ 0`), so `G ≥ K·(−W)` with
+    `K = G(r₀)/(−W(r₀)) > 0` whenever `χ(r₀) ≠ 0` (`energy_diff_ineq`). Then `χ'` is bounded,
+    so the `L²` function `χ` is Lipschitz and tends to `0` (`l2_tendsto_zero`); hence
+    `(χχ')' = χ'² − (−W)χ² ≥ (K/2)·(−W) ≥ (K/2)/r` eventually, forcing `χχ' → +∞` by
+    log-divergence — contradicting `χχ' → 0` (`χ → 0`, `χ'` bounded). So `χ ≡ 0` on
+    `[ℓ(ℓ+1)+1, ∞)`, and Cauchy-data uniqueness (`cont_cauchy_zero`, Grönwall forward +
+    reflection backward) extends this to all of `(0,∞)`. -/
 theorem reduced_radial_continuum (ℓ : ℕ) (E : ℝ) (hE : 0 ≤ E) (χ : ℝ → ℝ)
     (hχ1 : ∀ r, 0 < r → HasDerivAt χ (deriv χ r) r)
     (hχ2 : ∀ r, 0 < r → HasDerivAt (deriv χ) (deriv^[2] χ r) r)
@@ -1142,7 +2087,150 @@ theorem reduced_radial_continuum (ℓ : ℕ) (E : ℝ) (hE : 0 ≤ E) (χ : ℝ 
       = ((ℓ : ℝ) * ((ℓ : ℝ) + 1) / r ^ 2 - 2 / r - 2 * E) * χ r)
     (hL2 : IntegrableOn (fun r => χ r ^ 2) (Set.Ioi 0)) :
     ∀ r, 0 < r → χ r = 0 := by
-  sorry
+  have hodeW : ∀ x, 0 < x → contW ℓ E x * χ x = deriv^[2] χ x := fun x hx => by
+    rw [hode x hx]; simp only [contW]
+  have hRpos : (0 : ℝ) < (ℓ : ℝ) * ((ℓ : ℝ) + 1) + 1 := by positivity
+  -- Step 1: χ ≡ 0 on [R, ∞)
+  have hRzero : ∀ r, (ℓ : ℝ) * ((ℓ : ℝ) + 1) + 1 ≤ r → χ r = 0 := by
+    by_contra hcon
+    rw [not_forall] at hcon
+    obtain ⟨r₀, hr₀⟩ := hcon
+    rw [Classical.not_imp] at hr₀
+    obtain ⟨hr₀R, hr₀ne⟩ := hr₀
+    have hr₀pos : 0 < r₀ := lt_of_lt_of_le hRpos hr₀R
+    obtain ⟨hGdec, hGratio⟩ := energy_diff_ineq ℓ E hE χ hχ1 hχ2 hode hr₀R
+    set G0 := (deriv χ r₀) ^ 2 - contW ℓ E r₀ * (χ r₀) ^ 2 with hG0def
+    have hWr₀neg : contW ℓ E r₀ < 0 := (contW_thresh ℓ E hE hr₀R).2.2.1
+    have hD0pos : 0 < -contW ℓ E r₀ := by linarith
+    have hχ₀sq : 0 < (χ r₀) ^ 2 := by positivity
+    have hG0pos : 0 < G0 := by
+      rw [hG0def]; nlinarith [sq_nonneg (deriv χ r₀), mul_pos hD0pos hχ₀sq]
+    set K := G0 / (-contW ℓ E r₀) with hKdef
+    have hKpos : 0 < K := div_pos hG0pos hD0pos
+    -- threshold facts at any r ≥ r₀
+    have hWfacts : ∀ r, r₀ ≤ r → contW ℓ E r < 0 ∧ 1 / r ≤ -contW ℓ E r := fun r hr =>
+      ⟨(contW_thresh ℓ E hE (le_trans hr₀R hr)).2.2.1, (contW_thresh ℓ E hE (le_trans hr₀R hr)).2.1⟩
+    -- G(r) ≥ K·(−W r)
+    have hGlb : ∀ r, r₀ ≤ r →
+        K * (-contW ℓ E r) ≤ (deriv χ r) ^ 2 - contW ℓ E r * (χ r) ^ 2 := by
+      intro r hr
+      have hg := hGratio r hr
+      rw [hKdef, div_mul_eq_mul_div, div_le_iff₀ hD0pos]
+      exact hg
+    -- χ' is bounded by √G0
+    have hBnd : ∀ r, r₀ ≤ r → |deriv χ r| ≤ Real.sqrt G0 := by
+      intro r hr
+      have hDr : 0 ≤ -contW ℓ E r := le_of_lt (by linarith [(hWfacts r hr).1])
+      have h1 : (deriv χ r) ^ 2 ≤ G0 := by
+        have := hGdec r hr; nlinarith [mul_nonneg hDr (sq_nonneg (χ r)), this]
+      rw [← Real.sqrt_sq_eq_abs]; exact Real.sqrt_le_sqrt h1
+    -- χ is Lipschitz on [r₀, ∞)
+    have hlip : ∀ x y, r₀ ≤ x → r₀ ≤ y → |χ x - χ y| ≤ Real.sqrt G0 * |x - y| := by
+      intro x y hx hy
+      have hbd := Convex.norm_image_sub_le_of_norm_hasDerivWithin_le
+        (f := χ) (f' := deriv χ) (s := Set.Ici r₀) (C := Real.sqrt G0)
+        (fun z hz => (hχ1 z (lt_of_lt_of_le hr₀pos hz)).hasDerivWithinAt)
+        (fun z hz => by rw [Real.norm_eq_abs]; exact hBnd z hz) (convex_Ici r₀)
+        (Set.mem_Ici.2 hy) (Set.mem_Ici.2 hx)
+      simp only [Real.norm_eq_abs] at hbd
+      exact hbd
+    -- χ → 0
+    have hχ0 : Filter.Tendsto χ Filter.atTop (𝓝 0) :=
+      l2_tendsto_zero (Real.sqrt_nonneg G0) hlip (hL2.mono_set (Set.Ioi_subset_Ioi (le_of_lt hr₀pos)))
+    -- χ² → 0
+    have hχ0sq : Filter.Tendsto (fun r => (χ r) ^ 2) Filter.atTop (𝓝 0) := by
+      have h := hχ0.mul hχ0
+      simpa [← pow_two] using h
+    -- pick r₂ ≥ r₀ with χ² < K/4 beyond it
+    obtain ⟨r₂, hr₂⟩ := Filter.eventually_atTop.1
+      ((hχ0sq.eventually (eventually_lt_nhds (show (0 : ℝ) < K / 4 by positivity))).and
+        (eventually_ge_atTop r₀))
+    have hr₂r₀ : r₀ ≤ r₂ := (hr₂ r₂ le_rfl).2
+    have hr₂pos : 0 < r₂ := lt_of_lt_of_le hr₀pos hr₂r₀
+    -- derivative of χ·χ'
+    have hχχ'd : ∀ s, 0 < s →
+        HasDerivAt (fun t => χ t * deriv χ t) ((deriv χ s) ^ 2 + contW ℓ E s * (χ s) ^ 2) s := by
+      intro s hs
+      convert (hχ1 s hs).mul (hχ2 s hs) using 1
+      rw [← hodeW s hs]; ring
+    -- pointwise lower bound (K/2)/s ≤ (χχ')'
+    have hptw : ∀ s, r₂ ≤ s → (K / 2) * (1 / s) ≤ (deriv χ s) ^ 2 + contW ℓ E s * (χ s) ^ 2 := by
+      intro s hs
+      have hsr₀ : r₀ ≤ s := le_trans hr₂r₀ hs
+      have hgl := hGlb s hsr₀
+      have hsmall : (χ s) ^ 2 < K / 4 := (hr₂ s hs).1
+      have hWs := hWfacts s hsr₀
+      have hDs : 0 < -contW ℓ E s := by linarith [hWs.1]
+      have heq : (deriv χ s) ^ 2 + contW ℓ E s * (χ s) ^ 2
+          = ((deriv χ s) ^ 2 - contW ℓ E s * (χ s) ^ 2) - 2 * ((-contW ℓ E s) * (χ s) ^ 2) := by
+        ring
+      rw [heq]
+      have hp1 : (-contW ℓ E s) * (K / 2) ≤ (-contW ℓ E s) * (K - 2 * (χ s) ^ 2) :=
+        mul_le_mul_of_nonneg_left (by linarith) (le_of_lt hDs)
+      have hp2 : (1 / s) * (K / 2) ≤ (-contW ℓ E s) * (K / 2) :=
+        mul_le_mul_of_nonneg_right hWs.2 (by linarith)
+      nlinarith [hgl, hp1, hp2]
+    -- χ·χ' → +∞
+    have hχχ'top : Filter.Tendsto (fun T => χ T * deriv χ T) Filter.atTop Filter.atTop := by
+      have hlow : ∀ T, r₂ ≤ T →
+          χ r₂ * deriv χ r₂ + (K / 2) * Real.log (T / r₂) ≤ χ T * deriv χ T := by
+        intro T hT
+        have hsub : Set.uIcc r₂ T ⊆ Set.Ioi 0 := by
+          rw [Set.uIcc_of_le hT]; exact fun z hz => lt_of_lt_of_le hr₂pos hz.1
+        have hd : ContinuousOn (deriv χ) (Set.uIcc r₂ T) :=
+          fun z hz => (hχ2 z (hsub hz)).continuousAt.continuousWithinAt
+        have hc : ContinuousOn χ (Set.uIcc r₂ T) :=
+          fun z hz => (hχ1 z (hsub hz)).continuousAt.continuousWithinAt
+        have hw : ContinuousOn (contW ℓ E) (Set.uIcc r₂ T) :=
+          fun z hz => (contW_hasDerivAt ℓ E (hsub hz)).continuousAt.continuousWithinAt
+        have hcont : ContinuousOn (fun s => (deriv χ s) ^ 2 + contW ℓ E s * (χ s) ^ 2)
+            (Set.uIcc r₂ T) := (hd.pow 2).add (hw.mul (hc.pow 2))
+        have hftc := intervalIntegral.integral_eq_sub_of_hasDerivAt
+          (fun s hs => hχχ'd s (hsub hs)) hcont.intervalIntegrable
+        have hmono : (K / 2) * Real.log (T / r₂)
+            ≤ ∫ s in r₂..T, ((deriv χ s) ^ 2 + contW ℓ E s * (χ s) ^ 2) := by
+          have h0notin : (0 : ℝ) ∉ Set.uIcc r₂ T := fun h => by
+            have := hsub h; rw [Set.mem_Ioi] at this; exact lt_irrefl 0 this
+          have hone : ∫ s in r₂..T, (K / 2) * (1 / s) = (K / 2) * Real.log (T / r₂) := by
+            rw [intervalIntegral.integral_const_mul, integral_one_div h0notin]
+          have hci : IntervalIntegrable (fun s => (K / 2) * (1 / s)) volume r₂ T :=
+            (continuousOn_const.mul (continuousOn_const.div continuousOn_id
+              (fun z hz => ne_of_gt (hsub hz)))).intervalIntegrable
+          rw [← hone]
+          refine intervalIntegral.integral_mono_on hT hci hcont.intervalIntegrable (fun s hs => ?_)
+          exact hptw s hs.1
+        linarith [hftc, hmono]
+      have htendlog : Filter.Tendsto (fun T => χ r₂ * deriv χ r₂ + (K / 2) * Real.log (T / r₂))
+          Filter.atTop Filter.atTop := by
+        apply Filter.tendsto_atTop_add_const_left
+        apply Filter.Tendsto.const_mul_atTop (by positivity)
+        exact Real.tendsto_log_atTop.comp (Filter.tendsto_id.atTop_div_const hr₂pos)
+      exact Filter.tendsto_atTop_mono' _ (Filter.eventually_atTop.2 ⟨r₂, hlow⟩) htendlog
+    -- χ·χ' → 0
+    have hχχ'zero : Filter.Tendsto (fun T => χ T * deriv χ T) Filter.atTop (𝓝 0) := by
+      have hb : ∀ᶠ T in Filter.atTop, ‖χ T * deriv χ T‖ ≤ Real.sqrt G0 * |χ T| := by
+        filter_upwards [eventually_ge_atTop r₀] with T hT
+        rw [Real.norm_eq_abs, abs_mul]
+        calc |χ T| * |deriv χ T| ≤ |χ T| * Real.sqrt G0 :=
+              mul_le_mul_of_nonneg_left (hBnd T hT) (abs_nonneg _)
+          _ = Real.sqrt G0 * |χ T| := mul_comm _ _
+      have hg : Filter.Tendsto (fun T => Real.sqrt G0 * |χ T|) Filter.atTop (𝓝 0) := by
+        have hax : Filter.Tendsto (fun T => |χ T|) Filter.atTop (𝓝 0) := by
+          simpa using hχ0.abs
+        simpa using hax.const_mul (Real.sqrt G0)
+      exact squeeze_zero_norm' hb hg
+    exact (not_tendsto_atTop_of_tendsto_nhds hχχ'zero) hχχ'top
+  -- Step 2: extend to (0, ∞) via Cauchy-data uniqueness at R+1
+  set r₁ := (ℓ : ℝ) * ((ℓ : ℝ) + 1) + 2 with hr₁def
+  have hr₁pos : 0 < r₁ := by rw [hr₁def]; positivity
+  have hr₁ev : χ =ᶠ[𝓝 r₁] 0 := by
+    filter_upwards [Ioi_mem_nhds (show (ℓ : ℝ) * ((ℓ : ℝ) + 1) + 1 < r₁ by rw [hr₁def]; linarith)]
+      with x hx
+    exact hRzero x (le_of_lt hx)
+  have h0 : χ r₁ = 0 := hr₁ev.eq_of_nhds
+  have h0' : deriv χ r₁ = 0 := by
+    rw [hr₁ev.deriv_eq]; simp
+  exact cont_cauchy_zero ℓ E χ hχ1 hχ2 hode hr₁pos h0 h0'
 
 /-! ## Quantization -/
 
@@ -1170,13 +2258,12 @@ theorem reduced_radial_continuum (ℓ : ℕ) (E : ℝ) (hE : 0 ≤ E) (χ : ℝ 
     (from `radial_wavefunction_norm`), solves the equation (`radial_eigenvalue_eq`),
     and is regular at `0` — `r·R_{nℓ}(r)` is continuous with value `0` at `r = 0`.
 
-    **`→` (a solution exists ⟹ E = Eₙ): reduced to a documented analytic gap.**
+    **`→` (a solution exists ⟹ E = Eₙ): proved.**
     Set `κ = √(−2E) > 0` and pass to the reduced wavefunction `χ = r·ψ`, which by
-    `reduced_ode` solves `χ'' = (ℓ(ℓ+1)/r² − 2/r + κ²)χ`. The remaining content —
-    that an L² such `χ` forces `κ = 1/m` with `m ∈ ℕ`, `m ≥ ℓ+1` — is
-    `reduced_radial_L2_quantized`, whose proof needs confluent-hypergeometric
-    asymptotics not yet in Mathlib (see its docstring). Then `E = Eₘ` by
-    `energy_eq_of_kappa`. -/
+    `reduced_ode` solves `χ'' = (ℓ(ℓ+1)/r² − 2/r + κ²)χ`. That an L² such `χ` forces
+    `κ = 1/m` with `m ∈ ℕ`, `m ≥ ℓ+1` is `reduced_radial_L2_quantized` (proved via the
+    confluent-hypergeometric machinery of `Spectra.Kummer`; see its docstring). Then
+    `E = Eₘ` by `energy_eq_of_kappa`. -/
 theorem radial_quantization (ℓ : ℕ) (E : ℝ) (hE : E < 0) :
     (∃ (ψ : ℝ → ℝ),
         (∃ r₀, 0 < r₀ ∧ ψ r₀ ≠ 0) ∧ RadialL2 ψ ∧
@@ -1238,10 +2325,11 @@ theorem radial_quantization (ℓ : ℕ) (E : ℝ) (hE : E < 0) :
     `0` on `(0,∞)`. (As in `radial_quantization`, the `C²` hypotheses are needed
     for the `deriv`-based `radialHamiltonian` to express a genuine classical ODE.)
 
-    **Reduction.** Passing to `χ = r·ψ` via `reduced_ode`, the claim is
-    `reduced_radial_continuum`: the solutions are oscillatory Coulomb waves
-    (`E > 0`) or Bessel-type (`E = 0`), bounded but not `L²`. That non-existence
-    of `L²` oscillatory solutions is the documented analytic gap. -/
+    **Reduction (proved).** Passing to `χ = r·ψ` via `reduced_ode`, the claim is
+    `reduced_radial_continuum`: with `W = ℓ(ℓ+1)/r² − 2/r − 2E → −2E ≤ 0`, the energy
+    `χ'² − Wχ²` controls the solution and an elementary Grönwall/monotonicity argument
+    forces any `L²` solution to vanish (no decaying solution exists in the oscillatory
+    regime) — see `reduced_radial_continuum`. -/
 theorem radial_continuum (ℓ : ℕ) (E : ℝ) (hE : 0 ≤ E) :
     ∀ ψ : ℝ → ℝ,
       (∀ r, 0 < r → HasDerivAt ψ (deriv ψ r) r) →
@@ -1270,31 +2358,713 @@ theorem radial_continuum (ℓ : ℕ) (E : ℝ) (hE : 0 ≤ E) :
   have hrψ : r * ψ r = 0 := h0 r hr
   exact (mul_eq_zero.1 hrψ).resolve_left (ne_of_gt hr)
 
+/-! ## One-dimensionality of the radial eigenspace (analytic core) -/
+
+/-! ## Laguerre at-∞ two-sided asymptotic bound -/
+
+/-- Coefficient of `x^k` in `laguerrePolynomial p α`. -/
+private noncomputable def lagCoeff (p : ℕ) (α : ℝ) (k : ℕ) : ℝ :=
+  (-1 : ℝ) ^ k * realBinom (p + α) (p - k) / (k.factorial : ℝ)
+
+private lemma laguerre_eq_sum_coeff (p : ℕ) (α : ℝ) (x : ℝ) :
+    laguerrePolynomial p α x = ∑ k ∈ Finset.range (p + 1), lagCoeff p α k * x ^ k := by
+  rw [laguerrePolynomial]
+  refine Finset.sum_congr rfl (fun k _ => ?_)
+  rw [lagCoeff]; ring
+
+private lemma lagCoeff_leading (p : ℕ) (α : ℝ) :
+    lagCoeff p α p = (-1 : ℝ) ^ p / (p.factorial : ℝ) := by
+  rw [lagCoeff, Nat.sub_self, realBinom_zero, mul_one]
+
+/-- Two-sided asymptotic: `(|cL|/2)·x^p ≤ |L_p^α(x)| ≤ (|cL|+M)·x^p` for `x` large,
+where `cL = (-1)^p/p!` is the leading coefficient. -/
+private lemma laguerre_asymptotic (p : ℕ) (α : ℝ) :
+    ∃ x₀ c C : ℝ, 1 ≤ x₀ ∧ 0 < c ∧ 0 < C ∧
+      ∀ x, x₀ ≤ x → c * x ^ p ≤ |laguerrePolynomial p α x| ∧ |laguerrePolynomial p α x| ≤ C * x ^ p := by
+  set cL := (-1 : ℝ) ^ p / (p.factorial : ℝ) with hcL
+  have hcLpos : 0 < |cL| := by
+    rw [hcL, abs_div, abs_pow, abs_neg, abs_one, one_pow]
+    positivity
+  set M := ∑ k ∈ Finset.range p, |lagCoeff p α k| with hM
+  have hMnn : 0 ≤ M := Finset.sum_nonneg (fun k _ => abs_nonneg _)
+  -- decomposition into tail + leading term
+  have hrw : ∀ x : ℝ, laguerrePolynomial p α x
+      = (∑ k ∈ Finset.range p, lagCoeff p α k * x ^ k) + cL * x ^ p := by
+    intro x
+    rw [laguerre_eq_sum_coeff, Finset.sum_range_succ, lagCoeff_leading]
+  -- tail bound
+  have htail : ∀ x : ℝ, 1 ≤ x →
+      |∑ k ∈ Finset.range p, lagCoeff p α k * x ^ k| ≤ M * x ^ (p - 1) := by
+    intro x hx
+    have hx0 : (0:ℝ) ≤ x := le_trans zero_le_one hx
+    calc |∑ k ∈ Finset.range p, lagCoeff p α k * x ^ k|
+        ≤ ∑ k ∈ Finset.range p, |lagCoeff p α k * x ^ k| := Finset.abs_sum_le_sum_abs _ _
+      _ = ∑ k ∈ Finset.range p, |lagCoeff p α k| * x ^ k := by
+          refine Finset.sum_congr rfl (fun k _ => ?_)
+          rw [abs_mul, abs_of_nonneg (pow_nonneg hx0 k)]
+      _ ≤ ∑ k ∈ Finset.range p, |lagCoeff p α k| * x ^ (p - 1) := by
+          refine Finset.sum_le_sum (fun k hk => ?_)
+          have hkp : k ≤ p - 1 := by
+            rw [Finset.mem_range] at hk; omega
+          exact mul_le_mul_of_nonneg_left (pow_le_pow_right₀ hx hkp) (abs_nonneg _)
+      _ = M * x ^ (p - 1) := by rw [hM, Finset.sum_mul]
+  refine ⟨max 1 (2 * M / |cL|), |cL| / 2, |cL| + M, le_max_left _ _, by positivity,
+    by positivity, fun x hx => ?_⟩
+  have hx1 : 1 ≤ x := le_trans (le_max_left _ _) hx
+  have hx0 : (0:ℝ) ≤ x := le_trans zero_le_one hx1
+  have hx2M : 2 * M / |cL| ≤ x := le_trans (le_max_right _ _) hx
+  have hpowmono : x ^ (p - 1) ≤ x ^ p := pow_le_pow_right₀ hx1 (Nat.sub_le p 1)
+  have htx := htail x hx1
+  have hL := hrw x
+  have hkey : M * x ^ (p - 1) ≤ (|cL| / 2) * x ^ p := by
+    rcases Nat.eq_zero_or_pos p with hp | hp
+    · subst hp
+      have hM0 : M = 0 := by rw [hM]; simp
+      rw [hM0, zero_mul]; positivity
+    · have hxp : x ^ p = x ^ (p - 1) * x := by rw [← pow_succ]; congr 1; omega
+      rw [hxp]
+      have hMx : M ≤ |cL| / 2 * x := by
+        rw [div_le_iff₀ hcLpos] at hx2M
+        nlinarith [hx2M, hcLpos]
+      nlinarith [hMx, pow_nonneg hx0 (p - 1), hMnn]
+  constructor
+  · -- lower bound
+    have htri := abs_add_le (laguerrePolynomial p α x)
+      (-(∑ k ∈ Finset.range p, lagCoeff p α k * x ^ k))
+    rw [abs_neg, show laguerrePolynomial p α x +
+        -(∑ k ∈ Finset.range p, lagCoeff p α k * x ^ k) = cL * x ^ p from by rw [hL]; ring,
+      abs_mul, abs_of_nonneg (pow_nonneg hx0 p)] at htri
+    nlinarith [htri, htx, hkey]
+  · -- upper bound
+    calc |laguerrePolynomial p α x|
+        = |(∑ k ∈ Finset.range p, lagCoeff p α k * x ^ k) + cL * x ^ p| := by rw [hL]
+      _ ≤ |∑ k ∈ Finset.range p, lagCoeff p α k * x ^ k| + |cL * x ^ p| := abs_add_le _ _
+      _ ≤ M * x ^ (p - 1) + |cL| * x ^ p := by
+          rw [abs_mul, abs_of_nonneg (pow_nonneg hx0 p)]; linarith [htx]
+      _ ≤ M * x ^ p + |cL| * x ^ p := by
+          have : M * x ^ (p - 1) ≤ M * x ^ p := mul_le_mul_of_nonneg_left hpowmono hMnn
+          linarith
+      _ = (|cL| + M) * x ^ p := by ring
+
+
+
+/-! ## χ_R = r·R_{nℓ} two-sided tail bound -/
+
+private lemma chiR_tail_bounds (n ℓ : ℕ) (hn : ℓ + 1 ≤ n) :
+    ∃ r₂ c C : ℝ, 0 < r₂ ∧ 0 < c ∧ 0 < C ∧ ∀ r, r₂ ≤ r →
+      c * (r ^ n * Real.exp (-r / n)) ≤ |r * hydrogenRadialWavefunction n ℓ hn r| ∧
+      |r * hydrogenRadialWavefunction n ℓ hn r| ≤ C * (r ^ n * Real.exp (-r / n)) ∧
+      r * hydrogenRadialWavefunction n ℓ hn r ≠ 0 := by
+  have hn0 : (0:ℝ) < n := by exact_mod_cast (by omega : 0 < n)
+  have hf1 : (0:ℝ) < ((n - ℓ - 1).factorial : ℝ) := by exact_mod_cast Nat.factorial_pos _
+  have hf2 : (0:ℝ) < ((n + ℓ).factorial : ℝ) := by exact_mod_cast Nat.factorial_pos _
+  have hNpos : 0 < radialNormalization n ℓ hn := by
+    rw [radialNormalization, Real.sqrt_pos]; positivity
+  obtain ⟨x₀, cl, Cl, hx₀1, hclpos, hClpos, hbnd⟩ :=
+    laguerre_asymptotic (n - ℓ - 1) (2 * (ℓ:ℝ) + 1)
+  set N := radialNormalization n ℓ hn with hNdef
+  set c : ℝ := N * cl * (2 / (n:ℝ)) ^ (n - 1) with hcdef
+  set C : ℝ := N * Cl * (2 / (n:ℝ)) ^ (n - 1) with hCdef
+  refine ⟨max 1 (n * x₀ / 2), c, C, lt_of_lt_of_le one_pos (le_max_left _ _),
+    by positivity, by positivity, fun r hr => ?_⟩
+  have hr1 : 1 ≤ r := le_trans (le_max_left _ _) hr
+  have hrpos : 0 < r := lt_of_lt_of_le one_pos hr1
+  have hge : n * x₀ / 2 ≤ r := le_trans (le_max_right _ _) hr
+  have h2rn : x₀ ≤ 2 * r / n := by
+    rw [le_div_iff₀ hn0]; nlinarith [hge, hn0]
+  obtain ⟨hLlb, hLub⟩ := hbnd (2 * r / n) h2rn
+  -- exponent bookkeeping
+  have hrn : r ^ n = r ^ (ℓ + 1) * r ^ (n - ℓ - 1) := by rw [← pow_add]; congr 1; omega
+  have hbn : ((2:ℝ) / n) ^ (n - 1) = (2 / n) ^ ℓ * (2 / n) ^ (n - ℓ - 1) := by
+    rw [← pow_add]; congr 1; omega
+  have h2rp : (2 * r / (n:ℝ)) ^ (n - ℓ - 1) = (2 / n) ^ (n - ℓ - 1) * r ^ (n - ℓ - 1) := by
+    rw [← mul_pow]; congr 1; ring
+  -- |χ_R r| = P * |L(2r/n)| with P > 0
+  set P : ℝ := N * (2 / (n:ℝ)) ^ ℓ * r ^ (ℓ + 1) * Real.exp (-r / n) with hPdef
+  have hPpos : 0 < P := by rw [hPdef]; positivity
+  have hχ_eq : r * hydrogenRadialWavefunction n ℓ hn r
+      = P * laguerrePolynomial (n - ℓ - 1) (2 * (ℓ:ℝ) + 1) (2 * r / n) := by
+    rw [hydrogenRadialWavefunction, hPdef,
+      show (2 * r / (n:ℝ)) ^ ℓ = (2 / n) ^ ℓ * r ^ ℓ from by rw [← mul_pow]; congr 1; ring]
+    ring
+  have hχ_abs : |r * hydrogenRadialWavefunction n ℓ hn r|
+      = P * |laguerrePolynomial (n - ℓ - 1) (2 * (ℓ:ℝ) + 1) (2 * r / n)| := by
+    rw [hχ_eq, abs_mul, abs_of_pos hPpos]
+  -- algebraic identities tying c,C to P
+  have hceq : c * (r ^ n * Real.exp (-r / n)) = P * (cl * (2 * r / n) ^ (n - ℓ - 1)) := by
+    rw [hcdef, hrn, hbn, h2rp, hPdef]; ring
+  have hCeq : C * (r ^ n * Real.exp (-r / n)) = P * (Cl * (2 * r / n) ^ (n - ℓ - 1)) := by
+    rw [hCdef, hrn, hbn, h2rp, hPdef]; ring
+  refine ⟨?_, ?_, ?_⟩
+  · rw [hχ_abs, hceq]
+    exact mul_le_mul_of_nonneg_left hLlb (le_of_lt hPpos)
+  · rw [hχ_abs, hCeq]
+    exact mul_le_mul_of_nonneg_left hLub (le_of_lt hPpos)
+  · have hposbound : 0 < c * (r ^ n * Real.exp (-r / n)) := by rw [hcdef]; positivity
+    rw [← abs_pos, hχ_abs]
+    calc (0:ℝ) < c * (r ^ n * Real.exp (-r / n)) := hposbound
+      _ = P * (cl * (2 * r / n) ^ (n - ℓ - 1)) := hceq
+      _ ≤ P * |laguerrePolynomial (n - ℓ - 1) (2 * (ℓ:ℝ) + 1) (2 * r / n)| :=
+          mul_le_mul_of_nonneg_left hLlb (le_of_lt hPpos)
+
+/-! ## χ_R as reference solution: Wronskian + forward identification -/
+
+/-- The reduced eigenfunction `χ_R = r·R_{nℓ}` as the reference regular solution. -/
+private noncomputable def chiR (n ℓ : ℕ) (hn : ℓ + 1 ≤ n) : ℝ → ℝ :=
+  fun s => s * hydrogenRadialWavefunction n ℓ hn s
+
+private lemma chiR_differentiable (n ℓ : ℕ) (hn : ℓ + 1 ≤ n) :
+    Differentiable ℝ (chiR n ℓ hn) := by
+  unfold chiR
+  exact differentiable_id.mul (differentiable_hydrogenRadial n ℓ hn)
+
+private lemma chiR_continuous (n ℓ : ℕ) (hn : ℓ + 1 ≤ n) : Continuous (chiR n ℓ hn) :=
+  (chiR_differentiable n ℓ hn).continuous
+
+private lemma chiR_deriv_eq (n ℓ : ℕ) (hn : ℓ + 1 ≤ n) :
+    deriv (chiR n ℓ hn) = fun s =>
+      hydrogenRadialWavefunction n ℓ hn s + s * deriv (hydrogenRadialWavefunction n ℓ hn) s := by
+  funext s
+  show deriv (fun t => t * hydrogenRadialWavefunction n ℓ hn t) s = _
+  exact deriv_reducedMul _ ((differentiable_hydrogenRadial n ℓ hn s).hasDerivAt)
+
+private lemma chiR_deriv_differentiable (n ℓ : ℕ) (hn : ℓ + 1 ≤ n) :
+    Differentiable ℝ (deriv (chiR n ℓ hn)) := by
+  rw [chiR_deriv_eq]
+  exact (differentiable_hydrogenRadial n ℓ hn).add
+    (differentiable_id.mul (differentiable_deriv_hydrogenRadial n ℓ hn))
+
+private lemma chiR_solves (n ℓ : ℕ) (hn : ℓ + 1 ≤ n) {r : ℝ} (hr : 0 < r) :
+    deriv^[2] (chiR n ℓ hn) r
+      = ((ℓ : ℝ) * ((ℓ : ℝ) + 1) / r ^ 2 - 2 / r + (1 / (n : ℝ)) ^ 2) * chiR n ℓ hn r := by
+  unfold chiR
+  exact reduced_eigenfunction_solves n ℓ hn hr
+
+private lemma wronskian_R_hasDerivAt_zero (n ℓ : ℕ) (hn : ℓ + 1 ≤ n) (χ : ℝ → ℝ)
+    (hχ1 : ∀ r, 0 < r → HasDerivAt χ (deriv χ r) r)
+    (hχ2 : ∀ r, 0 < r → HasDerivAt (deriv χ) (deriv^[2] χ r) r)
+    (hode : ∀ r, 0 < r → deriv^[2] χ r
+      = ((ℓ : ℝ) * ((ℓ : ℝ) + 1) / r ^ 2 - 2 / r + (1 / (n : ℝ)) ^ 2) * χ r)
+    {r : ℝ} (hr : 0 < r) :
+    HasDerivAt (fun s => χ s * deriv (chiR n ℓ hn) s - deriv χ s * chiR n ℓ hn s) 0 r := by
+  have hχd : HasDerivAt χ (deriv χ r) r := hχ1 r hr
+  have hχd2 : HasDerivAt (deriv χ) (deriv^[2] χ r) r := hχ2 r hr
+  have hφd : HasDerivAt (chiR n ℓ hn) (deriv (chiR n ℓ hn) r) r :=
+    (chiR_differentiable n ℓ hn r).hasDerivAt
+  have hφd2 : HasDerivAt (deriv (chiR n ℓ hn)) (deriv^[2] (chiR n ℓ hn) r) r :=
+    (chiR_deriv_differentiable n ℓ hn r).hasDerivAt
+  have h1 : HasDerivAt (fun s => χ s * deriv (chiR n ℓ hn) s)
+      (deriv χ r * deriv (chiR n ℓ hn) r + χ r * deriv^[2] (chiR n ℓ hn) r) r :=
+    hχd.mul hφd2
+  have h2 : HasDerivAt (fun s => deriv χ s * chiR n ℓ hn s)
+      (deriv^[2] χ r * chiR n ℓ hn r + deriv χ r * deriv (chiR n ℓ hn) r) r :=
+    hχd2.mul hφd
+  convert h1.sub h2 using 1
+  rw [hode r hr, chiR_solves n ℓ hn hr]
+  ring
+
+private lemma wronskian_R_const (n ℓ : ℕ) (hn : ℓ + 1 ≤ n) (χ : ℝ → ℝ)
+    (hχ1 : ∀ r, 0 < r → HasDerivAt χ (deriv χ r) r)
+    (hχ2 : ∀ r, 0 < r → HasDerivAt (deriv χ) (deriv^[2] χ r) r)
+    (hode : ∀ r, 0 < r → deriv^[2] χ r
+      = ((ℓ : ℝ) * ((ℓ : ℝ) + 1) / r ^ 2 - 2 / r + (1 / (n : ℝ)) ^ 2) * χ r)
+    {r₀ s : ℝ} (hr₀ : 0 < r₀) (hs : 0 < s) :
+    χ s * deriv (chiR n ℓ hn) s - deriv χ s * chiR n ℓ hn s
+      = χ r₀ * deriv (chiR n ℓ hn) r₀ - deriv χ r₀ * chiR n ℓ hn r₀ := by
+  set W : ℝ → ℝ := fun s => χ s * deriv (chiR n ℓ hn) s - deriv χ s * chiR n ℓ hn s with hWdef
+  have hb := Convex.norm_image_sub_le_of_norm_hasDerivWithin_le
+    (f := W) (f' := fun _ => (0 : ℝ)) (s := Set.Ioi 0) (C := 0)
+    (fun x hx => (wronskian_R_hasDerivAt_zero n ℓ hn χ hχ1 hχ2 hode hx).hasDerivWithinAt)
+    (fun x _ => by simp) (convex_Ioi 0) hr₀ (Set.mem_Ioi.2 hs)
+  simpa [hWdef, sub_eq_zero] using hb
+
+/-- Forward identification against the χ_R reference. -/
+private lemma forward_identification_R (n ℓ : ℕ) (hn : ℓ + 1 ≤ n) (χ : ℝ → ℝ)
+    (hχ1 : ∀ r, 0 < r → HasDerivAt χ (deriv χ r) r)
+    (hχ2 : ∀ r, 0 < r → HasDerivAt (deriv χ) (deriv^[2] χ r) r)
+    (hode : ∀ r, 0 < r → deriv^[2] χ r
+      = ((ℓ : ℝ) * ((ℓ : ℝ) + 1) / r ^ 2 - 2 / r + (1 / (n : ℝ)) ^ 2) * χ r)
+    (c₀ : ℝ) {r₁ : ℝ} (hr₁ : 0 < r₁)
+    (h0 : χ r₁ - c₀ * chiR n ℓ hn r₁ = 0)
+    (h0' : deriv χ r₁ - c₀ * deriv (chiR n ℓ hn) r₁ = 0) :
+    ∀ r, r₁ ≤ r → χ r = c₀ * chiR n ℓ hn r := by
+  intro r hr
+  set V : ℝ → ℝ := fun x => (ℓ : ℝ) * ((ℓ : ℝ) + 1) / x ^ 2 - 2 / x + (1 / (n : ℝ)) ^ 2 with hVdef
+  set u : ℝ → ℝ := fun s => χ s - c₀ * chiR n ℓ hn s with hudef
+  set du : ℝ → ℝ := fun s => deriv χ s - c₀ * deriv (chiR n ℓ hn) s with hdudef
+  set F : ℝ → ℝ × ℝ := fun t => (u t, du t) with hFdef
+  set M : ℝ := (ℓ : ℝ) * ((ℓ : ℝ) + 1) / r₁ ^ 2 + 2 / r₁ + (1 / (n : ℝ)) ^ 2 with hMdef
+  have hMnn : 0 ≤ M := by rw [hMdef]; positivity
+  set K : ℝ := M + 1 with hKdef
+  have hxpos : ∀ x ∈ Set.Icc r₁ r, 0 < x := fun x hx => lt_of_lt_of_le hr₁ hx.1
+  have hχcont : ContinuousOn χ (Set.Icc r₁ r) :=
+    fun x hx => (hχ1 x (hxpos x hx)).continuousAt.continuousWithinAt
+  have hdχcont : ContinuousOn (deriv χ) (Set.Icc r₁ r) :=
+    fun x hx => (hχ2 x (hxpos x hx)).continuousAt.continuousWithinAt
+  have hφcont : ContinuousOn (chiR n ℓ hn) (Set.Icc r₁ r) :=
+    (chiR_continuous n ℓ hn).continuousOn
+  have hdφcont : ContinuousOn (deriv (chiR n ℓ hn)) (Set.Icc r₁ r) :=
+    (chiR_deriv_differentiable n ℓ hn).continuous.continuousOn
+  have hcont : ContinuousOn F (Set.Icc r₁ r) :=
+    (hχcont.sub (continuousOn_const.mul hφcont)).prodMk
+      (hdχcont.sub (continuousOn_const.mul hdφcont))
+  have hderiv : ∀ x ∈ Set.Ico r₁ r, HasDerivWithinAt F (du x, V x * u x) (Set.Ici x) x := by
+    intro x hx
+    have hx0 : 0 < x := lt_of_lt_of_le hr₁ hx.1
+    have hud : HasDerivAt u (du x) x :=
+      (hχ1 x hx0).sub ((chiR_differentiable n ℓ hn x).hasDerivAt.const_mul c₀)
+    have hdud : HasDerivAt du (V x * u x) x := by
+      have hb := (hχ2 x hx0).sub
+        ((chiR_deriv_differentiable n ℓ hn x).hasDerivAt.const_mul c₀)
+      convert hb using 1
+      rw [show deriv (deriv (chiR n ℓ hn)) x = deriv^[2] (chiR n ℓ hn) x from rfl,
+        hode x hx0, chiR_solves n ℓ hn hx0]
+      simp only [hVdef, hudef]
+      ring
+    exact (hud.prodMk hdud).hasDerivWithinAt
+  have hinit : F r₁ = 0 := by
+    simp only [hFdef, hudef, hdudef, Prod.mk_eq_zero]
+    exact ⟨h0, h0'⟩
+  have hbound : ∀ x ∈ Set.Ico r₁ r, ‖(du x, V x * u x)‖ ≤ K * ‖F x‖ := by
+    intro x hx
+    have hx0 : 0 < x := lt_of_lt_of_le hr₁ hx.1
+    have hxr₁ : r₁ ≤ x := hx.1
+    have hVbound : |V x| ≤ M := by
+      have hb1 : 1 / x ^ 2 ≤ 1 / r₁ ^ 2 :=
+        one_div_le_one_div_of_le (by positivity) (by nlinarith [hxr₁, hr₁])
+      have hb2 : 1 / x ≤ 1 / r₁ := one_div_le_one_div_of_le hr₁ hxr₁
+      have hℓ : (0 : ℝ) ≤ (ℓ : ℝ) * ((ℓ : ℝ) + 1) := by positivity
+      have h1 : (ℓ : ℝ) * ((ℓ : ℝ) + 1) / x ^ 2 ≤ (ℓ : ℝ) * ((ℓ : ℝ) + 1) / r₁ ^ 2 := by
+        rw [div_eq_mul_one_div, div_eq_mul_one_div ((ℓ : ℝ) * ((ℓ : ℝ) + 1)) (r₁ ^ 2)]
+        exact mul_le_mul_of_nonneg_left hb1 hℓ
+      have h2 : (2 : ℝ) / x ≤ 2 / r₁ := by
+        rw [div_eq_mul_one_div, div_eq_mul_one_div (2 : ℝ) r₁]
+        exact mul_le_mul_of_nonneg_left hb2 (by norm_num)
+      have hx2nn : 0 ≤ (ℓ : ℝ) * ((ℓ : ℝ) + 1) / x ^ 2 := by positivity
+      have hr1nn : 0 ≤ (ℓ : ℝ) * ((ℓ : ℝ) + 1) / r₁ ^ 2 := by positivity
+      have h2xpos : 0 < (2 : ℝ) / x := by positivity
+      have h2r1pos : 0 < (2 : ℝ) / r₁ := by positivity
+      simp only [hVdef, hMdef]
+      rw [abs_le]
+      refine ⟨?_, ?_⟩
+      · linarith [h1, h2, hx2nn, hr1nn, h2xpos, h2r1pos, sq_nonneg (1 / (n : ℝ))]
+      · linarith [h1, h2, hx2nn, hr1nn, h2xpos, h2r1pos, sq_nonneg (1 / (n : ℝ))]
+    have hFnorm : ‖F x‖ = max |u x| |du x| := by
+      rw [hFdef]; simp only [Prod.norm_def, Real.norm_eq_abs]
+    have hF'norm : ‖(du x, V x * u x)‖ = max |du x| |V x * u x| := by
+      simp only [Prod.norm_def, Real.norm_eq_abs]
+    have hmax_nn : 0 ≤ max |u x| |du x| := le_trans (abs_nonneg _) (le_max_left _ _)
+    rw [hF'norm, hFnorm]
+    apply max_le
+    · calc |du x| ≤ max |u x| |du x| := le_max_right _ _
+        _ ≤ K * max |u x| |du x| := by rw [hKdef]; nlinarith [mul_nonneg hMnn hmax_nn]
+    · rw [abs_mul]
+      calc |V x| * |u x| ≤ M * |u x| := mul_le_mul_of_nonneg_right hVbound (abs_nonneg _)
+        _ ≤ M * max |u x| |du x| := mul_le_mul_of_nonneg_left (le_max_left _ _) hMnn
+        _ ≤ K * max |u x| |du x| := by rw [hKdef]; nlinarith [hmax_nn]
+  have hzero := eq_zero_of_abs_deriv_le_mul_abs_self_of_eq_zero_right hcont hderiv hinit hbound
+  have hFr : F r = 0 := hzero r (Set.right_mem_Icc.2 hr)
+  have hur : u r = 0 := by
+    have := congrArg Prod.fst hFr
+    simpa [hFdef] using this
+  rw [hudef] at hur
+  linarith
+
+/-! ## At-∞ reduction-of-order integral window -/
+
+/-- Reduction-of-order FTC identity against the χ_R reference (nonzero on the interval). -/
+private lemma reduction_order_ftc_R (n ℓ : ℕ) (hn : ℓ + 1 ≤ n) (χ : ℝ → ℝ)
+    (hχ1 : ∀ r, 0 < r → HasDerivAt χ (deriv χ r) r)
+    (hχ2 : ∀ r, 0 < r → HasDerivAt (deriv χ) (deriv^[2] χ r) r)
+    {d : ℝ} (W₀ : ℝ)
+    (hW₀ : ∀ s, 0 < s →
+      χ s * deriv (chiR n ℓ hn) s - deriv χ s * chiR n ℓ hn s = W₀)
+    {r : ℝ} (hr : 0 < r) (hrd : r < d)
+    (hne : ∀ x ∈ Set.uIcc r d, chiR n ℓ hn x ≠ 0) :
+    χ r - chiR n ℓ hn r * (χ d / chiR n ℓ hn d)
+      = W₀ * (chiR n ℓ hn r * ∫ s in r..d, 1 / (chiR n ℓ hn s) ^ 2) := by
+  have hrd' : r ≤ d := le_of_lt hrd
+  have hxpos : ∀ x ∈ Set.uIcc r d, 0 < x := by
+    intro x hx; rw [Set.uIcc_of_le hrd'] at hx; exact lt_of_lt_of_le hr hx.1
+  have hφrne : chiR n ℓ hn r ≠ 0 := hne r Set.left_mem_uIcc
+  have hφdne : chiR n ℓ hn d ≠ 0 := hne d Set.right_mem_uIcc
+  set rawf := fun x => (deriv χ x * chiR n ℓ hn x - χ x * deriv (chiR n ℓ hn) x) /
+    (chiR n ℓ hn x) ^ 2 with hrawf
+  have hderiv : ∀ x ∈ Set.uIcc r d, HasDerivAt (fun s => χ s / chiR n ℓ hn s) (rawf x) x := by
+    intro x hx
+    exact (hχ1 x (hxpos x hx)).div ((chiR_differentiable n ℓ hn x).hasDerivAt) (hne x hx)
+  have hint : IntervalIntegrable rawf volume r d := by
+    rw [hrawf]
+    have hχc : ContinuousOn χ (Set.uIcc r d) :=
+      fun x hx => (hχ1 x (hxpos x hx)).continuousAt.continuousWithinAt
+    have hdχc : ContinuousOn (deriv χ) (Set.uIcc r d) :=
+      fun x hx => (hχ2 x (hxpos x hx)).continuousAt.continuousWithinAt
+    have hφc : ContinuousOn (chiR n ℓ hn) (Set.uIcc r d) := (chiR_continuous n ℓ hn).continuousOn
+    have hdφc : ContinuousOn (deriv (chiR n ℓ hn)) (Set.uIcc r d) :=
+      (chiR_deriv_differentiable n ℓ hn).continuous.continuousOn
+    apply ContinuousOn.intervalIntegrable
+    apply ContinuousOn.div ((hdχc.mul hφc).sub (hχc.mul hdφc)) ((hφc.pow 2))
+    intro x hx
+    exact pow_ne_zero 2 (hne x hx)
+  have hFTC : ∫ s in r..d, rawf s = χ d / chiR n ℓ hn d - χ r / chiR n ℓ hn r :=
+    intervalIntegral.integral_eq_sub_of_hasDerivAt hderiv hint
+  have hcongr : Set.EqOn rawf (fun s => -W₀ * (1 / (chiR n ℓ hn s) ^ 2)) (Set.uIcc r d) := by
+    intro s hs
+    have hnum : deriv χ s * chiR n ℓ hn s - χ s * deriv (chiR n ℓ hn) s = -W₀ := by
+      have := hW₀ s (hxpos s hs); linarith
+    rw [hrawf]; simp only; rw [hnum]; ring
+  have hΦ : ∫ s in r..d, rawf s = -W₀ * ∫ s in r..d, 1 / (chiR n ℓ hn s) ^ 2 := by
+    rw [intervalIntegral.integral_congr hcongr, intervalIntegral.integral_const_mul]
+  rw [hΦ] at hFTC
+  have key : χ r - chiR n ℓ hn r * (χ d / chiR n ℓ hn d)
+      = chiR n ℓ hn r * (χ r / chiR n ℓ hn r - χ d / chiR n ℓ hn d) := by field_simp
+  rw [key, show χ r / chiR n ℓ hn r - χ d / chiR n ℓ hn d
+    = W₀ * ∫ s in r..d, 1 / (chiR n ℓ hn s) ^ 2 from by linarith [hFTC]]
+  ring
+
+/-- Integral window lower bound: `∫_{r₂}^d 1/χ_R² ≥ 1/(C·dⁿ·e^{-(d-1)/n})²`. -/
+private lemma chiR_int_window (n ℓ : ℕ) (hn : ℓ + 1 ≤ n) {r₂ C : ℝ} (hCpos : 0 < C)
+    (hub : ∀ s, r₂ ≤ s → |chiR n ℓ hn s| ≤ C * (s ^ n * Real.exp (-s / n)))
+    (hne : ∀ s, r₂ ≤ s → chiR n ℓ hn s ≠ 0)
+    (hr₂pos : 0 < r₂) {d : ℝ} (hd : r₂ + 1 ≤ d) :
+    1 / (C * d ^ n * Real.exp (-(d - 1) / n)) ^ 2 ≤ ∫ s in r₂..d, 1 / (chiR n ℓ hn s) ^ 2 := by
+  have hn0 : (0:ℝ) < n := by exact_mod_cast (by omega : 0 < n)
+  have hdpos : 0 < d := by linarith
+  have hd1 : r₂ ≤ d - 1 := by linarith
+  have hd1d : d - 1 ≤ d := by linarith
+  have hr₂d : r₂ ≤ d := le_trans hd1 hd1d
+  set f := fun s => 1 / (chiR n ℓ hn s) ^ 2 with hf
+  have hfnn : ∀ s, 0 ≤ f s := fun s => by rw [hf]; positivity
+  have hcont : ContinuousOn f (Set.uIcc r₂ d) := by
+    rw [hf]
+    apply ContinuousOn.div continuousOn_const ((chiR_continuous n ℓ hn).pow 2).continuousOn
+    intro s hs
+    rw [Set.uIcc_of_le hr₂d] at hs
+    exact pow_ne_zero 2 (hne s hs.1)
+  have hsub1 : Set.uIcc r₂ (d - 1) ⊆ Set.uIcc r₂ d :=
+    Set.uIcc_subset_uIcc Set.left_mem_uIcc (by rw [Set.uIcc_of_le hr₂d]; exact ⟨hd1, hd1d⟩)
+  have hsub2 : Set.uIcc (d - 1) d ⊆ Set.uIcc r₂ d :=
+    Set.uIcc_subset_uIcc (by rw [Set.uIcc_of_le hr₂d]; exact ⟨hd1, hd1d⟩) Set.right_mem_uIcc
+  have hii1 : IntervalIntegrable f volume r₂ (d - 1) := (hcont.mono hsub1).intervalIntegrable
+  have hii2 : IntervalIntegrable f volume (d - 1) d := (hcont.mono hsub2).intervalIntegrable
+  have hsplit : (∫ s in r₂..(d - 1), f s) + ∫ s in (d - 1)..d, f s = ∫ s in r₂..d, f s :=
+    intervalIntegral.integral_add_adjacent_intervals hii1 hii2
+  have hhead : 0 ≤ ∫ s in r₂..(d - 1), f s :=
+    intervalIntegral.integral_nonneg hd1 (fun s _ => hfnn s)
+  set B := C * d ^ n * Real.exp (-(d - 1) / n) with hBdef
+  have hBpos : 0 < B := by rw [hBdef]; positivity
+  have hptwise : ∀ s ∈ Set.Icc (d - 1) d, 1 / B ^ 2 ≤ f s := by
+    intro s hs
+    have hsr₂ : r₂ ≤ s := le_trans hd1 hs.1
+    have hs0 : 0 < s := lt_of_lt_of_le hr₂pos hsr₂
+    have hub_s : |chiR n ℓ hn s| ≤ B := by
+      refine le_trans (hub s hsr₂) ?_
+      rw [hBdef]
+      have hsn : s ^ n ≤ d ^ n := pow_le_pow_left₀ (le_of_lt hs0) hs.2 n
+      have hexp : Real.exp (-s / n) ≤ Real.exp (-(d - 1) / n) :=
+        Real.exp_le_exp.mpr (by rw [div_le_div_iff_of_pos_right hn0]; linarith [hs.1])
+      have hprod : s ^ n * Real.exp (-s / n) ≤ d ^ n * Real.exp (-(d - 1) / n) :=
+        mul_le_mul hsn hexp (Real.exp_pos _).le (by positivity)
+      calc C * (s ^ n * Real.exp (-s / n)) ≤ C * (d ^ n * Real.exp (-(d - 1) / n)) :=
+            mul_le_mul_of_nonneg_left hprod hCpos.le
+        _ = C * d ^ n * Real.exp (-(d - 1) / n) := by ring
+    have hchiR2 : (chiR n ℓ hn s) ^ 2 ≤ B ^ 2 := by
+      rw [← sq_abs (chiR n ℓ hn s)]
+      exact pow_le_pow_left₀ (abs_nonneg _) hub_s 2
+    have hchiRpos : 0 < (chiR n ℓ hn s) ^ 2 :=
+      lt_of_le_of_ne (sq_nonneg _) (Ne.symm (pow_ne_zero 2 (hne s hsr₂)))
+    rw [hf]
+    exact one_div_le_one_div_of_le hchiRpos hchiR2
+  have hintc : 1 / B ^ 2 ≤ ∫ s in (d - 1)..d, f s := by
+    have hmono := intervalIntegral.integral_mono_on hd1d intervalIntegrable_const hii2 hptwise
+    rw [intervalIntegral.integral_const, smul_eq_mul, show d - (d - 1) = 1 from by ring,
+      one_mul] at hmono
+    exact hmono
+  calc 1 / B ^ 2 ≤ ∫ s in (d - 1)..d, f s := hintc
+    _ ≤ (∫ s in r₂..(d - 1), f s) + ∫ s in (d - 1)..d, f s := by linarith [hhead]
+    _ = ∫ s in r₂..d, f s := hsplit
+
+/-- **The Wronskian of any L² solution with the eigenfunction vanishes.** At the
+eigenvalue `Eₙ`, square-integrability forces the Wronskian of `χ` with `χ_R` to be `0`,
+since otherwise reduction of order makes `|χ|` bounded below at infinity (`χ ∉ L²`). -/
+private lemma wronskian_R_zero_of_L2 (n ℓ : ℕ) (hn : ℓ + 1 ≤ n) (χ : ℝ → ℝ)
+    (hχ1 : ∀ r, 0 < r → HasDerivAt χ (deriv χ r) r)
+    (hχ2 : ∀ r, 0 < r → HasDerivAt (deriv χ) (deriv^[2] χ r) r)
+    (hode : ∀ r, 0 < r → deriv^[2] χ r
+      = ((ℓ : ℝ) * ((ℓ : ℝ) + 1) / r ^ 2 - 2 / r + (1 / (n : ℝ)) ^ 2) * χ r)
+    (hL2 : IntegrableOn (fun r => χ r ^ 2) (Set.Ioi 0)) :
+    ∀ s, 0 < s → χ s * deriv (chiR n ℓ hn) s - deriv χ s * chiR n ℓ hn s = 0 := by
+  obtain ⟨r₂, c, C, hr₂pos, hcpos, hCpos, hbnds⟩ := chiR_tail_bounds n ℓ hn
+  have hub : ∀ s, r₂ ≤ s → |chiR n ℓ hn s| ≤ C * (s ^ n * Real.exp (-s / n)) :=
+    fun s hs => (hbnds s hs).2.1
+  have hne : ∀ s, r₂ ≤ s → chiR n ℓ hn s ≠ 0 := fun s hs => (hbnds s hs).2.2
+  have hLB : ∀ r, r₂ ≤ r → c * (r ^ n * Real.exp (-r / n)) ≤ |chiR n ℓ hn r| :=
+    fun r hr => (hbnds r hr).1
+  set W₀ := χ r₂ * deriv (chiR n ℓ hn) r₂ - deriv χ r₂ * chiR n ℓ hn r₂ with hW₀def
+  have hWconst : ∀ s, 0 < s →
+      χ s * deriv (chiR n ℓ hn) s - deriv χ s * chiR n ℓ hn s = W₀ :=
+    fun s hs => wronskian_R_const n ℓ hn χ hχ1 hχ2 hode hr₂pos hs
+  suffices hW₀ : W₀ = 0 by intro s hs; rw [hWconst s hs]; exact hW₀
+  by_contra hW₀ne
+  have hW₀pos : 0 < |W₀| := abs_pos.mpr hW₀ne
+  have hχr₂ne : chiR n ℓ hn r₂ ≠ 0 := hne r₂ le_rfl
+  set c₂ := χ r₂ / chiR n ℓ hn r₂ with hc₂def
+  set K := c * (Real.exp (-1 / (n : ℝ)) / C) ^ 2 with hKdef
+  have hKpos : 0 < K := by rw [hKdef]; positivity
+  set A := |W₀| * K / 2 with hAdef
+  have hApos : 0 < A := by rw [hAdef]; exact div_pos (mul_pos hW₀pos hKpos) two_pos
+  have h2A : |W₀| * K = 2 * A := by rw [hAdef]; ring
+  -- base(d) := dⁿ e^{-d/n} → 0
+  have hbase0 : Filter.Tendsto (fun d => d ^ n * Real.exp (-d / n)) Filter.atTop (nhds 0) :=
+    tendsto_pow_mul_exp_neg_div n n (by omega)
+  have hbsq0 : Filter.Tendsto (fun d => |c₂| * C * (d ^ n * Real.exp (-d / n)) ^ 2)
+      Filter.atTop (nhds 0) := by
+    have h2 : Filter.Tendsto (fun d => (d ^ n * Real.exp (-d / n)) ^ 2)
+        Filter.atTop (nhds 0) := by simpa using hbase0.pow 2
+    simpa using h2.const_mul (|c₂| * C)
+  have hev_sq : ∀ᶠ d in Filter.atTop, |c₂| * C * (d ^ n * Real.exp (-d / n)) ^ 2 < A := by
+    filter_upwards [hbsq0.eventually (Iio_mem_nhds hApos)] with d hd using hd
+  have hev_le : ∀ᶠ d in Filter.atTop, d ^ n * Real.exp (-d / n) < 1 := by
+    filter_upwards [hbase0.eventually (Iio_mem_nhds one_pos)] with d hd using hd
+  obtain ⟨R₀, hR₀⟩ := (hev_sq.and hev_le).exists_forall_of_atTop
+  -- the eventual lower bound on |χ|
+  have hlb : ∀ d, max (r₂ + 1) R₀ ≤ d → A ≤ |χ d| := by
+    intro d hd_ge
+    have hd1 : r₂ + 1 ≤ d := le_trans (le_max_left _ _) hd_ge
+    have hdR₀ : R₀ ≤ d := le_trans (le_max_right _ _) hd_ge
+    obtain ⟨hsqd, hled⟩ := hR₀ d hdR₀
+    have hr₂d : r₂ < d := by linarith
+    have hdpos : 0 < d := by linarith
+    have hbasenn : (0:ℝ) ≤ d ^ n * Real.exp (-d / n) := by positivity
+    have hbasepos : (0:ℝ) < d ^ n * Real.exp (-d / n) := by positivity
+    have hχdne : chiR n ℓ hn d ≠ 0 := hne d (by linarith)
+    have hne_d : ∀ x ∈ Set.uIcc r₂ d, chiR n ℓ hn x ≠ 0 := by
+      intro x hx; rw [Set.uIcc_of_le (le_of_lt hr₂d)] at hx; exact hne x hx.1
+    have hftc := reduction_order_ftc_R n ℓ hn χ hχ1 hχ2 W₀ hWconst hr₂pos hr₂d hne_d
+    set I := ∫ s in r₂..d, 1 / (chiR n ℓ hn s) ^ 2 with hIdef
+    have hInn : 0 ≤ I := by
+      rw [hIdef]
+      exact intervalIntegral.integral_nonneg (le_of_lt hr₂d) (fun s _ => by positivity)
+    have hwin : 1 / (C * d ^ n * Real.exp (-(d - 1) / n)) ^ 2 ≤ I :=
+      chiR_int_window n ℓ hn hCpos hub hne hr₂pos hd1
+    -- χ d = chiR d · (c₂ − W₀ I)
+    have hq : χ d / chiR n ℓ hn d
+        = (χ r₂ - W₀ * (chiR n ℓ hn r₂ * I)) / chiR n ℓ hn r₂ := by
+      rw [eq_div_iff hχr₂ne]; linear_combination -hftc
+    have hχd_eq : χ d = chiR n ℓ hn d * (c₂ - W₀ * I) := by
+      have hexpr : (χ r₂ - W₀ * (chiR n ℓ hn r₂ * I)) / chiR n ℓ hn r₂ = c₂ - W₀ * I := by
+        rw [hc₂def]; field_simp
+      have hχd : χ d = (χ r₂ - W₀ * (chiR n ℓ hn r₂ * I)) / chiR n ℓ hn r₂ * chiR n ℓ hn d := by
+        rw [← hq, div_mul_cancel₀ _ hχdne]
+      rw [hχd, hexpr]; ring
+    have habs : |χ d| = |chiR n ℓ hn d| * |c₂ - W₀ * I| := by rw [hχd_eq, abs_mul]
+    have hbr : |W₀| * I - |c₂| ≤ |c₂ - W₀ * I| := by
+      have h1 := abs_sub_abs_le_abs_sub (W₀ * I) c₂
+      rw [abs_mul W₀ I, abs_of_nonneg hInn, abs_sub_comm (W₀ * I) c₂] at h1
+      exact h1
+    have hmain : |chiR n ℓ hn d| * (|W₀| * I - |c₂|) ≤ |χ d| := by
+      rw [habs]; exact mul_le_mul_of_nonneg_left hbr (abs_nonneg _)
+    -- key constant identity: base·(c·base)·(1/B²) = K
+    have hbB : (d ^ n * Real.exp (-d / n)) / (C * d ^ n * Real.exp (-(d - 1) / n))
+        = Real.exp (-1 / (n : ℝ)) / C := by
+      rw [div_eq_div_iff (show (0:ℝ) < C * d ^ n * Real.exp (-(d - 1) / n) by positivity).ne'
+          hCpos.ne',
+        show Real.exp (-1 / (n : ℝ)) * (C * d ^ n * Real.exp (-(d - 1) / n))
+          = C * d ^ n * (Real.exp (-1 / (n : ℝ)) * Real.exp (-(d - 1) / n)) from by ring,
+        ← Real.exp_add,
+        show (-1 / (n : ℝ)) + -(d - 1) / n = -d / n from by ring]
+      ring
+    have hKeq : (d ^ n * Real.exp (-d / n)) *
+        ((c * (d ^ n * Real.exp (-d / n))) *
+          (1 / (C * d ^ n * Real.exp (-(d - 1) / n)) ^ 2)) = K := by
+      have h1 : (d ^ n * Real.exp (-d / n)) *
+          ((c * (d ^ n * Real.exp (-d / n))) *
+            (1 / (C * d ^ n * Real.exp (-(d - 1) / n)) ^ 2))
+          = c * ((d ^ n * Real.exp (-d / n)) / (C * d ^ n * Real.exp (-(d - 1) / n))) ^ 2 := by
+        rw [div_pow]; ring
+      rw [h1, hbB, hKdef]
+    -- assemble: base·|χ d| ≥ |W₀|K − |c₂|C base²
+    have hLBd : c * (d ^ n * Real.exp (-d / n)) ≤ |chiR n ℓ hn d| := hLB d (by linarith)
+    have hubd : |chiR n ℓ hn d| ≤ C * (d ^ n * Real.exp (-d / n)) := hub d (by linarith)
+    have hKlb : K ≤ (d ^ n * Real.exp (-d / n)) * (|chiR n ℓ hn d| * I) := by
+      have step1 : (c * (d ^ n * Real.exp (-d / n))) *
+          (1 / (C * d ^ n * Real.exp (-(d - 1) / n)) ^ 2) ≤ |chiR n ℓ hn d| * I :=
+        mul_le_mul hLBd hwin (by positivity) (abs_nonneg _)
+      calc K = (d ^ n * Real.exp (-d / n)) *
+              ((c * (d ^ n * Real.exp (-d / n))) *
+                (1 / (C * d ^ n * Real.exp (-(d - 1) / n)) ^ 2)) := hKeq.symm
+        _ ≤ (d ^ n * Real.exp (-d / n)) * (|chiR n ℓ hn d| * I) :=
+            mul_le_mul_of_nonneg_left step1 hbasenn
+    have hUb : (d ^ n * Real.exp (-d / n)) * |chiR n ℓ hn d|
+        ≤ C * (d ^ n * Real.exp (-d / n)) ^ 2 := by
+      calc (d ^ n * Real.exp (-d / n)) * |chiR n ℓ hn d|
+          ≤ (d ^ n * Real.exp (-d / n)) * (C * (d ^ n * Real.exp (-d / n))) :=
+            mul_le_mul_of_nonneg_left hubd hbasenn
+        _ = C * (d ^ n * Real.exp (-d / n)) ^ 2 := by ring
+    have hbχ : (d ^ n * Real.exp (-d / n)) * (|chiR n ℓ hn d| * (|W₀| * I - |c₂|))
+        ≤ (d ^ n * Real.exp (-d / n)) * |χ d| := mul_le_mul_of_nonneg_left hmain hbasenn
+    have e1 : (d ^ n * Real.exp (-d / n)) * (|chiR n ℓ hn d| * (|W₀| * I - |c₂|))
+        = |W₀| * ((d ^ n * Real.exp (-d / n)) * (|chiR n ℓ hn d| * I))
+          - |c₂| * ((d ^ n * Real.exp (-d / n)) * |chiR n ℓ hn d|) := by ring
+    have p1 : |W₀| * K ≤ |W₀| * ((d ^ n * Real.exp (-d / n)) * (|chiR n ℓ hn d| * I)) :=
+      mul_le_mul_of_nonneg_left hKlb (abs_nonneg _)
+    have p2 : |c₂| * ((d ^ n * Real.exp (-d / n)) * |chiR n ℓ hn d|)
+        ≤ |c₂| * (C * (d ^ n * Real.exp (-d / n)) ^ 2) :=
+      mul_le_mul_of_nonneg_left hUb (abs_nonneg _)
+    have hsqd' : |c₂| * (C * (d ^ n * Real.exp (-d / n)) ^ 2) < A := by
+      have : |c₂| * (C * (d ^ n * Real.exp (-d / n)) ^ 2)
+          = |c₂| * C * (d ^ n * Real.exp (-d / n)) ^ 2 := by ring
+      rw [this]; exact hsqd
+    have hAlt : A < (d ^ n * Real.exp (-d / n)) * |χ d| := by
+      have hchain : (d ^ n * Real.exp (-d / n)) * |χ d|
+          ≥ |W₀| * K - |c₂| * (C * (d ^ n * Real.exp (-d / n)) ^ 2) := by
+        calc (d ^ n * Real.exp (-d / n)) * |χ d|
+            ≥ (d ^ n * Real.exp (-d / n)) * (|chiR n ℓ hn d| * (|W₀| * I - |c₂|)) := hbχ
+          _ = |W₀| * ((d ^ n * Real.exp (-d / n)) * (|chiR n ℓ hn d| * I))
+                - |c₂| * ((d ^ n * Real.exp (-d / n)) * |chiR n ℓ hn d|) := e1
+          _ ≥ |W₀| * K - |c₂| * (C * (d ^ n * Real.exp (-d / n)) ^ 2) := by linarith [p1, p2]
+      linarith [hchain, hsqd', h2A]
+    -- finish: |χ d| ≥ base·|χ d| > A
+    have hle : (d ^ n * Real.exp (-d / n)) * |χ d| ≤ |χ d| := by
+      calc (d ^ n * Real.exp (-d / n)) * |χ d| ≤ 1 * |χ d| :=
+            mul_le_mul_of_nonneg_right (le_of_lt hled) (abs_nonneg _)
+        _ = |χ d| := one_mul _
+    linarith [hAlt, hle]
+  exact not_radialL2_of_eventually_ge χ hApos hlb hL2
+
+
 /-! ## Completeness of discrete eigenfunctions -/
 
-/-- **[Analytic gap — one-dimensionality of the radial eigenspace.]**
+/-- **One-dimensionality of the radial eigenspace at `Eₙ`.**
 
-    Every `C²` square-integrable bound state at the eigenvalue `Eₙ` is a scalar
-    multiple of `R_{nℓ}`. Equivalently, the eigenspace of `H_ℓ` at `Eₙ` is
-    (at most) one-dimensional.
+    Every `C²` square-integrable solution `ψ` of the radial equation at the
+    eigenvalue `Eₙ` is a scalar multiple of `R_{nℓ}`: the eigenspace of `H_ℓ` at
+    `Eₙ` is (at most) one-dimensional.
 
-    **Intended proof (reusing what is already formalised).** The weighted
-    Wronskian `W(r) = r²(ψ R' − ψ' R)` is constant on `(0,∞)` (Abel; this is the
-    `hZderiv` computation inside `radial_eigenfunction_unique`). Square-integrability
-    forces `W ≡ 0`: the second solution of the radial ODE at `Eₙ` is irregular at
-    `0` (`∼ r^{−ℓ−1}`) and grows at `∞` (`∼ e^{+r/n}`), so a nonzero Wronskian would
-    make `ψ` non-`L²`. With `W = 0` at one point, `radial_eigenfunction_unique`
-    propagates `ψ R' = ψ' R` to all of `(0,∞)`, and dividing by `R²` (where `R ≠ 0`)
-    gives `ψ = c·R`. The remaining analytic input — `W ≡ 0` from L², i.e. excluding
-    the irregular/growing solution — is the same decay-selection asymptotics as
-    `reduced_radial_L2_quantized` and is not yet available in Mathlib. -/
+    **Proof.** Pass to the reduced wavefunction `χ = r·ψ`, which solves the
+    Schrödinger-form equation `χ'' = (ℓ(ℓ+1)/r² − 2/r + (1/n)²)·χ` (`reduced_ode`),
+    and to the reference eigenfunction `χ_R = r·R_{nℓ}`
+    (`reduced_eigenfunction_solves`). Their Wronskian `χ χ_R' − χ' χ_R` is constant
+    (`wronskian_R_const`). Square-integrability forces it to vanish
+    (`wronskian_R_zero_of_L2`): the terminating Kummer/Laguerre factor of `R_{nℓ}`
+    makes `|χ_R| ≍ rⁿ e^{−r/n}` at infinity (`chiR_tail_bounds`, from the
+    leading-term asymptotics `laguerre_asymptotic`), so a nonzero Wronskian would,
+    by reduction of order (`reduction_order_ftc_R`, `chiR_int_window`), make `|χ|`
+    bounded below by a positive constant at infinity — contradicting `L²`
+    (`not_radialL2_of_eventually_ge`). With the Wronskian zero, linear-ODE
+    uniqueness (`forward_identification_R`, Grönwall) propagates `χ = c·χ_R` from a
+    base point near `0` (where `χ_R ≠ 0`, via `radial_boundary_r_zero`) to all of
+    `(0,∞)`, whence `ψ = c·R_{nℓ}`. -/
 theorem bound_state_eq_smul_eigenfunction (n ℓ : ℕ) (hn : ℓ + 1 ≤ n) (ψ : ℝ → ℝ)
     (hL2 : RadialL2 ψ)
     (hψ1 : ∀ r, 0 < r → HasDerivAt ψ (deriv ψ r) r)
     (hψ2 : ∀ r, 0 < r → HasDerivAt (deriv ψ) (deriv^[2] ψ r) r)
     (heq : ∀ r, 0 < r → radialHamiltonian ℓ ψ r = hydrogenEigenvalue n (by omega) * ψ r) :
     ∃ c : ℝ, ∀ r, 0 < r → ψ r = c * hydrogenRadialWavefunction n ℓ hn r := by
-  sorry
+  set χ : ℝ → ℝ := fun s => s * ψ s with hχdef
+  have hχ1 : ∀ r, 0 < r → HasDerivAt χ (deriv χ r) r := by
+    intro r hr; rw [hχdef, deriv_reducedMul ψ (hψ1 r hr)]; exact hasDerivAt_reducedMul ψ (hψ1 r hr)
+  have hχ2 : ∀ r, 0 < r → HasDerivAt (deriv χ) (deriv^[2] χ r) r := by
+    intro r hr; rw [hχdef, deriv2_reducedMul ψ hψ1 hψ2 hr]
+    exact hasDerivAt_deriv_reducedMul ψ hψ1 hψ2 hr
+  have hode : ∀ r, 0 < r → deriv^[2] χ r
+      = ((ℓ : ℝ) * ((ℓ : ℝ) + 1) / r ^ 2 - 2 / r + (1 / (n : ℝ)) ^ 2) * χ r := by
+    intro r hr
+    have hn0 : (n : ℝ) ≠ 0 := Nat.cast_ne_zero.mpr (by omega)
+    have hEn : ((ℓ : ℝ) * ((ℓ : ℝ) + 1) / r ^ 2 - 2 / r + (1 / (n : ℝ)) ^ 2)
+        = ((ℓ : ℝ) * ((ℓ : ℝ) + 1) / r ^ 2 - 2 / r - 2 * hydrogenEigenvalue n (by omega)) := by
+      rw [hydrogenEigenvalue]; field_simp; ring
+    rw [hEn, show deriv^[2] χ r = deriv^[2] (fun s => s * ψ s) r from rfl,
+      reduced_ode ℓ (hydrogenEigenvalue n (by omega)) ψ hψ1 hψ2 heq hr]
+  have hχL2 : IntegrableOn (fun r => χ r ^ 2) (Set.Ioi 0) := reduced_integrableOn_sq ψ hL2
+  have hWzero := wronskian_R_zero_of_L2 n ℓ hn χ hχ1 hχ2 hode hχL2
+  -- a global nonzero point of R_{nℓ}
+  obtain ⟨rs, hrspos, hRrs⟩ : ∃ rs, 0 < rs ∧ hydrogenRadialWavefunction n ℓ hn rs ≠ 0 := by
+    by_contra hcon
+    have hz : ∀ r, 0 < r → hydrogenRadialWavefunction n ℓ hn r = 0 :=
+      fun r hr => not_not.1 (fun h => hcon ⟨r, hr, h⟩)
+    have hnorm := radial_wavefunction_norm n ℓ hn
+    rw [setIntegral_congr_fun measurableSet_Ioi (g := fun _ => (0 : ℝ))
+      (fun r hr => by rw [hz r hr]; ring)] at hnorm
+    simp at hnorm
+  -- χ_R = r·R_{nℓ} is nonzero near 0
+  have hnear0 : ∃ δ, 0 < δ ∧ ∀ s, 0 < s → s < δ → chiR n ℓ hn s ≠ 0 := by
+    have hNpos : 0 < radialNormalization n ℓ hn := by
+      rw [radialNormalization, Real.sqrt_pos]
+      have h1 : (0:ℝ) < ((n - ℓ - 1).factorial : ℝ) := by exact_mod_cast Nat.factorial_pos _
+      have h2 : (0:ℝ) < ((n + ℓ).factorial : ℝ) := by exact_mod_cast Nat.factorial_pos _
+      have h3 : (0:ℝ) < n := by exact_mod_cast (by omega : 0 < n)
+      positivity
+    have h3 : (0:ℝ) < n := by exact_mod_cast (by omega : 0 < n)
+    have hL0 : 0 < laguerrePolynomial (n - ℓ - 1) (2 * ℓ + 1 : ℝ) 0 := by
+      have hval : laguerrePolynomial (n - ℓ - 1) (2 * ℓ + 1 : ℝ) 0
+          = realBinom (((n - ℓ - 1 : ℕ) : ℝ) + (2 * ℓ + 1)) (n - ℓ - 1) := by
+        rw [laguerrePolynomial, Finset.sum_eq_single 0]
+        · simp
+        · intro k _ hk; rw [zero_pow hk]; ring
+        · intro h; exact absurd (Finset.mem_range.mpr (Nat.succ_pos _)) h
+      rw [hval, realBinom]
+      apply div_pos
+      · apply Finset.prod_pos
+        intro i hi
+        rw [Finset.mem_range] at hi
+        have hi' : (i : ℝ) < ((n - ℓ - 1 : ℕ) : ℝ) := by exact_mod_cast hi
+        have h21 : (0:ℝ) < 2 * (ℓ : ℝ) + 1 := by positivity
+        linarith [hi', h21]
+      · exact_mod_cast Nat.factorial_pos _
+    have hlimpos : 0 < radialNormalization n ℓ hn * (2 / (n : ℝ)) ^ ℓ *
+        laguerrePolynomial (n - ℓ - 1) (2 * ℓ + 1) 0 := by positivity
+    have hbd := radial_boundary_r_zero n ℓ hn
+    have hev := hbd.eventually (lt_mem_nhds hlimpos)
+    rw [eventually_nhdsWithin_iff, Metric.eventually_nhds_iff] at hev
+    obtain ⟨δ, hδpos, hδ⟩ := hev
+    refine ⟨δ, hδpos, fun s hs0 hsδ => ?_⟩
+    have hdist : dist s (0:ℝ) < δ := by rw [Real.dist_eq, sub_zero, abs_of_pos hs0]; exact hsδ
+    have hpos : 0 < hydrogenReducedWavefunction n ℓ hn s / s ^ (ℓ + 1) :=
+      hδ hdist (Set.mem_Ioi.mpr hs0)
+    have hsp : (0:ℝ) < s ^ (ℓ + 1) := by positivity
+    have hval : 0 < hydrogenReducedWavefunction n ℓ hn s := by
+      have hm := mul_pos hpos hsp
+      rwa [div_mul_cancel₀ _ (ne_of_gt hsp)] at hm
+    show chiR n ℓ hn s ≠ 0
+    rw [show chiR n ℓ hn s = hydrogenReducedWavefunction n ℓ hn s from rfl]
+    exact ne_of_gt hval
+  obtain ⟨δ, hδpos, hδne⟩ := hnear0
+  set c₀ := ψ rs / hydrogenRadialWavefunction n ℓ hn rs with hc₀def
+  have hchiRrs : chiR n ℓ hn rs ≠ 0 := by
+    rw [show chiR n ℓ hn rs = rs * hydrogenRadialWavefunction n ℓ hn rs from rfl]
+    exact mul_ne_zero (ne_of_gt hrspos) hRrs
+  have hc₀eq : χ rs / chiR n ℓ hn rs = c₀ := by
+    show (rs * ψ rs) / (rs * hydrogenRadialWavefunction n ℓ hn rs)
+      = ψ rs / hydrogenRadialWavefunction n ℓ hn rs
+    rw [mul_div_mul_left _ _ (ne_of_gt hrspos)]
+  -- global identification χ = c₀·χ_R
+  have hident : ∀ r, 0 < r → χ r = c₀ * chiR n ℓ hn r := by
+    intro r hr
+    set rmin := min (min r rs) (δ / 2) with hrmindef
+    have hrminpos : 0 < rmin := lt_min (lt_min hr hrspos) (by linarith)
+    have hrmin_r : rmin ≤ r := le_trans (min_le_left _ _) (min_le_left _ _)
+    have hrmin_rs : rmin ≤ rs := le_trans (min_le_left _ _) (min_le_right _ _)
+    have hrmin_δ : rmin < δ := lt_of_le_of_lt (min_le_right _ _) (by linarith)
+    have hchiRmin : chiR n ℓ hn rmin ≠ 0 := hδne rmin hrminpos hrmin_δ
+    set d₀ := χ rmin / chiR n ℓ hn rmin with hd₀def
+    have h0 : χ rmin - d₀ * chiR n ℓ hn rmin = 0 := by
+      rw [hd₀def, div_mul_cancel₀ _ hchiRmin, sub_self]
+    have h0' : deriv χ rmin - d₀ * deriv (chiR n ℓ hn) rmin = 0 := by
+      have hW := hWzero rmin hrminpos
+      rw [hd₀def]; field_simp; linarith [hW]
+    have hfwd := forward_identification_R n ℓ hn χ hχ1 hχ2 hode d₀ hrminpos h0 h0'
+    have hd₀c₀ : d₀ = c₀ := by
+      rw [← hc₀eq, eq_div_iff hchiRrs]; exact (hfwd rs hrmin_rs).symm
+    rw [← hd₀c₀]; exact hfwd r hrmin_r
+  -- conclude ψ = c₀·R
+  refine ⟨c₀, fun r hr => ?_⟩
+  have h := hident r hr
+  rw [show χ r = r * ψ r from rfl,
+    show chiR n ℓ hn r = r * hydrogenRadialWavefunction n ℓ hn r from rfl] at h
+  have hrne : r ≠ 0 := ne_of_gt hr
+  have h2 : r * ψ r = r * (c₀ * hydrogenRadialWavefunction n ℓ hn r) := by rw [h]; ring
+  exact mul_left_cancel₀ hrne h2
 
 /-- **Completeness of {R_{nℓ}}_{n ≥ ℓ+1} in the discrete subspace.**
 
@@ -1310,10 +3080,10 @@ theorem bound_state_eq_smul_eigenfunction (n ℓ : ℕ) (hn : ℓ + 1 ≤ n) (ψ
     Concretely, if `ψ ≡ 0` on `(0,∞)` the empty sum works; otherwise
     `radial_quantization` gives `E = Eₙ` for some `n ≥ ℓ+1`, and
     `bound_state_eq_smul_eigenfunction` gives `ψ = c·R_{nℓ}`, so a *single* term
-    `c·R_{nℓ}` makes the error integral exactly `0`. The proof is therefore
-    complete modulo the two documented analytic gaps it invokes
-    (`reduced_radial_L2_quantized`, via `radial_quantization`, and
-    `bound_state_eq_smul_eigenfunction`). The unrestricted statement — approximating
+    `c·R_{nℓ}` makes the error integral exactly `0`. The quantization input
+    (`reduced_radial_L2_quantized`, via `radial_quantization`) is now proved; the proof
+    is therefore complete modulo the single remaining gap it invokes,
+    `bound_state_eq_smul_eigenfunction`. The unrestricted statement — approximating
     an *arbitrary* `L²` function, where the differing scales `e^{−r/n}` of the
     `R_{nℓ}` matter — would instead need the self-adjoint spectral decomposition. -/
 theorem radial_completeness (ℓ : ℕ) :
