@@ -651,6 +651,43 @@ noncomputable def chartRealization :
     simp only [Function.comp_apply, id_eq] at h1 h3 h4 ⊢
     rw [h1, h3]; exact h4)
 
+/-- The forward unitary acts a.e. as precomposition with the spherical chart. -/
+lemma chartRealization_coeFn (g : Spectra.Sobolev.L2_R3) :
+    ⇑(chartRealization g) =ᵐ[radialMeasure.prod sphereMeasure]
+      fun p : ℝ × ℝ × ℝ => g (sphereChart p.1 p.2.1 p.2.2) :=
+  MeasureTheory.Lp.coeFn_compMeasurePreserving g measurePreserving_sphereChart
+
+/-- The inverse unitary acts a.e. as precomposition with the (a.e.) inverse chart. -/
+lemma chartRealization_symm_coeFn
+    (h : Spectra.QuantumMechanics.Hydrogen.Decomposition.L2_R3) :
+    ⇑(chartRealization.symm h) =ᵐ[volume] fun x : Spectra.Sobolev.R3 => h (sphereChartInv x) := by
+  have hfwd : chartRealization (MeasureTheory.Lp.compMeasurePreservingₗᵢ (𝕜 := ℂ) (E := ℂ)
+      sphereChartInv measurePreserving_sphereChartInv h) = h := by
+    have key : chartRealization (MeasureTheory.Lp.compMeasurePreservingₗᵢ (𝕜 := ℂ) (E := ℂ)
+        sphereChartInv measurePreserving_sphereChartInv h)
+        = MeasureTheory.Lp.compMeasurePreserving
+            (fun p : ℝ × ℝ × ℝ => sphereChart p.1 p.2.1 p.2.2) measurePreserving_sphereChart
+            (MeasureTheory.Lp.compMeasurePreserving sphereChartInv measurePreserving_sphereChartInv h) :=
+      rfl
+    rw [key]
+    refine Lp.ext ?_
+    have e1 := MeasureTheory.Lp.coeFn_compMeasurePreserving
+      (MeasureTheory.Lp.compMeasurePreserving sphereChartInv measurePreserving_sphereChartInv h)
+      measurePreserving_sphereChart
+    have e2 := MeasureTheory.Lp.coeFn_compMeasurePreserving h measurePreserving_sphereChartInv
+    have e3 := measurePreserving_sphereChart.quasiMeasurePreserving.ae_eq_comp e2
+    have e4 := sphereChartInv_comp_ae.fun_comp (⇑h)
+    filter_upwards [e1, e3, e4] with p h1 h3 h4
+    simp only [Function.comp_apply, id_eq] at h1 h3 h4 ⊢
+    rw [h1, h3]; exact h4
+  have hΨ : chartRealization.symm h
+      = MeasureTheory.Lp.compMeasurePreservingₗᵢ (𝕜 := ℂ) (E := ℂ) sphereChartInv
+          measurePreserving_sphereChartInv h := by
+    apply chartRealization.injective
+    rw [chartRealization.apply_symm_apply, hfwd]
+  rw [hΨ]
+  exact MeasureTheory.Lp.coeFn_compMeasurePreserving h measurePreserving_sphereChartInv
+
 end
 
 end Spectra.QuantumMechanics.Hydrogen.Decomposition

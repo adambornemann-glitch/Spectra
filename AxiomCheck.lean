@@ -5,9 +5,9 @@ Authors: Adam Bornemann
 -/
 import Mathlib.Util.AssertNoSorry
 import Spectra
--- `Spectrum.Basic` is not (yet) in the root `Spectra` import (it still carries unrelated
--- radial-ODE `sorry` stubs); imported directly so the textbook eigenfunction equation can be gated.
-import Spectra.QuantumMechanics.Hydrogen.Spectrum.Basic
+-- The gated sector-reduction / eigenfunction-equation results below live in
+-- `Spectrum.Eigenvalue` (renamed from the former `Spectrum.Basic`), which is already
+-- part of the root `Spectra` import, so no extra direct import is needed here.
 
 /-!
 # Axiom gate — every headline result is `sorry`-free
@@ -123,6 +123,13 @@ assert_no_sorry Spectra.QuantumMechanics.Hydrogen.essSpectrum_laplacian
 
 assert_no_sorry QuantumMechanics.Hydrogen.Spectrum.hydrogen_reduces_half
 assert_no_sorry QuantumMechanics.Hydrogen.Spectrum.hydrogen_eigenfunction_eq
+
+-- `hydrogen_discrete_spectrum` (in `Spectrum.Discrete`, kept out of the root `Spectra`
+-- import) still carries a documented `sorry`: the remaining leaves are the
+-- `chartRealization` intertwining and `reduced_radial_L2_quantized` analytic gap. Uncomment
+-- the import and the gate below once that proof lands — it will then enforce sorry-freeness.
+-- import Spectra.QuantumMechanics.Hydrogen.Spectrum.Discrete
+-- assert_no_sorry QuantumMechanics.Hydrogen.Spectrum.hydrogen_discrete_spectrum
 
 /-! ## Quantum mechanics -/
 

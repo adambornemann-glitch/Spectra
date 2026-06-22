@@ -167,6 +167,7 @@ import Spectra.QuantumMechanics.Hydrogen.Laplacian.EssentialSpectrum
 import Spectra.QuantumMechanics.Hydrogen.Laplacian.HalfLaplacian
 import Spectra.QuantumMechanics.Hydrogen.Laplacian.SphereIntegral
 import Spectra.QuantumMechanics.Hydrogen.Laplacian.ChartRealization
+import Spectra.QuantumMechanics.Hydrogen.Laplacian.GreensIdentity
 import Spectra.QuantumMechanics.Hydrogen.Spectrum.Continuous.Defs
 import Spectra.QuantumMechanics.Hydrogen.Spectrum.Continuous.Compact
 --import Spectra.QuantumMechanics.Hydrogen.Spectrum.Continous.Basic
@@ -175,6 +176,7 @@ import Spectra.QuantumMechanics.Hydrogen.Spectrum.BohrFormula
 import Spectra.QuantumMechanics.Hydrogen.Spectrum.Degeneracy
 --import Spectra.QuantumMechanics.Hydrogen.Spectrum.Discrete
 import Spectra.QuantumMechanics.Hydrogen.Spectrum.Eigenvalue
+import Spectra.QuantumMechanics.Hydrogen.Spectrum.RadialEigenfunction
 import Spectra.QuantumMechanics.Hydrogen.Spectrum.Projections
 import Spectra.QuantumMechanics.Observable.Basic
 import Spectra.OneParameterUnitaryGroup.Basic

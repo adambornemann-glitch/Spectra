@@ -436,6 +436,200 @@ theorem radial_eigenvalue_eq (n : ℕ) (ℓ : ℕ) (hn : ℓ + 1 ≤ n) (r : ℝ
     push_cast
     ring
 
+/-! ## Exponentially-weighted decay of `R_{nℓ}` and its derivatives
+
+For the `H²`-regularity of the Cartesian eigenfunction `f(x) = c·R_{nℓ}(‖x‖)` one needs the
+radial profile *and its first two derivatives* to be `L²` against `r²dr`.  The clean way to get
+this is an **exponential decay with a buffer**: since `R_{nℓ}` and its derivatives are
+`(polynomial)·e^{−r/n}`, multiplying by `e^{εr}` for any `0 < ε < 1/n` still tends to `0` at
+`+∞`.  A bound `|R'(r)| ≤ C·e^{−εr}` then drops straight into the generic `exp ⟹ L²` pipeline.
+
+The proofs reduce, term by term, to the single-monomial decay `r^a·e^{−b r} → 0` (`b > 0`). -/
+
+/-- A monomial times a (strictly) decaying exponential tends to `0` at `+∞`. -/
+private lemma tendsto_pow_mul_exp_neg_mul (a : ℕ) {b : ℝ} (hb : 0 < b) :
+    Filter.Tendsto (fun r : ℝ => r ^ a * Real.exp (-b * r)) Filter.atTop (nhds 0) := by
+  refine (tendsto_rpow_mul_exp_neg_mul_atTop_nhds_zero (a : ℝ) b hb).congr' ?_
+  filter_upwards [eventually_gt_atTop (0 : ℝ)] with r _
+  rw [Real.rpow_natCast]
+
+/-- `r^a · e^{−b r} · L_p^β(s r) → 0` at infinity (a monomial × exp × Laguerre), for any
+    decay rate `b > 0` and scale `s`. -/
+private lemma tendsto_pow_mul_exp_laguerre_gen (p a : ℕ) (β s : ℝ) {b : ℝ} (hb : 0 < b) :
+    Filter.Tendsto (fun r : ℝ => r ^ a * Real.exp (-b * r) * laguerrePolynomial p β (s * r))
+      Filter.atTop (nhds 0) := by
+  have heq : (fun r : ℝ => r ^ a * Real.exp (-b * r) * laguerrePolynomial p β (s * r))
+      = fun r => ∑ k ∈ Finset.range (p + 1),
+          ((-1 : ℝ) ^ k * realBinom (p + β) (p - k) / (k.factorial : ℝ) * s ^ k)
+            * (r ^ (a + k) * Real.exp (-b * r)) := by
+    funext r
+    simp only [laguerrePolynomial, Finset.mul_sum]
+    refine Finset.sum_congr rfl (fun k _ => ?_)
+    ring
+  rw [heq, show (0 : ℝ) = ∑ _k ∈ Finset.range (p + 1), (0 : ℝ) from by simp]
+  refine tendsto_finsetSum _ (fun k _ => ?_)
+  simpa using (tendsto_pow_mul_exp_neg_mul (a + k) hb).const_mul _
+
+/-- `r^a · e^{−b r} · (L_p^β)'(s r) → 0` at infinity, for any decay rate `b > 0`. -/
+private lemma tendsto_pow_mul_exp_deriv_laguerre_gen (p a : ℕ) (β s : ℝ) {b : ℝ} (hb : 0 < b) :
+    Filter.Tendsto
+      (fun r : ℝ => r ^ a * Real.exp (-b * r) * deriv (laguerrePolynomial p β) (s * r))
+      Filter.atTop (nhds 0) := by
+  have heq : (fun r : ℝ => r ^ a * Real.exp (-b * r) * deriv (laguerrePolynomial p β) (s * r))
+      = fun r => ∑ k ∈ Finset.range (p + 1),
+          ((-1 : ℝ) ^ k * realBinom (p + β) (p - k) * (k : ℝ) / (k.factorial : ℝ) * s ^ (k - 1))
+            * (r ^ (a + (k - 1)) * Real.exp (-b * r)) := by
+    funext r
+    rw [deriv_laguerrePolynomial p β (s * r)]
+    simp only [Finset.mul_sum]
+    refine Finset.sum_congr rfl (fun k _ => ?_)
+    ring
+  rw [heq, show (0 : ℝ) = ∑ _k ∈ Finset.range (p + 1), (0 : ℝ) from by simp]
+  refine tendsto_finsetSum _ (fun k _ => ?_)
+  simpa using (tendsto_pow_mul_exp_neg_mul (a + (k - 1)) hb).const_mul _
+
+/-- `r^a · e^{−b r} · (L_p^β)''(s r) → 0` at infinity, for any decay rate `b > 0`. -/
+private lemma tendsto_pow_mul_exp_deriv2_laguerre_gen (p a : ℕ) (β s : ℝ) {b : ℝ} (hb : 0 < b) :
+    Filter.Tendsto
+      (fun r : ℝ => r ^ a * Real.exp (-b * r) * deriv^[2] (laguerrePolynomial p β) (s * r))
+      Filter.atTop (nhds 0) := by
+  have heq : (fun r : ℝ => r ^ a * Real.exp (-b * r) * deriv^[2] (laguerrePolynomial p β) (s * r))
+      = fun r => ∑ k ∈ Finset.range (p + 1),
+          ((-1 : ℝ) ^ k * realBinom (p + β) (p - k) * ((k : ℝ) * (k - 1 : ℝ)) /
+              (k.factorial : ℝ) * s ^ (k - 2))
+            * (r ^ (a + (k - 2)) * Real.exp (-b * r)) := by
+    funext r
+    rw [deriv2_laguerrePolynomial p β (s * r)]
+    simp only [Finset.mul_sum]
+    refine Finset.sum_congr rfl (fun k _ => ?_)
+    ring
+  rw [heq, show (0 : ℝ) = ∑ _k ∈ Finset.range (p + 1), (0 : ℝ) from by simp]
+  refine tendsto_finsetSum _ (fun k _ => ?_)
+  simpa using (tendsto_pow_mul_exp_neg_mul (a + (k - 2)) hb).const_mul _
+
+/-- Buffered Laguerre decay: `r^a · e^{−r/n} · L_p^β(2r/n) · e^{εr} → 0` for `ε < 1/n`. -/
+private lemma tendsto_pow_exp_laguerre_buffer (n p a : ℕ) (β : ℝ) {ε : ℝ} (_hn : 0 < n)
+    (hε : ε < 1 / (n : ℝ)) :
+    Filter.Tendsto (fun r : ℝ => r ^ a * Real.exp (-r / n) *
+        laguerrePolynomial p β (2 * r / n) * Real.exp (ε * r)) Filter.atTop (nhds 0) := by
+  have hb : (0 : ℝ) < 1 / (n : ℝ) - ε := by linarith
+  refine (tendsto_pow_mul_exp_laguerre_gen p a β (2 / (n : ℝ)) hb).congr (fun r => ?_)
+  rw [show (2 / (n : ℝ)) * r = 2 * r / n from by ring,
+    show Real.exp (-(1 / (n : ℝ) - ε) * r) = Real.exp (-r / n) * Real.exp (ε * r) from by
+      rw [← Real.exp_add]; congr 1; ring]
+  ring
+
+/-- Buffered Laguerre-derivative decay: `r^a · e^{−r/n} · (L_p^β)'(2r/n) · e^{εr} → 0`. -/
+private lemma tendsto_pow_exp_deriv_laguerre_buffer (n p a : ℕ) (β : ℝ) {ε : ℝ} (_hn : 0 < n)
+    (hε : ε < 1 / (n : ℝ)) :
+    Filter.Tendsto (fun r : ℝ => r ^ a * Real.exp (-r / n) *
+        deriv (laguerrePolynomial p β) (2 * r / n) * Real.exp (ε * r)) Filter.atTop (nhds 0) := by
+  have hb : (0 : ℝ) < 1 / (n : ℝ) - ε := by linarith
+  refine (tendsto_pow_mul_exp_deriv_laguerre_gen p a β (2 / (n : ℝ)) hb).congr (fun r => ?_)
+  rw [show (2 / (n : ℝ)) * r = 2 * r / n from by ring,
+    show Real.exp (-(1 / (n : ℝ) - ε) * r) = Real.exp (-r / n) * Real.exp (ε * r) from by
+      rw [← Real.exp_add]; congr 1; ring]
+  ring
+
+/-- Buffered Laguerre-second-derivative decay: `r^a · e^{−r/n} · (L_p^β)''(2r/n) · e^{εr} → 0`. -/
+private lemma tendsto_pow_exp_deriv2_laguerre_buffer (n p a : ℕ) (β : ℝ) {ε : ℝ} (_hn : 0 < n)
+    (hε : ε < 1 / (n : ℝ)) :
+    Filter.Tendsto (fun r : ℝ => r ^ a * Real.exp (-r / n) *
+        deriv^[2] (laguerrePolynomial p β) (2 * r / n) * Real.exp (ε * r))
+      Filter.atTop (nhds 0) := by
+  have hb : (0 : ℝ) < 1 / (n : ℝ) - ε := by linarith
+  refine (tendsto_pow_mul_exp_deriv2_laguerre_gen p a β (2 / (n : ℝ)) hb).congr (fun r => ?_)
+  rw [show (2 / (n : ℝ)) * r = 2 * r / n from by ring,
+    show Real.exp (-(1 / (n : ℝ) - ε) * r) = Real.exp (-r / n) * Real.exp (ε * r) from by
+      rw [← Real.exp_add]; congr 1; ring]
+  ring
+
+/-- **The radial wavefunction decays exponentially**: `R_{nℓ}(r) · e^{εr} → 0` for `ε < 1/n`. -/
+theorem tendsto_hydrogenRadial_mul_exp (n ℓ : ℕ) (hn : ℓ + 1 ≤ n) {ε : ℝ}
+    (hε : ε < 1 / (n : ℝ)) :
+    Filter.Tendsto (fun r : ℝ => hydrogenRadialWavefunction n ℓ hn r * Real.exp (ε * r))
+      Filter.atTop (nhds 0) := by
+  have hn' : 0 < n := by omega
+  have heq : (fun r : ℝ => hydrogenRadialWavefunction n ℓ hn r * Real.exp (ε * r))
+      = fun r => radialNormalization n ℓ hn * (2 / (n : ℝ)) ^ ℓ * (
+          r ^ ℓ * Real.exp (-r / n) *
+            laguerrePolynomial (n - ℓ - 1) (2 * ℓ + 1) (2 * r / n) * Real.exp (ε * r)) := by
+    funext r
+    rw [hydrogenRadial_eq_factored n ℓ hn]
+    ring
+  rw [heq]
+  simpa using (tendsto_pow_exp_laguerre_buffer n (n - ℓ - 1) ℓ (2 * ℓ + 1) hn' hε).const_mul
+    (radialNormalization n ℓ hn * (2 / (n : ℝ)) ^ ℓ)
+
+/-- **The radial wavefunction's first derivative decays exponentially**:
+    `R_{nℓ}'(r) · e^{εr} → 0` for `ε < 1/n`. -/
+theorem tendsto_deriv_hydrogenRadial_mul_exp (n ℓ : ℕ) (hn : ℓ + 1 ≤ n) {ε : ℝ}
+    (hε : ε < 1 / (n : ℝ)) :
+    Filter.Tendsto (fun r : ℝ => deriv (hydrogenRadialWavefunction n ℓ hn) r * Real.exp (ε * r))
+      Filter.atTop (nhds 0) := by
+  have hn' : 0 < n := by omega
+  have heq : (fun r : ℝ => deriv (hydrogenRadialWavefunction n ℓ hn) r * Real.exp (ε * r))
+      = fun r => radialNormalization n ℓ hn * (2 / (n : ℝ)) ^ ℓ * (
+          (ℓ : ℝ) * (r ^ (ℓ - 1) * Real.exp (-r / n) *
+            laguerrePolynomial (n - ℓ - 1) (2 * ℓ + 1) (2 * r / n) * Real.exp (ε * r))
+          + (-(1 / (n : ℝ))) * (r ^ ℓ * Real.exp (-r / n) *
+            laguerrePolynomial (n - ℓ - 1) (2 * ℓ + 1) (2 * r / n) * Real.exp (ε * r))
+          + (2 / (n : ℝ)) * (r ^ ℓ * Real.exp (-r / n) *
+            deriv (laguerrePolynomial (n - ℓ - 1) (2 * ℓ + 1)) (2 * r / n) * Real.exp (ε * r))) := by
+    funext r
+    rw [deriv_hydrogenRadial n ℓ hn]
+    ring
+  rw [heq]
+  have h1 := tendsto_pow_exp_laguerre_buffer n (n - ℓ - 1) (ℓ - 1) (2 * ℓ + 1) hn' hε
+  have h2 := tendsto_pow_exp_laguerre_buffer n (n - ℓ - 1) ℓ (2 * ℓ + 1) hn' hε
+  have h3 := tendsto_pow_exp_deriv_laguerre_buffer n (n - ℓ - 1) ℓ (2 * ℓ + 1) hn' hε
+  have hsum := ((h1.const_mul (ℓ : ℝ)).add (h2.const_mul (-(1 / (n : ℝ))))).add
+    (h3.const_mul (2 / (n : ℝ)))
+  simpa using hsum.const_mul (radialNormalization n ℓ hn * (2 / (n : ℝ)) ^ ℓ)
+
+/-- **The radial wavefunction's second derivative decays exponentially**:
+    `R_{nℓ}''(r) · e^{εr} → 0` for `ε < 1/n`. -/
+theorem tendsto_deriv2_hydrogenRadial_mul_exp (n ℓ : ℕ) (hn : ℓ + 1 ≤ n) {ε : ℝ}
+    (hε : ε < 1 / (n : ℝ)) :
+    Filter.Tendsto
+      (fun r : ℝ => deriv (deriv (hydrogenRadialWavefunction n ℓ hn)) r * Real.exp (ε * r))
+      Filter.atTop (nhds 0) := by
+  have hn' : 0 < n := by omega
+  have heq : (fun r : ℝ =>
+        deriv (deriv (hydrogenRadialWavefunction n ℓ hn)) r * Real.exp (ε * r))
+      = fun r => radialNormalization n ℓ hn * (2 / (n : ℝ)) ^ ℓ * (
+          (((((4 / (n : ℝ) ^ 2) * (r ^ ℓ * Real.exp (-r / n) *
+              deriv^[2] (laguerrePolynomial (n - ℓ - 1) (2 * ℓ + 1)) (2 * r / n) * Real.exp (ε * r))
+            + (4 * (ℓ : ℝ) / (n : ℝ)) * (r ^ (ℓ - 1) * Real.exp (-r / n) *
+              deriv (laguerrePolynomial (n - ℓ - 1) (2 * ℓ + 1)) (2 * r / n) * Real.exp (ε * r)))
+            + (-(4 / (n : ℝ) ^ 2)) * (r ^ ℓ * Real.exp (-r / n) *
+              deriv (laguerrePolynomial (n - ℓ - 1) (2 * ℓ + 1)) (2 * r / n) * Real.exp (ε * r)))
+            + ((ℓ : ℝ) * ((ℓ - 1 : ℕ) : ℝ)) * (r ^ (ℓ - 2) * Real.exp (-r / n) *
+              laguerrePolynomial (n - ℓ - 1) (2 * ℓ + 1) (2 * r / n) * Real.exp (ε * r)))
+            + (-(2 * (ℓ : ℝ) / (n : ℝ))) * (r ^ (ℓ - 1) * Real.exp (-r / n) *
+              laguerrePolynomial (n - ℓ - 1) (2 * ℓ + 1) (2 * r / n) * Real.exp (ε * r)))
+            + (1 / (n : ℝ) ^ 2) * (r ^ ℓ * Real.exp (-r / n) *
+              laguerrePolynomial (n - ℓ - 1) (2 * ℓ + 1) (2 * r / n) * Real.exp (ε * r))) := by
+    funext r
+    have hid : deriv (deriv (hydrogenRadialWavefunction n ℓ hn)) r
+        = deriv^[2] (hydrogenRadialWavefunction n ℓ hn) r := rfl
+    rw [hid, deriv2_hydrogenRadial n ℓ hn]
+    ring
+  rw [heq]
+  have h1 := tendsto_pow_exp_deriv2_laguerre_buffer n (n - ℓ - 1) ℓ (2 * ℓ + 1) hn' hε
+  have h2 := tendsto_pow_exp_deriv_laguerre_buffer n (n - ℓ - 1) (ℓ - 1) (2 * ℓ + 1) hn' hε
+  have h3 := tendsto_pow_exp_deriv_laguerre_buffer n (n - ℓ - 1) ℓ (2 * ℓ + 1) hn' hε
+  have h4 := tendsto_pow_exp_laguerre_buffer n (n - ℓ - 1) (ℓ - 2) (2 * ℓ + 1) hn' hε
+  have h5 := tendsto_pow_exp_laguerre_buffer n (n - ℓ - 1) (ℓ - 1) (2 * ℓ + 1) hn' hε
+  have h6 := tendsto_pow_exp_laguerre_buffer n (n - ℓ - 1) ℓ (2 * ℓ + 1) hn' hε
+  have hsum := (((((h1.const_mul (4 / (n : ℝ) ^ 2)).add
+    (h2.const_mul (4 * (ℓ : ℝ) / (n : ℝ)))).add
+    (h3.const_mul (-(4 / (n : ℝ) ^ 2)))).add
+    (h4.const_mul ((ℓ : ℝ) * ((ℓ - 1 : ℕ) : ℝ)))).add
+    (h5.const_mul (-(2 * (ℓ : ℝ) / (n : ℝ))))).add
+    (h6.const_mul (1 / (n : ℝ) ^ 2))
+  simpa using hsum.const_mul (radialNormalization n ℓ hn * (2 / (n : ℝ)) ^ ℓ)
+
 /-! ## Boundary conditions -/
 
 /-- **Regularity at r = 0**: χ_{nℓ}(r) ~ r^{ℓ+1} as r → 0.
@@ -820,11 +1014,14 @@ The quantization argument is cleanest for the *reduced* wavefunction `χ = r·ψ
 which obeys a Schrödinger-form equation with no first-derivative term:
 `χ''(r) = (ℓ(ℓ+1)/r² − 2/r − 2E)·χ(r)`.
 The lemmas below carry out the (fully mechanical) transform `ψ ↦ χ`, the
-`κ = √(−2E)` algebra, and the `κ ↔ Eₙ` dictionary. The single remaining analytic
-input — that square-integrability quantizes the decay rate — is isolated as the
-documented gap lemmas `reduced_radial_L2_quantized` and `reduced_radial_continuum`
-(see their docstrings for why this needs confluent-hypergeometric / Coulomb-wave
-asymptotics not yet available in Mathlib). -/
+`κ = √(−2E)` algebra, and the `κ ↔ Eₙ` dictionary. The analytic core — that
+square-integrability quantizes the decay rate — is `reduced_radial_L2_quantized`
+(and its `E ≥ 0` companion `reduced_radial_continuum`), both **proved sorry-free and
+axiom-clean** via the confluent-hypergeometric (`₁F₁`/Kummer) machinery of
+`Spectra.Kummer`: the regular-at-`0` Kummer solution grows like `r^{ℓ+1}` at infinity
+unless its parameter terminates (`kummerRadial_growth`), and a Wronskian /
+reduction-of-order estimate plus Grönwall uniqueness pin every regular `L²` solution to
+it (see their docstrings). There is no remaining analytic gap in the radial problem. -/
 
 /-- First derivative of `χ = r·ψ`, valid at every `r`. -/
 private lemma hasDerivAt_reducedMul (ψ : ℝ → ℝ) {r : ℝ}
@@ -3080,10 +3277,10 @@ theorem bound_state_eq_smul_eigenfunction (n ℓ : ℕ) (hn : ℓ + 1 ≤ n) (ψ
     Concretely, if `ψ ≡ 0` on `(0,∞)` the empty sum works; otherwise
     `radial_quantization` gives `E = Eₙ` for some `n ≥ ℓ+1`, and
     `bound_state_eq_smul_eigenfunction` gives `ψ = c·R_{nℓ}`, so a *single* term
-    `c·R_{nℓ}` makes the error integral exactly `0`. The quantization input
-    (`reduced_radial_L2_quantized`, via `radial_quantization`) is now proved; the proof
-    is therefore complete modulo the single remaining gap it invokes,
-    `bound_state_eq_smul_eigenfunction`. The unrestricted statement — approximating
+    `c·R_{nℓ}` makes the error integral exactly `0`. Both inputs it invokes —
+    `reduced_radial_L2_quantized` (via `radial_quantization`) and
+    `bound_state_eq_smul_eigenfunction` — are proved (sorry-free), so this
+    discrete-subspace completeness is fully discharged. The unrestricted statement — approximating
     an *arbitrary* `L²` function, where the differing scales `e^{−r/n}` of the
     `R_{nℓ}` matter — would instead need the self-adjoint spectral decomposition. -/
 theorem radial_completeness (ℓ : ℕ) :
