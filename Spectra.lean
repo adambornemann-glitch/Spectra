@@ -153,6 +153,7 @@ import Spectra.QuantumMechanics.Generator.Basic
 import Spectra.QuantumMechanics.Hydrogen.RadialProblem.TensorDecomp.Basic
 import Spectra.QuantumMechanics.Hydrogen.RadialProblem.Equation.Basic
 import Spectra.QuantumMechanics.Hydrogen.RadialProblem.Equation.Kummer
+import Spectra.QuantumMechanics.Hydrogen.RadialProblem.Equation.Regularity
 import Spectra.QuantumMechanics.Hydrogen.RadialProblem.Laguerre.Complete
 import Spectra.QuantumMechanics.Hydrogen.RadialProblem.Laguerre.GenFun
 import Spectra.QuantumMechanics.Hydrogen.RadialProblem.Laguerre.Orthogonality
@@ -177,6 +178,7 @@ import Spectra.QuantumMechanics.Hydrogen.Spectrum.Degeneracy
 --import Spectra.QuantumMechanics.Hydrogen.Spectrum.Discrete
 import Spectra.QuantumMechanics.Hydrogen.Spectrum.Eigenvalue
 import Spectra.QuantumMechanics.Hydrogen.Spectrum.RadialEigenfunction
+import Spectra.QuantumMechanics.Hydrogen.Spectrum.Forward
 import Spectra.QuantumMechanics.Hydrogen.Spectrum.Projections
 import Spectra.QuantumMechanics.Observable.Basic
 import Spectra.OneParameterUnitaryGroup.Basic
