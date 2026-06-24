@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Spectra · Frontier</title>
+<link rel="stylesheet" href="style.css">
+<style>
+  .lead { padding: 36px 0 10px; }
+  .lead h1 { font-size: clamp(28px,5vw,46px); margin:0 0 10px; letter-spacing:-1px; font-weight:800; }
+  .lead h1 .g { background:var(--grad);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent; }
+  .lead p { color:var(--ink-soft); max-width:760px; margin:0; }
+
+  .ledger { display:grid; grid-template-columns: repeat(3,1fr); gap:16px; margin:26px 0 8px; }
+  @media (max-width:880px){ .ledger { grid-template-columns:1fr; } }
+  .ledger .n { font-size:38px; font-weight:800; letter-spacing:-1px; }
+  .ledger .l { color:var(--ink-faint); font-size:13px; }
+  .ledger .sub { color:var(--ink-soft); font-size:12.5px; margin-top:8px; }
+
+  .front { margin-top:18px; }
+  .front .fh { display:flex; align-items:center; gap:12px; margin-bottom:6px; }
+  .front .fh .tag { font-size:10.5px; font-weight:800; letter-spacing:1px; text-transform:uppercase;
+    padding:3px 9px; border-radius:999px; }
+  .front .fh h3 { margin:0; font-size:17px; }
+  .front .desc { color:var(--ink-soft); font-size:14px; margin:0 0 14px; max-width:780px; }
+
+  .sorries { display:grid; gap:8px; }
+  .srow { display:grid; grid-template-columns: 1fr auto; gap:14px; align-items:center;
+    padding:11px 14px; border-radius:11px; background:var(--panel-2); border:1px solid var(--stroke);
+    border-left:3px solid var(--amber); }
+  .srow .loc { font-family:var(--mono); font-size:12px; color:var(--ink); }
+  .srow .ctx { font-family:var(--mono); font-size:11.5px; color:var(--ink-faint); margin-top:3px; }
+  .srow .ln { font-family:var(--mono); font-size:11px; color:var(--amber); white-space:nowrap; }
+
+  .progress-track { height:14px; border-radius:8px; background:rgba(140,160,220,.1); overflow:hidden; margin:8px 0 4px; }
+  .progress-track > i { display:block; height:100%; background:var(--grad); width:0; transition:width 1.3s cubic-bezier(.2,.8,.2,1); }
+  .pctline { display:flex; justify-content:space-between; font-size:12px; color:var(--ink-faint); }
+
+  .done-list { columns: 2; column-gap: 28px; }
+  @media (max-width:760px){ .done-list { columns:1; } }
+  .done-list .di { break-inside:avoid; display:flex; gap:9px; padding:5px 0; font-size:13.5px; color:var(--ink-soft); }
+  .done-list .di .ck { color:var(--green); font-weight:800; flex:none; }
+</style>
+</head>
+<body>
+<main class="wrap">
+  <section class="lead">
+    <div class="eyebrow">Honest accounting · the open frontier</div>
+    <h1>What's <span class="g">proven</span>, and what remains</h1>
+    <p>Spectra makes a hard promise: every advertised result is <code>sorry</code>-free, and the
+       build enforces it. This page is the other side of that ledger — the handful of declarations
+       still carrying a documented <code>sorry</code>, and the deep results they're reaching toward.</p>
+  </section>
+
+  <div class="ledger">
+    <div class="panel pad"><div class="n" style="color:var(--green)" id="pDecls">—</div>
+      <div class="l">declarations</div>
+      <div class="sub">across <b id="pFiles"></b> modules and <b id="pAreas"></b> subject areas</div></div>
+    <div class="panel pad"><div class="n g" style="background:var(--grad);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent" id="pGate">—</div>
+      <div class="l">flagship theorems gated <code>sorry</code>-free</div>
+      <div class="sub">enforced as a <code>@[default_target]</code> on every CI build</div></div>
+    <div class="panel pad"><div class="n" style="color:var(--amber)" id="pSorry">—</div>
+      <div class="l">open proofs remaining</div>
+      <div class="sub">all documented, all confined to two advanced fronts</div></div>
+  </div>
+
+  <div class="panel pad" style="margin-top:16px">
+    <div style="font-size:14px; margin-bottom:4px">Library completeness — proven vs. open declarations</div>
+    <div class="progress-track"><i id="progbar"></i></div>
+    <div class="pctline"><span id="progL"></span><span id="progR"></span></div>
+  </div>
+
+  <div class="section-title"><span class="eyebrow">Open fronts</span>
+    <h2>Where the <code>sorry</code>s live</h2></div>
+  <div id="fronts"></div>
+
+  <div class="section-title"><span class="eyebrow" style="color:var(--green)">Landed</span>
+    <h2>Major results already verified</h2>
+    <span class="hint">a selection of the crown jewels</span></div>
+  <div class="panel pad">
+    <div class="done-list" id="doneList"></div>
+  </div>
+</main>
+
+<script src="data.js"></script>
+<script src="app.js"></script>
+<script>
+(function(){
+  mountChrome("roadmap.html");
+  const T=S.totals;
+
+  countUp(document.getElementById("pDecls"), T.decls);
+  document.getElementById("pFiles").textContent=T.files;
+  document.getElementById("pAreas").textContent=S.areas.length;
+  countUp(document.getElementById("pGate"), S.axiom_gate.reduce((a,s)=>a+s.theorems.length,0));
+  countUp(document.getElementById("pSorry"), T.sorries);
+
+  const proven = T.decls - 0; // declarations themselves all type-check; sorries are inside a handful
+  const openDeclApprox = T.sorries; // each sorry ≈ one open obligation
+  const pct = 100*(1 - openDeclApprox/T.decls);
+  setTimeout(()=>{ document.getElementById("progbar").style.width = pct.toFixed(2)+"%"; }, 250);
+  document.getElementById("progL").innerHTML = `<b style="color:var(--green)">${pct.toFixed(2)}%</b> of declarations fully closed`;
+  document.getElementById("progR").innerHTML = `${T.sorries} open obligations remaining`;
+
+  // ---- curated fronts: group the sorries by their goal ----
+  const FRONTS = [
+    {
+      tag:"hydrogen", tagcol:"#a98cff", tagbg:"rgba(139,108,255,.18)",
+      title:"Hydrogen point spectrum — completeness & projections",
+      desc:"The eigenfunctions ψₙₗₘ are already proven to satisfy Hψ = Eₙψ at the Rydberg energies. What remains is the spectral-theoretic closing: that they are <em>complete</em> in the negative-energy subspace, that the spectral projections land on their span, and that σ_cont(H) = [0,∞). These wait on one 3-D spherical L² unitary and the radial-L² quantization gap.",
+      match: r=> r.module.includes("Hydrogen.Spectrum"),
+    },
+    {
+      tag:"analysis", tagcol:"#5fe6d6", tagbg:"rgba(70,224,208,.18)",
+      title:"Sharp Hardy constant",
+      desc:"The Hardy inequality ∫|∇u|² ≥ ¼∫|u|²/|x|² is verified. The remaining obligation is sharpness — that the constant ¼ cannot be improved — a separate variational argument.",
+      match: r=> r.module.includes("HardySharp"),
+    },
+  ];
+
+  const frontsEl=document.getElementById("fronts");
+  FRONTS.forEach(f=>{
+    const items = S.sorries.filter(f.match);
+    const block=el("div","front panel pad"); block.style.marginBottom="14px";
+    block.innerHTML = `
+      <div class="fh"><span class="tag" style="background:${f.tagbg||'rgba(139,108,255,.16)'};color:${f.tagcol}">${items.length} open</span>
+        <h3>${f.title}</h3></div>
+      <p class="desc">${f.desc}</p>
+      <div class="sorries">${items.map(s=>`
+        <div class="srow">
+          <div><div class="loc">${shortMod(s.module)}</div>
+            <div class="ctx">${(s.context||'sorry').replace(/</g,'&lt;')}</div></div>
+          <div class="ln">:${s.line}</div>
+        </div>`).join("")}</div>`;
+    frontsEl.appendChild(block);
+  });
+
+  // any sorries not matched above
+  const matched = new Set();
+  FRONTS.forEach(f=> S.sorries.filter(f.match).forEach(s=>matched.add(s.module+":"+s.line)));
+  const rest = S.sorries.filter(s=>!matched.has(s.module+":"+s.line));
+  if(rest.length){
+    const block=el("div","front panel pad");
+    block.innerHTML=`<div class="fh"><span class="tag" style="background:rgba(255,180,84,.16);color:var(--amber)">${rest.length} open</span><h3>Other</h3></div>
+      <div class="sorries">${rest.map(s=>`<div class="srow"><div><div class="loc">${shortMod(s.module)}</div><div class="ctx">${(s.context||'sorry').replace(/</g,'&lt;')}</div></div><div class="ln">:${s.line}</div></div>`).join("")}</div>`;
+    frontsEl.appendChild(block);
+  }
+
+  // ---- landed list (flatten the gate, pick the headline names) ----
+  const DONE = [
+    "Spectral theorem  ·  A = ∫λ dE(λ)",
+    "Stone's theorem  ·  U(t)=e^{itA} ⇔ A self-adjoint",
+    "Bochner's theorem & the GNS construction",
+    "Weyl's theorem  ·  σ_ess invariance",
+    "σ_ess(−Δ) = σ_ess(−½Δ) = [0,∞)",
+    "Hydrogen bound states  ·  Hψₙₗₘ = Eₙψₙₗₘ",
+    "Heisenberg uncertainty & Ehrenfest's theorem",
+    "Dirac Hamiltonian self-adjointness & mass gap",
+    "Kato–Rellich theorem",
+    "Hardy's inequality (Coulomb stability)",
+    "Tsirelson bound 2√2 & CHSH bound 2",
+    "KMS condition ⇔ imaginary-time periodicity",
+    "Cramér–Rao bound",
+    "KL Hessian = Fisher information metric",
+    "Meyers–Serrin (H = W)",
+    "Sobolev embedding H¹(ℝ³) ↪ L⁶",
+    "Helly selection (Herglotz/Nevanlinna)",
+    "Stone's formula & weak spectral moments",
+  ];
+  document.getElementById("doneList").innerHTML = DONE.map(d=>`
+    <div class="di"><span class="ck">✓</span><span>${d}</span></div>`).join("");
+
+  mountFooter();
+})();
+</script>
+</body>
+</html>

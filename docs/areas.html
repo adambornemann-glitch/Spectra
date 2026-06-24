@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Spectra · Atlas</title>
+<link rel="stylesheet" href="style.css">
+<style>
+  .lead { padding: 40px 0 8px; }
+  .lead h1 { font-size: clamp(30px,5vw,48px); margin:0 0 10px; letter-spacing:-1px; font-weight:800; }
+  .lead p { color:var(--ink-soft); max-width:720px; }
+
+  .treemap { position:relative; width:100%; height:520px; }
+  .cell { position:absolute; border-radius:10px; overflow:hidden; cursor:pointer;
+    border:1px solid rgba(0,0,0,.25); transition: transform .18s, filter .18s, box-shadow .18s; }
+  .cell:hover { transform: scale(1.012); filter:brightness(1.12); z-index:5; box-shadow:0 12px 30px -12px rgba(0,0,0,.7); }
+  .cell.sel { outline:2px solid #fff; outline-offset:-2px; z-index:4; }
+  .cell .inner { position:absolute; inset:0; padding:10px 12px; color:#fff; }
+  .cell .cn { font-weight:740; font-size:14px; text-shadow:0 1px 3px rgba(0,0,0,.55); }
+  .cell .cs { font-family:var(--mono); font-size:11px; opacity:.92; text-shadow:0 1px 3px rgba(0,0,0,.55); }
+  .cell .cbadge { position:absolute; top:9px; right:10px; font-size:10px; font-weight:800;
+    background: rgba(0,0,0,.32); padding:2px 6px; border-radius:6px; }
+
+  .detail { min-height: 240px; }
+  .detail .hdr { display:flex; align-items:center; gap:12px; margin-bottom:4px; }
+  .detail .hdr .big { font-size:24px; font-weight:800; letter-spacing:-.5px; }
+  .detail .substat { display:flex; gap:26px; flex-wrap:wrap; margin:16px 0 18px; }
+  .detail .substat .n { font-size:22px; font-weight:780; font-variant-numeric:tabular-nums; }
+  .detail .substat .l { color:var(--ink-faint); font-size:12px; }
+  .filelist { display:grid; gap:6px; max-height:340px; overflow-y:auto; padding-right:6px; }
+  .filerow { display:grid; grid-template-columns: 1fr auto auto; gap:12px; align-items:center;
+    padding:8px 11px; border-radius:9px; background:var(--panel-2); border:1px solid var(--stroke); }
+  .filerow .mn { font-family:var(--mono); font-size:12px; }
+  .filerow .mt { color:var(--ink-faint); font-size:11.5px; }
+  .filerow .ln { font-family:var(--mono); font-size:11.5px; color:var(--ink-soft); white-space:nowrap; }
+  .miniwarn { color:var(--amber); font-size:11px; font-family:var(--mono); }
+  .docmini { width:54px; height:6px; border-radius:4px; background:rgba(140,160,220,.12); overflow:hidden; }
+  .docmini > i { display:block; height:100%; background:var(--grad); }
+</style>
+</head>
+<body>
+<main class="wrap">
+  <section class="lead">
+    <div class="eyebrow">19 subject areas · sized by lines of Lean</div>
+    <h1>The Atlas</h1>
+    <p>Every region of the library, drawn to scale. Click a tile to inspect its modules,
+       documentation coverage, and any open proofs.</p>
+  </section>
+
+  <div class="panel pad"><div class="treemap" id="tm"></div></div>
+
+  <div class="section-title"><h2 id="detTitle">Select a region</h2>
+    <span class="hint" id="detHint">click any tile above</span></div>
+  <div class="panel pad detail" id="detail">
+    <div style="color:var(--ink-faint)">Nothing selected yet — pick a tile to explore its modules.</div>
+  </div>
+</main>
+
+<script src="data.js"></script>
+<script src="app.js"></script>
+<script>
+(function(){
+  mountChrome("areas.html");
+
+  // ---------- squarified treemap ----------
+  function squarify(items, x, y, w, h) {
+    // items: [{value,...}] sorted desc. returns rects [{...item,x,y,w,h}]
+    const out = [];
+    let nodes = items.map(i=>({...i}));
+    let rx=x, ry=y, rw=w, rh=h;
+    const totalVal = nodes.reduce((a,n)=>a+n.value,0);
+    let scale = (w*h)/totalVal;
+    nodes.forEach(n=> n.area = n.value*scale);
+
+    function worst(row, len){
+      const s = row.reduce((a,n)=>a+n.area,0);
+      const mx = Math.max(...row.map(n=>n.area));
+      const mn = Math.min(...row.map(n=>n.area));
+      return Math.max((len*len*mx)/(s*s), (s*s)/(len*len*mn));
+    }
+    let i=0;
+    while(i < nodes.length){
+      const vertical = rw < rh;
+      const len = vertical ? rw : rh;
+      let row = [nodes[i]]; let j=i+1;
+      while(j < nodes.length){
+        const test = row.concat([nodes[j]]);
+        if(worst(test, len) <= worst(row, len)){ row=test; j++; }
+        else break;
+      }
+      const s = row.reduce((a,n)=>a+n.area,0);
+      const thick = s/len;
+      let off = vertical ? rx : ry;
+      row.forEach(n=>{
+        const sz = n.area/thick;
+        if(vertical) out.push({...n, x:off, y:ry, w:sz, h:thick});
+        else         out.push({...n, x:rx, y:off, w:thick, h:sz});
+        off += sz;
+      });
+      if(vertical){ ry += thick; rh -= thick; } else { rx += thick; rw -= thick; }
+      i = j;
+    }
+    return out;
+  }
+
+  const tmEl = document.getElementById("tm");
+  function drawTreemap(){
+    const W = tmEl.clientWidth, H = tmEl.clientHeight;
+    const items = S.areas.map(a=>({...a, value:a.lines})).sort((x,y)=>y.value-x.value);
+    const rects = squarify(items, 0,0,W,H);
+    tmEl.innerHTML = "";
+    rects.forEach(r=>{
+      const c = el("div","cell");
+      c.dataset.area = r.name;
+      c.style.cssText = `left:${r.x+2}px;top:${r.y+2}px;width:${Math.max(0,r.w-4)}px;height:${Math.max(0,r.h-4)}px;
+        background:linear-gradient(140deg, ${areaColor(r.name)}, ${areaColor(r.name)}aa);`;
+      const small = r.w < 120 || r.h < 56;
+      c.innerHTML = `<div class="inner">
+        <div class="cn">${r.name}</div>
+        ${small?"":`<div class="cs">${fmt(r.lines)} lines · ${r.files} files · ${r.decls} decls</div>`}
+        ${r.sorries>0?`<div class="cbadge" style="color:#ffd9a0">${r.sorries} ⚠</div>`:""}
+      </div>`;
+      c.onclick = ()=> select(r.name);
+      tmEl.appendChild(c);
+    });
+  }
+
+  function select(name){
+    document.querySelectorAll(".cell").forEach(c=>c.classList.toggle("sel", c.dataset.area===name));
+    const a = S.areas.find(x=>x.name===name);
+    const files = S.files.filter(f=>f.area===name).sort((x,y)=>y.lines-x.lines);
+    document.getElementById("detTitle").innerHTML =
+      `<span class="dot" style="background:${areaColor(name)};margin-right:8px"></span>${name}`;
+    document.getElementById("detHint").textContent = `${a.files} modules`;
+    const sub = [
+      ["lines", fmt(a.lines)], ["declarations", fmt(a.decls)],
+      ["files", a.files], ["doc coverage", a.doc_pct+"%"],
+      ["open proofs", a.sorries],
+    ];
+    const det = document.getElementById("detail");
+    det.innerHTML = `
+      <div class="substat">${sub.map(([l,n])=>`<div><div class="n" ${l==='open proofs'&&a.sorries>0?'style="color:var(--amber)"':''}>${n}</div><div class="l">${l}</div></div>`).join("")}</div>
+      <div class="filelist">${files.map(f=>`
+        <div class="filerow">
+          <div><div class="mn">${shortMod(f.module)}</div>${f.title?`<div class="mt">${f.title.replace(/</g,'&lt;')}</div>`:""}</div>
+          <div class="docmini" title="${f.doc_documentable? Math.round(100*f.doc_documented/f.doc_documentable):100}% documented"><i style="width:${f.doc_documentable? Math.round(100*f.doc_documented/f.doc_documentable):100}%"></i></div>
+          <div class="ln">${fmt(f.lines)} ln${f.sorries>0?` · <span class="miniwarn">${f.sorries}⚠</span>`:""}</div>
+        </div>`).join("")}</div>`;
+    history.replaceState(null,"","#"+name);
+  }
+
+  drawTreemap();
+  window.addEventListener("resize", ()=>{ drawTreemap(); const h=location.hash.slice(1); if(h) select(decodeURIComponent(h)); });
+  const initial = decodeURIComponent(location.hash.slice(1)) || S.areas[0].name;
+  select(initial);
+  mountFooter();
+})();
+</script>
+</body>
+</html>

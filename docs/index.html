@@ -1,0 +1,246 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Spectra · Lean 4 — Overview</title>
+<link rel="stylesheet" href="style.css">
+<style>
+  .hero { padding: 56px 0 8px; }
+  .hero .eyebrow { margin-bottom: 14px; }
+  .hero h1 {
+    font-size: clamp(38px, 6vw, 70px); line-height: 1.02; margin: 0 0 18px;
+    letter-spacing: -1.5px; font-weight: 800;
+  }
+  .hero h1 .g {
+    background: var(--grad); -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .hero p.lede { font-size: 18px; color: var(--ink-soft); max-width: 760px; margin: 0 0 30px; }
+  .hero .badges { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
+
+  .statgrid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-top: 30px; }
+  @media (max-width: 920px){ .statgrid { grid-template-columns: repeat(2,1fr); } }
+  .stat { position: relative; overflow: hidden; }
+  .stat .num {
+    font-size: 40px; font-weight: 800; letter-spacing: -1px;
+    font-variant-numeric: tabular-nums; line-height: 1;
+  }
+  .stat .lbl { color: var(--ink-faint); font-size: 13px; margin-top: 8px; }
+  .stat .spark { position:absolute; right:-10px; bottom:-14px; opacity:.5; }
+  .stat .num.g { background: var(--grad); -webkit-background-clip: text; background-clip:text; -webkit-text-fill-color: transparent; }
+
+  .health { display: grid; grid-template-columns: 220px 1fr; gap: 28px; align-items: center; }
+  @media (max-width: 760px){ .health { grid-template-columns: 1fr; } }
+  .gauge-wrap { display: grid; place-items: center; }
+  .health-points { display: grid; gap: 14px; }
+  .hp { display: flex; gap: 13px; align-items: flex-start; }
+  .hp .ico { width: 26px; height: 26px; border-radius: 8px; display: grid; place-items: center; flex: none; font-weight: 800; font-size: 14px; }
+  .hp b { font-size: 15px; }
+  .hp small { color: var(--ink-faint); display:block; font-size:12.5px; }
+
+  .barrow { display: grid; grid-template-columns: 168px 1fr 96px; gap: 14px; align-items: center; padding: 7px 0; }
+  .barrow .nm { font-size: 13.5px; font-weight: 560; cursor: pointer; }
+  .barrow .nm:hover { color: #fff; }
+  .bartrack { height: 12px; border-radius: 7px; background: rgba(140,160,220,.09); overflow: hidden; }
+  .barfill { height: 100%; border-radius: 7px; width: 0; transition: width 1.1s cubic-bezier(.2,.8,.2,1); }
+  .barrow .val { text-align: right; font-family: var(--mono); font-size: 12.5px; color: var(--ink-soft); }
+
+  .legendwrap { display:flex; flex-wrap: wrap; gap: 10px 18px; margin-top: 6px; }
+  .legendwrap .li { display:flex; align-items:center; gap:7px; font-size:12.5px; color: var(--ink-soft); }
+
+  .commits { display: grid; gap: 0; }
+  .commit { display: grid; grid-template-columns: 92px 1fr auto; gap: 14px; align-items: center;
+            padding: 11px 4px; border-bottom: 1px solid var(--stroke); }
+  .commit:last-child { border-bottom: none; }
+  .commit .h { font-family: var(--mono); font-size: 12px; color: var(--violet); }
+  .commit .s { font-size: 14px; }
+  .commit .w { font-size: 12px; color: var(--ink-faint); white-space: nowrap; }
+
+  .jewel-cta { display:flex; align-items:center; justify-content:space-between; gap: 20px; flex-wrap: wrap;
+               background: var(--grad-soft); }
+  .jewel-cta .big { font-size: 46px; font-weight: 800; letter-spacing:-1px; }
+  .arrowlink { font-weight: 640; color: var(--cyan); }
+  .arrowlink:hover { color:#8ff3e6; }
+</style>
+</head>
+<body>
+<main class="wrap">
+
+  <section class="hero">
+    <div class="eyebrow">A formal library of spectral &amp; mathematical physics</div>
+    <h1>The spectral theorem,<br><span class="g">machine&#8209;checked.</span></h1>
+    <p class="lede">
+      Spectra is a Lean&nbsp;4 / Mathlib library that builds operator theory, quantum
+      mechanics, modular theory, and information geometry from first principles —
+      every headline result mechanically verified to be free of <code>sorry</code> and
+      free of added axioms, enforced on every build.
+    </p>
+    <div class="badges">
+      <span class="chip"><span class="dot" style="background:var(--green)"></span> build sorry-free (gated)</span>
+      <span class="chip"><span class="dot" style="background:var(--cyan)"></span> 0 local axioms</span>
+      <span class="chip"><span class="dot" style="background:var(--violet)"></span> Mathlib-based</span>
+      <span class="chip" id="branchchip"></span>
+    </div>
+
+    <div class="statgrid" id="statgrid"></div>
+  </section>
+
+  <div class="section-title"><span class="eyebrow" style="color:var(--cyan)">Trust</span>
+    <h2>Verification health</h2><span class="hint">what the build actually guarantees</span></div>
+  <div class="panel pad health">
+    <div class="gauge-wrap" id="gauge"></div>
+    <div class="health-points" id="healthpoints"></div>
+  </div>
+
+  <div class="grid cols-2" style="margin-top:16px">
+    <div>
+      <div class="section-title"><h2>Anatomy of the corpus</h2></div>
+      <div class="panel pad">
+        <div style="display:flex; gap:24px; align-items:center; flex-wrap:wrap; justify-content:center">
+          <div id="donut"></div>
+          <div class="legendwrap" id="donutlegend" style="max-width:260px"></div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="section-title"><h2>Crown jewels</h2></div>
+      <a class="panel pad jewel-cta" href="theorems.html" style="color:var(--ink)">
+        <div>
+          <div class="big g" id="jewelcount" style="background:var(--grad);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent">—</div>
+          <div style="color:var(--ink-soft); max-width:330px">flagship theorems gated <code>sorry</code>-free in <code>AxiomCheck.lean</code> — the spectral theorem, Stone, Bochner, Tsirelson, Cramér–Rao, hydrogen bound states, and more.</div>
+        </div>
+        <span class="arrowlink">Browse the proofs &nbsp;→</span>
+      </a>
+      <div class="section-title"><h2>Recent activity</h2></div>
+      <div class="panel pad"><div class="commits" id="commits"></div></div>
+    </div>
+  </div>
+
+  <div class="section-title"><span class="eyebrow">Map</span>
+    <h2>Subject areas by size</h2>
+    <span class="hint">click an area to open the Atlas</span></div>
+  <div class="panel pad" id="areabars"></div>
+
+</main>
+
+<script src="data.js"></script>
+<script src="app.js"></script>
+<script>
+(function(){
+  mountChrome("index.html");
+  const T = S.totals, K = S.kinds;
+  document.getElementById("branchchip").innerHTML =
+    `<span class="dot" style="background:var(--amber)"></span> ${S.branch}`;
+
+  // ---- hero stats ----
+  const thms = (K.theorem||0)+(K.lemma||0);
+  const defs = (K.def||0)+(K.abbrev||0);
+  const stats = [
+    {n: T.lines, l: "lines of Lean", g:true},
+    {n: T.decls, l: "declarations"},
+    {n: thms,    l: "theorems &amp; lemmas"},
+    {n: defs,    l: "definitions"},
+    {n: T.files, l: "source modules"},
+    {n: S.areas.length, l: "subject areas"},
+    {n: T.doc_pct, l: "doc coverage", dec:1, suffix:"%"},
+    {n: T.sorries, l: "open proofs (<code>sorry</code>)"},
+  ];
+  const sg = document.getElementById("statgrid");
+  stats.forEach(s=>{
+    const c = el("div","panel pad stat".split(" ").join(" "));
+    c.className = "panel pad stat";
+    c.innerHTML = `<div class="num ${s.g?'g':''}" data-count="${s.n}" ${s.dec?`data-dec="${s.dec}"`:""} ${s.suffix?`data-suffix="${s.suffix}"`:""}>0</div>
+                   <div class="lbl">${s.l}</div>`;
+    sg.appendChild(c);
+  });
+
+  // ---- health gauge (doc coverage) ----
+  const pct = T.doc_pct;
+  const R=84, C=2*Math.PI*R, off = C*(1-pct/100);
+  document.getElementById("gauge").innerHTML = `
+    <svg width="200" height="200" viewBox="0 0 200 200">
+      <defs><linearGradient id="gg" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="#8b6cff"/><stop offset="1" stop-color="#46e0d0"/></linearGradient></defs>
+      <circle cx="100" cy="100" r="${R}" fill="none" stroke="rgba(140,160,220,.12)" stroke-width="14"/>
+      <circle cx="100" cy="100" r="${R}" fill="none" stroke="url(#gg)" stroke-width="14"
+        stroke-linecap="round" stroke-dasharray="${C}" stroke-dashoffset="${C}"
+        transform="rotate(-90 100 100)" id="gaugearc"/>
+      <text x="100" y="94" text-anchor="middle" fill="#e8ecf8" font-size="34" font-weight="800" font-family="var(--sans)">${pct}%</text>
+      <text x="100" y="120" text-anchor="middle" fill="#6b7494" font-size="12.5">documented</text>
+    </svg>`;
+  setTimeout(()=>{ const a=document.getElementById("gaugearc"); a.style.transition="stroke-dashoffset 1.4s cubic-bezier(.2,.8,.2,1)"; a.style.strokeDashoffset=off; }, 200);
+
+  const hp = [
+    {c:"var(--green)", i:"✓", t:`README results <code>sorry</code>-free`, s:`enforced by <code>assert_no_sorry</code> as a default build target — a stray <code>sorry</code> fails CI. ${T.sorries} documented open proofs remain on advanced fronts`},
+    {c:"var(--cyan)",  i:"∅", t:`0 local axioms`, s:`only <code>propext</code>, <code>Classical.choice</code>, <code>Quot.sound</code> — Mathlib's standard trio — ever appear`},
+    {c:"var(--violet)",i:"§", t:`${fmt(T.documented)} / ${fmt(T.documentable)} documented`, s:`doc-strings on ${T.doc_pct}% of documentable declarations`},
+    {c:"var(--amber)", i:"⊢", t:`${fmt((S.kinds.theorem||0)+(S.kinds.lemma||0))} proofs`, s:`${fmt(S.kinds.theorem||0)} theorems + ${fmt(S.kinds.lemma||0)} supporting lemmas across ${T.files} modules`},
+  ];
+  document.getElementById("healthpoints").innerHTML = hp.map(p=>`
+    <div class="hp"><div class="ico" style="background:${p.c}1f;color:${p.c}">${p.i}</div>
+    <div><b>${p.t}</b><small>${p.s}</small></div></div>`).join("");
+
+  // ---- declaration donut ----
+  const kindList = Object.entries(K).filter(([k])=>k!=="example");
+  const totalK = kindList.reduce((a,[,v])=>a+v,0);
+  const kc = {lemma:"#8b6cff", def:"#46e0d0", theorem:"#5b7cff", structure:"#ff6ec7",
+              instance:"#ffb454", abbrev:"#5ddc8c", inductive:"#ff6b81", class:"#36c5f0", opaque:"#c792ff"};
+  let acc=0, segs="";
+  const RA=78, CA=2*Math.PI*RA;
+  kindList.forEach(([k,v])=>{
+    const frac=v/totalK, col=kc[k]||"#8b94b4";
+    segs += `<circle cx="100" cy="100" r="${RA}" fill="none" stroke="${col}" stroke-width="26"
+      stroke-dasharray="${frac*CA} ${CA}" stroke-dashoffset="${-acc*CA}" transform="rotate(-90 100 100)"
+      opacity="0"><animate attributeName="opacity" to="0.92" dur="0.5s" begin="${acc*0.6}s" fill="freeze"/></circle>`;
+    acc+=frac;
+  });
+  document.getElementById("donut").innerHTML = `
+    <svg width="200" height="200" viewBox="0 0 200 200">${segs}
+      <text x="100" y="94" text-anchor="middle" fill="#e8ecf8" font-size="30" font-weight="800">${fmt(totalK)}</text>
+      <text x="100" y="116" text-anchor="middle" fill="#6b7494" font-size="12">declarations</text></svg>`;
+  document.getElementById("donutlegend").innerHTML = kindList.map(([k,v])=>`
+    <div class="li"><span class="dot" style="background:${kc[k]||'#8b94b4'}"></span>
+    <b style="color:var(--ink)">${fmt(v)}</b>&nbsp;${k}</div>`).join("");
+
+  // ---- jewel count ----
+  const gateCount = S.axiom_gate.reduce((a,s)=>a+s.theorems.length,0);
+  const jc = document.getElementById("jewelcount");
+  countUp(jc, gateCount);
+
+  // ---- commits ----
+  document.getElementById("commits").innerHTML = S.commits.slice(0,7).map(c=>`
+    <div class="commit"><span class="h">${c.hash}</span>
+    <span class="s">${c.subject.replace(/</g,"&lt;")}</span>
+    <span class="w">${c.when}</span></div>`).join("");
+
+  // ---- area bars ----
+  const maxLines = Math.max(...S.areas.map(a=>a.lines));
+  const ab = document.getElementById("areabars");
+  ab.innerHTML = S.areas.map(a=>`
+    <div class="barrow">
+      <span class="nm" onclick="location.href='areas.html#${a.name}'">
+        <span class="dot" style="background:${areaColor(a.name)};margin-right:7px"></span>${a.name}</span>
+      <div class="bartrack"><div class="barfill" data-w="${(a.lines/maxLines*100).toFixed(1)}"
+        style="background:linear-gradient(90deg, ${areaColor(a.name)}, ${areaColor(a.name)}99)"></div></div>
+      <span class="val">${fmt(a.lines)} · ${a.files}f</span>
+    </div>`).join("");
+  // animate bars when visible
+  const io = new IntersectionObserver(function(es){
+    es.forEach(e=>{
+      if(e.isIntersecting){
+        ab.querySelectorAll(".barfill").forEach((b,i)=>{
+          setTimeout(()=>b.style.width=b.dataset.w+"%", 60*i);
+        });
+        io.disconnect();
+      }
+    });
+  }, {threshold:.2});
+  io.observe(ab);
+
+  observeCounters();
+  mountFooter();
+})();
+</script>
+</body>
+</html>
