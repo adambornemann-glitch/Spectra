@@ -213,6 +213,224 @@ theorem radial_quantization_Z (p : CoulombParams) (ℓ : ℕ) (E : ℝ) (hE : E 
   rw [← hEeq, ← hZdef]
   field_simp
 
+/-! ## Step 4 (log-coordinate back-transform) — classical solution from the bootstrap
+
+The companion to the dilation bridge above, sitting on the *input* side of
+`radial_quantization_Z`.  The elliptic-regularity bootstrap
+`Spectra.RadialRegularity.classical_of_weak_ode` produces a pointwise `C²` solution of the radial
+equation written in the **logarithmic coordinate** `s = log r`, namely `c₀'' + c₀' − b c₀ = 0`
+with `b(s) = ℓ(ℓ+1) − 2Z e^s − 2E e^{2s}`.  This lemma changes variables back to `r`, turning that
+`c₀` into a classical `C²` solution `ψ(r) = c₀(log r)` of the charge-`Z` reduced radial
+eigen-equation on `(0,∞)` — exactly the `hψ1`/`hψ2`/`heq` hypotheses of `radial_quantization_Z`.
+The derivatives transform as `ψ'(r) = c₀'(log r)/r` and `ψ''(r) = (c₀''(log r) − c₀'(log r))/r²`. -/
+
+/-- **Log-coordinate back-transform.** A classical `C²` solution `c₀` of the log-coordinate radial
+ODE `c₀'' + c₀' − (ℓ(ℓ+1) − 2Z e^s − 2E e^{2s}) c₀ = 0` on `ℝ` yields, via `ψ(r) = c₀(log r)`, a
+classical `C²` solution of the charge-`Z` reduced radial eigen-equation
+`−½ψ″ − (1/r)ψ′ + (ℓ(ℓ+1)/(2r²) − Z/r)ψ = E ψ` on `(0,∞)`.  Pure chain rule; pairs with
+`Spectra.RadialRegularity.classical_of_weak_ode` (which supplies `c₀`) and feeds the
+`hψ1`/`hψ2`/`heq` hypotheses of `radial_quantization_Z`. -/
+theorem radial_classical_of_logCoord (ℓ : ℕ) (Z E : ℝ) (c₀ : ℝ → ℝ)
+    (hc1 : ∀ s, HasDerivAt c₀ (deriv c₀ s) s)
+    (hc2 : ∀ s, HasDerivAt (deriv c₀) (deriv^[2] c₀ s) s)
+    (hode : ∀ s, deriv^[2] c₀ s + deriv c₀ s
+      - ((ℓ : ℝ) * ((ℓ : ℝ) + 1) - 2 * Z * Real.exp s - 2 * E * Real.exp (2 * s)) * c₀ s = 0) :
+    (∀ r, 0 < r → HasDerivAt (fun r => c₀ (Real.log r))
+        (deriv (fun r => c₀ (Real.log r)) r) r) ∧
+    (∀ r, 0 < r → HasDerivAt (deriv (fun r => c₀ (Real.log r)))
+        (deriv^[2] (fun r => c₀ (Real.log r)) r) r) ∧
+    (∀ r, 0 < r → -(1 / 2) * deriv^[2] (fun r => c₀ (Real.log r)) r
+        - (1 / r) * deriv (fun r => c₀ (Real.log r)) r
+        + ((ℓ : ℝ) * ((ℓ : ℝ) + 1) / (2 * r ^ 2) - Z / r) * (fun r => c₀ (Real.log r)) r
+        = E * (fun r => c₀ (Real.log r)) r) := by
+  set ψ : ℝ → ℝ := fun r => c₀ (Real.log r) with hψdef
+  -- first derivative on `(0,∞)`
+  have hd1 : ∀ r, 0 < r → HasDerivAt ψ (deriv c₀ (Real.log r) * r⁻¹) r := fun r hr =>
+    (hc1 (Real.log r)).comp r (Real.hasDerivAt_log hr.ne')
+  have hderiv1 : ∀ r, 0 < r → deriv ψ r = deriv c₀ (Real.log r) * r⁻¹ :=
+    fun r hr => (hd1 r hr).deriv
+  -- second derivative on `(0,∞)`, via eventual equality of `deriv ψ`
+  have hd2 : ∀ r, 0 < r → HasDerivAt (deriv ψ)
+      (deriv^[2] c₀ (Real.log r) * r⁻¹ * r⁻¹ + deriv c₀ (Real.log r) * (-(r ^ 2)⁻¹)) r := by
+    intro r hr
+    have hcomp : HasDerivAt (fun t => deriv c₀ (Real.log t))
+        (deriv^[2] c₀ (Real.log r) * r⁻¹) r :=
+      (hc2 (Real.log r)).comp r (Real.hasDerivAt_log hr.ne')
+    have hD : HasDerivAt (fun t => deriv c₀ (Real.log t) * t⁻¹)
+        (deriv^[2] c₀ (Real.log r) * r⁻¹ * r⁻¹ + deriv c₀ (Real.log r) * (-(r ^ 2)⁻¹)) r :=
+      hcomp.mul (hasDerivAt_inv hr.ne')
+    refine hD.congr_of_eventuallyEq ?_
+    filter_upwards [Ioi_mem_nhds hr] with s hs using hderiv1 s hs
+  have hderiv2 : ∀ r, 0 < r → deriv^[2] ψ r =
+      deriv^[2] c₀ (Real.log r) * r⁻¹ * r⁻¹ + deriv c₀ (Real.log r) * (-(r ^ 2)⁻¹) := by
+    intro r hr
+    show deriv (deriv ψ) r = _
+    exact (hd2 r hr).deriv
+  refine ⟨fun r hr => by rw [hderiv1 r hr]; exact hd1 r hr,
+    fun r hr => by rw [hderiv2 r hr]; exact hd2 r hr, ?_⟩
+  intro r hr
+  have hrne : r ≠ 0 := hr.ne'
+  have hexp : Real.exp (Real.log r) = r := Real.exp_log hr
+  have hexp2 : Real.exp (2 * Real.log r) = r ^ 2 := by
+    rw [two_mul, Real.exp_add, hexp]; ring
+  have hODEr := hode (Real.log r)
+  rw [hexp, hexp2] at hODEr
+  have key : deriv^[2] c₀ (Real.log r) + deriv c₀ (Real.log r)
+      = ((ℓ : ℝ) * ((ℓ : ℝ) + 1) - 2 * Z * r - 2 * E * r ^ 2) * c₀ (Real.log r) := by
+    linarith [hODEr]
+  rw [hderiv2 r hr, hderiv1 r hr]
+  simp only [hψdef]
+  field_simp
+  linear_combination -key
+
+/-! ## Step 4 (forward log-coordinate bridge) — weak radial eqn ⟹ weak `s`-form
+
+The *forward* half of the log-coordinate change of variables (the companion to
+`radial_classical_of_logCoord`).  It converts the **weak radial equation** in `r` produced by the
+sector reduction (Phase C) — pairing the charge-`Z` radial Hamiltonian
+`H_{ℓ,Z}χ = −½χ″ − (1/r)χ′ + (ℓ(ℓ+1)/(2r²) − Z/r)χ` against radial test functions `χ` supported in
+`(0,∞)`, with the `r²dr` measure — into the **weak `s`-form**
+`∫ R(eˢ)·(η″ − η′ − b η) ds = 0` (`b(s) = ℓ(ℓ+1) − 2Z eˢ − 2E e^{2s}`) consumed by
+`Spectra.RadialRegularity.classical_of_weak_ode`.
+
+Mechanism: feed the weak hypothesis the specific radial test `χ(r) = η(log r)/r` (extended by `0`),
+then change variables `r = eˢ` via `integral_image_eq_integral_abs_deriv_smul` for `exp`
+(`exp '' univ = Ioi 0`, jacobian `eˢ`).  The `/r` weight is exactly what aligns the first-order
+terms so that the recovered coefficient is `b` and the reduced variable is the unweighted
+`s ↦ R(eˢ)` — matching `radial_classical_of_logCoord`.  Pure analysis; `R : ℝ → ℝ` (the `ℂ`-valued
+`coeffFun` is handled at the application site by taking real and imaginary parts). -/
+open Set in
+theorem forward_bridge (ℓ : ℕ) (Z E : ℝ) (R : ℝ → ℝ)
+    (hweak : ∀ χ : ℝ → ℝ, ContDiff ℝ ∞ χ → HasCompactSupport χ → (∀ r ≤ 0, χ r = 0) →
+        ∫ r in Set.Ioi 0,
+          (-(1 / 2) * deriv^[2] χ r - (1 / r) * deriv χ r
+            + ((ℓ : ℝ) * ((ℓ : ℝ) + 1) / (2 * r ^ 2) - Z / r) * χ r - E * χ r) * R r * r ^ 2 = 0) :
+    ∀ η : ℝ → ℝ, ContDiff ℝ ∞ η → HasCompactSupport η →
+      ∫ s, R (Real.exp s) *
+        (deriv (deriv η) s - deriv η s
+          - ((ℓ : ℝ) * ((ℓ : ℝ) + 1) - 2 * Z * Real.exp s - 2 * E * Real.exp (2 * s)) * η s) = 0 := by
+  intro η hη hη0
+  -- `η` derivative facts
+  have hη1 : ∀ s, HasDerivAt η (deriv η s) s := fun s =>
+    (hη.differentiable (by norm_num)).differentiableAt.hasDerivAt
+  have hη2 : ∀ s, HasDerivAt (deriv η) (deriv (deriv η) s) s := fun s =>
+    (((contDiff_infty_iff_deriv.mp hη).2).differentiable (by norm_num)).differentiableAt.hasDerivAt
+  -- a support bound for `η`
+  obtain ⟨M, hM0, hMsub⟩ : ∃ M : ℝ, 0 ≤ M ∧ Function.support η ⊆ Icc (-M) M := by
+    obtain ⟨M, hMsub⟩ := hη0.isBounded.subset_closedBall (0 : ℝ)
+    refine ⟨max M 0, le_max_right _ _, fun x hx => ?_⟩
+    have hx' := hMsub (subset_tsupport η hx)
+    rw [Real.closedBall_eq_Icc, zero_sub, zero_add] at hx'
+    exact ⟨le_trans (neg_le_neg (le_max_left _ _)) hx'.1, le_trans hx'.2 (le_max_left _ _)⟩
+  -- the radial test function `χ(r) = η(log r)/r`, extended by `0`
+  set χ : ℝ → ℝ := fun r => if 0 < r then η (Real.log r) * r⁻¹ else 0 with hχdef
+  have hχ_pos : ∀ r, 0 < r → χ r = η (Real.log r) * r⁻¹ := fun r hr => if_pos hr
+  have hχ_nonpos : ∀ r ≤ 0, χ r = 0 := fun r hr => if_neg (not_lt.mpr hr)
+  have hχ_lo : ∀ r, r < Real.exp (-M) → χ r = 0 := by
+    intro r hr
+    by_cases h0 : 0 < r
+    · rw [hχ_pos r h0]
+      have hlog : Real.log r < -M := by
+        have := Real.log_lt_log h0 hr; rwa [Real.log_exp] at this
+      rw [Function.notMem_support.mp fun hs => absurd (hMsub hs).1 (not_le.mpr hlog), zero_mul]
+    · rw [hχdef]; simp [h0]
+  have hχ_hi : ∀ r, Real.exp M < r → χ r = 0 := by
+    intro r hr
+    have h0 : 0 < r := lt_trans (Real.exp_pos M) hr
+    rw [hχ_pos r h0]
+    have hlog : M < Real.log r := by
+      have := Real.log_lt_log (Real.exp_pos M) hr; rwa [Real.log_exp] at this
+    rw [Function.notMem_support.mp fun hs => absurd (hMsub hs).2 (not_le.mpr hlog), zero_mul]
+  have hχ_smooth : ContDiff ℝ ∞ χ := by
+    rw [contDiff_iff_contDiffAt]
+    intro r₀
+    by_cases hr₀ : 0 < r₀
+    · have hev : χ =ᶠ[𝓝 r₀] (fun r => η (Real.log r) * r⁻¹) := by
+        filter_upwards [Ioi_mem_nhds hr₀] with r hr; exact hχ_pos r hr
+      refine ContDiffAt.congr_of_eventuallyEq ?_ hev
+      exact (hη.comp_contDiffAt r₀ (Real.contDiffAt_log.mpr hr₀.ne')).mul
+        (contDiffAt_inv (𝕜 := ℝ) hr₀.ne')
+    · have hr₀' : r₀ < Real.exp (-M) := lt_of_le_of_lt (not_lt.mp hr₀) (Real.exp_pos _)
+      have hev : χ =ᶠ[𝓝 r₀] (fun _ => 0) := by
+        filter_upwards [Iio_mem_nhds hr₀'] with r hr; exact hχ_lo r hr
+      exact contDiffAt_const.congr_of_eventuallyEq hev
+  have hχ_cs : HasCompactSupport χ := by
+    apply HasCompactSupport.intro (isCompact_Icc (a := Real.exp (-M)) (b := Real.exp M))
+    intro x hx
+    rw [mem_Icc, not_and_or, not_le, not_le] at hx
+    rcases hx with hlt | hgt
+    · exact hχ_lo x hlt
+    · exact hχ_hi x hgt
+  -- derivatives of `χ` on `(0,∞)`
+  have hd1 : ∀ r, 0 < r → deriv χ r = (deriv η (Real.log r) - η (Real.log r)) * (r ^ 2)⁻¹ := by
+    intro r hr
+    have hev : χ =ᶠ[𝓝 r] (fun t => η (Real.log t) * t⁻¹) := by
+      filter_upwards [Ioi_mem_nhds hr] with t ht; exact hχ_pos t ht
+    have hbase : HasDerivAt (fun t => η (Real.log t) * t⁻¹)
+        ((deriv η (Real.log r) - η (Real.log r)) * (r ^ 2)⁻¹) r := by
+      have h0 := ((hη1 (Real.log r)).comp r (Real.hasDerivAt_log hr.ne')).mul (hasDerivAt_inv hr.ne')
+      simp only [Function.comp_def] at h0
+      convert h0 using 1
+      field_simp; ring
+    exact (hbase.congr_of_eventuallyEq hev).deriv
+  have hd2 : ∀ r, 0 < r → deriv^[2] χ r =
+      (deriv (deriv η) (Real.log r) - 3 * deriv η (Real.log r) + 2 * η (Real.log r)) * (r ^ 3)⁻¹ := by
+    intro r hr
+    have hrne : r ≠ 0 := hr.ne'
+    have hev : deriv χ =ᶠ[𝓝 r] (fun t => (deriv η (Real.log t) - η (Real.log t)) * (t ^ 2)⁻¹) := by
+      filter_upwards [Ioi_mem_nhds hr] with t ht; exact hd1 t ht
+    have hP1 : HasDerivAt (fun t => deriv η (Real.log t)) (deriv (deriv η) (Real.log r) * r⁻¹) r :=
+      (hη2 (Real.log r)).comp r (Real.hasDerivAt_log hr.ne')
+    have hP2 : HasDerivAt (fun t => η (Real.log t)) (deriv η (Real.log r) * r⁻¹) r :=
+      (hη1 (Real.log r)).comp r (Real.hasDerivAt_log hr.ne')
+    have hbase : HasDerivAt (fun t => (deriv η (Real.log t) - η (Real.log t)) * (t ^ 2)⁻¹)
+        ((deriv (deriv η) (Real.log r) - 3 * deriv η (Real.log r) + 2 * η (Real.log r)) * (r ^ 3)⁻¹) r := by
+      have h0 := (hP1.sub hP2).mul ((hasDerivAt_pow 2 r).inv (pow_ne_zero 2 hr.ne'))
+      simp only [Pi.sub_apply, Pi.inv_apply] at h0
+      convert h0 using 1
+      field_simp; ring
+    show deriv (deriv χ) r = _
+    rw [hev.deriv_eq]
+    exact hbase.deriv
+  -- feed the weak hypothesis the test `χ`
+  have happly := hweak χ hχ_smooth hχ_cs hχ_nonpos
+  set INTEG : ℝ → ℝ := fun r =>
+    (-(1 / 2) * deriv^[2] χ r - (1 / r) * deriv χ r
+      + ((ℓ : ℝ) * ((ℓ : ℝ) + 1) / (2 * r ^ 2) - Z / r) * χ r - E * χ r) * R r * r ^ 2 with hINTEG
+  -- change of variables `r = eˢ`
+  have hCoV : (∫ r in Set.Ioi 0, INTEG r) = ∫ s, Real.exp s * INTEG (Real.exp s) := by
+    have h := integral_image_eq_integral_abs_deriv_smul (f := Real.exp) (f' := Real.exp)
+      (s := (Set.univ : Set ℝ)) MeasurableSet.univ
+      (fun x _ => (Real.hasDerivAt_exp x).hasDerivWithinAt) (Real.exp_injective.injOn) INTEG
+    rw [Set.image_univ, Real.range_exp, Measure.restrict_univ] at h
+    rw [h]
+    refine integral_congr_ae (ae_of_all _ fun s => ?_)
+    simp only [abs_of_pos (Real.exp_pos s), smul_eq_mul]
+  -- the pointwise change-of-variables identity
+  have hpt : ∀ s, R (Real.exp s) *
+        (deriv (deriv η) s - deriv η s
+          - ((ℓ : ℝ) * ((ℓ : ℝ) + 1) - 2 * Z * Real.exp s - 2 * E * Real.exp (2 * s)) * η s)
+      = -2 * (Real.exp s * INTEG (Real.exp s)) := by
+    intro s
+    have hes : (0 : ℝ) < Real.exp s := Real.exp_pos s
+    have hd2s := hd2 (Real.exp s) hes
+    have hd1s := hd1 (Real.exp s) hes
+    have hχs := hχ_pos (Real.exp s) hes
+    rw [Real.log_exp] at hd2s hd1s hχs
+    have hexp2 : Real.exp (2 * s) = (Real.exp s) ^ 2 := by rw [two_mul, Real.exp_add]; ring
+    simp only [hINTEG]
+    rw [hd2s, hd1s, hχs, hexp2]
+    field_simp
+    ring
+  calc ∫ s, R (Real.exp s) *
+        (deriv (deriv η) s - deriv η s
+          - ((ℓ : ℝ) * ((ℓ : ℝ) + 1) - 2 * Z * Real.exp s - 2 * E * Real.exp (2 * s)) * η s)
+      = ∫ s, -2 * (Real.exp s * INTEG (Real.exp s)) := integral_congr_ae (ae_of_all _ hpt)
+    _ = -2 * ∫ s, Real.exp s * INTEG (Real.exp s) := integral_const_mul _ _
+    _ = -2 * ∫ r in Set.Ioi 0, INTEG r := by rw [← hCoV]
+    _ = -2 * 0 := by rw [happly]
+    _ = 0 := mul_zero _
+
 /-! ## Step 2/3 — the projection bridge (Cartesian pairing ↔ radial coefficient)
 
 The first brick of the `chartRealization` sector-projection (hard-core (a)).  Pairing a
@@ -308,5 +526,103 @@ theorem radialHamiltonian_formallySymm (ℓ : ℕ) (u v : ℝ → ℝ)
     rw [HasCompactSupport.integral_Ioi_deriv_eq (hgcd.of_le (by norm_num)) hg0g 0, hgdef]
     simp
   rw [setIntegral_congr_fun measurableSet_Ioi hkey, integral_add hBint hgint, hgzero, add_zero]
+
+/-! ## Phase C, brick 1 — the Cartesian weak eigen-equation
+
+The first foundational brick of the sector-reduction assembly.  We move both Laplacian derivatives
+off the (only `L²`) eigenfunction `ψ` and onto a smooth compactly supported test function `φ`, via
+the weak-derivative integration-by-parts identity, turning `H ψ = E ψ` into the **classical** weak
+form `∫ ψ·((−½Δ + V)φ − Eφ) = 0`.  This avoids ever differentiating `ψ` and is the entry point for
+projecting onto an angular sector (against a separated test `φ = χ ⊗ Yᵢ`). -/
+
+/-- The coercion of a finite `Lp`-sum is a.e. the pointwise sum of coercions. -/
+private lemma coeFn_finsetSum (s : Finset (Fin 3)) (f : Fin 3 → Spectra.Sobolev.L2_R3) :
+    ⇑(∑ i ∈ s, f i) =ᵐ[volume] fun x => ∑ i ∈ s, (f i) x := by
+  induction s using Finset.cons_induction with
+  | empty =>
+      simp only [Finset.sum_empty]
+      exact Lp.coeFn_zero ℂ 2 (volume : Measure Spectra.Sobolev.R3)
+  | cons a s ha ih =>
+      filter_upwards [Lp.coeFn_add (f a) (∑ i ∈ s, f i), ih] with x h1 h2
+      simp only [Finset.sum_cons]
+      rw [h1, Pi.add_apply, h2]
+
+/-- **Weak-Laplacian test pairing.** For an `H²` function `ψ` and a smooth compactly supported
+test `φ`, the weak Laplacian pairs against `φ` by moving both derivatives onto `φ`:
+`∫ (weakLaplacian ψ)·φ = −∫ ψ·(∑ᵢ ∂ᵢ²φ)`.  (Recall `weakLaplacian = −Δ`.) -/
+lemma integral_weakLaplacian_mul (ψ : Spectra.Sobolev.L2_R3) (hψ : MemSobolevH2 ψ)
+    (φ : Spectra.Sobolev.R3 → ℂ) (hφ : ContDiff ℝ ∞ φ) (hφ0 : HasCompactSupport φ) :
+    ∫ x, ⇑(weakLaplacian ψ hψ) x * φ x
+      = -∫ x, ⇑ψ x * ∑ i : Fin 3,
+          fderiv ℝ (fun y => fderiv ℝ φ y (EuclideanSpace.single i 1)) x
+            (EuclideanSpace.single i 1) := by
+  have hφ2 : MemLp φ 2 volume := memLp_of_smooth_compactSupport φ hφ hφ0
+  have hint_g : ∀ i : Fin 3, Integrable (fun x => ⇑((hψ.2 i i).choose) x * φ x) := fun i =>
+    memLp_one_iff_integrable.mp (MemLp.mul' (r := 1) hφ2 (Lp.memLp ((hψ.2 i i).choose)))
+  have hint_ψ : ∀ i : Fin 3, Integrable (fun x => ⇑ψ x *
+      fderiv ℝ (fun y => fderiv ℝ φ y (EuclideanSpace.single i 1)) x
+        (EuclideanSpace.single i 1)) := by
+    intro i
+    have h2 : MemLp (fun y => fderiv ℝ (fun z => fderiv ℝ φ z (EuclideanSpace.single i 1)) y
+        (EuclideanSpace.single i 1)) 2 volume :=
+      memLp_partialDeriv _ i (contDiff_partialDeriv φ i hφ) (hasCompactSupport_partialDeriv φ i hφ0)
+    exact memLp_one_iff_integrable.mp (MemLp.mul' (r := 1) h2 (Lp.memLp ψ))
+  have key : ∀ i : Fin 3, ∫ x, ⇑((hψ.2 i i).choose) x * φ x
+      = ∫ x, ⇑ψ x *
+          fderiv ℝ (fun y => fderiv ℝ φ y (EuclideanSpace.single i 1)) x
+            (EuclideanSpace.single i 1) := by
+    intro i
+    obtain ⟨h_i, hd1, hd2⟩ := (hψ.2 i i).choose_spec
+    have e2 := hd2 φ hφ hφ0
+    have e1 := hd1 (fun y => fderiv ℝ φ y (EuclideanSpace.single i 1))
+      (contDiff_partialDeriv φ i hφ) (hasCompactSupport_partialDeriv φ i hφ0)
+    rw [e1, e2]; ring
+  have hcoe : ⇑(weakLaplacian ψ hψ) =ᵐ[volume]
+      fun x => -∑ i : Fin 3, ⇑((hψ.2 i i).choose) x := by
+    rw [weakLaplacian]
+    filter_upwards [Lp.coeFn_neg (∑ i : Fin 3, (hψ.2 i i).choose),
+      coeFn_finsetSum Finset.univ (fun i => (hψ.2 i i).choose)] with x h1 h2
+    rw [h1, Pi.neg_apply, h2]
+  calc ∫ x, ⇑(weakLaplacian ψ hψ) x * φ x
+      = ∫ x, (-∑ i : Fin 3, ⇑((hψ.2 i i).choose) x) * φ x := by
+        refine integral_congr_ae ?_
+        filter_upwards [hcoe] with x hx; rw [hx]
+    _ = ∫ x, -∑ i : Fin 3, ⇑((hψ.2 i i).choose) x * φ x := by
+        refine integral_congr_ae (ae_of_all _ fun x => ?_)
+        simp only [neg_mul, Finset.sum_mul]
+    _ = -∑ i : Fin 3, ∫ x, ⇑((hψ.2 i i).choose) x * φ x := by
+        rw [integral_neg, integral_finsetSum _ (fun i _ => hint_g i)]
+    _ = -∑ i : Fin 3, ∫ x, ⇑ψ x *
+          fderiv ℝ (fun y => fderiv ℝ φ y (EuclideanSpace.single i 1)) x
+            (EuclideanSpace.single i 1) := by rw [Finset.sum_congr rfl (fun i _ => key i)]
+    _ = -∫ x, ∑ i : Fin 3, ⇑ψ x *
+          fderiv ℝ (fun y => fderiv ℝ φ y (EuclideanSpace.single i 1)) x
+            (EuclideanSpace.single i 1) := by rw [integral_finsetSum _ (fun i _ => hint_ψ i)]
+    _ = -∫ x, ⇑ψ x * ∑ i : Fin 3,
+          fderiv ℝ (fun y => fderiv ℝ φ y (EuclideanSpace.single i 1)) x
+            (EuclideanSpace.single i 1) := by
+        refine congrArg Neg.neg (integral_congr_ae (ae_of_all _ fun x => ?_))
+        simp only [Finset.mul_sum]
+
+/-- **Cartesian weak eigen-equation (derivatives on the test function).** For an `H²` eigenfunction
+`H ψ = E ψ`, pairing against a smooth compactly supported `φ` gives `−∫ ψ·Δφ = ∫ 2(E − V)·ψ·φ`
+(`V = coulombMultiplier p`), the classical weak form with all derivatives on the test function.
+Combines `integral_weakLaplacian_mul` (move derivatives onto `φ`) with `weak_eigenequation_ae`
+(`weakLaplacian ψ = 2(E − V)ψ`). -/
+theorem cartesian_weak_eigen (p : CoulombParams) (E : ℝ)
+    (ψ : (hydrogenHamiltonian p).domain)
+    (heig : hydrogenHamiltonian p ψ = (E : ℂ) • (ψ : Spectra.Sobolev.L2_R3))
+    (φ : Spectra.Sobolev.R3 → ℂ) (hφ : ContDiff ℝ ∞ φ) (hφ0 : HasCompactSupport φ) :
+    -∫ x, ⇑(ψ : Spectra.Sobolev.L2_R3) x * ∑ i : Fin 3,
+        fderiv ℝ (fun y => fderiv ℝ φ y (EuclideanSpace.single i 1)) x
+          (EuclideanSpace.single i 1)
+      = ∫ x, (2 : ℂ) * ((E : ℂ) - (coulombMultiplier p x : ℂ)) * ⇑(ψ : Spectra.Sobolev.L2_R3) x
+          * φ x := by
+  have hpair := integral_weakLaplacian_mul (ψ : Spectra.Sobolev.L2_R3) ψ.2 φ hφ hφ0
+  have hwe := weak_eigenequation_ae p E ψ heig
+  rw [← hpair]
+  refine integral_congr_ae ?_
+  filter_upwards [hwe] with x hx
+  rw [hx]
 
 end QuantumMechanics.Hydrogen.Spectrum

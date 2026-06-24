@@ -277,4 +277,172 @@ theorem integral_primitive_mul_deriv {h : ℝ → ℝ} (hh : LocallyIntegrable h
     rw [hψ0' x (fun hmem => hx (Set.Ioo_subset_Ioc_self hmem)), mul_zero]
   rw [hLHS, hibp, hRHS]
 
+/-! ## Route B — weak ODE on `ℝ` has a classical `C²` solution
+
+The elliptic-regularity bootstrap. A locally integrable weak solution of the (log-coordinate)
+radial ODE `c'' + c' − b c = 0` — i.e. `∫ c·(χ'' − χ' − b χ) = 0` for all test `χ` — is, after
+three integrations by parts against primitives, of the form `∫ (c + G₁ − G₂)·χ'' = 0`, so the
+affine du Bois-Reymond lemma forces `c` to equal `c₀ = α·id + β − G₁ + G₂` almost everywhere.
+That representative is then *climbed* to `C²`: `G₁ = ∫c₀` and `g = ∫b c₀` are `C¹` (FTC, `c₀`
+continuous), `G₂ = ∫g` is `C²`, hence `c₀ = α·id + β − G₁ + G₂` is `C²`, and differentiating the
+relation twice (`G₁' = c₀`, `g' = b c₀`, `G₂' = g`) recovers the pointwise ODE
+`c₀'' + c₀' − b c₀ = 0`. -/
+
+/-- **Weak ODE ⟹ classical `C²` solution.** If `c` is locally integrable, `b` is continuous,
+and `c` weakly solves the second-order ODE `c'' + c' − b c = 0` (tested against smooth compactly
+supported `χ` via `∫ c·(χ'' − χ' − bχ) = 0`), then `c` agrees almost everywhere with a function
+`c₀` that is twice differentiable everywhere and solves the ODE pointwise:
+`c₀'' + c₀' − b c₀ = 0`.
+
+This is the elliptic-regularity bootstrap for the (log-coordinate) radial equation: it upgrades a
+weak/distributional solution to an honest pointwise `C²` solution, the form consumed by
+`RadialEq.radial_quantization` (after the `r ↔ s = log r` change of variables). -/
+theorem classical_of_weak_ode {c : ℝ → ℝ} (hc : LocallyIntegrable c volume)
+    {b : ℝ → ℝ} (hb : Continuous b)
+    (hweak : ∀ χ : ℝ → ℝ, ContDiff ℝ ∞ χ → HasCompactSupport χ →
+      ∫ s, c s * (deriv (deriv χ) s - deriv χ s - b s * χ s) = 0) :
+    ∃ c₀ : ℝ → ℝ, c =ᵐ[volume] c₀ ∧
+      (∀ x, HasDerivAt c₀ (deriv c₀ x) x) ∧
+      (∀ x, HasDerivAt (deriv c₀) (deriv^[2] c₀ x) x) ∧
+      (∀ x, deriv^[2] c₀ x + deriv c₀ x - b x * c₀ x = 0) := by
+  -- interval integrability of `c` and `b·c`
+  have hcII : ∀ p q : ℝ, IntervalIntegrable c volume p q := fun p q =>
+    intervalIntegrable_iff.mpr ((hc.integrableOn_isCompact isCompact_uIcc).mono_set Set.uIoc_subset_uIcc)
+  have hbc : LocallyIntegrable (fun x => b x * c x) volume :=
+    locallyIntegrableOn_univ.mp
+      ((locallyIntegrableOn_univ.mpr hc).continuousOn_mul hb.continuousOn isOpen_univ.isLocallyClosed)
+  have hbcII : ∀ p q : ℝ, IntervalIntegrable (fun x => b x * c x) volume p q := fun p q =>
+    intervalIntegrable_iff.mpr ((hbc.integrableOn_isCompact isCompact_uIcc).mono_set Set.uIoc_subset_uIcc)
+  -- primitives `G₁ = ∫c`, `g = ∫bc`, `G₂ = ∫g`
+  set G₁ : ℝ → ℝ := fun x => ∫ t in (0:ℝ)..x, c t with hG₁
+  set g : ℝ → ℝ := fun x => ∫ t in (0:ℝ)..x, b t * c t with hg
+  set G₂ : ℝ → ℝ := fun x => ∫ t in (0:ℝ)..x, g t with hG₂
+  have hG₁cont : Continuous G₁ := intervalIntegral.continuous_primitive hcII 0
+  have hgcont : Continuous g := intervalIntegral.continuous_primitive hbcII 0
+  have hG₂cont : Continuous G₂ :=
+    intervalIntegral.continuous_primitive (fun p q => hgcont.intervalIntegrable p q) 0
+  -- the target function `f = c + G₁ − G₂`, locally integrable
+  set f : ℝ → ℝ := fun x => c x + G₁ x - G₂ x with hf
+  have hfloc : LocallyIntegrable f volume :=
+    (hc.add hG₁cont.locallyIntegrable).sub hG₂cont.locallyIntegrable
+  -- the fold gives `∫ deriv²χ · f = 0`
+  have hfold : ∀ χ : ℝ → ℝ, ContDiff ℝ ∞ χ → HasCompactSupport χ →
+      ∫ x, deriv (deriv χ) x * f x = 0 := by
+    intro χ hχ hχ0
+    have hχ' : ContDiff ℝ ∞ (deriv χ) := (contDiff_infty_iff_deriv.mp hχ).2
+    have hχ'0 : HasCompactSupport (deriv χ) := hχ0.deriv
+    have hd2cont : Continuous (deriv (deriv χ)) := (contDiff_infty_iff_deriv.mp hχ').2.continuous
+    have hd2supp : HasCompactSupport (deriv (deriv χ)) := hχ'0.deriv
+    -- workhorse applications
+    have hA1 : ∫ x, G₁ x * deriv (deriv χ) x = -∫ x, c x * deriv χ x :=
+      integral_primitive_mul_deriv hc 0 hχ' hχ'0
+    have hA2b : ∫ x, G₂ x * deriv (deriv χ) x = -∫ x, g x * deriv χ x :=
+      integral_primitive_mul_deriv hgcont.locallyIntegrable 0 hχ' hχ'0
+    have hA2a : ∫ x, g x * deriv χ x = -∫ x, b x * c x * χ x :=
+      integral_primitive_mul_deriv hbc 0 hχ hχ0
+    -- commute the workhorse results to `deriv²χ · _`
+    have hA1' : ∫ x, deriv (deriv χ) x * G₁ x = -∫ x, c x * deriv χ x := by
+      rw [← hA1]; exact integral_congr_ae (ae_of_all _ fun x => mul_comm _ _)
+    have hA2' : ∫ x, deriv (deriv χ) x * G₂ x = ∫ x, b x * c x * χ x := by
+      rw [show ∫ x, deriv (deriv χ) x * G₂ x = ∫ x, G₂ x * deriv (deriv χ) x from
+        integral_congr_ae (ae_of_all _ fun x => mul_comm _ _), hA2b, hA2a, neg_neg]
+    -- integrability of the pieces
+    have iA : Integrable (fun x => deriv (deriv χ) x * c x) volume := by
+      simpa only [smul_eq_mul] using hc.integrable_smul_left_of_hasCompactSupport hd2cont hd2supp
+    have iG₁ : Integrable (fun x => deriv (deriv χ) x * G₁ x) volume :=
+      (hd2cont.mul hG₁cont).integrable_of_hasCompactSupport hd2supp.mul_right
+    have iG₂ : Integrable (fun x => deriv (deriv χ) x * G₂ x) volume :=
+      (hd2cont.mul hG₂cont).integrable_of_hasCompactSupport hd2supp.mul_right
+    have iB : Integrable (fun x => c x * deriv χ x) volume := by
+      simpa [mul_comm] using hc.integrable_smul_left_of_hasCompactSupport hχ'.continuous hχ'0
+    have iC : Integrable (fun x => b x * c x * χ x) volume := by
+      simpa [mul_comm] using hbc.integrable_smul_left_of_hasCompactSupport hχ.continuous hχ0
+    -- split, substitute the workhorse identities, and match the weak form
+    have hsplit : ∫ x, deriv (deriv χ) x * f x
+        = (∫ x, deriv (deriv χ) x * c x) + (∫ x, deriv (deriv χ) x * G₁ x)
+          - ∫ x, deriv (deriv χ) x * G₂ x :=
+      calc ∫ x, deriv (deriv χ) x * f x
+          = ∫ x, (deriv (deriv χ) x * c x + deriv (deriv χ) x * G₁ x
+              - deriv (deriv χ) x * G₂ x) :=
+            integral_congr_ae (ae_of_all _ fun x => by simp only [hf]; ring)
+        _ = (∫ x, (deriv (deriv χ) x * c x + deriv (deriv χ) x * G₁ x))
+              - ∫ x, deriv (deriv χ) x * G₂ x := integral_sub (iA.add iG₁) iG₂
+        _ = (∫ x, deriv (deriv χ) x * c x) + (∫ x, deriv (deriv χ) x * G₁ x)
+              - ∫ x, deriv (deriv χ) x * G₂ x := by rw [integral_add iA iG₁]
+    rw [hsplit, hA1', hA2']
+    have hrw : ∫ s, c s * (deriv (deriv χ) s - deriv χ s - b s * χ s)
+        = (∫ s, deriv (deriv χ) s * c s) - (∫ s, c s * deriv χ s) - ∫ s, b s * c s * χ s :=
+      calc ∫ s, c s * (deriv (deriv χ) s - deriv χ s - b s * χ s)
+          = ∫ s, (deriv (deriv χ) s * c s - c s * deriv χ s - b s * c s * χ s) :=
+            integral_congr_ae (ae_of_all _ fun s => by ring)
+        _ = (∫ s, (deriv (deriv χ) s * c s - c s * deriv χ s)) - ∫ s, b s * c s * χ s :=
+            integral_sub (iA.sub iB) iC
+        _ = (∫ s, deriv (deriv χ) s * c s) - (∫ s, c s * deriv χ s) - ∫ s, b s * c s * χ s := by
+            rw [integral_sub iA iB]
+    rw [show (∫ x, deriv (deriv χ) x * c x) + (-∫ x, c x * deriv χ x) - ∫ x, b x * c x * χ x
+        = ∫ s, c s * (deriv (deriv χ) s - deriv χ s - b s * χ s) from by rw [hrw]; ring]
+    exact hweak χ hχ hχ0
+  obtain ⟨α, β, hαβ⟩ := ae_eq_affine_of_integral_deriv2_mul_eq_zero f hfloc hfold
+  -- the continuous representative `c₀ = α·id + β − G₁ + G₂`
+  set c₀ : ℝ → ℝ := fun x => α * x + β - G₁ x + G₂ x with hc₀def
+  have hc₀cont : Continuous c₀ := by
+    rw [hc₀def]
+    exact (((continuous_const.mul continuous_id).add continuous_const).sub hG₁cont).add hG₂cont
+  have hae : c =ᵐ[volume] c₀ := by
+    filter_upwards [hαβ] with x hx
+    simp only [hf] at hx
+    show c x = α * x + β - G₁ x + G₂ x
+    linarith [hx]
+  -- FTC for the three primitives, re-expressed through the continuous representative
+  have hbc₀cont : Continuous (fun x => b x * c₀ x) := hb.mul hc₀cont
+  have hG₁eq : G₁ = fun u => ∫ t in (0:ℝ)..u, c₀ t := by
+    funext u; simp only [hG₁]
+    exact intervalIntegral.integral_congr_ae (by filter_upwards [hae] with t ht; exact fun _ => ht)
+  have hgeq : g = fun u => ∫ t in (0:ℝ)..u, b t * c₀ t := by
+    funext u; simp only [hg]
+    refine intervalIntegral.integral_congr_ae ?_
+    filter_upwards [hae] with t ht; exact fun _ => by rw [ht]
+  have hG₁d : ∀ x, HasDerivAt G₁ (c₀ x) x := fun x => by
+    rw [hG₁eq]
+    exact (intervalIntegral.integral_hasStrictDerivAt_right (hc₀cont.intervalIntegrable _ _)
+      (hc₀cont.stronglyMeasurableAtFilter _ _) hc₀cont.continuousAt).hasDerivAt
+  have hgd : ∀ x, HasDerivAt g (b x * c₀ x) x := fun x => by
+    rw [hgeq]
+    exact (intervalIntegral.integral_hasStrictDerivAt_right (hbc₀cont.intervalIntegrable _ _)
+      (hbc₀cont.stronglyMeasurableAtFilter _ _) hbc₀cont.continuousAt).hasDerivAt
+  have hG₂d : ∀ x, HasDerivAt G₂ (g x) x := fun x => by
+    rw [hG₂]
+    exact (intervalIntegral.integral_hasStrictDerivAt_right (hgcont.intervalIntegrable _ _)
+      (hgcont.stronglyMeasurableAtFilter _ _) hgcont.continuousAt).hasDerivAt
+  -- first derivative of `c₀`
+  have hlin : ∀ x, HasDerivAt (fun y => α * y + β) α x := fun x => by
+    simpa using ((hasDerivAt_id x).const_mul α).add_const β
+  have hc₀d1 : ∀ x, HasDerivAt c₀ (α - c₀ x + g x) x := fun x =>
+    ((hlin x).sub (hG₁d x)).add (hG₂d x)
+  have hderiv1 : ∀ x, deriv c₀ x = α - c₀ x + g x := fun x => (hc₀d1 x).deriv
+  have hderiv1_eq : deriv c₀ = fun x => α - c₀ x + g x := funext hderiv1
+  -- second derivative of `c₀`, recovering the pointwise ODE
+  have hc₀d2 : ∀ x, HasDerivAt (deriv c₀) (-(α - c₀ x + g x) + b x * c₀ x) x := fun x => by
+    rw [hderiv1_eq]
+    exact ((hc₀d1 x).const_sub α).add (hgd x)
+  have hderiv2 : ∀ x, deriv^[2] c₀ x = -(α - c₀ x + g x) + b x * c₀ x := fun x => by
+    show deriv (deriv c₀) x = -(α - c₀ x + g x) + b x * c₀ x
+    exact (hc₀d2 x).deriv
+  refine ⟨c₀, hae, ?_, ?_, ?_⟩
+  · intro x; rw [hderiv1 x]; exact hc₀d1 x
+  · intro x; rw [hderiv2 x]; exact hc₀d2 x
+  · intro x; rw [hderiv2 x, hderiv1 x]; ring
+
+/-- **Weak ODE ⟹ continuous representative.** A locally integrable weak solution of
+`c'' + c' − b c = 0` agrees almost everywhere with a continuous function. The continuity-only
+corollary of `classical_of_weak_ode` (the `C²` solution is in particular continuous). -/
+theorem ae_eq_continuous_of_weak_ode {c : ℝ → ℝ} (hc : LocallyIntegrable c volume)
+    {b : ℝ → ℝ} (hb : Continuous b)
+    (hweak : ∀ χ : ℝ → ℝ, ContDiff ℝ ∞ χ → HasCompactSupport χ →
+      ∫ s, c s * (deriv (deriv χ) s - deriv χ s - b s * χ s) = 0) :
+    ∃ c₀ : ℝ → ℝ, Continuous c₀ ∧ c =ᵐ[volume] c₀ := by
+  obtain ⟨c₀, hae, hd1, _, _⟩ := classical_of_weak_ode hc hb hweak
+  have hdiff : Differentiable ℝ c₀ := fun x => (hd1 x).differentiableAt
+  exact ⟨c₀, hdiff.continuous, hae⟩
+
 end Spectra.RadialRegularity
