@@ -5,6 +5,9 @@ Authors: Adam Bornemann
 -/
 import Spectra.QuantumMechanics.BornRule.POVM
 import Spectra.QuantumMechanics.Observable.Basic
+import Spectra.SpectralTheory.Calculus.Bounded
+import Spectra.SpectralTheory.Measure.Convergence
+import Spectra.SpectralTheory.ResolventForm
 import Mathlib.MeasureTheory.Measure.Prod
 /-!
 # The relational layer: joint spectral measures and the Born rule for commuting observables
@@ -72,6 +75,172 @@ open Spectra.QuantumMechanics.Observable
 
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
 
+/-! ## §0  Cross-group commutation engines
+
+The whole of §1's group/projection equivalence reduces to a single algebraic fact about the
+bounded functional calculus of a *fixed* one-parameter unitary group `U`: an operator `D` that
+commutes with the group `U(t)` (resp. with every spectral projection `E(S)`) commutes with the
+entire bounded Borel calculus `Φ(g)`.  Both are proved by reducing operator commutation to the
+polarized pairing `spectralForm` and using that two pairings agreeing on a *determining family*
+(characters, resp. indicators) agree on every bounded measurable symbol — the character case is
+`integral_combination_ext'` (Fourier uniqueness), the indicator case is elementary
+(`Measure.ext`).  No Stone–Weierstrass, no operator topology. -/
+
+namespace Spectra.QuantumMechanics.SpectralTheory
+
+open Complex MeasureTheory
+open scoped InnerProductSpace
+open Spectra.Borel
+
+variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
+
+/-- **Character determinacy of the pairing.**  Two polarized spectral pairings that agree on
+every character agree on every bounded measurable symbol.  A direct instance of
+`integral_combination_ext'` over the four polarization vectors. -/
+theorem spectralForm_ext_of_char (U : OneParameterUnitaryGroup (H := H)) (ξ₁ η₁ ξ₂ η₂ : H)
+    (hchar : ∀ t : ℝ, spectralForm U ξ₁ η₁ (fun l => cexp (I * l * t))
+              = spectralForm U ξ₂ η₂ (fun l => cexp (I * l * t)))
+    {g : ℝ → ℂ} (hgm : Measurable g) (hgb : ∃ C, ∀ ω, ‖g ω‖ ≤ C) :
+    spectralForm U ξ₁ η₁ g = spectralForm U ξ₂ η₂ g := by
+  have key := Spectra.Fourier.integral_combination_ext'
+    (![1 / 4, -(1 / 4), I / 4, -(I / 4)] : Fin 4 → ℂ)
+    (fun i => borelMeasure U (![ξ₁ + η₁, ξ₁ - η₁, ξ₁ - I • η₁, ξ₁ + I • η₁] i))
+    (![1 / 4, -(1 / 4), I / 4, -(I / 4)] : Fin 4 → ℂ)
+    (fun j => borelMeasure U (![ξ₂ + η₂, ξ₂ - η₂, ξ₂ - I • η₂, ξ₂ + I • η₂] j))
+    (fun t => by
+      have h := hchar t
+      simp only [spectralForm] at h
+      simp only [Fin.sum_univ_succ, Fin.sum_univ_zero, Matrix.cons_val_zero,
+        Matrix.cons_val_succ, add_zero]
+      linear_combination h)
+    hgm hgb
+  simp only [Fin.sum_univ_succ, Fin.sum_univ_zero, Matrix.cons_val_zero,
+    Matrix.cons_val_succ, add_zero] at key
+  simp only [spectralForm]
+  linear_combination key
+
+/-- **Indicator determinacy of the pairing.**  Two polarized spectral pairings that agree on
+every indicator agree on every bounded measurable symbol.  Elementary: comparing real and
+imaginary parts at indicators yields equalities of the (finite, positive) Borel measures via
+`Measure.ext`, after which the bounded-symbol integrals agree term by term. -/
+theorem spectralForm_ext_of_set (U : OneParameterUnitaryGroup (H := H)) (ξ₁ η₁ ξ₂ η₂ : H)
+    (hset : ∀ (S : Set ℝ), MeasurableSet S →
+       spectralForm U ξ₁ η₁ (Set.indicator S (fun _ => (1 : ℂ)))
+         = spectralForm U ξ₂ η₂ (Set.indicator S (fun _ => (1 : ℂ))))
+    {g : ℝ → ℂ} (hgm : Measurable g) (hgb : ∃ C, ∀ ω, ‖g ω‖ ≤ C) :
+    spectralForm U ξ₁ η₁ g = spectralForm U ξ₂ η₂ g := by
+  obtain ⟨C, hC⟩ := hgb
+  have hgi : ∀ v : H, Integrable g (borelMeasure U v) := fun v =>
+    Spectra.Fourier.integrable_of_bounded hgm hC
+  have hnt : ∀ (v : H) (S : Set ℝ), (borelMeasure U v) S ≠ ⊤ := fun v S => measure_ne_top _ _
+  -- The two real identities extracted from the indicator hypothesis (real / imaginary parts).
+  have hparts : ∀ (S : Set ℝ), MeasurableSet S →
+      ((borelMeasure U (ξ₁ + η₁)) S).toReal - ((borelMeasure U (ξ₁ - η₁)) S).toReal
+          = ((borelMeasure U (ξ₂ + η₂)) S).toReal - ((borelMeasure U (ξ₂ - η₂)) S).toReal
+      ∧ ((borelMeasure U (ξ₁ - I • η₁)) S).toReal - ((borelMeasure U (ξ₁ + I • η₁)) S).toReal
+          = ((borelMeasure U (ξ₂ - I • η₂)) S).toReal - ((borelMeasure U (ξ₂ + I • η₂)) S).toReal := by
+    intro S hS
+    have h := hset S hS
+    simp only [spectralForm, integral_indicator_const (1 : ℂ) hS, Complex.real_smul,
+      mul_one, Measure.real_def] at h
+    -- clear the `/4` and split into real/imaginary parts
+    have h' : ((((borelMeasure U (ξ₁ + η₁)) S).toReal : ℂ) - ((borelMeasure U (ξ₁ - η₁)) S).toReal
+            + (((((borelMeasure U (ξ₁ - I • η₁)) S).toReal : ℂ)
+              - ((borelMeasure U (ξ₁ + I • η₁)) S).toReal)) * I)
+        = ((((borelMeasure U (ξ₂ + η₂)) S).toReal : ℂ) - ((borelMeasure U (ξ₂ - η₂)) S).toReal
+            + (((((borelMeasure U (ξ₂ - I • η₂)) S).toReal : ℂ)
+              - ((borelMeasure U (ξ₂ + I • η₂)) S).toReal)) * I) := by
+      linear_combination (4 : ℂ) * h
+    rw [Complex.ext_iff] at h'
+    simp only [Complex.add_re, Complex.add_im, Complex.sub_re, Complex.sub_im, Complex.mul_re,
+      Complex.mul_im, Complex.ofReal_re, Complex.ofReal_im, Complex.I_re, Complex.I_im,
+      mul_zero, mul_one, sub_zero, add_zero, zero_add] at h'
+    exact ⟨by linarith [h'.1], by linarith [h'.2]⟩
+  -- the two measure identities, via `Measure.ext`
+  have M1 : borelMeasure U (ξ₁ + η₁) + borelMeasure U (ξ₂ - η₂)
+      = borelMeasure U (ξ₁ - η₁) + borelMeasure U (ξ₂ + η₂) := by
+    refine Measure.ext fun S hS => ?_
+    rw [Measure.add_apply, Measure.add_apply]
+    refine (ENNReal.toReal_eq_toReal_iff'
+      (ENNReal.add_ne_top.mpr ⟨hnt _ _, hnt _ _⟩)
+      (ENNReal.add_ne_top.mpr ⟨hnt _ _, hnt _ _⟩)).mp ?_
+    rw [ENNReal.toReal_add (hnt _ _) (hnt _ _), ENNReal.toReal_add (hnt _ _) (hnt _ _)]
+    linarith [(hparts S hS).1]
+  have M2 : borelMeasure U (ξ₁ - I • η₁) + borelMeasure U (ξ₂ + I • η₂)
+      = borelMeasure U (ξ₁ + I • η₁) + borelMeasure U (ξ₂ - I • η₂) := by
+    refine Measure.ext fun S hS => ?_
+    rw [Measure.add_apply, Measure.add_apply]
+    refine (ENNReal.toReal_eq_toReal_iff'
+      (ENNReal.add_ne_top.mpr ⟨hnt _ _, hnt _ _⟩)
+      (ENNReal.add_ne_top.mpr ⟨hnt _ _, hnt _ _⟩)).mp ?_
+    rw [ENNReal.toReal_add (hnt _ _) (hnt _ _), ENNReal.toReal_add (hnt _ _) (hnt _ _)]
+    linarith [(hparts S hS).2]
+  -- integrate `g` against the measure identities and recombine
+  have h1 : (∫ l, g l ∂(borelMeasure U (ξ₁ + η₁))) + ∫ l, g l ∂(borelMeasure U (ξ₂ - η₂))
+      = (∫ l, g l ∂(borelMeasure U (ξ₁ - η₁))) + ∫ l, g l ∂(borelMeasure U (ξ₂ + η₂)) := by
+    rw [← integral_add_measure (hgi _) (hgi _), M1, integral_add_measure (hgi _) (hgi _)]
+  have h2 : (∫ l, g l ∂(borelMeasure U (ξ₁ - I • η₁))) + ∫ l, g l ∂(borelMeasure U (ξ₂ + I • η₂))
+      = (∫ l, g l ∂(borelMeasure U (ξ₁ + I • η₁))) + ∫ l, g l ∂(borelMeasure U (ξ₂ - I • η₂)) := by
+    rw [← integral_add_measure (hgi _) (hgi _), M2, integral_add_measure (hgi _) (hgi _)]
+  simp only [spectralForm]
+  linear_combination (h1 + h2 * I) / 4
+
+/-- **The group commutant lies in the calculus commutant.**  If `D` commutes with `U(t)` for
+all `t`, then `D` commutes with the bounded functional calculus `Φ(g)` for every bounded
+measurable symbol `g`. -/
+theorem commute_spectralCalculus_of_commute_group (U : OneParameterUnitaryGroup (H := H))
+    (D : H →L[ℂ] H) (hD : ∀ t : ℝ, Commute (U.U t) D)
+    {g : ℝ → ℂ} (hgm : Measurable g) (hgb : ∃ C, ∀ ω, ‖g ω‖ ≤ C) :
+    Commute (spectralCalculus U g hgm hgb) D := by
+  have hkey : ∀ ξ η : H,
+      spectralForm U ξ (D η) g = spectralForm U (ContinuousLinearMap.adjoint D ξ) η g := by
+    intro ξ η
+    refine spectralForm_ext_of_char U ξ (D η) (ContinuousLinearMap.adjoint D ξ) η
+      (fun t => ?_) hgm hgb
+    rw [spectralForm_char, spectralForm_char]
+    have hcomm : U.U t (D η) = D (U.U t η) := by
+      have h := DFunLike.congr_fun (hD t).eq η
+      simpa only [ContinuousLinearMap.mul_apply] using h
+    rw [hcomm, ContinuousLinearMap.adjoint_inner_left]
+  show spectralCalculus U g hgm hgb * D = D * spectralCalculus U g hgm hgb
+  refine ContinuousLinearMap.ext fun η => ext_inner_left ℂ fun ξ => ?_
+  rw [ContinuousLinearMap.mul_apply, ContinuousLinearMap.mul_apply, inner_spectralCalculus,
+    ← ContinuousLinearMap.adjoint_inner_left D (spectralCalculus U g hgm hgb η) ξ,
+    inner_spectralCalculus]
+  exact hkey ξ η
+
+/-- **The projection commutant lies in the calculus commutant.**  If `D` commutes with every
+spectral projection `E(S)`, then `D` commutes with the bounded functional calculus `Φ(g)` for
+every bounded measurable symbol `g`. -/
+theorem commute_spectralCalculus_of_commute_proj (U : OneParameterUnitaryGroup (H := H))
+    (D : H →L[ℂ] H) (hD : ∀ (S : Set ℝ) (hS : MeasurableSet S), Commute (spectralProjection U S hS) D)
+    {g : ℝ → ℂ} (hgm : Measurable g) (hgb : ∃ C, ∀ ω, ‖g ω‖ ≤ C) :
+    Commute (spectralCalculus U g hgm hgb) D := by
+  have hkey : ∀ ξ η : H,
+      spectralForm U ξ (D η) g = spectralForm U (ContinuousLinearMap.adjoint D ξ) η g := by
+    intro ξ η
+    refine spectralForm_ext_of_set U ξ (D η) (ContinuousLinearMap.adjoint D ξ) η
+      (fun S hS => ?_) hgm hgb
+    have hcomm : spectralProjection U S hS (D η) = D (spectralProjection U S hS η) := by
+      have h := DFunLike.congr_fun (hD S hS).eq η
+      simpa only [ContinuousLinearMap.mul_apply] using h
+    show spectralForm U ξ (D η) (Set.indicator S (fun _ => (1 : ℂ)))
+        = spectralForm U (ContinuousLinearMap.adjoint D ξ) η (Set.indicator S (fun _ => (1 : ℂ)))
+    rw [← inner_spectralCalculus U _ (measurable_const.indicator hS) (indicator_one_bdd S) ξ (D η)]
+    rw [← inner_spectralCalculus U _ (measurable_const.indicator hS) (indicator_one_bdd S)
+      (ContinuousLinearMap.adjoint D ξ) η]
+    show ⟪ξ, spectralProjection U S hS (D η)⟫_ℂ
+        = ⟪ContinuousLinearMap.adjoint D ξ, spectralProjection U S hS η⟫_ℂ
+    rw [hcomm, ContinuousLinearMap.adjoint_inner_left]
+  show spectralCalculus U g hgm hgb * D = D * spectralCalculus U g hgm hgb
+  refine ContinuousLinearMap.ext fun η => ext_inner_left ℂ fun ξ => ?_
+  rw [ContinuousLinearMap.mul_apply, ContinuousLinearMap.mul_apply, inner_spectralCalculus,
+    ← ContinuousLinearMap.adjoint_inner_left D (spectralCalculus U g hgm hgb η) ξ,
+    inner_spectralCalculus]
+  exact hkey ξ η
+
+end Spectra.QuantumMechanics.SpectralTheory
+
 namespace Spectra.QuantumMechanics.BornRule
 
 open PVM
@@ -89,14 +258,53 @@ def StronglyCommute (A B : UnboundedObservable H) : Prop :=
   ∀ (S T : Set ℝ) (hS : MeasurableSet S) (hT : MeasurableSet T),
     Commute (A.spectralPVM.proj S hS) (B.spectralPVM.proj T hT)
 
-/-- `[needs spectralPVM + Stone]` Equivalence with commutation of the unitary groups — the form most
-convenient to *verify* in practice (and the one your `OneParameterUnitaryGroup` stack supplies).
-Stated as a flag; the proof is the strong-commutativity equivalence theorem. -/
+/-- `[needs spectralPVM + Stone]` **Equivalence with commutation of the unitary groups** — the form
+most convenient to *verify* in practice (and the one the `OneParameterUnitaryGroup` stack supplies).
+
+Both directions go through the cross-group commutation engines of §0 — no Stone–Weierstrass, no
+operator topology, no Stone's-formula limit.  `(⇐)` lifts character commutation to projection
+commutation via `commute_spectralCalculus_of_commute_group` (Fourier uniqueness); `(⇒)` lifts
+projection commutation to character commutation via `commute_spectralCalculus_of_commute_proj`
+(`Measure.ext`); each is two applications of an engine plus `Commute.symm`, using
+`E_A(S) = Φ_A(1_S)` and `e^{isA} = Φ_A(e^{is·})` (`spectralCalculus_char`). -/
 theorem stronglyCommute_iff_groups_commute (A B : UnboundedObservable H) :
     StronglyCommute A B ↔
       ∀ s t : ℝ, Commute ((YosidaHille.genToGroup A.selfAdjoint).U s)
-        ((YosidaHille.genToGroup B.selfAdjoint).U t) :=
-  sorry
+        ((YosidaHille.genToGroup B.selfAdjoint).U t) := by
+  constructor
+  · -- (⇒) projections commute ⟹ groups commute
+    intro hSC s t
+    -- lift the `A`-side indicators to the character `e^{is·}`, keeping `e^{it·}` fixed
+    have hstep : ∀ (S : Set ℝ) (hS : MeasurableSet S),
+        Commute (SpectralTheory.spectralProjection (YosidaHille.genToGroup A.selfAdjoint) S hS)
+          ((YosidaHille.genToGroup B.selfAdjoint).U t) := by
+      intro S hS
+      have h := SpectralTheory.commute_spectralCalculus_of_commute_proj
+        (YosidaHille.genToGroup B.selfAdjoint)
+        (SpectralTheory.spectralProjection (YosidaHille.genToGroup A.selfAdjoint) S hS)
+        (fun T hT => (hSC S T hS hT).symm)
+        (SpectralTheory.char_measurable t) (SpectralTheory.char_bdd t)
+      rw [SpectralTheory.spectralCalculus_char] at h
+      exact h.symm
+    have h2 := SpectralTheory.commute_spectralCalculus_of_commute_proj
+      (YosidaHille.genToGroup A.selfAdjoint) ((YosidaHille.genToGroup B.selfAdjoint).U t)
+      hstep (SpectralTheory.char_measurable s) (SpectralTheory.char_bdd s)
+    rwa [SpectralTheory.spectralCalculus_char] at h2
+  · -- (⇐) groups commute ⟹ projections commute
+    intro hG S T hS hT
+    show Commute (SpectralTheory.spectralProjection (YosidaHille.genToGroup A.selfAdjoint) S hS)
+        (SpectralTheory.spectralProjection (YosidaHille.genToGroup B.selfAdjoint) T hT)
+    -- lift the `A`-side character `e^{is·}` to indicators, keeping the `B`-projection fixed
+    have hstep : ∀ s : ℝ, Commute ((YosidaHille.genToGroup A.selfAdjoint).U s)
+        (SpectralTheory.spectralProjection (YosidaHille.genToGroup B.selfAdjoint) T hT) := fun s =>
+      (SpectralTheory.commute_spectralCalculus_of_commute_group
+        (YosidaHille.genToGroup B.selfAdjoint) ((YosidaHille.genToGroup A.selfAdjoint).U s)
+        (fun u => (hG s u).symm)
+        (measurable_const.indicator hT) (SpectralTheory.indicator_one_bdd T)).symm
+    exact SpectralTheory.commute_spectralCalculus_of_commute_group
+      (YosidaHille.genToGroup A.selfAdjoint)
+      (SpectralTheory.spectralProjection (YosidaHille.genToGroup B.selfAdjoint) T hT) hstep
+      (measurable_const.indicator hS) (SpectralTheory.indicator_one_bdd S)
 
 /-! ## §2  The joint PVM as a projective POVM on `ℝ × ℝ`
 
@@ -146,19 +354,10 @@ theorem stronglyCommute_of_jointPVM {A B : UnboundedObservable H} {M : POVM H (�
   rw [hproj _ _ _ _, hproj _ _ _ _]
   exact M.effect_congr (Set.inter_comm _ _) _ _
 
-/-- `[needs spectralPVM + 2D Bochner]` **Commutativity ⟺ a joint spectral measure.**
-
-* **Forward** (`StronglyCommute ⟹ joint PVM`): the multivariate spectral theorem — the commuting
-  PVMs generate a joint PVM on `ℝ²` with the right cylinder marginals.  This is the genuine new
-  construction (still a `sorry`); it is the two-dimensional analogue of your Herglotz/Stone build
-  (2-parameter Bochner for the commuting unitary groups `e^{isA} e^{itB}`).
-* **Backward** (`joint PVM ⟹ StronglyCommute`): **proved**, `stronglyCommute_of_jointPVM`.
-
-This replaces the naive `commute_iff_joint_law`: the witness is an operator-valued PVM (`IsJointOf`),
-not a per-state coupling, which is why the equivalence has content. -/
-theorem stronglyCommute_iff_jointPVM (A B : UnboundedObservable H) :
-    StronglyCommute A B ↔ ∃ M : POVM H (ℝ × ℝ), M.IsProjective ∧ M.IsJointOf A B :=
-  ⟨sorry, fun ⟨_M, hproj, hjoint⟩ => stronglyCommute_of_jointPVM hproj hjoint⟩
+/- The full equivalence `stronglyCommute_iff_jointPVM` (whose **forward** direction is the genuine
+multivariate-spectral-theorem construction, still open) lives in `BornRule.JointForward`, the
+roadmap file carrying this layer's remaining `sorry`s.  Its **backward** half is the proved
+`stronglyCommute_of_jointPVM` above. -/
 
 /-! ## §4  The joint Born law (forward corollary)
 
@@ -209,17 +408,9 @@ theorem jointBornMeasure_snd {M : POVM H (ℝ × ℝ)} {A B : UnboundedObservabl
   exact (ENNReal.toReal_eq_toReal_iff' (measure_ne_top _ _) (measure_ne_top _ _)).mp
     (by exact_mod_cast hcoe)
 
-/-- `[needs spectralPVM + joint functional calculus]` **The correlation.**  The content a generic
-coupling lacks: the joint law reproduces `⟪ξ, AB ξ⟫`.  For `ξ` in a suitable domain (`ξ ∈ D(AB)`),
-`∫ p, p.1 * p.2 ∂(jointBornMeasure M ξ) = (⟪ξ, A(Bξ) ξ'⟫).re` via the joint functional calculus
-(`xy` is the product of the two coordinate functions, whose calculus is `A·B` on the commuting joint
-PVM).  SIGNATURE TO VERIFY: the spelling of `A(Bξ)` through the `LinearPMap`s and the domain
-hypothesis. -/
-theorem jointBornMeasure_correlation {M : POVM H (ℝ × ℝ)} {A B : UnboundedObservable H}
-    (hjoint : M.IsJointOf A B) {ξ : H} (hξ : ξ ∈ B.domain) (hξ' : (B.toLinearPMap ⟨ξ, hξ⟩) ∈ A.domain) :
-    ∫ p, p.1 * p.2 ∂(jointBornMeasure M ξ)
-      = (⟪ξ, A.toLinearPMap ⟨B.toLinearPMap ⟨ξ, hξ⟩, hξ'⟩⟫_ℂ).re :=
-  sorry
+/- The correlation identity `jointBornMeasure_correlation`
+(`∫ p, p.1 * p.2 ∂(jointBornMeasure M ξ) = (⟪ξ, A(Bξ)⟫).re`), a corollary of the joint functional
+calculus that depends on the open forward construction, lives in `BornRule.JointForward`. -/
 
 /-! ## §5  The Bell bridge, and the vacuity of the naive backward direction
 

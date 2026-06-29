@@ -128,6 +128,10 @@ import Spectra.QuantumMechanics.BellsTheorem.QuantumCHSH.Q_CHSH_Basic
 import Spectra.QuantumMechanics.BellsTheorem.QuantumCHSH.Correlations
 import Spectra.QuantumMechanics.BellsTheorem.QuantumCHSH.Violation
 import Spectra.QuantumMechanics.BellsTheorem.QuantumCHSH.Tsirelson
+import Spectra.QuantumMechanics.BornRule.Joint
+-- `BornRule.JointForward` carries this layer's remaining roadmap `sorry`s (Goals 2–3); kept out of
+-- the default build until proved.
+--import Spectra.QuantumMechanics.BornRule.JointForward
 import Spectra.QuantumMechanics.BornRule.Mixed
 import Spectra.QuantumMechanics.BornRule.Moments
 import Spectra.QuantumMechanics.BornRule.Naimark
@@ -177,20 +181,24 @@ import Spectra.QuantumMechanics.Hydrogen.Spectrum.Continuous.Defs
 import Spectra.QuantumMechanics.Hydrogen.Spectrum.Continuous.Compact
 import Spectra.QuantumMechanics.Hydrogen.Spectrum.Continuous.Basic
 import Spectra.QuantumMechanics.Hydrogen.BohrFormula
---import Spectra.QuantumMechanics.Hydrogen.Spectrum.Complete
+import Spectra.QuantumMechanics.Hydrogen.Spectrum.Complete
 import Spectra.QuantumMechanics.Hydrogen.Spectrum.Degeneracy
 import Spectra.QuantumMechanics.Hydrogen.Spectrum.Discrete
 import Spectra.QuantumMechanics.Hydrogen.Spectrum.Eigenvalue
 import Spectra.QuantumMechanics.Hydrogen.Spectrum.SectorReductionLocal
 import Spectra.QuantumMechanics.Hydrogen.Spectrum.RadialEigenfunction
 import Spectra.QuantumMechanics.Hydrogen.Spectrum.Forward
+import Spectra.QuantumMechanics.Hydrogen.Spectrum.Isolation
+import Spectra.QuantumMechanics.Hydrogen.Spectrum.Meromorphic
 import Spectra.QuantumMechanics.Hydrogen.Spectrum.SectorProjection
+import Spectra.QuantumMechanics.Hydrogen.Spectrum.SeparatedEigenfunction
 import Spectra.QuantumMechanics.Hydrogen.Spectrum.Projections
 import Spectra.QuantumMechanics.Observable.Basic
 import Spectra.OneParameterUnitaryGroup.Basic
 import Spectra.QuantumMechanics.PauliMatrices
 import Spectra.QuantumMechanics.Perturbation.KatoRellich
 import Spectra.QuantumMechanics.Perturbation.HardyInequality
+import Spectra.QuantumMechanics.Perturbation.HardySharp
 import Spectra.QuantumMechanics.Perturbation.CoulombBound
 import Spectra.QuantumMechanics.Perturbation.TruncatedCoulombL2
 import Spectra.QuantumMechanics.Perturbation.ResolventKernelL2
@@ -216,6 +224,7 @@ import Spectra.YosidaHille.Unique
 import Spectra.YosidaHille.Basic
 import Spectra.StoneBridge.Basic
 import Spectra.Resolvent.Analytic
+import Spectra.Resolvent.Residue
 import Spectra.Resolvent.Defs
 import Spectra.Resolvent.Diagonal.Basic
 import Spectra.Resolvent.Diagonal.IntegralZ.Defs
@@ -226,6 +235,7 @@ import Spectra.Resolvent.Diagonal.IntegralZ.GeneratorLim
 import Spectra.Resolvent.Diagonal.IntegralZ.DiffQuotient
 import Spectra.Resolvent.Diagonal.IntegralZ.Basic
 import Spectra.Resolvent.Identities
+import Spectra.Resolvent.Meromorphic
 import Spectra.Resolvent.Integral.GroupIntegration
 import Spectra.Resolvent.Integral.Limits
 import Spectra.Resolvent.Integral.Domain
@@ -235,6 +245,7 @@ import Spectra.Resolvent.Range
 import Spectra.Resolvent.Range.ClosedRange
 import Spectra.Resolvent.Range.Orthogonal
 import Spectra.Resolvent.Range.Surjectivity
+import Spectra.Resolvent.Residue
 import Spectra.Resolvent.SpecialCases
 import Spectra.Resolvent.SpectralRepresentation
 import Spectra.SobolevSpaces.Density
@@ -257,6 +268,7 @@ import Spectra.SpectralTheory.Calculus.Bounded
 import Spectra.SpectralTheory.Measure.Convergence
 import Spectra.SpectralTheory.Measure.GeneratorLink
 import Spectra.SpectralTheory.Measure.Polarized
+import Spectra.SpectralTheory.SimplePole
 import Spectra.SpectralTheory.StoneFormula.Basic
 import Spectra.SpectralTheory.StoneFormula.Identities
 import Spectra.SpectralTheory.Essential.WeakCompact
@@ -264,6 +276,7 @@ import Spectra.SpectralTheory.Essential.Defs
 import Spectra.SpectralTheory.Essential.Weyl
 import Spectra.SpectralTheory.Essential.Closed
 import Spectra.SpectralTheory.Essential.Smul
+import Spectra.SpectralTheory.Essential.Discrete
 import Spectra.SpectralTheory.RectangleSimple
 import Spectra.SpectralTheory.IntegralOperator
 import Spectra.SpectralTheory.IntegralOperatorCompact

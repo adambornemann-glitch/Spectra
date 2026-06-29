@@ -141,6 +141,37 @@ assert_no_sorry QuantumMechanics.Hydrogen.Spectrum.hydrogen_no_positive_eigenval
 -- import Spectra.QuantumMechanics.Hydrogen.Spectrum.Discrete
 -- assert_no_sorry QuantumMechanics.Hydrogen.Spectrum.hydrogen_discrete_spectrum
 
+/-! ### Hydrogen discrete eigenspaces · degeneracy states are eigenvectors, span = eigenspace,
+and the spectral projection `E({Eₙ})` onto the `n²`-dimensional bound-state subspace -/
+
+assert_no_sorry QuantumMechanics.Hydrogen.Spectrum.degenFamily_mem_ker
+assert_no_sorry QuantumMechanics.Hydrogen.Spectrum.eigenspace_subset_span
+assert_no_sorry QuantumMechanics.Hydrogen.Spectrum.hydrogen_eigenspace_eq_span
+assert_no_sorry QuantumMechanics.Hydrogen.Spectrum.hydrogen_spectral_projection_discrete
+assert_no_sorry QuantumMechanics.Hydrogen.Spectrum.hydrogen_spectral_projection_finrank
+
+/-! ### Spectral theory · discreteness (Weyl hard half) and hydrogen eigenfunction completeness -/
+
+assert_no_sorry Spectra.QuantumMechanics.SpectralTheory.mem_pointSpectrum_of_mem_spectrum_notMem_essSpectrum
+assert_no_sorry Spectra.QuantumMechanics.SpectralTheory.spectralPVM_proj_eq_zero_of_subset_resolventSet
+assert_no_sorry Spectra.QuantumMechanics.SpectralTheory.selfAdjointResolvent_residue_proj_singleton
+-- Tier C: general resolvent on the open resolvent set, analytic there.
+assert_no_sorry Spectra.Resolvent.isOpen_resolventSet
+assert_no_sorry Spectra.Resolvent.resolventOf_identity
+assert_no_sorry Spectra.Resolvent.resolventOf_eq_resolvent
+assert_no_sorry Spectra.Resolvent.resolventOf_analyticOnNhd
+-- Tier C2: each negative hydrogen eigenvalue is isolated in the spectrum.
+assert_no_sorry QuantumMechanics.Hydrogen.Spectrum.hydrogen_punctured_disk_subset_resolventSet
+-- Tier C3/C4: the resolvent is meromorphic — simple pole at each Eₙ, analytic off [0,∞).
+assert_no_sorry Spectra.QuantumMechanics.SpectralTheory.meromorphicAt_resolventOf_of_isolated
+assert_no_sorry QuantumMechanics.Hydrogen.Spectrum.hydrogen_meromorphicAt_eigenvalue
+assert_no_sorry QuantumMechanics.Hydrogen.Spectrum.hydrogen_meromorphicOn
+-- Tier C5: the residue at each Eₙ is the spectral projection −E({Eₙ}).
+assert_no_sorry Spectra.QuantumMechanics.SpectralTheory.tendsto_sub_smul_resolventOf
+assert_no_sorry QuantumMechanics.Hydrogen.Spectrum.hydrogen_residue_eigenvalue
+assert_no_sorry QuantumMechanics.Hydrogen.Spectrum.mem_eigenvalues_of_mem_spectrum_neg
+assert_no_sorry QuantumMechanics.Hydrogen.Spectrum.hydrogen_eigenfunction_complete
+
 /-! ## Quantum mechanics -/
 
 assert_no_sorry Spectra.QuantumInfo.CHSH_lhv_bound
@@ -152,6 +183,20 @@ assert_no_sorry Spectra.QuantumMechanics.Dirac.diracHamiltonian_isSelfAdjoint
 assert_no_sorry Spectra.QuantumMechanics.Dirac.diracHamiltonian_mass_gap
 assert_no_sorry Spectra.QuantumMechanics.Hamiltonian.kato_rellich
 assert_no_sorry Spectra.QuantumMechanics.Hydrogen.hardy_inequality
+assert_no_sorry Spectra.QuantumMechanics.Hydrogen.hardy_constant_sharp
+
+/-! ### Joint spectral measures · strong commutativity (Born rule, relational layer)
+
+Strong commutativity ⟺ commutation of the unitary groups, and the easy half of the
+joint-PVM equivalence (a joint PVM forces strong commutativity), with the joint Born law's
+marginals.  The forward joint-PVM construction (`stronglyCommute_iff_jointPVM`) and the
+correlation identity remain open and are *not* guarded. -/
+
+assert_no_sorry Spectra.QuantumMechanics.BornRule.stronglyCommute_iff_groups_commute
+assert_no_sorry Spectra.QuantumMechanics.BornRule.stronglyCommute_of_jointPVM
+assert_no_sorry Spectra.QuantumMechanics.BornRule.jointBornMeasure_fst
+assert_no_sorry Spectra.QuantumMechanics.BornRule.jointBornMeasure_snd
+assert_no_sorry Spectra.QuantumMechanics.BornRule.isProbabilityMeasure_jointBornMeasure
 
 /-! ## KMS condition & modular theory -/
 

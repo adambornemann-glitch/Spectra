@@ -1501,7 +1501,7 @@ lemma norm_sq_eq_integral_norm_sq (f : L2_R3) :
 /-- **Bridge lemma (Hardy integral).** For smooth compactly supported `φ`, the
     Hardy integral of its `L²` class equals the integral over `φ` directly
     (the `L²` representative agrees with `φ` a.e.). -/
-private lemma hardyIntegral_toLp {φ : R3 → ℂ} (hφ : MemLp φ 2 volume) :
+lemma hardyIntegral_toLp {φ : R3 → ℂ} (hφ : MemLp φ 2 volume) :
     hardyIntegral (hφ.toLp φ) = ∫ x, inverseRSq x * ‖φ x‖ ^ 2 := by
   unfold hardyIntegral
   refine integral_congr_ae ?_
@@ -1514,7 +1514,7 @@ private lemma hardyIntegral_toLp {φ : R3 → ℂ} (hφ : MemLp φ 2 volume) :
     `hasWeakDerivative_of_smooth_compactSupport`), whose squared `L²`-norm is
     `∫ |∂ᵢφ|²` (bridge `norm_sq_eq_integral_norm_sq`); summing and pulling the
     finite sum through the integral gives the claim. -/
-private lemma gradientNormSq_toLp {φ : R3 → ℂ}
+lemma gradientNormSq_toLp {φ : R3 → ℂ}
     (hφ : ContDiff ℝ ∞ φ) (hsupp : HasCompactSupport φ) (hmem : MemLp φ 2 volume) :
     gradientNormSq (hmem.toLp φ)
         (sobolevH2_le_H1 (smooth_compactSupport_memSobolevH2 φ hφ hsupp hmem))
@@ -1549,7 +1549,7 @@ private lemma gradientNormSq_toLp {φ : R3 → ℂ}
   exact (integral_finsetSum Finset.univ (fun i _ => hint i)).symm
 
 /-- The `i`-th weak gradient of `toLp φ` is `toLp (∂ᵢφ)` (weak-derivative uniqueness). -/
-private lemma weakGradient_toLp_eq {φ : R3 → ℂ}
+lemma weakGradient_toLp_eq {φ : R3 → ℂ}
     (hφ : ContDiff ℝ ∞ φ) (hsupp : HasCompactSupport φ) (hmem : MemLp φ 2 volume) (i : Fin 3) :
     weakGradient (hmem.toLp φ)
         (sobolevH2_le_H1 (smooth_compactSupport_memSobolevH2 φ hφ hsupp hmem)) i
@@ -1562,7 +1562,7 @@ private lemma weakGradient_toLp_eq {φ : R3 → ℂ}
 /-- **Per-approximant Hardy bound.** For smooth compactly supported `φ`, Hardy holds
     for its `L²` class: `hardyIntegral (toLp φ) ≤ 4 · gradientNormSq (toLp φ)`. Combines
     the two bridge lemmas with `hardy_inequality_smooth`. -/
-private lemma hardyIntegral_toLp_le {φ : R3 → ℂ}
+lemma hardyIntegral_toLp_le {φ : R3 → ℂ}
     (hφ : ContDiff ℝ ∞ φ) (hsupp : HasCompactSupport φ) (hmem : MemLp φ 2 volume) :
     hardyIntegral (hmem.toLp φ) ≤ 4 * gradientNormSq (hmem.toLp φ)
         (sobolevH2_le_H1 (smooth_compactSupport_memSobolevH2 φ hφ hsupp hmem)) := by
