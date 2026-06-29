@@ -129,9 +129,7 @@ import Spectra.QuantumMechanics.BellsTheorem.QuantumCHSH.Correlations
 import Spectra.QuantumMechanics.BellsTheorem.QuantumCHSH.Violation
 import Spectra.QuantumMechanics.BellsTheorem.QuantumCHSH.Tsirelson
 import Spectra.QuantumMechanics.BornRule.Joint
--- `BornRule.JointForward` carries this layer's remaining roadmap `sorry`s (Goals 2–3); kept out of
--- the default build until proved.
---import Spectra.QuantumMechanics.BornRule.JointForward
+import Spectra.QuantumMechanics.BornRule.JointForward
 import Spectra.QuantumMechanics.BornRule.Mixed
 import Spectra.QuantumMechanics.BornRule.Moments
 import Spectra.QuantumMechanics.BornRule.Naimark
@@ -159,8 +157,13 @@ import Spectra.QuantumMechanics.FisherModel
 import Spectra.QuantumMechanics.Generator.Basic
 import Spectra.QuantumMechanics.Hydrogen.RadialProblem.TensorDecomp.Basic
 import Spectra.QuantumMechanics.Hydrogen.RadialProblem.Equation.Basic
+import Spectra.QuantumMechanics.Hydrogen.RadialProblem.Equation.Eigenfunctions
 import Spectra.QuantumMechanics.Hydrogen.RadialProblem.Equation.Kummer
+import Spectra.QuantumMechanics.Hydrogen.RadialProblem.Equation.Reduced
+import Spectra.QuantumMechanics.Hydrogen.RadialProblem.Equation.Reduced.Continuum
+import Spectra.QuantumMechanics.Hydrogen.RadialProblem.Equation.Reduced.Quantization
 import Spectra.QuantumMechanics.Hydrogen.RadialProblem.Equation.Regularity
+import Spectra.QuantumMechanics.Hydrogen.RadialProblem.Equation.Uniqueness
 import Spectra.QuantumMechanics.Hydrogen.RadialProblem.Laguerre.Complete
 import Spectra.QuantumMechanics.Hydrogen.RadialProblem.Laguerre.GenFun
 import Spectra.QuantumMechanics.Hydrogen.RadialProblem.Laguerre.Orthogonality

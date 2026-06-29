@@ -8,21 +8,22 @@ import Mathlib.MeasureTheory.Measure.AddContent
 import Mathlib.MeasureTheory.OuterMeasure.OfAddContent
 import Mathlib.Algebra.Star.StarProjection
 /-!
-# Joint spectral measures — the open forward construction (roadmap)
+# Joint spectral measures — the forward construction (the multivariate spectral theorem)
 
-This file carries the two remaining `sorry`s of the relational Born-rule layer, separated out so
-that `BornRule.Joint` itself is `sorry`-free and admitted to the default build and the axiom gate.
+This file builds the forward direction of the relational Born-rule layer, the genuine new content
+that `BornRule.Joint` (sorry-free, easy/backward half) leaves open.  All `sorry`-free and axiom-clean.
 
 * `stronglyCommute_iff_jointPVM` — the corrected equivalence.  Its **backward** half is the proved
-  `stronglyCommute_of_jointPVM` (in `BornRule.Joint`); the **forward** half is the genuine new
-  construction — the multivariate spectral theorem producing a joint PVM on `ℝ²` from commuting
-  PVMs (Goal 2 of the project board, the two-dimensional analogue of the in-house
-  `PositiveDefinite → Bochner/Herglotz → toPVM` pipeline, or the product-of-commuting-PVMs route).
-* `jointBornMeasure_correlation` — the correlation identity `∫ xy dμ_ξ = ⟪ξ, AB ξ⟫.re` (Goal 3),
-  a corollary of the joint functional calculus, blocked on the forward construction above.
-
-Both are stated here (not in `Joint`) precisely because they are not yet proved; the equivalence's
-*backward* direction and the joint Born law's *marginals* are already proved and gated in `Joint`.
+  `stronglyCommute_of_jointPVM` (in `BornRule.Joint`); the **forward** half — the genuine new
+  construction (Goal 2) — produces a joint projective PVM on `ℝ²` from commuting PVMs by Carathéodory
+  extension of the bimeasure content `μ_ξ(S×T) = ⟪ξ, E_A(S)E_B(T)ξ⟫` (`jointScalarMeasure`), with the
+  operator field recovered by polarization (`jointEffect`).  ∅-continuity of the content is the
+  multivariate spectral theorem's core (`jointContentRing_tendsto_empty`, Route T / tightness).
+* `jointBornMeasure_correlation` — the correlation identity `∫ xy dμ_ξ = ⟪ξ, A(Bξ)⟫.re` (Goal 3),
+  the 2-D analogue of `weak_first_moment`: truncate `xy` to `[-N,N]²`, identify the truncated integral
+  with the operator product `Φ_A(x·1_N)Φ_B(y·1_N)` (Step A, `joint_product_form`), collapse it to
+  `E_A([-N,N])E_B([-N,N])(A(Bξ))` (Step C, `joint_truncated_vector`), and pass to the limit.  The bridge
+  to Bell/CHSH.
 -/
 
 open MeasureTheory Complex Spectra Filter Topology
@@ -1362,18 +1363,19 @@ theorem jointElem_inner_compact (A B : Observable.UnboundedObservable H) (hSC : 
   rw [hPs]
   exact aux P.parts hPC hε
 
-/-- **Continuity at `∅` of the ring content — reduced to a single sharp `sorry`.**  For an antitone
-sequence `sₙ` of elementary sets (finite disjoint unions of rectangles) with `⋂ₙ sₙ = ∅`, the content
-`mR(sₙ) = ‖jointVectorContent ξ sₙ‖²` tends to `0`.
+/-- **Continuity at `∅` of the ring content.**  For an antitone sequence `sₙ` of elementary sets
+(finite disjoint unions of rectangles) with `⋂ₙ sₙ = ∅`, the content `mR(sₙ) = ‖jointVectorContent ξ sₙ‖²`
+tends to `0` — the σ-additivity input (`AddContent.measure`) for the joint scalar measure.
 
-This proof is `sorry`-free **except** the single isolated equation `w = 0`, where `w` is the
-(genuine, in-`H`) limit of the Cauchy sequence of vector contents `jointVectorContent ξ sₙ`.  The
-Cauchy property, the limit, and the reduction `mR(sₙ) → ‖w‖²` are all proved here from the in-file
-lemmas (`jointVectorContent_norm_sq`, `jointVectorContent_add`, ring additivity).  The remaining
-`w = 0` is exactly the **multivariate spectral theorem's** content: the joint spectral measure of the
-commuting pair `A, B` assigns no mass to `∅`, i.e. `⋂ₙ range P_{sₙ} = 0` when `⋂ₙ sₙ = ∅` (Reed–Simon,
-*Methods of Modern Mathematical Physics I*, Thm VIII.5).  It is **not** recoverable from the marginal
-data alone (cf. `exists_coupling_always`).  Left as the one open `sorry`. -/
+The reduction `mR(sₙ) → ‖w‖²` for the in-`H` limit `w` of the Cauchy sequence of vector contents
+`jointVectorContent ξ sₙ` is elementary (`jointVectorContent_norm_sq`, `_add`, ring additivity); the
+sharp content is `w = 0`, the **multivariate spectral theorem's** core (the joint spectral measure of
+the commuting pair assigns no mass to `∅`; *not* recoverable from the marginal data alone, cf.
+`exists_coupling_always`).  It is discharged here by **Route T (tightness / Alexandrov)**: the
+joint content's compact inner regularity comes from the genuine marginals via commutation + contraction
+(the approximation *defect* `mR((S×T)∖(S'×T')) ≤ μ^A_ξ(S∖S') + μ^B_ξ(T∖T')` is marginal-controlled even
+though the *mass* is not), and a finite-intersection-property argument on decreasing compacts forces
+`w = 0`.  `sorry`-free and axiom-clean. -/
 theorem jointContentRing_tendsto_empty (A B : Observable.UnboundedObservable H)
     (hSC : StronglyCommute A B) (ξ : H) ⦃s : ℕ → Set (ℝ × ℝ)⦄
     (hs : ∀ n, s n ∈ supClosure jointRectangles) (hanti : Antitone s) (hempty : (⋂ n, s n) = ∅) :
@@ -2359,17 +2361,527 @@ theorem stronglyCommute_iff_jointPVM (A B : UnboundedObservable H) :
   ⟨fun hSC => ⟨jointPOVM A B hSC, jointPOVM_isProjective A B hSC, jointPOVM_isJointOf A B hSC⟩,
     fun ⟨_M, hproj, hjoint⟩ => stronglyCommute_of_jointPVM hproj hjoint⟩
 
-/-- `[needs spectralPVM + joint functional calculus]` **The correlation.**  The content a generic
-coupling lacks: the joint law reproduces `⟪ξ, AB ξ⟫`.  For `ξ` in a suitable domain (`ξ ∈ D(AB)`),
-`∫ p, p.1 * p.2 ∂(jointBornMeasure M ξ) = (⟪ξ, A(Bξ)⟫).re` via the joint functional calculus
-(`xy` is the product of the two coordinate functions, whose calculus is `A·B` on the commuting joint
-PVM).  SIGNATURE TO VERIFY: the spelling of `A(Bξ)` through the `LinearPMap`s and the domain
-hypothesis. -/
-theorem jointBornMeasure_correlation {M : POVM H (ℝ × ℝ)} {A B : UnboundedObservable H}
-    (hjoint : M.IsJointOf A B) {ξ : H} (hξ : ξ ∈ B.domain)
+/-! ### G3 — Step B: the coordinate second moments and integrability of `xy`
+
+The marginals of `μ_ξ = jointScalarMeasure A B hSC ξ` are `A`'s and `B`'s Born measures
+(`jointBornMeasure_fst/_snd` via `jointPOVM_isJointOf`), so the coordinate second moments are the
+1-D second moments `‖Aξ‖²`, `‖Bξ‖²` (`spectralPVM_integral_sq`).  Cauchy–Schwarz (`MemLp.integrable_mul`,
+`2·2 → 1`) then gives `xy ∈ L¹(μ_ξ)`. -/
+
+/-- **A-coordinate second moment.**  `∫ p.1² dμ_ξ = ‖Aξ‖²` (needs `ξ ∈ D(A)`): push the integral to the
+first marginal `μ_ξ.fst = A.spectralPVM.diag ξ` (`jointBornMeasure_fst`, `integral_map`) and apply the
+1-D second moment `spectralPVM_integral_sq`. -/
+theorem jointScalarMeasure_integral_fst_sq (A B : Observable.UnboundedObservable H)
+    (hSC : StronglyCommute A B) {ξ : H} (hξA : ξ ∈ A.domain) :
+    ∫ p : ℝ × ℝ, p.1 ^ 2 ∂(jointScalarMeasure A B hSC ξ) = ‖A.toLinearPMap ⟨ξ, hξA⟩‖ ^ 2 := by
+  have hfst : (jointScalarMeasure A B hSC ξ).fst = A.spectralPVM.diag ξ :=
+    jointBornMeasure_fst (jointPOVM_isJointOf A B hSC) ξ
+  calc ∫ p : ℝ × ℝ, p.1 ^ 2 ∂(jointScalarMeasure A B hSC ξ)
+      = ∫ s : ℝ, s ^ 2 ∂((jointScalarMeasure A B hSC ξ).fst) :=
+        (integral_map measurable_fst.aemeasurable (continuous_pow 2).aestronglyMeasurable).symm
+    _ = ∫ s : ℝ, s ^ 2 ∂(A.spectralPVM.diag ξ) := by rw [hfst]
+    _ = ‖A.toLinearPMap ⟨ξ, hξA⟩‖ ^ 2 := SpectralTheory.spectralPVM_integral_sq A.selfAdjoint ξ hξA
+
+/-- **B-coordinate second moment.**  `∫ p.2² dμ_ξ = ‖Bξ‖²` (needs `ξ ∈ D(B)`). -/
+theorem jointScalarMeasure_integral_snd_sq (A B : Observable.UnboundedObservable H)
+    (hSC : StronglyCommute A B) {ξ : H} (hξB : ξ ∈ B.domain) :
+    ∫ p : ℝ × ℝ, p.2 ^ 2 ∂(jointScalarMeasure A B hSC ξ) = ‖B.toLinearPMap ⟨ξ, hξB⟩‖ ^ 2 := by
+  have hsnd : (jointScalarMeasure A B hSC ξ).snd = B.spectralPVM.diag ξ :=
+    jointBornMeasure_snd (jointPOVM_isJointOf A B hSC) ξ
+  calc ∫ p : ℝ × ℝ, p.2 ^ 2 ∂(jointScalarMeasure A B hSC ξ)
+      = ∫ t : ℝ, t ^ 2 ∂((jointScalarMeasure A B hSC ξ).snd) :=
+        (integral_map measurable_snd.aemeasurable (continuous_pow 2).aestronglyMeasurable).symm
+    _ = ∫ t : ℝ, t ^ 2 ∂(B.spectralPVM.diag ξ) := by rw [hsnd]
+    _ = ‖B.toLinearPMap ⟨ξ, hξB⟩‖ ^ 2 := SpectralTheory.spectralPVM_integral_sq B.selfAdjoint ξ hξB
+
+/-- **`p.1²` is integrable** for `ξ ∈ D(A)` (the first marginal is `A`'s Born measure, whose second
+moment `‖Aξ‖²` is finite, `spectralPVM_integrable_sq`). -/
+theorem jointScalarMeasure_integrable_fst_sq (A B : Observable.UnboundedObservable H)
+    (hSC : StronglyCommute A B) {ξ : H} (hξA : ξ ∈ A.domain) :
+    Integrable (fun p : ℝ × ℝ => p.1 ^ 2) (jointScalarMeasure A B hSC ξ) := by
+  have hfst : (jointScalarMeasure A B hSC ξ).fst = A.spectralPVM.diag ξ :=
+    jointBornMeasure_fst (jointPOVM_isJointOf A B hSC) ξ
+  have h2 : Integrable (fun s : ℝ => s ^ 2) ((jointScalarMeasure A B hSC ξ).fst) := by
+    rw [hfst]; exact SpectralTheory.spectralPVM_integrable_sq A.selfAdjoint ξ hξA
+  exact (integrable_map_measure (continuous_pow 2).aestronglyMeasurable
+    measurable_fst.aemeasurable).mp h2
+
+/-- **`p.2²` is integrable** for `ξ ∈ D(B)`. -/
+theorem jointScalarMeasure_integrable_snd_sq (A B : Observable.UnboundedObservable H)
+    (hSC : StronglyCommute A B) {ξ : H} (hξB : ξ ∈ B.domain) :
+    Integrable (fun p : ℝ × ℝ => p.2 ^ 2) (jointScalarMeasure A B hSC ξ) := by
+  have hsnd : (jointScalarMeasure A B hSC ξ).snd = B.spectralPVM.diag ξ :=
+    jointBornMeasure_snd (jointPOVM_isJointOf A B hSC) ξ
+  have h2 : Integrable (fun t : ℝ => t ^ 2) ((jointScalarMeasure A B hSC ξ).snd) := by
+    rw [hsnd]; exact SpectralTheory.spectralPVM_integrable_sq B.selfAdjoint ξ hξB
+  exact (integrable_map_measure (continuous_pow 2).aestronglyMeasurable
+    measurable_snd.aemeasurable).mp h2
+
+/-- **The symbol `xy` is integrable** for `ξ ∈ D(A) ∩ D(B)`: both coordinates are in `L²(μ_ξ)`
+(`memLp_two_iff_integrable_sq` + the second moments), so their product is in `L¹` (`MemLp.integrable_mul`,
+Hölder `2·2 → 1`).  The L¹ membership that makes `∫ xy dμ_ξ` an honest absolutely-convergent integral. -/
+theorem jointScalarMeasure_integrable_mul (A B : Observable.UnboundedObservable H)
+    (hSC : StronglyCommute A B) {ξ : H} (hξA : ξ ∈ A.domain) (hξB : ξ ∈ B.domain) :
+    Integrable (fun p : ℝ × ℝ => p.1 * p.2) (jointScalarMeasure A B hSC ξ) := by
+  have hf : MemLp (fun p : ℝ × ℝ => p.1) 2 (jointScalarMeasure A B hSC ξ) :=
+    (memLp_two_iff_integrable_sq continuous_fst.aestronglyMeasurable).mpr
+      (jointScalarMeasure_integrable_fst_sq A B hSC hξA)
+  have hg : MemLp (fun p : ℝ × ℝ => p.2) 2 (jointScalarMeasure A B hSC ξ) :=
+    (memLp_two_iff_integrable_sq continuous_snd.aestronglyMeasurable).mpr
+      (jointScalarMeasure_integrable_snd_sq A B hSC hξB)
+  simpa [Pi.mul_def] using hf.integrable_mul hg
+
+/-! ### G3 — Step A/C infrastructure: the joint functional calculus engine
+
+The correlation proof is the two-dimensional analogue of `weak_first_moment`: truncate the symbol
+`xy` to the box `[-N,N]²`, identify the truncated integral with the operator product
+`Φ_A(x·1_N)·Φ_B(y·1_N)` (the bounded functional calculi of the two commuting generators), and pass
+to the limit `N → ∞`.  The novelty over the 1-D case is the operator product, which replaces the
+unavailable Fubini (`μ_ξ` is **not** a product measure).  Its limit `Φ_A(f_N)Φ_B(g_N)ξ → A(Bξ)`
+needs `E_B(T)` (a `B`-projection) to preserve `D(A)` and commute with `A` — the *external*
+commutation supplied by `StronglyCommute` through the cross-group engines of `Joint.lean §0`. -/
+
+section G3Correlation
+
+open Spectra.QuantumMechanics.SpectralTheory Spectra.YosidaHille
+  Spectra.OneParameterUnitaryGroup Spectra.Borel
+
+/-- **Generic difference-quotient intertwining.**  A bounded operator `C` commuting with the group
+`U` intertwines the generator's difference quotient: `genDiffQuot (C x) = C ∘ genDiffQuot x`. -/
+private lemma genDiffQuot_commute {U_grp : OneParameterUnitaryGroup (H := H)} (C : H →L[ℂ] H)
+    (hC : ∀ t, U_grp.U t * C = C * U_grp.U t) (x : H) :
+    genDiffQuot U_grp (C x) = fun t => C (genDiffQuot U_grp x t) := by
+  funext t
+  have hcomm : C (U_grp.U t x) = U_grp.U t (C x) := by
+    have h := DFunLike.congr_fun (hC t) x
+    simpa only [ContinuousLinearMap.mul_apply] using h.symm
+  simp only [genDiffQuot_apply, map_smul, map_sub, hcomm]
+
+/-- **A bounded operator commuting with the group preserves the generator's domain.**  The generic
+form of `spectralCalculus_mem_generatorDomain_of_mem`: the only property of `Φ(g)` it uses is
+commutation with `U(t)`.  Applied with `C = E_B(T)` (and the external commutation from
+`StronglyCommute`) it gives `E_B(T) D(A) ⊆ D(A)`. -/
+private lemma mem_generatorDomain_of_commute {U_grp : OneParameterUnitaryGroup (H := H)}
+    (C : H →L[ℂ] H) (hC : ∀ t, U_grp.U t * C = C * U_grp.U t) (x : (generator U_grp).domain) :
+    (C (x : H)) ∈ (generator U_grp).domain :=
+  mem_generatorDomain.mpr ⟨C (generator U_grp x), by
+    rw [genDiffQuot_commute C hC]
+    exact (C.continuous.tendsto _).comp (generator_tendsto U_grp x)⟩
+
+/-- **A bounded operator commuting with the group commutes with the generator on its domain**:
+`A (C x) = C (A x)`. -/
+private lemma generator_commute {U_grp : OneParameterUnitaryGroup (H := H)} (C : H →L[ℂ] H)
+    (hC : ∀ t, U_grp.U t * C = C * U_grp.U t) (x : (generator U_grp).domain) :
+    generator U_grp ⟨C (x : H), mem_generatorDomain_of_commute C hC x⟩ = C (generator U_grp x) :=
+  tendsto_nhds_unique
+    (generator_tendsto U_grp ⟨_, mem_generatorDomain_of_commute C hC x⟩)
+    (by rw [genDiffQuot_commute C hC]
+        exact (C.continuous.tendsto _).comp (generator_tendsto U_grp x))
+
+/-- **Cross-group commutation**: the unitary group of `A` commutes with the spectral projections of
+`B`, for strongly-commuting `A, B`.  One application of the projection→calculus engine
+`commute_spectralCalculus_of_commute_proj` (lifting the `A`-indicators to a character), then
+`spectralCalculus_char`.  This is the hypothesis the domain-commutation engine above consumes. -/
+private lemma commute_groupA_projB (A B : Observable.UnboundedObservable H)
+    (hSC : StronglyCommute A B) (t : ℝ) {T : Set ℝ} (hT : MeasurableSet T) :
+    (genToGroup A.selfAdjoint).U t * B.spectralPVM.proj T hT
+      = B.spectralPVM.proj T hT * (genToGroup A.selfAdjoint).U t := by
+  have h := commute_spectralCalculus_of_commute_proj (genToGroup A.selfAdjoint)
+    (B.spectralPVM.proj T hT) (fun S hS => hSC S T hS hT) (char_measurable t) (char_bdd t)
+  rw [spectralCalculus_char] at h
+  exact h.eq
+
+/-- **The `B`-section identity (Step A base case).**  Integrating a bounded `x`-symbol `f` against
+the `y`-cylinder `T` recovers the operator pairing: `∫ f(x)·1_T(y) dμ_ξ = ⟪ξ, Φ_A(f) E_B(T) ξ⟫`.
+Route: the `y`-cylinder section of `μ_ξ` pushed to the `x`-axis is `μ^A_{E_B(T)ξ}`
+(`jointScalarMeasure_prod`), so the integral is `∫ f dμ^A_{E_B(T)ξ} = ⟪E_B(T)ξ, Φ_A(f) E_B(T)ξ⟫`
+(`spectralForm_self`, `inner_spectralCalculus`), and the left `E_B(T)` drops by self-adjointness +
+idempotence + the calculus/projection commutation. -/
+private lemma joint_section_inner (A B : Observable.UnboundedObservable H)
+    (hSC : StronglyCommute A B) {f : ℝ → ℂ} (hfm : Measurable f) (hfb : ∃ C, ∀ ω, ‖f ω‖ ≤ C)
+    (ξ : H) {T : Set ℝ} (hT : MeasurableSet T) :
+    ∫ p, f p.1 * Set.indicator T (fun _ => (1 : ℂ)) p.2 ∂(jointScalarMeasure A B hSC ξ)
+      = ⟪ξ, spectralCalculus (genToGroup A.selfAdjoint) f hfm hfb
+          (B.spectralPVM.proj T hT ξ)⟫_ℂ := by
+  set UA := genToGroup A.selfAdjoint with hUA
+  set EB := B.spectralPVM.proj T hT with hEB
+  set Φf := spectralCalculus UA f hfm hfb with hΦf
+  -- rewrite the integrand as the indicator of the cylinder `univ ×ˢ T`
+  have hpt : ∀ p : ℝ × ℝ, f p.1 * Set.indicator T (fun _ => (1 : ℂ)) p.2
+      = Set.indicator (Set.univ ×ˢ T) (fun p => f p.1) p := by
+    intro p
+    by_cases h : p.2 ∈ T
+    · rw [Set.indicator_of_mem h, mul_one, Set.indicator_of_mem (by simp [h])]
+    · rw [Set.indicator_of_notMem h, mul_zero, Set.indicator_of_notMem (by simp [h])]
+  -- the cylinder section pushed to the `x`-axis is `μ^A_{E_B(T)ξ}`
+  have hmap : (jointScalarMeasure A B hSC ξ |>.restrict (Set.univ ×ˢ T)).map Prod.fst
+      = A.spectralPVM.diag (EB ξ) := by
+    ext S hS
+    rw [Measure.map_apply measurable_fst hS, Measure.restrict_apply (measurable_fst hS)]
+    have hset : Prod.fst ⁻¹' S ∩ (Set.univ ×ˢ T) = S ×ˢ T := by
+      ext p
+      simp only [Set.mem_inter_iff, Set.mem_preimage, Set.mem_prod, Set.mem_univ, true_and]
+    rw [hset, jointScalarMeasure_prod A B hSC ξ hS hT]
+  -- the calculus commutes with `E_B(T)` (external projection commutation from `StronglyCommute`)
+  have hcomm : Commute Φf EB :=
+    commute_spectralCalculus_of_commute_proj UA EB (fun S hS => hSC S T hS hT) hfm hfb
+  have hidem : EB * EB = EB := B.spectralPVM.proj_idem T hT
+  have hadj : ContinuousLinearMap.adjoint EB = EB := by
+    rw [← ContinuousLinearMap.star_eq_adjoint]; exact B.spectralPVM.isSelfAdjoint_proj T hT
+  have hdrop : EB (Φf (EB ξ)) = Φf (EB ξ) := by
+    have hop : EB * Φf * EB = Φf * EB := by rw [← hcomm.eq, mul_assoc, hidem]
+    have := congrArg (fun M : H →L[ℂ] H => M ξ) hop
+    simpa only [ContinuousLinearMap.mul_apply] using this
+  calc ∫ p, f p.1 * Set.indicator T (fun _ => (1 : ℂ)) p.2 ∂(jointScalarMeasure A B hSC ξ)
+      = ∫ p, Set.indicator (Set.univ ×ˢ T) (fun p => f p.1) p ∂(jointScalarMeasure A B hSC ξ) :=
+        integral_congr_ae (Filter.Eventually.of_forall hpt)
+    _ = ∫ p in Set.univ ×ˢ T, f p.1 ∂(jointScalarMeasure A B hSC ξ) :=
+        integral_indicator (MeasurableSet.univ.prod hT)
+    _ = ∫ x, f x ∂(A.spectralPVM.diag (EB ξ)) := by
+        rw [← hmap, integral_map measurable_fst.aemeasurable hfm.aestronglyMeasurable]
+    _ = ∫ l, f l ∂(borelMeasure UA (EB ξ)) := rfl
+    _ = spectralForm UA (EB ξ) (EB ξ) f := (spectralForm_self UA (EB ξ) hfm hfb).symm
+    _ = ⟪EB ξ, Φf (EB ξ)⟫_ℂ := (inner_spectralCalculus UA f hfm hfb (EB ξ) (EB ξ)).symm
+    _ = ⟪ξ, EB (Φf (EB ξ))⟫_ℂ := by
+        rw [← ContinuousLinearMap.adjoint_inner_left EB (Φf (EB ξ)) ξ, hadj]
+    _ = ⟪ξ, Φf (EB ξ)⟫_ℂ := by rw [hdrop]
+
+/-- A simple function `ℝ → ℂ` is bounded (finite range). -/
+private lemma simpleFunc_bdd (s : MeasureTheory.SimpleFunc ℝ ℂ) :
+    ∃ C, ∀ ω, ‖(s : ℝ → ℂ) ω‖ ≤ C := by
+  have hbdd : BddAbove (Set.range (fun ω => ‖(s : ℝ → ℂ) ω‖)) := by
+    have hr : Set.range (fun ω => ‖(s : ℝ → ℂ) ω‖)
+        = (fun z : ℂ => ‖z‖) '' Set.range (s : ℝ → ℂ) := Set.range_comp _ _
+    rw [hr]; exact (s.finite_range.image _).bddAbove
+  obtain ⟨C, hC⟩ := hbdd
+  exact ⟨C, fun ω => hC ⟨ω, rfl⟩⟩
+
+/-- **Step A on simple `y`-symbols.**  For a simple function `s`, the product moment
+`∫ f(x)·s(y) dμ_ξ` equals the `B`-spectral form `spectralForm_B (Φ_A(f)† ξ) ξ s`.  By
+`SimpleFunc.induction`: the indicator base case is `joint_section_inner` (scaled), and additivity is
+the bilinearity of both the integral and `spectralForm` (`spectralForm_add_fun`). -/
+private lemma joint_product_form_simple (A B : Observable.UnboundedObservable H)
+    (hSC : StronglyCommute A B) {f : ℝ → ℂ} (hfm : Measurable f) (hfb : ∃ C, ∀ ω, ‖f ω‖ ≤ C)
+    (ξ : H) (s : MeasureTheory.SimpleFunc ℝ ℂ) :
+    ∫ p, f p.1 * (s : ℝ → ℂ) p.2 ∂(jointScalarMeasure A B hSC ξ)
+      = spectralForm (genToGroup B.selfAdjoint)
+          (ContinuousLinearMap.adjoint (spectralCalculus (genToGroup A.selfAdjoint) f hfm hfb) ξ)
+          ξ (s : ℝ → ℂ) := by
+  set UA := genToGroup A.selfAdjoint with hUA
+  set UB := genToGroup B.selfAdjoint with hUB
+  set Φf := spectralCalculus UA f hfm hfb with hΦf
+  set η := ContinuousLinearMap.adjoint Φf ξ with hη
+  -- finite measure ⟹ `f(x)·h(y)` is integrable for any bounded measurable `h`
+  have hintegrable : ∀ {h : ℝ → ℂ}, Measurable h → (∃ C, ∀ ω, ‖h ω‖ ≤ C) →
+      Integrable (fun p : ℝ × ℝ => f p.1 * h p.2) (jointScalarMeasure A B hSC ξ) := by
+    intro h hhm hhb
+    obtain ⟨Cf, hCf⟩ := hfb
+    obtain ⟨Ch, hCh⟩ := hhb
+    refine Integrable.mono' (integrable_const (max Cf 0 * max Ch 0))
+      ((hfm.comp measurable_fst).mul (hhm.comp measurable_snd)).aestronglyMeasurable
+      (Filter.Eventually.of_forall fun p => ?_)
+    rw [norm_mul]
+    exact mul_le_mul ((hCf _).trans (le_max_left _ _)) ((hCh _).trans (le_max_left _ _))
+      (norm_nonneg _) (le_max_right _ _)
+  -- the indicator base identity (Step A on a single cylinder)
+  have hbase : ∀ {S : Set ℝ} (hS : MeasurableSet S),
+      spectralForm UB η ξ (Set.indicator S (fun _ => (1 : ℂ)))
+        = ⟪ξ, Φf (B.spectralPVM.proj S hS ξ)⟫_ℂ := by
+    intro S hS
+    have h1 : spectralCalculus UB (Set.indicator S (fun _ => (1 : ℂ)))
+        (measurable_const.indicator hS) (indicator_one_bdd S) = B.spectralPVM.proj S hS := rfl
+    rw [← inner_spectralCalculus UB (Set.indicator S (fun _ => (1 : ℂ)))
+      (measurable_const.indicator hS) (indicator_one_bdd S) η ξ, h1, hη,
+      ContinuousLinearMap.adjoint_inner_left]
+  -- the induction
+  induction s using MeasureTheory.SimpleFunc.induction with
+  | @const c S hS =>
+    -- base: `s = c · 1_S`
+    have hcoe : ((MeasureTheory.SimpleFunc.piecewise S hS (MeasureTheory.SimpleFunc.const ℝ c)
+        (MeasureTheory.SimpleFunc.const ℝ 0)) : ℝ → ℂ) = Set.indicator S (fun _ => c) := by
+      ext y; by_cases h : y ∈ S <;>
+        simp [MeasureTheory.SimpleFunc.piecewise_apply, h, Set.indicator_of_mem,
+          Set.indicator_of_notMem]
+    rw [hcoe]
+    have hci : ∀ y : ℝ, Set.indicator S (fun _ => c) y
+        = c * Set.indicator S (fun _ => (1 : ℂ)) y := by
+      intro y; by_cases h : y ∈ S <;> simp [Set.indicator_of_mem, Set.indicator_of_notMem, h]
+    calc ∫ p, f p.1 * Set.indicator S (fun _ => c) p.2 ∂(jointScalarMeasure A B hSC ξ)
+        = ∫ p, c * (f p.1 * Set.indicator S (fun _ => (1 : ℂ)) p.2)
+            ∂(jointScalarMeasure A B hSC ξ) := by
+          refine integral_congr_ae (Filter.Eventually.of_forall fun p => ?_)
+          by_cases h : p.2 ∈ S
+          · simp only [Set.indicator_of_mem h]; ring
+          · simp only [Set.indicator_of_notMem h]; ring
+      _ = c * ∫ p, f p.1 * Set.indicator S (fun _ => (1 : ℂ)) p.2
+            ∂(jointScalarMeasure A B hSC ξ) := integral_const_mul _ _
+      _ = c * ⟪ξ, Φf (B.spectralPVM.proj S hS ξ)⟫_ℂ := by
+          rw [joint_section_inner A B hSC hfm hfb ξ hS]
+      _ = c * spectralForm UB η ξ (Set.indicator S (fun _ => (1 : ℂ))) := by rw [hbase hS]
+      _ = spectralForm UB η ξ (Set.indicator S (fun _ => c)) := by
+          rw [← spectralForm_smul_fun UB η ξ c (Set.indicator S (fun _ => (1 : ℂ)))]
+          congr 1; ext y; rw [hci y]
+  | @add s₁ s₂ hdisj h₁ h₂ =>
+    -- additive step
+    obtain ⟨C₁, hC₁⟩ := simpleFunc_bdd s₁
+    obtain ⟨C₂, hC₂⟩ := simpleFunc_bdd s₂
+    have hcoe : ((s₁ + s₂ : MeasureTheory.SimpleFunc ℝ ℂ) : ℝ → ℂ)
+        = fun y => (s₁ : ℝ → ℂ) y + (s₂ : ℝ → ℂ) y := by
+      ext y; simp [MeasureTheory.SimpleFunc.coe_add]
+    rw [hcoe]
+    calc ∫ p, f p.1 * ((s₁ : ℝ → ℂ) p.2 + (s₂ : ℝ → ℂ) p.2) ∂(jointScalarMeasure A B hSC ξ)
+        = ∫ p, (f p.1 * (s₁ : ℝ → ℂ) p.2 + f p.1 * (s₂ : ℝ → ℂ) p.2)
+            ∂(jointScalarMeasure A B hSC ξ) := by
+          refine integral_congr_ae (Filter.Eventually.of_forall fun p => ?_); ring
+      _ = (∫ p, f p.1 * (s₁ : ℝ → ℂ) p.2 ∂(jointScalarMeasure A B hSC ξ))
+            + ∫ p, f p.1 * (s₂ : ℝ → ℂ) p.2 ∂(jointScalarMeasure A B hSC ξ) :=
+          integral_add (hintegrable s₁.measurable ⟨C₁, hC₁⟩) (hintegrable s₂.measurable ⟨C₂, hC₂⟩)
+      _ = spectralForm UB η ξ (s₁ : ℝ → ℂ) + spectralForm UB η ξ (s₂ : ℝ → ℂ) := by rw [h₁, h₂]
+      _ = spectralForm UB η ξ (fun y => (s₁ : ℝ → ℂ) y + (s₂ : ℝ → ℂ) y) :=
+          (spectralForm_add_fun UB η ξ s₁.measurable ⟨C₁, hC₁⟩ s₂.measurable ⟨C₂, hC₂⟩).symm
+
+/-- **Step A — the bounded product-moment identity.**  For bounded measurable `f, g`, the joint
+integral of the product symbol equals the operator-product matrix element:
+`∫ f(x)·g(y) dμ_ξ = ⟪ξ, Φ_A(f) Φ_B(g) ξ⟫`.  Extends `joint_product_form_simple` from simple to
+bounded `g` by approximating with `SimpleFunc.approxOn` and dominated convergence on both sides (the
+left integral over the finite `μ_ξ`; the right `spectralForm`, a fixed combination of integrals over
+the finite measures `μ^B_w`).  The operator product `Φ_A(f)Φ_B(g)` is what replaces the unavailable
+Fubini. -/
+private lemma joint_product_form (A B : Observable.UnboundedObservable H)
+    (hSC : StronglyCommute A B) {f g : ℝ → ℂ} (hfm : Measurable f) (hfb : ∃ C, ∀ ω, ‖f ω‖ ≤ C)
+    (hgm : Measurable g) (hgb : ∃ C, ∀ ω, ‖g ω‖ ≤ C) (ξ : H) :
+    ∫ p, f p.1 * g p.2 ∂(jointScalarMeasure A B hSC ξ)
+      = ⟪ξ, spectralCalculus (genToGroup A.selfAdjoint) f hfm hfb
+          (spectralCalculus (genToGroup B.selfAdjoint) g hgm hgb ξ)⟫_ℂ := by
+  set UA := genToGroup A.selfAdjoint with hUA
+  set UB := genToGroup B.selfAdjoint with hUB
+  set Φf := spectralCalculus UA f hfm hfb with hΦf
+  set η := ContinuousLinearMap.adjoint Φf ξ with hη
+  -- it suffices to prove the `spectralForm` version, then convert through the adjoint
+  suffices hform : ∫ p, f p.1 * g p.2 ∂(jointScalarMeasure A B hSC ξ) = spectralForm UB η ξ g by
+    rw [hform, ← inner_spectralCalculus UB g hgm hgb η ξ]
+    exact ContinuousLinearMap.adjoint_inner_left Φf (spectralCalculus UB g hgm hgb ξ) ξ
+  obtain ⟨Cg, hCg⟩ := hgb
+  -- the approximating simple functions
+  set gN : ℕ → MeasureTheory.SimpleFunc ℝ ℂ :=
+    fun n => MeasureTheory.SimpleFunc.approxOn g hgm Set.univ 0 (Set.mem_univ 0) n with hgN
+  have hgN_tendsto : ∀ y, Filter.Tendsto (fun n => (gN n : ℝ → ℂ) y) atTop (𝓝 (g y)) := fun y =>
+    MeasureTheory.SimpleFunc.tendsto_approxOn hgm (Set.mem_univ 0) (by simp)
+  have hgN_bound : ∀ n y, ‖(gN n : ℝ → ℂ) y‖ ≤ 2 * Cg := by
+    intro n y
+    have h := MeasureTheory.SimpleFunc.norm_approxOn_y₀_le hgm (Set.mem_univ (0 : ℂ)) y n
+    simp only [sub_zero] at h
+    calc ‖(gN n : ℝ → ℂ) y‖ ≤ ‖g y‖ + ‖g y‖ := h
+      _ ≤ Cg + Cg := add_le_add (hCg y) (hCg y)
+      _ = 2 * Cg := by ring
+  -- LHS: dominated convergence over the finite measure `μ_ξ`
+  have hLHS : Filter.Tendsto
+      (fun n => ∫ p, f p.1 * (gN n : ℝ → ℂ) p.2 ∂(jointScalarMeasure A B hSC ξ)) atTop
+      (𝓝 (∫ p, f p.1 * g p.2 ∂(jointScalarMeasure A B hSC ξ))) := by
+    obtain ⟨Cf, hCf⟩ := hfb
+    refine tendsto_integral_of_dominated_convergence (fun _ => max Cf 0 * (2 * Cg))
+      (fun n => ((hfm.comp measurable_fst).mul
+        ((gN n).measurable.comp measurable_snd)).aestronglyMeasurable)
+      (integrable_const _) (fun n => Filter.Eventually.of_forall fun p => ?_)
+      (Filter.Eventually.of_forall fun p => ?_)
+    · rw [norm_mul]
+      exact mul_le_mul ((hCf _).trans (le_max_left _ _)) (hgN_bound n p.2)
+        (norm_nonneg _) (le_max_right _ _)
+    · exact tendsto_const_nhds.mul (hgN_tendsto p.2)
+  -- RHS: each of the four `spectralForm` integrals converges by dominated convergence
+  have hconv : ∀ w : H, Filter.Tendsto (fun n => ∫ l, (gN n : ℝ → ℂ) l ∂(borelMeasure UB w)) atTop
+      (𝓝 (∫ l, g l ∂(borelMeasure UB w))) := by
+    intro w
+    haveI : MeasureTheory.IsFiniteMeasure (borelMeasure UB w) := borelMeasure_isFiniteMeasure UB w
+    exact tendsto_integral_of_dominated_convergence (fun _ => 2 * Cg)
+      (fun n => (gN n).measurable.aestronglyMeasurable) (integrable_const _)
+      (fun n => Filter.Eventually.of_forall fun l => hgN_bound n l)
+      (Filter.Eventually.of_forall hgN_tendsto)
+  have hRHS : Filter.Tendsto (fun n => spectralForm UB η ξ (gN n : ℝ → ℂ)) atTop
+      (𝓝 (spectralForm UB η ξ g)) := by
+    simp only [spectralForm]
+    exact (((hconv (η + ξ)).sub (hconv (η - ξ))).add
+      (((hconv (η - I • ξ)).sub (hconv (η + I • ξ))).mul_const I)).div_const 4
+  -- the per-`n` simple-function identity, then identify the limits
+  have heq : Filter.Tendsto
+      (fun n => ∫ p, f p.1 * (gN n : ℝ → ℂ) p.2 ∂(jointScalarMeasure A B hSC ξ)) atTop
+      (𝓝 (spectralForm UB η ξ g)) := by
+    refine hRHS.congr fun n => ?_
+    exact (joint_product_form_simple A B hSC hfm hfb ξ (gN n)).symm
+  exact tendsto_nhds_unique hLHS heq
+
+/-- **Step C — the truncated vector identity.**  The operator product applied to `ξ` collapses to
+nested truncated projections of `A(Bξ)`:
+`Φ_A(x·1_N) Φ_B(y·1_N) ξ = E_A([-N,N]) E_B([-N,N]) (A(Bξ))`.  Inside out: `Φ_B(y·1_N)ξ = E_B([-N,N])(Bξ)`
+(`generator_spectralProjection`), then `E_B([-N,N])` preserves `D(A)` and commutes with `A`
+(`generator_commute` + `commute_groupA_projB`), so `Φ_A(x·1_N)` acting on it is `E_A([-N,N])` applied
+to `E_B([-N,N])(A(Bξ))`. -/
+private lemma joint_truncated_vector (A B : Observable.UnboundedObservable H)
+    (hSC : StronglyCommute A B) {ξ : H} (hξ : ξ ∈ B.domain)
+    (hξ' : B.toLinearPMap ⟨ξ, hξ⟩ ∈ A.domain) (N : ℕ) :
+    spectralCalculus (genToGroup A.selfAdjoint)
+        (fun l => (l : ℂ) * Set.indicator (Set.Icc (-(N : ℝ)) (N : ℝ)) (fun _ => (1 : ℂ)) l)
+        (id_indicator_measurable measurableSet_Icc)
+        (id_indicator_bdd (fun _x hx => abs_le_max_of_mem_Icc hx))
+        (spectralCalculus (genToGroup B.selfAdjoint)
+          (fun l => (l : ℂ) * Set.indicator (Set.Icc (-(N : ℝ)) (N : ℝ)) (fun _ => (1 : ℂ)) l)
+          (id_indicator_measurable measurableSet_Icc)
+          (id_indicator_bdd (fun _x hx => abs_le_max_of_mem_Icc hx)) ξ)
+      = A.spectralPVM.proj (Set.Icc (-(N : ℝ)) (N : ℝ)) measurableSet_Icc
+          (B.spectralPVM.proj (Set.Icc (-(N : ℝ)) (N : ℝ)) measurableSet_Icc
+            (A.toLinearPMap ⟨B.toLinearPMap ⟨ξ, hξ⟩, hξ'⟩)) := by
+  set UA := genToGroup A.selfAdjoint with hUA
+  set UB := genToGroup B.selfAdjoint with hUB
+  set IccN := Set.Icc (-(N : ℝ)) (N : ℝ) with hIccN
+  have habs : ∀ x ∈ IccN, |x| ≤ max |(-(N : ℝ))| |(N : ℝ)| := fun x hx => abs_le_max_of_mem_Icc hx
+  set ψ := B.toLinearPMap ⟨ξ, hξ⟩ with hψ
+  set EB := B.spectralPVM.proj IccN measurableSet_Icc with hEB
+  -- inner truncation: `Φ_B(y·1_N) ξ = E_B(N) (Bξ)`
+  have hξB' : ξ ∈ (generator UB).domain := by rw [generator_genToGroup]; exact hξ
+  have hBval : generator UB ⟨ξ, hξB'⟩ = ψ := (le_of_eq (generator_genToGroup B.selfAdjoint)).2 rfl
+  have h1 : spectralCalculus UB
+        (fun l => (l : ℂ) * Set.indicator IccN (fun _ => (1 : ℂ)) l)
+        (id_indicator_measurable measurableSet_Icc) (id_indicator_bdd habs) ξ = EB ψ := by
+    have h := generator_spectralProjection_comm (B := IccN) UB measurableSet_Icc ⟨ξ, hξB'⟩
+    rw [hBval] at h
+    rw [← generator_spectralProjection UB measurableSet_Icc habs ξ]
+    exact h
+  -- `E_B(N)` preserves `D(A)` and commutes with `A`
+  have hψA : ψ ∈ (generator UA).domain := by rw [generator_genToGroup]; exact hξ'
+  have hAval : generator UA ⟨ψ, hψA⟩ = A.toLinearPMap ⟨ψ, hξ'⟩ :=
+    (le_of_eq (generator_genToGroup A.selfAdjoint)).2 rfl
+  have hC : ∀ t, UA.U t * EB = EB * UA.U t := fun t => commute_groupA_projB A B hSC t measurableSet_Icc
+  have hχA : EB ψ ∈ (generator UA).domain := mem_generatorDomain_of_commute EB hC ⟨ψ, hψA⟩
+  have hgenχ : generator UA ⟨EB ψ, hχA⟩ = EB (A.toLinearPMap ⟨ψ, hξ'⟩) := by
+    rw [generator_commute EB hC ⟨ψ, hψA⟩, hAval]
+  -- outer truncation: `Φ_A(x·1_N) (E_B(N)ψ) = E_A(N) (generator_A (E_B(N)ψ)) = E_A(N) E_B(N) (Aψ)`
+  rw [h1]
+  have h2 := generator_spectralProjection_comm (B := IccN) UA measurableSet_Icc ⟨EB ψ, hχA⟩
+  rw [hgenχ] at h2
+  rw [← generator_spectralProjection UA measurableSet_Icc habs (EB ψ)]
+  exact h2
+
+/-- **The truncation converges to the identity in two coordinates.**  For any vector `v`,
+`E_A([-N,N]) E_B([-N,N]) v → v`: `E_B([-N,N])v → v` and `E_A([-N,N])v → v`
+(`tendsto_spectralProjection_Icc_univ`), and `E_A` is a contraction, so the composite differs from
+`v` by at most `‖E_B([-N,N])v − v‖ + ‖E_A([-N,N])v − v‖ → 0`. -/
+private lemma joint_truncated_tendsto (A B : Observable.UnboundedObservable H) (v : H) :
+    Filter.Tendsto (fun N : ℕ =>
+        A.spectralPVM.proj (Set.Icc (-(N : ℝ)) (N : ℝ)) measurableSet_Icc
+          (B.spectralPVM.proj (Set.Icc (-(N : ℝ)) (N : ℝ)) measurableSet_Icc v)) atTop (𝓝 v) := by
+  have hA : Filter.Tendsto (fun N : ℕ =>
+      A.spectralPVM.proj (Set.Icc (-(N : ℝ)) (N : ℝ)) measurableSet_Icc v) atTop (𝓝 v) :=
+    tendsto_spectralProjection_Icc_univ (genToGroup A.selfAdjoint) v
+  have hB : Filter.Tendsto (fun N : ℕ =>
+      B.spectralPVM.proj (Set.Icc (-(N : ℝ)) (N : ℝ)) measurableSet_Icc v) atTop (𝓝 v) :=
+    tendsto_spectralProjection_Icc_univ (genToGroup B.selfAdjoint) v
+  rw [tendsto_iff_norm_sub_tendsto_zero] at hA hB ⊢
+  refine squeeze_zero (fun N => norm_nonneg _) (fun N => ?_) (by simpa using hB.add hA)
+  set EA := A.spectralPVM.proj (Set.Icc (-(N : ℝ)) (N : ℝ)) measurableSet_Icc with hEA
+  set EB := B.spectralPVM.proj (Set.Icc (-(N : ℝ)) (N : ℝ)) measurableSet_Icc with hEB
+  calc ‖EA (EB v) - v‖ = ‖(EA (EB v) - EA v) + (EA v - v)‖ := by rw [sub_add_sub_cancel]
+    _ ≤ ‖EA (EB v) - EA v‖ + ‖EA v - v‖ := norm_add_le _ _
+    _ = ‖EA (EB v - v)‖ + ‖EA v - v‖ := by rw [← map_sub]
+    _ ≤ ‖EB v - v‖ + ‖EA v - v‖ := by
+        gcongr
+        exact A.spectralPVM.norm_proj_apply_le _ measurableSet_Icc _
+
+/-- **The correlation.**  The content a generic coupling lacks: the genuine joint law reproduces
+`⟪ξ, AB ξ⟫` (the cross-moment), the bridge to Bell/CHSH.
+
+Stated for the **canonical projective joint PVM** `M = jointPOVM A B hSC` (so
+`jointBornMeasure = jointScalarMeasure = μ_ξ`).  This specialization is essential, **not** cosmetic:
+for a *generic* `M` with only `M.IsJointOf A B`, the cross-moment `∫ xy dμ_ξ` is **under-determined** —
+`IsJointOf` fixes only the cylinder marginals (`jointBornMeasure_fst/_snd`), leaving the rectangle
+coupling free (`POVM.ext_of_diag`), so the identity would be false.  Projectivity forces the rectangle
+values `μ_ξ(S×T) = ⟪ξ, E_A(S)E_B(T)ξ⟫`, which is what carries the correlation.
+
+The domain hypotheses are `ξ ∈ D(A) ∩ D(B)` and `Bξ ∈ D(A)`: `ξ ∈ D(B)` and `Bξ ∈ D(A)` make the RHS
+`⟪ξ, A(Bξ)⟫` meaningful, and `ξ ∈ D(A)` is needed for integrability of the symbol `xy` on the LHS
+(`∫ x² dμ_ξ = ‖Aξ‖² < ∞` via the first marginal, then Cauchy–Schwarz with `∫ y² = ‖Bξ‖²`).
+
+Proof (planned): the 2-D analogue of `weak_first_moment` — truncate `xy` to the box `[-N,N]²`, identify
+the truncated integral via the commuting bounded calculi `Φ_A(x·1_N)Φ_B(y·1_N)`, then dominated
+convergence (left) and the domain-commutation engine `generator_spectralProjection_comm` (right) as
+`N → ∞`.  See the Vault plan `Plan - G3 Correlation.md`. -/
+theorem jointBornMeasure_correlation {A B : Observable.UnboundedObservable H}
+    (hSC : StronglyCommute A B) {ξ : H} (hξA : ξ ∈ A.domain) (hξ : ξ ∈ B.domain)
     (hξ' : (B.toLinearPMap ⟨ξ, hξ⟩) ∈ A.domain) :
-    ∫ p, p.1 * p.2 ∂(jointBornMeasure M ξ)
-      = (⟪ξ, A.toLinearPMap ⟨B.toLinearPMap ⟨ξ, hξ⟩, hξ'⟩⟫_ℂ).re :=
-  sorry
+    ∫ p, p.1 * p.2 ∂(jointBornMeasure (jointPOVM A B hSC) ξ)
+      = (⟪ξ, A.toLinearPMap ⟨B.toLinearPMap ⟨ξ, hξ⟩, hξ'⟩⟫_ℂ).re := by
+  show ∫ p, p.1 * p.2 ∂(jointScalarMeasure A B hSC ξ)
+    = (⟪ξ, A.toLinearPMap ⟨B.toLinearPMap ⟨ξ, hξ⟩, hξ'⟩⟫_ℂ).re
+  -- the truncated box integral `∫_{[-N,N]²} xy dμ_ξ` equals the truncated operator matrix element
+  have key : ∀ N : ℕ,
+      (∫ p, Set.indicator (Set.Icc (-(N : ℝ)) (N : ℝ) ×ˢ Set.Icc (-(N : ℝ)) (N : ℝ))
+          (fun q : ℝ × ℝ => q.1 * q.2) p ∂(jointScalarMeasure A B hSC ξ))
+        = (⟪ξ, A.spectralPVM.proj (Set.Icc (-(N : ℝ)) (N : ℝ)) measurableSet_Icc
+            (B.spectralPVM.proj (Set.Icc (-(N : ℝ)) (N : ℝ)) measurableSet_Icc
+              (A.toLinearPMap ⟨B.toLinearPMap ⟨ξ, hξ⟩, hξ'⟩))⟫_ℂ).re := by
+    intro N
+    -- Step A: the box integral (complex symbols) is the operator product;
+    -- Step C: the operator product collapses to nested truncations of `A(Bξ)`
+    have hjpf := joint_product_form A B hSC
+      (f := fun l => (l : ℂ) * Set.indicator (Set.Icc (-(N : ℝ)) (N : ℝ)) (fun _ => (1 : ℂ)) l)
+      (g := fun l => (l : ℂ) * Set.indicator (Set.Icc (-(N : ℝ)) (N : ℝ)) (fun _ => (1 : ℂ)) l)
+      (id_indicator_measurable measurableSet_Icc)
+      (id_indicator_bdd (fun x hx => abs_le_max_of_mem_Icc hx))
+      (id_indicator_measurable measurableSet_Icc)
+      (id_indicator_bdd (fun x hx => abs_le_max_of_mem_Icc hx)) ξ
+    rw [joint_truncated_vector A B hSC hξ hξ' N] at hjpf
+    -- the complex box integral is the `ofReal` of the real box integral
+    have hcoe : (∫ p : ℝ × ℝ, (p.1 : ℂ) * Set.indicator (Set.Icc (-(N : ℝ)) (N : ℝ))
+              (fun _ => (1 : ℂ)) p.1
+            * ((p.2 : ℂ) * Set.indicator (Set.Icc (-(N : ℝ)) (N : ℝ))
+              (fun _ => (1 : ℂ)) p.2) ∂(jointScalarMeasure A B hSC ξ))
+        = ((∫ p, Set.indicator (Set.Icc (-(N : ℝ)) (N : ℝ) ×ˢ Set.Icc (-(N : ℝ)) (N : ℝ))
+            (fun q : ℝ × ℝ => q.1 * q.2) p ∂(jointScalarMeasure A B hSC ξ) : ℝ) : ℂ) := by
+      rw [← integral_complex_ofReal]
+      refine integral_congr_ae (Filter.Eventually.of_forall fun p => ?_)
+      by_cases h1 : p.1 ∈ Set.Icc (-(N : ℝ)) (N : ℝ)
+      · by_cases h2 : p.2 ∈ Set.Icc (-(N : ℝ)) (N : ℝ)
+        · simp only [Set.indicator_of_mem h1, Set.indicator_of_mem h2,
+            Set.indicator_of_mem (Set.mem_prod.mpr ⟨h1, h2⟩), mul_one, Complex.ofReal_mul]
+        · simp only [Set.indicator_of_notMem h2,
+            Set.indicator_of_notMem (show p ∉ Set.Icc (-(N : ℝ)) (N : ℝ) ×ˢ Set.Icc (-(N : ℝ)) (N : ℝ)
+              from fun hh => h2 hh.2), mul_zero, Complex.ofReal_zero]
+      · simp only [Set.indicator_of_notMem h1,
+          Set.indicator_of_notMem (show p ∉ Set.Icc (-(N : ℝ)) (N : ℝ) ×ˢ Set.Icc (-(N : ℝ)) (N : ℝ)
+            from fun hh => h1 hh.1), zero_mul, mul_zero, Complex.ofReal_zero]
+    rw [← (hcoe.symm.trans hjpf), Complex.ofReal_re]
+  -- LHS: dominated convergence (the box exhausts `ℝ²`; dominant `|xy| ∈ L¹` from Step B)
+  have hDCT : Filter.Tendsto (fun N : ℕ => ∫ p, Set.indicator
+        (Set.Icc (-(N : ℝ)) (N : ℝ) ×ˢ Set.Icc (-(N : ℝ)) (N : ℝ)) (fun q : ℝ × ℝ => q.1 * q.2) p
+        ∂(jointScalarMeasure A B hSC ξ)) atTop
+      (𝓝 (∫ p, p.1 * p.2 ∂(jointScalarMeasure A B hSC ξ))) := by
+    refine tendsto_integral_of_dominated_convergence (fun p => ‖p.1 * p.2‖)
+      (fun N => ((measurable_fst.mul measurable_snd).indicator
+        (measurableSet_Icc.prod measurableSet_Icc)).aestronglyMeasurable)
+      (jointScalarMeasure_integrable_mul A B hSC hξA hξ).norm
+      (fun N => Filter.Eventually.of_forall fun p => norm_indicator_le_norm_self _ _)
+      (Filter.Eventually.of_forall fun p => ?_)
+    apply tendsto_const_nhds.congr'
+    obtain ⟨N₀, hN₀⟩ := exists_nat_ge (max |p.1| |p.2|)
+    filter_upwards [Filter.eventually_ge_atTop N₀] with N hN
+    have hNN : (N₀ : ℝ) ≤ (N : ℝ) := by exact_mod_cast hN
+    have hp : p ∈ Set.Icc (-(N : ℝ)) (N : ℝ) ×ˢ Set.Icc (-(N : ℝ)) (N : ℝ) := by
+      have hb1 : |p.1| ≤ (N : ℝ) := le_trans (le_trans (le_max_left _ _) hN₀) hNN
+      have hb2 : |p.2| ≤ (N : ℝ) := le_trans (le_trans (le_max_right _ _) hN₀) hNN
+      exact ⟨⟨by have := neg_abs_le p.1; linarith, by have := le_abs_self p.1; linarith⟩,
+        ⟨by have := neg_abs_le p.2; linarith, by have := le_abs_self p.2; linarith⟩⟩
+    exact (Set.indicator_of_mem hp (fun q : ℝ × ℝ => q.1 * q.2)).symm
+  -- RHS: the truncations converge to `A(Bξ)` and the inner product is continuous
+  have hlim : Filter.Tendsto (fun N : ℕ => (⟪ξ,
+        A.spectralPVM.proj (Set.Icc (-(N : ℝ)) (N : ℝ)) measurableSet_Icc
+          (B.spectralPVM.proj (Set.Icc (-(N : ℝ)) (N : ℝ)) measurableSet_Icc
+            (A.toLinearPMap ⟨B.toLinearPMap ⟨ξ, hξ⟩, hξ'⟩))⟫_ℂ).re) atTop
+      (𝓝 ((⟪ξ, A.toLinearPMap ⟨B.toLinearPMap ⟨ξ, hξ⟩, hξ'⟩⟫_ℂ).re)) := by
+    have hcont : Continuous (fun y : H => (⟪ξ, y⟫_ℂ).re) :=
+      Complex.continuous_re.comp (continuous_const.inner continuous_id)
+    exact (hcont.tendsto _).comp
+      (joint_truncated_tendsto A B (A.toLinearPMap ⟨B.toLinearPMap ⟨ξ, hξ⟩, hξ'⟩))
+  exact tendsto_nhds_unique hDCT (hlim.congr fun N => (key N).symm)
+
+end G3Correlation
 
 end Spectra.QuantumMechanics.BornRule

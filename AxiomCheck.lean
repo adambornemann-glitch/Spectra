@@ -187,16 +187,19 @@ assert_no_sorry Spectra.QuantumMechanics.Hydrogen.hardy_constant_sharp
 
 /-! ### Joint spectral measures · strong commutativity (Born rule, relational layer)
 
-Strong commutativity ⟺ commutation of the unitary groups, and the easy half of the
-joint-PVM equivalence (a joint PVM forces strong commutativity), with the joint Born law's
-marginals.  The forward joint-PVM construction (`stronglyCommute_iff_jointPVM`) and the
-correlation identity remain open and are *not* guarded. -/
+Strong commutativity ⟺ commutation of the unitary groups, and the **full** joint-PVM
+equivalence `stronglyCommute_iff_jointPVM` (the multivariate spectral theorem — both directions:
+strong commutativity ⟺ a joint projective PVM on `ℝ²` with the right cylinder marginals), plus the
+**correlation identity** `jointBornMeasure_correlation` (`∫ xy dμ_ξ = ⟪ξ, A(Bξ)⟫.re`, the bridge to
+Bell/CHSH).  All `sorry`-free and axiom-clean. -/
 
 assert_no_sorry Spectra.QuantumMechanics.BornRule.stronglyCommute_iff_groups_commute
 assert_no_sorry Spectra.QuantumMechanics.BornRule.stronglyCommute_of_jointPVM
 assert_no_sorry Spectra.QuantumMechanics.BornRule.jointBornMeasure_fst
 assert_no_sorry Spectra.QuantumMechanics.BornRule.jointBornMeasure_snd
 assert_no_sorry Spectra.QuantumMechanics.BornRule.isProbabilityMeasure_jointBornMeasure
+assert_no_sorry Spectra.QuantumMechanics.BornRule.stronglyCommute_iff_jointPVM
+assert_no_sorry Spectra.QuantumMechanics.BornRule.jointBornMeasure_correlation
 
 /-! ## KMS condition & modular theory -/
 

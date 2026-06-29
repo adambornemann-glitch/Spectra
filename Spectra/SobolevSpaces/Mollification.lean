@@ -2,7 +2,6 @@
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
-File: Spectra/SoboleveSpaces/Mollification.lean
 -/
 import Spectra.SobolevSpaces.Submodules
 import Mathlib.Analysis.Convex.Integral
@@ -11,6 +10,15 @@ open MeasureTheory Complex
 open scoped ENNReal Pointwise ContDiff
 
 namespace Spectra.Sobolev
+
+/-- Continuous linear projections preserve local integrability. -/
+private lemma locallyIntegrable_complexCLM (L : ℂ →L[ℝ] ℝ) {f : R3 → ℂ}
+    (hf : LocallyIntegrable f volume) :
+    LocallyIntegrable (fun y => L (f y)) volume := by
+  exact locallyIntegrableOn_univ.mp <| by
+    simpa [Function.comp_def] using
+      L.locallyIntegrableOn_comp (s := Set.univ) (μ := volume)
+        (f := f) (locallyIntegrableOn_univ.mpr hf)
 
 /-- Complex-valued convolution with a ContDiffBump mollifier, defined component-wise
     through real and imaginary parts (matching Mathlib's real-valued convolution API). -/
@@ -28,12 +36,10 @@ private lemma bumpConvolve_smooth (ρ : ContDiffBump (0 : R3)) (f : R3 → ℂ)
     ContDiff ℝ ∞ (bumpConvolve ρ f) := by
   haveI : (volume : Measure R3).IsAddHaarMeasure := by
     infer_instance
-  have hli_re : LocallyIntegrable (fun y => (f y).re) volume := by
-    intro x; obtain ⟨s, hs, hint⟩ := hf x
-    exact ⟨s, hs, hint.re⟩
-  have hli_im : LocallyIntegrable (fun y => (f y).im) volume := by
-    intro x; obtain ⟨s, hs, hint⟩ := hf x
-    exact ⟨s, hs, hint.im⟩
+  have hli_re : LocallyIntegrable (fun y => (f y).re) volume :=
+    locallyIntegrable_complexCLM Complex.reCLM hf
+  have hli_im : LocallyIntegrable (fun y => (f y).im) volume :=
+    locallyIntegrable_complexCLM Complex.imCLM hf
   have hsmooth_re : ContDiff ℝ ∞ (fun x => MeasureTheory.convolution
       (ρ.normed volume) (fun y => (f y).re) (ContinuousLinearMap.lsmul ℝ ℝ) volume x) :=
     HasCompactSupport.contDiff_convolution_left (ContinuousLinearMap.lsmul ℝ ℝ)
@@ -310,35 +316,44 @@ private lemma integrable_bump_smul_comp (ρ : ContDiffBump (0 : R3))
   exact hat.congr <| Filter.Eventually.of_forall fun t => by
     simp [ContinuousLinearMap.lsmul_apply]
 
+/-- Componentwise convolution distributes over subtraction. -/
+private lemma convolution_component_sub (ρ : ContDiffBump (0 : R3)) (L : ℂ →L[ℝ] ℝ)
+    (f g : R3 → ℂ)
+    (hf : LocallyIntegrable (fun y => L (f y)) volume)
+    (hg : LocallyIntegrable (fun y => L (g y)) volume)
+    (x : R3) :
+    MeasureTheory.convolution (ρ.normed volume) (fun y => L ((f - g) y))
+      (ContinuousLinearMap.lsmul ℝ ℝ) volume x =
+    MeasureTheory.convolution (ρ.normed volume) (fun y => L (f y))
+      (ContinuousLinearMap.lsmul ℝ ℝ) volume x -
+    MeasureTheory.convolution (ρ.normed volume) (fun y => L (g y))
+      (ContinuousLinearMap.lsmul ℝ ℝ) volume x := by
+  simp only [MeasureTheory.convolution_def, ContinuousLinearMap.lsmul_apply, smul_eq_mul]
+  rw [show (fun t => ρ.normed volume t * L ((f - g) (x - t))) =
+      (fun t => ρ.normed volume t * L (f (x - t))) -
+      (fun t => ρ.normed volume t * L (g (x - t))) from by
+        ext t
+        simp [Pi.sub_apply, mul_sub]]
+  exact integral_sub (integrable_bump_smul_comp ρ _ hf x)
+    (integrable_bump_smul_comp ρ _ hg x)
+
 /-- bumpConvolve is linear: ρ ⋆ (f - g) = ρ ⋆ f - ρ ⋆ g. -/
 private lemma bumpConvolve_sub (ρ : ContDiffBump (0 : R3)) (f g : R3 → ℂ)
     (hf : LocallyIntegrable f volume) (hg : LocallyIntegrable g volume) :
     bumpConvolve ρ (f - g) = bumpConvolve ρ f - bumpConvolve ρ g := by
-  have hf_re : LocallyIntegrable (fun y => (f y).re) volume := by
-    intro x; obtain ⟨s, hs, hint⟩ := hf x; exact ⟨s, hs, hint.re⟩
-  have hg_re : LocallyIntegrable (fun y => (g y).re) volume := by
-    intro x; obtain ⟨s, hs, hint⟩ := hg x; exact ⟨s, hs, hint.re⟩
-  have hf_im : LocallyIntegrable (fun y => (f y).im) volume := by
-    intro x; obtain ⟨s, hs, hint⟩ := hf x; exact ⟨s, hs, hint.im⟩
-  have hg_im : LocallyIntegrable (fun y => (g y).im) volume := by
-    intro x; obtain ⟨s, hs, hint⟩ := hg x; exact ⟨s, hs, hint.im⟩
+  have hf_re : LocallyIntegrable (fun y => (f y).re) volume :=
+    locallyIntegrable_complexCLM Complex.reCLM hf
+  have hg_re : LocallyIntegrable (fun y => (g y).re) volume :=
+    locallyIntegrable_complexCLM Complex.reCLM hg
+  have hf_im : LocallyIntegrable (fun y => (f y).im) volume :=
+    locallyIntegrable_complexCLM Complex.imCLM hf
+  have hg_im : LocallyIntegrable (fun y => (g y).im) volume :=
+    locallyIntegrable_complexCLM Complex.imCLM hg
   ext x; simp only [bumpConvolve, Pi.sub_apply]; rw [Complex.mk.injEq]
   simp only [sub_re, sub_im]
   constructor
-  · simp only [MeasureTheory.convolution_def,
-               ContinuousLinearMap.lsmul_apply, smul_eq_mul]
-    rw [show (fun t => ρ.normed volume t * ((f (x - t)).re - (g (x - t)).re)) =
-        (fun t => ρ.normed volume t * (f (x - t)).re) -
-        (fun t => ρ.normed volume t * (g (x - t)).re) from by ext; simp [mul_sub]]
-    exact integral_sub (integrable_bump_smul_comp ρ _ hf_re x)
-      (integrable_bump_smul_comp ρ _ hg_re x)
-  · simp only [MeasureTheory.convolution_def,
-               ContinuousLinearMap.lsmul_apply, smul_eq_mul]
-    rw [show (fun t => ρ.normed volume t * ((f (x - t)).im - (g (x - t)).im)) =
-        (fun t => ρ.normed volume t * (f (x - t)).im) -
-        (fun t => ρ.normed volume t * (g (x - t)).im) from by ext; simp [mul_sub]]
-    exact integral_sub (integrable_bump_smul_comp ρ _ hf_im x)
-      (integrable_bump_smul_comp ρ _ hg_im x)
+  · exact convolution_component_sub ρ Complex.reCLM f g hf_re hg_re x
+  · exact convolution_component_sub ρ Complex.imCLM f g hf_im hg_im x
 
 /-- **L² contraction for bump convolution** (real-valued case).
 If `ψ` is a normalized bump function (nonneg, integrates to one, compactly supported,
@@ -785,6 +800,47 @@ private lemma bumpConvolve_im_apply (ρ : ContDiffBump (0 : R3)) (h : R3 → ℂ
       MeasureTheory.convolution (ρ.normed volume) (fun y => (h y).im)
         (ContinuousLinearMap.lsmul ℝ ℝ) volume x := rfl
 
+/-- A projection of the derivative of `bumpConvolve` is computed by differentiating the
+    real convolution for the corresponding projected component. -/
+private lemma fderiv_bumpConvolve_component_apply
+    (L : ℂ →L[ℝ] ℝ) (component : R3 → ℝ)
+    (ρ : ContDiffBump (0 : R3)) (h : R3 → ℂ) (hh : MemLp h 2 volume)
+    (x : R3) (i : Fin 3)
+    (hcomponent_li : LocallyIntegrable component volume)
+    (hcomponent_eq : (fun y => L (bumpConvolve ρ h y)) =
+      MeasureTheory.convolution (ρ.normed volume) component
+        (ContinuousLinearMap.lsmul ℝ ℝ) volume) :
+    L (fderiv ℝ (bumpConvolve ρ h) x (EuclideanSpace.single i 1)) =
+    (MeasureTheory.convolution (fderiv ℝ (ρ.normed volume)) component
+      (ContinuousLinearMap.precompL R3 (ContinuousLinearMap.lsmul ℝ ℝ)) volume x)
+      (EuclideanSpace.single i 1) := by
+  haveI : (volume : Measure R3).IsAddHaarMeasure := by
+    infer_instance
+  haveI : IsLocallyFiniteMeasure (volume : Measure R3) := by
+    infer_instance
+  have hh_li : LocallyIntegrable h volume :=
+    hh.locallyIntegrable (by norm_num : (1 : ℝ≥0∞) ≤ 2)
+  have hρ_C1 : ContDiff ℝ 1 (ρ.normed volume) := ρ.contDiff_normed (n := 1)
+  have hcomponent_fd : HasFDerivAt
+      (MeasureTheory.convolution (ρ.normed volume) component
+        (ContinuousLinearMap.lsmul ℝ ℝ) volume)
+      (MeasureTheory.convolution (fderiv ℝ (ρ.normed volume)) component
+        (ContinuousLinearMap.precompL R3 (ContinuousLinearMap.lsmul ℝ ℝ)) volume x) x :=
+    HasCompactSupport.hasFDerivAt_convolution_left
+      (ContinuousLinearMap.lsmul ℝ ℝ)
+      ρ.hasCompactSupport_normed hρ_C1 hcomponent_li x
+  have hbc_smooth : ContDiff ℝ ∞ (bumpConvolve ρ h) := bumpConvolve_smooth ρ h hh_li
+  have hbc_hfd : HasFDerivAt (bumpConvolve ρ h) (fderiv ℝ (bumpConvolve ρ h) x) x :=
+    ((hbc_smooth.differentiable
+        (by exact_mod_cast ENat.top_ne_zero)).differentiableAt).hasFDerivAt
+  have hcomponent_alt : HasFDerivAt (fun y => L (bumpConvolve ρ h y))
+      (L.comp (fderiv ℝ (bumpConvolve ρ h) x)) x :=
+    L.hasFDerivAt.comp x hbc_hfd
+  rw [hcomponent_eq] at hcomponent_alt
+  have hD_eq := hcomponent_fd.unique hcomponent_alt
+  rw [hD_eq]
+  simp [ContinuousLinearMap.comp_apply]
+
 /-- The real part of the partial derivative of `bumpConvolve` at `x` in direction
     `eᵢ` is an explicit real integral involving `∂ᵢρ.normed` and `h.re`. -/
 private lemma fderiv_bumpConvolve_re_apply
@@ -794,44 +850,11 @@ private lemma fderiv_bumpConvolve_re_apply
     (MeasureTheory.convolution (fderiv ℝ (ρ.normed volume)) (fun u => (h u).re)
       (ContinuousLinearMap.precompL R3 (ContinuousLinearMap.lsmul ℝ ℝ)) volume x)
       (EuclideanSpace.single i 1) := by
-  set eᵢ := EuclideanSpace.single i (1 : ℝ)
-  haveI : (volume : Measure R3).IsAddHaarMeasure := by
-    infer_instance
-  haveI : IsLocallyFiniteMeasure (volume : Measure R3) := by
-    infer_instance
   have hh_li : LocallyIntegrable h volume :=
     hh.locallyIntegrable (by norm_num : (1 : ℝ≥0∞) ≤ 2)
-  have hh_re_li : LocallyIntegrable (fun u => (h u).re) volume := by
-    intro y; obtain ⟨s, hs, hint⟩ := hh_li y; exact ⟨s, hs, hint.re⟩
-  have hρ_C1 : ContDiff ℝ 1 (ρ.normed volume) := ρ.contDiff_normed (n := 1)
-  -- Mathlib's HasFDerivAt for the real convolution ρ.normed ⋆ h.re
-  have hA_fd : HasFDerivAt
-      (MeasureTheory.convolution (ρ.normed volume) (fun u => (h u).re)
-        (ContinuousLinearMap.lsmul ℝ ℝ) volume)
-      (MeasureTheory.convolution (fderiv ℝ (ρ.normed volume)) (fun u => (h u).re)
-        (ContinuousLinearMap.precompL R3 (ContinuousLinearMap.lsmul ℝ ℝ)) volume x) x :=
-    HasCompactSupport.hasFDerivAt_convolution_left
-      (ContinuousLinearMap.lsmul ℝ ℝ)
-      ρ.hasCompactSupport_normed hρ_C1 hh_re_li x
-  -- bumpConvolve is smooth, hence differentiable at x
-  have hbc_smooth : ContDiff ℝ ∞ (bumpConvolve ρ h) := bumpConvolve_smooth ρ h hh_li
-  have hbc_hfd : HasFDerivAt (bumpConvolve ρ h) (fderiv ℝ (bumpConvolve ρ h) x) x :=
-    ((hbc_smooth.differentiable
-        (by exact_mod_cast ENat.top_ne_zero)).differentiableAt).hasFDerivAt
-  -- Chain with Complex.reCLM
-  have hA_alt : HasFDerivAt (fun y => (bumpConvolve ρ h y).re)
-      (Complex.reCLM.comp (fderiv ℝ (bumpConvolve ρ h) x)) x :=
-    Complex.reCLM.hasFDerivAt.comp x hbc_hfd
-  -- H2 lets us identify (·).re ∘ bumpConvolve with the real convolution
-  have hA_eq_func : (fun y => (bumpConvolve ρ h y).re) =
-      MeasureTheory.convolution (ρ.normed volume) (fun u => (h u).re)
-        (ContinuousLinearMap.lsmul ℝ ℝ) volume := by
-    funext y; exact bumpConvolve_re_apply ρ h y
-  rw [hA_eq_func] at hA_alt
-  -- Uniqueness of fderiv: the two CLMs agree
-  have hDA_eq := hA_fd.unique hA_alt
-  rw [hDA_eq]
-  simp [ContinuousLinearMap.comp_apply, Complex.reCLM_apply]
+  exact fderiv_bumpConvolve_component_apply Complex.reCLM (fun u => (h u).re)
+    ρ h hh x i (locallyIntegrable_complexCLM Complex.reCLM hh_li)
+    (by funext y; exact bumpConvolve_re_apply ρ h y)
 
 /-- The imaginary part of the partial derivative of `bumpConvolve` at `x` in direction
     `eᵢ`, in CLM-application form (mirror of `fderiv_bumpConvolve_re_apply`). -/
@@ -842,39 +865,11 @@ private lemma fderiv_bumpConvolve_im_apply
     (MeasureTheory.convolution (fderiv ℝ (ρ.normed volume)) (fun u => (h u).im)
       (ContinuousLinearMap.precompL R3 (ContinuousLinearMap.lsmul ℝ ℝ)) volume x)
       (EuclideanSpace.single i 1) := by
-  set eᵢ := EuclideanSpace.single i (1 : ℝ)
-  haveI : (volume : Measure R3).IsAddHaarMeasure := by
-    infer_instance
-  haveI : IsLocallyFiniteMeasure (volume : Measure R3) := by
-    infer_instance
   have hh_li : LocallyIntegrable h volume :=
     hh.locallyIntegrable (by norm_num : (1 : ℝ≥0∞) ≤ 2)
-  have hh_im_li : LocallyIntegrable (fun u => (h u).im) volume := by
-    intro y; obtain ⟨s, hs, hint⟩ := hh_li y; exact ⟨s, hs, hint.im⟩
-  have hρ_C1 : ContDiff ℝ 1 (ρ.normed volume) := ρ.contDiff_normed (n := 1)
-  have hA_fd : HasFDerivAt
-      (MeasureTheory.convolution (ρ.normed volume) (fun u => (h u).im)
-        (ContinuousLinearMap.lsmul ℝ ℝ) volume)
-      (MeasureTheory.convolution (fderiv ℝ (ρ.normed volume)) (fun u => (h u).im)
-        (ContinuousLinearMap.precompL R3 (ContinuousLinearMap.lsmul ℝ ℝ)) volume x) x :=
-    HasCompactSupport.hasFDerivAt_convolution_left
-      (ContinuousLinearMap.lsmul ℝ ℝ)
-      ρ.hasCompactSupport_normed hρ_C1 hh_im_li x
-  have hbc_smooth : ContDiff ℝ ∞ (bumpConvolve ρ h) := bumpConvolve_smooth ρ h hh_li
-  have hbc_hfd : HasFDerivAt (bumpConvolve ρ h) (fderiv ℝ (bumpConvolve ρ h) x) x :=
-    ((hbc_smooth.differentiable
-        (by exact_mod_cast ENat.top_ne_zero)).differentiableAt).hasFDerivAt
-  have hA_alt : HasFDerivAt (fun y => (bumpConvolve ρ h y).im)
-      (Complex.imCLM.comp (fderiv ℝ (bumpConvolve ρ h) x)) x :=
-    Complex.imCLM.hasFDerivAt.comp x hbc_hfd
-  have hA_eq_func : (fun y => (bumpConvolve ρ h y).im) =
-      MeasureTheory.convolution (ρ.normed volume) (fun u => (h u).im)
-        (ContinuousLinearMap.lsmul ℝ ℝ) volume := by
-    funext y; exact bumpConvolve_im_apply ρ h y
-  rw [hA_eq_func] at hA_alt
-  have hDA_eq := hA_fd.unique hA_alt
-  rw [hDA_eq]
-  simp [ContinuousLinearMap.comp_apply, Complex.imCLM_apply]
+  exact fderiv_bumpConvolve_component_apply Complex.imCLM (fun u => (h u).im)
+    ρ h hh x i (locallyIntegrable_complexCLM Complex.imCLM hh_li)
+    (by funext y; exact bumpConvolve_im_apply ρ h y)
 
 /-- Complex-coerced chain rule for the translated bump: the partial derivative
     of `u ↦ (ρ.normed(x-u) : ℂ)` in direction `eᵢ` equals the complex coercion
@@ -981,10 +976,10 @@ private lemma bumpConvolve_fderiv_eq (i : Fin 3)
   -- Local integrability of h and its components ------------------------------
   have hh_li : LocallyIntegrable h volume :=
     hh.locallyIntegrable (by norm_num : (1 : ℝ≥0∞) ≤ 2)
-  have hh_re_li : LocallyIntegrable (fun u => (h u).re) volume := by
-    intro y; obtain ⟨s, hs, hint⟩ := hh_li y; exact ⟨s, hs, hint.re⟩
-  have hh_im_li : LocallyIntegrable (fun u => (h u).im) volume := by
-    intro y; obtain ⟨s, hs, hint⟩ := hh_li y; exact ⟨s, hs, hint.im⟩
+  have hh_re_li : LocallyIntegrable (fun u => (h u).re) volume :=
+    locallyIntegrable_complexCLM Complex.reCLM hh_li
+  have hh_im_li : LocallyIntegrable (fun u => (h u).im) volume :=
+    locallyIntegrable_complexCLM Complex.imCLM hh_li
   -- Smoothness/continuity/compact-support of fderiv ρ.normed ------------------
   have hρ_smooth : ContDiff ℝ ∞ (ρ.normed volume) := ρ.contDiff_normed
   have hfderiv_smooth : ContDiff ℝ ∞ (fderiv ℝ (ρ.normed volume)) :=
