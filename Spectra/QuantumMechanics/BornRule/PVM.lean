@@ -97,7 +97,7 @@ noncomputable def bornMeasure (P : ProjValMeasure H) (ψ : H) : Measure ℝ :=
 /-- `[done]` For a unit vector the Born measure is a genuine probability measure.
 Proof: `P.diag_univ_toReal ψ` gives total mass `‖ψ‖² = 1`; with `P.diag_finite` this is
 `(bornMeasure P ψ) univ = 1`. -/
-theorem isProbabilityMeasure_bornMeasure (P : ProjValMeasure H) {ψ : H}
+lemma isProbabilityMeasure_bornMeasure (P : ProjValMeasure H) {ψ : H}
     (hψ : ‖ψ‖ = 1) : IsProbabilityMeasure (bornMeasure P ψ) := by
   refine ⟨(ENNReal.toReal_eq_one_iff _).mp ?_⟩
   show ((P.diag ψ) Set.univ).toReal = 1
@@ -113,7 +113,7 @@ theorem born_rule (P : ProjValMeasure H) (ψ : H)
 
 /-- `[done]` The `ℝ≥0∞`-valued restatement, convenient when the measure is consumed
 directly.  Proof: `born_rule` plus `ENNReal.ofReal_toReal (measure_ne_top _ _)`. -/
-theorem born_rule_ennreal (P : ProjValMeasure H) (ψ : H)
+lemma born_rule_ennreal (P : ProjValMeasure H) (ψ : H)
     {B : Set ℝ} (hB : MeasurableSet B) :
     (bornMeasure P ψ) B = ENNReal.ofReal (‖P.proj B hB ψ‖ ^ 2) := by
   show (P.diag ψ) B = ENNReal.ofReal (‖P.proj B hB ψ‖ ^ 2)
@@ -121,7 +121,7 @@ theorem born_rule_ennreal (P : ProjValMeasure H) (ψ : H)
 
 /-- `[done]` Born probabilities are bounded by `‖ψ‖²` (by `1` for a unit vector).
 Proof: `P.norm_proj_apply_le` and `born_rule`. -/
-theorem born_rule_le (P : ProjValMeasure H) (ψ : H)
+lemma born_rule_le (P : ProjValMeasure H) (ψ : H)
     {B : Set ℝ} (hB : MeasurableSet B) :
     ((bornMeasure P ψ) B).toReal ≤ ‖ψ‖ ^ 2 := by
   rw [born_rule P ψ hB]

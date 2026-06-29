@@ -183,7 +183,7 @@ lemma set_integral_cexp_pos_int (n : ℤ) :
     rw [h, set_integral_cexp_neg_int]
     simp only [neg_eq_zero, ofReal_mul, ofReal_ofNat]
 
-/-- The `n`-th Fourier coefficient of `σ_N` is `w_N(n) · c(n)`. -/
+/-- The `n`-th Fourier coefficient of `σ_N` is `w_N(n) · c(n)`. (Currently unused.) -/
 lemma fejerMeasure_fourier (ψ : H) (N : ℕ) (n : ℤ) :
     ∫ θ in Set.Icc 0 (2 * Real.pi),
       exp (I * n * θ) ∂(fejerMeasure U hU ψ N) =
@@ -265,7 +265,7 @@ lemma fejerWeight_tendsto_complex (n : ℤ) :
   simp only [Complex.ofReal_one] at this
   exact this
 
-/-- The Fejér mean measure is a finite measure. -/
+/-- The Fejér mean measure is a finite measure. (Currently unused.) -/
 instance fejerMeasure_isFiniteMeasure (ψ : H) (N : ℕ) :
     IsFiniteMeasure (fejerMeasure U hU ψ N) := by
   unfold fejerMeasure
@@ -284,11 +284,11 @@ instance fejerMeasure_isFiniteMeasure (ψ : H) (N : ℕ) :
 /-- The circle `[0, 2π]` as a compact metrizable subtype of `ℝ`. -/
 abbrev Circle := Set.Icc (0 : ℝ) (2 * Real.pi)
 
-/-- `[0, 2π]` is nonempty. -/
+/-- `[0, 2π]` is nonempty. (Currently unused.) -/
 private instance circleNonempty : Nonempty Circle :=
   ⟨⟨0, le_refl 0, by positivity⟩⟩
 
-/-- `[0, 2π]` is compact (subtype version). -/
+/-- `[0, 2π]` is compact (subtype version). (Currently unused.) -/
 private instance circleCompactSpace : CompactSpace Circle :=
   isCompact_iff_compactSpace.mp isCompact_Icc
 
@@ -310,7 +310,7 @@ private instance fejerMeasureOnCircle_finite (ψ : H) (N : ℕ) :
     Set.image_univ, Subtype.range_coe]
   exact measure_lt_top _ _
 
-/-- Integrals on `Circle` correspond to set-integrals on `[0, 2π]`. -/
+/-- Integrals on `Circle` correspond to set-integrals on `[0, 2π]`. (Currently unused.) -/
 lemma integral_circle_eq_setIntegral (f : ℝ → ℂ) (ψ : H) (N : ℕ) :
     ∫ x : Circle, f x.val ∂(fejerMeasureOnCircle U hU ψ N) =
     ∫ θ in Set.Icc 0 (2 * Real.pi), f θ ∂(fejerMeasure U hU ψ N) := by
@@ -323,7 +323,7 @@ lemma integral_circle_eq_setIntegral (f : ℝ → ℂ) (ψ : H) (N : ℕ) :
 noncomputable def fejerFiniteMeasure (ψ : H) (N : ℕ) : FiniteMeasure Circle :=
   ⟨fejerMeasureOnCircle U hU ψ N, fejerMeasureOnCircle_finite U hU ψ N⟩
 
-/-- The mass of each Fejér finite measure on Circle equals ‖ψ‖². -/
+/-- The mass of each Fejér finite measure on Circle equals ‖ψ‖². (Currently unused.) -/
 lemma fejerFiniteMeasure_mass_toReal (ψ : H) (N : ℕ) :
     ((fejerFiniteMeasure U hU ψ N : Measure Circle) Set.univ).toReal = ‖ψ‖ ^ 2 := by
   show ((fejerMeasureOnCircle U hU ψ N) Set.univ).toReal = ‖ψ‖ ^ 2
@@ -334,7 +334,7 @@ lemma fejerFiniteMeasure_mass_toReal (ψ : H) (N : ℕ) :
 /-- **Bolzano-Weierstrass in a countable product of compact intervals.**
     Any sequence in `∏ₙ [-Bₙ, Bₙ]` has a coordinatewise convergent
     subsequence. This follows from Tychonoff + first-countability of
-    the countable product `ℕ → ℝ`. -/
+    the countable product `ℕ → ℝ`. (Currently unused.) -/
 lemma coordinatewise_convergent_subseq
     (x : ℕ → ℕ → ℝ) (B : ℕ → ℝ) (_hB : ∀ n, 0 ≤ B n)
     (hbnd : ∀ n k, x n k ∈ Set.Icc (-(B n)) (B n)) :
@@ -351,7 +351,7 @@ lemma coordinatewise_convergent_subseq
   exact ⟨L, φ, hφ, fun n => hconv n⟩
 
 /-- Integration against a probability measure is 1-Lipschitz in the
-    bounded continuous function argument. -/
+    bounded continuous function argument. (Currently unused.) -/
 lemma integral_dist_le_bcf_dist (f g : BoundedContinuousFunction Circle ℝ)
     (μ : ProbabilityMeasure Circle) :
     dist (∫ x, f x ∂μ.toMeasure) (∫ x, g x ∂μ.toMeasure) ≤ dist f g := by

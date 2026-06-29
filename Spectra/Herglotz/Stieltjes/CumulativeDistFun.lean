@@ -115,7 +115,7 @@ lemma fejerCDF_monotone (hU : Operator.Unitary U) (ψ : H) (N : ℕ) :
         rw [eval_mid b (not_le.mpr hbpos) (not_le.mpr hb2)]
         exact mul_le_mul_of_nonneg_left (hmono_int hab) (by positivity)
 
-/-- `0 ≤ F_N(x) ≤ ‖ψ‖²` for all `x`. -/
+/-- `0 ≤ F_N(x) ≤ ‖ψ‖²` for all `x`. (Currently unused.) -/
 lemma fejerCDF_bounded (hU : Operator.Unitary U) (ψ : H) (N : ℕ) (x : ℝ) :
     fejerCDF U ψ N x ∈ Set.Icc 0 (‖ψ‖ ^ 2) := by
   have hmono := fejerCDF_monotone U hU ψ N
@@ -141,7 +141,7 @@ lemma fejerCDF_bounded (hU : Operator.Unitary U) (ψ : H) (N : ℕ) (x : ℝ) :
         rw [if_neg (not_le.mpr hxpos), if_pos (le_of_lt hx)]
       exact le_of_eq hval
 
-/-- `F_N` is continuous. -/
+/-- `F_N` is continuous. (Currently unused.) -/
 lemma fejerCDF_continuous (ψ : H) (N : ℕ) :
     Continuous (fejerCDF U ψ N) := by
   have hf_cont : Continuous (fun θ => (fejerMeanDensity U ψ N θ).re) :=
@@ -207,7 +207,7 @@ lemma fejerCDF_continuous (ψ : H) (N : ℕ) :
         unfold fejerCDF; rw [if_neg (not_le.mpr hx), if_neg (not_le.mpr hx2)]
   exact hg_cont.congr (fun x => (key x).symm)
 
-/-- `σ_N((a, b]) = F_N(b) - F_N(a)` for `0 ≤ a ≤ b ≤ 2π`. -/
+/-- `σ_N((a, b]) = F_N(b) - F_N(a)` for `0 ≤ a ≤ b ≤ 2π`. (Currently unused.) -/
 lemma fejerCDF_eq_measure (hU : Operator.Unitary U) (ψ : H) (N : ℕ) (a b : ℝ)
     (ha : 0 ≤ a) (hab : a ≤ b) (hb : b ≤ 2 * Real.pi) :
     fejerCDF U ψ N b - fejerCDF U ψ N a =

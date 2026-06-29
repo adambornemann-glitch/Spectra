@@ -82,29 +82,36 @@ def UpperBoundary (β : ℝ) : Set ℂ :=
   {z : ℂ | z.im = β}
 
 -- Basic lemmas about strips
+/-- The open strip is contained in the closed strip. -/
 lemma Strip_subset_ClosedStrip {β : ℝ} (_hβ : 0 < β) : Strip β ⊆ ClosedStrip β := by
   intro z ⟨h1, h2⟩
   exact ⟨le_of_lt h1, le_of_lt h2⟩
 
+/-- The lower boundary `{Im z = 0}` is contained in the closed strip when `0 ≤ β`. -/
 lemma LowerBoundary_subset_ClosedStrip {β : ℝ} (hβ : 0 ≤ β) : LowerBoundary ⊆ ClosedStrip β := by
   intro z hz
   simp only [LowerBoundary, ClosedStrip, mem_setOf_eq] at *
   exact ⟨le_of_eq hz.symm, by linarith⟩
 
+/-- The upper boundary `{Im z = β}` is contained in the closed strip when `0 ≤ β`. (Currently unused.) -/
 lemma UpperBoundary_subset_ClosedStrip {β : ℝ} (hβ : 0 ≤ β) : UpperBoundary β ⊆ ClosedStrip β := by
   intro z hz
   simp only [UpperBoundary, ClosedStrip, mem_setOf_eq] at *
   exact ⟨by linarith, le_of_eq hz⟩
 
+/-- The point `realToLower t` has imaginary part `0`. -/
 lemma realToLower_im (t : ℝ) : (realToLower t).im = 0 := by
   simp [realToLower]
 
+/-- The point `realToUpper β t` has imaginary part `β`. -/
 lemma realToUpper_im (β t : ℝ) : (realToUpper β t).im = β := by
   simp [realToUpper]
 
+/-- `realToLower t` lies on the lower boundary. -/
 lemma realToLower_mem_LowerBoundary (t : ℝ) : realToLower t ∈ LowerBoundary :=
   realToLower_im t
 
+/-- `realToUpper β t` lies on the upper boundary at height `β`. (Currently unused.) -/
 lemma realToUpper_mem_UpperBoundary (β t : ℝ) : realToUpper β t ∈ UpperBoundary β :=
   realToUpper_im β t
 
@@ -159,6 +166,7 @@ noncomputable def Dynamics.trivial (A : Type*) [CStarAlgebra A] : Dynamics A whe
   evolve_zero := fun _ => rfl
   continuous_evolve := fun _ => continuous_const
 
+/-- `Dynamics A` is inhabited, witnessed by the trivial dynamics. -/
 instance (A : Type*) [CStarAlgebra A] : Nonempty (Dynamics A) := ⟨Dynamics.trivial A⟩
 
 /-- A state on a C*-algebra.
@@ -179,6 +187,7 @@ structure State (A : Type*) [CStarAlgebra A] where
   continuous : Continuous toFun
 
 -- Coercion to function
+/-- A `State A` coerces to its underlying function `A → ℂ`. -/
 noncomputable instance (A : Type*) [CStarAlgebra A] : CoeFun (State A) (fun _ => A → ℂ) :=
   ⟨fun ω => ω.toFun⟩
 
@@ -857,10 +866,10 @@ lemma commutative_kms_correlations_constant
     have := hc (realToLower 0)
       (LowerBoundary_subset_ClosedStrip (le_of_lt hβ) (realToLower_mem_LowerBoundary 0))
     rwa [F.lower_boundary, α.evolve_zero] at this
-  lia  -- both equal c
+  exact ht.trans h0.symm  -- both equal c
 
 /-- **Corollary**: A commutative KMS state is invariant. This follows from the
-    cylinder theorem by taking `a = 1`. -/
+    cylinder theorem by taking `a = 1`. (Currently unused.) -/
 lemma commutative_kms_is_invariant
     (hcomm : ∀ a b : A, a * b = b * a)
     {ω : State A} {α : Dynamics A} {β : ℝ} (hβ : 0 < β)

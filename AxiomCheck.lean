@@ -34,6 +34,11 @@ assert_no_sorry Spectra.QuantumMechanics.SpectralTheory.spectralPVM
 assert_no_sorry Spectra.QuantumMechanics.SpectralTheory.stonesFormula_spectralPVM
 assert_no_sorry Spectra.QuantumMechanics.SpectralTheory.weak_first_moment
 assert_no_sorry Spectra.QuantumMechanics.SpectralTheory.weak_second_moment
+-- Eigenvalues ↔ spectral atoms: `range E({λ}) = ker(A − λ)` for self-adjoint `A`.
+assert_no_sorry Spectra.QuantumMechanics.SpectralTheory.spectralPVM_sq_dist_integral
+assert_no_sorry Spectra.QuantumMechanics.SpectralTheory.spectralPVM_proj_singleton_eq_self_of_eigen
+assert_no_sorry Spectra.QuantumMechanics.SpectralTheory.spectralPVM_proj_singleton_apply_isEigen
+assert_no_sorry Spectra.QuantumMechanics.SpectralTheory.spectralPVM_proj_singleton_eq_self_iff
 assert_no_sorry Spectra.YosidaHille.stoneEquiv
 assert_no_sorry Spectra.YosidaHille.stoneEquivSpectral
 assert_no_sorry Spectra.Bochner.bochner_theorem
@@ -124,6 +129,11 @@ assert_no_sorry Spectra.QuantumMechanics.Hydrogen.essSpectrum_laplacian
 assert_no_sorry QuantumMechanics.Hydrogen.Spectrum.hydrogen_reduces_half
 assert_no_sorry QuantumMechanics.Hydrogen.Spectrum.hydrogen_eigenfunction_eq
 
+/-! ### Hydrogen continuous spectrum · σ_ess(H) = [0,∞) and no embedded eigenvalues (Kato) -/
+
+assert_no_sorry QuantumMechanics.Hydrogen.Spectrum.hydrogen_continuous_spectrum
+assert_no_sorry QuantumMechanics.Hydrogen.Spectrum.hydrogen_no_positive_eigenvalues
+
 -- `hydrogen_discrete_spectrum` (in `Spectrum.Discrete`, kept out of the root `Spectra`
 -- import) still carries a documented `sorry`: the remaining leaves are the
 -- `chartRealization` intertwining and `reduced_radial_L2_quantized` analytic gap. Uncomment
@@ -164,6 +174,7 @@ These print the full axiom set into the build log. Only `propext`, `Classical.ch
 and `Quot.sound` should appear — anything else (especially `sorryAx`) is a red flag. -/
 
 #print axioms Spectra.QuantumMechanics.SpectralTheory.spectralTheorem
+#print axioms QuantumMechanics.Hydrogen.Spectrum.hydrogen_no_positive_eigenvalues
 #print axioms Spectra.YosidaHille.stoneEquiv
 #print axioms Spectra.Bochner.bochner_theorem
 #print axioms Spectra.QuantumCHSH.tsirelson_bound'

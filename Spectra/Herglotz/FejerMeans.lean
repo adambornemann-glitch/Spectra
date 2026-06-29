@@ -23,7 +23,7 @@ This is the Fourier coefficient of the Fejér kernel. -/
 noncomputable def fejerWeight (N : ℕ) (n : ℤ) : ℝ :=
   if n.natAbs ≤ N then 1 - n.natAbs / (N + 1 : ℝ) else 0
 
-/-- `w_N(n) ≥ 0` for all `n`. -/
+/-- `w_N(n) ≥ 0` for all `n`. (Currently unused.) -/
 theorem fejerWeight_nonneg (N : ℕ) (n : ℤ) : 0 ≤ fejerWeight N n := by
   unfold fejerWeight
   split

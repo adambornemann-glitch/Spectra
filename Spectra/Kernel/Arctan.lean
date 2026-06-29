@@ -2,7 +2,6 @@
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
-Filename: StonesFormula/Kernel/Arctan.lean
 -/
 import Spectra.Kernel.Defs
 import Spectra.Fourier.IsUnique

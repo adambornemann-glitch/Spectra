@@ -2,7 +2,6 @@
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
-Filename: SpectralTheory/Mathlib/UnitaryBridge.lean
 Target: Mathlib master (2026-06-10)
 -/
 import Mathlib.Analysis.InnerProductSpace.Adjoint
@@ -77,14 +76,14 @@ lemma mem_unitary_iff_inner_map_map_and_surjective {U : H →L[ℂ] H} :
       _ = φ := by rw [hU.2]; rfl
 
 /-- Inner-product–preserving surjections are star-normal: the cfc trigger, derived from
-the unitary bridge rather than by hand. -/
+the unitary bridge rather than by hand. (Currently unused.) -/
 lemma isStarNormal_of_inner_map_map_of_surjective {U : H →L[ℂ] H}
     (hinner : ∀ ψ φ : H, ⟪U ψ, U φ⟫_ℂ = ⟪ψ, φ⟫_ℂ)
     (hsurj : Function.Surjective U) :
     IsStarNormal U :=
   isStarNormal_of_mem_unitary (mem_unitary_of_inner_map_map_of_surjective hinner hsurj)
 
-/-- Spectrum of an inner-product-preserving surjection lies on the unit circle. -/
+/-- Spectrum of an inner-product-preserving surjection lies on the unit circle. (Currently unused.) -/
 lemma spectrum_subset_circle_of_inner_map_map_of_surjective {U : H →L[ℂ] H}
     (hinner : ∀ ψ φ : H, ⟪U ψ, U φ⟫_ℂ = ⟪ψ, φ⟫_ℂ)
     (hsurj : Function.Surjective U) :

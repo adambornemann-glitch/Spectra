@@ -2,7 +2,6 @@
 /build/*
 /config/*
 /packages/*
-/@Meta/
 /@DEP/
 .claude
 .gitignore
@@ -11,3 +10,6 @@
 /todo.md
 /docs/
 Spectra/WorkSheets/
+ScratchDepCheck.lean
+UNUSED.md
+CLEANING.md

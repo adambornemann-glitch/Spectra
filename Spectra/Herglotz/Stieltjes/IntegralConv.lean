@@ -42,7 +42,7 @@ private lemma cdf_mass_toReal {F : ℝ → ℝ} (hF : Monotone F)
       hF_rc, hF_rc, ENNReal.toReal_ofReal (sub_nonneg.mpr (hF hab))]
 
 /-- If `F (φ k) → G` at the continuity points `a, b` of `G`, the masses of `(a, b]`
-under the approximating Stieltjes measures converge to the mass under `G`'s measure. -/
+under the approximating Stieltjes measures converge to the mass under `G`'s measure. (Currently unused.) -/
 private lemma cdf_mass_tendsto {F : ℕ → ℝ → ℝ} {G : ℝ → ℝ} {φ : ℕ → ℕ}
     (h_mono_F : ∀ N, Monotone (F N)) (h_mono_G : Monotone G)
     (hF_rc : ∀ N x, Function.rightLim (F N) x = F N x)

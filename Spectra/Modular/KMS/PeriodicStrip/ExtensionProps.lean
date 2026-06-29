@@ -2,7 +2,6 @@
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Author: Adam Bornemann
-Filename: PeriodicStrip/ExtensionProps.lean
 -/
 import Spectra.Modular.KMS.PeriodicStrip.IndexProps
 open Complex Set Filter Topology Int MeasureTheory
@@ -212,7 +211,7 @@ by triangles that don't cross (using continuity) and use that holomorphic
 functions have zero integral over closed curves.
 -/
 
-/-- The set of points NOT on any boundary line is open -/
+/-- The set of points NOT on any boundary line is open (Currently unused.) -/
 lemma isOpen_off_boundaryLines (β : ℝ) (hβ : 0 < β) :
     IsOpen {z : ℂ | ∀ n : ℤ, z.im ≠ n * β} := by
   rw [isOpen_iff_forall_mem_open]
@@ -256,7 +255,6 @@ lemma isOpen_off_boundaryLines (β : ℝ) (hβ : 0 < β) :
     simp only [Int.cast_add, Int.cast_one] at hε_right ⊢
     linarith
   -- So w.im ∈ (n*β, (n+1)*β), which means w.im ≠ m*β for any integer m
-  -- So w.im ∈ (n*β, (n+1)*β), which means w.im ≠ m*β for any integer m
   intro heq
   -- From hw_lower: n * β < w.im = m * β, so n < m (since β > 0)
   have hn_lt_m : n < m := by
@@ -270,7 +268,7 @@ lemma isOpen_off_boundaryLines (β : ℝ) (hβ : 0 < β) :
   linarith
 
 
-/-- The set of points NOT on any boundary line is dense -/
+/-- The set of points NOT on any boundary line is dense (Currently unused.) -/
 lemma dense_off_boundaryLines (β : ℝ) (hβ : 0 < β) :
     Dense {z : ℂ | ∀ n : ℤ, z.im ≠ n * β} := by
   rw [dense_iff_inter_open]

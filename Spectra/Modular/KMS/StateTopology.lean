@@ -15,7 +15,7 @@ the existence of extremal/pure states), it must be realized as a subset of a top
 space. The bespoke `State A` is a bare structure with no topology, so we realize states inside
 Mathlib's weak-* dual `WeakDual ℂ A` as the **positive, normalized** continuous functionals.
 
-## Main results
+## Main statements
 
 * `Spectra.KMS.stateSet` — the state space `{φ | (∀ a, 0 ≤ φ(a⋆a)) ∧ φ 1 = 1}` in `WeakDual ℂ A`.
 * `Spectra.KMS.stateSet_convex` — it is convex.
@@ -48,6 +48,7 @@ normalized continuous functionals. -/
 def stateSet (A : Type*) [CStarAlgebra A] : Set (WeakDual ℂ A) :=
   {φ | (∀ a : A, 0 ≤ φ (star a * a)) ∧ φ 1 = 1}
 
+/-- Membership in `stateSet A`: positivity on `star a * a` and normalization `φ 1 = 1`. -/
 @[simp] lemma mem_stateSet {φ : WeakDual ℂ A} :
     φ ∈ stateSet A ↔ (∀ a : A, 0 ≤ φ (star a * a)) ∧ φ 1 = 1 := Iff.rfl
 
@@ -92,6 +93,7 @@ lemma stateSet_isClosed : IsClosed (stateSet A) := by
 noncomputable def State.toWeakDual (ω : State A) : WeakDual ℂ A :=
   StrongDual.toWeakDual ⟨ω.toFun, ω.continuous⟩
 
+/-- The weak-* dual element `ω.toWeakDual` evaluates as the underlying state `ω`. -/
 @[simp] lemma State.toWeakDual_apply (ω : State A) (a : A) : ω.toWeakDual a = ω a := rfl
 
 /-- Every bespoke state lands in the weak-* state space. -/

@@ -2,7 +2,6 @@
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Author: Adam Bornemann
-Filename: PeriodicStrip/LineRemove.lean
 -/
 import Spectra.Modular.KMS.PeriodicStrip.Painleve
 open Complex Set Filter MeasureTheory intervalIntegral

@@ -55,7 +55,7 @@ lemma withDensity_ofReal_eq_stieltjes_measure
     rw [StieltjesFunction.measure_Iic _ hSF_atBot, hSF_eq, sub_zero]
   rw [hLHS_val, hRHS_val]
 
-/-- **Herglotz's lemma** -/
+/-- **Herglotz's lemma** (Currently unused.) -/
 lemma herglotz_lemma_stieltjes
     (c : ℤ → ℂ)  -- the correlation sequence c(n) = ⟨ψ, U^n ψ⟩
     (M : ℝ) (hM : 0 ≤ M)  -- M = ‖ψ‖²

@@ -39,7 +39,7 @@ conjugate-linear-`evolve` soundness bug taught.
 * `Dynamics.analyticExtend`, `Dynamics.sigma` — the (proof-carrying) entire extension and the flow `σ_z`.
 * `Dynamics.analyticElements` — the set of analytic elements.
 
-## Main results
+## Main statements
 
 * `Dynamics.norm_evolve` — `α_t` is isometric.
 * `analyticExtend_unique` — the entire extension is unique (1-D identity theorem at `ℂ → A`).
@@ -66,6 +66,7 @@ noncomputable def Dynamics.evolveStarAlgHom (α : Dynamics A) (t : ℝ) : A →�
   { AlgHom.ofLinearMap (α.evolve t) (α.map_one t) (α.map_mul t) with
     map_star' := α.map_star t }
 
+/-- The bundled `*`-homomorphism `α.evolveStarAlgHom t` applied to `a` is just `α.evolve t a`. -/
 @[simp] lemma Dynamics.evolveStarAlgHom_apply (α : Dynamics A) (t : ℝ) (a : A) :
     α.evolveStarAlgHom t a = α.evolve t a := rfl
 
@@ -88,6 +89,7 @@ lemma Dynamics.norm_evolve (α : Dynamics A) (t : ℝ) (a : A) : ‖α.evolve t 
 noncomputable def Dynamics.evolveL (α : Dynamics A) (t : ℝ) : A →L[ℂ] A :=
   (α.evolve t).mkContinuous 1 (fun a => by simpa using α.norm_evolve_le t a)
 
+/-- The continuous linear map `α.evolveL t` applied to `a` is just `α.evolve t a`. -/
 @[simp] lemma Dynamics.evolveL_apply (α : Dynamics A) (t : ℝ) (a : A) :
     α.evolveL t a = α.evolve t a := rfl
 
@@ -133,9 +135,11 @@ proof as an explicit argument (never a total junk function on non-analytic eleme
 noncomputable def Dynamics.analyticExtend (α : Dynamics A) {a : A} (ha : α.IsAnalyticElement a) :
     ℂ → A := ha.choose
 
+/-- The entire extension `α.analyticExtend ha` is differentiable on all of `ℂ`. -/
 lemma Dynamics.analyticExtend_differentiable (α : Dynamics A) {a : A}
     (ha : α.IsAnalyticElement a) : Differentiable ℂ (α.analyticExtend ha) := ha.choose_spec.1
 
+/-- On the real axis the entire extension recovers the orbit: `α.analyticExtend ha t = α.evolve t a`. -/
 @[simp] lemma Dynamics.analyticExtend_real (α : Dynamics A) {a : A} (ha : α.IsAnalyticElement a)
     (t : ℝ) : α.analyticExtend ha (t : ℂ) = α.evolve t a := ha.choose_spec.2 t
 
@@ -144,9 +148,11 @@ orbit evaluated at the complex time `z`. -/
 noncomputable def Dynamics.sigma (α : Dynamics A) {a : A} (ha : α.IsAnalyticElement a) (z : ℂ) : A :=
   α.analyticExtend ha z
 
+/-- At real time `t` the complexified flow agrees with the real flow: `σ_t(a) = α_t(a)`. -/
 @[simp] lemma Dynamics.sigma_ofReal (α : Dynamics A) {a : A} (ha : α.IsAnalyticElement a) (t : ℝ) :
     α.sigma ha (t : ℂ) = α.evolve t a := α.analyticExtend_real ha t
 
+/-- The complexified flow at time `0` is the identity: `σ_0(a) = a`. -/
 @[simp] lemma Dynamics.sigma_zero (α : Dynamics A) {a : A} (ha : α.IsAnalyticElement a) :
     α.sigma ha 0 = a := by
   have h := α.sigma_ofReal ha 0
@@ -157,9 +163,11 @@ noncomputable def Dynamics.sigma (α : Dynamics A) {a : A} (ha : α.IsAnalyticEl
 /-- The set of analytic elements of `α`. -/
 def Dynamics.analyticElements (α : Dynamics A) : Set A := {a | α.IsAnalyticElement a}
 
+/-- Membership in `α.analyticElements` unfolds to `α.IsAnalyticElement`. -/
 @[simp] lemma Dynamics.mem_analyticElements (α : Dynamics A) {a : A} :
     a ∈ α.analyticElements ↔ α.IsAnalyticElement a := Iff.rfl
 
+/-- `0` is an analytic element: its orbit is constant, `α_t(0) = 0`. -/
 lemma Dynamics.analyticElements_zero (α : Dynamics A) : α.IsAnalyticElement (0 : A) :=
   ⟨fun _ => 0, differentiable_const 0, fun t => by simp⟩
 
@@ -167,23 +175,27 @@ lemma Dynamics.analyticElements_zero (α : Dynamics A) : α.IsAnalyticElement (0
 lemma Dynamics.analyticElements_one (α : Dynamics A) : α.IsAnalyticElement (1 : A) :=
   ⟨fun _ => 1, differentiable_const 1, fun t => by simp [α.map_one]⟩
 
+/-- Analytic elements are closed under addition: if `a` and `b` are analytic so is `a + b`. -/
 lemma Dynamics.analyticElements_add (α : Dynamics A) {a b : A}
     (ha : α.IsAnalyticElement a) (hb : α.IsAnalyticElement b) : α.IsAnalyticElement (a + b) := by
   obtain ⟨F, hF, hFr⟩ := ha
   obtain ⟨G, hG, hGr⟩ := hb
   exact ⟨fun z => F z + G z, hF.add hG, fun t => by simp [hFr t, hGr t, map_add]⟩
 
+/-- Analytic elements are closed under scalar multiplication: if `a` is analytic so is `c • a`. -/
 lemma Dynamics.analyticElements_smul (α : Dynamics A) (c : ℂ) {a : A}
     (ha : α.IsAnalyticElement a) : α.IsAnalyticElement (c • a) := by
   obtain ⟨F, hF, hFr⟩ := ha
   exact ⟨fun z => c • F z, hF.const_smul c, fun t => by simp [hFr t, map_smul]⟩
 
+/-- Analytic elements are closed under multiplication: if `a` and `b` are analytic so is `a * b`. -/
 lemma Dynamics.analyticElements_mul (α : Dynamics A) {a b : A}
     (ha : α.IsAnalyticElement a) (hb : α.IsAnalyticElement b) : α.IsAnalyticElement (a * b) := by
   obtain ⟨F, hF, hFr⟩ := ha
   obtain ⟨G, hG, hGr⟩ := hb
   exact ⟨fun z => F z * G z, hF.mul hG, fun t => by simp [hFr t, hGr t, α.map_mul]⟩
 
+/-- Analytic elements are closed under the `*`-operation: if `a` is analytic so is `star a`. -/
 lemma Dynamics.analyticElements_star (α : Dynamics A) {a : A}
     (ha : α.IsAnalyticElement a) : α.IsAnalyticElement (star a) := by
   obtain ⟨F, hF, hFr⟩ := ha
@@ -274,12 +286,15 @@ shows `aₙ` extends to an entire `ℂ → A` map (differentiation under the int
 Gaussian×linear dominating bound). `gaussianSmooth_tendsto` shows `aₙ → a` (rescale `s = √n·t`, then
 dominated convergence with strong continuity). Together: the analytic elements are dense. -/
 
+/-- The complexified Gaussian kernel `e^{-n(u - z)²} • α_u(a)` integrated over `u` to extend `aₙ`. -/
 private noncomputable def gsKern (α : Dynamics A) (a : A) (n : ℕ) (z : ℂ) (u : ℝ) : A :=
   Complex.exp (-(n : ℂ) * (((u : ℂ)) - z) ^ 2) • α.evolve u a
 
+/-- The `z`-derivative of `gsKern`, i.e. `2n(u - z) e^{-n(u - z)²} • α_u(a)`. -/
 private noncomputable def gsKernDer (α : Dynamics A) (a : A) (n : ℕ) (z : ℂ) (u : ℝ) : A :=
   ((2 * (n : ℂ) * (((u : ℂ)) - z)) * Complex.exp (-(n : ℂ) * (((u : ℂ)) - z) ^ 2)) • α.evolve u a
 
+/-- The kernel `gsKern` is `ℂ`-differentiable in `z` with derivative `gsKernDer`. -/
 private theorem hasDerivAt_gsKern (α : Dynamics A) (a : A) (n : ℕ) (z : ℂ) (u : ℝ) :
     HasDerivAt (fun z => gsKern α a n z u) (gsKernDer α a n z u) z := by
   unfold gsKern gsKernDer
@@ -297,11 +312,13 @@ private theorem hasDerivAt_gsKern (α : Dynamics A) (a : A) (n : ℕ) (z : ℂ) 
   convert this using 2
   ring
 
+/-- For fixed `z`, the kernel `gsKern` is continuous in the integration variable `u`. -/
 private theorem continuous_gsKern (α : Dynamics A) (a : A) (n : ℕ) (z : ℂ) :
     Continuous (fun u : ℝ => gsKern α a n z u) := by
   unfold gsKern
   exact (Complex.continuous_exp.comp (by fun_prop)).smul (α.continuous_evolve a)
 
+/-- Real part of the kernel exponent: `Re(-n(u - z)²) = -n((u - Re z)² - (Im z)²)`. -/
 private theorem gsKern_re (n : ℕ) (z : ℂ) (u : ℝ) :
     (-(n : ℂ) * (((u : ℂ)) - z) ^ 2).re = -(n : ℝ) * ((u - z.re)^2 - z.im^2) := by
   simp only [Complex.neg_re, Complex.neg_im, Complex.mul_re, Complex.mul_im,
@@ -309,6 +326,7 @@ private theorem gsKern_re (n : ℕ) (z : ℂ) (u : ℝ) :
     Complex.sub_im, Complex.ofReal_im, pow_two]
   ring
 
+/-- For fixed `z`, the kernel `gsKern` is integrable in `u`, dominated by a Gaussian. -/
 private theorem integrable_gsKern (α : Dynamics A) (a : A) (n : ℕ) (hn : 0 < (n : ℝ)) (z : ℂ) :
     Integrable (fun u : ℝ => gsKern α a n z u) := by
   unfold gsKern
@@ -330,6 +348,7 @@ private theorem integrable_gsKern (α : Dynamics A) (a : A) (n : ℕ) (hn : 0 < 
     _ = Real.exp (2 * (n:ℝ) * (|z.re|^2 + |z.im|^2)) * ‖a‖ * Real.exp (-(n/2:ℝ) * u^2) := by
         rw [Real.exp_add]; ring
 
+/-- The Gaussian×linear majorant `C(|u| + R) e^{-(n/2)u²}` is integrable, the dominating bound. -/
 private theorem integrable_gsKern_bound (n : ℕ) (hn : 0 < (n : ℝ)) (C R : ℝ) :
     Integrable (fun u : ℝ => C * (|u| + R) * Real.exp (-(n / 2 : ℝ) * u ^ 2)) := by
   have hb : 0 < (n / 2 : ℝ) := by positivity
@@ -348,6 +367,7 @@ private theorem integrable_gsKern_bound (n : ℕ) (hn : 0 < (n : ℝ)) (C R : �
   filter_upwards with u
   ring
 
+/-- Uniform majorant for `‖gsKernDer‖` on the unit ball around `z0`, by a Gaussian×linear bound. -/
 private theorem norm_gsKernDer_le (α : Dynamics A) (a : A) (n : ℕ) (hn : 0 < (n : ℝ)) (z0 : ℂ)
     (z : ℂ) (hz : z ∈ Metric.ball z0 1) (u : ℝ) :
     ‖gsKernDer α a n z u‖
@@ -390,6 +410,7 @@ private theorem norm_gsKernDer_le (α : Dynamics A) (a : A) (n : ℕ) (hn : 0 < 
     _ = (2 * (n:ℝ) * Real.exp (2 * (n:ℝ) * R^2) * ‖a‖) * (|u| + R)
           * Real.exp (-(n / 2 : ℝ) * u ^ 2) := by ring
 
+/-- Differentiation under the integral: `z ↦ ∫ gsKern` is differentiable, derivative `∫ gsKernDer`. -/
 private theorem hasDerivAt_integral_gsKern (α : Dynamics A) (a : A) (n : ℕ) (hn : 0 < (n : ℝ))
     (z0 : ℂ) :
     HasDerivAt (fun z => ∫ u : ℝ, gsKern α a n z u)
@@ -422,6 +443,8 @@ private theorem hasDerivAt_integral_gsKern (α : Dynamics A) (a : A) (n : ℕ) (
   exact (hasDerivAt_integral_of_dominated_loc_of_deriv_le hball hmeas hint hder_meas
     hbound hbound_int hdiff).2
 
+/-- Each Gaussian-smoothed element `aₙ` is analytic: its orbit extends to the entire `ℂ → A` map
+`z ↦ √(n/π) ∫ e^{-n(u - z)²} α_u(a) du`. -/
 theorem Dynamics.gaussianSmooth_isAnalyticElement (α : Dynamics A) (a : A) (n : ℕ)
     (hn : 0 < (n : ℝ)) : α.IsAnalyticElement (α.gaussianSmooth a n) := by
   refine ⟨fun z => Real.sqrt ((n : ℝ) / Real.pi) • ∫ u : ℝ, gsKern α a n z u, ?_, ?_⟩

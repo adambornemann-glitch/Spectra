@@ -2,7 +2,6 @@
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
-Filename: Kernel/Poisson/Basic.lean
 -/
 import Spectra.Kernel.Poisson.Lemmas
 import Mathlib.Analysis.Fourier.FourierTransform
@@ -33,7 +32,7 @@ open Complex MeasureTheory Filter Topology Set Fourier FourierTransform
 This is the key identity connecting the Poisson kernel to characteristic functions.
 It asserts that the two-sided exponential `t ↦ e^{-ε|t|}` is the Fourier transform
 of the Poisson kernel `P_ε(x) = (1/π) · ε/(x² + ε²)`.
--/
+(Currently unused.) -/
 theorem poissonKernel_fourier {ε : ℝ} (hε : 0 < ε) (t : ℝ) :
     ∫ x, (poissonKernel ε x : ℂ) * exp (I * ↑x * ↑t) = exp (-(↑ε * ↑|t|) : ℂ) := by
   set f : ℝ → ℂ := fun s => cexp (-(↑ε * ↑|s|)) with hf_def

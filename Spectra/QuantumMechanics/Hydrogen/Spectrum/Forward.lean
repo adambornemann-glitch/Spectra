@@ -213,6 +213,92 @@ theorem radial_quantization_Z (p : CoulombParams) (ℓ : ℕ) (E : ℝ) (hE : E 
   rw [← hEeq, ← hZdef]
   field_simp
 
+/-! ## Continuum endpoint (no positive eigenvalues) — the `E ≥ 0` analogue of the dilation -/
+
+/-- **Charge-`Z` continuum vanishing.** At energy `E ≥ 0`, every classical `C²`,
+square-integrable solution of the charge-`Z` reduced radial eigen-equation
+`−½ψ″ − (1/r)ψ′ + (ℓ(ℓ+1)/(2r²) − Z/r)ψ = E ψ` on `(0,∞)` is identically `0`.
+
+This is the `E ≥ 0` analogue of `radial_quantization_Z`.  The proof reuses the same
+`Z`-dilation `φ(r) = ψ(Z⁻¹r)` (which carries the charge-`Z` equation at energy `E` to the
+`Z = 1` equation `RadialEq.radialHamiltonian` at energy `E/Z² ≥ 0`), then invokes
+`RadialEq.radial_continuum` — which, unlike `RadialEq.radial_quantization`, needs neither a
+nonzero point nor a boundary condition at the origin.  It is consumed by
+`no_positive_eigenvalue` (and ultimately `hydrogen_no_positive_eigenvalues`, Kato's theorem
+for hydrogen). -/
+theorem radial_continuum_Z (p : CoulombParams) (ℓ : ℕ) (E : ℝ) (hE : 0 ≤ E)
+    (ψ : ℝ → ℝ)
+    (hL2 : RadialL2 ψ)
+    (hψ1 : ∀ r, 0 < r → HasDerivAt ψ (deriv ψ r) r)
+    (hψ2 : ∀ r, 0 < r → HasDerivAt (deriv ψ) (deriv^[2] ψ r) r)
+    (heq : ∀ r, 0 < r →
+      -(1 / 2) * deriv^[2] ψ r - (1 / r) * deriv ψ r
+        + ((ℓ : ℝ) * ((ℓ : ℝ) + 1) / (2 * r ^ 2) - p.Z / r) * ψ r = E * ψ r) :
+    ∀ r, 0 < r → ψ r = 0 := by
+  set Z : ℝ := p.Z with hZdef
+  have hZ : 0 < Z := p.hZ
+  have hZ0 : Z ≠ 0 := hZ.ne'
+  have hinv : (0 : ℝ) < Z⁻¹ := inv_pos.mpr hZ
+  set φ : ℝ → ℝ := fun r => ψ (Z⁻¹ * r) with hφdef
+  -- chain rule for the inner scaling
+  have hinner : ∀ r : ℝ, HasDerivAt (fun t : ℝ => Z⁻¹ * t) Z⁻¹ r :=
+    fun r => by simpa using (hasDerivAt_id r).const_mul Z⁻¹
+  -- first derivative of φ on (0,∞)
+  have hd1 : ∀ r, 0 < r → HasDerivAt φ (Z⁻¹ * deriv ψ (Z⁻¹ * r)) r := by
+    intro r hr
+    have hs : 0 < Z⁻¹ * r := by positivity
+    simpa [hφdef, Function.comp_def, mul_comm] using (hψ1 (Z⁻¹ * r) hs).comp r (hinner r)
+  have hderiv1 : ∀ r, 0 < r → deriv φ r = Z⁻¹ * deriv ψ (Z⁻¹ * r) :=
+    fun r hr => (hd1 r hr).deriv
+  -- second derivative of φ on (0,∞), via an eventual-equality of `deriv φ`
+  have hd2 : ∀ r, 0 < r →
+      HasDerivAt (deriv φ) (Z⁻¹ * (Z⁻¹ * deriv^[2] ψ (Z⁻¹ * r))) r := by
+    intro r hr
+    have hs : 0 < Z⁻¹ * r := by positivity
+    have hcomp : HasDerivAt (fun t => deriv ψ (Z⁻¹ * t))
+        (Z⁻¹ * deriv^[2] ψ (Z⁻¹ * r)) r := by
+      simpa [Function.comp_def, mul_comm] using (hψ2 (Z⁻¹ * r) hs).comp r (hinner r)
+    have hD1 : HasDerivAt (fun t => Z⁻¹ * deriv ψ (Z⁻¹ * t))
+        (Z⁻¹ * (Z⁻¹ * deriv^[2] ψ (Z⁻¹ * r))) r := hcomp.const_mul Z⁻¹
+    refine hD1.congr_of_eventuallyEq ?_
+    filter_upwards [Ioi_mem_nhds hr] with s hs' using hderiv1 s hs'
+  have hderiv2 : ∀ r, 0 < r → deriv^[2] φ r = Z⁻¹ * (Z⁻¹ * deriv^[2] ψ (Z⁻¹ * r)) :=
+    fun r hr => (hd2 r hr).deriv
+  -- square-integrability of the dilated solution, by change of variables r = Z·s
+  have hφL2 : RadialL2 φ := by
+    have hco := (integrableOn_Ioi_comp_mul_left_iff
+        (fun s => Z ^ 2 * (ψ s ^ 2 * s ^ 2)) 0 hinv).mpr
+        (by rw [mul_zero]; exact hL2.const_mul (Z ^ 2))
+    refine hco.congr_fun (fun r _ => ?_) measurableSet_Ioi
+    simp only [hφdef]
+    field_simp
+  -- the dilated solution satisfies the Z = 1 radial equation at energy E/Z²
+  have hφeq : ∀ r, 0 < r → RadialEq.radialHamiltonian ℓ φ r = E / Z ^ 2 * φ r := by
+    intro r hr
+    have hs : 0 < Z⁻¹ * r := by positivity
+    have hE2 := heq (Z⁻¹ * r) hs
+    have hrne : r ≠ 0 := hr.ne'
+    have hsne : Z⁻¹ * r ≠ 0 := hs.ne'
+    have hkey : Z ^ 2 * RadialEq.radialHamiltonian ℓ φ r = E * φ r := by
+      simp only [RadialEq.radialHamiltonian]
+      rw [hderiv1 r hr, hderiv2 r hr]
+      simp only [hφdef]
+      rw [← hE2]
+      field_simp
+      ring
+    rw [div_mul_eq_mul_div, eq_div_iff (pow_ne_zero 2 hZ0)]
+    linear_combination hkey
+  -- continuum: the dilated Z = 1 solution vanishes identically on (0,∞)
+  have hEZ : 0 ≤ E / Z ^ 2 := div_nonneg hE (by positivity)
+  have hφ0 : ∀ r, 0 < r → φ r = 0 :=
+    RadialEq.radial_continuum ℓ (E / Z ^ 2) hEZ φ
+      (fun r hr => by rw [hderiv1 r hr]; exact hd1 r hr)
+      (fun r hr => by rw [hderiv2 r hr]; exact hd2 r hr) hφeq hφL2
+  -- undo the dilation: ψ r = φ (Z · r)
+  intro r hr
+  have hval : φ (Z * r) = 0 := hφ0 (Z * r) (by positivity)
+  simpa [hφdef, ← mul_assoc, inv_mul_cancel₀ hZ0] using hval
+
 /-! ## Step 4 (log-coordinate back-transform) — classical solution from the bootstrap
 
 The companion to the dilation bridge above, sitting on the *input* side of

@@ -128,8 +128,11 @@ import Spectra.QuantumMechanics.BellsTheorem.QuantumCHSH.Q_CHSH_Basic
 import Spectra.QuantumMechanics.BellsTheorem.QuantumCHSH.Correlations
 import Spectra.QuantumMechanics.BellsTheorem.QuantumCHSH.Violation
 import Spectra.QuantumMechanics.BellsTheorem.QuantumCHSH.Tsirelson
+import Spectra.QuantumMechanics.BornRule.Mixed
 import Spectra.QuantumMechanics.BornRule.Moments
+import Spectra.QuantumMechanics.BornRule.Naimark
 import Spectra.QuantumMechanics.BornRule.Observable
+import Spectra.QuantumMechanics.BornRule.POVM
 import Spectra.QuantumMechanics.BornRule.PVM
 import Spectra.QuantumMechanics.BornRule.Uncertainty
 import Spectra.QuantumMechanics.DiracEquation.Chirality
@@ -172,11 +175,11 @@ import Spectra.QuantumMechanics.Hydrogen.Laplacian.ChartRealization
 import Spectra.QuantumMechanics.Hydrogen.Laplacian.GreensIdentity
 import Spectra.QuantumMechanics.Hydrogen.Spectrum.Continuous.Defs
 import Spectra.QuantumMechanics.Hydrogen.Spectrum.Continuous.Compact
---import Spectra.QuantumMechanics.Hydrogen.Spectrum.Continous.Basic
-import Spectra.QuantumMechanics.Hydrogen.Spectrum.BohrFormula
+import Spectra.QuantumMechanics.Hydrogen.Spectrum.Continuous.Basic
+import Spectra.QuantumMechanics.Hydrogen.BohrFormula
 --import Spectra.QuantumMechanics.Hydrogen.Spectrum.Complete
 import Spectra.QuantumMechanics.Hydrogen.Spectrum.Degeneracy
---import Spectra.QuantumMechanics.Hydrogen.Spectrum.Discrete
+import Spectra.QuantumMechanics.Hydrogen.Spectrum.Discrete
 import Spectra.QuantumMechanics.Hydrogen.Spectrum.Eigenvalue
 import Spectra.QuantumMechanics.Hydrogen.Spectrum.SectorReductionLocal
 import Spectra.QuantumMechanics.Hydrogen.Spectrum.RadialEigenfunction
@@ -267,10 +270,7 @@ import Spectra.SpectralTheory.IntegralOperatorCompact
 import Spectra.SpectralTheory.TranslationKernel
 import Spectra.SpectralTheory.YoungConvolution
 import Spectra.SpectralTheory.Weak
+import Spectra.SpectralTheory.Eigenspace
 import Spectra.SphericalHarmonics.AssociatedLegendre
 import Spectra.SphericalHarmonics.Basic
 import Spectra.SphericalHarmonics.Completeness
-
-/- DEP -/
---import Spectra.QuantumMechanics.Hydrogen.Laplacian.FreeGreens.ResolventL2
---import Spectra.QuantumMechanics.Hydrogen.Laplacian.FreeGreens.ResolventKernel

@@ -2,7 +2,6 @@
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
-Filename: Operator/Composite.lean
 -/
 import Spectra.QuantumMechanics.Uncertainty.SchrodingerRobertson
 import Spectra.InformationGeometry.CramerRao.Quantum
@@ -87,10 +86,12 @@ open scoped ComplexConjugate
 variable {n : ℕ} {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
 namespace Spectra.QuantumMechanics.Composite
 
+/-- Membership in `⨅ᵢ dom(Oᵢ)` gives membership in each `dom(Oᵢ)`. -/
 private lemma mem_of_mem_iInf {O : Fin n → SymmetricOperator H} {x : H}
     (hx : x ∈ ⨅ i, (O i).domain) (i : Fin n) : x ∈ (O i).domain :=
   iInf_le (fun i => (O i).domain) i hx
 
+/-- Membership in every `dom(Oᵢ)` gives membership in `⨅ᵢ dom(Oᵢ)`. -/
 private lemma mem_iInf_of_forall {O : Fin n → SymmetricOperator H} {x : H}
     (hx : ∀ i, x ∈ (O i).domain) : x ∈ ⨅ i, (O i).domain := by
   rw [← SetLike.mem_coe, Submodule.coe_iInf]
@@ -197,7 +198,7 @@ lemma compositeApply_mem_commonDomain (w : Fin n → ℝ) :
   apply Submodule.sum_mem; intro j _
   exact Submodule.smul_mem _ _ (D.hOψ_all i j)
 
-/-- `DomainConditions` for `[O_v, O_w]ψ`, derived from `QuantumRLDData`. -/
+/-- `DomainConditions` for `[O_v, O_w]ψ`, derived from `QuantumRLDData`. (Currently unused.) -/
 def composites_domainConditions (v w : Fin n → ℝ) :
     DomainConditions (compositeSymmetric D.O v D.h_dense)
                      (compositeSymmetric D.O w D.h_dense) D.ψ where
@@ -218,7 +219,7 @@ def composites_shiftedDC (v w : Fin n → ℝ) :
   hAψ_B := D.compositeApply_mem_commonDomain v
   h_norm := D.h_norm
 
-/-- Pairwise `DomainConditions` for `[Oᵢ, Oⱼ]ψ`. -/
+/-- Pairwise `DomainConditions` for `[Oᵢ, Oⱼ]ψ`. (Currently unused.) -/
 def pairwise_domainConditions (i j : Fin n) :
     DomainConditions (D.O i) (D.O j) D.ψ where
   hψ_A := D.hψ_all i
@@ -283,6 +284,8 @@ lemma inner_shifted_composite (D : QuantumRLDData n H) (v w : Fin n → ℝ) :
   rw [inner_smul_right, Complex.conj_ofReal]
   ring
 
+/-- Pairwise `ShiftedDomainConditions` for `Oᵢ, Oⱼ` — ready to feed
+into the Schrödinger inequality. -/
 def pairwise_shiftedDC (D : QuantumRLDData n H) (i j : Fin n) :
     ShiftedDomainConditions (D.O i) (D.O j) D.ψ where
   hψ_A := D.hψ_all i
@@ -376,7 +379,7 @@ lemma commutator_im_composite (D : QuantumRLDData n H) (v w : Fin n → ℝ) :
     rw [← Finset.sum_mul]
   linarith [mul_left_cancel₀ h_half_ne h_combined]
 
-/-- Variance equals self-covariance: `Var(A) = Cov(A,A)`. -/
+/-- Variance equals self-covariance: `Var(A) = Cov(A,A)`. (Currently unused.) -/
 lemma variance_eq_covariance_self (D : QuantumRLDData n H) (i : Fin n) :
     (D.O i).variance D.ψ D.h_norm (D.hψ_all i) =
     covariance (D.O i) (D.O i) D.ψ (pairwise_shiftedDC D i i) := by

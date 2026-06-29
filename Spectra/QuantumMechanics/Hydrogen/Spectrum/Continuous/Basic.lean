@@ -9,7 +9,8 @@ import Spectra.QuantumMechanics.Hydrogen.Laplacian.Spherical
 import Spectra.QuantumMechanics.Hydrogen.Hamiltonian
 import Spectra.QuantumMechanics.Hydrogen.Spectrum.Eigenvalue
 import Spectra.QuantumMechanics.Hydrogen.Spectrum.Degeneracy
-
+import Spectra.QuantumMechanics.Hydrogen.Spectrum.Continuous.Compact
+import Spectra.QuantumMechanics.Hydrogen.Spectrum.SectorProjection
 /-!
 # The Spectrum of the Hydrogen Atom
 
@@ -24,10 +25,6 @@ For the hydrogen Hamiltonian H = −Δ − Z/r (Z = 1 in atomic units):
   **Continuous spectrum**: σ_cont(H) = [0, ∞)
   **Degeneracy**: dim ker(H − E_n) = n²
   **Eigenfunctions**: ψ_{nℓm}(r,θ,φ) = R_{nℓ}(r) Y_ℓ^m(θ,φ)
-
-These results reproduce, with complete mathematical rigour, the spectral
-series I computed in January 1926 in Arosa. The eigenvalues agree exactly
-with Bohr's 1913 formula — but now they are *derived*, not postulated.
 
 ## Architecture
 
@@ -59,8 +56,6 @@ with Bohr's 1913 formula — but now they are *derived*, not postulated.
 * [Griffiths, *Introduction to Quantum Mechanics*][griffiths2018], §4.2.
 -/
 
-noncomputable section
-
 namespace QuantumMechanics.Hydrogen.Spectrum
 
 open MeasureTheory Complex Filter
@@ -75,40 +70,25 @@ open Spectra.QuantumMechanics.Hydrogen.Radial (laguerrePolynomial laguerre_smoot
 /-- **The continuous spectrum of hydrogen is [0, ∞).**
 
     For E ≥ 0, the hydrogen Hamiltonian has no eigenvalues but E is
-    in the spectrum (approximate eigenvalues exist).
+    in the spectrum (approximate eigenvalues exist).-/
+theorem hydrogen_continuous_spectrum (p : CoulombParams) :
+    Spectra.Essential.essSpectrum
+        (Spectra.QuantumMechanics.Hydrogen.hydrogen_isSelfAdjoint p) = Set.Ici (0 : ℝ) :=
+  Spectra.QuantumMechanics.Hydrogen.hydrogen_essSpectrum p
 
-    **Discharge route (Weyl's theorem):**
-    The essential spectrum is stable under relatively compact perturbations.
-    The Coulomb potential −Z/r is not merely relatively bounded but
-    *relatively compact* with respect to −Δ (stronger than bound 0).
-    Hence: σ_ess(H) = σ_ess(−Δ) = [0, ∞).
+/-- **No eigenvalues at energy E ≥ 0** (absence of embedded eigenvalues, plus the threshold E = 0).
 
-    Combined with `hydrogen_discrete_spectrum`: σ(H) = {E_n} ∪ [0, ∞).
+    H = −½Δ − Z/r has no L² eigenfunctions for E ≥ 0.
 
-    **Alternative (direct via Weyl sequences):**
-    For λ > 0, construct ψ_n(x) = n^{−3/2} φ(x/n) · e^{ikx}
-    where φ is a smooth bump and k = √(2λ). Then
-    ‖ψ_n‖ = ‖φ‖ and ‖(H − λ)ψ_n‖ → 0 as n → ∞
-    (the potential and centrifugal terms vanish by dilation). -/
-def hydrogen_continuous_spectrum (p : CoulombParams) :
-    sorry :=  -- σ_cont(H) = [0, ∞), or σ_ess(H) = [0, ∞)
-  sorry
-
-/-- **No positive eigenvalues** (Kato's theorem).
-
-    H has no eigenvalues in [0, ∞). This is a deep result:
-    the absence of embedded eigenvalues in the continuum.
-
-    **Discharge route:** Kato's 1959 theorem: for potentials V with
-    |x| V(x) → 0 as |x| → ∞ (satisfied by Coulomb), there are no
-    positive eigenvalues. The proof uses Agmon-type exponential decay
-    estimates. This is significantly harder than the rest and may be
-    deferred. -/
+    NB: Coulomb decays exactly like 1/r, so |x|·V(x) → −Z ≠ 0; it does NOT
+    satisfy Kato's 1959 o(1/r) hypothesis. Coulomb is the borderline long-range
+    case (the general long-range result is Froese–Herbst / Agmon-type, via a
+    Mourre/virial argument — verify the exact citation). -/
 theorem hydrogen_no_positive_eigenvalues (p : CoulombParams) :
-    ∀ (E : ℝ) (hE : 0 ≤ E) (ψ : Spectra.Sobolev.L2_R3)
+    ∀ (E : ℝ) (_hE : 0 ≤ E) (ψ : Spectra.Sobolev.L2_R3)
       (hψ : ψ ∈ (hydrogenHamiltonian p).domain),
-    hydrogenHamiltonian p ⟨ψ, hψ⟩ = (E : ℂ) • ψ → ψ = 0 :=
-  sorry
-
+    hydrogenHamiltonian p ⟨ψ, hψ⟩ = (E : ℂ) • ψ → ψ = 0 := by
+  intro E hE ψ hψ heig
+  exact no_positive_eigenvalue p E hE ⟨ψ, hψ⟩ heig
 
 end QuantumMechanics.Hydrogen.Spectrum

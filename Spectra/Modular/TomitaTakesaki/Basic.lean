@@ -145,6 +145,7 @@ def jConj (J : H ≃ₗᵢ⋆[ℂ] H) (x : H →L[ℂ] H) : H →L[ℂ] H :=
     (x.comp J.symm.toLinearIsometry.toContinuousLinearMap)
 
 omit [CompleteSpace H] in
+/-- Pointwise action of `jConj`: `(jConj J x) y = J (x (J⁻¹ y))`. -/
 @[simp] lemma jConj_apply (J : H ≃ₗᵢ⋆[ℂ] H) (x : H →L[ℂ] H) (y : H) :
     jConj J x y = J (x (J.symm y)) := by
   simp only [jConj, ContinuousLinearMap.comp_apply, LinearIsometry.coe_toContinuousLinearMap,

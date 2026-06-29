@@ -1318,5 +1318,36 @@ theorem forward_eigenvalue (p : CoulombParams) (E : ℝ) (hE : E < 0)
   · exact sector_radialL2 _ (memLp_coeffFun _ _) L c₀ hae
   · exact radial_bc_of_logCoord ℓ p.Z E p.hZ hE c₀ hc1 hc2 hode
       ((sector_coulomb_L2 p ψ' ℓ m hm L).congr (by filter_upwards [hae] with s hs; rw [hs]))
+
+/-- **No eigenfunctions at energy `E ≥ 0`** — the analytic core of Kato's theorem for
+hydrogen.  A nonzero `L²` eigenfunction of the Cartesian hydrogen Hamiltonian `H = −½Δ − Z/r`
+at energy `E ≥ 0` would project to a nonzero angular sector whose radial profile is a classical
+`L²` solution of the charge-`Z` radial equation; `radial_continuum_Z` forces such a solution to
+vanish identically on `(0,∞)`, contradicting the nonzero radial point.
+
+This mirrors `forward_eigenvalue` exactly, sharing every sector-projection and
+elliptic-regularity step (`exists_nonzero_sector`, `classical_of_weak_ode`,
+`radial_classical_of_logCoord`), but with two simplifications afforded by `E ≥ 0`: the
+terminal `radial_quantization_Z` is replaced by `radial_continuum_Z`, and the at-origin
+boundary condition `radial_bc_of_logCoord` (the only other place `E < 0` was used) is dropped
+entirely. -/
+theorem no_positive_eigenvalue (p : CoulombParams) (E : ℝ) (hE : 0 ≤ E)
+    (ψ : (hydrogenHamiltonian p).domain)
+    (heig : hydrogenHamiltonian p ψ = (E : ℂ) • (ψ : Spectra.Sobolev.L2_R3)) :
+    (ψ : Spectra.Sobolev.L2_R3) = 0 := by
+  by_contra hψ0
+  obtain ⟨ℓ, m, hm, L, ψ', heig', hne⟩ := exists_nonzero_sector p E ψ heig hψ0
+  obtain ⟨c₀, hae, hc1, hc2, hode⟩ :=
+    Spectra.RadialRegularity.classical_of_weak_ode
+      (locallyIntegrable_comp_exp (coeffFun ⟨ℓ, -(m : ℤ), by rw [abs_neg]; simpa using hm⟩
+        (chartRealization (ψ' : Spectra.Sobolev.L2_R3))) (memLp_coeffFun _ _) L)
+      (b := fun s => (ℓ : ℝ) * ((ℓ : ℝ) + 1) - 2 * p.Z * Real.exp s - 2 * E * Real.exp (2 * s))
+      (by fun_prop)
+      (sector_sweak p E ψ' heig' ℓ m hm L)
+  obtain ⟨h1, h2, h3⟩ := radial_classical_of_logCoord ℓ p.Z E c₀ hc1 hc2 hode
+  obtain ⟨r₀, hr₀, hr₀ne⟩ := sector_radial_pt_nonzero c₀ (fun hz => hne (hae.trans hz))
+  exact hr₀ne (radial_continuum_Z p ℓ E hE (fun r => c₀ (Real.log r))
+    (sector_radialL2 _ (memLp_coeffFun _ _) L c₀ hae) h1 h2 h3 r₀ hr₀)
+
 end QuantumMechanics.Hydrogen.Spectrum
 

@@ -2,7 +2,6 @@
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
-Filename: ResolventTheory/Kernel/Resolvent.lean
 -/
 import Spectra.Kernel.Defs
 /-!
@@ -115,7 +114,7 @@ lemma resolvent_kernel_diff (s t ε : ℝ) (hε : ε > 0) :
   simp only [I_pow_three, mul_neg, neg_mul, sub_neg_eq_add]
 
 /-- Normalized resolvent difference equals the Lorentzian kernel.
-    This is the kernel-level form of Stone's formula. -/
+    This is the kernel-level form of Stone's formula. (Currently unused.) -/
 lemma resolvent_kernel_diff_normalized (s t ε : ℝ) (hε : ε > 0) :
     (1 / (2 * Real.pi * I)) *
       (((s : ℂ) - (↑t + ↑ε * I))⁻¹ - ((s : ℂ) - (↑t - ↑ε * I))⁻¹) =

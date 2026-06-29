@@ -2,7 +2,6 @@
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
-Filename: Operator/Symmetric.lean
 -/
 import Mathlib.Analysis.InnerProductSpace.Basic
 import Mathlib.Analysis.InnerProductSpace.LinearPMap
@@ -35,7 +34,7 @@ and the real `IsSelfAdjoint` predicate are available to downstream refinements
 * `variance`: Var(A)_ψ = ‖(A - ⟨A⟩)ψ‖²
 * `stdDev`: σ_A = √Var(A)
 
-## Main results
+## Main statements
 
 * `symmetric'`: ⟨Aψ, φ⟩ = ⟨ψ, Aφ⟩ for ψ, φ in the domain
 * `inner_self_im_eq_zero`: Expectation values are real
@@ -99,10 +98,11 @@ def apply (A : SymmetricOperator H) (ψ : H) (hψ : ψ ∈ A.domain) : H :=
 /-- Notation `A ⬝ ψ ⊢ hψ` for applying an unbounded operator with explicit domain proof. -/
 notation:max A " ⬝ " ψ " ⊢ " hψ => SymmetricOperator.apply A ψ hψ
 
+/-- Coerce a `SymmetricOperator` to a function `A.domain → H` via its `LinearPMap`. -/
 instance : CoeFun (SymmetricOperator H) (fun A => A.domain → H) where
   coe A x := A.toLinearPMap x
 
-/-- Coerce `ψ : H` with `hψ : ψ ∈ A.domain` to an element of `A.domain`. -/
+/-- Coerce `ψ : H` with `hψ : ψ ∈ A.domain` to an element of `A.domain`. (Currently unused.) -/
 @[inline]
 def toDomainElt (A : SymmetricOperator H) (ψ : H) (hψ : ψ ∈ A.domain) : A.domain :=
   ⟨ψ, hψ⟩
@@ -127,7 +127,7 @@ lemma inner_self_eq_re (A : SymmetricOperator H) {ψ : H} (hψ : ψ ∈ A.domain
     ⟪ψ, A ⬝ ψ ⊢ hψ⟫_ℂ = (⟪ψ, A ⬝ ψ ⊢ hψ⟫_ℂ).re := by
   simp [Complex.ext_iff, A.inner_self_im_eq_zero hψ]
 
-/-- `A` respects addition. -/
+/-- `A` respects addition. (Currently unused.) -/
 lemma apply_add (A : SymmetricOperator H) {ψ φ : H}
     (hψ : ψ ∈ A.domain) (hφ : φ ∈ A.domain) :
     A.apply (ψ + φ) (A.domain.add_mem hψ hφ) = A.apply ψ hψ + A.apply φ hφ :=
@@ -144,7 +144,7 @@ lemma apply_sub (A : SymmetricOperator H) {ψ φ : H}
     A.apply (ψ - φ) (A.domain.sub_mem hψ hφ) = A.apply ψ hψ - A.apply φ hφ :=
   A.toLinearPMap.map_sub ⟨ψ, hψ⟩ ⟨φ, hφ⟩
 
-/-- `A` respects real scalar multiplication. -/
+/-- `A` respects real scalar multiplication. (Currently unused.) -/
 lemma apply_smul_real (A : SymmetricOperator H) {ψ : H} (r : ℝ) (hψ : ψ ∈ A.domain) :
     A.apply ((r : ℂ) • ψ) (A.domain.smul_mem (r : ℂ) hψ) = (r : ℂ) • A.apply ψ hψ :=
   apply_smul A (r : ℂ) hψ
@@ -252,7 +252,7 @@ lemma variance_nonneg (A : SymmetricOperator H) (ψ : H)
     0 ≤ A.variance ψ h_norm hψ :=
   sq_nonneg _
 
-/-- Standard deviation is nonnegative. -/
+/-- Standard deviation is nonnegative. (Currently unused.) -/
 lemma stdDev_nonneg (A : SymmetricOperator H) (ψ : H)
     (h_norm : ‖ψ‖ = 1) (hψ : ψ ∈ A.domain) :
     0 ≤ A.stdDev ψ h_norm hψ :=

@@ -123,7 +123,7 @@ notation:max "σ[" hmod "]" => ModularTheoryData.dynamics hmod
 These are now projections from `ModularTheoryData`, not global axioms.
 -/
 
-/-- The modular automorphism group leaves the state invariant. -/
+/-- The modular automorphism group leaves the state invariant. (Currently unused.) -/
 lemma modularAutomorphismGroup_invariant {A : Type*} [CStarAlgebra A] [WStarAlgebra A]
     {ω : FaithfulNormalState A} (hmod : ModularTheoryData A ω) :
     IsInvariant ω.toState σ[hmod] :=
@@ -208,7 +208,7 @@ The key lemma: if ω is KMS at β₁ for dynamics α, then ω is KMS at β₂ fo
 rescaled dynamics α_{t·β₁/β₂}. This is just reparametrization of time.
 -/
 
-/-- Rescaling the strip: z ↦ z/β maps Strip β to Strip 1. -/
+/-- Rescaling the strip: z ↦ z/β maps Strip β to Strip 1. (Currently unused.) -/
 lemma strip_rescale_mem {β : ℝ} (hβ : 0 < β) {z : ℂ} (hz : z ∈ Strip β) :
     z / β ∈ Strip 1 := by
   simp only [Strip, mem_setOf_eq] at hz ⊢
@@ -218,7 +218,7 @@ lemma strip_rescale_mem {β : ℝ} (hβ : 0 < β) {z : ℂ} (hz : z ∈ Strip β
   · rw [div_lt_one hβ]
     exact hz.2
 
-/-- Rescaling the closed strip. -/
+/-- Rescaling the closed strip. (Currently unused.) -/
 lemma closedStrip_rescale_mem {β : ℝ} (hβ : 0 < β) {z : ℂ} (hz : z ∈ ClosedStrip β) :
     z / β ∈ ClosedStrip 1 := by
   simp only [ClosedStrip, mem_setOf_eq] at hz ⊢

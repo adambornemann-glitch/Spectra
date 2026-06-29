@@ -2,7 +2,6 @@
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
-Filename: CayleyTransform/Unitary.lean
 -/
 import Mathlib.Analysis.InnerProductSpace.Adjoint
 import Mathlib.Analysis.InnerProductSpace.Basic
@@ -330,7 +329,7 @@ lemma unitary_not_isUnit_approx_eigenvalue [Nontrivial H] {U : H →L[ℂ] H} (h
   have h_isUnit := normal_bounded_below_isUnit h_normal ε hε_pos h_bounded_below
   exact h_not h_isUnit
 
-/-- Converse: if `w` is not an approximate eigenvalue, then `U - w` is invertible. -/
+/-- Converse: if `w` is not an approximate eigenvalue, then `U - w` is invertible. (Currently unused.) -/
 lemma unitary_not_approx_eigenvalue_isUnit [Nontrivial H] {U : H →L[ℂ] H} (hU : Unitary U) (w : ℂ)
     (h_not : ¬∀ ε > 0, ∃ φ, ‖φ‖ = 1 ∧ ‖(U - w • ContinuousLinearMap.id ℂ H) φ‖ < ε) :
     IsUnit (U - w • ContinuousLinearMap.id ℂ H) := by

@@ -39,7 +39,9 @@ of the energy eigenvalues E_n = −1/(2n²) (in atomic units).
 * `radial_eigenvalue_eq` — H_ℓ R_{nℓ} = E_n R_{nℓ}.
 * `radial_quantization` — L² solutions exist iff E = E_n for some n ≥ ℓ+1.
 * `radial_wavefunction_orthonormal` — ∫ R_{nℓ} R_{n'ℓ} r² dr = δ_{nn'}.
-* `radial_completeness` — {R_{nℓ}}_{n≥ℓ+1} complete in discrete subspace.
+* `radial_bound_state_unique` — negative-energy eigenspaces are 1-D: a classical
+  bound state is `0` or a scalar multiple of a single `R_{nℓ}` (no bound state
+  missed). This is *not* Hilbert-space completeness in the bound-state subspace.
 * `radial_continuum` — for E ≥ 0, all solutions are bounded (continuous spectrum).
 
 ## References
@@ -508,7 +510,7 @@ private lemma tendsto_pow_mul_exp_deriv2_laguerre_gen (p a : ℕ) (β s : ℝ) {
   simpa using (tendsto_pow_mul_exp_neg_mul (a + (k - 2)) hb).const_mul _
 
 /-- Buffered Laguerre decay: `r^a · e^{−r/n} · L_p^β(2r/n) · e^{εr} → 0` for `ε < 1/n`. -/
-private lemma tendsto_pow_exp_laguerre_buffer (n p a : ℕ) (β : ℝ) {ε : ℝ} (_hn : 0 < n)
+lemma tendsto_pow_exp_laguerre_buffer (n p a : ℕ) (β : ℝ) {ε : ℝ} (_hn : 0 < n)
     (hε : ε < 1 / (n : ℝ)) :
     Filter.Tendsto (fun r : ℝ => r ^ a * Real.exp (-r / n) *
         laguerrePolynomial p β (2 * r / n) * Real.exp (ε * r)) Filter.atTop (nhds 0) := by
@@ -520,7 +522,7 @@ private lemma tendsto_pow_exp_laguerre_buffer (n p a : ℕ) (β : ℝ) {ε : ℝ
   ring
 
 /-- Buffered Laguerre-derivative decay: `r^a · e^{−r/n} · (L_p^β)'(2r/n) · e^{εr} → 0`. -/
-private lemma tendsto_pow_exp_deriv_laguerre_buffer (n p a : ℕ) (β : ℝ) {ε : ℝ} (_hn : 0 < n)
+lemma tendsto_pow_exp_deriv_laguerre_buffer (n p a : ℕ) (β : ℝ) {ε : ℝ} (_hn : 0 < n)
     (hε : ε < 1 / (n : ℝ)) :
     Filter.Tendsto (fun r : ℝ => r ^ a * Real.exp (-r / n) *
         deriv (laguerrePolynomial p β) (2 * r / n) * Real.exp (ε * r)) Filter.atTop (nhds 0) := by
@@ -532,7 +534,7 @@ private lemma tendsto_pow_exp_deriv_laguerre_buffer (n p a : ℕ) (β : ℝ) {ε
   ring
 
 /-- Buffered Laguerre-second-derivative decay: `r^a · e^{−r/n} · (L_p^β)''(2r/n) · e^{εr} → 0`. -/
-private lemma tendsto_pow_exp_deriv2_laguerre_buffer (n p a : ℕ) (β : ℝ) {ε : ℝ} (_hn : 0 < n)
+lemma tendsto_pow_exp_deriv2_laguerre_buffer (n p a : ℕ) (β : ℝ) {ε : ℝ} (_hn : 0 < n)
     (hε : ε < 1 / (n : ℝ)) :
     Filter.Tendsto (fun r : ℝ => r ^ a * Real.exp (-r / n) *
         deriv^[2] (laguerrePolynomial p β) (2 * r / n) * Real.exp (ε * r))
@@ -3263,67 +3265,49 @@ theorem bound_state_eq_smul_eigenfunction (n ℓ : ℕ) (hn : ℓ + 1 ≤ n) (ψ
   have h2 : r * ψ r = r * (c₀ * hydrogenRadialWavefunction n ℓ hn r) := by rw [h]; ring
   exact mul_left_cancel₀ hrne h2
 
-/-- **Completeness of {R_{nℓ}}_{n ≥ ℓ+1} in the discrete subspace.**
+/-- **Negative-energy radial bound states are one-dimensional and quantized.**
 
-    Every `C²` negative-energy bound state `ψ` (i.e. `ψ ∈ L²(ℝ⁺, r²dr)` with
-    `H_ℓ ψ = E ψ` for some `E < 0`) that is regular at the origin (`r·ψ(r) → 0` as
-    `r → 0⁺`) can be approximated arbitrarily well in the `L²(r²dr)` norm by finite
-    linear combinations of the `R_{nℓ}` (indexed by `k ≥ 0` via `n = k + ℓ + 1`).
-    The regularity hypothesis is inherited from `radial_quantization` (it is needed
-    to exclude the irregular Coulomb solution at `ℓ = 0`).
+    A classical negative-energy bound state in angular sector `ℓ` — a function
+    `ψ ∈ L²(ℝ⁺, r²dr)` that is `C²` on `(0,∞)`, regular at the origin
+    (`r·ψ(r) → 0` as `r → 0⁺`), and solves `H_ℓ ψ = E ψ` for some `E < 0` — is
+    forced to be either identically zero on `(0,∞)` or a *scalar multiple of a
+    single* eigenfunction `R_{nℓ}`, with the energy quantized to `E = Eₙ` for some
+    `n ≥ ℓ+1`. The regularity hypothesis excludes the irregular Coulomb solution at
+    `ℓ = 0`; it is exactly the hypothesis package of `radial_quantization`.
 
-    **Reduction (proved here).** This is *not* the full spectral theorem: with the
-    bound-state hypothesis it collapses to one-dimensionality of the eigenspaces.
-    Concretely, if `ψ ≡ 0` on `(0,∞)` the empty sum works; otherwise
-    `radial_quantization` gives `E = Eₙ` for some `n ≥ ℓ+1`, and
-    `bound_state_eq_smul_eigenfunction` gives `ψ = c·R_{nℓ}`, so a *single* term
-    `c·R_{nℓ}` makes the error integral exactly `0`. Both inputs it invokes —
-    `reduced_radial_L2_quantized` (via `radial_quantization`) and
-    `bound_state_eq_smul_eigenfunction` — are proved (sorry-free), so this
-    discrete-subspace completeness is fully discharged. The unrestricted statement — approximating
-    an *arbitrary* `L²` function, where the differing scales `e^{−r/n}` of the
-    `R_{nℓ}` matter — would instead need the self-adjoint spectral decomposition. -/
-theorem radial_completeness (ℓ : ℕ) :
-    ∀ ψ : ℝ → ℝ, RadialL2 ψ →
-      (∀ r, 0 < r → HasDerivAt ψ (deriv ψ r) r) →
-      (∀ r, 0 < r → HasDerivAt (deriv ψ) (deriv^[2] ψ r) r) →
-      Filter.Tendsto (fun r => r * ψ r) (nhdsWithin 0 (Set.Ioi 0)) (nhds 0) →
-      (∃ E : ℝ, E < 0 ∧ ∀ r, 0 < r → radialHamiltonian ℓ ψ r = E * ψ r) →
-      ∀ ε : ℝ, 0 < ε → ∃ (N : ℕ) (c : ℕ → ℝ),
-        ∫ r in Set.Ioi 0,
-          (ψ r - ∑ k ∈ Finset.range N,
-            c k * hydrogenRadialWavefunction (k + ℓ + 1) ℓ (by omega) r) ^ 2 * r ^ 2 < ε := by
-  intro ψ hL2 hψ1 hψ2 hψ0 hbound ε hε
-  obtain ⟨E, hElt, heqE⟩ := hbound
+    Proof: `radial_quantization` quantizes `E = Eₙ`, and then
+    `bound_state_eq_smul_eigenfunction` gives `ψ = c·R_{nℓ}` (both sorry-free).
+
+    **This is *not* Hilbert-space completeness.** It says the negative-energy
+    *eigenspaces* of `H_ℓ` are one-dimensional and spanned by the `R_{nℓ}` — i.e.
+    no bound state is missed. It does **not** say `{R_{nℓ}}_{n≥ℓ+1}` is total in the
+    bound-state subspace of `L²(r²dr)`: that genuine completeness needs a
+    self-adjoint realization of `H_ℓ` with its spectral projection (1-D singular
+    Sturm–Liouville / spectral theorem) and cannot be obtained from
+    `laguerre_complete`, whose fixed-scale family `e^{−r/2}·L_k^{(2ℓ+1)}` spans all
+    of `L²(r²dr)` rather than the proper bound-state subspace that the
+    varying-scale (`e^{−r/n}`) hydrogen states span. -/
+theorem radial_bound_state_unique (ℓ : ℕ) (E : ℝ) (hE : E < 0) (ψ : ℝ → ℝ)
+    (hL2 : RadialL2 ψ)
+    (hψ1 : ∀ r, 0 < r → HasDerivAt ψ (deriv ψ r) r)
+    (hψ2 : ∀ r, 0 < r → HasDerivAt (deriv ψ) (deriv^[2] ψ r) r)
+    (hψ0 : Filter.Tendsto (fun r => r * ψ r) (nhdsWithin 0 (Set.Ioi 0)) (nhds 0))
+    (heq : ∀ r, 0 < r → radialHamiltonian ℓ ψ r = E * ψ r) :
+    (∀ r, 0 < r → ψ r = 0) ∨
+      ∃ (n : ℕ) (hn : ℓ + 1 ≤ n) (c : ℝ),
+        E = hydrogenEigenvalue n (by omega) ∧
+        ∀ r, 0 < r → ψ r = c * hydrogenRadialWavefunction n ℓ hn r := by
   by_cases hnz : ∃ r₀, 0 < r₀ ∧ ψ r₀ ≠ 0
-  · -- Nondegenerate bound state: quantize, then it is a scalar multiple of R_{nℓ}.
-    obtain ⟨n, hn, hEeq⟩ := (radial_quantization ℓ E hElt).mp
-      ⟨ψ, hnz, hL2, hψ1, hψ2, heqE, hψ0⟩
-    have heqn : ∀ r, 0 < r → radialHamiltonian ℓ ψ r = hydrogenEigenvalue n (by omega) * ψ r := by
-      intro r hr; rw [heqE r hr, hEeq]
+  · -- Nondegenerate bound state: quantize `E = Eₙ`, then `ψ = c·R_{nℓ}`.
+    right
+    obtain ⟨n, hn, hEeq⟩ := (radial_quantization ℓ E hE).mp
+      ⟨ψ, hnz, hL2, hψ1, hψ2, heq, hψ0⟩
+    have heqn : ∀ r, 0 < r → radialHamiltonian ℓ ψ r = hydrogenEigenvalue n (by omega) * ψ r :=
+      fun r hr => by rw [heq r hr, hEeq]
     obtain ⟨c, hc⟩ := bound_state_eq_smul_eigenfunction n ℓ hn ψ hL2 hψ1 hψ2 heqn
-    obtain ⟨k₀, rfl⟩ : ∃ k₀, n = k₀ + ℓ + 1 := ⟨n - ℓ - 1, by omega⟩
-    refine ⟨k₀ + 1, fun k => if k = k₀ then c else 0, ?_⟩
-    -- The finite sum collapses to the single term c·R_{nℓ}.
-    have hsum : ∀ r, (∑ k ∈ Finset.range (k₀ + 1),
-        (if k = k₀ then c else 0) * hydrogenRadialWavefunction (k + ℓ + 1) ℓ (by omega) r)
-        = c * hydrogenRadialWavefunction (k₀ + ℓ + 1) ℓ hn r := by
-      intro r
-      rw [Finset.sum_eq_single k₀]
-      · simp
-      · intro b _ hb; rw [if_neg hb, zero_mul]
-      · intro h; exact absurd (Finset.mem_range.mpr (Nat.lt_succ_self k₀)) h
-    rw [setIntegral_congr_fun measurableSet_Ioi (g := fun _ => (0 : ℝ))
-      (fun r hr => by rw [hsum r, hc r hr]; ring)]
-    simpa using hε
-  · -- ψ vanishes on (0,∞): the empty sum already gives error 0.
-    have hzero : ∀ r, 0 < r → ψ r = 0 := fun r hr => not_not.1 (fun h => hnz ⟨r, hr, h⟩)
-    refine ⟨0, fun _ => 0, ?_⟩
-    rw [setIntegral_congr_fun measurableSet_Ioi (g := fun _ => (0 : ℝ))
-      (fun r hr => by
-        simp only [Finset.range_zero, Finset.sum_empty, sub_zero]
-        rw [hzero r hr]; ring)]
-    simpa using hε
+    exact ⟨n, hn, c, hEeq, hc⟩
+  · -- `ψ` vanishes on `(0,∞)`.
+    exact Or.inl fun r hr => not_not.1 fun h => hnz ⟨r, hr, h⟩
 
 /-! ## Explicit wavefunctions for small n -/
 
@@ -3382,7 +3366,7 @@ theorem radialWavefunction_2p :
 - `radial_eigenvalue_eq` — H_ℓ R_{nℓ} = E_n R_{nℓ}
 - `radial_quantization` — L² ⟺ E = E_n, n ≥ ℓ+1
 - `radial_wavefunction_orthonormal` — orthonormality
-- `radial_completeness` — completeness
+- `radial_bound_state_unique` — eigenspaces 1-D (no bound state missed); not Hilbert-space completeness
 - `radial_continuum` — continuous spectrum [0, ∞)
 - `hydrogenEigenvalue_tendsto` — E_n → 0
 

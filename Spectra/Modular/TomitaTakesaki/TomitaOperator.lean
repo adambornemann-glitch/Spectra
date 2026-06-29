@@ -49,6 +49,7 @@ def evalAt (Ω : H) : (H →L[ℂ] H) →ₗ[ℂ] H where
   map_smul' _ _ := rfl
 
 omit [CompleteSpace H] in
+/-- Evaluation `evalAt Ω` applied to `T` is `T Ω`. -/
 @[simp] lemma evalAt_apply (Ω : H) (T : H →L[ℂ] H) : evalAt Ω T = T Ω := rfl
 
 /-- The pre-Tomita map `T ↦ toConj (T⋆ Ω)`, valued in the conjugate space. It is **ℂ-linear**:
@@ -63,6 +64,7 @@ noncomputable def tomitaPre (Ω : H) : (H →L[ℂ] H) →ₗ[ℂ] Conj H where
     rw [ofConj_toConj, ofConj_smul, ofConj_toConj, star_smul, ContinuousLinearMap.smul_apply,
       starRingEnd_apply, RingHom.id_apply]
 
+/-- The pre-Tomita map `tomitaPre Ω` applied to `T` is `toConj (T⋆ Ω)`. -/
 @[simp] lemma tomitaPre_apply (Ω : H) (T : H →L[ℂ] H) :
     tomitaPre Ω T = toConj ((star T) Ω) := rfl
 

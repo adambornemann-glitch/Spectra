@@ -25,7 +25,7 @@ real boundary values alone (e.g. `e^{iz}`); the constancy here genuinely uses th
 reflected analytic continuation — i.e. the spectrum/positivity content packaged into
 `IsGroundState`.
 
-## Main results
+## Main statements
 
 * `Spectra.KMS.const_of_glue` — the analytic core: a function bounded-holomorphic on the closed
   upper half-plane glued to one on the closed lower half-plane, agreeing on `ℝ`, has constant

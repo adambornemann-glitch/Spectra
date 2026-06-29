@@ -2,7 +2,6 @@
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
-Filename: Spectra/Kernel/Lorentzian.lean
 -/
 import Spectra.Kernel.Defs
 import Spectra.Kernel.Arctan
@@ -153,7 +152,7 @@ private lemma lorentzian_concentration (t δ : ℝ) (hδ : δ > 0) :
 /-- The Lorentzian kernel smeared against an integrable function is integrable.
     This is the basic integrability input for Stone's formula and the
     resolvent functional calculus: if `f ∈ L¹(ℝ)` then `s ↦ ε/((s-t)²+ε²) · f(s)` is in `L¹(ℝ)`,
-    with the bound `‖K·f‖_{L¹} ≤ (1/ε)‖f‖_{L¹}` following from `lorentzian_bound`. -/
+    with the bound `‖K·f‖_{L¹} ≤ (1/ε)‖f‖_{L¹}` following from `lorentzian_bound`. (Currently unused.) -/
 private lemma lorentzian_smul_integrable (f : ℝ → ℂ) (hf_int : Integrable f)
     (t : ℝ) (ε : ℝ) (hε : ε > 0) :
     Integrable (fun s => (ε / ((s - t)^2 + ε^2)) • f s) := by
@@ -162,7 +161,6 @@ private lemma lorentzian_smul_integrable (f : ℝ → ℂ) (hf_int : Integrable 
     fun s => by exact real_smul
   simp_rw [h_rw]
   apply Integrable.mono' (hf_int.norm.const_mul (1 / ε))
-  -- timing out
   · have h_denom_ne : ∀ s : ℝ, (s - t) ^ 2 + ε ^ 2 ≠ 0 :=
       fun s => ne_of_gt (by positivity)
     have h_cont : Continuous (fun s => Complex.ofReal (ε / ((s - t) ^ 2 + ε ^ 2))) :=

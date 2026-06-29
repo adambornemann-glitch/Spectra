@@ -26,10 +26,6 @@ For the hydrogen Hamiltonian H = −Δ − Z/r (Z = 1 in atomic units):
   **Degeneracy**: dim ker(H − E_n) = n²
   **Eigenfunctions**: ψ_{nℓm}(r,θ,φ) = R_{nℓ}(r) Y_ℓ^m(θ,φ)
 
-These results reproduce, with complete mathematical rigour, the spectral
-series I computed in January 1926 in Arosa. The eigenvalues agree exactly
-with Bohr's 1913 formula — but now they are *derived*, not postulated.
-
 ## Architecture
 
 ```
@@ -82,10 +78,16 @@ open Spectra.QuantumMechanics.Hydrogen.Radial (laguerrePolynomial laguerre_smoot
       ψ = Σ_{n,ℓ,m} c_{nℓm} ψ_{nℓm}
 
     **Discharge route:**
-    1. In each angular sector ℓ, {R_{nℓ}}_{n≥ℓ+1} is complete
-       (`radial_completeness`).
+    1. In each angular sector ℓ, the negative-energy eigenspaces are one-dimensional,
+       spanned by the `R_{nℓ}` (`radial_bound_state_unique`) — so no bound state is
+       missed. (Genuine Hilbert-space completeness of `{R_{nℓ}}_{n≥ℓ+1}` in the
+       bound-state subspace is *not* yet available — it needs the self-adjoint
+       spectral decomposition of `H_ℓ`.)
     2. The angular decomposition is complete (`sphericalHarmonic_complete`).
-    3. Together: {R_{nℓ} ⊗ Y_ℓ^m} is complete in the discrete subspace. -/
+    3. Together: every classical 3-D bound state at `Eₙ` decomposes into sectors,
+       each a multiple of `R_{nℓ}` ⊗ `Y_ℓ^m`, giving `ker(H − Eₙ) ⊆ span{ψ_{nℓm}}`.
+       Promoting this to completeness in `range E((−∞,0))` needs the spectral
+       decomposition above. -/
 def hydrogen_eigenfunction_complete (p : CoulombParams) :
     sorry :=  -- {ψ_{nℓm}} complete in E((-∞,0)) L²
   sorry

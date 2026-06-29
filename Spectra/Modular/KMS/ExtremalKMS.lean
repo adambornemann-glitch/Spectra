@@ -19,7 +19,7 @@ weak-*-closed condition (an equality of weak-*-continuous evaluations). So the K
 closed subset of the compact `stateSet A`, and it is convex (the imaginary-time equations are affine
 in `φ`).
 
-## Main results
+## Main statements
 
 * `Spectra.KMS.kmsStateSet` — the KMS states in the weak dual (imaginary-time form).
 * `Spectra.KMS.kmsStateSet_isClosed`, `_convex`, `_isCompact`.
@@ -45,6 +45,7 @@ imaginary-time KMS identity `φ(a · σ_{iβ}(b)) = φ(b · a)` for every `a` an
 def kmsStateSet (α : Dynamics A) (β : ℝ) : Set (WeakDual ℂ A) :=
   stateSet A ∩ ⋂ (a : A) (b : A) (hb : α.IsAnalyticElement b), imaginaryTimeCond α β a b hb
 
+/-- The KMS-state set is contained in the state space. -/
 lemma kmsStateSet_subset_stateSet : kmsStateSet α β ⊆ stateSet A := fun _ hφ => hφ.1
 
 /-- Each imaginary-time condition is weak-*-closed. -/
@@ -73,7 +74,7 @@ lemma convex_imaginaryTimeCond (a b : A) (hb : α.IsAnalyticElement b) :
   have hy : (s • φ + t • ψ) (b * a) = s • φ (b * a) + t • ψ (b * a) := rfl
   rw [hx, hy, hφ, hψ]
 
-/-- The KMS-state set is convex (intersection of convex sets). -/
+/-- The KMS-state set is convex (intersection of convex sets). (Currently unused.) -/
 lemma kmsStateSet_convex : Convex ℝ (kmsStateSet α β) :=
   stateSet_convex.inter (convex_iInter fun a => convex_iInter fun b =>
     convex_iInter fun hb => convex_imaginaryTimeCond a b hb)
@@ -97,7 +98,7 @@ lemma IsKMSState.toWeakDual_mem_kmsStateSet {ω : State A} (hβ : 0 < β)
 def extremalKMSStateSet (α : Dynamics A) (β : ℝ) : Set (WeakDual ℂ A) :=
   (kmsStateSet α β).extremePoints ℝ
 
-/-- An extremal KMS state is a KMS state. -/
+/-- An extremal KMS state is a KMS state. (Currently unused.) -/
 lemma extremalKMSStateSet_subset : extremalKMSStateSet α β ⊆ kmsStateSet α β :=
   fun _ hφ => hφ.1
 

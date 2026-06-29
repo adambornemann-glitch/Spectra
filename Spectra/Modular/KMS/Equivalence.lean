@@ -22,7 +22,7 @@ twisted boundary values) and the **imaginary-time** KMS condition (`IsImaginaryT
   **isometric** (A1), the Hadamard three-lines bound makes `Fₙ = F_{bₙ}` **uniformly Cauchy** on the
   closed strip, so the limit is holomorphic by uniform convergence — Montel/Vitali is *not* needed.
 
-## Main results
+## Main statements
 
 * `Spectra.KMS.IsImaginaryTimeKMS` — the imaginary-time condition.
 * `Spectra.KMS.kmsFunctionOfAnalytic` — the KMS function for an analytic element.
@@ -67,8 +67,10 @@ noncomputable def kmsFunctionOfAnalytic {ω : State A} {α : Dynamics A} {β : �
 
 variable {ω : State A} {α : Dynamics A} {β : ℝ}
 
+/-- The state `ω` packaged as a continuous linear functional `A →L[ℂ] ℂ`. -/
 private noncomputable def omegaL (ω : State A) : A →L[ℂ] ℂ := ⟨ω.toFun, ω.continuous⟩
 
+/-- `omegaL ω` agrees pointwise with `ω`. -/
 private lemma omegaL_apply (ω : State A) (a : A) : omegaL ω a = ω a := rfl
 
 /-- The difference of two `kmsFunctionOfAnalytic`s, bounded on the closed strip by

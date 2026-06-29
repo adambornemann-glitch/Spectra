@@ -21,7 +21,7 @@ import Mathlib.Analysis.Complex.RemovableSingularity
 This file proves that a holomorphic function on a horizontal strip with
 matching boundary values extends to a bounded entire function.
 
-## Main Results
+## Main statements
 
 - `periodicExtension`: Given F holomorphic on Strip β with F(t) = F(t + iβ),
   construct the periodic extension to all of ℂ
@@ -68,7 +68,7 @@ def ClosedStrip (β : ℝ) : Set ℂ :=
 def ClosedStrip.shift (β : ℝ) (n : ℤ) : Set ℂ :=
   {z : ℂ | n * β ≤ z.im ∧ z.im ≤ (n + 1) * β}
 
-/-- The boundary lines at heights n*β for n ∈ ℤ -/
+/-- The boundary lines at heights n*β for n ∈ ℤ (Currently unused.) -/
 def BoundaryLines (β : ℝ) : Set ℂ :=
   {z : ℂ | ∃ n : ℤ, z.im = n * β}
 

@@ -2,7 +2,6 @@
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
-Filename: SpectralTheory/Herglotz/UnitaryPowers.lean
 -/
 import Spectra.Operator.Unitary.Basic
 import Mathlib.MeasureTheory.Measure.Haar.OfBasis
@@ -60,7 +59,7 @@ The key multiplicativity formula
 is proved by direct algebraic computation for trigonometric polynomials,
 then extended to all continuous functions via Stone–Weierstrass.
 
-## Main results
+## Main statements
 
 * `herglotzMeasure`: the scalar spectral measure `μ_ψ` on `𝕋`
 * `herglotzMeasure_fourier`: `∫ z^n dμ_ψ = ⟨ψ, U^n ψ⟩`
@@ -96,14 +95,20 @@ noncomputable def unitaryZpow : ℤ → (H →L[ℂ] H)
   | (n : ℕ)          => U ^ n
   | (Int.negSucc n)   => U.adjoint ^ (n + 1)
 
+
+/-- `U^0 = 1`. -/
 @[simp]
 lemma unitaryZpow_zero : unitaryZpow U 0 = 1 := by
   simp [unitaryZpow]
 
+
+/-- `U^1 = U`. (Currently unused.) -/
 @[simp]
 lemma unitaryZpow_one : unitaryZpow U 1 = U := by
   simp [unitaryZpow, pow_one]
 
+
+/-- `U^{-1} = U*`. (Currently unused.) -/
 @[simp]
 lemma unitaryZpow_neg_one : unitaryZpow U (-1) = U.adjoint := by
   simp [unitaryZpow]
@@ -111,7 +116,7 @@ lemma unitaryZpow_neg_one : unitaryZpow U (-1) = U.adjoint := by
 
 variable (hU : Operator.Unitary U)
 
-/-- `U^{-n} = (U*)^n` for unitary `U`. -/
+/-- `U^{-n} = (U*)^n` for unitary `U`. (Currently unused.) -/
 lemma unitaryZpow_neg (n : ℕ) (hn : 0 < n) :
     unitaryZpow U (-↑n) = U.adjoint ^ n := by
   cases n with

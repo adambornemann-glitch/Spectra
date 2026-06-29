@@ -2,7 +2,6 @@
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Author: Adam Bornemann
-Filename: PeriodicStrip/IndexProps.lean
 -/
 import Spectra.Modular.KMS.PeriodicStrip.Defs
 open Complex Set Filter Topology Int MeasureTheory
@@ -10,6 +9,7 @@ namespace Spectra.PeriodicHolomorphic
 
 /-! ## Basic Properties of the Strip Index -/
 
+/-- `stripIndex β z` is the unique integer `n` with `n * β ≤ z.im < (n + 1) * β`. -/
 lemma stripIndex_spec (hβ : 0 < β) (z : ℂ) :
     (stripIndex β z : ℝ) * β ≤ z.im ∧ z.im < (stripIndex β z + 1 : ℤ) * β := by
   constructor
@@ -22,6 +22,7 @@ lemma stripIndex_spec (hβ : 0 < β) (z : ℂ) :
       _ < (⌊z.im / β⌋ + 1) * β := by exact mul_lt_mul_of_pos_right h hβ
       _ = (stripIndex β z + 1 : ℤ) * β := by push_cast; rfl
 
+/-- The imaginary part of `toFundamentalStrip β z` lies in `[0, β)`. -/
 lemma toFundamentalStrip_im (hβ : 0 < β) (z : ℂ) :
     0 ≤ (toFundamentalStrip β z).im ∧ (toFundamentalStrip β z).im < β := by
   simp only [toFundamentalStrip, sub_im, mul_im, ofReal_im, mul_zero,
@@ -35,6 +36,7 @@ lemma toFundamentalStrip_im (hβ : 0 < β) (z : ℂ) :
     linarith
 
 
+/-- `toFundamentalStrip β z` always lands in the closed strip `ClosedStrip β`. -/
 lemma toFundamentalStrip_mem_closedStrip (hβ : 0 < β) (z : ℂ) :
     toFundamentalStrip β z ∈ ClosedStrip β := by
   simp only [ClosedStrip, mem_setOf_eq]
@@ -233,6 +235,7 @@ lemma periodicExtension_continuous_at_boundary
         _ ≤ δ₂ := min_le_right _ _
 
 
+/-- The interior of the closed strip `ClosedStrip β` is the open strip `Strip β`. -/
 lemma interior_closedStrip (_hβ : 0 < β) : interior (ClosedStrip β) = Strip β := by
   ext z
   simp only [Strip, ClosedStrip, mem_interior_iff_mem_nhds, mem_setOf_eq]

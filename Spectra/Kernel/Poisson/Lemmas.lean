@@ -2,7 +2,6 @@
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
-Filename: Kernel/Poisson/Lemmas.lean
 -/
 import Spectra.PositiveDefinite.Unitary
 import Mathlib.Analysis.SpecialFunctions.ImproperIntegrals
@@ -51,12 +50,12 @@ lemma poissonKernel_continuous {ε : ℝ} (hε : 0 < ε) :
        fun x => (sq_add_sq_pos hε x).ne'
      fun_prop (disch := exact hne _)
 
-/-- The Poisson kernel is measurable. -/
+/-- The Poisson kernel is measurable. (Currently unused.) -/
 lemma poissonKernel_measurable {ε : ℝ} (hε : 0 < ε) :
        Measurable (poissonKernel ε) :=
      (poissonKernel_continuous hε).measurable
 
-/-- `x ↦ (1 + x²)⁻¹` is continuous on ℝ. -/
+/-- `x ↦ (1 + x²)⁻¹` is continuous on ℝ. (Currently unused.) -/
 lemma continuous_inv_one_add_sq :
     Continuous (fun x : ℝ => (1 + x ^ 2)⁻¹) := by
   apply Continuous.inv₀
@@ -185,7 +184,7 @@ private lemma norm_cexp_neg_mul_ofReal (a : ℂ) (t : ℝ) :
   rw [Complex.norm_exp]
   simp [Complex.neg_re, Complex.mul_re, Complex.ofReal_re, Complex.ofReal_im]
 
-/-- `cexp(-(a * t)) → 0` as `t → +∞` when `0 < a.re`. -/
+/-- `cexp(-(a * t)) → 0` as `t → +∞` when `0 < a.re`. (Currently unused.) -/
 private lemma tendsto_cexp_neg_mul_ofReal_atTop {a : ℂ} (ha : 0 < a.re) :
     Tendsto (fun t : ℝ => cexp (-(a * ↑t))) atTop (𝓝 0) := by
   rw [tendsto_zero_iff_norm_tendsto_zero]
@@ -197,7 +196,7 @@ private lemma tendsto_cexp_neg_mul_ofReal_atTop {a : ℂ} (ha : 0 < a.re) :
     exact (tendsto_neg_atTop_atBot.comp h1).congr (fun t => by ring_nf; rfl)
   exact Real.tendsto_exp_atBot.comp h_atBot
 
-/-- Derivative of the antiderivative `-a⁻¹ * cexp(-(a * t))`. -/
+/-- Derivative of the antiderivative `-a⁻¹ * cexp(-(a * t))`. (Currently unused.) -/
 private lemma hasDerivAt_antideriv_cexp {a : ℂ} (ha_ne : a ≠ 0) (t : ℝ) :
     HasDerivAt (fun t : ℝ => -a⁻¹ * cexp (-(a * ↑t)))
                (cexp (-(a * ↑t))) t := by
@@ -225,7 +224,7 @@ private lemma inv_add_conj_inv {ε ξ : ℝ} (hε : 0 < ε) :
   rw [← ofReal_div]
 
 /-- Substitution: `∫_{Iic 0} f(t) dt = ∫_{Ioi 0} f(-u) du` for integrable `f`.
-    Uses measure-preserving negation on ℝ. -/
+    Uses measure-preserving negation on ℝ. (Currently unused.) -/
 private lemma setIntegral_Iic_comp_neg (f : ℝ → ℂ) :
     ∫ t in Set.Iic (0 : ℝ), f t = ∫ u in Set.Ioi (0 : ℝ), f (-u) := by
   rw [integral_comp_neg_Ioi (0 : ℝ) f, neg_zero]

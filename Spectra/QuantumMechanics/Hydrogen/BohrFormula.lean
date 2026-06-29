@@ -24,10 +24,6 @@ For the hydrogen Hamiltonian H = −Δ − Z/r (Z = 1 in atomic units):
   **Degeneracy**: dim ker(H − E_n) = n²
   **Eigenfunctions**: ψ_{nℓm}(r,θ,φ) = R_{nℓ}(r) Y_ℓ^m(θ,φ)
 
-These results reproduce, with complete mathematical rigour, the spectral
-series I computed in January 1926 in Arosa. The eigenvalues agree exactly
-with Bohr's 1913 formula — but now they are *derived*, not postulated.
-
 ## Architecture
 
 ```
@@ -100,10 +96,7 @@ theorem hydrogen_bohr_formula (p : CoulombParams)
     For the visible hydrogen lines (transitions to n = 2):
       1/λ = R_∞ (1/4 − 1/m²)    for m = 3, 4, 5, ...
 
-    where R_∞ is the Rydberg constant. In our units: R_∞ = 1/(4π).
-
-    Balmer discovered this empirically. Bohr derived it in 1913.
-    I derived it from first principles in 1926. -/
+    where R_∞ is the Rydberg constant. In our units: R_∞ = 1/(4π) -/
 theorem balmer_series (m : ℕ) (hm : 3 ≤ m) :
     eigenvalue ⟨1, one_pos⟩ m (by omega) - eigenvalue ⟨1, one_pos⟩ 2 (by omega) =
     (1 : ℝ) / 2 * (1 / 4 - 1 / (m : ℝ) ^ 2) := by

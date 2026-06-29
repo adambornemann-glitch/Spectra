@@ -2,7 +2,6 @@
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Author: Adam Bornemann
-Filename: PeriodicStrip/Hadamard.lean
 -/
 import Spectra.Modular.KMS.PeriodicStrip.Defs
 import Mathlib.Analysis.Complex.Hadamard
@@ -15,6 +14,8 @@ namespace Spectra.ThreeLines
     Designed so `(I * z).im = z.re`, mapping the vertical strip to the horizontal one. -/
 def tildeF (F : ℂ → ℂ) : ℂ → ℂ := fun z => F (I * z)
 
+/-- `tildeF F` is `DiffContOnCl` on the vertical strip when `F` is holomorphic and continuous
+    on the horizontal strip. -/
 lemma tildeF_diffContOnCl
     (F : ℂ → ℂ) (_hβ : 0 < β)
     (hholo : DifferentiableOn ℂ F (Strip β))
@@ -43,6 +44,8 @@ lemma tildeF_diffContOnCl
       · rw [h_im_eq]; exact hz.2
     exact hcont.comp hrot_diff.continuous.continuousOn hmaps
 
+/-- The norms of `tildeF F` on the vertical closed strip are bounded above whenever the norms of
+    `F` on the horizontal closed strip are. -/
 lemma tildeF_bddAbove
     (F : ℂ → ℂ) (_hβ : 0 < β)
     (hbdd : BddAbove (norm '' (F '' ClosedStrip β))) :
@@ -85,6 +88,8 @@ lemma sSupNormIm_tildeF (F : ℂ → ℂ) (x : ℝ) :
   rw [show ((norm ∘ tildeF F) : ℂ → ℝ) = (norm ∘ F) ∘ (fun z : ℂ => I * z) from rfl,
       Set.image_comp, image_I_mul_re]
 
+/-- Hadamard's three-lines theorem for a horizontal strip: `‖F w‖` is bounded by the log-convex
+    interpolation of the boundary suprema of `‖F‖` along `{Im = 0}` and `{Im = β}`. -/
 lemma hadamard_three_lines_horizontal
     (F : ℂ → ℂ) (hβ : 0 < β)
     (hholo : DifferentiableOn ℂ F (Strip β))

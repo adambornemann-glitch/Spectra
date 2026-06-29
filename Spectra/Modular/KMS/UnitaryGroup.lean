@@ -60,6 +60,7 @@ noncomputable def State.toPLM (ω : State A) : A →ₚ[ℂ] ℂ where
     rw [map_sub] at h
     exact sub_nonneg.mp h
 
+/-- `ω.toPLM` agrees with `ω` pointwise: `ω.toPLM a = ω a`. -/
 @[simp] lemma State.toPLM_apply (ω : State A) (a : A) : ω.toPLM a = ω a := rfl
 
 /-- The GNS Hilbert space of a state. -/
@@ -74,6 +75,7 @@ type-synonym identifications `toPreGNS`/`ofPreGNS`). -/
 noncomputable def evolveLin (t : ℝ) : ω.toPLM.PreGNS →ₗ[ℂ] ω.toPLM.PreGNS :=
   ω.toPLM.toPreGNS.toLinearMap ∘ₗ α.evolve t ∘ₗ ω.toPLM.ofPreGNS.toLinearMap
 
+/-- Transporting `evolveLin ω α t a` back through `ofPreGNS` recovers `α_t` acting on `ofPreGNS a`. -/
 @[simp] lemma evolveLin_ofPreGNS (t : ℝ) (a : ω.toPLM.PreGNS) :
     ω.toPLM.ofPreGNS (evolveLin ω α t a) = α.evolve t (ω.toPLM.ofPreGNS a) := by
   simp [evolveLin]
@@ -99,6 +101,7 @@ noncomputable def evolveCLM (hinv : IsInvariant ω α) (t : ℝ) :
     ω.toPLM.PreGNS →L[ℂ] ω.toPLM.PreGNS :=
   (evolveLin ω α t).mkContinuous 1 (fun a => le_of_eq (by rw [evolveLin_norm ω α hinv t a, one_mul]))
 
+/-- `evolveCLM ω α hinv t` agrees with the underlying linear map `evolveLin ω α t` pointwise. -/
 @[simp] lemma evolveCLM_apply (hinv : IsInvariant ω α) (t : ℝ) (a : ω.toPLM.PreGNS) :
     evolveCLM ω α hinv t a = evolveLin ω α t a := rfl
 
@@ -106,6 +109,8 @@ noncomputable def evolveCLM (hinv : IsInvariant ω α) (t : ℝ) :
 noncomputable def evolveU (hinv : IsInvariant ω α) (t : ℝ) : ω.gnsSpace →L[ℂ] ω.gnsSpace :=
   (evolveCLM ω α hinv t).completion
 
+/-- `U_ω(t)` on the image of a pre-GNS vector is the image of `α_t` applied to it:
+`U_ω(t) ↑a = ↑(evolveLin ω α t a)`. -/
 @[simp] lemma evolveU_coe (hinv : IsInvariant ω α) (t : ℝ) (a : ω.toPLM.PreGNS) :
     evolveU ω α hinv t (a : ω.gnsSpace) = (evolveLin ω α t a : ω.gnsSpace) := by
   rw [evolveU, ContinuousLinearMap.completion_apply_coe, evolveCLM_apply]
@@ -220,6 +225,7 @@ noncomputable def invariantUnitaryGroup (hinv : IsInvariant ω α) :
       (UniformSpace.Completion.denseRange_coe (α := ω.toPLM.PreGNS))
       (by rintro φ ⟨a, rfl⟩; exact evolveU_continuous_coe ω α hinv a) ψ
 
+/-- The unitary at time `t` of `invariantUnitaryGroup` is `evolveU ω α hinv t`. -/
 @[simp] lemma invariantUnitaryGroup_U (hinv : IsInvariant ω α) (t : ℝ) :
     (invariantUnitaryGroup ω α hinv).U t = evolveU ω α hinv t := rfl
 
@@ -379,6 +385,7 @@ noncomputable def ModularTheoryData.modularUnitaryGroup :
     OneParameterUnitaryGroup ω.toState.gnsSpace :=
   invariantUnitaryGroup ω.toState hmod.dynamics hmod.invariant
 
+/-- The modular unitary `Δ^{it}` at time `t` is `evolveU` of `hmod.dynamics`. -/
 @[simp] lemma ModularTheoryData.modularUnitaryGroup_U (t : ℝ) :
     (hmod.modularUnitaryGroup).U t = evolveU ω.toState hmod.dynamics hmod.invariant t :=
   rfl
