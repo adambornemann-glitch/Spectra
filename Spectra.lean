@@ -181,6 +181,7 @@ import Spectra.QuantumMechanics.Hydrogen.Spectrum.Eigenvalue
 import Spectra.QuantumMechanics.Hydrogen.Spectrum.SectorReductionLocal
 import Spectra.QuantumMechanics.Hydrogen.Spectrum.RadialEigenfunction
 import Spectra.QuantumMechanics.Hydrogen.Spectrum.Forward
+import Spectra.QuantumMechanics.Hydrogen.Spectrum.SectorProjection
 import Spectra.QuantumMechanics.Hydrogen.Spectrum.Projections
 import Spectra.QuantumMechanics.Observable.Basic
 import Spectra.OneParameterUnitaryGroup.Basic

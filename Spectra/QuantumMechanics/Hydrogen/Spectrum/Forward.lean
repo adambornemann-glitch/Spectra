@@ -301,7 +301,7 @@ terms so that the recovered coefficient is `b` and the reduced variable is the u
 `coeffFun` is handled at the application site by taking real and imaginary parts). -/
 open Set in
 theorem forward_bridge (ℓ : ℕ) (Z E : ℝ) (R : ℝ → ℝ)
-    (hweak : ∀ χ : ℝ → ℝ, ContDiff ℝ ∞ χ → HasCompactSupport χ → (∀ r ≤ 0, χ r = 0) →
+    (hweak : ∀ χ : ℝ → ℝ, ContDiff ℝ ∞ χ → HasCompactSupport χ → (∀ᶠ r in 𝓝 (0 : ℝ), χ r = 0) →
         ∫ r in Set.Ioi 0,
           (-(1 / 2) * deriv^[2] χ r - (1 / r) * deriv χ r
             + ((ℓ : ℝ) * ((ℓ : ℝ) + 1) / (2 * r ^ 2) - Z / r) * χ r - E * χ r) * R r * r ^ 2 = 0) :
@@ -392,8 +392,9 @@ theorem forward_bridge (ℓ : ℕ) (Z E : ℝ) (R : ℝ → ℝ)
     show deriv (deriv χ) r = _
     rw [hev.deriv_eq]
     exact hbase.deriv
-  -- feed the weak hypothesis the test `χ`
-  have happly := hweak χ hχ_smooth hχ_cs hχ_nonpos
+  -- feed the weak hypothesis the test `χ` (which vanishes on a neighbourhood of `0`)
+  have happly := hweak χ hχ_smooth hχ_cs
+    (by filter_upwards [Iio_mem_nhds (Real.exp_pos (-M))] with r hr; exact hχ_lo r hr)
   set INTEG : ℝ → ℝ := fun r =>
     (-(1 / 2) * deriv^[2] χ r - (1 / r) * deriv χ r
       + ((ℓ : ℝ) * ((ℓ : ℝ) + 1) / (2 * r ^ 2) - Z / r) * χ r - E * χ r) * R r * r ^ 2 with hINTEG
