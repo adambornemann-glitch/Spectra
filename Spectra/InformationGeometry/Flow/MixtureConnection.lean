@@ -104,6 +104,12 @@ private lemma fderiv_clm_apply_const {E : Type*} [NormedAddCommGroup E]
   simp only [ContinuousLinearMap.comp_zero, zero_add] at h
   rw [h, ContinuousLinearMap.flip_apply]
 
+/-- The standard-coordinate expansion in `ParamSpace n`. -/
+private lemma paramSpace_eq_sum_single (u : ParamSpace n) :
+    u = ∑ i : Fin n, u.ofLp i • EuclideanSpace.single i 1 := by
+  ext p
+  simp [Pi.single, Function.update_apply, Finset.mem_univ]
+
 namespace TwiceDifferentiableModel
 
 variable (M : TwiceDifferentiableModel n Ω)
@@ -290,6 +296,21 @@ lemma cubic_sum_swap₂₃ {θ : ParamSpace n} (hθ : θ ∈ M.paramDomain)
   refine Finset.sum_congr rfl fun p _ => Finset.sum_congr rfl fun q _ => ?_
   rw [M.cubicTensor_symm₂₃ hθ i q p]
   ring
+
+/-- Split the `C_{kij} + Γᵐ_{ki,j} + Γᵐ_{kj,i}` triple sum into the
+pulled-back cubic tensor and the two trilinear m-connection terms. -/
+private lemma cubic_connection_split_kij {θ : ParamSpace n}
+    (hθ : θ ∈ M.paramDomain) (x y z : ParamSpace n) :
+    (∑ i : Fin n, ∑ j : Fin n, ∑ k : Fin n,
+      x i * y j * z k *
+        (M.cubicTensor θ k i j + M.mConnectionCoeff θ k i j +
+         M.mConnectionCoeff θ k j i)) =
+    (∑ i : Fin n, ∑ j : Fin n, ∑ k : Fin n,
+      x i * y j * z k * M.cubicTensor θ i j k) +
+    M.mConnectionTrilin θ z x y + M.mConnectionTrilin θ z y x := by
+  simp only [mul_add, Finset.sum_add_distrib]
+  rw [M.cubic_relabel_kij hθ x y z, M.trilin_relabel_kij θ x y z,
+    M.trilin_relabel_kji θ x y z]
 
 -- ════════════════════════════════════════════════════════════════════
 -- §2. The expected log-likelihood Hessian is −g  (integrated Bartlett-2)
@@ -579,9 +600,7 @@ lemma klDiv_third_deriv_trilin {β : ParamSpace n} (hβ : β ∈ M.paramDomain)
       fun θ₂ => ∑ k : Fin n, z.ofLp k *
         fderiv ℝ (M.klDiv β) θ₂ (EuclideanSpace.single k 1) := by
     funext θ₂
-    conv_lhs => rw [show z = ∑ k : Fin n, z.ofLp k •
-        EuclideanSpace.single k 1 from by ext p; simp [Pi.single,
-          Function.update_apply, Finset.mem_univ]]
+    conv_lhs => rw [paramSpace_eq_sum_single z]
     rw [map_sum]; simp_rw [map_smul, smul_eq_mul]
   -- (ii) middle slot: differentiate the k-sum on the domain, expand y
   have h_mid : ∀ θ₁ ∈ M.paramDomain,
@@ -601,9 +620,7 @@ lemma klDiv_third_deriv_trilin {β : ParamSpace n} (hβ : β ∈ M.paramDomain)
       smul_eq_mul]
     refine Finset.sum_congr rfl fun k _ => ?_
     rw [← ((hS θ₁ hθ₁ k).choose_spec).fderiv]
-    conv_lhs => rw [show y = ∑ j : Fin n, y.ofLp j •
-        EuclideanSpace.single j 1 from by ext p; simp [Pi.single,
-          Function.update_apply, Finset.mem_univ]]
+    conv_lhs => rw [paramSpace_eq_sum_single y]
     rw [map_sum]
     simp_rw [map_smul, smul_eq_mul]
     rw [Finset.mul_sum]
@@ -657,9 +674,7 @@ lemma klDiv_third_deriv_trilin {β : ParamSpace n} (hβ : β ∈ M.paramDomain)
         (M.cubicTensor β i j k + M.mConnectionCoeff β i k j +
          M.mConnectionCoeff β j k i + M.mConnectionCoeff β i j k) := by
     intro j k
-    conv_lhs => rw [show x = ∑ i : Fin n, x.ofLp i •
-        EuclideanSpace.single i 1 from by ext p; simp [Pi.single,
-          Function.update_apply, Finset.mem_univ]]
+    conv_lhs => rw [paramSpace_eq_sum_single x]
     rw [map_sum]
     simp_rw [map_smul, smul_eq_mul]
     refine Finset.sum_congr rfl fun i _ => ?_
@@ -851,11 +866,8 @@ lemma pullback_metric_fderiv_split
          M.mConnectionCoeff (F.φ t θ) k i j +
          M.mConnectionCoeff (F.φ t θ) k j i) := by
     intro i j
-    conv_lhs => rw [show fderiv ℝ (F.φ t) θ (EuclideanSpace.single c 1) =
-        ∑ k : Fin n,
-          (fderiv ℝ (F.φ t) θ (EuclideanSpace.single c 1)).ofLp k •
-          EuclideanSpace.single k 1 from by ext p; simp [Pi.single,
-            Function.update_apply, Finset.mem_univ]]
+    conv_lhs => rw [paramSpace_eq_sum_single
+      (fderiv ℝ (F.φ t) θ (EuclideanSpace.single c 1))]
     rw [map_sum]
     simp_rw [map_smul, smul_eq_mul, (hG i j).choose_spec.2]
   -- identify the second-derivative coordinates and assemble
@@ -964,20 +976,11 @@ lemma fisher_derivative_identity
       M.mConnectionTrilin (F.φ t θ)
         (fderiv ℝ (F.φ t) θ (EuclideanSpace.single c 1))
         (fderiv ℝ (F.φ t) θ (EuclideanSpace.single b 1))
-        (fderiv ℝ (F.φ t) θ (EuclideanSpace.single a 1)) := by
-    simp only [mul_add, Finset.sum_add_distrib]
-    rw [M.cubic_relabel_kij hα
-          (fderiv ℝ (F.φ t) θ (EuclideanSpace.single a 1))
-          (fderiv ℝ (F.φ t) θ (EuclideanSpace.single b 1))
-          (fderiv ℝ (F.φ t) θ (EuclideanSpace.single c 1)),
-        M.trilin_relabel_kij (F.φ t θ)
-          (fderiv ℝ (F.φ t) θ (EuclideanSpace.single a 1))
-          (fderiv ℝ (F.φ t) θ (EuclideanSpace.single b 1))
-          (fderiv ℝ (F.φ t) θ (EuclideanSpace.single c 1)),
-        M.trilin_relabel_kji (F.φ t θ)
-          (fderiv ℝ (F.φ t) θ (EuclideanSpace.single a 1))
-          (fderiv ℝ (F.φ t) θ (EuclideanSpace.single b 1))
-          (fderiv ℝ (F.φ t) θ (EuclideanSpace.single c 1))]
+        (fderiv ℝ (F.φ t) θ (EuclideanSpace.single a 1)) :=
+    M.cubic_connection_split_kij hα
+      (fderiv ℝ (F.φ t) θ (EuclideanSpace.single a 1))
+      (fderiv ℝ (F.φ t) θ (EuclideanSpace.single b 1))
+      (fderiv ℝ (F.φ t) θ (EuclideanSpace.single c 1))
   rw [hflat, hsplit] at hkey
   linarith [hkey]
 
