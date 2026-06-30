@@ -3,10 +3,9 @@ Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
-import Spectra.InformationGeometry.Flow.Family
-import Spectra.InformationGeometry.Connection.AmariChentsov
-import Mathlib.Tactic.Explode
 import Mathlib.Analysis.Calculus.FDeriv.Symmetric
+import Spectra.InformationGeometry.Connection.AmariChentsov
+import Spectra.InformationGeometry.Flow.Family
 
 /-!
 # Faà di Bruno Expansion of the Third KL Derivative
@@ -44,6 +43,31 @@ variable {n : ℕ} {Ω : Type*} [MeasurableSpace Ω]
 namespace TwiceDifferentiableModel
 
 variable (M : TwiceDifferentiableModel n Ω)
+
+/-- A vector in `ParamSpace n` is the finite sum of its standard-coordinate components. -/
+private lemma paramSpace_eq_sum_single (w : ParamSpace n) :
+    w = ∑ k : Fin n, w.ofLp k • EuclideanSpace.single k (1 : ℝ) := by
+  ext i
+  simp only [WithLp.ofLp_sum, WithLp.ofLp_smul, PiLp.ofLp_single, sum_apply,
+    Pi.smul_apply, smul_eq_mul, Pi.single_apply, mul_ite, mul_one, mul_zero]
+  exact Eq.symm (Fintype.sum_ite_eq i w.ofLp)
+
+/-- A scalar continuous linear map on `ParamSpace n` is determined by its values on the
+standard basis, expanded through the corresponding inner-product coordinate functionals. -/
+private lemma continuousLinearMap_eq_sum_innerSL
+    (L : ParamSpace n →L[ℝ] ℝ) :
+    L = ∑ k : Fin n, L (EuclideanSpace.single k 1) •
+      (innerSL ℝ (EuclideanSpace.single k (1 : ℝ)) : ParamSpace n →L[ℝ] ℝ) := by
+  ext w
+  simp only [ContinuousLinearMap.sum_apply, ContinuousLinearMap.smul_apply,
+    smul_eq_mul, innerSL_apply_apply]
+  conv_lhs => rw [show w = ∑ k : Fin n, w.ofLp k • EuclideanSpace.single k (1 : ℝ) from by
+    exact paramSpace_eq_sum_single w]
+  simp only [map_sum, map_smul, smul_eq_mul]
+  apply Finset.sum_congr rfl
+  intro k _
+  erw [EuclideanSpace.inner_single_left, RCLike.conj_to_real, one_mul]
+  ring
 
 /-- **Off-diagonal cross-score derivative, with components.**
 
@@ -184,6 +208,31 @@ lemma cross_score_hasFDerivAt'
   -- after unfolding `scorePartial`; `congr 1` closes up to defeq.
   congr 1
 
+/-- The first derivative of `klDiv α` is differentiable at every parameter point in the
+domain, reconstructed from the differentiability of its standard-basis components. -/
+private lemma klDiv_fderiv_differentiableAt
+    {α θ' : ParamSpace n} (hα : α ∈ M.paramDomain) (hθ' : θ' ∈ M.paramDomain) :
+    DifferentiableAt ℝ (fun θ₀ => fderiv ℝ (M.klDiv α) θ₀) θ' := by
+  have h_comp : ∀ j : Fin n, DifferentiableAt ℝ
+      (fun θ₀ => fderiv ℝ (M.klDiv α) θ₀ (EuclideanSpace.single j 1)) θ' := by
+    intro j
+    exact (M.cross_score_differentiableAt hα hθ' j).congr_of_eventuallyEq (by
+      filter_upwards [M.isOpen_paramDomain.mem_nhds hθ'] with θ₀ hθ₀
+      exact M.klDiv_partial_j hα hθ₀ j)
+  show DifferentiableAt ℝ (fun θ₀ => fderiv ℝ (M.klDiv α) θ₀) θ'
+  rw [show (fun θ₀ => fderiv ℝ (M.klDiv α) θ₀) =
+      (fun θ₀ => ∑ j : Fin n,
+        fderiv ℝ (M.klDiv α) θ₀ (EuclideanSpace.single j 1) •
+        (innerSL ℝ (EuclideanSpace.single j (1 : ℝ)) :
+          ParamSpace n →L[ℝ] ℝ)) from by
+        funext θ₀
+        exact continuousLinearMap_eq_sum_innerSL (fderiv ℝ (M.klDiv α) θ₀)]
+  refine DifferentiableAt.fun_sum fun j _ => ?_
+  haveI : IsScalarTower ℝ ℝ (ParamSpace n →L[ℝ] ℝ) :=
+    ⟨fun r s f => by ext x; simp only [ContinuousLinearMap.smul_apply,
+      smul_eq_mul, mul_assoc]⟩
+  exact (h_comp j).smul_const _
+
 namespace ThriceDifferentiableModel
 variable (M : ThriceDifferentiableModel n Ω)
 namespace DivergencePreservingFamily
@@ -264,8 +313,7 @@ lemma fderiv_klDiv_phi_apply_live
       rw [ContinuousLinearMap.comp_apply]
       set w := fderiv ℝ (F.φ t) θ (EuclideanSpace.single i 1)
       conv_lhs => rw [show w = ∑ k : Fin n, w.ofLp k •
-          EuclideanSpace.single k 1 from by ext p; simp [Pi.single,
-            Function.update_apply, Finset.mem_univ]]
+          EuclideanSpace.single k 1 from paramSpace_eq_sum_single w]
       rw [map_sum]; simp_rw [map_smul, smul_eq_mul, hg'ⱼ_eval]
   -- Part II: HasFDerivAt for R(θ₂) = Σⱼ v₀ⱼ · Sⱼ(φ_t θ₂)
   have hR_eq : ∀ θ₂, R θ₂ = ∑ j : Fin n, v₀.ofLp j *
@@ -273,8 +321,7 @@ lemma fderiv_klDiv_phi_apply_live
     intro θ₂
     simp only [hR_def]
     conv_lhs => rw [show v₀ = ∑ j : Fin n, v₀.ofLp j •
-        EuclideanSpace.single j 1 from by ext p; simp [Pi.single,
-          Function.update_apply, Finset.mem_univ]]
+        EuclideanSpace.single j 1 from paramSpace_eq_sum_single v₀]
     rw [map_sum]; simp_rw [map_smul, smul_eq_mul]
   set fR : ParamSpace n →L[ℝ] ℝ :=
     ∑ j : Fin n, v₀.ofLp j • (hSj_comp j).choose with hfR_def
@@ -428,7 +475,6 @@ variable {M : ThriceDifferentiableModel n Ω}
 variable (F : M.toTwiceDifferentiableModel.DivergencePreservingFamily)
 open TwiceDifferentiableModel ThriceDifferentiableModel
 
-set_option maxHeartbeats 220000 in
 /-- **Faà di Bruno at critical point.** Since fderiv(klDiv α)(α) = 0,
 the third derivative of θ₂ ↦ D(α, φ_t(θ₂)) at θ₂ = θ is:
 
@@ -533,47 +579,8 @@ lemma kl_faa_di_bruno
     -- L(θ₂) := fderiv(klDiv α)(φ_t θ₂) is differentiable at θ₁
     have hL_diff : DifferentiableAt ℝ
         (fun θ₂ => fderiv ℝ (M.klDiv α) (F.φ t θ₂)) θ₁ := by
-      -- Componentwise: for each j, θ₀ ↦ fderiv(klDiv α)(θ₀)(eⱼ) agrees with
-      -- the cross-score integral near F.φ t θ₁ (via klDiv_partial_j),
-      -- which is differentiable (cross_score_hasFDerivAt). Finite-dimensional
-      -- reconstruction gives full CLM differentiability, then compose with smooth φ_t.
-      have h_fKL : DifferentiableAt ℝ (fderiv ℝ (M.klDiv α)) (F.φ t θ₁) := by
-        have h_comp : ∀ j : Fin n, DifferentiableAt ℝ
-            (fun θ₀ => fderiv ℝ (M.klDiv α) θ₀
-              (EuclideanSpace.single j 1)) (F.φ t θ₁) := by
-          intro j
-          -- cross_score_differentiableAt gives DifferentiableAt for the
-          -- cross-score integral at F.φ t θ₁
-          have h_cs := M.cross_score_differentiableAt hα hθ₁_im j
-          -- klDiv_partial_j identifies fderiv(klDiv α)(θ₀)(eⱼ) with the
-          -- cross-score integral near F.φ t θ₁
-          exact h_cs.congr_of_eventuallyEq (by
-            filter_upwards [M.isOpen_paramDomain.mem_nhds hθ₁_im] with θ₀ hθ₀
-            exact (M.klDiv_partial_j hα hθ₀ j))
-        -- Reconstruct CLM differentiability from components
-        have h_eq : (fun θ₀ => fderiv ℝ (M.klDiv α) θ₀) =
-            (fun θ₀ => ∑ j : Fin n,
-              fderiv ℝ (M.klDiv α) θ₀ (EuclideanSpace.single j 1) •
-              (innerSL ℝ (EuclideanSpace.single j (1 : ℝ)) :
-                ParamSpace n →L[ℝ] ℝ)) := by
-          ext θ₀ w
-          simp only [ContinuousLinearMap.sum_apply, ContinuousLinearMap.smul_apply,
-            smul_eq_mul, innerSL_apply_apply]
-          conv_lhs => rw [show w = ∑ j : Fin n, w.ofLp j • EuclideanSpace.single j (1 : ℝ) from by
-            ext i; simp only [WithLp.ofLp_sum, WithLp.ofLp_smul, PiLp.ofLp_single, sum_apply,
-              Pi.smul_apply, smul_eq_mul, Pi.single_apply, mul_ite, mul_one, mul_zero]
-            exact Eq.symm (Fintype.sum_ite_eq i w.ofLp)]
-          simp only [map_sum, map_smul, smul_eq_mul]
-          apply Finset.sum_congr rfl; intro j _
-          erw [EuclideanSpace.inner_single_left, RCLike.conj_to_real, one_mul]
-          ring
-        show DifferentiableAt ℝ (fun θ₀ => fderiv ℝ (M.klDiv α) θ₀) (F.φ t θ₁)
-        rw [h_eq]
-        refine DifferentiableAt.fun_sum fun j _ => ?_
-        haveI : IsScalarTower ℝ ℝ (ParamSpace n →L[ℝ] ℝ) :=
-          ⟨fun r s f => by ext x; simp only [ContinuousLinearMap.smul_apply,
-            smul_eq_mul, mul_assoc]⟩
-        exact (h_comp j).smul_const _
+      have h_fKL : DifferentiableAt ℝ (fderiv ℝ (M.klDiv α)) (F.φ t θ₁) :=
+        M.klDiv_fderiv_differentiableAt hα hθ₁_im
       exact h_fKL.comp θ₁
         (hφ_smooth.differentiable WithTop.top_ne_zero).differentiableAt
     -- v(θ₂) := fderiv(φ_t)(θ₂)(eᶜ) is differentiable at θ₁
@@ -605,36 +612,7 @@ lemma kl_faa_di_bruno
   have hG_diff : ∀ θ' ∈ M.paramDomain,
       DifferentiableAt ℝ (fun θ'' => fderiv ℝ (M.klDiv α) θ'') θ' := by
     intro θ' hθ'
-    have h_comp : ∀ j : Fin n, DifferentiableAt ℝ
-        (fun θ₀ => fderiv ℝ (M.klDiv α) θ₀ (EuclideanSpace.single j 1)) θ' := by
-      intro j
-      have h_cs := M.cross_score_differentiableAt hα hθ' j
-      exact h_cs.congr_of_eventuallyEq (by
-        filter_upwards [M.isOpen_paramDomain.mem_nhds hθ'] with θ₀ hθ₀
-        exact (M.klDiv_partial_j hα hθ₀ j))
-    have h_eq : (fun θ₀ => fderiv ℝ (M.klDiv α) θ₀) =
-        (fun θ₀ => ∑ j : Fin n,
-          fderiv ℝ (M.klDiv α) θ₀ (EuclideanSpace.single j 1) •
-          (innerSL ℝ (EuclideanSpace.single j (1 : ℝ)) :
-            ParamSpace n →L[ℝ] ℝ)) := by
-      ext θ₀ w
-      simp only [ContinuousLinearMap.sum_apply, ContinuousLinearMap.smul_apply,
-        smul_eq_mul, innerSL_apply_apply]
-      conv_lhs => rw [show w = ∑ j : Fin n, w.ofLp j • EuclideanSpace.single j (1 : ℝ) from by
-        ext i; simp only [WithLp.ofLp_sum, WithLp.ofLp_smul, PiLp.ofLp_single, sum_apply,
-          Pi.smul_apply, smul_eq_mul, Pi.single_apply, mul_ite, mul_one, mul_zero]
-        exact Eq.symm (Fintype.sum_ite_eq i w.ofLp)]
-      simp only [map_sum, map_smul, smul_eq_mul]
-      apply Finset.sum_congr rfl; intro j _
-      erw [EuclideanSpace.inner_single_left, RCLike.conj_to_real, one_mul]
-      ring
-    show DifferentiableAt ℝ (fun θ₀ => fderiv ℝ (M.klDiv α) θ₀) θ'
-    rw [h_eq]
-    refine DifferentiableAt.fun_sum fun j _ => ?_
-    haveI : IsScalarTower ℝ ℝ (ParamSpace n →L[ℝ] ℝ) :=
-      ⟨fun r s f => by ext x; simp only [ContinuousLinearMap.smul_apply,
-        smul_eq_mul, mul_assoc]⟩
-    exact (h_comp j).smul_const _
+    exact M.klDiv_fderiv_differentiableAt hα hθ'
   have hF_diff : ∀ θ₂, DifferentiableAt ℝ (F.φ t) θ₂ := fun _ =>
     (hφ_smooth.differentiable WithTop.top_ne_zero).differentiableAt
   -- ─── Step 2: Chain rule formula for fderiv of K := (fderiv(klDiv α)) ∘ φ_t.
@@ -678,19 +656,8 @@ lemma kl_faa_di_bruno
     have hCLM : ∀ L : ParamSpace n →L[ℝ] ℝ,
         L = ∑ k : Fin n, L (EuclideanSpace.single k 1) •
           (innerSL ℝ (EuclideanSpace.single k (1 : ℝ)) :
-            ParamSpace n →L[ℝ] ℝ) := by
-      intro L
-      ext w
-      simp only [ContinuousLinearMap.sum_apply, ContinuousLinearMap.smul_apply,
-        smul_eq_mul, innerSL_apply_apply]
-      conv_lhs => rw [show w = ∑ k : Fin n, w.ofLp k • EuclideanSpace.single k (1 : ℝ) from by
-        ext i; simp only [WithLp.ofLp_sum, WithLp.ofLp_smul, PiLp.ofLp_single, sum_apply,
-          Pi.smul_apply, smul_eq_mul, Pi.single_apply, mul_ite, mul_one, mul_zero]
-        exact Eq.symm (Fintype.sum_ite_eq i w.ofLp)]
-      simp only [map_sum, map_smul, smul_eq_mul]
-      apply Finset.sum_congr rfl; intro k _
-      erw [EuclideanSpace.inner_single_left, RCLike.conj_to_real, one_mul]
-      ring
+            ParamSpace n →L[ℝ] ℝ) :=
+      continuousLinearMap_eq_sum_innerSL
     -- (ii) Scalar third partials are differentiable at α.
     have hS : ∀ j k : Fin n, DifferentiableAt ℝ
         (fun θ' => fderiv ℝ (fun θ'' =>
@@ -896,38 +863,8 @@ lemma kl_faa_di_bruno
     -- lifted from θ₁ ∈ paramDomain to the specific point θ.
     have hL_diff : DifferentiableAt ℝ
         (fun θ₁ => fderiv ℝ (M.klDiv α) (F.φ t θ₁)) θ := by
-      have h_comp : ∀ j : Fin n, DifferentiableAt ℝ
-          (fun θ₀ => fderiv ℝ (M.klDiv α) θ₀
-            (EuclideanSpace.single j 1)) α := by
-        intro j
-        have h_cs := M.cross_score_differentiableAt hα hα j
-        exact h_cs.congr_of_eventuallyEq (by
-          filter_upwards [M.isOpen_paramDomain.mem_nhds hα] with θ₀ hθ₀
-          exact (M.klDiv_partial_j hα hθ₀ j))
-      have h_eq : (fun θ₀ => fderiv ℝ (M.klDiv α) θ₀) =
-          (fun θ₀ => ∑ j : Fin n,
-            fderiv ℝ (M.klDiv α) θ₀ (EuclideanSpace.single j 1) •
-            (innerSL ℝ (EuclideanSpace.single j (1 : ℝ)) :
-              ParamSpace n →L[ℝ] ℝ)) := by
-        ext θ₀ w
-        simp only [ContinuousLinearMap.sum_apply, ContinuousLinearMap.smul_apply,
-          smul_eq_mul, innerSL_apply_apply]
-        conv_lhs => rw [show w = ∑ j : Fin n, w.ofLp j • EuclideanSpace.single j (1 : ℝ) from by
-          ext i; simp only [WithLp.ofLp_sum, WithLp.ofLp_smul, PiLp.ofLp_single, sum_apply,
-            Pi.smul_apply, smul_eq_mul, Pi.single_apply, mul_ite, mul_one, mul_zero]
-          exact Eq.symm (Fintype.sum_ite_eq i w.ofLp)]
-        simp only [map_sum, map_smul, smul_eq_mul]
-        apply Finset.sum_congr rfl; intro j _
-        erw [EuclideanSpace.inner_single_left, RCLike.conj_to_real, one_mul]
-        ring
-      have h_fKL : DifferentiableAt ℝ (fderiv ℝ (M.klDiv α)) α := by
-        show DifferentiableAt ℝ (fun θ₀ => fderiv ℝ (M.klDiv α) θ₀) α
-        rw [h_eq]
-        refine DifferentiableAt.fun_sum fun j _ => ?_
-        haveI : IsScalarTower ℝ ℝ (ParamSpace n →L[ℝ] ℝ) :=
-          ⟨fun r s f => by ext x; simp only [ContinuousLinearMap.smul_apply,
-            smul_eq_mul, mul_assoc]⟩
-        exact (h_comp j).smul_const _
+      have h_fKL : DifferentiableAt ℝ (fderiv ℝ (M.klDiv α)) α :=
+        M.klDiv_fderiv_differentiableAt hα hα
       exact h_fKL.comp θ
         (hφ_smooth.differentiable WithTop.top_ne_zero).differentiableAt
     -- w differentiable at θ: φ_t is C^⊤, hence so is fderiv(φ_t), hence so is

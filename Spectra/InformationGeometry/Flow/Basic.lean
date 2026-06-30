@@ -9,7 +9,7 @@ import Mathlib.Analysis.SpecialFunctions.Log.Deriv
 import Mathlib.Analysis.Calculus.ParametricIntegral
 import Mathlib.Analysis.Calculus.LocalExtr.Basic
 import Mathlib.Algebra.BigOperators.WithTop
--- For Stone Uniqueness --
+-- For Stone-Like Uniqueness --
 import Mathlib.Analysis.ODE.Gronwall
 import Mathlib.Analysis.ODE.PicardLindelof
 import Mathlib.Topology.Order.Compact
@@ -142,26 +142,12 @@ private lemma fderiv_φ_component_at_zero (F : M.DivergencePreservingFamily)
   simp only [PiLp.single_apply]
   grind only
 
-/-- The generator of a divergence-preserving family is a smooth vector
-field: X(θ) = D(uncurry φ)(0,θ)(1,0) is the composition of the C^∞ map
-`fderiv ℝ (uncurry φ)` with smooth injections and evaluations. -/
-lemma DivergencePreservingFamily.generator_smooth
+/-- The generator is the derivative of the uncurried flow in the time direction. -/
+private lemma DivergencePreservingFamily.generator_eq_fderiv_uncurry
     (F : M.DivergencePreservingFamily) :
-    ContDiff ℝ ⊤ F.generator := by
-  -- F.generator θ = D(uncurry φ)(0,θ)(1,0) by the chain rule.
-  -- This is eval_{(1,0)} ∘ fderiv(uncurry φ) ∘ (0,·), a composition of C^∞ maps.
-  suffices h_eq : F.generator =
+    F.generator =
       fun θ => fderiv ℝ (Function.uncurry F.φ) (0, θ)
-        ((1 : ℝ), (0 : ParamSpace n)) by
-    rw [h_eq]
-    -- fderiv of a C^∞ function is C^∞
-    have hDg : ContDiff ℝ ⊤ (fderiv ℝ (Function.uncurry F.φ)) :=
-      F.smooth.fderiv_right le_top
-    -- Compose: eval ∘ Dg ∘ inject
-    exact (ContinuousLinearMap.apply ℝ (ParamSpace n)
-          ((1 : ℝ), (0 : ParamSpace n))).contDiff |>.comp
-      (hDg.comp (contDiff_const.prodMk contDiff_id))
-  -- Pointwise equality via chain rule
+        ((1 : ℝ), (0 : ParamSpace n)) := by
   funext θ
   simp only [DivergencePreservingFamily.generator]
   have h_diff_g : DifferentiableAt ℝ (Function.uncurry F.φ) (0, θ) :=
@@ -179,6 +165,166 @@ lemma DivergencePreservingFamily.generator_smooth
     h_chain.fderiv, ContinuousLinearMap.comp_apply,
     ContinuousLinearMap.prod_apply]
   simp
+
+/-- The parameter derivative of a time-slice is the uncurried derivative
+applied to the parameter-direction vector. -/
+private lemma DivergencePreservingFamily.fderiv_phi_eq_fderiv_uncurry
+    (F : M.DivergencePreservingFamily) (s : ℝ) {θ : ParamSpace n}
+    (v : ParamSpace n) :
+    fderiv ℝ (F.φ s) θ v =
+      fderiv ℝ (Function.uncurry F.φ) (s, θ) ((0 : ℝ), v) := by
+  have hmk : HasFDerivAt (fun θ'' : ParamSpace n => ((s, θ'') : ℝ × ParamSpace n))
+      ((0 : ParamSpace n →L[ℝ] ℝ).prod (ContinuousLinearMap.id ℝ (ParamSpace n))) θ :=
+    (hasFDerivAt_const s θ).prodMk (hasFDerivAt_id θ)
+  have hcomp : HasFDerivAt (F.φ s)
+      ((fderiv ℝ (Function.uncurry F.φ) (s, θ)).comp
+        ((0 : ParamSpace n →L[ℝ] ℝ).prod (ContinuousLinearMap.id ℝ (ParamSpace n)))) θ :=
+    (((F.smooth.differentiable (by simp)) (s, θ)).hasFDerivAt).comp θ hmk
+  rw [hcomp.fderiv]
+  simp [ContinuousLinearMap.comp_apply, ContinuousLinearMap.prod_apply,
+    ContinuousLinearMap.zero_apply, ContinuousLinearMap.id_apply]
+
+/-- The generator of a divergence-preserving family is a smooth vector
+field: X(θ) = D(uncurry φ)(0,θ)(1,0) is the composition of the C^∞ map
+`fderiv ℝ (uncurry φ)` with smooth injections and evaluations. -/
+lemma DivergencePreservingFamily.generator_smooth
+    (F : M.DivergencePreservingFamily) :
+    ContDiff ℝ ⊤ F.generator := by
+  rw [DivergencePreservingFamily.generator_eq_fderiv_uncurry F]
+  have hDg : ContDiff ℝ ⊤ (fderiv ℝ (Function.uncurry F.φ)) :=
+    F.smooth.fderiv_right le_top
+  exact (ContinuousLinearMap.apply ℝ (ParamSpace n)
+        ((1 : ℝ), (0 : ParamSpace n))).contDiff |>.comp
+    (hDg.comp (contDiff_const.prodMk contDiff_id))
+
+/-- Expand a continuous linear functional on `ParamSpace n` in the standard basis. -/
+private lemma continuousLinearMap_apply_eq_sum_single
+    (L : ParamSpace n →L[ℝ] ℝ) (x : ParamSpace n) :
+    L x = ∑ k : Fin n, x.ofLp k * L (EuclideanSpace.single k 1) := by
+  have hbasis : x = ∑ k : Fin n, x.ofLp k • EuclideanSpace.single k 1 := by
+    ext p
+    simp only [WithLp.ofLp_sum, WithLp.ofLp_smul, PiLp.ofLp_single, Finset.sum_apply,
+      Pi.smul_apply, smul_eq_mul, Pi.single_apply, mul_ite, mul_one, mul_zero,
+      Finset.sum_ite_eq, Finset.mem_univ, ↓reduceIte]
+  conv_lhs => rw [hbasis, map_sum]
+  simp only [map_smul, smul_eq_mul]
+
+/-- The standard-basis delta collapses a finite coordinate sum. -/
+private lemma sum_single_ofLp_mul (f : Fin n → ℝ) (c : Fin n) :
+    (∑ b : Fin n, (EuclideanSpace.single c 1 : ParamSpace n).ofLp b * f b) = f c := by
+  simp only [PiLp.ofLp_single, Pi.single_apply, ite_mul, one_mul, zero_mul,
+    Finset.sum_ite_eq', Finset.mem_univ, ↓reduceIte]
+
+/-- Algebraic collapse for the derivative of a pulled-back cubic form at the identity.
+
+The three basis vectors contribute Kronecker deltas, reducing the product-rule triple sum to
+the three derivative-of-the-Jacobian terms plus the derivative of the tensor coefficient. -/
+private lemma cubic_delta_product_rule_collapse
+    (i j k : Fin n) (P Q R : Fin n → ℝ) (S E : Fin n → Fin n → Fin n → ℝ) :
+    (∑ a : Fin n, ∑ b : Fin n, ∑ c : Fin n,
+      (((P a * (EuclideanSpace.single j 1 : ParamSpace n).ofLp b
+            + (EuclideanSpace.single i 1 : ParamSpace n).ofLp a * Q b)
+              * (EuclideanSpace.single k 1 : ParamSpace n).ofLp c
+          + (EuclideanSpace.single i 1 : ParamSpace n).ofLp a
+              * (EuclideanSpace.single j 1 : ParamSpace n).ofLp b * R c)
+        * E a b c
+        + (EuclideanSpace.single i 1 : ParamSpace n).ofLp a
+            * (EuclideanSpace.single j 1 : ParamSpace n).ofLp b
+            * (EuclideanSpace.single k 1 : ParamSpace n).ofLp c * S a b c))
+    = (∑ l : Fin n, E i l k * Q l) + (∑ l : Fin n, E l j k * P l)
+        + (∑ l : Fin n, E i j l * R l) + S i j k := by
+  have inner1 : ∀ a b : Fin n,
+      (∑ c : Fin n,
+        (((P a * (EuclideanSpace.single j 1 : ParamSpace n).ofLp b
+              + (EuclideanSpace.single i 1 : ParamSpace n).ofLp a * Q b)
+                * (EuclideanSpace.single k 1 : ParamSpace n).ofLp c
+            + (EuclideanSpace.single i 1 : ParamSpace n).ofLp a
+                * (EuclideanSpace.single j 1 : ParamSpace n).ofLp b * R c)
+          * E a b c
+          + (EuclideanSpace.single i 1 : ParamSpace n).ofLp a
+              * (EuclideanSpace.single j 1 : ParamSpace n).ofLp b
+              * (EuclideanSpace.single k 1 : ParamSpace n).ofLp c * S a b c))
+      = (P a * (EuclideanSpace.single j 1 : ParamSpace n).ofLp b
+            + (EuclideanSpace.single i 1 : ParamSpace n).ofLp a * Q b) * E a b k
+        + (EuclideanSpace.single i 1 : ParamSpace n).ofLp a
+            * (EuclideanSpace.single j 1 : ParamSpace n).ofLp b * (∑ c : Fin n, R c * E a b c)
+        + (EuclideanSpace.single i 1 : ParamSpace n).ofLp a
+            * (EuclideanSpace.single j 1 : ParamSpace n).ofLp b * S a b k := by
+    intro a b
+    have hsplit : ∀ c : Fin n,
+        (((P a * (EuclideanSpace.single j 1 : ParamSpace n).ofLp b
+              + (EuclideanSpace.single i 1 : ParamSpace n).ofLp a * Q b)
+                * (EuclideanSpace.single k 1 : ParamSpace n).ofLp c
+            + (EuclideanSpace.single i 1 : ParamSpace n).ofLp a
+                * (EuclideanSpace.single j 1 : ParamSpace n).ofLp b * R c)
+          * E a b c
+          + (EuclideanSpace.single i 1 : ParamSpace n).ofLp a
+              * (EuclideanSpace.single j 1 : ParamSpace n).ofLp b
+              * (EuclideanSpace.single k 1 : ParamSpace n).ofLp c * S a b c)
+        = (EuclideanSpace.single k 1 : ParamSpace n).ofLp c *
+            ((P a * (EuclideanSpace.single j 1 : ParamSpace n).ofLp b
+              + (EuclideanSpace.single i 1 : ParamSpace n).ofLp a * Q b) * E a b c)
+          + (EuclideanSpace.single i 1 : ParamSpace n).ofLp a
+              * (EuclideanSpace.single j 1 : ParamSpace n).ofLp b * (R c * E a b c)
+          + (EuclideanSpace.single k 1 : ParamSpace n).ofLp c *
+              ((EuclideanSpace.single i 1 : ParamSpace n).ofLp a
+                * (EuclideanSpace.single j 1 : ParamSpace n).ofLp b * S a b c) :=
+      fun c => by ring
+    refine (Finset.sum_congr rfl fun c _ => hsplit c).trans ?_
+    rw [Finset.sum_add_distrib, Finset.sum_add_distrib,
+      sum_single_ofLp_mul (fun c => (P a * (EuclideanSpace.single j 1 : ParamSpace n).ofLp b
+        + (EuclideanSpace.single i 1 : ParamSpace n).ofLp a * Q b) * E a b c) k,
+      ← Finset.mul_sum,
+      sum_single_ofLp_mul (fun c => (EuclideanSpace.single i 1 : ParamSpace n).ofLp a
+        * (EuclideanSpace.single j 1 : ParamSpace n).ofLp b * S a b c) k]
+  have inner2 : ∀ a : Fin n,
+      (∑ b : Fin n,
+        ((P a * (EuclideanSpace.single j 1 : ParamSpace n).ofLp b
+            + (EuclideanSpace.single i 1 : ParamSpace n).ofLp a * Q b) * E a b k
+          + (EuclideanSpace.single i 1 : ParamSpace n).ofLp a
+              * (EuclideanSpace.single j 1 : ParamSpace n).ofLp b * (∑ c : Fin n, R c * E a b c)
+          + (EuclideanSpace.single i 1 : ParamSpace n).ofLp a
+              * (EuclideanSpace.single j 1 : ParamSpace n).ofLp b * S a b k))
+      = P a * E a j k
+        + (EuclideanSpace.single i 1 : ParamSpace n).ofLp a * (∑ b : Fin n, Q b * E a b k)
+        + (EuclideanSpace.single i 1 : ParamSpace n).ofLp a * (∑ c : Fin n, R c * E a j c)
+        + (EuclideanSpace.single i 1 : ParamSpace n).ofLp a * S a j k := by
+    intro a
+    have hsplit2 : ∀ b : Fin n,
+        ((P a * (EuclideanSpace.single j 1 : ParamSpace n).ofLp b
+            + (EuclideanSpace.single i 1 : ParamSpace n).ofLp a * Q b) * E a b k
+          + (EuclideanSpace.single i 1 : ParamSpace n).ofLp a
+              * (EuclideanSpace.single j 1 : ParamSpace n).ofLp b * (∑ c : Fin n, R c * E a b c)
+          + (EuclideanSpace.single i 1 : ParamSpace n).ofLp a
+              * (EuclideanSpace.single j 1 : ParamSpace n).ofLp b * S a b k)
+        = (EuclideanSpace.single j 1 : ParamSpace n).ofLp b * (P a * E a b k)
+          + (EuclideanSpace.single i 1 : ParamSpace n).ofLp a * (Q b * E a b k)
+          + (EuclideanSpace.single j 1 : ParamSpace n).ofLp b *
+              ((EuclideanSpace.single i 1 : ParamSpace n).ofLp a * (∑ c : Fin n, R c * E a b c))
+          + (EuclideanSpace.single j 1 : ParamSpace n).ofLp b *
+              ((EuclideanSpace.single i 1 : ParamSpace n).ofLp a * S a b k) :=
+      fun b => by ring
+    refine (Finset.sum_congr rfl fun b _ => hsplit2 b).trans ?_
+    rw [Finset.sum_add_distrib, Finset.sum_add_distrib, Finset.sum_add_distrib,
+      sum_single_ofLp_mul (fun b => P a * E a b k) j,
+      ← Finset.mul_sum,
+      sum_single_ofLp_mul (fun b => (EuclideanSpace.single i 1 : ParamSpace n).ofLp a
+        * (∑ c : Fin n, R c * E a b c)) j,
+      sum_single_ofLp_mul (fun b => (EuclideanSpace.single i 1 : ParamSpace n).ofLp a
+        * S a b k) j]
+  refine (Finset.sum_congr rfl fun a _ =>
+    ((Finset.sum_congr rfl fun b _ => inner1 a b).trans (inner2 a))).trans ?_
+  rw [Finset.sum_add_distrib, Finset.sum_add_distrib, Finset.sum_add_distrib,
+    sum_single_ofLp_mul (fun a => ∑ b : Fin n, Q b * E a b k) i,
+    sum_single_ofLp_mul (fun a => ∑ c : Fin n, R c * E a j c) i,
+    sum_single_ofLp_mul (fun a => S a j k) i,
+    show (∑ a : Fin n, P a * E a j k) = ∑ l : Fin n, E l j k * P l from
+      Finset.sum_congr rfl fun l _ => mul_comm _ _,
+    show (∑ b : Fin n, Q b * E i b k) = ∑ l : Fin n, E i l k * Q l from
+      Finset.sum_congr rfl fun l _ => mul_comm _ _,
+    show (∑ c : Fin n, R c * E i j c) = ∑ l : Fin n, E i j l * R l from
+      Finset.sum_congr rfl fun l _ => mul_comm _ _]
+  ring
 
 /-
   Strategy for the cubic expansion (mirrors `killing_expansion`):
@@ -252,35 +398,19 @@ private lemma DivergencePreservingFamily.cubic_expansion
       fderiv ℝ (F.φ s) θ v =
       fderiv ℝ (Function.uncurry F.φ) (s, θ) ((0:ℝ), v) := by
     intro s v
-    have hmk : HasFDerivAt (fun θ'' : ParamSpace n => ((s, θ'') : ℝ × ParamSpace n))
-        ((0 : ParamSpace n →L[ℝ] ℝ).prod (ContinuousLinearMap.id ℝ (ParamSpace n))) θ :=
-      (hasFDerivAt_const s θ).prodMk (hasFDerivAt_id θ)
-    have hcomp : HasFDerivAt (F.φ s)
-        ((fderiv ℝ (Function.uncurry F.φ) (s, θ)).comp
-          ((0 : ParamSpace n →L[ℝ] ℝ).prod (ContinuousLinearMap.id ℝ (ParamSpace n)))) θ :=
-      (hΦd (s, θ)).comp θ hmk
-    rw [hcomp.fderiv]
-    simp [ContinuousLinearMap.comp_apply, ContinuousLinearMap.prod_apply,
-      ContinuousLinearMap.zero_apply, ContinuousLinearMap.id_apply]
+    exact DivergencePreservingFamily.fderiv_phi_eq_fderiv_uncurry
+      (M := M) F s (θ := θ) v
   -- t-slice at any base point: X(θ') = dΦ(0,θ')·(1,0)
   have hgen : ∀ θ' : ParamSpace n,
       F.generator θ' =
       fderiv ℝ (Function.uncurry F.φ) ((0:ℝ), θ') ((1:ℝ), (0:ParamSpace n)) := by
     intro θ'
-    have hline' : HasDerivAt (fun t : ℝ => ((t, θ') : ℝ × ParamSpace n))
-        ((1:ℝ), (0:ParamSpace n)) 0 :=
-      (hasDerivAt_id 0).prodMk (hasDerivAt_const 0 θ')
-    have h := (hΦd ((0:ℝ), θ')).comp_hasDerivAt 0 hline'
-    have h2 : deriv (fun t => F.φ t θ') 0 =
-        fderiv ℝ (Function.uncurry F.φ) ((0:ℝ), θ') ((1:ℝ), (0:ParamSpace n)) :=
-      h.deriv
-    show fderiv ℝ (fun t => F.φ t θ') 0 1 =
-      fderiv ℝ (Function.uncurry F.φ) ((0:ℝ), θ') ((1:ℝ), (0:ParamSpace n))
-    rw [fderiv_apply_one_eq_deriv]; exact h2
+    exact congr_fun
+      (DivergencePreservingFamily.generator_eq_fderiv_uncurry (M := M) F) θ'
   have hgen_eq : (fun θ' : ParamSpace n => F.generator θ') =
       fun θ' : ParamSpace n =>
         fderiv ℝ (Function.uncurry F.φ) ((0:ℝ), θ') ((1:ℝ), (0:ParamSpace n)) :=
-    funext hgen
+    DivergencePreservingFamily.generator_eq_fderiv_uncurry (M := M) F
   -- ════════════════════════════════════════════════════════════════
   -- §2. The mixed second derivatives, both ways round
   -- ════════════════════════════════════════════════════════════════
@@ -364,134 +494,7 @@ private lemma DivergencePreservingFamily.cubic_expansion
       exact (hC a b c).hasFDerivAt
     exact h1.comp_hasDerivAt 0 hflow
   -- ════════════════════════════════════════════════════════════════
-  -- §4. Scalar helpers: basis expansion and δ-collapse
-  -- ════════════════════════════════════════════════════════════════
-  have hlinR : ∀ (L : ParamSpace n →L[ℝ] ℝ) (x : ParamSpace n),
-      L x = ∑ k : Fin n, x.ofLp k * L (EuclideanSpace.single k 1) := by
-    intro L x
-    have hbasis : x = ∑ k : Fin n, x.ofLp k • EuclideanSpace.single k 1 := by
-      ext p; simp only [WithLp.ofLp_sum, WithLp.ofLp_smul,
-        PiLp.ofLp_single, Finset.sum_apply, Pi.smul_apply, smul_eq_mul,
-        Pi.single_apply, mul_ite, mul_one, mul_zero, Finset.sum_ite_eq,
-        Finset.mem_univ, ↓reduceIte]
-    conv_lhs => rw [hbasis, map_sum]
-    simp only [map_smul, smul_eq_mul]
-  have hcollapse : ∀ (f : Fin n → ℝ) (c : Fin n),
-      (∑ b : Fin n, (EuclideanSpace.single c 1).ofLp b * f b) = f c := by
-    intro f c
-    simp only [PiLp.ofLp_single, Pi.single_apply, ite_mul, one_mul, zero_mul,
-      Finset.sum_ite_eq', Finset.mem_univ, ↓reduceIte]
-  -- the abstract product-rule-with-deltas collapse, three levels deep
-  have halg : ∀ (P Q R : Fin n → ℝ) (S E : Fin n → Fin n → Fin n → ℝ),
-      (∑ a : Fin n, ∑ b : Fin n, ∑ c : Fin n,
-        (((P a * (EuclideanSpace.single j 1).ofLp b
-              + (EuclideanSpace.single i 1).ofLp a * Q b)
-                * (EuclideanSpace.single k 1).ofLp c
-            + (EuclideanSpace.single i 1).ofLp a
-                * (EuclideanSpace.single j 1).ofLp b * R c)
-          * E a b c
-          + (EuclideanSpace.single i 1).ofLp a
-              * (EuclideanSpace.single j 1).ofLp b
-              * (EuclideanSpace.single k 1).ofLp c * S a b c))
-      = (∑ l : Fin n, E i l k * Q l) + (∑ l : Fin n, E l j k * P l)
-          + (∑ l : Fin n, E i j l * R l) + S i j k := by
-    intro P Q R S E
-    -- collapse the innermost (c) sum
-    have inner1 : ∀ a b : Fin n,
-        (∑ c : Fin n,
-          (((P a * (EuclideanSpace.single j 1).ofLp b
-                + (EuclideanSpace.single i 1).ofLp a * Q b)
-                  * (EuclideanSpace.single k 1).ofLp c
-              + (EuclideanSpace.single i 1).ofLp a
-                  * (EuclideanSpace.single j 1).ofLp b * R c)
-            * E a b c
-            + (EuclideanSpace.single i 1).ofLp a
-                * (EuclideanSpace.single j 1).ofLp b
-                * (EuclideanSpace.single k 1).ofLp c * S a b c))
-        = (P a * (EuclideanSpace.single j 1).ofLp b
-              + (EuclideanSpace.single i 1).ofLp a * Q b) * E a b k
-          + (EuclideanSpace.single i 1).ofLp a
-              * (EuclideanSpace.single j 1).ofLp b * (∑ c : Fin n, R c * E a b c)
-          + (EuclideanSpace.single i 1).ofLp a
-              * (EuclideanSpace.single j 1).ofLp b * S a b k := by
-      intro a b
-      have hsplit : ∀ c : Fin n,
-          (((P a * (EuclideanSpace.single j 1).ofLp b
-                + (EuclideanSpace.single i 1).ofLp a * Q b)
-                  * (EuclideanSpace.single k 1).ofLp c
-              + (EuclideanSpace.single i 1).ofLp a
-                  * (EuclideanSpace.single j 1).ofLp b * R c)
-            * E a b c
-            + (EuclideanSpace.single i 1).ofLp a
-                * (EuclideanSpace.single j 1).ofLp b
-                * (EuclideanSpace.single k 1).ofLp c * S a b c)
-          = (EuclideanSpace.single k 1).ofLp c *
-              ((P a * (EuclideanSpace.single j 1).ofLp b
-                + (EuclideanSpace.single i 1).ofLp a * Q b) * E a b c)
-            + (EuclideanSpace.single i 1).ofLp a
-                * (EuclideanSpace.single j 1).ofLp b * (R c * E a b c)
-            + (EuclideanSpace.single k 1).ofLp c *
-                ((EuclideanSpace.single i 1).ofLp a
-                  * (EuclideanSpace.single j 1).ofLp b * S a b c) :=
-        fun c => by ring
-      refine (Finset.sum_congr rfl fun c _ => hsplit c).trans ?_
-      rw [Finset.sum_add_distrib, Finset.sum_add_distrib,
-        hcollapse (fun c => (P a * (EuclideanSpace.single j 1).ofLp b
-          + (EuclideanSpace.single i 1).ofLp a * Q b) * E a b c) k,
-        ← Finset.mul_sum,
-        hcollapse (fun c => (EuclideanSpace.single i 1).ofLp a
-          * (EuclideanSpace.single j 1).ofLp b * S a b c) k]
-    -- collapse the middle (b) sum
-    have inner2 : ∀ a : Fin n,
-        (∑ b : Fin n,
-          ((P a * (EuclideanSpace.single j 1).ofLp b
-              + (EuclideanSpace.single i 1).ofLp a * Q b) * E a b k
-            + (EuclideanSpace.single i 1).ofLp a
-                * (EuclideanSpace.single j 1).ofLp b * (∑ c : Fin n, R c * E a b c)
-            + (EuclideanSpace.single i 1).ofLp a
-                * (EuclideanSpace.single j 1).ofLp b * S a b k))
-        = P a * E a j k
-          + (EuclideanSpace.single i 1).ofLp a * (∑ b : Fin n, Q b * E a b k)
-          + (EuclideanSpace.single i 1).ofLp a * (∑ c : Fin n, R c * E a j c)
-          + (EuclideanSpace.single i 1).ofLp a * S a j k := by
-      intro a
-      have hsplit2 : ∀ b : Fin n,
-          ((P a * (EuclideanSpace.single j 1).ofLp b
-              + (EuclideanSpace.single i 1).ofLp a * Q b) * E a b k
-            + (EuclideanSpace.single i 1).ofLp a
-                * (EuclideanSpace.single j 1).ofLp b * (∑ c : Fin n, R c * E a b c)
-            + (EuclideanSpace.single i 1).ofLp a
-                * (EuclideanSpace.single j 1).ofLp b * S a b k)
-          = (EuclideanSpace.single j 1).ofLp b * (P a * E a b k)
-            + (EuclideanSpace.single i 1).ofLp a * (Q b * E a b k)
-            + (EuclideanSpace.single j 1).ofLp b *
-                ((EuclideanSpace.single i 1).ofLp a * (∑ c : Fin n, R c * E a b c))
-            + (EuclideanSpace.single j 1).ofLp b *
-                ((EuclideanSpace.single i 1).ofLp a * S a b k) :=
-        fun b => by ring
-      refine (Finset.sum_congr rfl fun b _ => hsplit2 b).trans ?_
-      rw [Finset.sum_add_distrib, Finset.sum_add_distrib, Finset.sum_add_distrib,
-        hcollapse (fun b => P a * E a b k) j,
-        ← Finset.mul_sum,
-        hcollapse (fun b => (EuclideanSpace.single i 1).ofLp a
-          * (∑ c : Fin n, R c * E a b c)) j,
-        hcollapse (fun b => (EuclideanSpace.single i 1).ofLp a * S a b k) j]
-    -- collapse the outer (a) sum and reorder
-    refine (Finset.sum_congr rfl fun a _ =>
-      ((Finset.sum_congr rfl fun b _ => inner1 a b).trans (inner2 a))).trans ?_
-    rw [Finset.sum_add_distrib, Finset.sum_add_distrib, Finset.sum_add_distrib,
-      hcollapse (fun a => ∑ b : Fin n, Q b * E a b k) i,
-      hcollapse (fun a => ∑ c : Fin n, R c * E a j c) i,
-      hcollapse (fun a => S a j k) i,
-      show (∑ a : Fin n, P a * E a j k) = ∑ l : Fin n, E l j k * P l from
-        Finset.sum_congr rfl fun l _ => mul_comm _ _,
-      show (∑ b : Fin n, Q b * E i b k) = ∑ l : Fin n, E i l k * Q l from
-        Finset.sum_congr rfl fun l _ => mul_comm _ _,
-      show (∑ c : Fin n, R c * E i j c) = ∑ l : Fin n, E i j l * R l from
-        Finset.sum_congr rfl fun l _ => mul_comm _ _]
-    ring
-  -- ════════════════════════════════════════════════════════════════
-  -- §5. The function in canonical form, its derivative, and assembly
+  -- §4. Canonical-form derivative and assembly
   -- ════════════════════════════════════════════════════════════════
   -- expand cubicTrilin into the triple sum, at every t (definitional)
   have hcube : ∀ s : ℝ,
@@ -566,8 +569,9 @@ private lemma DivergencePreservingFamily.cubic_expansion
   -- assemble
   rw [hfun, fderiv_apply_one_eq_deriv, key.deriv, hA0 (EuclideanSpace.single i 1),
     hA0 (EuclideanSpace.single j 1), hA0 (EuclideanSpace.single k 1), F.identity θ]
-  refine (halg _ _ _ _ _).trans ?_
-  rw [hlinR (fderiv ℝ (fun θ' => M.cubicTensor θ' i j k) θ) (F.generator θ),
+  refine (cubic_delta_product_rule_collapse i j k _ _ _ _ _).trans ?_
+  rw [continuousLinearMap_apply_eq_sum_single
+      (fderiv ℝ (fun θ' => M.cubicTensor θ' i j k) θ) (F.generator θ),
     show (∑ l : Fin n, (F.generator θ).ofLp l *
         fderiv ℝ (fun θ' => M.cubicTensor θ' i j k) θ (EuclideanSpace.single l 1)) =
       ∑ l : Fin n, F.generator θ l *
