@@ -36,7 +36,7 @@ i.e. `(A − z)(Φ(f_z)φ) = φ`, and `solution_unique` identifies `Φ(f_z)φ` w
 ## Downstream (Stone's formula)
 
 `im_inner_resolvent_diag` is the Poisson-kernel input: with `S_ε` the arctan-averaged
-symbol (`Spectra.Arctan`), one scalar Fubini on `[a,b] × μ_ξ` gives
+symbol (`Spectra.Kernels`), one scalar Fubini on `[a,b] × μ_ξ` gives
 `⟪ξ, Φ(S_ε)ξ⟫ = (1/π)∫_a^b Im⟪ξ, R(λ+iε)ξ⟫ dλ`, and
 `tendsto_spectralCalculus_apply` along `𝓝[>] 0` closes the limit.
 

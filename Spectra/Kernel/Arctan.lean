@@ -27,7 +27,7 @@ resolvent, Lorentzian, approximate identity, Poisson kernel
 -/
 open Filter Topology
 open Spectra.Fourier
-namespace Spectra.Arctan
+namespace Spectra.Kernels
 
 /-- Arctan antiderivative for the Lorentzian kernel.
 `∫_a^b ε/((s-t)² + ε²) dt = arctan((b-s)/ε) - arctan((a-s)/ε)`
@@ -192,4 +192,4 @@ lemma arctan_kernel_bound (a b s ε : ℝ) (_hε : ε > 0) :
       ≤ (1 / Real.pi) * Real.pi := by apply mul_le_mul_of_nonneg_left h_diff; positivity
     _ = 1 := by field_simp
 
-end Spectra.Arctan
+end Spectra.Kernels

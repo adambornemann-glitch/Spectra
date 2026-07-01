@@ -33,7 +33,8 @@ namespace Spectra.Kernels
 This is the key estimate: for `z` off the real axis, the kernel `(s - z)⁻¹`
 is uniformly bounded in `s ∈ ℝ`, with bound depending only on `|Im(z)|`. -/
 lemma resolvent_integrand_bound (z : ℂ) (hz : z.im ≠ 0) (s : ℝ) :
-    ‖((s : ℂ) - z)⁻¹‖ ≤ 1 / |z.im| := by
+    ‖resolvent_integrand z s‖ ≤ 1 / |z.im| := by
+  unfold resolvent_integrand
   have h_im : ((s : ℂ) - z).im = -z.im := by simp
   have h_norm_ge : ‖(s : ℂ) - z‖ ≥ |z.im| := by
     calc ‖(s : ℂ) - z‖

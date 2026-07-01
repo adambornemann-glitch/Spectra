@@ -55,7 +55,6 @@ resolvent, Lorentzian, approximate identity, Poisson kernel
 -/
 open Complex MeasureTheory Filter Topology TopologicalSpace
 open Spectra.Fourier
-open Spectra.Arctan
 namespace Spectra.Kernels
 
 /-- The Lorentzian kernel is non-negative. -/

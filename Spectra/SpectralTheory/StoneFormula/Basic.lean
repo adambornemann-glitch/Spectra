@@ -37,7 +37,7 @@ open Complex MeasureTheory Filter Topology
 open scoped InnerProductSpace
 open Spectra.Borel
 open SpectralMeasure
-open Spectra.Arctan
+open Spectra.Kernels
 open Spectra.QuantumMechanics.SpectralTheory
 open Spectra.OneParameterUnitaryGroup
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
