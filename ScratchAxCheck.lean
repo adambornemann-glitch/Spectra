@@ -1,4 +1,0 @@
-import Spectra.PositiveDefinite.Unitary
-#print axioms Spectra.PositiveDefinite.unitaryCorrelation_zero
-#print axioms Spectra.PositiveDefinite.unitaryCorrelation_neg
-#print axioms Spectra.PositiveDefinite.unitaryCorrelation_positive_definite

@@ -33,7 +33,7 @@ namespace Spectra.Cayley
 noncomputable def cayleyTransform
     {A : H →ₗ.[ℂ] H} (hsym : A.IsFormalAdjoint A)
     (hplus : ∀ φ : H, ∃ ψ : A.domain, A ψ + I • (ψ : H) = φ) : H →L[ℂ] H :=
-  ContinuousLinearMap.id ℂ H - (2 * I) • resolvent_at_neg_i hsym hplus
+  ContinuousLinearMap.id ℂ H - (2 * I) • resolventAtNegI hsym hplus
 
 /-- The defining action: `C (A+iI)ψ = (A−iI)ψ`. Uses only the left-inverse + linearity. -/
 lemma cayleyTransform_apply_resolvent

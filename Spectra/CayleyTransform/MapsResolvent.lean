@@ -17,7 +17,7 @@ lemma resolvent_at_neg_i_eq_cfc
     {A : H →ₗ.[ℂ] H} (hsym : A.IsFormalAdjoint A)
     (hplus  : ∀ φ : H, ∃ ψ : A.domain, A ψ + I • (ψ : H) = φ)
     (hminus : ∀ φ : H, ∃ ψ : A.domain, A ψ - I • (ψ : H) = φ) :
-    resolvent_at_neg_i hsym hplus
+    resolventAtNegI hsym hplus
       = cfc (fun w : ℂ => (1 - w) / (2 * I)) (cayleyTransform hsym hplus) := by
   -- normality puts `cfc` in business; `2i` is a unit
   have hn : IsStarNormal (cayleyTransform hsym hplus) :=
@@ -25,7 +25,7 @@ lemma resolvent_at_neg_i_eq_cfc
   have h2I : (2 * I : ℂ) ≠ 0 := mul_ne_zero (by norm_num) Complex.I_ne_zero
   -- the transform, with the ring unit `1` in place of `id`
   have hcay : cayleyTransform hsym hplus
-      = (1 : H →L[ℂ] H) - (2 * I) • resolvent_at_neg_i hsym hplus := rfl
+      = (1 : H →L[ℂ] H) - (2 * I) • resolventAtNegI hsym hplus := rfl
   -- `cfc` of the affine pullback, by the algebra-hom laws
   have key : cfc (fun w : ℂ => (1 - w) / (2 * I)) (cayleyTransform hsym hplus)
       = (2 * I)⁻¹ • ((1 : H →L[ℂ] H) - cayleyTransform hsym hplus) := by

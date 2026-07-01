@@ -2,7 +2,7 @@
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
-File: Spectra/SoboleveSpaces/Submodule.lean
+File: Spectra/SobolevSpaces/Submodule.lean
 -/
 import Spectra.SobolevSpaces.Operations
 import Mathlib.Analysis.Calculus.FDeriv.Symmetric

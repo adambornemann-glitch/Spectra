@@ -2,11 +2,37 @@
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
-File: Spectra/SoboleveSpaces/Density.lean
+File: Spectra/SobolevSpaces/Density.lean
 -/
 import Spectra.SobolevSpaces.WeakDerivative
 import Mathlib.MeasureTheory.Function.ContinuousMapDense
+/-!
+# Density of Test Functions in L²(ℝ³)
 
+This file proves the density chain `L² ← C_c ← C_c^∞`: continuous compactly supported functions
+are dense in `L²(ℝ³)`, and smooth compactly supported functions are in turn dense among those,
+so `C_c^∞(ℝ³)` is dense in `L²(ℝ³)`.
+
+## Main statements
+
+* `dense_continuous_compactSupport_L2`: continuous compactly supported functions are dense in `L²`.
+* `smooth_approx_continuous_compactSupport`: a continuous compactly supported function is
+  approximated, in `L²`, by a smooth compactly supported one.
+* `dense_test_functions_L2`: `C_c^∞(ℝ³)` is dense in `L²(ℝ³)` — the capstone density result.
+
+## Implementation notes
+
+The chain factors as `L² ←ε/2— C_c ←ε/2— C_c^∞`: `dense_continuous_compactSupport_L2` supplies
+the first ε/2 approximation (via Mathlib's `MemLp.exists_hasCompactSupport_eLpNorm_sub_le`), and
+`smooth_approx_continuous_compactSupport` supplies the second, via mollification
+(`exists_smooth_uniform_approx`, a uniform-continuity + convolution argument) combined with the
+elementary `L²`-norm bound `eLpNorm_le_of_compactSupport_bound`.
+
+## References
+
+* [Adams, Fournier, *Sobolev Spaces*][adams2003]
+* [Lieb, Loss, *Analysis*][lieb2001], Chapter 2.
+-/
 open MeasureTheory Complex
 open scoped ENNReal Pointwise ContDiff
 
@@ -49,7 +75,6 @@ lemma dense_continuous_compactSupport_L2 :
             ENNReal.ofReal_ne_top |>.mpr h1
       _ < ε := by rw [ENNReal.toReal_ofReal (by linarith)]; linarith
   · exact ⟨φ, hcont, hsupp, hmem.coeFn_toLp⟩
-
 
 /-- **Core mollification**: a continuous compactly supported function on ℝ³
     can be uniformly approximated by smooth compactly supported functions -/
@@ -113,7 +138,8 @@ private lemma exists_smooth_uniform_approx
             simp; exact le_of_lt hradius), by simp⟩
         calc ‖φ y‖ = ‖φ y - φ x‖ := by rw [hφx, sub_zero]
           _ = ‖φ x - φ y‖ := by rw [norm_sub_rev]
-          _ ≤ δ / 2 := by rw [← dist_eq_norm]; exact le_of_lt (huc_spec x hx₂ y hy₂ (lt_trans hxy hr_ε))
+          _ ≤ δ / 2 := by
+              rw [← dist_eq_norm]; exact le_of_lt (huc_spec x hx₂ y hy₂ (lt_trans hxy hr_ε))
       · -- Both ∉ K: φ(y) = 0
         have hφy : φ y = 0 := by
           have : y ∉ Function.support φ := fun h => hyK (subset_tsupport φ h)
@@ -129,8 +155,10 @@ private lemma exists_smooth_uniform_approx
     hcont_re.aestronglyMeasurable
   have hmeas_im : AEStronglyMeasurable φ_im (volume : Measure R3) :=
     hcont_im.aestronglyMeasurable
-  set ψ_re := MeasureTheory.convolution (ρ.normed volume) φ_re (ContinuousLinearMap.lsmul ℝ ℝ) volume
-  set ψ_im := MeasureTheory.convolution (ρ.normed volume) φ_im (ContinuousLinearMap.lsmul ℝ ℝ) volume
+  set ψ_re :=
+    MeasureTheory.convolution (ρ.normed volume) φ_re (ContinuousLinearMap.lsmul ℝ ℝ) volume
+  set ψ_im :=
+    MeasureTheory.convolution (ρ.normed volume) φ_im (ContinuousLinearMap.lsmul ℝ ℝ) volume
   set ψ : R3 → ℂ := fun x => ⟨ψ_re x, ψ_im x⟩
   refine ⟨ψ, ?smooth, ?compact_supp, ?supp_bound, ?unif_bound⟩
   case smooth =>
@@ -278,13 +306,11 @@ private lemma exists_smooth_uniform_approx
           · exact RCLike.ofReal_le_ofReal.mp him
       _ = δ := add_halves δ
 
-
 /-- The eLpNorm of a compactly supported bounded function is controlled by
     the sup-norm times a power of the support measure  -/
 lemma eLpNorm_le_of_compactSupport_bound
     (f : R3 → ℂ) (hf_supp : HasCompactSupport f)
-    (_hf_meas : AEStronglyMeasurable f (volume : Measure R3))
-    (C : ℝ) (_hC : 0 ≤ C) (hfC : ∀ x, ‖f x‖ ≤ C) :
+    (C : ℝ) (hfC : ∀ x, ‖f x‖ ≤ C) :
     eLpNorm f 2 (volume : Measure R3) ≤
       ENNReal.ofReal C *
         ((volume : Measure R3) (tsupport f)) ^ ((1 : ℝ) / 2) := by
@@ -312,7 +338,6 @@ lemma eLpNorm_le_of_compactSupport_bound
         congr 1
         simp [ENNReal.toReal_ofNat]
 
-
 /-- Smooth compactly supported functions approximate continuous compactly
     supported functions in L² -/
 lemma smooth_approx_continuous_compactSupport
@@ -320,8 +345,7 @@ lemma smooth_approx_continuous_compactSupport
     (hφ : MemLp φ 2 (volume : Measure R3))
     {ε : ℝ} (hε : 0 < ε) :
     ∃ (ψ : R3 → ℂ), ContDiff ℝ ∞ ψ ∧ HasCompactSupport ψ ∧
-      ∀ (hψ : MemLp ψ 2 (volume : Measure R3)),
-        ‖hφ.toLp φ - hψ.toLp ψ‖ < ε := by
+      ∃ hψ : MemLp ψ 2 (volume : Measure R3), ‖hφ.toLp φ - hψ.toLp ψ‖ < ε := by
   haveI : IsFiniteMeasureOnCompacts (volume : Measure R3) := by
     infer_instance
   set K₀ := tsupport φ + Metric.closedBall (0 : R3) 1
@@ -347,7 +371,9 @@ lemma smooth_approx_continuous_compactSupport
           nlinarith
   have h_approx := exists_smooth_uniform_approx φ hcont hsupp δ hδ_pos (1 : ℝ) (by norm_num)
   obtain ⟨ψ, hψ_smooth, hψ_supp, hψ_tsupport, hψ_close⟩ := h_approx
-  refine ⟨ψ, hψ_smooth, hψ_supp, fun hψ_Lp => ?_⟩
+  have hψ_Lp : MemLp ψ 2 (volume : Measure R3) :=
+    memLp_of_smooth_compactSupport ψ hψ_smooth hψ_supp
+  refine ⟨ψ, hψ_smooth, hψ_supp, hψ_Lp, ?_⟩
   have hsupp_diff : HasCompactSupport (ψ - φ) := hψ_supp.sub hsupp
   have hsupp_sub_K₀ : tsupport (ψ - φ) ⊆ K₀ := by
     have h_support : Function.support (ψ - φ) ⊆ tsupport ψ ∪ tsupport φ := by
@@ -367,10 +393,8 @@ lemma smooth_approx_continuous_compactSupport
       show x ∈ tsupport φ + Metric.closedBall (0 : R3) 1 by
         rw [show x = x + 0 from (add_zero x).symm]
         exact Set.add_mem_add hx (Metric.mem_closedBall_self one_pos.le)))
-  have hmeas_diff : AEStronglyMeasurable (ψ - φ) (volume : Measure R3) :=
-    hψ_Lp.aestronglyMeasurable.sub hφ.aestronglyMeasurable
-  have h_eLpNorm := eLpNorm_le_of_compactSupport_bound (ψ - φ) hsupp_diff hmeas_diff
-    δ hδ_pos.le (fun x => by rw [Pi.sub_apply]; exact hψ_close x)
+  have h_eLpNorm := eLpNorm_le_of_compactSupport_bound (ψ - φ) hsupp_diff
+    δ (fun x => by rw [Pi.sub_apply]; exact hψ_close x)
   have h_meas_le : (volume : Measure R3) (tsupport (ψ - φ)) ≤ (volume : Measure R3) K₀ :=
     measure_mono hsupp_sub_K₀
   have h_chain : eLpNorm (ψ - φ) 2 volume ≤
@@ -396,7 +420,6 @@ lemma smooth_approx_continuous_compactSupport
         exact (Real.sqrt_eq_rpow M).symm
     _ < ε := hδM_lt_ε
 
-
 /-- **Density**: C_c^∞(ℝ³) is dense in L²(ℝ³).
     Chain: L² ←ε/2— C_c ←ε/2— C_c^∞. -/
 lemma dense_test_functions_L2 :
@@ -418,22 +441,18 @@ lemma dense_test_functions_L2 :
   -- Step 3: g₁ = toLp φ₁ (both represent φ₁ a.e., hence equal as Lp elements)
   have hg₁_eq : g₁ = hφ₁_Lp.toLp φ₁ :=
     Subtype.ext (AEEqFun.ext (hae₁.trans hφ₁_Lp.coeFn_toLp.symm))
-  -- Step 4: smooth approximation of φ₁ (within ε/2)
-  obtain ⟨ψ, hψ_smooth, hψ_supp, hψ_close⟩ :=
+  -- Step 4: smooth approximation of φ₁ (within ε/2); ψ ∈ L² comes bundled with the bound.
+  obtain ⟨ψ, hψ_smooth, hψ_supp, hψ_Lp, hψ_close⟩ :=
     smooth_approx_continuous_compactSupport φ₁ hcont₁ hsupp₁ hφ₁_Lp hε2
-  -- Step 5: ψ ∈ L²
-  have hψ_Lp : MemLp ψ 2 (volume : Measure R3) :=
-    memLp_of_smooth_compactSupport ψ hψ_smooth hψ_supp
-  -- Step 6: toLp ψ is in the target set and ε-close to g
+  -- Step 5: toLp ψ is in the target set and ε-close to g
   exact ⟨hψ_Lp.toLp ψ,
     calc dist (hψ_Lp.toLp ψ) g
         ≤ dist (hψ_Lp.toLp ψ) g₁ + dist g₁ g := dist_triangle _ _ _
       _ < ε / 2 + ε / 2 :=
           add_lt_add
-            (by rw [hg₁_eq, dist_comm, dist_eq_norm]; exact hψ_close hψ_Lp)
+            (by rw [hg₁_eq, dist_comm, dist_eq_norm]; exact hψ_close)
             hg₁_dist
       _ = ε := add_halves ε,
     ⟨ψ, hψ_smooth, hψ_supp, hψ_Lp.coeFn_toLp⟩⟩
-
 
 end Spectra.Sobolev

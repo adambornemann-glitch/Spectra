@@ -6,77 +6,23 @@ Authors: Adam Bornemann
 import Spectra.Operator.Unitary.Basic
 import Mathlib.MeasureTheory.Measure.Haar.OfBasis
 /-!
-# Herglotz's Theorem and Scalar Spectral Measures for Unitary Operators
+# Integer powers of unitary operators
 
-This file constructs the **scalar spectral measure** `μ_ψ` for a bounded
-unitary operator `U` on a Hilbert space, via Herglotz's theorem on positive
-definite sequences.
+Integer powers `U^n` (`n : ℤ`) of a bounded operator `U` — `U^n` via the usual monoid power for
+`n ≥ 0`, `(U*)^|n|` via the adjoint for `n < 0` — together with the algebraic law
+`U^{m+n} = U^m · U^n` and the inner-product identity `⟨U^m ψ, U^n ψ⟩ = ⟨ψ, U^{n-m} ψ⟩` for
+unitary `U`. These feed directly into `PositiveDefinite/Unitary.lean`'s unitary autocorrelation
+sequence `c(n) = ⟨ψ, U^n ψ⟩`, the first step of that file's Herglotz-theorem construction.
 
-## Independence from Bochner and the CFC
+## Main definitions
 
-This construction is **completely independent** of:
-- Bochner's theorem
-- The continuous functional calculus (CFC)
-- Gelfand's theorem / C⋆-algebra theory
-- The Riesz–Markov representation theorem
+* `unitaryZpow`: `U^n` for `n : ℤ`.
 
-The only ingredients from Mathlib are:
-- Integer powers of bounded operators (algebra)
-- The unit circle `circle` and `expMapCircle` (topology)
-- Stone–Weierstrass on `circle` (approximation)
-- Weak-⋆ compactness of measures (Banach–Alaoglu)
-- Basic Fourier analysis on `𝕋`
+## Main results
 
-## Strategy
-
-1. Given unitary `U : H →L[ℂ] H` and `ψ : H`, define the sequence
-   `c(n) = ⟨ψ, U^n ψ⟩` for `n : ℤ`.
-
-2. Prove this sequence is **positive definite** on `ℤ`:
-   `∑_{j,k} conj(α_j) α_k c(k-j) ≥ 0` for all finite sequences `α`.
-
-3. Construct the **Fejér means**: measures `σ_N` on `𝕋` with density
-   `(1/2π) ∑_{|n|≤N} (1 - |n|/(N+1)) c(n) z^{-n}` w.r.t. Haar measure.
-
-4. Show the Fejér means are **positive** measures (key: the Fejér kernel
-   is non-negative, which follows from positive definiteness).
-
-5. Show the Fejér means have **uniformly bounded total mass** `= c(0) = ‖ψ‖²`.
-
-6. Extract a weak-⋆ convergent subsequence (Banach–Alaoglu) to obtain
-   the representing measure `μ_ψ`.
-
-7. Verify: `∫ z^n dμ_ψ = c(n)` for all `n : ℤ`.
-
-## The concrete trigonometric polynomial calculus
-
-For a trigonometric polynomial `p(z) = ∑_{k=-N}^{N} a_k z^k`, define
-`p(U) = ∑ a_k U^k`. This is a **concrete** functional calculus that requires
-no spectral theory — just addition and composition of bounded operators.
-
-The key multiplicativity formula
-  `∫ conj(p) · q dμ_ψ = ⟨p(U)ψ, q(U)ψ⟩`
-is proved by direct algebraic computation for trigonometric polynomials,
-then extended to all continuous functions via Stone–Weierstrass.
-
-## Main statements
-
-* `herglotzMeasure`: the scalar spectral measure `μ_ψ` on `𝕋`
-* `herglotzMeasure_fourier`: `∫ z^n dμ_ψ = ⟨ψ, U^n ψ⟩`
-* `herglotzMeasure_total`: `μ_ψ(𝕋) = ‖ψ‖²`
-* `herglotzMeasure_star_mul`: `∫ f̄g dμ_ψ = ⟨f(U)ψ, g(U)ψ⟩`
-
-## References
-
-* G. Herglotz, *Über Potenzreihen mit positivem, reellen Teil im
-  Einheitskreis*, Leipziger Berichte **63** (1911), 501–511
-* Reed & Simon, *Methods of Modern Mathematical Physics I*, §VII.1
-* W. Rudin, *Real and Complex Analysis*, §19.13
-
-## Tags
-
-Herglotz theorem, positive definite sequence, Fejér kernel,
-spectral measure, unitary operator
+* `unitaryZpow_add`: `U^{m+n} = U^m · U^n` for unitary `U`.
+* `unitaryZpow_inner_shift`: `⟨U^m ψ, U^n ψ⟩ = ⟨ψ, U^{n-m} ψ⟩` for unitary `U` — the identity
+  `PositiveDefinite/Unitary.lean` uses to relate `unitaryCorrelation` at shifted indices.
 -/
 open scoped InnerProductSpace
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]

@@ -5,6 +5,7 @@ Authors: Adam Bornemann
 Filename: Bochner/GNS/Representation/StronglyCont.lean
 -/
 import Spectra.Bochner.GNS.Representation.Lemmas
+import Spectra.Bochner.GNS.Representation.StronglyEx
 open Complex Finsupp Filter Topology
 open Spectra.PositiveDefinite
 namespace Spectra.Bochner.GNS
@@ -145,7 +146,12 @@ lemma completionTranslate_dist {f : ℝ → ℂ}
 
 
 /-- **Strong continuity**: for every ψ in the completion,
-    t ↦ completionTranslate t ψ is continuous. -/
+    t ↦ completionTranslate t ψ is continuous.
+
+    A direct instance of the generic 3ε extension `Spectra.Bochner.GNS.strong_continuity_extends`:
+    `completionTranslate` is norm-preserving (from `completionTranslate_dist`, specialized at `0`)
+    and continuous on the dense range of the quotient embedding
+    (`completionTranslate_continuous_on_dense`, via `mkQ`'s surjectivity). -/
 theorem completionTranslate_strong_continuous {f : ℝ → ℂ}
     (hPD : IsPositiveDefinite f) (hH : IsHermitian f) (hf : IsContinuous f) :
     letI : NormedAddCommGroup (GNSQuotient hPD hH) :=
@@ -163,44 +169,18 @@ theorem completionTranslate_strong_continuous {f : ℝ → ℂ}
     InnerProductSpace.ofCore (quotientCore hPD hH).toCore
   haveI : UniformContinuousConstSMul ℂ (GNSQuotient hPD hH) :=
     gnsQuotient_uniformContinuousConstSMul hPD hH
-  intro ψ
-  rw [continuous_iff_continuousAt]; intro t₀
-  rw [Metric.continuousAt_iff]; intro ε hε
-  -- Step 1: approximate ψ by ↑v
-  have hd := UniformSpace.Completion.denseRange_coe (α := GNSQuotient hPD hH)
-  obtain ⟨v, hv⟩ := hd.exists_dist_lt ψ (by positivity : (0 : ℝ) < ε / 3)
-  obtain ⟨α, rfl⟩ := Submodule.mkQ_surjective (pdNullSubmodule hPD hH) v
-  set w : UniformSpace.Completion (GNSQuotient hPD hH) :=
-    ↑((pdNullSubmodule hPD hH).mkQ α)
-  -- Step 2: from continuity on the dense set, get δ
-  have hcont_α := completionTranslate_continuous_on_dense hPD hH hf α
-  obtain ⟨δ, hδ, hδ_spec⟩ := Metric.continuousAt_iff.mp
-    hcont_α.continuousAt (ε / 3) (by positivity)
-  refine ⟨δ, hδ, @fun t ht => ?_⟩
-  -- Step 3: triangle inequality with isometry
-  calc dist (completionTranslate hPD hH t ψ) (completionTranslate hPD hH t₀ ψ)
-      ≤ dist (completionTranslate hPD hH t ψ) (completionTranslate hPD hH t w) +
-        dist (completionTranslate hPD hH t w) (completionTranslate hPD hH t₀ w) +
-        dist (completionTranslate hPD hH t₀ w) (completionTranslate hPD hH t₀ ψ) := by
-        have h1 := dist_triangle (completionTranslate hPD hH t ψ)
-          (completionTranslate hPD hH t w) (completionTranslate hPD hH t₀ ψ)
-        have h2 := dist_triangle (completionTranslate hPD hH t w)
-          (completionTranslate hPD hH t₀ w) (completionTranslate hPD hH t₀ ψ)
-        linarith
-    _ < ε / 3 + ε / 3 + ε / 3 := by
-        -- Term 1: dist(U(t)ψ, U(t)w) = dist(ψ, w) < ε/3 by isometry
-        have h1 : dist (completionTranslate hPD hH t ψ)
-            (completionTranslate hPD hH t w) < ε / 3 := by
-          rw [completionTranslate_dist hPD hH t ψ w]; exact hv
-        -- Term 2: dist(U(t)w, U(t₀)w) < ε/3 by continuity on dense set
-        have h2 : dist (completionTranslate hPD hH t w)
-            (completionTranslate hPD hH t₀ w) < ε / 3 :=
-          hδ_spec ht
-        -- Term 3: dist(U(t₀)w, U(t₀)ψ) = dist(w, ψ) < ε/3 by isometry
-        have h3 : dist (completionTranslate hPD hH t₀ w)
-            (completionTranslate hPD hH t₀ ψ) < ε / 3 := by
-          rw [completionTranslate_dist hPD hH t₀ w ψ, dist_comm]; exact hv
-        linarith
-    _ = ε := by ring
+  have hiso : ∀ (t : ℝ) (ψ : UniformSpace.Completion (GNSQuotient hPD hH)),
+      ‖completionTranslate hPD hH t ψ‖ = ‖ψ‖ := fun t ψ => by
+    have h := completionTranslate_dist hPD hH t ψ 0
+    rwa [map_zero, dist_zero_right, dist_zero_right] at h
+  exact Spectra.Bochner.GNS.strong_continuity_extends
+    (fun t => completionTranslate hPD hH t)
+    hiso
+    (Set.range ((↑) : GNSQuotient hPD hH → UniformSpace.Completion (GNSQuotient hPD hH)))
+    (UniformSpace.Completion.denseRange_coe (α := GNSQuotient hPD hH))
+    (by
+      rintro φ ⟨v, rfl⟩
+      obtain ⟨α, rfl⟩ := Submodule.mkQ_surjective (pdNullSubmodule hPD hH) v
+      exact completionTranslate_continuous_on_dense hPD hH hf α)
 
 end Spectra.Bochner.GNS

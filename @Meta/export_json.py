@@ -94,7 +94,11 @@ def parse_axiom_gate(repo: Path):
 
 def main() -> int:
     repo = M.find_repo_root()
-    sources = M.load_all(repo)
+    # Exclude experimental scratch files: they are not imported into `Spectra.lean`
+    # (not part of the built/gated library) and carry work-in-progress `sorry`s. The
+    # docs describe the actual library, which is sorry-free.
+    sources = [s for s in M.load_all(repo)
+               if "Scratch" not in M.module_of_path(s.path, repo).split(".")]
 
     files = []
     area_agg = defaultdict(lambda: {"files": 0, "lines": 0, "code": 0,

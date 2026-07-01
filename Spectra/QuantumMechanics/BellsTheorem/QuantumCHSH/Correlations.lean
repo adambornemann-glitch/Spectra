@@ -3,29 +3,57 @@ Copyright (c) 2025 Bell Theorem Formalization Project
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Ported from Isabelle/HOL formalization by Echenim & Mhalla
 Ported by: Adam Bornemann
+
+# CHSH Correlations for the Bell State
+
+The four singlet-state correlators `E(Aᵢ, Bⱼ) = Tr(Aᵢ Bⱼ ρ)` for Alice's/Bob's CHSH observables
+`A₀`, `A₁`, `B₀`, `B₁` (declared below, built from the Pauli matrices in `Q_CHSH_Basic.lean`).
+`A₀`, `A₁`, `B₀`, `B₁`, and `ρΨMinus` here are *definitionally* equal to
+`Spectra.QuantumInfo.aliceA₀ ⊗ 1`, `aliceA₁ ⊗ 1`, `1 ⊗ bobB₀`, `1 ⊗ bobB₁`, and
+`bellStatePsiMinus` (`BellsTheorem/Basic.lean`), so each correlator is proved by reusing that
+file's `correlation_A*_B*` computation rather than re-deriving the same trace from scratch.
+
+## Main definitions
+
+* `expectation`, `correlation` : the trace functionals `Tr(Oρ)`, `Tr(ABρ)`
+
+## Main results
+
+* `E_A₀_B₀`, `E_A₀_B₁`, `E_A₁_B₀`, `E_A₁_B₁` : the four CHSH correlators for the singlet state
+
+## Implementation notes
+
+`A₀`/`A₁` are plain `def`s (no irrational scalar involved), while `B₀`/`B₁` are
+`noncomputable def` because they carry a `Real.sqrt 2` scalar.
+
+## References
+
+* [Echenim, Mhalla, *A formalization of the CHSH inequality and Tsirelson's
+  upper-bound in Isabelle/HOL*][echenim2023]
 -/
 import Spectra.QuantumMechanics.BellsTheorem.QuantumCHSH.Q_CHSH_Basic
+import Spectra.QuantumMechanics.BellsTheorem.Basic
 
-open Matrix Complex MatrixGroups
+open Matrix Complex
 namespace Spectra.QuantumCHSH
 
 /-! ## Alice's and Bob's Observables -/
 
-/-- Alice's first observable: A₀ = σ_z ⊗ I -/
+/-- Alice's first observable: A₀ = σZ ⊗ I -/
 def A₀ : Matrix (Fin 2 × Fin 2) (Fin 2 × Fin 2) ℂ :=
-  kroneckerMap (· * ·) σ_z I₂
+  kroneckerMap (· * ·) σZ I₂
 
 /-- Alice's second observable: A₁ = σₓ ⊗ I -/
 def A₁ : Matrix (Fin 2 × Fin 2) (Fin 2 × Fin 2) ℂ :=
   kroneckerMap (· * ·) σₓ I₂
 
-/-- Bob's first observable: B₀ = I ⊗ (σ_z - σₓ)/√2 -/
+/-- Bob's first observable: B₀ = I ⊗ (σZ - σₓ)/√2 -/
 noncomputable def B₀ : Matrix (Fin 2 × Fin 2) (Fin 2 × Fin 2) ℂ :=
-  kroneckerMap (· * ·) I₂ ((1/Real.sqrt 2 : ℂ) • (σ_z - σₓ))
+  kroneckerMap (· * ·) I₂ ((1/Real.sqrt 2 : ℂ) • (σZ - σₓ))
 
-/-- Bob's second observable: B₁ = I ⊗ -(σ_z + σₓ)/√2 -/
+/-- Bob's second observable: B₁ = I ⊗ -(σZ + σₓ)/√2 -/
 noncomputable def B₁ : Matrix (Fin 2 × Fin 2) (Fin 2 × Fin 2) ℂ :=
-  kroneckerMap (· * ·) I₂ ((-1/Real.sqrt 2 : ℂ) • (σ_z + σₓ))
+  kroneckerMap (· * ·) I₂ ((-1/Real.sqrt 2 : ℂ) • (σZ + σₓ))
 
 /-! ## Expectation Values -/
 
@@ -33,118 +61,30 @@ noncomputable def B₁ : Matrix (Fin 2 × Fin 2) (Fin 2 × Fin 2) ℂ :=
 noncomputable def expectation (O ρ : Matrix (Fin 2 × Fin 2) (Fin 2 × Fin 2) ℂ) : ℂ :=
   (O * ρ).trace
 
-/-- The correlation E(A, B) for observables A, B on state ρ -/
-noncomputable def correlation {ι : Type*} [Fintype ι] [DecidableEq ι]
-    (A B ρ : Matrix ι ι ℂ) : ℂ :=
-  (A * B * ρ).trace
+/-- The correlation E(A, B) = ⟨AB⟩ = Tr(AB · ρ) for observables A, B on state ρ -/
+noncomputable def correlation (A B ρ : Matrix (Fin 2 × Fin 2) (Fin 2 × Fin 2) ℂ) : ℂ :=
+  expectation (A * B) ρ
 
-/-! ## Computing the Correlations -/
+/-! ## Computing the Correlations
 
--- These are the four correlations needed for CHSH
+`correlation A B ρΨMinus` unfolds (definitionally) to exactly the trace
+`Spectra.QuantumInfo.correlation_A*_B*` already computes (`BellsTheorem/Basic.lean`), so each
+correlator is that lemma composed with `ring` for the `-1/√2` vs. `-(√2)⁻¹` notational mismatch. -/
 
 /-- E(A₀, B₀) = -1/√2 for the Bell state -/
-lemma E_A₀_B₀ : correlation A₀ B₀ ρ_Ψ_minus = -1 / Real.sqrt 2 := by
-  unfold correlation A₀ B₀ ρ_Ψ_minus
-  simp only [one_div]
-  simp only [σ_z, σₓ, I₂]
-  -- Expand the trace over (Fin 2 × Fin 2)
-  rw [Matrix.trace]
-  rw [← @mul_kronecker_mul]
-  simp only [Fintype.sum_prod_type, Fin.sum_univ_two, Fin.isValue]
-  -- Expand matrix multiplication
-  simp only [mul_one, of_sub_of, sub_cons, head_cons, sub_zero, tail_cons, zero_sub, sub_self,
-    zero_empty, smul_of, smul_cons, smul_eq_mul, mul_neg, smul_empty, one_mul, Fin.isValue,
-    diag_apply]
-  simp only [Matrix.mul_apply, Fintype.sum_prod_type, Fin.sum_univ_two]
-  simp only [Matrix.of_apply]
-  -- Normalize the expression
-  simp only [mul_zero, add_zero, zero_add, mul_neg]
-  -- Simplify with √2 arithmetic
-  have sqrt2_ne : (Real.sqrt 2 : ℂ) ≠ 0 := by
-    simp [Real.sqrt_ne_zero'.mpr (by norm_num : (2:ℝ) > 0)]
-  field_simp
-  rw [← @adjugate_fin_two_of]
-  simp only [one_div, adjugate_fin_two_of, Fin.isValue, kroneckerMap_apply, of_apply, cons_val',
-    cons_val_zero, cons_val_fin_one, cons_val_one, mul_neg, one_mul, zero_mul, neg_zero, add_zero,
-    neg_mul, zero_add]
-  ring_nf
-  simp only [ne_eq, ofReal_eq_zero, Nat.ofNat_nonneg, Real.sqrt_eq_zero, OfNat.ofNat_ne_zero,
-    not_false_eq_true, mul_inv_cancel₀, one_mul]
+lemma E_A₀_B₀ : correlation A₀ B₀ ρΨMinus = -1 / Real.sqrt 2 :=
+  Spectra.QuantumInfo.correlation_A₀_B₀.trans (by ring)
 
 /-- E(A₀, B₁) = 1/√2 for the Bell state -/
-lemma E_A₀_B₁ : correlation A₀ B₁ ρ_Ψ_minus = 1 / Real.sqrt 2 := by
-  unfold correlation A₀ B₁ ρ_Ψ_minus
-  simp only [one_div]
-  simp only [σ_z, σₓ, I₂]
-  rw [Matrix.trace]
-  rw [← @mul_kronecker_mul]
-  simp only [Fintype.sum_prod_type, Fin.sum_univ_two, Fin.isValue]
-  simp only [mul_one, of_add_of, add_cons, head_cons, add_zero, tail_cons, zero_add,
-    empty_add_empty, smul_of, smul_cons, smul_eq_mul, smul_empty, mul_neg, one_mul, Fin.isValue,
-    diag_apply]
-  simp only [Matrix.mul_apply, Fintype.sum_prod_type, Fin.sum_univ_two]
-  simp only [Matrix.of_apply]
-  simp only [mul_zero, add_zero, zero_add, mul_neg]
-  have sqrt2_ne : (Real.sqrt 2 : ℂ) ≠ 0 := by
-    simp [Real.sqrt_ne_zero'.mpr (by norm_num : (2:ℝ) > 0)]
-  field_simp
-  rw [← @adjugate_fin_two_of]
-  simp only [one_div, adjugate_fin_two_of, Fin.isValue, kroneckerMap_apply, of_apply, cons_val',
-    cons_val_zero, cons_val_fin_one, cons_val_one, mul_neg, one_mul, zero_mul, neg_zero, add_zero,
-    neg_mul, zero_add, neg_neg]
-  ring_nf
-  simp only [ne_eq, ofReal_eq_zero, Nat.ofNat_nonneg, Real.sqrt_eq_zero, OfNat.ofNat_ne_zero,
-    not_false_eq_true, mul_inv_cancel₀, one_mul]
+lemma E_A₀_B₁ : correlation A₀ B₁ ρΨMinus = 1 / Real.sqrt 2 :=
+  Spectra.QuantumInfo.correlation_A₀_B₁.trans (by ring)
 
 /-- E(A₁, B₀) = 1/√2 for the Bell state -/
-lemma E_A₁_B₀ : correlation A₁ B₀ ρ_Ψ_minus = 1 / Real.sqrt 2 := by
-  unfold correlation A₁ B₀ ρ_Ψ_minus
-  simp only [one_div]
-  simp only [σ_z, σₓ, I₂]
-  rw [Matrix.trace]
-  rw [← @mul_kronecker_mul]
-  simp only [Fintype.sum_prod_type, Fin.sum_univ_two, Fin.isValue]
-  simp only [mul_one, of_sub_of, sub_cons, head_cons, sub_zero, tail_cons, zero_sub, sub_self,
-    zero_empty, smul_of, smul_cons, smul_eq_mul, mul_neg, smul_empty, one_mul, Fin.isValue,
-    diag_apply]
-  simp only [Matrix.mul_apply, Fintype.sum_prod_type, Fin.sum_univ_two]
-  simp only [Matrix.of_apply]
-  simp only [mul_zero, add_zero, zero_add, mul_neg]
-  have sqrt2_ne : (Real.sqrt 2 : ℂ) ≠ 0 := by
-    simp [Real.sqrt_ne_zero'.mpr (by norm_num : (2:ℝ) > 0)]
-  field_simp
-  rw [← @adjugate_fin_two_of]
-  simp only [one_div, adjugate_fin_two_of, Fin.isValue, kroneckerMap_apply, of_apply, cons_val',
-    cons_val_zero, cons_val_fin_one, cons_val_one, mul_neg, one_mul, zero_mul, neg_zero, add_zero,
-    zero_add]
-  ring_nf
-  simp only [ne_eq, ofReal_eq_zero, Nat.ofNat_nonneg, Real.sqrt_eq_zero, OfNat.ofNat_ne_zero,
-    not_false_eq_true, mul_inv_cancel₀, one_mul]
+lemma E_A₁_B₀ : correlation A₁ B₀ ρΨMinus = 1 / Real.sqrt 2 :=
+  Spectra.QuantumInfo.correlation_A₁_B₀.trans (by ring)
 
 /-- E(A₁, B₁) = 1/√2 for the Bell state -/
-lemma E_A₁_B₁ : correlation A₁ B₁ ρ_Ψ_minus = 1 / Real.sqrt 2 := by
-  unfold correlation A₁ B₁ ρ_Ψ_minus
-  simp only [one_div]
-  simp only [σ_z, σₓ, I₂]
-  rw [Matrix.trace]
-  rw [← @mul_kronecker_mul]
-  simp only [Fintype.sum_prod_type, Fin.sum_univ_two, Fin.isValue]
-  simp only [mul_one, of_add_of, add_cons, head_cons, add_zero, tail_cons, zero_add,
-    empty_add_empty, smul_of, smul_cons, smul_eq_mul, smul_empty, mul_neg, one_mul, Fin.isValue,
-    diag_apply]
-  simp only [Matrix.mul_apply, Fintype.sum_prod_type, Fin.sum_univ_two]
-  simp only [Matrix.of_apply]
-  simp only [mul_zero, add_zero, zero_add, mul_neg]
-  have sqrt2_ne : (Real.sqrt 2 : ℂ) ≠ 0 := by
-    simp [Real.sqrt_ne_zero'.mpr (by norm_num : (2:ℝ) > 0)]
-  field_simp
-  rw [← @adjugate_fin_two_of]
-  simp only [one_div, adjugate_fin_two_of, Fin.isValue, kroneckerMap_apply, of_apply, cons_val',
-    cons_val_zero, cons_val_fin_one, cons_val_one, mul_neg, one_mul, zero_mul, neg_zero, add_zero,
-    zero_add, neg_neg]
-  ring_nf
-  simp only [ne_eq, ofReal_eq_zero, Nat.ofNat_nonneg, Real.sqrt_eq_zero, OfNat.ofNat_ne_zero,
-    not_false_eq_true, mul_inv_cancel₀, one_mul]
-
+lemma E_A₁_B₁ : correlation A₁ B₁ ρΨMinus = 1 / Real.sqrt 2 :=
+  Spectra.QuantumInfo.correlation_A₁_B₁.trans (by ring)
 
 end Spectra.QuantumCHSH

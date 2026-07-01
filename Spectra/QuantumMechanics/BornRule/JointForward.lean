@@ -4,6 +4,7 @@ Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Spectra.QuantumMechanics.BornRule.Joint
+import Spectra.ProjValMeasure.PdInterface
 import Mathlib.MeasureTheory.Measure.AddContent
 import Mathlib.MeasureTheory.OuterMeasure.OfAddContent
 import Mathlib.Algebra.Star.StarProjection
@@ -1685,16 +1686,12 @@ theorem jointScalarMeasure_parallelogram (A B : Observable.UnboundedObservable H
   set q : Set (ℝ × ℝ) → H → ℝ := fun E ξ => (jointScalarMeasure A B hSC ξ E).toReal with hq
   have hqE : ∀ (E : Set (ℝ × ℝ)) (ξ : H),
       q E ξ = (jointScalarMeasure A B hSC ξ E).toReal := fun _ _ => rfl
-  -- the diagonal of an operator obeys the real parallelogram law (inlined `diag_parallelogram`)
+  -- the diagonal of an operator obeys the parallelogram law (`ProjValMeasure.diag_parallelogram`)
   have hrepar : ∀ (P : H →L[ℂ] H) (ψ φ : H),
       (⟪ψ + φ, P (ψ + φ)⟫_ℂ).re + (⟪ψ - φ, P (ψ - φ)⟫_ℂ).re
         = 2 * (⟪ψ, P ψ⟫_ℂ).re + 2 * (⟪φ, P φ⟫_ℂ).re := by
     intro P ψ φ
-    have h : ⟪ψ + φ, P (ψ + φ)⟫_ℂ + ⟪ψ - φ, P (ψ - φ)⟫_ℂ
-        = 2 * ⟪ψ, P ψ⟫_ℂ + 2 * ⟪φ, P φ⟫_ℂ := by
-      simp only [map_add, map_sub, inner_add_left, inner_add_right, inner_sub_left,
-        inner_sub_right]; ring
-    have h2 := congrArg Complex.re h
+    have h2 := congrArg Complex.re (ProjValMeasure.diag_parallelogram P ψ φ)
     simpa using h2
   -- total mass `q univ ξ = ‖ξ‖²`
   have hmass : ∀ ξ : H, q Set.univ ξ = ‖ξ‖ ^ 2 := by

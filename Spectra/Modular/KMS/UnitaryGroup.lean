@@ -219,8 +219,6 @@ noncomputable def invariantUnitaryGroup (hinv : IsInvariant ω α) :
     Spectra.Bochner.GNS.strong_continuity_extends
       (fun t => (evolveU ω α hinv t : ω.gnsSpace →ₗ[ℂ] ω.gnsSpace))
       (fun t χ => evolveU_norm ω α hinv t χ)
-      (fun s t χ => evolveU_group ω α hinv s t χ)
-      (fun χ => evolveU_id ω α hinv χ)
       (Set.range ((↑) : ω.toPLM.PreGNS → ω.gnsSpace))
       (UniformSpace.Completion.denseRange_coe (α := ω.toPLM.PreGNS))
       (by rintro φ ⟨a, rfl⟩; exact evolveU_continuous_coe ω α hinv a) ψ

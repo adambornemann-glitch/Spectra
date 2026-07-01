@@ -17,7 +17,11 @@ variable (U : H →L[ℂ] H) (hU : Operator.Unitary U)
 /-- The **Fejér mean measure** on `𝕋 ≅ [0, 2π)`:
 `σ_N = (1/2π) F_N(θ) dθ`.
 
-This is a positive finite measure with total mass `‖ψ‖²`. -/
+This is a positive finite measure with total mass `‖ψ‖²`. The `_hU` hypothesis is not needed to
+construct the measure itself, but is kept as an explicit argument (rather than dropped) so that
+`fejerMeasure_isFiniteMeasure` below can recover it from the measure's own application and remain
+an unconditional `instance`; `@[nolint unusedArguments]` silences the resulting linter complaint. -/
+@[nolint unusedArguments]
 noncomputable def fejerMeasure (U : H →L[ℂ] H) (_hU : Operator.Unitary U) (ψ : H) (N : ℕ) : Measure ℝ :=
   (volume.restrict (Set.Icc 0 (2 * Real.pi))).withDensity
     (fun θ => ENNReal.ofReal ((1 / (2 * Real.pi)) * (fejerMeanDensity U ψ N θ).re))

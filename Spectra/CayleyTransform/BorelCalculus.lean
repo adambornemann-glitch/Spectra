@@ -6,6 +6,7 @@ Authors: Adam Bornemann
 import Spectra.CayleyTransform.Defs        -- cayleyTransform, *_isStarNormal, *_unitary
 import Spectra.CayleyTransform.Mobius           -- inverseMobius, inverseMobius_real
 import Spectra.CayleyTransform.RieszMarkov       -- Riesz.spectralMeasure + cfcHom bridge
+import Spectra.ProjValMeasure.PdInterface       -- crossInner, crossInner_norm_le (generic Ω)
 import Mathlib.MeasureTheory.Measure.HasOuterApproxClosed  -- finite-measure uniqueness on σ(U)
 import Mathlib.Analysis.InnerProductSpace.Dual              -- continuousLinearMapOfBilin (Riesz)
 import Mathlib.MeasureTheory.Integral.Bochner.ContinuousLinearMap  -- integral_withDensity_eq_integral_smul
@@ -606,49 +607,18 @@ theorem borelForm_self (g : spectrum ℂ U → ℂ) (ξ : H) :
   simp only [map_ofNat, map_zero, map_sub, map_add, map_one, Complex.conj_I]
   ring
 
-/-- Contraction bound for the form (the `crossInner_norm_le` analogue over the
-spectrum). -/
+/-- **Contraction bound for the form.** A one-line corollary of
+`Spectra.ProjValMeasure.crossInner_norm_le`, instantiated at `Ω = spectrum ℂ U`: `borelForm` is
+literally `crossInner (spectralMeasure U hn) g` up to the `(1/4)*(...)` vs `(...)/4` bracketing. -/
 theorem norm_borelForm_le {g : spectrum ℂ U → ℂ} {C : ℝ}
     (hg : ∀ z, ‖g z‖ ≤ C) (ξ η : H) :
     ‖borelForm U hn g ξ η‖ ≤ C * (‖ξ‖ ^ 2 + ‖η‖ ^ 2) := by
-  have hterm : ∀ z : H, ‖∫ w, g w ∂(spectralMeasure U hn z)‖ ≤ C * ‖z‖ ^ 2 := by
-    intro z
-    have hb : ‖∫ w, g w ∂(spectralMeasure U hn z)‖
-        ≤ C * (spectralMeasure U hn z).real Set.univ :=
-      norm_integral_le_of_norm_le_const (ae_of_all _ hg)
-    rwa [spectralMeasure_real_univ] at hb
-  simp only [borelForm]
-  set P := ∫ w, g w ∂(spectralMeasure U hn (ξ + η)) with hP
-  set Q := ∫ w, g w ∂(spectralMeasure U hn (ξ - η)) with hQ
-  set R := ∫ w, g w ∂(spectralMeasure U hn (ξ + I • η)) with hR
-  set S := ∫ w, g w ∂(spectralMeasure U hn (ξ - I • η)) with hS
-  have hsum : ‖P - Q - I * R + I * S‖ ≤ ‖P‖ + ‖Q‖ + ‖R‖ + ‖S‖ := by
-    calc ‖P - Q - I * R + I * S‖
-        ≤ ‖P - Q - I * R‖ + ‖I * S‖ := norm_add_le _ _
-      _ ≤ (‖P - Q‖ + ‖I * R‖) + ‖I * S‖ := by gcongr; exact norm_sub_le _ _
-      _ ≤ ((‖P‖ + ‖Q‖) + ‖I * R‖) + ‖I * S‖ := by gcongr; exact norm_sub_le _ _
-      _ = ‖P‖ + ‖Q‖ + ‖R‖ + ‖S‖ := by
-          rw [norm_mul, norm_mul, Complex.norm_I, one_mul, one_mul]
-  have key : ‖P‖ + ‖Q‖ + ‖R‖ + ‖S‖ ≤ 4 * (C * (‖ξ‖ ^ 2 + ‖η‖ ^ 2)) := by
-    have hP' := hterm (ξ + η); rw [← hP] at hP'
-    have hQ' := hterm (ξ - η); rw [← hQ] at hQ'
-    have hR' := hterm (ξ + I • η); rw [← hR] at hR'
-    have hS' := hterm (ξ - I • η); rw [← hS] at hS'
-    have hIη : ‖I • η‖ = ‖η‖ := by rw [norm_smul, Complex.norm_I, one_mul]
-    have hpar1 : ‖ξ + η‖ ^ 2 + ‖ξ - η‖ ^ 2 = 2 * (‖ξ‖ ^ 2 + ‖η‖ ^ 2) :=
-      parallelogram_law_with_norm ℂ ξ η
-    have hpar2 : ‖ξ + I • η‖ ^ 2 + ‖ξ - I • η‖ ^ 2 = 2 * (‖ξ‖ ^ 2 + ‖η‖ ^ 2) := by
-      rw [parallelogram_law_with_norm ℂ ξ (I • η), hIη]
-    have hsum_eq : C * ‖ξ + η‖ ^ 2 + C * ‖ξ - η‖ ^ 2 + C * ‖ξ + I • η‖ ^ 2 + C * ‖ξ - I • η‖ ^ 2
-        = 4 * (C * (‖ξ‖ ^ 2 + ‖η‖ ^ 2)) := by
-      have h4 : ‖ξ + η‖ ^ 2 + ‖ξ - η‖ ^ 2 + (‖ξ + I • η‖ ^ 2 + ‖ξ - I • η‖ ^ 2)
-          = 4 * (‖ξ‖ ^ 2 + ‖η‖ ^ 2) := by rw [hpar1, hpar2]; ring
-      linear_combination C * h4
-    linarith [hP', hQ', hR', hS', hsum_eq]
-  rw [norm_div, Complex.norm_ofNat]
-  calc ‖P - Q - I * R + I * S‖ / 4
-      ≤ (4 * (C * (‖ξ‖ ^ 2 + ‖η‖ ^ 2))) / 4 := by gcongr; exact hsum.trans key
-    _ = C * (‖ξ‖ ^ 2 + ‖η‖ ^ 2) := by ring
+  have hcross : borelForm U hn g ξ η
+      = ProjValMeasure.crossInner (spectralMeasure U hn) g ξ η := by
+    simp only [borelForm, ProjValMeasure.crossInner]; ring
+  rw [hcross]
+  exact ProjValMeasure.crossInner_norm_le (spectralMeasure U hn) hg (fun _ => inferInstance)
+    (fun z => by rw [← measureReal_def]; exact spectralMeasure_real_univ U hn z) ξ η
 
 /-- The form is sesquilinear: conjugate-linear in the left slot. -/
 theorem borelForm_add_left (g : spectrum ℂ U → ℂ)

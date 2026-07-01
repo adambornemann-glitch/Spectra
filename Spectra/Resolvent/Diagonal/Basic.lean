@@ -120,8 +120,8 @@ lemma resolvent_continuous_at_height
       apply Complex.ext <;> simp
     rw [hz_eq, Complex.norm_real]; rfl
   -- Both resolvents have operator norm ≤ 1/ε on the strip Im = ε.
-  have hbnd_z  := resolvent_bound hsym hplus hminus (⟨lambda, ε⟩  : ℂ) hε.ne'
-  have hbnd_z₀ := resolvent_bound hsym hplus hminus (⟨lambda₀, ε⟩ : ℂ) hε.ne'
+  have hbnd_z  := resolvent_bound (⟨lambda, ε⟩  : ℂ) hε.ne' hsym hplus hminus
+  have hbnd_z₀ := resolvent_bound (⟨lambda₀, ε⟩ : ℂ) hε.ne' hsym hplus hminus
   have him  : (⟨lambda, ε⟩  : ℂ).im = ε := rfl
   have him₀ : (⟨lambda₀, ε⟩ : ℂ).im = ε := rfl
   rw [him,  abs_of_pos hε] at hbnd_z

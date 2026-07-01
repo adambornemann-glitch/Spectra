@@ -2,7 +2,7 @@
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
-File: Spectra/SoboleveSpaces/DuBoisReyemond.lean
+File: Spectra/SobolevSpaces/DuBoisReyemond.lean
 -/
 import Spectra.SobolevSpaces.Density
 

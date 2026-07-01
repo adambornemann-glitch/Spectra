@@ -210,13 +210,27 @@ The conjugate-space reduction (M0) removes the old blocker: `S` is the *linear*
   capstone `tomitaTakesaki_exists : IsCyclic M Ω → IsSeparating M Ω → Nonempty (ModularData M Ω)`.
   **Derisked (2026-06-30, 3-agent recon — codebase inventory + literature survey + adversarial audit).
   Staged plan (each stage a gateable, sorry-free deliverable):**
-  - **R4a — Ω-invariances + `J²=1`. 🟡 PARTLY DONE** (`Spectra/Modular/Cocycle/ModularVacuum.lean`,
-    sorry-free, axiom-gated): `modularOp_vacuum` (`ΔΩ=Ω`), `modularSqrt_vacuum` (`Δ^{½}Ω=Ω`), and
-    **`modularConjugation_fixes_vacuum` (`JΩ=Ω`, field 4)** done. **Field 5 `Δ^{it}Ω=Ω` deferred** —
-    `modularFlow` has generator `log Δ` (Cayley/Borel symbol `λ^{it}`), so it needs a
-    `borelCalculus`-on-a-`V`-eigenvector lemma (spectral measure of an eigenvector = Dirac mass) or the
-    `generator (modularFlow) = log Δ` bridge; the rest (`cayley_eigenvalue_correspondence`,
-    `modularSymbol`) is present. `J²=1` (field 3) still to do. *Original plan below:* All flow from
+  - **R4a — Ω-invariances + `J²=1`. 🟢 FIELDS 4 & 5 DONE; `J²=1` (field 3) remains.**
+    `Spectra/Modular/Cocycle/ModularVacuum.lean` (sorry-free, axiom-gated): `modularOp_vacuum`
+    (`ΔΩ=Ω`), `modularSqrt_vacuum` (`Δ^{½}Ω=Ω`), **`modularConjugation_fixes_vacuum` (`JΩ=Ω`, field 4)**.
+    **Field 5 `Δ^{it}Ω=Ω` DONE 2026-07-01** — `Spectra/Modular/Cocycle/ModularFlowVacuum.lean`
+    (`modularFlow_fixes_vacuum`, sorry-free, axiom-clean, gated, build 4106). **Route B, NOT the
+    anticipated `V`-eigenvector→Dirac lemma:** the memory-noted blocker was sidestepped by the already-
+    proven UNCONDITIONAL bridge `spectralCalculus_stoneGroup_eq_borelCalculus` (StoneBridge/CalculusBridge)
+    + `stoneGroup_eq_genToGroup` (Stone), which recasts `modularFlow.U t` as
+    `spectralCalculus (genToGroup Δ) (logExpSym t)` on `Δ`'s OWN group; the spectral atom `E_Δ({1})Ω=Ω`
+    (`spectralProjection_singleton_one_vacuum`) then collapses it since `logExpSym t 1 = exp(it·log 1)=1`
+    (a limit-free clone of `modularSqrt_atom_apply`). Stated unconditionally (Subsingleton case by
+    `Subsingleton.elim`; Nontrivial branch supplies the `stoneGroup=genToGroup` instance).
+    **Field 3 `J²=1`: FOUNDATION DONE (2026-07-01, `Spectra/Modular/Cocycle/ModularInvolution.lean`,
+    sorry-free, gated, build 4107)** — the Tomita involution `S̃²=1` on the core `MΩ`
+    (`sTilde_involutive_core`: `S̃(aΩ)=(star a)Ω`, the `S²⊆1` seed via `tomitaOp_apply`×2 + `star_star`,
+    no `Δ`/`J`/adjoint theory) + polar helper `modularConjugation_apply_modularSqrt` (`J(Δ^{½}x)=ofConj(Sx)`).
+    **CRUX OPEN (L5 `J(J(Δ^{½}x))=Δ^{½}x`, adversarially confirmed genuinely blocked):** core `MΩ` carries
+    `S̃²=1` but `MΩ⊄D(Δ)`; `range Δ^{½}` carries the polar relation but not the involution — the dense sets
+    don't align. Close via **(A)** closed-operator `S̃²⊆1` + `S̃(D(Δ))⊆D(S)` (conjecturally avoids Δ^{½}
+    self-adjointness), or **(B)** `(Δ^{½})²=Δ` self-adjointness (open R2 node) + polar-decomposition
+    uniqueness; then `DenseRange.equalizer` closes `∀x, J(Jx)=x`. *Original plan below:* All flow from
     `Ω` being a `Δ`-eigenvector
     at `1`: `SΩ = toConj Ω` (`tomitaOp_apply` at `T=1∈M`) and `S⋆(toConj Ω) = Ω`
     (`tomitaAdjoint_apply_commutant` at `b=1∈M'`) give **`ΔΩ = Ω`**; then the single spectral lemma

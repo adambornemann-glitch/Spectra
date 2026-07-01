@@ -4,13 +4,12 @@ Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Spectra.Resolvent.Diagonal.IntegralZ.GeneratorLim
-import Mathlib.Probability.Distributions.Gaussian.Real
+
 /-!
 # Generator Domain and Self-Adjointness
 
 This file constructs the generator of a strongly continuous one-parameter unitary
 group and proves it is self-adjoint.
-
 
 ## Implementation notes
 
@@ -20,6 +19,11 @@ unbounded operator directly.
 
 Domain density uses averaged vectors: `h⁻¹ ∫₀ʰ U(t)φ dt → φ` as `h → 0`,
 and these averaged vectors lie in the domain.
+
+## References
+
+* [Stone, *On one-parameter unitary groups in Hilbert space*][stone1932], Ann. of Math. (1932)
+* [Reed–Simon, *Methods of Modern Mathematical Physics I*][reedsimon1980], Theorem VIII.8
 
 ## Tags
 
@@ -31,6 +35,18 @@ variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteS
 namespace Spectra.Resolvent
 variable (U_grp : OneParameterUnitaryGroup (H := H))
 
+/-- `I * (-I) = 1` makes `e^{-(I·(-I)·t)} = e^{-t}`, used to identify the `z = -i` resolvent
+integral with the exponential-weighted orbit integral. -/
+private lemma cexp_neg_I_mul_neg_I (t : ℝ) :
+    cexp (-(I * (-I) * (t : ℂ))) = (Real.exp (-t) : ℂ) := by
+  rw [show I * (-I) = 1 from by rw [mul_neg, Complex.I_mul_I, neg_neg], one_mul,
+      ← Complex.ofReal_neg, ← Complex.ofReal_exp]
+
+/-- `-i` has negative imaginary part, the hypothesis `generator_limit_resolventIntegralZ` needs
+to place `z = -i` in its domain of validity. -/
+private lemma neg_I_im_neg : (-I : ℂ).im < 0 := by
+  rw [Complex.neg_im, Complex.I_im]; norm_num
+
 /-- `R₊` is the general resolvent integral at `z = -i`: `resolventIntegralPlus φ = R(-i)φ`,
 since `I * (-I) = 1` makes `e^{-(I·(-I)·t)} = e^{-t}`. -/
 lemma resolventIntegralPlus_eq_resolventIntegralZ_neg_I (φ : H) :
@@ -38,10 +54,7 @@ lemma resolventIntegralPlus_eq_resolventIntegralZ_neg_I (φ : H) :
   unfold resolventIntegralPlus resolventIntegralZ
   congr 1
   refine setIntegral_congr_fun measurableSet_Ici (fun t _ => ?_)
-  have hexp : cexp (-(I * (-I) * (t : ℂ))) = (Real.exp (-t) : ℂ) := by
-    rw [show I * (-I) = 1 from by rw [mul_neg, Complex.I_mul_I, neg_neg], one_mul,
-        ← Complex.ofReal_neg, ← Complex.ofReal_exp]
-  rw [hexp, Complex.coe_smul]
+  rw [cexp_neg_I_mul_neg_I t, Complex.coe_smul]
 
 /-- Surjectivity of `A + iI`: for every `φ` there is `ψ` in the generator domain with
     `Aψ + I • ψ = φ`, witnessed by `resolventIntegralPlus φ`. -/
@@ -53,7 +66,7 @@ lemma range_plus_i_eq_top :
   have hlim : Tendsto (fun h : ℝ => ((I * h)⁻¹ : ℂ) •
         (U_grp.U h (resolventIntegralPlus U_grp φ) - resolventIntegralPlus U_grp φ))
       (𝓝[≠] 0) (𝓝 (φ - I • resolventIntegralPlus U_grp φ)) := by
-    have hz : (-I : ℂ).im < 0 := by rw [Complex.neg_im, Complex.I_im]; norm_num
+    have hz := neg_I_im_neg
     have h := generator_limit_resolventIntegralZ U_grp hz φ
     have htgt : (-I : ℂ) • resolventIntegralZ U_grp (-I) φ + φ
               = φ - I • resolventIntegralPlus U_grp φ := by
@@ -81,10 +94,7 @@ lemma resolventIntegralMinus_eq_neg_resolventIntegralZ (φ : H) :
       = ∫ t in Set.Ici (0 : ℝ), cexp (-(I * (-I) * (t : ℂ))) • (reversedGroup U_grp).U t φ := by
     refine setIntegral_congr_fun measurableSet_Ici (fun t _ => ?_)
     rw [reversedGroup_apply]
-    have hexp : cexp (-(I * (-I) * (t : ℂ))) = (Real.exp (-t) : ℂ) := by
-      rw [show I * (-I) = 1 from by rw [mul_neg, Complex.I_mul_I, neg_neg], one_mul,
-          ← Complex.ofReal_neg, ← Complex.ofReal_exp]
-    rw [hexp, Complex.coe_smul]
+    rw [cexp_neg_I_mul_neg_I t, Complex.coe_smul]
   rw [hJ, neg_smul, neg_neg]
 
 /-- Difference-quotient limit for `R₋`, obtained from the general-`z` limit on the time-reversed
@@ -93,7 +103,7 @@ lemma generator_limit_resolventIntegralMinus (φ : H) :
     Tendsto (fun h : ℝ => ((I * h)⁻¹ : ℂ) • (U_grp.U h (resolventIntegralMinus U_grp φ) -
         resolventIntegralMinus U_grp φ))
       (𝓝[≠] 0) (𝓝 (φ + I • resolventIntegralMinus U_grp φ)) := by
-  have hz : (-I : ℂ).im < 0 := by rw [Complex.neg_im, Complex.I_im]; norm_num
+  have hz := neg_I_im_neg
   set R := resolventIntegralMinus U_grp φ with hRdef
   rw [show (fun h : ℝ => ((I * h)⁻¹ : ℂ) • (U_grp.U h R - R)) = genDiffQuot U_grp R from by
         funext h; rw [genDiffQuot_apply]]
@@ -103,13 +113,15 @@ lemma generator_limit_resolventIntegralMinus (φ : H) :
   rw [show (fun h : ℝ => ((I * h)⁻¹ : ℂ) • ((reversedGroup U_grp).U h (-R) - -R))
         = genDiffQuot (reversedGroup U_grp) (-R) from by funext h; rw [genDiffQuot_apply]] at hZ
   rw [show genDiffQuot (reversedGroup U_grp) (-R) = - genDiffQuot (reversedGroup U_grp) R from by
-        rw [show (-R) = (-1 : ℂ) • R from by rw [neg_one_smul], genDiffQuot_smul, neg_one_smul]] at hZ
+        rw [show (-R) = (-1 : ℂ) • R from by rw [neg_one_smul], genDiffQuot_smul,
+            neg_one_smul]] at hZ
   have hneg : Tendsto (fun t : ℝ => -t) (𝓝[≠] (0 : ℝ)) (𝓝[≠] (0 : ℝ)) := by
     apply tendsto_nhdsWithin_of_tendsto_nhds_of_eventually_within
     · simpa using (continuous_neg.tendsto (0 : ℝ)).mono_left nhdsWithin_le_nhds
     · filter_upwards [self_mem_nhdsWithin] with t ht; simpa using ht
   have hcomp := hZ.comp hneg
-  have hfun : ((- genDiffQuot (reversedGroup U_grp) R) ∘ (fun t : ℝ => -t)) = genDiffQuot U_grp R := by
+  have hfun : ((- genDiffQuot (reversedGroup U_grp) R) ∘ (fun t : ℝ => -t))
+      = genDiffQuot U_grp R := by
     funext t
     simp only [Function.comp_apply, Pi.neg_apply, genDiffQuot_reversedGroup, neg_neg]
   have htgt : ((-I : ℂ) • (-R) + φ) = φ + I • R := by
@@ -135,13 +147,12 @@ lemma range_minus_i_eq_top :
 
 /-- Time-averaged vector: `h⁻¹ ∫₀ʰ U(t)φ dt`. These lie in the generator domain
     and converge to `φ` as `h → 0`, proving domain density. -/
-noncomputable def averagedVector (h : ℝ) (_ : h ≠ 0) (φ : H) : H :=
+noncomputable def averagedVector (h : ℝ) (φ : H) : H :=
   (h⁻¹ : ℂ) • ∫ t in Set.Ioc 0 h, U_grp.U t φ
 
 /-- The time-averaged vectors converge to `φ`: `h⁻¹ ∫₀ʰ U(t)φ dt → φ` as `h → 0⁺`. -/
 lemma averagedVector_tendsto (φ : H) :
-    Tendsto (fun h : ℝ => if hh : h ≠ 0 then averagedVector U_grp h hh φ else φ)
-            (𝓝[>] 0) (𝓝 φ) := by
+    Tendsto (fun h : ℝ => averagedVector U_grp h φ) (𝓝[>] 0) (𝓝 φ) := by
   unfold averagedVector
   have h_cont : Continuous (fun t => U_grp.U t φ) := U_grp.strong_continuous φ
   have h_f0 : U_grp.U 0 φ = φ := by rw [U_grp.identity]; rfl
@@ -166,7 +177,6 @@ lemma averagedVector_tendsto (φ : H) :
   have h_restrict := h_tendsto_real.mono_left (nhdsWithin_mono 0 (fun x hx => ne_of_gt hx))
   apply Tendsto.congr' _ h_restrict
   filter_upwards [self_mem_nhdsWithin] with h hh
-  rw [dif_pos (ne_of_gt hh)]
   rw [intervalIntegral.integral_of_le (le_of_lt hh)]
   rw [(Complex.coe_smul h⁻¹ _).symm, ofReal_inv]
 
@@ -184,7 +194,8 @@ lemma averagedVector_orbit_shift_integral (s h : ℝ) (φ : H) :
       rfl
     rw [h_subst]
     have h_preimage : (fun t => t - s) ⁻¹' (Set.Ioc 0 h) = Set.Ioc s (s + h) := by
-      ext t; simp only [Set.mem_preimage, Set.mem_Ioc]; constructor <;> intro ⟨a, b⟩ <;> constructor <;> linarith
+      ext t; simp only [Set.mem_preimage, Set.mem_Ioc]
+      constructor <;> intro ⟨a, b⟩ <;> constructor <;> linarith
     have h_meas : Measure.map (fun t => t - s) volume = volume :=
       (measurePreserving_sub_right volume s).map_eq
     rw [← h_meas, MeasureTheory.setIntegral_map measurableSet_Ioc]
@@ -205,33 +216,31 @@ lemma integral_orbit_shift_arith (s h : ℝ) (φ : H) :
     (∫ t in s..(s + h), U_grp.U t φ) - ∫ t in (0:ℝ)..h, U_grp.U t φ
       = (∫ t in (h:ℝ)..(h + s), U_grp.U t φ) - ∫ t in (0:ℝ)..s, U_grp.U t φ := by
   have h_cont : Continuous (fun t => U_grp.U t φ) := U_grp.strong_continuous φ
-  have h_arith : (∫ t in s..(s + h), U_grp.U t φ) - ∫ t in (0 : ℝ)..h, U_grp.U t φ =
-            (∫ t in (h : ℝ)..(h + s), U_grp.U t φ) - ∫ t in (0 : ℝ)..s, U_grp.U t φ := by
-    have hint : ∀ a b : ℝ, IntervalIntegrable (fun t => U_grp.U t φ) volume a b :=
-      fun a b => h_cont.intervalIntegrable a b
-    have h3 : s + h = h + s := add_comm s h
-    have key : (∫ t in s..(s + h), U_grp.U t φ) + ∫ t in (0 : ℝ)..s, U_grp.U t φ =
-              (∫ t in h..(h + s), U_grp.U t φ) + ∫ t in (0 : ℝ)..h, U_grp.U t φ := by
-      have eq1 := intervalIntegral.integral_add_adjacent_intervals (hint 0 s) (hint s (s + h))
-      have eq2 := intervalIntegral.integral_add_adjacent_intervals (hint 0 h) (hint h (h + s))
-      calc (∫ t in s..(s + h), U_grp.U t φ) + ∫ t in (0 : ℝ)..s, U_grp.U t φ
-          = (∫ t in (0 : ℝ)..s, U_grp.U t φ) + ∫ t in s..(s + h), U_grp.U t φ := by abel
-        _ = ∫ t in (0 : ℝ)..(s + h), U_grp.U t φ := eq1
-        _ = ∫ t in (0 : ℝ)..(h + s), U_grp.U t φ := by rw [h3]
-        _ = (∫ t in (0 : ℝ)..h, U_grp.U t φ) + ∫ t in h..(h + s), U_grp.U t φ := eq2.symm
-        _ = (∫ t in h..(h + s), U_grp.U t φ) + ∫ t in (0 : ℝ)..h, U_grp.U t φ := by abel
-    have h_sub : ∀ a b c d : H, a + b = c + d → a - d = c - b := by
-      intros a b c d heq
-      have h1 : a = c + d - b := by rw [← heq]; abel
-      rw [h1]; abel
-    exact h_sub _ _ _ _ key
-  exact h_arith
+  have hint : ∀ a b : ℝ, IntervalIntegrable (fun t => U_grp.U t φ) volume a b :=
+    fun a b => h_cont.intervalIntegrable a b
+  have h3 : s + h = h + s := add_comm s h
+  have key : (∫ t in s..(s + h), U_grp.U t φ) + ∫ t in (0 : ℝ)..s, U_grp.U t φ =
+            (∫ t in h..(h + s), U_grp.U t φ) + ∫ t in (0 : ℝ)..h, U_grp.U t φ := by
+    have eq1 := intervalIntegral.integral_add_adjacent_intervals (hint 0 s) (hint s (s + h))
+    have eq2 := intervalIntegral.integral_add_adjacent_intervals (hint 0 h) (hint h (h + s))
+    calc (∫ t in s..(s + h), U_grp.U t φ) + ∫ t in (0 : ℝ)..s, U_grp.U t φ
+        = (∫ t in (0 : ℝ)..s, U_grp.U t φ) + ∫ t in s..(s + h), U_grp.U t φ := by abel
+      _ = ∫ t in (0 : ℝ)..(s + h), U_grp.U t φ := eq1
+      _ = ∫ t in (0 : ℝ)..(h + s), U_grp.U t φ := by rw [h3]
+      _ = (∫ t in (0 : ℝ)..h, U_grp.U t φ) + ∫ t in h..(h + s), U_grp.U t φ := eq2.symm
+      _ = (∫ t in h..(h + s), U_grp.U t φ) + ∫ t in (0 : ℝ)..h, U_grp.U t φ := by abel
+  have h_sub : ∀ a b c d : H, a + b = c + d → a - d = c - b := by
+    intros a b c d heq
+    have h1 : a = c + d - b := by rw [← heq]; abel
+    rw [h1]; abel
+  exact h_sub _ _ _ _ key
 
 /-- The orbit difference quotient at `0` converges to `φ`: `s⁻¹ ∫₀ˢ U(t)φ dt → φ` as `s → 0`. -/
 lemma averagedVector_quotient_tendsto_zero (φ : H) :
     Tendsto (fun s : ℝ => (s⁻¹ : ℂ) • ∫ t in (0:ℝ)..s, U_grp.U t φ) (𝓝[≠] 0) (𝓝 φ) := by
   have h_cont : Continuous (fun t => U_grp.U t φ) := U_grp.strong_continuous φ
-  have h_FTC1 : Tendsto (fun s : ℝ => (s⁻¹ : ℂ) • ∫ t in (0 : ℝ)..s, U_grp.U t φ) (𝓝[≠] 0) (𝓝 φ) := by
+  have h_FTC1 : Tendsto (fun s : ℝ => (s⁻¹ : ℂ) • ∫ t in (0 : ℝ)..s, U_grp.U t φ)
+      (𝓝[≠] 0) (𝓝 φ) := by
     have h_deriv : HasDerivAt (fun x => ∫ t in (0 : ℝ)..x, U_grp.U t φ) φ 0 := by
       have := intervalIntegral.integral_hasDerivAt_right (h_cont.intervalIntegrable 0 0)
                 (h_cont.stronglyMeasurableAtFilter volume (𝓝 0)) h_cont.continuousAt
@@ -252,7 +261,8 @@ lemma averagedVector_quotient_tendsto_at (h : ℝ) (φ : H) :
     Tendsto (fun s : ℝ => (s⁻¹ : ℂ) • ∫ t in (h:ℝ)..(h + s), U_grp.U t φ)
       (𝓝[≠] 0) (𝓝 (U_grp.U h φ)) := by
   have h_cont : Continuous (fun t => U_grp.U t φ) := U_grp.strong_continuous φ
-  have h_FTC2 : Tendsto (fun s : ℝ => (s⁻¹ : ℂ) • ∫ t in (h : ℝ)..(h + s), U_grp.U t φ) (𝓝[≠] 0) (𝓝 (U_grp.U h φ)) := by
+  have h_FTC2 : Tendsto (fun s : ℝ => (s⁻¹ : ℂ) • ∫ t in (h : ℝ)..(h + s), U_grp.U t φ)
+      (𝓝[≠] 0) (𝓝 (U_grp.U h φ)) := by
     have h_deriv : HasDerivAt (fun x => ∫ t in (h : ℝ)..x, U_grp.U t φ) (U_grp.U h φ) h := by
       exact intervalIntegral.integral_hasDerivAt_right (h_cont.intervalIntegrable h h)
               (h_cont.stronglyMeasurableAtFilter volume (𝓝 h)) h_cont.continuousAt
@@ -281,8 +291,8 @@ lemma averagedVector_quotient_tendsto_at (h : ℝ) (φ : H) :
 /-- The generator difference quotient of `averagedVector h φ` equals
     `(I·h)⁻¹` times the difference of the orbit quotients at `h` and at `0`. -/
 lemma averagedVector_difference_quotient
-    (h : ℝ) (hh : h ≠ 0) (hpos : 0 < h) (φ : H) (s : ℝ) (_hs : s ≠ 0) :
-    ((I * s)⁻¹ : ℂ) • (U_grp.U s (averagedVector U_grp h hh φ) - averagedVector U_grp h hh φ)
+    (h : ℝ) (hpos : 0 < h) (φ : H) (s : ℝ) (_hs : s ≠ 0) :
+    ((I * s)⁻¹ : ℂ) • (U_grp.U s (averagedVector U_grp h φ) - averagedVector U_grp h φ)
       = ((I * h)⁻¹ : ℂ) • (((s⁻¹ : ℂ) • ∫ t in (h:ℝ)..(h + s), U_grp.U t φ)
                           - ((s⁻¹ : ℂ) • ∫ t in (0:ℝ)..s, U_grp.U t φ)) := by
   unfold averagedVector
@@ -299,19 +309,18 @@ lemma averagedVector_difference_quotient
 
 
 /-- Every time-averaged vector `averagedVector h φ` lies in the generator domain. -/
-lemma averagedVector_in_domain (h : ℝ) (hh : h ≠ 0) (φ : H) :
-    averagedVector U_grp h hh φ ∈ generatorDomain U_grp := by
+lemma averagedVector_in_domain (h : ℝ) (φ : H) :
+    averagedVector U_grp h φ ∈ generatorDomain U_grp := by
   by_cases hpos : 0 < h
   · refine ⟨((I * h)⁻¹ : ℂ) • (U_grp.U h φ - φ), ?_⟩
     apply Tendsto.congr'
     · filter_upwards [self_mem_nhdsWithin] with s hs
-      exact (averagedVector_difference_quotient U_grp h hh hpos φ s hs).symm
+      exact (averagedVector_difference_quotient U_grp h hpos φ s hs).symm
     · exact Tendsto.smul tendsto_const_nhds
         ((averagedVector_quotient_tendsto_at U_grp h φ).sub
          (averagedVector_quotient_tendsto_zero U_grp φ))
   · push Not at hpos
-    have hneg : h < 0 := lt_of_le_of_ne hpos hh
-    have h_empty : Set.Ioc 0 h = ∅ := Set.Ioc_eq_empty (not_lt.mpr hneg.le)
+    have h_empty : Set.Ioc 0 h = ∅ := Set.Ioc_eq_empty (not_lt.mpr hpos)
     unfold averagedVector
     rw [h_empty, setIntegral_empty, smul_zero]
     exact (generatorDomain U_grp).zero_mem
@@ -331,24 +340,15 @@ lemma generatorDomain_dense_via_average :
   obtain ⟨U, hU_open, hU_zero, hU_sub⟩ := hS_mem
   rw [Metric.isOpen_iff] at hU_open
   obtain ⟨δ, hδ_pos, hδ_ball⟩ := hU_open 0 hU_zero
-  have hh : δ / 2 ≠ 0 := by linarith
   have hh_pos : δ / 2 > 0 := by linarith
-  refine ⟨averagedVector U_grp (δ / 2) hh φ, ?_, ?_⟩
+  refine ⟨averagedVector U_grp (δ / 2) φ, ?_, ?_⟩
   · have h_in_ball : δ / 2 ∈ Metric.ball 0 δ := by
       rw [Metric.mem_ball, Real.dist_0_eq_abs, abs_of_pos hh_pos]
       linarith
     have h_in_U : δ / 2 ∈ U := hδ_ball h_in_ball
     have h_in_S : δ / 2 ∈ S := hU_sub ⟨h_in_U, hh_pos⟩
-    have := hS_ball (δ / 2) h_in_S
-    rw [dif_pos hh] at this
-    exact this
-  · exact averagedVector_in_domain U_grp (δ / 2) hh φ
-
-/-- Membership criterion for the generator domain: `ψ ∈ generatorDomain` iff the difference
-    quotient `(I·t)⁻¹ • (U(t)ψ - ψ)` converges as `t → 0`. -/
-lemma generatorDomain_maximal (ψ : H)
-    (h : ∃ η : H, Tendsto (fun t : ℝ => ((I : ℂ) * t)⁻¹ • (U_grp.U t ψ - ψ)) (𝓝[≠] 0) (𝓝 η)) :
-    ψ ∈ generatorDomain U_grp := h
+    exact hS_ball (δ / 2) h_in_S
+  · exact averagedVector_in_domain U_grp (δ / 2) φ
 
 /-- The generator of a strongly continuous one-parameter unitary group is self-adjoint. -/
 lemma generator_isSelfAdjoint : IsSelfAdjoint (generator U_grp) :=

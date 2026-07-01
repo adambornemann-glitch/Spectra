@@ -2,7 +2,6 @@
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
-Filename: ProjValMeasure/PdInterface.lean
 -/
 import Spectra.PositiveDefinite.Unitary
 
@@ -10,27 +9,57 @@ import Mathlib.Analysis.CStarAlgebra.ContinuousFunctionalCalculus.Basic
 import Mathlib.Analysis.CStarAlgebra.ContinuousLinearMap
 import Mathlib.MeasureTheory.Measure.Portmanteau
 import Mathlib.Analysis.Fourier.AddCircleMulti
+/-!
+# A polarization/uniqueness toolkit for scalar spectral measures
 
+A working toolkit meant to feed a PVM/Born-rule construction: polarization of an operator's
+diagonal quadratic form, a polarized cross-functional built from four scalar spectral measures,
+a functional-calculus L²-isometry, and a Fourier-uniqueness-on-the-circle argument for finite
+measures concentrated on `[0, 2π]`.
+
+## Main definitions
+
+* `crossInner`: the polarized cross functional `g ↦ ∫ g dμ_{ψ,φ}`, assembled from the four scalar
+  measures `μ_{ψ±φ}`, `μ_{ψ±iφ}`.
+
+## Main results
+
+* `inner_op_eq_polarization`: the off-diagonal `⟪T ψ, φ⟫` of any operator `T` as a fixed
+  combination of the diagonal quadratic form `z ↦ ⟪T z, z⟫`.
+* `crossInner_eq_inner_of_diag`: any operator reproducing the diagonal scalar integrals of a
+  family of measures reproduces the whole cross functional.
+* `crossInner_norm_le`: a norm bound on `crossInner` from a bound on the integrand and the total
+  mass of the family of measures.
+* `cfc_norm_sq_eq_inner`: the continuous-functional-calculus L²-isometry
+  `‖cfc f U z‖² = ⟪z, cfc |f|² U z⟫`.
+* `diag_parallelogram`: the diagonal `z ↦ ⟪z, A z⟫` of any operator obeys the parallelogram law.
+* `measure_eq_of_fourier_eq`: two finite measures on `ℝ`, concentrated on `[0, 2π]` and agreeing
+  off `{0}`, are equal once their Fourier coefficients on `(0, 2π]` agree — proved by transporting
+  to `AddCircle (2π)` and using density of the span of characters.
+* `spectralMeasure_parallelogram`: the measure-level parallelogram law, assembled from
+  `diag_parallelogram`-style moment identities via `measure_eq_of_fourier_eq`'s uniqueness engine.
+
+## Implementation notes
+
+`inner_op_eq_polarization`'s four-term combination is the standard complex polarization identity;
+`measure_eq_of_fourier_eq` is stated for plain `Measure ℝ` rather than a `StieltjesFunction`
+package, since the Stieltjes structure is never used — only finiteness, concentration on
+`[0, 2π]`, and Fourier coefficients on `(0, 2π]` matter. `spectralMeasure_parallelogram` takes the
+uniqueness fact (`huniq`) as an explicit hypothesis rather than calling `measure_eq_of_fourier_eq`
+directly, so a caller can supply either lemma or a specialized variant.
+
+As of this writing nothing in the repository imports this file: it is pulled into the default
+build only via the umbrella `Spectra.lean`, and callers elsewhere (`QuantumMechanics/BornRule/
+JointForward.lean`, `CayleyTransform/BorelCalculus.lean`) currently re-derive or comment-reference
+these facts inline rather than importing and calling them. Wiring this toolkit into its intended
+consumers, or folding it into whichever module ends up needing it, is the main remaining step.
+-/
 open Complex MeasureTheory
 open scoped InnerProductSpace ContinuousFunctionalCalculus
 open Spectra.PositiveDefinite
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H]
-variable (U : H →L[ℂ] H)
 
 namespace Spectra.ProjValMeasure
-
-
-/-! ### The PVM interface -/
-
-/-- Scaling the vector scales the correlation by `‖c‖²`. -/
-private lemma unitaryCorrelation_smul [CompleteSpace H] (c : ℂ) (ψ : H) (n : ℤ) :
-    unitaryCorrelation U (c • ψ) n = ↑(‖c‖ ^ 2) * unitaryCorrelation U ψ n := by
-  simp only [unitaryCorrelation, ContinuousLinearMap.map_smul,
-             inner_smul_left, inner_smul_right, ← mul_assoc]
-  congr 1
-  rw [← mul_comm (starRingEnd ℂ c) c]
-  simp only [ofReal_pow]
-  exact conj_mul' c
 
 /-- Polarization for the matrix elements of any operator: the off-diagonal
 `⟪T ψ, φ⟫` is a fixed combination of the diagonal quadratic form `z ↦ ⟪T z, z⟫`.
@@ -47,11 +76,14 @@ lemma inner_op_eq_polarization (T : H →L[ℂ] H) (ψ φ : H) :
     inner_smul_left, inner_smul_right, hI]
   ring_nf; simp only [Complex.I_sq]; ring
 
-variable (μ : H → Measure ℝ)
+variable {Ω : Type*} [MeasurableSpace Ω] (μ : H → Measure Ω)
 
 /-- The polarized cross functional `g ↦ ∫ g dμ_{ψ,φ}`, assembled from the four
-scalar spectral measures `μ_{ψ±φ}`, `μ_{ψ±iφ}`. -/
-noncomputable def crossInner (g : ℝ → ℂ) (ψ φ : H) : ℂ :=
+scalar spectral measures `μ_{ψ±φ}`, `μ_{ψ±iφ}`. Generic in the measurable domain `Ω` of the
+scalar measures — instantiated at `Ω = ℝ` for the Herglotz/PVM construction and at
+`Ω = spectrum ℂ U` for the bounded Borel calculus (`CayleyTransform/BorelCalculus.lean`'s
+`borelForm`). -/
+noncomputable def crossInner (g : Ω → ℂ) (ψ φ : H) : ℂ :=
   (1 / 4 : ℂ) *
     ( (∫ θ, g θ ∂(μ (ψ + φ))) - (∫ θ, g θ ∂(μ (ψ - φ)))
       - I * (∫ θ, g θ ∂(μ (ψ + I • φ)))
@@ -59,7 +91,7 @@ noncomputable def crossInner (g : ℝ → ℂ) (ψ φ : H) : ℂ :=
 
 /-- **The bridge.** Any operator `T` reproducing the *diagonal* scalar integrals
 reproduces the whole cross functional. The Riesz step need only hit the diagonal. -/
-lemma crossInner_eq_inner_of_diag {g : ℝ → ℂ} {T : H →L[ℂ] H}
+lemma crossInner_eq_inner_of_diag {g : Ω → ℂ} {T : H →L[ℂ] H}
     (hdiag : ∀ z : H, ⟪T z, z⟫_ℂ = ∫ θ, g θ ∂(μ z)) (ψ φ : H) :
     crossInner μ g ψ φ = ⟪T ψ, φ⟫_ℂ := by
   rw [inner_op_eq_polarization T ψ φ]
@@ -68,8 +100,9 @@ lemma crossInner_eq_inner_of_diag {g : ℝ → ℂ} {T : H →L[ℂ] H}
 
 
 /-- `‖crossInner‖ ≤ ‖g‖∞·(‖ψ‖²+‖φ‖²)`; homogenizing in `(ψ,φ)` upgrades this to
-the sesquilinear `2‖g‖∞·‖ψ‖·‖φ‖`. -/
-lemma crossInner_norm_le {g : ℝ → ℂ} {C : ℝ} (_hC : 0 ≤ C) (hg : ∀ θ, ‖g θ‖ ≤ C)
+the sesquilinear `2‖g‖∞·‖ψ‖·‖φ‖`. `0 ≤ C` is not assumed: it follows from `hg` applied at any
+`θ` together with `‖g θ‖ ≥ 0`. -/
+lemma crossInner_norm_le {g : Ω → ℂ} {C : ℝ} (hg : ∀ θ, ‖g θ‖ ≤ C)
     (hfin : ∀ z, IsFiniteMeasure (μ z))
     (hmass : ∀ z, ((μ z) Set.univ).toReal = ‖z‖ ^ 2) (ψ φ : H) :
     ‖crossInner μ g ψ φ‖ ≤ C * (‖ψ‖ ^ 2 + ‖φ‖ ^ 2) := by
@@ -122,10 +155,12 @@ lemma crossInner_norm_le {g : ℝ → ℂ} {C : ℝ} (_hC : 0 ≤ C) (hg : ∀ �
     _ = C * (‖ψ‖ ^ 2 + ‖φ‖ ^ 2) := by ring
 
 /-- **The functional-calculus L²-isometry.** `‖cfc f U z‖² = ⟪z, cfc |f|² U z⟫`.
-Through your diagonal relation `⟪cfc h U z, z⟫ = ∫ (h∘e) dμ_z`, the right side is
-`∫ |g|² dμ_z` — and *that* is what makes `cfc gₙ U z` a Cauchy sequence. -/
+Combined with a diagonal relation `⟪cfc h U z, z⟫ = ∫ (h∘e) dμ_z` for the intended consumer, the
+right side becomes `∫ |g|² dμ_z` — and *that* is what makes `cfc gₙ U z` a Cauchy sequence. No
+`IsStarNormal U` hypothesis is needed: `cfc` is total (junk-valued off its domain of definition),
+and the identity holds under that convention regardless of whether `U` is normal. -/
 lemma cfc_norm_sq_eq_inner [CompleteSpace H]
-    (U : H →L[ℂ] H) (_hU : IsStarNormal U)
+    (U : H →L[ℂ] H)
     (f : ℂ → ℂ) (hf : ContinuousOn f (spectrum ℂ U)) (z : H) :
     ‖cfc f U z‖ ^ 2
       = (⟪z, cfc (fun x => (starRingEnd ℂ) (f x) * f x) U z⟫_ℂ).re := by
@@ -156,8 +191,13 @@ lemma diag_parallelogram (A : H →L[ℂ] H) (ψ φ : H) :
              inner_sub_left, inner_sub_right]
   ring
 
-/-- Recommended: extract the finite-measure uniqueness hiding inside
-`stieltjes_measure_eq_of_fourier_eq`. The Stieltjes structure is never used. -/
+/-- **Fourier uniqueness for finite measures on the circle.** Two finite measures on `ℝ`,
+each concentrated on `[0, 2π]` and giving `{0}` no mass, that agree on every Fourier coefficient
+`∫ e^{inθ} dμ` over `(0, 2π]` must be equal. Stated for plain `Measure ℝ` rather than a
+`StieltjesFunction`-derived measure, since only finiteness and concentration on `[0, 2π]` are
+used, never a Stieltjes structure. Proved by transporting both measures to `AddCircle (2π)` via
+the quotient map, using density of `span (range fourier)` in `C(AddCircle (2π), ℂ)` to upgrade
+agreement on characters to agreement on all continuous test functions, and transporting back. -/
 lemma measure_eq_of_fourier_eq (μ ν : Measure ℝ) [IsFiniteMeasure μ] [IsFiniteMeasure ν]
     (hμ : μ (Set.Icc 0 (2*Real.pi))ᶜ = 0) (hν : ν (Set.Icc 0 (2*Real.pi))ᶜ = 0)
     (h0μ : μ {0} = 0) (h0ν : ν {0} = 0)
@@ -288,8 +328,10 @@ lemma measure_eq_of_fourier_eq (μ ν : Measure ℝ) [IsFiniteMeasure μ] [IsFin
     _ = ν := hback _ hcG
 
 omit [InnerProductSpace ℂ H] in
-/-- **Measure-level parallelogram**, fully self-contained: each former placeholder
-is now an explicit hypothesis. Apply it with your actual spectral-measure lemmas. -/
+/-- **Measure-level parallelogram**, fully self-contained: every ingredient (finiteness,
+concentration on `[0, 2π]`, the moment map `mom`, its parallelogram identity, and the
+Fourier-uniqueness fact) is an explicit hypothesis rather than a placeholder, so a caller
+instantiates it with the concrete spectral-measure lemmas for their family `μ`. -/
 lemma spectralMeasure_parallelogram
     (μ : H → Measure ℝ)
     (hfin  : ∀ z, IsFiniteMeasure (μ z))

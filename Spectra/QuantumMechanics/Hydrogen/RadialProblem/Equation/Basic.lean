@@ -14,19 +14,31 @@ Umbrella module for the hydrogen radial equation development. The implementation
 * `Equation.Reduced` — reduced radial equation, Kummer quantization, and continuum exclusion.
 * `Equation.Uniqueness` — one-dimensionality of negative-energy radial bound states.
 
-## Interface summary
+## Main definitions
 
-### For `HydrogenSpectrum.lean`:
-- `hydrogenEigenvalue` — E_n = −1/(2n²)
-- `hydrogenRadialWavefunction` — R_{nℓ}
-- `radial_eigenvalue_eq` — H_ℓ R_{nℓ} = E_n R_{nℓ}
-- `radial_quantization` — L² ⟺ E = E_n, n ≥ ℓ+1
-- `radial_wavefunction_orthonormal` — orthonormality
-- `radial_bound_state_unique` — eigenspaces 1-D (no bound state missed); not Hilbert-space completeness
-- `radial_continuum` — continuous spectrum [0, ∞)
-- `hydrogenEigenvalue_tendsto` — E_n → 0
+* `hydrogenEigenvalue` — the bound-state energies `E_n = −1/(2n²)`.
+* `hydrogenRadialWavefunction` — the radial eigenfunction `R_{nℓ}`.
 
-### For the Bohr formula:
-- `hydrogenEigenvalue` directly gives spectral lines:
-  ν_{n→m} = E_m − E_n = (1/2)(1/n² − 1/m²)
+## Main statements
+
+* `radial_eigenvalue_eq` — `R_{nℓ}` solves the radial eigenvalue equation `H_ℓ R_{nℓ} = E_n R_{nℓ}`.
+* `radial_quantization` — a classical radial bound state is `L²` iff `E = E_n` for some `n ≥ ℓ + 1`.
+* `radial_wavefunction_orthonormal` — fixed-`ℓ` radial wavefunctions with `n ≠ n'` are orthogonal.
+* `radial_wavefunction_norm` — each radial wavefunction has unit norm; together with
+  `radial_wavefunction_orthonormal` this is the full orthonormality statement.
+* `radial_bound_state_unique` — fixed-energy eigenspaces are one-dimensional (no bound state is
+  missed), short of full Hilbert-space completeness.
+* `radial_continuum` — no nonzero classical `L²` solutions exist for `E ≥ 0` (continuous spectrum).
+* `hydrogenEigenvalue_tendsto` — `E_n → 0` as `n → ∞`.
+
+## Implementation notes
+
+For the Bohr formula, `hydrogenEigenvalue` directly gives spectral lines:
+`ν_{n→m} = E_m − E_n = (1/2)(1/n² − 1/m²)`.
+
+## References
+
+* [Schrödinger, *Quantisierung als Eigenwertproblem I*][schrodinger1926]
+* [Bethe, Salpeter, *Quantum Mechanics of One- and Two-Electron Atoms*][bethesalpeter1957]
+* [Griffiths, *Introduction to Quantum Mechanics*][griffiths2018], §4.2.
 -/

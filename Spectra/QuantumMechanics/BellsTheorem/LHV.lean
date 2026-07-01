@@ -6,24 +6,40 @@ Ported by: Adam Bornemann
 -/
 import Mathlib.MeasureTheory.Integral.Bochner.Basic
 import Mathlib.MeasureTheory.Measure.ProbabilityMeasure
-import Mathlib.Probability.Independence.Basic
 import Mathlib.Analysis.SpecialFunctions.Pow.Real
+import Spectra.QuantumMechanics.BellsTheorem.CHSH_Bounds.CHSH_Basic
 /-!
 # Local Hidden Variable Models
 
 This file formalizes the measure-theoretic foundation for Bell's lemma:
 the local hidden variable (LHV) hypothesis as formulated by Bell.
 
-## Key Definitions
+## Main definitions
 
-* `LHVModel` : A local hidden variable model with probability space Λ
-* `LHVCorrelation` : The correlation function E(a,b) under LHV
-* `CHSHValue` : The CHSH quantity S = E(0,1) - E(0,0) + E(1,0) + E(1,1)
+* `ResponseFunction` : a measurable, integrable, ±1-a.e.-valued function of the hidden variable
+* `LHVModel` : a local hidden variable model with probability space `Λ` and four such functions
+* `LHVModel.correlation`, `LHVModel.CHSH` : the correlation `E(a,b)` and the CHSH quantity
+  `S = E(0,1) - E(0,0) + E(1,0) + E(1,1)`
 
-## Main Results
+## Main results
 
-* `lhv_chsh_bound` : Under any LHV model, |S| ≤ 2
-* `chsh_factorization` : The algebraic identity behind the bound
+* `chsh_pointwise_bound` : the algebraic identity behind the bound, for values in `{-1,+1}`
+* `lhv_chsh_bound` : under any LHV model, `|S| ≤ 2`
+* `no_lhv_if_violation` : a correlation with `|S| > 2` cannot be reproduced by any LHV model
+* `bell_theorem` : no LHV model achieves the numeric value `2√2`
+
+## Implementation notes
+
+`chsh_pointwise_bound` restates `Spectra.QuantumInfo.chsh_expectation_algebraic_bound`
+(`CHSH_Bounds/CHSH_Basic.lean`) at the special case `a = ±1` (as opposed to that lemma's general
+`|a| ≤ 1`); its proof is a direct application, not an independent re-derivation of the same
+`a(b'-b) + a'(b+b')` factorization.
+
+`bell_theorem` proves only the numeric corollary `¬∃ LHV model, M.CHSH = 2√2` — this file has no
+quantum state, observable, or Tsirelson-bound computation anywhere in it (those live in the
+sibling `Basic.lean`/`QuantumCHSH` files), so it does not itself establish that quantum mechanics
+*achieves* `2√2`; it only rules out the LHV explanation for that specific value once something
+else supplies it.
 
 ## References
 
@@ -31,8 +47,7 @@ Following the Isabelle formalization by Echenim & Mhalla, the LHV hypothesis
 is formalized using measure theory where properties hold almost everywhere,
 which is more general than assuming a density exists.
 -/
-open scoped ENNReal NNReal BigOperators
-open MeasureTheory ProbabilityTheory Set
+open MeasureTheory ProbabilityTheory
 
 /-! ## Setting: A Bipartite Bell Experiment
 
@@ -86,7 +101,7 @@ variable (M : LHVModel Λ)
 /-- The correlation E(a,b) = ∫ A(a,ω)·B(b,ω) dμ(ω) -/
 noncomputable def LHVModel.correlation (M : LHVModel Λ)
     (A : ResponseFunction Λ M.μ) (B : ResponseFunction Λ M.μ) : ℝ :=
-  ∫ ω, A ω * B ω ∂M.μ
+  ∫ ω, A ω * B ω ∂(M.μ : Measure Λ)
 
 /-- E(0,0) = ∫ A₀·B₀ dμ -/
 noncomputable def LHVModel.E₀₀ (M : LHVModel Λ) : ℝ := M.correlation M.A₀ M.B₀
@@ -107,7 +122,6 @@ the classical bound is 2 and the quantum maximum is 2√2. -/
 noncomputable def LHVModel.CHSH (M : LHVModel Λ) : ℝ :=
   M.E₀₁ - M.E₀₀ + M.E₁₀ + M.E₁₁
 
-
 /-! ## The Algebraic Core of the CHSH Bound -/
 
 /-- For values in {-1, +1}, this quantity is always ≤ 2 in absolute value.
@@ -116,35 +130,23 @@ The key insight: a(b' - b) + a'(b + b')
 - If b = b', then b' - b = 0 and b + b' = ±2, giving |a'| · 2 = 2
 - If b = -b', then b' - b = ±2 and b + b' = 0, giving |a| · 2 = 2
 
-This factorization is what makes Bell's lemma work. -/
+This factorization is what makes Bell's lemma work — it is the same one behind
+`Spectra.QuantumInfo.chsh_expectation_algebraic_bound`, applied here at the special case where
+`a`, `a'`, `b`, `b'` are each exactly `±1` rather than merely bounded by `1` in absolute value. -/
 lemma chsh_pointwise_bound (a₀ a₁ b₀ b₁ : ℝ)
     (ha₀ : a₀ = 1 ∨ a₀ = -1) (ha₁ : a₁ = 1 ∨ a₁ = -1)
     (hb₀ : b₀ = 1 ∨ b₀ = -1) (hb₁ : b₁ = 1 ∨ b₁ = -1) :
-    |a₀ * b₁ - a₀ * b₀ + a₁ * b₀ + a₁ * b₁| ≤ 2 := by
-  -- Factor: a₀(b₁ - b₀) + a₁(b₀ + b₁)
-  have h_factor : a₀ * b₁ - a₀ * b₀ + a₁ * b₀ + a₁ * b₁ =
-                  a₀ * (b₁ - b₀) + a₁ * (b₀ + b₁) := by ring
-  rw [h_factor]
-  -- Case analysis on b₀ = b₁ or b₀ = -b₁
-  rcases hb₀ with rfl | rfl <;> rcases hb₁ with rfl | rfl
-  · -- b₀ = 1, b₁ = 1: b₁ - b₀ = 0, b₀ + b₁ = 2
-    simp only [sub_self, mul_zero, zero_add]
-    rcases ha₁ with rfl | rfl <;> norm_num
-  · -- b₀ = 1, b₁ = -1: b₁ - b₀ = -2, b₀ + b₁ = 0
-    simp only [add_neg_cancel, mul_zero, add_zero]
-    rcases ha₀ with rfl | rfl <;> norm_num
-  · -- b₀ = -1, b₁ = 1: b₁ - b₀ = 2, b₀ + b₁ = 0
-    simp only [neg_add_cancel, mul_zero, add_zero]
-    rcases ha₀ with rfl | rfl <;> norm_num
-  · -- b₀ = -1, b₁ = -1: b₁ - b₀ = 0, b₀ + b₁ = -2
-    simp only [sub_self, mul_zero, zero_add]
-    rcases ha₁ with rfl | rfl <;> norm_num
+    |a₀ * b₁ - a₀ * b₀ + a₁ * b₀ + a₁ * b₁| ≤ 2 :=
+  Spectra.QuantumInfo.chsh_expectation_algebraic_bound a₀ a₁ b₀ b₁
+    (by rcases ha₀ with rfl | rfl <;> norm_num)
+    (by rcases ha₁ with rfl | rfl <;> norm_num)
+    (by rcases hb₀ with rfl | rfl <;> norm_num)
+    (by rcases hb₁ with rfl | rfl <;> norm_num)
 
 /-- The CHSH integrand is bounded by 2 almost everywhere -/
 lemma chsh_integrand_bound (M : LHVModel Λ) :
     ∀ᵐ ω ∂(M.μ : Measure Λ), |M.A₀ ω * M.B₁ ω - M.A₀ ω * M.B₀ ω +
                M.A₁ ω * M.B₀ ω + M.A₁ ω * M.B₁ ω| ≤ 2 := by
-
   have hA₀ := M.A₀.ae_pm_one
   have hA₁ := M.A₁.ae_pm_one
   have hB₀ := M.B₀.ae_pm_one
@@ -152,7 +154,18 @@ lemma chsh_integrand_bound (M : LHVModel Λ) :
   filter_upwards [hA₀, hA₁, hB₀, hB₁] with ω ha₀ ha₁ hb₀ hb₁
   exact chsh_pointwise_bound (M.A₀ ω) (M.A₁ ω) (M.B₀ ω) (M.B₁ ω) ha₀ ha₁ hb₀ hb₁
 
-
+/-- A product of two ±1-a.e. response functions is integrable — the shared step behind
+`chsh_as_integral` and `lhv_chsh_bound`. -/
+private lemma responseProd_integrable {M : LHVModel Λ} (f g : ResponseFunction Λ M.μ) :
+    Integrable (fun ω => f ω * g ω) (M.μ : Measure Λ) := by
+  apply Integrable.mono' (integrable_const (1 : ℝ))
+  · exact (f.measurable.mul g.measurable).aestronglyMeasurable
+  · filter_upwards [f.ae_pm_one, g.ae_pm_one] with ω hf hg
+    simp only [Real.norm_eq_abs, abs_mul]
+    have hf' : |f ω| = 1 := by rcases hf with h | h <;> simp [h]
+    have hg' : |g ω| = 1 := by rcases hg with h | h <;> simp [h]
+    rw [hf', hg']
+    norm_num
 
 /-- The CHSH value can be expressed as a single integral -/
 lemma chsh_as_integral (M : LHVModel Λ) :
@@ -160,23 +173,14 @@ lemma chsh_as_integral (M : LHVModel Λ) :
                    M.A₁ ω * M.B₀ ω + M.A₁ ω * M.B₁ ω) ∂(M.μ : Measure Λ) := by
   unfold LHVModel.CHSH LHVModel.E₀₁ LHVModel.E₀₀ LHVModel.E₁₀ LHVModel.E₁₁
   unfold LHVModel.correlation
-
-  have prod_integrable : ∀ (f g : ResponseFunction Λ M.μ),
-      Integrable (fun ω => f ω * g ω) (M.μ : Measure Λ) := fun f g => by
-    apply Integrable.mono' (integrable_const (1 : ℝ))
-    · exact (f.measurable.mul g.measurable).aestronglyMeasurable
-    · filter_upwards [f.ae_pm_one, g.ae_pm_one] with ω hf hg
-      simp only [Real.norm_eq_abs, abs_mul]
-      have hf' : |f ω| = 1 := by rcases hf with h | h <;> simp [h]
-      have hg' : |g ω| = 1 := by rcases hg with h | h <;> simp [h]
-      rw [hf', hg']
-      norm_num
-
-  have int_A₀B₀ : Integrable (fun ω => M.A₀ ω * M.B₀ ω) M.μ := prod_integrable M.A₀ M.B₀
-  have int_A₀B₁ : Integrable (fun ω => M.A₀ ω * M.B₁ ω) M.μ := prod_integrable M.A₀ M.B₁
-  have int_A₁B₀ : Integrable (fun ω => M.A₁ ω * M.B₀ ω) M.μ := prod_integrable M.A₁ M.B₀
-  have int_A₁B₁ : Integrable (fun ω => M.A₁ ω * M.B₁ ω) M.μ := prod_integrable M.A₁ M.B₁
-
+  have int_A₀B₀ : Integrable (fun ω => M.A₀ ω * M.B₀ ω) (M.μ : Measure Λ) :=
+    responseProd_integrable M.A₀ M.B₀
+  have int_A₀B₁ : Integrable (fun ω => M.A₀ ω * M.B₁ ω) (M.μ : Measure Λ) :=
+    responseProd_integrable M.A₀ M.B₁
+  have int_A₁B₀ : Integrable (fun ω => M.A₁ ω * M.B₀ ω) (M.μ : Measure Λ) :=
+    responseProd_integrable M.A₁ M.B₀
+  have int_A₁B₁ : Integrable (fun ω => M.A₁ ω * M.B₁ ω) (M.μ : Measure Λ) :=
+    responseProd_integrable M.A₁ M.B₁
   rw [← integral_sub int_A₀B₁ int_A₀B₀]
   rw [add_assoc]
   rw [← integral_add int_A₁B₀ int_A₁B₁]
@@ -187,36 +191,20 @@ lemma chsh_as_integral (M : LHVModel Λ) :
   · exact int_A₀B₁.sub int_A₀B₀
   · exact int_A₁B₀.add int_A₁B₁
 
-
 /-! ## The Main Theorem -/
 
 /-- **Bell's Theorem (CHSH form)**: Under any local hidden variable model, |S| ≤ 2. -/
 lemma lhv_chsh_bound (M : LHVModel Λ) : |M.CHSH| ≤ 2 := by
   rw [chsh_as_integral]
-
-  -- Helper for integrability of products
-  have prod_integrable : ∀ (f g : ResponseFunction Λ M.μ),
-      Integrable (fun ω => f ω * g ω) (M.μ : Measure Λ) := fun f g => by
-    apply Integrable.mono' (integrable_const (1 : ℝ))
-    · exact (f.measurable.mul g.measurable).aestronglyMeasurable
-    · filter_upwards [f.ae_pm_one, g.ae_pm_one] with ω hf hg
-      simp only [Real.norm_eq_abs, abs_mul]
-      have hf' : |f ω| = 1 := by rcases hf with h | h <;> simp [h]
-      have hg' : |g ω| = 1 := by rcases hg with h | h <;> simp [h]
-      rw [hf', hg']
-      norm_num
-
-  -- Integrability of the CHSH integrand
   have chsh_integrable : Integrable (fun ω => M.A₀ ω * M.B₁ ω - M.A₀ ω * M.B₀ ω +
       M.A₁ ω * M.B₀ ω + M.A₁ ω * M.B₁ ω) (M.μ : Measure Λ) := by
     apply Integrable.add
     apply Integrable.add
     apply Integrable.sub
-    · exact prod_integrable M.A₀ M.B₁
-    · exact prod_integrable M.A₀ M.B₀
-    · exact prod_integrable M.A₁ M.B₀
-    · exact prod_integrable M.A₁ M.B₁
-
+    · exact responseProd_integrable M.A₀ M.B₁
+    · exact responseProd_integrable M.A₀ M.B₀
+    · exact responseProd_integrable M.A₁ M.B₀
+    · exact responseProd_integrable M.A₁ M.B₁
   calc |∫ ω, (M.A₀ ω * M.B₁ ω - M.A₀ ω * M.B₀ ω +
               M.A₁ ω * M.B₀ ω + M.A₁ ω * M.B₁ ω) ∂(M.μ : Measure Λ)|
       ≤ ∫ ω, |M.A₀ ω * M.B₁ ω - M.A₀ ω * M.B₀ ω +
@@ -249,22 +237,20 @@ lemma no_lhv_if_violation (S : ℝ) (hS : |S| > 2) :
 /-- Quantum mechanics predicts S = 2√2 for the Bell state with optimal settings.
     Since 2√2 > 2, this proves quantum mechanics is incompatible with LHV. -/
 lemma quantum_violation_exists : (2 : ℝ) * Real.sqrt 2 > 2 := by
-  have h : Real.sqrt 2 > 1 := by
-    exact Real.one_lt_sqrt_two
+  have h : Real.sqrt 2 > 1 := Real.one_lt_sqrt_two
   linarith
 
-/-- Bell's Theorem: Quantum mechanics cannot be explained by local hidden variables -/
+/-- **Bell's Theorem**: no local hidden variable model reproduces the value `2√2` — the numeric
+corollary of `no_lhv_if_violation` at the specific value `quantum_violation_exists` shows exceeds
+the classical bound. This file does not itself derive that quantum mechanics *achieves* `2√2`
+(see the module docstring); that additional step lives in `Basic.lean`/`QuantumCHSH`. -/
 theorem bell_theorem :
-    ¬∃ (Λ : Type) (_ : MeasurableSpace Λ) (M : LHVModel Λ),
+    ¬∃ (Λ : Type*) (_ : MeasurableSpace Λ) (M : LHVModel Λ),
       M.CHSH = 2 * Real.sqrt 2 := by
-  push Not
-  intro Λ _ M
-  have h1 := lhv_chsh_bound M
-  intro hcontra
-  rw [hcontra] at h1
-  have sqrt2_pos : Real.sqrt 2 > 0 := Real.sqrt_pos.mpr (by norm_num : (2 : ℝ) > 0)
-  rw [abs_of_pos (by linarith : 2 * Real.sqrt 2 > 0)] at h1
-  have : Real.sqrt 2 > 1 := Real.one_lt_sqrt_two
-  linarith
+  rintro ⟨Λ, _, M, hM⟩
+  have h2 : |(2 : ℝ) * Real.sqrt 2| > 2 := by
+    rw [abs_of_pos (by positivity)]
+    exact quantum_violation_exists
+  exact no_lhv_if_violation (2 * Real.sqrt 2) h2 ⟨M, hM⟩
 
 end Spectra.BellTheorem

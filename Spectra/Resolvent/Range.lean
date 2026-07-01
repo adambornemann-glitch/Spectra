@@ -9,8 +9,9 @@ import Spectra.Resolvent.Range.Surjectivity
 /-!
 # The Resolvent Operator
 
-This file defines the resolvent operator `R(z) = (A - zI)⁻¹` for self-adjoint
-generators and proves the fundamental bound `‖R(z)‖ ≤ 1/|Im(z)|`.
+This file defines the resolvent operator `R(z) = (A - zI)⁻¹` for self-adjoint generators,
+proves the fundamental bound `‖R(z)‖ ≤ 1/|Im(z)|`, and establishes `R(z)` as an honest right
+inverse of `A - zI` on its range.
 
 ## Main definitions
 
@@ -19,56 +20,51 @@ generators and proves the fundamental bound `‖R(z)‖ ≤ 1/|Im(z)|`.
 ## Main statements
 
 * `resolvent_bound`: `‖R(z)‖ ≤ 1/|Im(z)|`
+* `resolvent_apply_mem_domain`: `R(z) φ ∈ dom(A)`
+* `resolvent_sub_smul_apply`: `(A - z)(R(z) φ) = φ`, the right-inverse property
 
 ## Implementation notes
 
 The resolvent is constructed via `LinearMap.mkContinuous` using the existence
 and uniqueness from `self_adjoint_range_all_z` together with the lower bound
-estimate which provides the continuity bound.
+estimate which provides the continuity bound. `resolvent_bound` then reuses
+`LinearMap.mkContinuous_norm_le` directly against that same bound rather than
+re-deriving it, so the operator norm and the constructor's continuity bound
+are the same number by construction.
+
+## References
+
+* [Reed, Simon, *Methods of Modern Mathematical Physics I*][reed1980], Section VIII.3
 -/
-open InnerProductSpace Complex
+open Complex
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
 namespace Spectra.Resolvent
 
+variable {A : H →ₗ.[ℂ] H} (z : ℂ) (hz : z.im ≠ 0) (hsym : A.IsFormalAdjoint A)
+  (hplus : ∀ φ : H, ∃ ψ : A.domain, A ψ + I • (ψ : H) = φ)
+  (hminus : ∀ φ : H, ∃ ψ : A.domain, A ψ - I • (ψ : H) = φ)
+
 /-- The vector `ψ ∈ dom(A)` solving `(A - z)ψ = φ`, for self-adjoint `A`, `Im z ≠ 0`. -/
-private noncomputable def resolventSolution {A : H →ₗ.[ℂ] H}
-    (z : ℂ) (hz : z.im ≠ 0)
-    (hsym : A.IsFormalAdjoint A)
-    (hplus : ∀ φ : H, ∃ ψ : A.domain, A ψ + I • (ψ : H) = φ)
-    (hminus : ∀ φ : H, ∃ ψ : A.domain, A ψ - I • (ψ : H) = φ)
-    (φ : H) : H :=
+private noncomputable def resolventSolution (φ : H) : H :=
   ((Classical.choose (self_adjoint_range_all_z hsym hplus hminus z hz φ).exists : A.domain) : H)
 
 /-- `resolventSolution z hz hsym hplus hminus φ` lies in the domain of `A`. -/
-private lemma resolventSolution_mem {A : H →ₗ.[ℂ] H}
-    (z : ℂ) (hz : z.im ≠ 0)
-    (hsym : A.IsFormalAdjoint A)
-    (hplus : ∀ φ : H, ∃ ψ : A.domain, A ψ + I • (ψ : H) = φ)
-    (hminus : ∀ φ : H, ∃ ψ : A.domain, A ψ - I • (ψ : H) = φ)
-    (φ : H) :
+private lemma resolventSolution_mem (φ : H) :
     resolventSolution z hz hsym hplus hminus φ ∈ A.domain :=
   (Classical.choose (self_adjoint_range_all_z hsym hplus hminus z hz φ).exists : A.domain).property
 
 /-- `resolventSolution` solves the resolvent equation: `(A - z)ψ = φ`. -/
-private lemma resolventSolution_eq {A : H →ₗ.[ℂ] H}
-    (z : ℂ) (hz : z.im ≠ 0)
-    (hsym : A.IsFormalAdjoint A)
-    (hplus : ∀ φ : H, ∃ ψ : A.domain, A ψ + I • (ψ : H) = φ)
-    (hminus : ∀ φ : H, ∃ ψ : A.domain, A ψ - I • (ψ : H) = φ)
-    (φ : H) :
-    A ⟨resolventSolution z hz hsym hplus hminus φ, resolventSolution_mem z hz hsym hplus hminus φ⟩
+private lemma resolventSolution_eq (φ : H) :
+    A ⟨resolventSolution z hz hsym hplus hminus φ,
+        resolventSolution_mem z hz hsym hplus hminus φ⟩
       - z • resolventSolution z hz hsym hplus hminus φ = φ :=
   Classical.choose_spec (self_adjoint_range_all_z hsym hplus hminus z hz φ).exists
 
 /-- `resolventSolution` is additive in its target `φ`. -/
-private lemma resolventSolution_add {A : H →ₗ.[ℂ] H}
-    (z : ℂ) (hz : z.im ≠ 0)
-    (hsym : A.IsFormalAdjoint A)
-    (hplus : ∀ φ : H, ∃ ψ : A.domain, A ψ + I • (ψ : H) = φ)
-    (hminus : ∀ φ : H, ∃ ψ : A.domain, A ψ - I • (ψ : H) = φ)
-    (φ₁ φ₂ : H) :
+private lemma resolventSolution_add (φ₁ φ₂ : H) :
     resolventSolution z hz hsym hplus hminus (φ₁ + φ₂)
-      = resolventSolution z hz hsym hplus hminus φ₁ + resolventSolution z hz hsym hplus hminus φ₂ := by
+      = resolventSolution z hz hsym hplus hminus φ₁
+          + resolventSolution z hz hsym hplus hminus φ₂ := by
   set a := resolventSolution z hz hsym hplus hminus φ₁
   set b := resolventSolution z hz hsym hplus hminus φ₂
   have ha_mem := resolventSolution_mem z hz hsym hplus hminus φ₁
@@ -89,12 +85,7 @@ private lemma resolventSolution_add {A : H →ₗ.[ℂ] H}
   exact congrArg Subtype.val huniq
 
 /-- `resolventSolution` respects scalar multiplication of its target `φ`. -/
-private lemma resolventSolution_smul {A : H →ₗ.[ℂ] H}
-    (z : ℂ) (hz : z.im ≠ 0)
-    (hsym : A.IsFormalAdjoint A)
-    (hplus : ∀ φ : H, ∃ ψ : A.domain, A ψ + I • (ψ : H) = φ)
-    (hminus : ∀ φ : H, ∃ ψ : A.domain, A ψ - I • (ψ : H) = φ)
-    (c : ℂ) (φ : H) :
+private lemma resolventSolution_smul (c : ℂ) (φ : H) :
     resolventSolution z hz hsym hplus hminus (c • φ)
       = c • resolventSolution z hz hsym hplus hminus φ := by
   set s := resolventSolution z hz hsym hplus hminus φ
@@ -109,13 +100,9 @@ private lemma resolventSolution_smul {A : H →ₗ.[ℂ] H}
     (resolventSolution_eq z hz hsym hplus hminus (c • φ)) hcs_eq
   exact congrArg Subtype.val huniq
 
-/-- The resolvent bound at the vector level: `‖resolventSolution …‖ ≤ (1/|Im z|)·‖φ‖`. -/
-private lemma resolventSolution_norm_le {A : H →ₗ.[ℂ] H}
-    (z : ℂ) (hz : z.im ≠ 0)
-    (hsym : A.IsFormalAdjoint A)
-    (hplus : ∀ φ : H, ∃ ψ : A.domain, A ψ + I • (ψ : H) = φ)
-    (hminus : ∀ φ : H, ∃ ψ : A.domain, A ψ - I • (ψ : H) = φ)
-    (φ : H) :
+/-- The resolvent bound at the vector level:
+`‖resolventSolution …‖ ≤ (1/|Im z|)·‖φ‖`. -/
+private lemma resolventSolution_norm_le (φ : H) :
     ‖resolventSolution z hz hsym hplus hminus φ‖ ≤ (1 / |z.im|) * ‖φ‖ := by
   have hmem := resolventSolution_mem z hz hsym hplus hminus φ
   have heq := resolventSolution_eq z hz hsym hplus hminus φ
@@ -129,11 +116,7 @@ private lemma resolventSolution_norm_le {A : H →ₗ.[ℂ] H}
         positivity
 
 /-- The resolvent operator `R(z) = (A - zI)⁻¹` for self-adjoint `A` and `Im(z) ≠ 0`. -/
-noncomputable def resolvent {A : H →ₗ.[ℂ] H}
-    (z : ℂ) (hz : z.im ≠ 0)
-    (hsym : A.IsFormalAdjoint A)
-    (hplus : ∀ φ : H, ∃ ψ : A.domain, A ψ + I • (ψ : H) = φ)
-    (hminus : ∀ φ : H, ∃ ψ : A.domain, A ψ - I • (ψ : H) = φ) : H →L[ℂ] H :=
+noncomputable def resolvent : H →L[ℂ] H :=
   LinearMap.mkContinuous
     { toFun := resolventSolution z hz hsym hplus hminus
       map_add' := resolventSolution_add z hz hsym hplus hminus
@@ -142,59 +125,19 @@ noncomputable def resolvent {A : H →ₗ.[ℂ] H}
     (resolventSolution_norm_le z hz hsym hplus hminus)
 
 /-- The resolvent satisfies `‖R(z)‖ ≤ 1/|Im(z)|`. -/
-theorem resolvent_bound {A : H →ₗ.[ℂ] H}
-    (hsym : A.IsFormalAdjoint A)
-    (hplus : ∀ φ : H, ∃ ψ : A.domain, A ψ + I • (ψ : H) = φ)
-    (hminus : ∀ φ : H, ∃ ψ : A.domain, A ψ - I • (ψ : H) = φ)
-    (z : ℂ) (hz : z.im ≠ 0) :
-    ‖resolvent z hz hsym hplus hminus‖ ≤ 1 / |z.im| := by
-  have h_pointwise : ∀ φ : H, ‖resolvent z hz hsym hplus hminus φ‖ ≤ (1 / |z.im|) * ‖φ‖ := by
-    intro φ
-    let ψ_sub : A.domain := Classical.choose (self_adjoint_range_all_z hsym hplus hminus z hz φ).exists
-    let ψ := (ψ_sub : H)
-    have h_domain : ψ ∈ A.domain := ψ_sub.property
-    have h_eq : A ψ_sub - z • ψ = φ :=
-      Classical.choose_spec (self_adjoint_range_all_z hsym hplus hminus z hz φ).exists
-    have h_lower := lower_bound_estimate hsym z ψ h_domain
-    rw [h_eq] at h_lower
-    have h_im_pos : 0 < |z.im| := abs_pos.mpr hz
-    have h_ψ_bound : ‖ψ‖ ≤ ‖φ‖ / |z.im| := by
-      have h_mul : |z.im| * ‖ψ‖ ≤ ‖φ‖ := h_lower
-      calc ‖ψ‖
-          = (|z.im|)⁻¹ * (|z.im| * ‖ψ‖) := by field_simp
-        _ ≤ (|z.im|)⁻¹ * ‖φ‖ := by
-            apply mul_le_mul_of_nonneg_left h_mul
-            exact inv_nonneg.mpr (abs_nonneg _)
-        _ = ‖φ‖ / |z.im| := by rw [inv_mul_eq_div]
-    have h_res_eq : resolvent z hz hsym hplus hminus φ = ψ := rfl
-    calc ‖resolvent z hz hsym hplus hminus φ‖
-        = ‖ψ‖ := by rw [h_res_eq]
-      _ ≤ ‖φ‖ / |z.im| := h_ψ_bound
-      _ = (1 / |z.im|) * ‖φ‖ := by ring
-  apply ContinuousLinearMap.opNorm_le_bound
-  · apply div_nonneg
-    · norm_num
-    · exact abs_nonneg _
-  · exact h_pointwise
+theorem resolvent_bound :
+    ‖resolvent z hz hsym hplus hminus‖ ≤ 1 / |z.im| :=
+  LinearMap.mkContinuous_norm_le _ (by positivity)
+    (resolventSolution_norm_le z hz hsym hplus hminus)
 
 /-- `R(z) φ` lies in `dom A` — the resolvent is a *right* inverse landing in the domain.
 (Public restatement of the private `resolventSolution_mem`, since `R(z) φ` is defeq to it.) -/
-theorem resolvent_apply_mem_domain {A : H →ₗ.[ℂ] H}
-    (z : ℂ) (hz : z.im ≠ 0)
-    (hsym : A.IsFormalAdjoint A)
-    (hplus : ∀ φ : H, ∃ ψ : A.domain, A ψ + I • (ψ : H) = φ)
-    (hminus : ∀ φ : H, ∃ ψ : A.domain, A ψ - I • (ψ : H) = φ)
-    (φ : H) :
+theorem resolvent_apply_mem_domain (φ : H) :
     resolvent z hz hsym hplus hminus φ ∈ A.domain :=
   resolventSolution_mem z hz hsym hplus hminus φ
 
 /-- `(A - z)(R(z) φ) = φ` — the resolvent is a right inverse of `A - z`. -/
-theorem resolvent_sub_smul_apply {A : H →ₗ.[ℂ] H}
-    (z : ℂ) (hz : z.im ≠ 0)
-    (hsym : A.IsFormalAdjoint A)
-    (hplus : ∀ φ : H, ∃ ψ : A.domain, A ψ + I • (ψ : H) = φ)
-    (hminus : ∀ φ : H, ∃ ψ : A.domain, A ψ - I • (ψ : H) = φ)
-    (φ : H) :
+theorem resolvent_sub_smul_apply (φ : H) :
     A ⟨resolvent z hz hsym hplus hminus φ,
         resolvent_apply_mem_domain z hz hsym hplus hminus φ⟩
       - z • (resolvent z hz hsym hplus hminus φ) = φ :=

@@ -33,14 +33,15 @@ variable (F : M.DivergencePreservingFamily)
 
 /-! ### IG Schrödinger equations
 
-Three forms of the evolution equation for divergence-preserving flows,
-mirroring the three Schrödinger equations in `UnitaryEvo/Schrodinger.lean`.
+Three forms of the evolution equation for divergence-preserving flows, mirroring the two
+Schrödinger-equation forms and the unitarity/conservation fact in
+`QuantumMechanics/SchrodingerEquation.lean`.
 
-| Quantum (Schrödinger.lean)           | Statistical (this section)                  |
-|--------------------------------------|---------------------------------------------|
-| `schrödinger_equation₁` (at t = 0)   | `infoGeometric_schrodinger₁` (at t = 0)     |
-| `schrödinger_equation₂` (at time t)  | `infoGeometric_schrodinger₂` (at time t)    |
-| `schrödinger_equation₃` (integral)   | `infoGeometric_schrodinger₃` (conservation) |
+| Quantum (Schrödinger.lean)              | Statistical (this section)                  |
+|-----------------------------------------|---------------------------------------------|
+| `schrodingerEquation_zero` (at t = 0)   | `infoGeometric_schrodinger₁` (at t = 0)     |
+| `schrodingerEquation` (at time t)       | `infoGeometric_schrodinger₂` (at time t)    |
+| unitarity (inner product conservation) | `infoGeometric_schrodinger₃` (conservation) |
 
 | Symbol            | Quantum                  | Statistical              |
 |-------------------|--------------------------|--------------------------|
@@ -57,7 +58,7 @@ mirroring the three Schrödinger equations in `UnitaryEvo/Schrodinger.lean`.
   d/dt φ_t(θ) |_{t=0} = X(θ)
 
 The generator X gives the initial velocity of every parameter
-trajectory. This is the analogue of `schrödinger_equation₁`:
+trajectory. This is the analogue of `schrodingerEquation_zero`:
 
   d/dt U(t)ψ |_{t=0} = iAψ  -/
 theorem infoGeometric_schrodinger₁
@@ -75,7 +76,7 @@ theorem infoGeometric_schrodinger₁
 
 The parameter trajectory satisfies an autonomous ODE determined
 by the generator at the current state. This is the analogue of
-`schrödinger_equation₂`:
+`schrodingerEquation`:
 
   d/dt U(t)ψ = iA · U(t)ψ      ∀ t -/
 theorem infoGeometric_schrodinger₂
@@ -104,7 +105,7 @@ theorem infoGeometric_schrodinger₂
   d/dt D(φ_t(θ₁) ‖ φ_t(θ₂)) = 0      ∀ t
 
 The infinitesimal form of divergence preservation. This is the
-analogue of `schrödinger_equation₃` / inner product conservation:
+analogue of unitarity / inner product conservation, not of a Schrödinger equation instance:
 
   d/dt ⟨U(t)ψ, U(t)φ⟩ = 0      ∀ t  -/
 theorem infoGeometric_schrodinger₃

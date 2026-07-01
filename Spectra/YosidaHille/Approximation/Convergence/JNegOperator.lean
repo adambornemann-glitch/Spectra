@@ -81,7 +81,7 @@ lemma yosidaJNeg_tendsto_on_domain {A : H →ₗ.[ℂ] H}
       rw [dist_eq_norm, sub_zero]
       have h_res_bound : ‖Resolvent.resolvent (-I * (n : ℂ)) (neg_I_mul_pnat_im_ne_zero n) hsym hplus hminus‖ ≤ 1 / (n : ℝ) := by
         calc ‖Resolvent.resolvent (-I * (n : ℂ)) (neg_I_mul_pnat_im_ne_zero n) hsym hplus hminus‖
-            ≤ 1 / |(-I * (n : ℂ)).im| := resolvent_bound hsym hplus hminus _ _
+            ≤ 1 / |(-I * (n : ℂ)).im| := resolvent_bound _ _ hsym hplus hminus
           _ = 1 / (n : ℝ) := by
               simp only [neg_mul, neg_im, mul_im, I_re, I_im, zero_mul, one_mul, zero_add]
               rw [div_eq_div_iff_comm, natCast_re, abs_neg, Nat.abs_cast]

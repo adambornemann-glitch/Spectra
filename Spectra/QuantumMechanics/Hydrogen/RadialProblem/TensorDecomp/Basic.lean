@@ -18,63 +18,6 @@ equations — one for each angular momentum sector ℓ. Within each sector,
 the effective potential is V_eff(r) = ℓ(ℓ+1)/r² − Z/r, combining the
 centrifugal barrier with the Coulomb attraction.
 
-## Revision notes (please read)
-
-1. **`radialMeasure` is now a `Measure ℝ`, not a `Measure (Set.Ioi 0)`.**
-   The original skeleton asked for a measure on the subtype `Set.Ioi (0:ℝ)`.
-   Subtype measures (via `Measure.comap`) have very thin Mathlib support;
-   restricting Lebesgue measure to `(0,∞)` and attaching the density r² via
-   `withDensity` is measure-theoretically equivalent for all L² purposes
-   (functions only matter a.e., and a.e. every point lies in `(0,∞)`), and it
-   matches the convention already used by `thetaMeasure`/`phiMeasure` in
-   `SphericalHarmonics/Basic.lean`. All downstream statements should quantify
-   over `r : ℝ` and use `ae_radial_mem_Ioi` to localize to `r > 0`.
-
-2. **`RadialL2`/`ReducedRadialL2` are `abbrev`s** (mirroring `abbrev L2_S2`),
-   so the `NormedAddCommGroup`, `InnerProductSpace ℂ`, and `CompleteSpace`
-   instances on `Lp ℂ 2 _` flow through without re-derivation. Smoke-test
-   `example`s below confirm this.
-
-3. **`radialReduction` is fully constructed and proved** (no `sorry`): the
-   map R ↦ rR is realized as a `LinearIsometryEquiv` between the two L²
-   spaces, with inverse χ ↦ r⁻¹χ. The analytic content is the single lemma
-   `eLpNorm_radialReductionFun` (‖rR‖_{L²(dr)} = ‖R‖_{L²(r²dr)} at the
-   `eLpNorm` level); everything else is a.e. bookkeeping, transported back
-   and forth along the *mutual* absolute continuity of `radialMeasure` and
-   `volume.restrict (Ioi 0)` (the density r² is finite and a.e. nonzero on
-   `(0,∞)`, so the two measures share null sets).
-
-4. **Namespace fix:** the closing `end` previously read
-   `end QuantumMechanics.Hydrogen.Decomposition`, which leaves `Spectra`
-   unclosed and fails to compile. It now matches the opening namespace.
-
-5. Mathlib has no L² analogue of `withDensitySMulLI` (which exists only for
-   L¹ and is merely ℝ-linear and one-directional), verified against
-   v4.31.0-rc1 — so the construction here is original infrastructure.
-
-6. **`L2_R3` is L²(ℝ³) *in spherical coordinates*:** `Lp ℂ 2` of the product
-   measure `radialMeasure.prod sphereMeasure` on `ℝ × (ℝ × ℝ)`. This matches
-   `Basic.lean`, where `L2_S2` already lives on the angular coordinate
-   rectangle. The change of variables to Cartesian
-   `Lp ℂ 2 (volume : Measure (EuclideanSpace ℝ (Fin 3)))` is independent
-   infrastructure (Mathlib stops at the 2D `polarCoord`) and can be
-   precomposed later as one more unitary without touching this file.
-
-7. **`sphericalDecomposition` is fully constructed and proved** (no `sorry`),
-   with target `lp (fun _ : HarmonicIdx => RadialL2) 2` where
-   `HarmonicIdx = Σ ℓ, {m // |m| ≤ ℓ}`: Mathlib has no Hilbert-space tensor
-   product (verified against v4.31.0-rc1), so ⊕_ℓ (RadialL2 ⊗ V_ℓ) is
-   realized by expanding each (2ℓ+1)-dimensional V_ℓ in its orthonormal
-   basis {Y_ℓ^m} — the standard, mathematically equivalent reformulation.
-   The unitary comes from `IsHilbertSum.mk` applied to the isometric sector
-   embeddings R ↦ R ⊗ Y_ℓ^m (orthogonal family + dense joint range). The
-   completeness half consumes `sphericalHarmonic_complete` from `Basic.lean`
-   and mirrors its proof one level up (coefficient functions, fiberwise
-   Cauchy–Schwarz via `lintegral` Hölder, Fubini, slicewise vanishing).
-
-8. **`sphericalDecomposition_isometry` is now a `theorem`** (∀ f, ‖Φf‖ = ‖f‖,
-   immediate from `norm_map`), not a `sorry`-typed `def`.
-
 ## Main definitions
 
 * `radialMeasure` — r² dr on (0, ∞), as `(volume.restrict (Ioi 0)).withDensity r²`.
@@ -86,8 +29,6 @@ centrifugal barrier with the Coulomb attraction.
 * `sectorEmbedding` — the isometric embedding R ↦ R ⊗ Y_ℓ^m, `RadialL2 →ₗᵢ[ℂ] L2_R3`.
 * `sphericalDecomposition` — the unitary L²(ℝ³) ≃ₗᵢ[ℂ] lp (fun _ => RadialL2) 2,
   i.e. ⊕_ℓ RadialL2 ⊗ V_ℓ with each V_ℓ expanded in its Y_ℓ^m basis.
-* `radialHamiltonian` — H_ℓ on RadialL2 for each angular sector.
-* `reducedRadialOp` — h_ℓ on L²(ℝ⁺, dr) after the substitution χ = rR.
 
 ## Main statements
 
@@ -100,9 +41,47 @@ centrifugal barrier with the Coulomb attraction.
 * `sphericalDecomposition_isometry` — the decomposition is unitary  (proved).
 * `sphericalDecomposition_symm_apply`, `sphericalDecomposition_symm_single` —
   the inverse reassembles Σ_i R_i ⊗ Y_i in L²  (proved).
-* `laplacian_separates` — −Δ = radial part + L̂²/r².
-* `coulomb_preserves_sectors` — 1/r commutes with L̂², preserving sectors.
-* `hydrogen_reduces` — H reduces to H_ℓ on each angular sector.
+
+## Implementation notes
+
+`radialMeasure` is `(volume.restrict (Ioi 0)).withDensity (fun r => r ^ 2)` rather than a genuine
+measure on the subtype `Set.Ioi (0 : ℝ)`: subtype measures via `Measure.comap` have thin Mathlib
+support, and since functions only matter a.e. and a.e. every point lies in `(0, ∞)`, this is
+measure-theoretically equivalent for all L² purposes. Downstream statements quantify over `r : ℝ`
+and use `ae_radial_mem_Ioi` to localize to `r > 0`; this mirrors the convention already used by
+`thetaMeasure`/`phiMeasure` in `SphericalHarmonics/Basic.lean`.
+
+`RadialL2` and `ReducedRadialL2` are `abbrev`s (mirroring `abbrev L2_S2`), so the
+`NormedAddCommGroup`/`InnerProductSpace ℂ`/`CompleteSpace` instances on `Lp ℂ 2 _` flow through
+without re-derivation.
+
+`radialReduction` realizes R ↦ rR as a `LinearIsometryEquiv` with inverse χ ↦ r⁻¹χ; its analytic
+content is the single lemma `eLpNorm_radialReductionFun`
+(`‖rR‖_{L²(dr)} = ‖R‖_{L²(r²dr)}` at the `eLpNorm` level), with everything else a.e. bookkeeping
+transported along the mutual absolute continuity of `radialMeasure` and `volume.restrict (Ioi 0)`.
+Mathlib has no L² analogue of `withDensitySMulLI` (L¹-only, and merely ℝ-linear), so this
+construction is original infrastructure (checked against v4.31.0-rc1).
+
+`L2_R3` is L²(ℝ³) *in spherical coordinates*: `Lp ℂ 2` of the product measure
+`radialMeasure.prod sphereMeasure`, mirroring how `L2_S2` lives on the angular coordinate
+rectangle in `Basic.lean`. The change of variables to Cartesian
+`Lp ℂ 2 (volume : Measure (EuclideanSpace ℝ (Fin 3)))` is independent infrastructure — Mathlib
+stops at the 2D `polarCoord` — and can be precomposed later as one more unitary without touching
+this file.
+
+`sphericalDecomposition` targets `lp (fun _ : HarmonicIdx => RadialL2) 2` with
+`HarmonicIdx = Σ ℓ, {m // |m| ≤ ℓ}`: Mathlib has no Hilbert-space tensor product (checked against
+v4.31.0-rc1), so `⊕_ℓ (RadialL2 ⊗ V_ℓ)` is realized by expanding each `(2ℓ + 1)`-dimensional `V_ℓ`
+in its orthonormal basis `{Y_ℓ^m}` — the standard, mathematically equivalent reformulation. The
+unitary comes from `IsHilbertSum.mk` applied to the isometric sector embeddings `R ↦ R ⊗ Y_ℓ^m`
+(orthogonal family + dense joint range); the completeness half consumes
+`sphericalHarmonic_complete` from `Basic.lean` and mirrors its proof one level up.
+
+This file constructs the two unitaries only. The radial Hamiltonian, the reduced radial operator,
+the Laplacian separation, and the Coulomb-sector reduction this decomposition feeds into live
+downstream: `radialHamiltonian`, `reducedRadialOp`, `coulomb_preserves_sectors`, and
+`hydrogen_reduces` in `Spectrum/Eigenvalue.lean`, and `laplacian_separates` in
+`Laplacian/Spherical.lean`.
 
 ## References
 
@@ -183,7 +162,7 @@ noncomputable example : InnerProductSpace ℂ ReducedRadialL2 := inferInstance
     sides are `ℝ≥0∞`-valued). This single computation drives the entire
     construction of `radialReduction`. -/
 lemma eLpNorm_radialReductionFun (g : ℝ → ℂ) :
-    eLpNorm (fun (r: ℝ) => (r : ℂ) * g r) 2 ((volume : Measure ℝ).restrict (Set.Ioi 0)) =
+    eLpNorm (fun (r : ℝ) => (r : ℂ) * g r) 2 ((volume : Measure ℝ).restrict (Set.Ioi 0)) =
       eLpNorm g 2 radialMeasure := by
   rw [eLpNorm_eq_lintegral_rpow_enorm_toReal two_ne_zero ENNReal.ofNat_ne_top,
     eLpNorm_eq_lintegral_rpow_enorm_toReal two_ne_zero ENNReal.ofNat_ne_top]
@@ -205,8 +184,7 @@ lemma eLpNorm_radialReductionFun (g : ℝ → ℂ) :
 
 /-- Multiplication by r maps L²(r²dr) into L²(dr). -/
 lemma memLp_radialReductionFun {g : ℝ → ℂ} (hg : MemLp g 2 radialMeasure) :
-    MemLp (fun (r: ℝ)  => (r : ℂ) * g r) 2 ((volume : Measure ℝ).restrict (Set.Ioi 0)) := by
-    -- r changed to ℝ to
+    MemLp (fun (r : ℝ) => (r : ℂ) * g r) 2 ((volume : Measure ℝ).restrict (Set.Ioi 0)) := by
   refine ⟨Complex.measurable_ofReal.aestronglyMeasurable.mul
     (hg.aestronglyMeasurable.mono_ac absolutelyContinuous_radialMeasure), ?_⟩
   rw [eLpNorm_radialReductionFun]
@@ -344,12 +322,8 @@ instance : DecidableEq HarmonicIdx := by
 
 /-- Extensionality: equal quantum numbers, equal index. -/
 lemma HarmonicIdx.ext {i j : HarmonicIdx} (h1 : i.1 = j.1) (h2 : i.2.1 = j.2.1) :
-    i = j := by
-  obtain ⟨ℓ, m, hm⟩ := i
-  obtain ⟨ℓ', m', hm'⟩ := j
-  dsimp only at h1 h2
-  subst h1
-  exact congrArg (Sigma.mk ℓ) (Subtype.ext h2)
+    i = j :=
+  Sigma.subtype_ext h1 h2
 
 /-- The spherical harmonic attached to an index. -/
 noncomputable def harmonic (i : HarmonicIdx) : ℝ × ℝ → ℂ :=

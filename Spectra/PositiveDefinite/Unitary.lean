@@ -6,85 +6,65 @@ Filename: PositiveDefinite/Unitary.lean
 -/
 import Spectra.Operator.Unitary.Powers
 /-!
-# Herglotz's Theorem and Scalar Spectral Measures for Unitary Operators
+# The unitary autocorrelation sequence and its positive-definiteness
 
-This file constructs the **scalar spectral measure** `μ_ψ` for a bounded
-unitary operator `U` on a Hilbert space, via Herglotz's theorem on positive
-definite sequences.
-
-## Independence from Bochner and the CFC
-
-This construction is **completely independent** of:
-- Bochner's theorem
-- The continuous functional calculus (CFC)
-- Gelfand's theorem / C⋆-algebra theory
-- The Riesz–Markov representation theorem
-
-The only ingredients from Mathlib are:
-- Integer powers of bounded operators (algebra)
-- The unit circle `circle` and `expMapCircle` (topology)
-- Stone–Weierstrass on `circle` (approximation)
-- Weak-⋆ compactness of measures (Banach–Alaoglu)
-- Basic Fourier analysis on `𝕋`
-
-## Strategy
-
-1. Given unitary `U : H →L[ℂ] H` and `ψ : H`, define the sequence
-   `c(n) = ⟨ψ, U^n ψ⟩` for `n : ℤ`.
-
-2. Prove this sequence is **positive definite** on `ℤ`:
-   `∑_{j,k} conj(α_j) α_k c(k-j) ≥ 0` for all finite sequences `α`.
-
-3. Construct the **Fejér means**: measures `σ_N` on `𝕋` with density
-   `(1/2π) ∑_{|n|≤N} (1 - |n|/(N+1)) c(n) z^{-n}` w.r.t. Haar measure.
-
-4. Show the Fejér means are **positive** measures (key: the Fejér kernel
-   is non-negative, which follows from positive definiteness).
-
-5. Show the Fejér means have **uniformly bounded total mass** `= c(0) = ‖ψ‖²`.
-
-6. Extract a weak-⋆ convergent subsequence (Banach–Alaoglu) to obtain
-   the representing measure `μ_ψ`.
-
-7. Verify: `∫ z^n dμ_ψ = c(n)` for all `n : ℤ`.
-
-## The concrete trigonometric polynomial calculus
-
-For a trigonometric polynomial `p(z) = ∑_{k=-N}^{N} a_k z^k`, define
-`p(U) = ∑ a_k U^k`. This is a **concrete** functional calculus that requires
-no spectral theory — just addition and composition of bounded operators.
-
-The key multiplicativity formula
-  `∫ conj(p) · q dμ_ψ = ⟨p(U)ψ, q(U)ψ⟩`
-is proved by direct algebraic computation for trigonometric polynomials,
-then extended to all continuous functions via Stone–Weierstrass.
+This file defines the **unitary autocorrelation sequence** `c(n) = ⟨ψ, Uⁿψ⟩` for `U : H →L[ℂ] H`
+and `ψ : H`, and proves the two structural facts about it that the Herglotz construction below
+needs to get off the ground: Hermitian symmetry and positive-definiteness of the associated
+double sum.
 
 ## Main results
 
-* `herglotzMeasure`: the scalar spectral measure `μ_ψ` on `𝕋`
-* `herglotzMeasure_fourier`: `∫ z^n dμ_ψ = ⟨ψ, U^n ψ⟩`
-* `herglotzMeasure_total`: `μ_ψ(𝕋) = ‖ψ‖²`
-* `herglotzMeasure_star_mul`: `∫ f̄g dμ_ψ = ⟨f(U)ψ, g(U)ψ⟩`
+* `unitaryCorrelation`: the sequence `c(n) = ⟨ψ, Uⁿψ⟩`.
+* `unitaryCorrelation_zero`: `c(0) = ‖ψ‖²`.
+* `unitaryCorrelation_neg`: `c(-n) = conj(c(n))` (Hermitian symmetry).
+* `unitaryCorrelation_positive_definite`: `∑_{j,k} conj(α_j) α_k c(k-j) ≥ 0` for all finite `α`.
+
+## The Herglotz construction (multi-file project; not complete)
+
+`unitaryCorrelation`'s positive-definiteness is step 1–2 of a longer, **in-progress** program that
+aims to construct, for unitary `U` and `ψ : H`, a scalar spectral measure `μ_ψ` on the circle `𝕋`
+with `∫ z^n dμ_ψ = c(n)` — Herglotz's theorem on positive-definite sequences, independently of
+Bochner's theorem, the continuous functional calculus, Gelfand's theorem, and the Riesz–Markov
+representation theorem. The planned steps, and where each currently lives:
+
+1. Define `c(n) = ⟨ψ, Uⁿψ⟩` and prove it positive-definite. **Done — this file.**
+2. Construct the Fejér means `σ_N` on `𝕋` from `c`, and show they carry total mass `‖ψ‖²`.
+   **Done —** `Herglotz/FejerMeans.lean`, `Herglotz/FejerMeasure.lean`
+   (`fejerMeasure`, `fejerMeasure_total`).
+3. Package `σ_N`'s CDF and stage it for a Helly-selection argument. **Done —**
+   `Herglotz/Stieltjes/CumulativeDistFun.lean` (`fejerCDF`).
+4. Extract a Helly-convergent subsequence to obtain the representing measure `μ_ψ`.
+   **Not done.** The generic selection theorem exists and is sorry-free
+   (`Herglotz/Stieltjes/Hellys.lean`, `helly_selection`), but it has not yet been applied to
+   `fejerCDF`.
+5. Verify `∫ z^n dμ_ψ = c(n)` and the multiplicativity formula
+   `∫ conj(p) · q dμ_ψ = ⟨p(U)ψ, q(U)ψ⟩` for trigonometric polynomials `p`, `q` — via direct
+   algebraic computation, then extended to continuous functions by Stone–Weierstrass.
+   **Not done.**
+
+`herglotzMeasure`, `herglotzMeasure_fourier`, `herglotzMeasure_total`, and
+`herglotzMeasure_star_mul` do **not** exist anywhere in the repository yet: they name the target
+of steps 4–5, not a result this file (or any file so far) delivers.
 
 ## References
 
-* G. Herglotz Theorem, *Über Potenzreihen mit positivem, reellen Teil im
+* G. Herglotz, *Über Potenzreihen mit positivem, reellen Teil im
   Einheitskreis*, Leipziger Berichte **63** (1911), 501–511
 * Reed & Simon, *Methods of Modern Mathematical Physics I*, §VII.1
 * W. Rudin, *Real and Complex Analysis*, §19.13
 
 ## Tags
 
-Herglotz Theorem theorem, positive definite sequence, Fejér kernel,
+Herglotz theorem, positive definite sequence, Fejér kernel,
 spectral measure, unitary operator
 -/
-open Complex MeasureTheory Filter Topology
-open scoped NNReal ENNReal InnerProductSpace
+open scoped InnerProductSpace
 open Spectra.Operator
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
 namespace Spectra.PositiveDefinite
 
-variable (U : H →L[ℂ] H) (hU : Operator.Unitary U)
+variable (U : H →L[ℂ] H)
 
 /-- The **unitary autocorrelation sequence**: `c(n) = ⟨ψ, U^n ψ⟩`. -/
 noncomputable def unitaryCorrelation (ψ : H) (n : ℤ) : ℂ :=
@@ -95,7 +75,9 @@ lemma unitaryCorrelation_zero (ψ : H) :
     unitaryCorrelation U ψ 0 = ↑(‖ψ‖ ^ 2) := by
   simp [unitaryCorrelation, inner_self_eq_norm_sq_to_K]
 
-/-- `c(-n) = conj(c(n))` (Hermitian symmetry). -/
+/-- `c(-n) = conj(c(n))` (Hermitian symmetry). Unlike `unitaryCorrelation_zero`, which holds for
+any `U`, this direction genuinely needs unitarity of `U` to relate `c(-n)` and `c(n)` via
+`unitaryZpow_inner_shift`. -/
 lemma unitaryCorrelation_neg (hU : Operator.Unitary U) (ψ : H) (n : ℤ) :
     unitaryCorrelation U ψ (-n) = starRingEnd ℂ (unitaryCorrelation U ψ n) := by
   simp only [unitaryCorrelation]

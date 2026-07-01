@@ -25,9 +25,20 @@ from collections import Counter
 
 import _spectra_meta as M
 
+IGNORED_AREAS = {"Scratch"}
 
-def gather(repo_root):
-    sources = M.load_all(repo_root)
+def tracked_module(module):
+    return M.top_area(module) not in IGNORED_AREAS
+
+
+def gather(repo_root, include_scratch=False):
+    all_sources = M.load_all(repo_root)
+    if include_scratch:
+        sources = all_sources
+        ignored = 0
+    else:
+        sources = [s for s in all_sources if tracked_module(M.module_of_path(s.path, repo_root))]
+        ignored = len(all_sources) - len(sources)
 
     by_area_files = Counter()
     by_area_lines = Counter()
@@ -80,6 +91,9 @@ def gather(repo_root):
 
     return {
         "files": len(sources),
+        "source_scope": "all" if include_scratch else "tracked",
+        "ignored_areas": [] if include_scratch else sorted(IGNORED_AREAS),
+        "ignored_files": ignored,
         "lines": {
             "total": total_lines,
             "code": total_code,
@@ -124,6 +138,11 @@ def human_report(stats, top):
     print("=" * 64)
     print("  SPECTRA — LIBRARY STATISTICS")
     print("=" * 64)
+    if stats.get("source_scope") == "tracked":
+        ignored = ", ".join(stats.get("ignored_areas", [])) or "none"
+        print(f"  Source scope .............. tracked ({stats.get('ignored_files', 0)} ignored: {ignored})")
+    else:
+        print("  Source scope .............. all source files")
     print(f"  Source files .............. {stats['files']:>8,}")
     print(f"  Total lines ............... {L['total']:>8,}")
     print(f"    code .................... {L['code']:>8,}")
@@ -164,10 +183,12 @@ def main():
     ap.add_argument("--json", action="store_true", help="emit JSON instead of a report")
     ap.add_argument("--top", type=int, default=10,
                     help="how many largest files to list (0 to skip)")
+    ap.add_argument("--include-scratch", action="store_true",
+                    help="include temporary Spectra/Scratch files in the counts")
     args = ap.parse_args()
 
     repo_root = M.find_repo_root()
-    stats = gather(repo_root)
+    stats = gather(repo_root, include_scratch=args.include_scratch)
 
     if args.json:
         print(json.dumps(stats, indent=2))

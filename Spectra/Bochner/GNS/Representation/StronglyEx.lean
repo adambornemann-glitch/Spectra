@@ -2,83 +2,47 @@
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
-Filename: Bochner/GNS/Representation/StronglyEx.lean
 -/
-import Spectra.Bochner.GNS.Representation.UnitaryConstructor
-open Complex Finsupp Filter Topology
-open Spectra.PositiveDefinite
+import Mathlib.Analysis.InnerProductSpace.Basic
+
+/-!
+# Strong Continuity Extension from a Dense Set
+
+An abstract 3ε argument: if a family of isometries `U t` is strongly continuous on a dense
+subset `D` of a Hilbert space `H`, it is strongly continuous on all of `H`.
+
+## Main statements
+
+* `strong_continuity_extends` — strong continuity on a dense set, plus isometry, extends to the
+  whole space.
+
+## Implementation notes
+
+The proof is the standard 3ε argument (approximate, use continuity on the dense set, use
+isometry to transport the bound back), needing only `hiso` (each `U t` preserves norms) and
+`hD_cont` (continuity on `D`) — no group-law or identity hypothesis is needed. This lemma is
+deliberately import-light (only Mathlib, no Spectra-internal dependency) so that any file in the
+project can call it without risking an import cycle.
+
+This exact 3ε extension shape is now also used by
+`Bochner/GNS/Representation/StronglyCont.lean`'s `completionTranslate_strong_continuous` and
+`Modular/KMS/UnitaryGroup.lean`'s `invariantUnitaryGroup` (via its `strong_continuous` field),
+both of which call this lemma directly instead of re-proving the argument.
+
+`StronglyCont.lean`'s `quotientTranslate_continuous` and `UnitaryGroup.lean`'s
+`evolveU_continuous_coe` look similar (same ε/δ vocabulary) but solve a different sub-problem:
+establishing continuity *at a single already-fixed dense-set point*, via a parallelogram/cross-term
+identity (`‖x - y‖² = ‖x‖² + ‖y‖² - 2 Re⟨x,y⟩`) driven by a concrete inner-product formula specific
+to their domain. That's the `hD_cont` *input* this lemma consumes, not an instance of its
+conclusion, so it doesn't fit `strong_continuity_extends`'s signature and is intentionally left
+alone.
+
+## Tags
+
+strong continuity, dense set, GNS construction, unitary group
+-/
+
 namespace Spectra.Bochner.GNS
-
-/-- **Strong continuity of U(t) on the dense set.**
-
-For any formal sum `α = Σⱼ cⱼ δ_{sⱼ}`, we have
-  ‖U(t)(embed α) - embed α‖² = Re⟨U(t)α - α, U(t)α - α⟩_f
-
-Expanding the bilinear form over the finite support:
-  = Σⱼ Σₖ c̄ⱼ cₖ [2f(sₖ-sⱼ) - f(sₖ-sⱼ+t) - f(sₖ-sⱼ-t)]
-
-Each term → 0 as t → 0 by continuity of f (proved in IsContinuous.continuity).
-Since the sum is finite, the whole expression → 0.
-
-This gives: for each α, ‖U(t)(embed α) - embed α‖ → 0 as t → 0.
-By the group law, t ↦ U(t)(embed α) is continuous at every point. -/
-lemma strong_continuity_on_dense {f : ℝ → ℂ}
-    (hf : IsContinuous f) (gns : GNSData f)
-    (U : letI := gns.instNACG; letI := gns.instIPS; ℝ → gns.H →ₗ[ℂ] gns.H)
-    (hcompat : ∀ t α, U t (gns.embed α) = gns.embed (translate t α))
-    (_hiso : ∀ t ψ φ, @inner ℂ _ gns.instIPS.toInner (U t ψ) (U t φ) =
-                      @inner ℂ _ gns.instIPS.toInner ψ φ) :
-    ∀ (α : ℝ →₀ ℂ), letI := gns.instNACG;
-      Continuous (fun t => U t (gns.embed α)) := by
-  letI := gns.instNACG
-  letI := gns.instIPS
-  intro α
-  -- Reduce to continuity of embed ∘ translate via compatibility
-  suffices Continuous (fun t => gns.embed (translate t α)) from
-    this.congr (fun t => (hcompat t α).symm)
-  rw [continuous_iff_continuousAt]; intro t₀
-  rw [Metric.continuousAt_iff]; intro ε hε
-  -- The cross term: t ↦ Re(pdInner f (translate t α) (translate t₀ α))
-  set cross := fun t => (pdInner f (translate t α) (translate t₀ α)).re
-  have hcross_cont : Continuous cross :=
-    Complex.continuous_re.comp (pdInner_translate_left_continuous hf α (translate t₀ α))
-  -- At t = t₀, cross reduces via translation isometry
-  have hcross_t₀ : cross t₀ = (pdInner f α α).re := by
-    show (pdInner f (translate t₀ α) (translate t₀ α)).re = _
-    rw [pdInner_translate]
-  -- Both norms equal the same constant (translation isometry + embed_inner)
-  have hF_norm_sq : ∀ s, ‖gns.embed (translate s α)‖ ^ 2 = (pdInner f α α).re := by
-    intro s; rw [← @inner_self_eq_norm_sq ℂ, gns.embed_inner, pdInner_translate]; rfl
-  -- The H-inner product real part matches cross
-  have hinner_re : ∀ s, RCLike.re (@inner ℂ gns.H _
-      (gns.embed (translate s α)) (gns.embed (translate t₀ α))) = cross s := by
-    intro s; rw [gns.embed_inner]; rfl
-  -- ‖F(t) - F(t₀)‖² = 2(cross t₀ - cross t) via norm_sub_sq
-  have hnorm_sq : ∀ s, ‖gns.embed (translate s α) - gns.embed (translate t₀ α)‖ ^ 2 =
-      2 * (cross t₀ - cross s) := by
-    intro s
-    rw [@norm_sub_sq ℂ, hF_norm_sq s, hF_norm_sq t₀, hinner_re s, hcross_t₀]; ring
-  -- Choose δ from continuity of cross at t₀
-  obtain ⟨δ, hδ, hδ_spec⟩ := Metric.continuousAt_iff.mp
-    hcross_cont.continuousAt (ε ^ 2 / 2) (by positivity)
-  refine ⟨δ, hδ, fun {t} ht => ?_⟩
-  rw [dist_eq_norm]
-  -- |cross t - cross t₀| < ε²/2
-  have hcross_near : |cross t - cross t₀| < ε ^ 2 / 2 := by
-    rw [← Real.dist_eq]; exact hδ_spec ht
-  -- cross t₀ - cross t ≥ 0 (from ‖·‖² ≥ 0)
-  have hnn : 0 ≤ cross t₀ - cross t := by
-    have := (sq_nonneg ‖gns.embed (translate t α) - gns.embed (translate t₀ α)‖).trans_eq
-      (hnorm_sq t)
-    linarith
-  -- ‖F(t) - F(t₀)‖² < ε²
-  have hnorm_bound : ‖gns.embed (translate t α) - gns.embed (translate t₀ α)‖ ^ 2 < ε ^ 2 := by
-    rw [hnorm_sq]
-    have : cross t₀ - cross t ≤ |cross t - cross t₀| := by
-      rw [abs_sub_comm]; exact le_abs_self _
-    linarith
-  -- ‖F(t) - F(t₀)‖ < ε
-  nlinarith [sq_nonneg ‖gns.embed (translate t α) - gns.embed (translate t₀ α)‖, sq_abs ε]
 
 /-- **Strong continuity extends to all of H.**
 
@@ -96,8 +60,6 @@ lemma strong_continuity_extends {H : Type*}
     [NormedAddCommGroup H] [InnerProductSpace ℂ H]
     (U : ℝ → H →ₗ[ℂ] H)
     (hiso : ∀ t ψ, ‖U t ψ‖ = ‖ψ‖)
-    (_hgroup : ∀ s t ψ, U (s + t) ψ = U s (U t ψ))
-    (_hid : ∀ ψ, U 0 ψ = ψ)
     (D : Set H) (hD : Dense D)
     (hD_cont : ∀ φ ∈ D, Continuous (fun t => U t φ)) :
     ∀ ψ, Continuous (fun t => U t ψ) := by
@@ -132,6 +94,5 @@ lemma strong_continuity_extends {H : Type*}
             rw [hdist_iso, dist_comm]; exact hφ_close
           linarith
     _ = ε := by ring
-
 
 end Spectra.Bochner.GNS

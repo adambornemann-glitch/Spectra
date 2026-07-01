@@ -60,7 +60,7 @@ variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteS
   `d/dt ⟪ψ(t), B ψ(t)⟫ = ⟪i A ψ(t), B ψ(t)⟫ + ⟪ψ(t), B (i A ψ(t))⟫`,
 
 which equals `i⟪ψ(t), [A,B]ψ(t)⟫` when `B` preserves `dom(A)`. The dynamics enters only
-through `schrödinger_equation₂`; the product rule is `HasDerivAt.inner`. -/
+through `schrodingerEquation`; the product rule is `HasDerivAt.inner`. -/
 theorem ehrenfest_theorem (U_grp : OneParameterUnitaryGroup (H := H))
     (B : H →L[ℂ] H) (ψ₀ : H) (hψ₀ : ψ₀ ∈ (generator U_grp).domain) (t₀ : ℝ) :
     let ψ_t  := U_grp.U t₀ ψ₀
@@ -69,7 +69,7 @@ theorem ehrenfest_theorem (U_grp : OneParameterUnitaryGroup (H := H))
                (⟪I • Aψ_t, B ψ_t⟫_ℂ + ⟪ψ_t, B (I • Aψ_t)⟫_ℂ) t₀ := by
   intro ψ_t Aψ_t
   -- Schrödinger gives ψ'(t₀) = i A ψ(t₀)
-  have hf := schrödinger_equation₂ U_grp ψ₀ hψ₀ t₀
+  have hf := schrodingerEquation U_grp ψ₀ hψ₀ t₀
   -- push through the bounded operator B
   have hg : HasDerivAt (fun t => B (U_grp.U t ψ₀)) (B (I • Aψ_t)) t₀ := by
     have h := (B.restrictScalars ℝ).hasFDerivAt.comp_hasDerivAt t₀ hf

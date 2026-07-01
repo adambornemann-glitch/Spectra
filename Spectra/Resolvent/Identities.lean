@@ -138,7 +138,7 @@ lemma resolvent_tendsto {A : H →ₗ.[ℂ] H} (hsym : A.IsFormalAdjoint A)
       have hh := congrArg (fun T : H →L[ℂ] H => T ξ) hid
       simpa [ContinuousLinearMap.sub_apply, ContinuousLinearMap.smul_apply,
              ContinuousLinearMap.comp_apply] using hh
-    have hop := resolvent_bound hsym hplus hminus (zn n) (h_im_ne n)
+    have hop := resolvent_bound (zn n) (h_im_ne n) hsym hplus hminus
     rw [happ, norm_smul]
     calc ‖zn n - z‖ * ‖resolvent (zn n) (h_im_ne n) hsym hplus hminus
                           (resolvent z hz hsym hplus hminus ξ)‖

@@ -23,9 +23,13 @@ from collections import Counter
 import _spectra_meta as M
 
 CITABLE = {"theorem", "lemma", "def", "abbrev", "structure", "class", "inductive", "opaque", "instance", "axiom"}
+IGNORED_AREAS = {"Scratch"}
 NS_RE = re.compile(r"^\s*namespace\s+([\w.]+)")
 SEC_RE = re.compile(r"^\s*section\b\s*([\w.']*)")
 END_RE = re.compile(r"^\s*end\b\s*([\w.']*)")
+
+def tracked_module(module):
+    return M.top_area(module) not in IGNORED_AREAS
 
 def prefixes_per_line(code_lines):
     """active namespace dotted-prefix in effect *at* each line (before that line opens/closes a scope)."""
@@ -55,7 +59,9 @@ def signature(code_lines, start, stop):
 
 def main():
     repo = M.find_repo_root()
-    sources = M.load_all(repo)
+    all_sources = M.load_all(repo)
+    sources = [s for s in all_sources if tracked_module(M.module_of_path(s.path, repo))]
+    ignored = len(all_sources) - len(sources)
     symbols, by_kind = [], Counter()
     for s in sources:
         module = M.module_of_path(s.path, repo)
@@ -93,6 +99,9 @@ def main():
             "total": len(symbols),
             "by_kind": dict(sorted(by_kind.items(), key=lambda kv: -kv[1])),
             "with_sorry": sum(1 for x in symbols if x["sorry"]),
+            "source_scope": "tracked",
+            "ignored_areas": sorted(IGNORED_AREAS),
+            "ignored_files": ignored,
         },
         "symbols": symbols,
     }
@@ -101,8 +110,8 @@ def main():
     lines = [f'{x["name"]}\t{x["kind"]}\t{x["module"]}\t{"sorry" if x["sorry"] else "ok"}\t{x["signature"]}'
              for x in symbols]
     (docs / "spectra-symbols.tsv").write_text("\n".join(lines) + "\n")
-    print(f"docs/spectra-symbols.json + .tsv: {len(symbols)} declarations, "
-          f"{out['meta']['with_sorry']} contain sorry")
+    print(f"docs/spectra-symbols.json + .tsv: {len(symbols)} tracked declarations, "
+          f"{out['meta']['with_sorry']} contain sorry ({ignored} ignored Scratch files)")
     print("by kind:", dict(by_kind))
     return 0
 

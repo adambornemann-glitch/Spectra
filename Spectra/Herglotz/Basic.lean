@@ -5,20 +5,41 @@ Authors: Adam Bornemann
 -/
 import Spectra.Herglotz.Stieltjes.IntegralConv
 import Spectra.Herglotz.Stieltjes.Hellys
+/-!
+# Herglotz's Lemma (Stieltjes Version)
 
+This file proves the measure-theoretic engine behind Herglotz's representation theorem for
+positive-definite sequences on `ℤ`: given a sequence of Fejér Cesàro-mean CDFs whose Fourier
+coefficients converge to a correlation sequence `c : ℤ → ℂ`, Helly selection produces a finite
+measure on `[0, 2π]` realizing `c` as its Fourier coefficients.
+
+## Main statements
+
+* `withDensity_ofReal_eq_stieltjes_measure`: an absolutely continuous measure with density `ρ`
+  equals the Stieltjes measure of its cumulative distribution function.
+* `herglotz_lemma_stieltjes`: the Fejér/Helly/Stieltjes construction of the representing measure.
+
+## Implementation notes
+
+`herglotz_lemma_stieltjes` is stated purely in terms of an abstract correlation sequence
+`c : ℤ → ℂ` and abstract Fejér CDFs `F`; it does not itself reference a Hilbert space or a
+unitary operator. Its intended use (see the inline comments on `c` and `M` in its signature)
+is as the engine of Herglotz's theorem for a unitary `U : H →L[ℂ] H`, taking
+`c n = ⟪ψ, U ^ n ψ⟫` and `M = ‖ψ‖ ^ 2` for a fixed vector `ψ`. That connecting theorem — and
+the machinery for `U ^ n` at negative `n` a unitary operator needs — has not yet been built,
+so `herglotz_lemma_stieltjes` currently has no callers.
+-/
 open Complex MeasureTheory Filter Topology
-variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
 namespace Spectra.Herglotz
 
 /-! ### Herglotz's lemma (Stieltjes version) -/
 
 section HerglotzStieltjes
 
-variable (U : H →L[ℂ] H)
-
-/-- For a nonneg integrable density `ρ : ℝ → ℝ`, the measure
-`volume.withDensity (l ↦ ofReal (ρ l))` equals the Stieltjes measure of its
-cumulative distribution `F : a ↦ ∫_{(-∞,a]} ρ`. -/
+/-- For a nonneg integrable density `ρ : ℝ → ℝ` with cumulative distribution
+`F : a ↦ ∫_{(-∞,a]} ρ` that is monotone (`hF_mono`), continuous (`hF_cont`), and vanishes at
+`-∞` (`hF_atBot`), the measure `volume.withDensity (l ↦ ofReal (ρ l))` equals the Stieltjes
+measure of `F`. -/
 lemma withDensity_ofReal_eq_stieltjes_measure
     {ρ : ℝ → ℝ} (hρ_nn : ∀ x, 0 ≤ ρ x) (hρ_int : Integrable ρ volume)
     {F : ℝ → ℝ}
@@ -55,11 +76,14 @@ lemma withDensity_ofReal_eq_stieltjes_measure
     rw [StieltjesFunction.measure_Iic _ hSF_atBot, hSF_eq, sub_zero]
   rw [hLHS_val, hRHS_val]
 
-/-- **Herglotz's lemma** (Currently unused.) -/
+/-- **Herglotz's lemma.** Given Fejér CDFs `F N` whose Fourier coefficients converge to a
+correlation sequence `c`, Helly selection produces a finite measure `μ` on `[0, 2π]` (i.e.
+concentrated there — its complement is null) whose Fourier coefficients are exactly `c`, and whose
+total mass agrees with the boundary value `c 0`. Currently unused — see the module docstring. -/
 lemma herglotz_lemma_stieltjes
-    (c : ℤ → ℂ)  -- the correlation sequence c(n) = ⟨ψ, U^n ψ⟩
+    (c : ℤ → ℂ)  -- the correlation sequence c(n) = ⟪ψ, U ^ n ψ⟫
     (M : ℝ) (hM : 0 ≤ M)  -- M = ‖ψ‖²
-    (_c_zero : c 0 = ↑M)
+    (hc_zero : c 0 = ↑M)
     -- Fejér CDFs and their properties:
     (F : ℕ → ℝ → ℝ)
     (h_mono : ∀ N, Monotone (F N))
@@ -72,6 +96,7 @@ lemma herglotz_lemma_stieltjes
         exp (I * n * θ) ∂((h_mono N).stieltjesFunction.measure) =
       (c n * (fejerWeight N n : ℂ))) :
     ∃ μ : Measure ℝ, IsFiniteMeasure μ ∧
+      μ Set.univ = ENNReal.ofReal (c 0).re ∧
       μ (Set.Icc 0 (2 * Real.pi))ᶜ = 0 ∧
       (∀ n : ℤ, ∫ θ in Set.Icc 0 (2 * Real.pi), exp (I * n * θ) ∂μ = c n) := by
   -- Step 1: Helly selection
@@ -117,11 +142,13 @@ lemma herglotz_lemma_stieltjes
   have hsf_atTop : Tendsto (h_mono_G.stieltjesFunction) atTop (𝓝 M) := by
     refine tendsto_const_nhds.congr' ?_
     filter_upwards [Filter.eventually_gt_atTop (2 * Real.pi)] with y hy using (hsf_right y hy).symm
-  -- Step 3: finiteness  (total mass = ofReal (M - 0) < ∞)
-  have hμ_finite : IsFiniteMeasure μ := by
-    refine ⟨?_⟩
-    rw [hμ_eq, h_mono_G.stieltjesFunction.measure_univ hsf_atBot hsf_atTop]
-    exact ENNReal.ofReal_lt_top
+  -- Step 3: total mass = ofReal (M - 0) = ofReal M, hence finiteness
+  have hμ_univ : μ Set.univ = ENNReal.ofReal M := by
+    rw [hμ_eq, h_mono_G.stieltjesFunction.measure_univ hsf_atBot hsf_atTop, sub_zero]
+  have hμ_finite : IsFiniteMeasure μ := ⟨by rw [hμ_univ]; exact ENNReal.ofReal_lt_top⟩
+  -- `c 0 = ↑M` (`hc_zero`) identifies this total mass with the boundary Fourier coefficient.
+  have hμ_univ_c0 : μ Set.univ = ENNReal.ofReal (c 0).re := by
+    rw [hμ_univ, hc_zero, Complex.ofReal_re]
   -- Step 4: support
   have hμ_supp : μ (Set.Icc 0 (2 * Real.pi))ᶜ = 0 := by
     have hsplit : (Set.Icc 0 (2 * Real.pi))ᶜ = Set.Iio 0 ∪ Set.Ioi (2 * Real.pi) := by
@@ -159,7 +186,7 @@ lemma herglotz_lemma_stieltjes
       intro k;
       rw [h_fourier (φ k) n, mul_comm]
     exact tendsto_nhds_unique (h_lhs.congr h_eq_seq) h_rhs
-  exact ⟨μ, hμ_finite, hμ_supp, hμ_fourier⟩
+  exact ⟨μ, hμ_finite, hμ_univ_c0, hμ_supp, hμ_fourier⟩
 
 end HerglotzStieltjes
 

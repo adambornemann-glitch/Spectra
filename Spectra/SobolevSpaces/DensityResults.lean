@@ -2,7 +2,7 @@
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
-File: Spectra/SoboleveSpaces/DensityResults.lean
+File: Spectra/SobolevSpaces/DensityResults.lean
 -/
 import Spectra.SobolevSpaces.IntegrationByParts
 import Spectra.SobolevSpaces.MeyersMulti

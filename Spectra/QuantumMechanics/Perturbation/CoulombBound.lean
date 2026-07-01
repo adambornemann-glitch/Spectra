@@ -11,12 +11,8 @@ import Spectra.QuantumMechanics.Perturbation.HardyInequality
 import Spectra.QuantumMechanics.Perturbation.KatoRellich
 import Spectra.SobolevSpaces.DensityResults
 import Spectra.QuantumMechanics.Observable.Basic
-import Spectra.SobolevSpaces.DensityResults
 import Spectra.SpectralTheory.ResolventForm
 import Spectra.Resolvent.Range
-
-
--- ^ adjust the three module paths above to the actual file locations
 
 /-!
 # The Coulomb Potential: Relative Boundedness
@@ -24,10 +20,11 @@ import Spectra.Resolvent.Range
 This file constructs the Coulomb potential V = −Z/r as a linear map on
 H²(ℝ³), verifies the Kato–Rellich hypotheses, and *applies* the theorem:
 
-  `hydrogen_isSelfAdjoint : IsSelfAdjoint (perturbedOp laplacianPMap (coulombPotential p))`
+  `hydrogen_isSelfAdjoint : IsSelfAdjoint (perturbedOp halfLaplacianPMap (coulombPotential p))`
 
-i.e. H = −Δ − Z/r is self-adjoint on H²(ℝ³) for every nuclear charge Z > 0
-(and, via `coulomb_kato_rellich`, for every real coupling λ).
+i.e. H = −½Δ − Z/r, the textbook-normalized hydrogen Hamiltonian, is self-adjoint on H²(ℝ³) for
+every nuclear charge Z > 0 (and, via `coulomb_kato_rellich`, the un-normalized H = −Δ + λV is
+self-adjoint on H²(ℝ³) for every real coupling λ).
 
 ## Architecture
 
@@ -72,24 +69,10 @@ the corresponding sorries with it.
 * `coulomb_isSymmetricOn` — V is symmetric on Dom(−Δ).
 * `coulomb_relative_bound_is_zero` — V is (−Δ)-bounded with relative bound 0.
 * `coulomb_kato_rellich` — −Δ + λV is self-adjoint on H² for every λ : ℝ.
-* `hydrogen_isSelfAdjoint` — **the hydrogen Hamiltonian −Δ − Z/r is
-  self-adjoint on H²(ℝ³)** (λ = 1 specialisation).
-
-## Sorry strategy
-
-Five sorries remain, all integral-level facts about L² and `MemLp.toLp`;
-none touches operator theory:
-- `coulomb_mul_memLp` — (1/r)ψ ∈ L² for ψ ∈ H¹, from
-  `inverseRSq_mul_sq_integrable` (Hardy).
-- `coulombPotential.map_add'/map_smul'` — a.e. linearity of pointwise
-  multiplication, via `MemLp.toLp_eq_toLp_iff` + `Lp.coeFn_add/smul`.
-- `coulomb_symmetric` — real-valuedness of −Z/|x|, via `L2.inner_def`,
-  `MemLp.coeFn_toLp`, `integral_congr_ae`, `Complex.conj_ofReal`.
-- `coulomb_norm_eq` — ‖Vψ‖ = Z·√(hardyIntegral ψ), via `coulombMultiplier_sq`
-  and the L²-norm/integral dictionary.
-
-Everything downstream of these (the relative bound, the Kato–Rellich
-packaging, self-adjointness of hydrogen) is **proved**.
+* `hydrogen_isSelfAdjoint` — **the textbook hydrogen Hamiltonian −½Δ − Z/r is
+  self-adjoint on H²(ℝ³)**, proved via the `−½Δ`-normalized re-threading
+  (`coulomb_isSymmetricOn_half`, `coulomb_relative_bound_is_zero_half`) of the
+  `−Δ` results above, at the fixed coupling `λ = 1`.
 
 ## References
 
@@ -102,7 +85,6 @@ open Spectra.Sobolev
 open Spectra.OneParameterUnitaryGroup
 open Spectra.QuantumMechanics.Observable
 open Spectra.QuantumMechanics.Hamiltonian
-open UnboundedObservable
 open Spectra.Resolvent
 open scoped Topology NNReal ENNReal
 
@@ -112,6 +94,7 @@ namespace Spectra.QuantumMechanics.Hydrogen
 
 /-- The nuclear charge (positive real parameter). -/
 structure CoulombParams where
+  /-- The nuclear charge `Z`. -/
   Z : ℝ
   hZ : 0 < Z
 
@@ -278,7 +261,7 @@ theorem coulomb_relative_bound_is_zero (p : CoulombParams) :
   exact ⟨C, hC₀, fun ψ => hC ψ.1 ψ.2⟩
 
 /-- Packaged as `IsRelativelyBounded`, for use with `kato_rellich'`. -/
-noncomputable def coulomb_isRelativelyBounded (p : CoulombParams) (a : ℝ) (ha : 0 < a) :
+noncomputable def coulombIsRelativelyBounded (p : CoulombParams) (a : ℝ) (ha : 0 < a) :
     IsRelativelyBounded laplacianPMap (coulombPotential p) where
   a := a
   b := (coulomb_relative_bound_is_zero p a ha).choose
@@ -338,38 +321,30 @@ theorem coulomb_relative_bound_is_zero_half (p : CoulombParams) :
       ≤ (ε / 2) * ‖laplacianPMap ⟨(ψ : L2_R3), hdom⟩‖ + b * ‖(ψ : L2_R3)‖ := hb'
     _ = ε * (1 / 2 * ‖laplacianPMap ⟨(ψ : L2_R3), hdom⟩‖) + b * ‖(ψ : L2_R3)‖ := by ring
 
-/-- **The textbook hydrogen Hamiltonian `H = −½Δ − Z/r` is self-adjoint on `H²(ℝ³)`.** -/
-theorem hydrogen_isSelfAdjoint_half (p : CoulombParams) :
+/-- **The hydrogen Hamiltonian `H = −½Δ − Z/r` is self-adjoint on `H²(ℝ³)`.**
+
+    (The sign and charge are already inside `coulombMultiplier`; the kinetic term is the
+    textbook `−½Δ`.) The `λ = 1` specialisation of `kato_rellich_bound_zero` at
+    `halfLaplacianPMap`, re-threaded through `coulomb_isSymmetricOn_half` and
+    `coulomb_relative_bound_is_zero_half`. -/
+theorem hydrogen_isSelfAdjoint (p : CoulombParams) :
     IsSelfAdjoint (perturbedOp halfLaplacianPMap (coulombPotential p)) := by
   have h := kato_rellich_bound_zero halfLaplacian_isSelfAdjoint (coulombPotential p)
     (coulomb_isSymmetricOn_half p) (coulomb_relative_bound_is_zero_half p) 1
   rwa [Complex.ofReal_one, one_smul] at h
-
-/-- **The hydrogen Hamiltonian `H = −½Δ − Z/r` is self-adjoint on `H²(ℝ³)`.**
-
-    (The sign and charge are already inside `coulombMultiplier`;
-    the kinetic term is the textbook `−½Δ`.) -/
-theorem hydrogen_isSelfAdjoint (p : CoulombParams) :
-    IsSelfAdjoint (perturbedOp halfLaplacianPMap (coulombPotential p)) :=
-  hydrogen_isSelfAdjoint_half p
 
 /-! ## Interface summary
 
 ### Exports for `HydrogenHamiltonian.lean`:
 - `CoulombParams` — nuclear charge Z.
 - `coulombPotential p` — V = −Z/r on H² (= on `laplacianPMap.domain`, by `rfl`).
-- `hydrogen_isSelfAdjoint p` — H := `perturbedOp laplacianPMap
+- `hydrogen_isSelfAdjoint p` — H := `perturbedOp halfLaplacianPMap
   (coulombPotential p)` is self-adjoint; `H.domain = SobolevH2` by `rfl`
   (`perturbedOp_domain`).
 - Dynamics: `kato_rellich_generates_unitary` (or `genToGroup
   (hydrogen_isSelfAdjoint p)`) gives the unique unitary evolution;
   `spectralPVM (hydrogen_isSelfAdjoint p)` its spectral measure — the
   starting point for the hydrogen spectrum.
-
-### Remaining inputs (all in this file or Hardy):
-- the five integral-level sorries listed in the module docstring, plus
-  Hardy's own sorries (`hardy_inequality_smooth`, `hardy_inequality`,
-  `hardy_operator_bound`, …).
 -/
 
 end Spectra.QuantumMechanics.Hydrogen

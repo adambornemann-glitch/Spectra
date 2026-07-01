@@ -6,17 +6,22 @@ Ported by: Adam Bornemann
 
 # Bell's Theorem and the CHSH Inequality in Lean 4
 
-This file formalizes Bell's lemma, the CHSH inequality, and Tsirelson's bound.
+This file formalizes Bell's lemma, the CHSH inequality, and its quantum-mechanical violation.
 The formalization follows the structure of Echenim & Mhalla's Isabelle/HOL work,
 adapted to leverage Lean 4's type system and Mathlib4's existing infrastructure.
 
-## Main Results
+## Main definitions
 
-* `CHSH_expect_lhv_le` : Under local hidden variables, |⟨CHSH⟩| ≤ 2
-* `CHSH_expect_quantum` : Quantum mechanics achieves |⟨CHSH⟩| = 2√2
-* `tsirelson_bound` : For all quantum states, |⟨CHSH⟩| ≤ 2√2
-* `CHSH_separable_le` : Separable states cannot violate CHSH
-* `CHSH_commuting_le` : Commuting observables cannot violate CHSH
+* `DensityMatrix` : a positive semidefinite Hermitian matrix with trace 1
+* `LocalHiddenVariableModel` : a classical (local hidden variable) model of a CHSH experiment
+
+The Hermitian/involutive/commuting conditions on a CHSH observable tuple are mathlib's
+`IsCHSHTuple` (`Mathlib.Algebra.Star.CHSH`), used directly rather than redeclared here.
+
+## Main results
+
+* `CHSH_lhv_bound` : under any local hidden variable model, `|S| ≤ 2`
+* `CHSH_quantum_violation` : the Bell state with optimal measurements achieves `|S| = 2√2`
 
 ## References
 
@@ -25,30 +30,19 @@ adapted to leverage Lean 4's type system and Mathlib4's existing infrastructure.
 * [Clauser, Horne, Shimony, Holt, *Proposed experiment to test local
   hidden-variable theories*][chsh1969]
 * [Bell, *On the Einstein Podolsky Rosen paradox*][bell1964]
+
+## Tags
+
+bell's theorem, chsh, local hidden variables, density matrix, quantum information
 -/
-import Mathlib.Analysis.InnerProductSpace.Basic
-import Mathlib.Analysis.InnerProductSpace.PiL2
+import Mathlib.Analysis.Complex.Basic
 import Mathlib.LinearAlgebra.Matrix.Hermitian
-import Mathlib.LinearAlgebra.Matrix.PosDef
+import Mathlib.LinearAlgebra.Matrix.Kronecker
 import Mathlib.LinearAlgebra.Matrix.Trace
-import Mathlib.LinearAlgebra.TensorProduct.Basic
 import Mathlib.MeasureTheory.Integral.Bochner.Basic
 import Mathlib.MeasureTheory.Measure.ProbabilityMeasure
-import Mathlib.Probability.Independence.Basic
-import Mathlib.Algebra.Star.CHSH
-import Mathlib.Analysis.Complex.Basic  -- This defines Complex.abs
-import Mathlib.LinearAlgebra.Matrix.Kronecker
-
--- Imports that might be needed
-import Mathlib.Analysis.InnerProductSpace.Basic
-import Mathlib.Analysis.InnerProductSpace.PiL2
-import Mathlib.LinearAlgebra.Matrix.DotProduct
-import Mathlib.Data.Matrix.Basic
 import Spectra.QuantumMechanics.PauliMatrices
 
-
-
-open scoped Matrix ComplexConjugate BigOperators TensorProduct
 open MeasureTheory ProbabilityTheory Matrix Complex
 
 /-! ## Quantum State Foundations -/
@@ -57,8 +51,17 @@ namespace Spectra.QuantumInfo
 
 variable {n : ℕ} [NeZero n]
 
-/-- A complex matrix is positive semidefinite if x†Mx has non-negative real part for all x.
-    For Hermitian matrices, x†Mx is automatically real. -/
+/-- A complex matrix is positive semidefinite if `x†Mx` has non-negative real part for all `x`.
+    For Hermitian matrices, `x†Mx` is automatically real.
+
+Implementation notes: this is deliberately weaker than mathlib's `Matrix.PosSemidef`, which
+additionally bundles `M.IsHermitian`. The CHSH/Tsirelson development below repeatedly builds
+positivity witnesses for expressions such as `4 • 1 - ⟦A₀, A₁⟧ * ⟦B₀, B₁⟧` before their
+Hermitian-ness has been separately established, so carrying the conjunct through every
+intermediate step would add proof burden without changing the final bounds. Callers that need
+the mathlib-standard notion can bridge via
+`Spectra.QuantumInfo.isPosSemidefComplex_iff_posSemidef` in `CHSH_Bounds/CHSH_Basic.lean`, which
+shows the two predicates agree on Hermitian matrices. -/
 def IsPosSemidefComplex (M : Matrix (Fin n) (Fin n) ℂ) : Prop :=
   ∀ x : Fin n → ℂ, 0 ≤ (star x ⬝ᵥ M.mulVec x).re
 
@@ -72,67 +75,34 @@ structure DensityMatrix (n : ℕ) [NeZero n] where
   /-- Density matrices have trace 1 -/
   trace_one : toMatrix.trace = 1
   /-- Density matrices are positive semidefinite -/
-  posSemidef : IsPosSemidefComplex toMatrix
+  pos_semidef : IsPosSemidefComplex toMatrix
 
+/-- A density matrix coerces to its underlying matrix. -/
 instance : Coe (DensityMatrix n) (Matrix (Fin n) (Fin n) ℂ) where
   coe ρ := ρ.toMatrix
 
-/-- A pure state is a density matrix of the form |ψ⟩⟨ψ| -/
-def DensityMatrix.IsPure (ρ : DensityMatrix n) : Prop :=
-  ρ.toMatrix * ρ.toMatrix = ρ.toMatrix
-
-/-- The maximally mixed state: (1/n) · I -/
-noncomputable def maxMixedState (n : ℕ) [NeZero n] : Matrix (Fin n) (Fin n) ℂ :=
-  (1 / n : ℂ) • (1 : Matrix (Fin n) (Fin n) ℂ)
-
-/-! ## Observables and Measurements -/
-
-/-- An observable is a Hermitian matrix. The eigenvalues are measurement outcomes. -/
-structure Observable (n : ℕ) where
-  toMatrix : Matrix (Fin n) (Fin n) ℂ
-  hermitian : toMatrix.IsHermitian
-
-instance : Coe (Observable n) (Matrix (Fin n) (Fin n) ℂ) where
-  coe A := A.toMatrix
-
-/-- A dichotomic observable has eigenvalues ±1, i.e., A² = I -/
-structure DichotomicObservable (n : ℕ) extends Observable n where
-  sq_eq_one : toMatrix * toMatrix = 1
-
-/-- The expectation value of an observable A in state ρ is Tr(A·ρ) -/
-noncomputable def expectationValue (A : Observable n) (ρ : DensityMatrix n) : ℂ :=
-  (A.toMatrix * ρ.toMatrix).trace
-
-notation "⟨" A "⟩_" ρ => expectationValue A ρ
-
 /-! ## CHSH Operator and Conditions -/
 
-/-- The CHSH operator: A₀⊗B₁ - A₀⊗B₀ + A₁⊗B₀ + A₁⊗B₁
-    Note: We work with the algebraic form where Aᵢ and Bⱼ commute -/
-noncomputable def CHSH_op {ι : Type*} [Fintype ι] [DecidableEq ι]
+/-- The CHSH operator `S = A₀B₁ - A₀B₀ + A₁B₀ + A₁B₁`, in the algebraic form where `Aᵢ` and `Bⱼ`
+already live in the same operator algebra and commute (e.g. as `Aᵢ ⊗ 1` and `1 ⊗ Bⱼ` on a joint
+Hilbert space, once lifted via `kroneckerMap` as at call sites below): what physicists write as
+`Aᵢ ⊗ Bⱼ` on the joint space becomes ordinary multiplication `Aᵢ * Bⱼ` here, since `chshOp` itself
+is stated generically over any shared algebra `Matrix ι ι ℂ`, not over a tensor-product type. -/
+noncomputable def chshOp {ι : Type*} [Fintype ι]
     (A₀ A₁ B₀ B₁ : Matrix ι ι ℂ) : Matrix ι ι ℂ :=
   A₀ * B₁ - A₀ * B₀ + A₁ * B₀ + A₁ * B₁
 
 /-- CHSH expectation value for a density matrix -/
-noncomputable def CHSH_expect {ι : Type*} [Fintype ι] [DecidableEq ι]
+noncomputable def chshExpect {ι : Type*} [Fintype ι]
     (A₀ A₁ B₀ B₁ : Matrix ι ι ℂ) (ρ : Matrix ι ι ℂ) : ℂ :=
-  (CHSH_op A₀ A₁ B₀ B₁ * ρ).trace
+  (chshOp A₀ A₁ B₀ B₁ * ρ).trace
 
-/-- Conditions for CHSH tuple: Hermitian, squares to I, Aᵢ commutes with Bⱼ -/
-structure IsCHSHTuple {ι : Type*} [Fintype ι] [DecidableEq ι]
-    (A₀ A₁ B₀ B₁ : Matrix ι ι ℂ) : Prop where
-  A₀_herm : A₀.IsHermitian
-  A₁_herm : A₁.IsHermitian
-  B₀_herm : B₀.IsHermitian
-  B₁_herm : B₁.IsHermitian
-  A₀_sq : A₀ * A₀ = 1
-  A₁_sq : A₁ * A₁ = 1
-  B₀_sq : B₀ * B₀ = 1
-  B₁_sq : B₁ * B₁ = 1
-  comm_A₀_B₀ : A₀ * B₀ = B₀ * A₀
-  comm_A₀_B₁ : A₀ * B₁ = B₁ * A₀
-  comm_A₁_B₀ : A₁ * B₀ = B₀ * A₁
-  comm_A₁_B₁ : A₁ * B₁ = B₁ * A₁
+/- `IsCHSHTuple` (Hermitian/involutive/commuting conditions on a CHSH observable tuple) is not
+redeclared here: mathlib's `IsCHSHTuple` (`Mathlib.Algebra.Star.CHSH`, imported above) already
+states exactly this for any `[Monoid R] [StarMul R]`, at the standard shape `A₀ ^ 2 = 1`/
+`star A₀ = A₀` rather than `A₀ * A₀ = 1`/`A₀.IsHermitian` — defeq-equivalent for
+`Matrix (Fin n) (Fin n) ℂ` (whose `Star` instance *is* `conjTranspose`) and strictly more general,
+so callers below use it directly instead of a local, non-standard copy. -/
 
 /-! ## Local Hidden Variable Model -/
 
@@ -145,7 +115,7 @@ the existence of:
 - Random variables Yᵦ for each eigenvalue b of B
 
 Such that the quantum correlations arise as classical expectations:
-  Tr(Πᵃ ⊗ Πᵇ · ρ) = 𝔼[Xₐ · Yᵦ]
+  `Tr(Πᵃ ⊗ Πᵇ · ρ) = 𝔼[Xₐ · Yᵦ]`
 
 The key constraint is *locality*: Xₐ depends only on A (not B),
 and Yᵦ depends only on B (not A).
@@ -168,19 +138,19 @@ structure LocalHiddenVariableModel (Λ : Type*) [MeasurableSpace Λ] where
 variable {Λ : Type*} [MeasurableSpace Λ]
 
 /-- The LHV correlation for settings (a, b) -/
-noncomputable def LHV_correlation (M : LocalHiddenVariableModel Λ) (a b : Fin 2) : ℝ :=
+noncomputable def lhvCorrelation (M : LocalHiddenVariableModel Λ) (a b : Fin 2) : ℝ :=
   ∫ ω, M.alice a ω * M.bob b ω ∂M.μ
 
 /-- The CHSH value under an LHV model:
-    S = E(0,1) - E(0,0) + E(1,0) + E(1,1) -/
-noncomputable def LHV_CHSH_value (M : LocalHiddenVariableModel Λ) : ℝ :=
-  LHV_correlation M 0 1 - LHV_correlation M 0 0 +
-  LHV_correlation M 1 0 + LHV_correlation M 1 1
+    `S = E(0,1) - E(0,0) + E(1,0) + E(1,1)`. -/
+noncomputable def lhvCHSHValue (M : LocalHiddenVariableModel Λ) : ℝ :=
+  lhvCorrelation M 0 1 - lhvCorrelation M 0 0 +
+  lhvCorrelation M 1 0 + lhvCorrelation M 1 1
 
 /-! ## The CHSH Inequality for LHV Models -/
 
-/-- Key algebraic identity: for a,a',b,b' ∈ {-1,1},
-    |ab' - ab + a'b + a'b'| ≤ 2 -/
+/-- Key algebraic identity: for `a, a', b, b' ∈ {-1, 1}`,
+    `|ab' - ab + a'b + a'b'| ≤ 2`. -/
 lemma chsh_algebraic_bound (a a' b b' : ℝ)
     (ha : a = 1 ∨ a = -1) (ha' : a' = 1 ∨ a' = -1)
     (hb : b = 1 ∨ b = -1) (hb' : b' = 1 ∨ b' = -1) :
@@ -193,14 +163,12 @@ lemma chsh_algebraic_bound (a a' b b' : ℝ)
   rcases hb with rfl | rfl <;> rcases hb' with rfl | rfl <;>
   norm_num
 
-
-
-/-- **CHSH Inequality**: Under any local hidden variable model, |S| ≤ 2
+/-- **CHSH Inequality**: Under any local hidden variable model, `|S| ≤ 2`.
 
 This is the fundamental constraint that Bell showed is violated by quantum mechanics. -/
 theorem CHSH_lhv_bound (M : LocalHiddenVariableModel Λ) :
-    |LHV_CHSH_value M| ≤ 2 := by
-  unfold LHV_CHSH_value LHV_correlation
+    |lhvCHSHValue M| ≤ 2 := by
+  unfold lhvCHSHValue lhvCorrelation
 
   have h_int : ∀ a b, Integrable (fun ω => M.alice a ω * M.bob b ω) (M.μ : Measure Λ) := by
     intro a b
@@ -247,8 +215,8 @@ def pauliZ : Matrix (Fin 2) (Fin 2) ℂ :=
 def pauliX : Matrix (Fin 2) (Fin 2) ℂ :=
   Spectra.QuantumMechanics.Pauli.pauliX
 
-/-- The Bell state |Ψ⁻⟩ = (1/√2)(|01⟩ - |10⟩) as a density matrix
-    on the product space Fin 2 × Fin 2 -/
+/-- The Bell state `|Ψ⁻⟩ = (1/√2)(|01⟩ - |10⟩)` as a density matrix
+    on the product space `Fin 2 × Fin 2`. -/
 noncomputable def bellStatePsiMinus : Matrix (Fin 2 × Fin 2) (Fin 2 × Fin 2) ℂ :=
   Matrix.of fun i j =>
     match i, j with
@@ -258,153 +226,101 @@ noncomputable def bellStatePsiMinus : Matrix (Fin 2 × Fin 2) (Fin 2 × Fin 2) �
     | (1, 0), (1, 0) =>  (1/2 : ℂ)
     | _, _ => 0
 
-/-- Alice's observables for optimal CHSH violation:
-    A₀ = Z, A₁ = X -/
-def alice_A₀ : Matrix (Fin 2) (Fin 2) ℂ := pauliZ
-def alice_A₁ : Matrix (Fin 2) (Fin 2) ℂ := pauliX
+/-- Alice's `A₀` observable for optimal CHSH violation: `A₀ = Z`. -/
+def aliceA₀ : Matrix (Fin 2) (Fin 2) ℂ := pauliZ
 
-/-- Bob's observables for optimal CHSH violation:
-    B₀ = (Z-X)/√2, B₁ = -(Z+X)/√2 -/
-noncomputable def bob_B₀ : Matrix (Fin 2) (Fin 2) ℂ :=
+/-- Alice's `A₁` observable for optimal CHSH violation: `A₁ = X`. -/
+def aliceA₁ : Matrix (Fin 2) (Fin 2) ℂ := pauliX
+
+/-- Bob's `B₀` observable for optimal CHSH violation: `B₀ = (Z - X)/√2`.
+
+Implementation notes: `noncomputable`, unlike `aliceA₀`/`aliceA₁`, because it scales by
+`Real.sqrt 2`, whose inverse is not computable in Lean (Alice's observables have only rational
+entries). -/
+noncomputable def bobB₀ : Matrix (Fin 2) (Fin 2) ℂ :=
   (1 / Complex.ofReal (Real.sqrt 2)) • (pauliZ - pauliX)
 
-noncomputable def bob_B₁ : Matrix (Fin 2) (Fin 2) ℂ :=
+/-- Bob's `B₁` observable for optimal CHSH violation: `B₁ = -(Z + X)/√2`. -/
+noncomputable def bobB₁ : Matrix (Fin 2) (Fin 2) ℂ :=
   (-1 / Complex.ofReal (Real.sqrt 2)) • (pauliZ + pauliX)
 
+/-- Shared trace formula behind all four `correlation_A*_B*` lemmas below: for any single-qubit
+`a`, `b` lifted to the two-qubit space by `kroneckerMap`, the Bell-state expectation
+`⟨Ψ⁻|(a ⊗ 1)(1 ⊗ b)|Ψ⁻⟩` reduces to a fixed linear combination of the four entries of `a` and of
+`b`. Each `correlation_A*_B*` lemma is this formula plus the numeric entries of its specific
+observables. -/
+lemma bellStatePsiMinus_kroneckerMap_trace (a b : Matrix (Fin 2) (Fin 2) ℂ) :
+    ((kroneckerMap (· * ·) a (1 : Matrix (Fin 2) (Fin 2) ℂ) *
+        kroneckerMap (· * ·) (1 : Matrix (Fin 2) (Fin 2) ℂ) b) * bellStatePsiMinus).trace =
+      (1 / 2 : ℂ) * (a 0 0 * b 1 1 - a 1 0 * b 0 1 - a 0 1 * b 1 0 + a 1 1 * b 0 0) := by
+  simp only [Matrix.trace, Matrix.diag, Fintype.sum_prod_type, Fin.sum_univ_two, Fin.isValue]
+  simp only [Matrix.mul_apply, bellStatePsiMinus, Matrix.of_apply]
+  simp only [Fin.isValue, mul_zero, Finset.sum_const_zero, one_div, zero_add, add_zero]
+  simp only [kroneckerMap_apply, Matrix.one_apply]
+  simp only [Fintype.sum_prod_type, Fin.sum_univ_two, Fin.isValue]
+  simp only [Fin.isValue, one_ne_zero, zero_ne_one, ↓reduceIte, mul_one, mul_zero, one_mul,
+    zero_mul, add_zero, zero_add]
+  ring
 
-/-- Helper: The 4x4 identity on the tensor product space -/
-def I₄ : Matrix (Fin 2 × Fin 2) (Fin 2 × Fin 2) ℂ := 1
-
-/-- The Bell state as explicit 4x4 matrix (using Fin 4 indexing for easier computation) -/
-lemma bellState_explicit : bellStatePsiMinus = Matrix.of fun i j =>
-    if i = (0,1) ∧ j = (0,1) then (1/2 : ℂ)
-    else if i = (0,1) ∧ j = (1,0) then (-1/2 : ℂ)
-    else if i = (1,0) ∧ j = (0,1) then (-1/2 : ℂ)
-    else if i = (1,0) ∧ j = (1,0) then (1/2 : ℂ)
-    else 0 := by
-  ext i j
-  simp only [bellStatePsiMinus, Matrix.of_apply]
-  fin_cases i <;> fin_cases j <;> simp <;> norm_num
-
-/-- Alice's A₀ = Z ⊗ I as explicit 4x4 matrix -/
-lemma alice_A₀_explicit :
-    kroneckerMap (· * ·) alice_A₀ (1 : Matrix (Fin 2) (Fin 2) ℂ) =
-    Matrix.of fun i j =>
-      if i = j then (if i.1 = 0 then 1 else -1) else 0 := by
-  ext i j
-  simp only [kroneckerMap_apply, alice_A₀, pauliZ, Spectra.QuantumMechanics.Pauli.pauliZ,
-    Matrix.one_apply]
-  fin_cases i <;> fin_cases j <;> simp
-
-/-- Alice's A₁ = X ⊗ I as explicit 4x4 matrix -/
-lemma alice_A₁_explicit :
-    kroneckerMap (· * ·) alice_A₁ (1 : Matrix (Fin 2) (Fin 2) ℂ) =
-    Matrix.of fun i j =>
-      if i.2 = j.2 ∧ i.1 ≠ j.1 then 1 else 0 := by
-  ext i j
-  simp only [kroneckerMap_apply, alice_A₁, pauliX, Spectra.QuantumMechanics.Pauli.pauliX,
-    Matrix.one_apply]
-  fin_cases i <;> fin_cases j <;> simp
-
-/-- Correlation E(A₀, B₁) for the Bell state -/
+/-- Correlation `E(A₀, B₁)` for the Bell state. -/
 lemma correlation_A₀_B₁ :
-    let A₀ := kroneckerMap (· * ·) alice_A₀ (1 : Matrix (Fin 2) (Fin 2) ℂ)
-    let B₁ := kroneckerMap (· * ·) (1 : Matrix (Fin 2) (Fin 2) ℂ) bob_B₁
+    let A₀ := kroneckerMap (· * ·) aliceA₀ (1 : Matrix (Fin 2) (Fin 2) ℂ)
+    let B₁ := kroneckerMap (· * ·) (1 : Matrix (Fin 2) (Fin 2) ℂ) bobB₁
     ((A₀ * B₁) * bellStatePsiMinus).trace = ((Real.sqrt 2)⁻¹ : ℂ) := by
   intro A₀ B₁
-  simp only [Matrix.trace, Matrix.diag, Fintype.sum_prod_type, Fin.sum_univ_two, Fin.isValue]
-  simp only [Matrix.mul_apply, bellStatePsiMinus, Matrix.of_apply]
-  simp only [Fin.isValue, mul_zero, Finset.sum_const_zero, one_div, zero_add, add_zero]
-  simp only [A₀, B₁]
-  simp only [kroneckerMap_apply, Matrix.one_apply]
-  simp only [alice_A₀, bob_B₁, pauliZ, pauliX, Spectra.QuantumMechanics.Pauli.pauliZ,
-    Spectra.QuantumMechanics.Pauli.pauliX]
-  simp only [Matrix.smul_apply, Matrix.add_apply]
-  simp only [Fintype.sum_prod_type, Fin.sum_univ_two, Fin.isValue]
-  simp only [Matrix.of_apply, Matrix.cons_val_zero, Matrix.cons_val_one,
-             Matrix.cons_val_fin_one]
-  simp only [one_mul, zero_mul, mul_one, mul_zero, one_ne_zero, zero_ne_one, ↓reduceIte,
-    add_zero, smul_eq_mul, mul_neg, mul_one, zero_add, neg_mul, zero_mul, neg_zero,
-    one_mul]
+  simp only [A₀, B₁, bellStatePsiMinus_kroneckerMap_trace]
+  simp only [aliceA₀, bobB₁, pauliZ, pauliX, Spectra.QuantumMechanics.Pauli.pauliZ,
+    Spectra.QuantumMechanics.Pauli.pauliX, Matrix.smul_apply, Matrix.add_apply, Matrix.of_apply,
+    Matrix.cons_val_zero, Matrix.cons_val_one, Matrix.cons_val_fin_one]
   ring_nf
 
-/-- Correlation E(A₀, B₀) for the Bell state -/
+/-- Correlation `E(A₀, B₀)` for the Bell state. -/
 lemma correlation_A₀_B₀ :
-    let A₀ := kroneckerMap (· * ·) alice_A₀ (1 : Matrix (Fin 2) (Fin 2) ℂ)
-    let B₀ := kroneckerMap (· * ·) (1 : Matrix (Fin 2) (Fin 2) ℂ) bob_B₀
+    let A₀ := kroneckerMap (· * ·) aliceA₀ (1 : Matrix (Fin 2) (Fin 2) ℂ)
+    let B₀ := kroneckerMap (· * ·) (1 : Matrix (Fin 2) (Fin 2) ℂ) bobB₀
     ((A₀ * B₀) * bellStatePsiMinus).trace = -((Real.sqrt 2)⁻¹ : ℂ) := by
   intro A₀ B₀
-  simp only [Matrix.trace, Matrix.diag, Fintype.sum_prod_type, Fin.sum_univ_two, Fin.isValue]
-  simp only [Matrix.mul_apply, bellStatePsiMinus, Matrix.of_apply]
-  simp only [Fin.isValue, mul_zero, Finset.sum_const_zero, one_div, zero_add, add_zero]
-  simp only [A₀, B₀]
-  simp only [kroneckerMap_apply, Matrix.one_apply]
-  simp only [alice_A₀, bob_B₀, pauliZ, pauliX, Spectra.QuantumMechanics.Pauli.pauliZ,
-    Spectra.QuantumMechanics.Pauli.pauliX]
-  simp only [Matrix.smul_apply, Matrix.sub_apply]
-  simp only [Fintype.sum_prod_type, Fin.sum_univ_two, Fin.isValue]
-  simp only [Matrix.of_apply, Matrix.cons_val_zero, Matrix.cons_val_one,
-             Matrix.cons_val_fin_one]
-  simp only [Fin.isValue, one_ne_zero, ↓reduceIte, mul_zero, one_div, sub_zero, smul_eq_mul,
-    mul_one, one_mul, zero_mul, zero_sub, mul_neg, zero_add, neg_zero, add_zero, neg_mul,
-    zero_ne_one, neg_neg]
+  simp only [A₀, B₀, bellStatePsiMinus_kroneckerMap_trace]
+  simp only [aliceA₀, bobB₀, pauliZ, pauliX, Spectra.QuantumMechanics.Pauli.pauliZ,
+    Spectra.QuantumMechanics.Pauli.pauliX, Matrix.smul_apply, Matrix.sub_apply, Matrix.of_apply,
+    Matrix.cons_val_zero, Matrix.cons_val_one, Matrix.cons_val_fin_one]
   ring_nf
 
-
-/-- Correlation E(A₁, B₀) for the Bell state -/
+/-- Correlation `E(A₁, B₀)` for the Bell state. -/
 lemma correlation_A₁_B₀ :
-    let A₁ := kroneckerMap (· * ·) alice_A₁ (1 : Matrix (Fin 2) (Fin 2) ℂ)
-    let B₀ := kroneckerMap (· * ·) (1 : Matrix (Fin 2) (Fin 2) ℂ) bob_B₀
+    let A₁ := kroneckerMap (· * ·) aliceA₁ (1 : Matrix (Fin 2) (Fin 2) ℂ)
+    let B₀ := kroneckerMap (· * ·) (1 : Matrix (Fin 2) (Fin 2) ℂ) bobB₀
     ((A₁ * B₀) * bellStatePsiMinus).trace = ((Real.sqrt 2)⁻¹ : ℂ) := by
   intro A₁ B₀
-  simp only [Matrix.trace, Matrix.diag, Fintype.sum_prod_type, Fin.sum_univ_two, Fin.isValue]
-  simp only [Matrix.mul_apply, bellStatePsiMinus, Matrix.of_apply]
-  simp only [Fin.isValue, mul_zero, Finset.sum_const_zero, one_div, zero_add, add_zero]
-  simp only [A₁, B₀]
-  simp only [kroneckerMap_apply, Matrix.one_apply]
-  simp only [alice_A₁, bob_B₀, pauliZ, pauliX, Spectra.QuantumMechanics.Pauli.pauliZ,
-    Spectra.QuantumMechanics.Pauli.pauliX]
-  simp only [Matrix.smul_apply, Matrix.sub_apply]
-  simp only [Fintype.sum_prod_type, Fin.sum_univ_two, Fin.isValue]
-  simp only [Matrix.of_apply, Matrix.cons_val_zero, Matrix.cons_val_one,
-             Matrix.cons_val_fin_one]
-  simp only [Fin.isValue, one_ne_zero, ↓reduceIte, mul_zero, one_div, sub_zero, smul_eq_mul,
-    mul_one, one_mul, zero_mul, zero_sub, mul_neg, neg_zero, add_zero, zero_ne_one, zero_add,
-    neg_mul, neg_neg]
+  simp only [A₁, B₀, bellStatePsiMinus_kroneckerMap_trace]
+  simp only [aliceA₁, bobB₀, pauliZ, pauliX, Spectra.QuantumMechanics.Pauli.pauliZ,
+    Spectra.QuantumMechanics.Pauli.pauliX, Matrix.smul_apply, Matrix.sub_apply, Matrix.of_apply,
+    Matrix.cons_val_zero, Matrix.cons_val_one, Matrix.cons_val_fin_one]
   ring_nf
 
-/-- Correlation E(A₁, B₁) for the Bell state -/
+/-- Correlation `E(A₁, B₁)` for the Bell state. -/
 lemma correlation_A₁_B₁ :
-    let A₁ := kroneckerMap (· * ·) alice_A₁ (1 : Matrix (Fin 2) (Fin 2) ℂ)
-    let B₁ := kroneckerMap (· * ·) (1 : Matrix (Fin 2) (Fin 2) ℂ) bob_B₁
+    let A₁ := kroneckerMap (· * ·) aliceA₁ (1 : Matrix (Fin 2) (Fin 2) ℂ)
+    let B₁ := kroneckerMap (· * ·) (1 : Matrix (Fin 2) (Fin 2) ℂ) bobB₁
     ((A₁ * B₁) * bellStatePsiMinus).trace = ((Real.sqrt 2)⁻¹ : ℂ) := by
   intro A₁ B₁
-  simp only [Matrix.trace, Matrix.diag, Fintype.sum_prod_type, Fin.sum_univ_two, Fin.isValue]
-  simp only [Matrix.mul_apply, bellStatePsiMinus, Matrix.of_apply]
-  simp only [Fin.isValue, mul_zero, Finset.sum_const_zero, one_div, zero_add, add_zero]
-  simp only [A₁, B₁]
-  simp only [kroneckerMap_apply, Matrix.one_apply]
-  simp only [alice_A₁, bob_B₁, pauliZ, pauliX, Spectra.QuantumMechanics.Pauli.pauliZ,
-    Spectra.QuantumMechanics.Pauli.pauliX]
-  simp only [Matrix.smul_apply, Matrix.add_apply]
-  simp only [Fintype.sum_prod_type, Fin.sum_univ_two, Fin.isValue]
-  simp only [Matrix.of_apply, Matrix.cons_val_zero, Matrix.cons_val_one,
-             Matrix.cons_val_fin_one]
-  simp only [Fin.isValue, one_ne_zero, ↓reduceIte, mul_zero, add_zero, smul_eq_mul, mul_one,
-    one_mul, zero_mul, zero_add, mul_neg, neg_zero, zero_ne_one]
+  simp only [A₁, B₁, bellStatePsiMinus_kroneckerMap_trace]
+  simp only [aliceA₁, bobB₁, pauliZ, pauliX, Spectra.QuantumMechanics.Pauli.pauliZ,
+    Spectra.QuantumMechanics.Pauli.pauliX, Matrix.smul_apply, Matrix.add_apply, Matrix.of_apply,
+    Matrix.cons_val_zero, Matrix.cons_val_one, Matrix.cons_val_fin_one]
   ring_nf
 
-/-! ## CHSH Operator and Conditions -/
+/-! ## The CHSH Value for the Bell State -/
 
-/-- **Quantum Violation**: The Bell state with optimal measurements achieves |S| = 2√2 -/
+/-- **Quantum Violation**: The Bell state with optimal measurements achieves `|S| = 2√2`. -/
 theorem CHSH_quantum_violation :
-    let A₀ := kroneckerMap (· * ·) alice_A₀ (1 : Matrix (Fin 2) (Fin 2) ℂ)
-    let A₁ := kroneckerMap (· * ·) alice_A₁ (1 : Matrix (Fin 2) (Fin 2) ℂ)
-    let B₀ := kroneckerMap (· * ·) (1 : Matrix (Fin 2) (Fin 2) ℂ) bob_B₀
-    let B₁ := kroneckerMap (· * ·) (1 : Matrix (Fin 2) (Fin 2) ℂ) bob_B₁
-    ‖CHSH_expect A₀ A₁ B₀ B₁ bellStatePsiMinus‖ = 2 * Real.sqrt 2 := by
+    let A₀ := kroneckerMap (· * ·) aliceA₀ (1 : Matrix (Fin 2) (Fin 2) ℂ)
+    let A₁ := kroneckerMap (· * ·) aliceA₁ (1 : Matrix (Fin 2) (Fin 2) ℂ)
+    let B₀ := kroneckerMap (· * ·) (1 : Matrix (Fin 2) (Fin 2) ℂ) bobB₀
+    let B₁ := kroneckerMap (· * ·) (1 : Matrix (Fin 2) (Fin 2) ℂ) bobB₁
+    ‖chshExpect A₀ A₁ B₀ B₁ bellStatePsiMinus‖ = 2 * Real.sqrt 2 := by
   intro A₀ A₁ B₀ B₁
-  simp only [CHSH_expect, CHSH_op]
+  simp only [chshExpect, chshOp]
   rw [add_mul, add_mul, sub_mul]
   rw [Matrix.trace_add, Matrix.trace_add, Matrix.trace_sub]
   rw [correlation_A₀_B₁, correlation_A₀_B₀, correlation_A₁_B₀, correlation_A₁_B₁]

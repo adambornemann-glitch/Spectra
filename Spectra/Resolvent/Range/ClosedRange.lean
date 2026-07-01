@@ -88,7 +88,7 @@ lemma range_sub_smul_closed [CompleteSpace H] {A : H →ₗ.[ℂ] H}
       exact hψ_seq n
     exact preimage_cauchySeq hsym z hz ψ_seq hu_cauchy'
   obtain ⟨ψ_lim, hψ_lim⟩ := cauchySeq_tendsto_of_complete hψ_cauchy
-  let R := resolvent_at_i hsym hminus
+  let R := resolventAtI hsym hminus
   have h_AiI : ∀ n, A (ψ_seq n) - I • (ψ_seq n : H) = u n + (z - I) • (ψ_seq n : H) := by
     intro n
     have h := hψ_seq n

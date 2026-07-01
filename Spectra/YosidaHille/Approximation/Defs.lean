@@ -104,7 +104,7 @@ lemma resolventAtIn_bound {A : H →ₗ.[ℂ] H}
   unfold resolventAtIn
   calc ‖resolvent (I * (n : ℂ)) (I_mul_pnat_im_ne_zero n) hsym hplus hminus‖
       ≤ 1 / |(I * (n : ℂ)).im| :=
-        resolvent_bound hsym hplus hminus (I * (n : ℂ)) (I_mul_pnat_im_ne_zero n)
+        resolvent_bound (I * (n : ℂ)) (I_mul_pnat_im_ne_zero n) hsym hplus hminus
     _ = 1 / (n : ℝ) := by rw [abs_I_mul_pnat_im]
 
 end Spectra.YosidaHille.Approximation

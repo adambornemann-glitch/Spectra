@@ -3,23 +3,50 @@ Copyright (c) 2025 Bell Theorem Formalization Project
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Ported from Isabelle/HOL formalization by Echenim & Mhalla
 Ported by: Adam Bornemann
+
+# The Dichotomic-Observable Bound and the CHSH Algebraic Bound
+
+The spectral-projection route to `|Tr(Aρ)| ≤ 1` for any dichotomic observable `A` (Hermitian,
+`A² = I`) on any density matrix `ρ` — the load-bearing fact behind both the classical LHV bound
+(`Basic.lean`) and the separable-state bound (`Separable.lean`) elsewhere in the CHSH tower — plus
+the CHSH algebraic bound `|ab' - ab + a'b + a'b'| ≤ 2` for `a,a',b,b' ∈ [-1,1]`, and two Kronecker-
+product lemmas used by `Separable.lean`.
+
+## Main definitions
+
+(none — this file is entirely lemmas)
+
+## Main results
+
+* `dichotomic_expectation_bound` : `‖Tr(Aρ)‖ ≤ 1` for dichotomic `A` and density matrix `ρ`
+* `chsh_expectation_algebraic_bound` : the classical CHSH algebraic bound
+* `kronecker_mul_mul`, `trace_kronecker_mul` : Kronecker-product multiplicativity, reused by
+  `Separable.lean`
+
+## Implementation notes
+
+`dichotomic_expectation_bound`'s proof constructs the spectral projections
+`P_± = (I ± A)/2`, shows they are positive semidefinite and sum to `I`, and concludes
+`Tr(Aρ) = Tr(P₊ρ) - Tr(P₋ρ)` is a difference of two nonnegative reals summing to `1`, hence bounded
+by `1` in absolute value. `isPosSemidefComplex_iff_posSemidef` and `trace_posSemidef_mul_re_nonneg`
+are the general-purpose bridge from this file's `IsPosSemidefComplex` predicate to mathlib's
+`Matrix.PosSemidef`, needed once here for the spectral-decomposition argument.
+
+## References
+
+* [Echenim, Mhalla, *A formalization of the CHSH inequality and Tsirelson's
+  upper-bound in Isabelle/HOL*][echenim2023]
+
+## Tags
+
+chsh, dichotomic observable, spectral projection, positive semidefinite, quantum information
 -/
 import Spectra.QuantumMechanics.BellsTheorem.Basic
-import Mathlib.Analysis.InnerProductSpace.Spectrum
 import Mathlib.Analysis.Matrix.Order
-import Mathlib.Analysis.CStarAlgebra.ContinuousFunctionalCalculus.Order
 import Mathlib.LinearAlgebra.Matrix.Hermitian
--- Imports that might be needed
-import Mathlib.Analysis.InnerProductSpace.Basic
-import Mathlib.Analysis.InnerProductSpace.PiL2
-import Mathlib.LinearAlgebra.Matrix.DotProduct
-import Mathlib.Data.Matrix.Basic
 
-open scoped Matrix ComplexConjugate BigOperators TensorProduct Order
-open MeasureTheory ProbabilityTheory Matrix Complex
-
-/-! ## Quantum State Foundations -/
-
+open scoped Matrix ComplexConjugate
+open Matrix Complex
 
 namespace Spectra.QuantumInfo
 
@@ -40,7 +67,7 @@ lemma hermitian_expectation_real {n : ℕ} [NeZero n]
   exact Complex.conj_eq_iff_im.mp h
 
 
--- 1. Self dot product is norm squared (as a real cast to ℂ)
+/-- The self dot product `⟨x,x⟩` equals the sum of squared norms, cast to `ℂ`. -/
 lemma star_dotProduct_self_eq_sum_normSq (x : Fin n → ℂ) :
     star x ⬝ᵥ x = ↑(∑ i, ‖x i‖^2) := by
   simp only [dotProduct, Pi.star_apply]
@@ -49,7 +76,7 @@ lemma star_dotProduct_self_eq_sum_normSq (x : Fin n → ℂ) :
   intro i _
   exact conj_mul' (x i)
 
--- 2. Self dot product is non-negative real
+/-- The self dot product `⟨x,x⟩` has non-negative real part. -/
 lemma star_dotProduct_self_re_nonneg (x : Fin n → ℂ) :
     0 ≤ (star x ⬝ᵥ x).re := by
   rw [star_dotProduct_self_eq_sum_normSq]
@@ -58,7 +85,7 @@ lemma star_dotProduct_self_re_nonneg (x : Fin n → ℂ) :
   intro i _
   exact sq_nonneg ‖x i‖
 
--- 3. For Hermitian A: ⟨Ax, Ax⟩ = ⟨x, A²x⟩
+/-- For Hermitian `A`: `⟨Ax, Ax⟩ = ⟨x, A²x⟩`. -/
 lemma star_mulVec_dotProduct_mulVec_hermitian (A : Matrix (Fin n) (Fin n) ℂ)
     (hA : A.IsHermitian) (x : Fin n → ℂ) :
     star (A.mulVec x) ⬝ᵥ (A.mulVec x) = star x ⬝ᵥ (A * A).mulVec x := by
@@ -68,11 +95,14 @@ lemma star_mulVec_dotProduct_mulVec_hermitian (A : Matrix (Fin n) (Fin n) ℂ)
   rw [hA.eq]
   exact Eq.symm (dotProduct_mulVec (star x) (A * A) x)
 
+/-- The norm of the self dot product `⟨x,x⟩` equals the sum of squared norms. -/
 lemma norm_star_dotProduct_self (x : Fin n → ℂ) :
     ‖star x ⬝ᵥ x‖ = ∑ i, ‖x i‖^2 := by
   rw [star_dotProduct_self_eq_sum_normSq, Complex.norm_real, Real.norm_of_nonneg]
   exact Finset.sum_nonneg (fun i _ => sq_nonneg _)
 
+/-- A Hermitian involution (`A² = I`) preserves the sum of squared norms, i.e. acts as an
+isometry of `Fin n → ℂ`. -/
 lemma sum_normSq_mulVec_eq_of_hermitian_sq_one (A : Matrix (Fin n) (Fin n) ℂ)
     (hA_herm : A.IsHermitian) (hA_sq : A * A = 1) (x : Fin n → ℂ) :
     ∑ i, ‖(A.mulVec x) i‖^2 = ∑ i, ‖x i‖^2 := by
@@ -107,6 +137,7 @@ lemma inner_mul_self_bound {n : ℕ} [NeZero n]
   ring_nf
   exact Eq.symm (EuclideanSpace.norm_sq_eq x')
 
+/-- For Hermitian `A`, `⟨x, Ax⟩` has zero imaginary part. -/
 lemma hermitian_dotProduct_self_im_eq_zero (A : Matrix (Fin n) (Fin n) ℂ)
     (hA : A.IsHermitian) (x : Fin n → ℂ) :
     (star x ⬝ᵥ A.mulVec x).im = 0 := by
@@ -201,11 +232,11 @@ private lemma finsupp_quadform_eq_dotProduct_mulVec {n : ℕ}
   apply Finset.sum_congr rfl; intro j _
   ring
 
+/-- `IsPosSemidefComplex` agrees with mathlib's `Matrix.PosSemidef` for Hermitian matrices. -/
 lemma isPosSemidefComplex_iff_posSemidef {n : ℕ} [NeZero n]
     (M : Matrix (Fin n) (Fin n) ℂ) (hM : M.IsHermitian) :
     letI := Complex.partialOrder
     IsPosSemidefComplex M ↔ M.PosSemidef := by
-  letI := Complex.partialOrder
   constructor
   · intro h
     exact ⟨hM, fun x => by
@@ -218,6 +249,8 @@ lemma isPosSemidefComplex_iff_posSemidef {n : ℕ} [NeZero n]
     rw [finsupp_quadform_eq_dotProduct_mulVec, hx', RCLike.nonneg_iff] at h'
     exact h'.1
 
+/-- The trace of a product of two positive-semidefinite Hermitian matrices has non-negative
+real part. -/
 lemma trace_posSemidef_mul_re_nonneg {n : ℕ} [NeZero n]
     (P ρ : Matrix (Fin n) (Fin n) ℂ)
     (hP_herm : P.IsHermitian)
@@ -241,8 +274,7 @@ lemma trace_posSemidef_mul_re_nonneg {n : ℕ} [NeZero n]
   -- ρ = U * D * star U (unfolding conjStarAlgAut)
   have hρ_spec : ρ = U * D * star U := by
     have := Matrix.IsHermitian.spectral_theorem hρ_herm
-    -- THIS IS THE STEP THAT NEEDS THE PROBE RESULT
-    simp only [Unitary.conjStarAlgAut] at this  -- adjust based on probe
+    simp only [Unitary.conjStarAlgAut] at this
     exact this
   -- B := star U * P * U is PSD by sandwich
   let B := star U * P * U
@@ -344,13 +376,13 @@ lemma dichotomic_expectation_bound {n : ℕ} [NeZero n]
     · exact h_P_plus_herm
     · exact ρ.hermitian
     · exact spectral_proj_plus_posSemidef A hA_herm hA_sq
-    · exact ρ.posSemidef
+    · exact ρ.pos_semidef
   have h_tr_minus_nonneg : 0 ≤ (P_minus * ρ.toMatrix).trace.re := by
     apply trace_posSemidef_mul_re_nonneg
     · exact h_P_minus_herm
     · exact ρ.hermitian
     · exact spectral_proj_minus_posSemidef A hA_herm hA_sq
-    · exact ρ.posSemidef
+    · exact ρ.pos_semidef
   -- Step 9: Final bound: |a - b| ≤ 1 when a,b ≥ 0 and a + b = 1
   have h_sum_re : (P_plus * ρ.toMatrix).trace.re + (P_minus * ρ.toMatrix).trace.re = 1 := by
     have := congrArg Complex.re h_sum
@@ -377,7 +409,7 @@ lemma chsh_expectation_algebraic_bound (a a' b b' : ℝ)
   rw [h1]
   -- Triangle inequality
   calc |a * (b' - b) + a' * (b + b')|
-      ≤ |a * (b' - b)| + |a' * (b + b')| := abs_add_le _ _ -- Unknown identifier `abs_add`
+      ≤ |a * (b' - b)| + |a' * (b + b')| := abs_add_le _ _
     _ = |a| * |b' - b| + |a'| * |b + b'| := by rw [abs_mul, abs_mul]
     _ ≤ 1 * |b' - b| + 1 * |b + b'| := by
         apply add_le_add
@@ -385,54 +417,21 @@ lemma chsh_expectation_algebraic_bound (a a' b b' : ℝ)
         · exact mul_le_mul ha' (le_refl _) (abs_nonneg _) zero_le_one
     _ = |b' - b| + |b + b'| := by ring
     _ ≤ 2 := by
-        -- Split on signs of (b' - b) and (b + b')
-        rcases le_or_gt 0 (b' - b) with hbd_nn | hbd_neg
-        <;> rcases le_or_gt 0 (b + b') with hbs_nn | hbs_neg
-        · -- b' - b ≥ 0, b + b' ≥ 0
-          calc |b' - b| + |b + b'| = (b' - b) + (b + b') := by
-                  rw [abs_of_nonneg hbd_nn, abs_of_nonneg hbs_nn]
-            _ = 2 * b' := by ring
-            _ ≤ 2 * 1 := by nlinarith [abs_le.mp hb']
-            _ = 2 := by ring
-        · -- b' - b ≥ 0, b + b' < 0
-          calc |b' - b| + |b + b'| = (b' - b) + -(b + b') := by
-                  rw [abs_of_nonneg hbd_nn, abs_of_neg hbs_neg]
-            _ = -2 * b := by ring
-            _ ≤ 2 * 1 := by nlinarith [abs_le.mp hb]
-            _ = 2 := by ring
-        · -- b' - b < 0, b + b' ≥ 0
-          calc |b' - b| + |b + b'| = -(b' - b) + (b + b') := by
-                  rw [abs_of_neg hbd_neg, abs_of_nonneg hbs_nn]
-            _ = 2 * b := by ring
-            _ ≤ 2 * 1 := by nlinarith [abs_le.mp hb]
-            _ = 2 := by ring
-        · -- b' - b < 0, b + b' < 0
-          calc |b' - b| + |b + b'| = -(b' - b) + -(b + b') := by
-                  rw [abs_of_neg hbd_neg, abs_of_neg hbs_neg]
-            _ = -2 * b' := by ring
-            _ ≤ 2 * 1 := by nlinarith [abs_le.mp hb']
-            _ = 2 := by ring
+        rcases abs_le.mp hb with ⟨hb1, hb2⟩
+        rcases abs_le.mp hb' with ⟨hb1', hb2'⟩
+        rcases abs_cases (b' - b) with ⟨h1, _⟩ | ⟨h1, _⟩ <;>
+        rcases abs_cases (b + b') with ⟨h2, _⟩ | ⟨h2, _⟩ <;>
+        rw [h1, h2] <;> linarith
 
 /-- Mixed product property for kroneckerMap with multiplication -/
 lemma kronecker_mul_mul {m n : Type*} [Fintype m] [Fintype n] [DecidableEq m] [DecidableEq n]
     (A C : Matrix m m ℂ) (B D : Matrix n n ℂ) :
     kroneckerMap (· * ·) A B * kroneckerMap (· * ·) C D =
-    kroneckerMap (· * ·) (A * C) (B * D) := by
-  ext ⟨i₁, i₂⟩ ⟨j₁, j₂⟩
-  simp only [Matrix.mul_apply, kroneckerMap_apply, Fintype.sum_prod_type]
-  rw [Finset.sum_comm]
-  -- Goal: ∑ y, ∑ x, A i₁ x * B i₂ y * (C x j₁ * D y j₂) = (∑ j, A i₁ j * C j j₁) * ∑ j, B i₂ j * D j j₂
-  -- Step 1: Rewrite each summand to group A*C and B*D terms
-  have h : ∀ y x, A i₁ x * B i₂ y * (C x j₁ * D y j₂) = (A i₁ x * C x j₁) * (B i₂ y * D y j₂) :=
-    fun y x => by ring
-  simp_rw [h]
-  -- Step 2: Factor (B i₂ y * D y j₂) out of inner sum
-  simp_rw [← Finset.sum_mul]
-  -- Step 3: Factor (∑ x, A i₁ x * C x j₁) out of outer sum
-  rw [← Finset.mul_sum]
+    kroneckerMap (· * ·) (A * C) (B * D) :=
+  (Matrix.mul_kronecker_mul A C B D).symm
 
 /-- Trace of Kronecker product factors -/
-lemma trace_kronecker_mul {m n : Type*} [Fintype m] [Fintype n] [DecidableEq m] [DecidableEq n]
+lemma trace_kronecker_mul {m n : Type*} [Fintype m] [Fintype n]
     (A : Matrix m m ℂ) (B : Matrix n n ℂ) :
     (kroneckerMap (· * ·) A B).trace = A.trace * B.trace :=
   Matrix.trace_kronecker A B

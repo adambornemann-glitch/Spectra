@@ -28,7 +28,7 @@ lemma resolventFun_hasSum {A : H →ₗ.[ℂ] H}
       simp only [hT_def]
       exact norm_smul_le (z - z₀.val) R₀
     have h_R₀_bound : ‖R₀‖ ≤ 1 / |z₀.val.im| :=
-      resolvent_bound hsym hplus hminus z₀.val z₀.property
+      resolvent_bound z₀.val z₀.property hsym hplus hminus
     calc ‖T‖
         ≤ ‖z - z₀.val‖ * ‖R₀‖ := h_smul_bound
       _ ≤ ‖z - z₀.val‖ * (1 / |z₀.val.im|) := by

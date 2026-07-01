@@ -12,6 +12,7 @@ import Spectra.Resolvent.Diagonal.IntegralZ.Basic -- inner_resolvent_diag_eq_int
 import Spectra.SpectralTheory.StoneFormula.Basic  -- stonesFormula (for the coda)
 import Spectra.Resolvent.Range
 import Spectra.Bochner.Borel.CDF
+import Spectra.OneParameterUnitaryGroup.PVM   -- toPVM (groupPVM's alias target)
 /-!
 # The Keystone: the spectral theorem, resolvent form
 
@@ -104,17 +105,12 @@ lemma selfAdjointResolvent_eq_genToGroup {A : H →ₗ.[ℂ] H} (hA : IsSelfAdjo
 
 /-! ## The canonical projection-valued measures -/
 
-/-- The canonical PVM of a strongly continuous one-parameter unitary group:
-your `spectralProjection`/`borelMeasure` pair, bundled.  Every field is one of
-your theorems verbatim. -/
-noncomputable def groupPVM (U_grp : OneParameterUnitaryGroup (H := H)) :
-    ProjValMeasure H where
-  proj := spectralProjection U_grp
-  diag := borelMeasure U_grp
-  diag_finite := borelMeasure_isFiniteMeasure U_grp
-  inner_proj := inner_spectralProjection_self U_grp
-  proj_univ := spectralProjection_univ U_grp
-  proj_inter := spectralProjection_inter U_grp
+/-- The canonical PVM of a strongly continuous one-parameter unitary group. An alias, under the
+name this file's resolvent-form development was built against, for
+`OneParameterUnitaryGroup.toPVM` (`OneParameterUnitaryGroup/PVM.lean`) — the same
+`spectralProjection`/`borelMeasure` pair, bundled once, not rebuilt here. -/
+noncomputable def groupPVM (U_grp : OneParameterUnitaryGroup (H := H)) : ProjValMeasure H :=
+  U_grp.toPVM
 
 @[simp] lemma groupPVM_proj (U_grp : OneParameterUnitaryGroup (H := H)) :
     (groupPVM U_grp).proj = spectralProjection U_grp := rfl

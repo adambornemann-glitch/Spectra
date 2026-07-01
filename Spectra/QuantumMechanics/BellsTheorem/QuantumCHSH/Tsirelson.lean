@@ -3,18 +3,30 @@ Copyright (c) 2025 Bell Theorem Formalization Project
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Ported from Isabelle/HOL formalization by Echenim & Mhalla
 Ported by: Adam Bornemann
+
+# Tsirelson's Bound (front-door restatement)
+
+`tsirelson_bound` (`CHSH_Bounds/Tsirelson/Basic.lean`) is stated over a bundled `IsCHSHTuple`
+structure. This file re-exposes it with the eight `IsCHSHTuple` fields unpacked as plain
+hypotheses, so callers building `A₀, A₁, B₀, B₁` directly (rather than already holding an
+`IsCHSHTuple` term) don't have to construct the record by hand — hence the trailing `'`, marking
+this as the unpacked-hypothesis sibling of the original.
+
+## Main results
+
+* `tsirelson_bound'` : `‖Tr(Sρ)‖ ≤ 2√2` for any `A₀, A₁, B₀, B₁` satisfying the CHSH
+  Hermitian/involution/commutation conditions individually, no `IsCHSHTuple` construction required
 -/
+import Mathlib.Algebra.Star.CHSH
 import Spectra.QuantumMechanics.BellsTheorem.QuantumCHSH.Violation
 import Spectra.QuantumMechanics.BellsTheorem.CHSH_Bounds.Tsirelson.Basic
 
-open Matrix Complex MatrixGroups
 open Spectra.QuantumInfo
 namespace Spectra.QuantumCHSH
 
+/-- **Tsirelson's Bound**: No quantum state can achieve `|S| > 2√2`.
 
-/-- **Tsirelson's Bound**: No quantum state can achieve |S| > 2√2.
-
-The proof uses S² = 4I - [A₀,A₁]·[B₀,B₁] and operator norm bounds. -/
+The proof uses `S² = 4I - [A₀,A₁]·[B₀,B₁]` and operator norm bounds. -/
 lemma tsirelson_bound' {n : ℕ} [NeZero n]
     (A₀' A₁' B₀' B₁' : Matrix (Fin n) (Fin n) ℂ)
     (hA₀ : A₀'.IsHermitian) (hA₁ : A₁'.IsHermitian)
@@ -26,22 +38,15 @@ lemma tsirelson_bound' {n : ℕ} [NeZero n]
     (ρ : DensityMatrix n) :
     ‖(((A₀' * B₁' - A₀' * B₀' + A₁' * B₀' + A₁' * B₁') * ρ.toMatrix).trace)‖
       ≤ 2 * Real.sqrt 2 := by
-  let hT : QuantumInfo.IsCHSHTuple A₀' A₁' B₀' B₁' := {
-    A₀_herm := hA₀
-    A₁_herm := hA₁
-    B₀_herm := hB₀
-    B₁_herm := hB₁
-    A₀_sq := hA₀_sq
-    A₁_sq := hA₁_sq
-    B₀_sq := hB₀_sq
-    B₁_sq := hB₁_sq
-    comm_A₀_B₀ := hcomm₀₀
-    comm_A₀_B₁ := hcomm₀₁
-    comm_A₁_B₀ := hcomm₁₀
-    comm_A₁_B₁ := hcomm₁₁
-  }
+  have hA₀_inv : A₀' ^ 2 = 1 := by rw [pow_two]; exact hA₀_sq
+  have hA₁_inv : A₁' ^ 2 = 1 := by rw [pow_two]; exact hA₁_sq
+  have hB₀_inv : B₀' ^ 2 = 1 := by rw [pow_two]; exact hB₀_sq
+  have hB₁_inv : B₁' ^ 2 = 1 := by rw [pow_two]; exact hB₁_sq
+  have hT : IsCHSHTuple A₀' A₁' B₀' B₁' :=
+    ⟨hA₀_inv, hA₁_inv, hB₀_inv, hB₁_inv, hA₀, hA₁, hB₀, hB₁,
+      hcomm₀₀, hcomm₀₁, hcomm₁₀, hcomm₁₁⟩
   have h := tsirelson_bound A₀' A₁' B₀' B₁' hT ρ
-  simp only [CHSH_expect, CHSH_op] at h
-  convert h using 2
+  simp only [chshExpect, chshOp] at h
+  exact h
 
 end Spectra.QuantumCHSH

@@ -3,18 +3,50 @@ Copyright (c) 2025 Bell Theorem Formalization Project
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Ported from Isabelle/HOL formalization by Echenim & Mhalla
 Ported by: Adam Bornemann
+
+# CHSH Building Blocks: Pauli Matrices and the Singlet State
+
+Seeds the `Spectra.QuantumCHSH` port chain (`Correlations.lean`, `Violation.lean`,
+`Tsirelson.lean`) with the Pauli matrices, the 2×2 identity, and the singlet Bell state, in the
+naming convention of Echenim & Mhalla's Isabelle/HOL formalization.
+
+## Main definitions
+
+* `σₓ`, `σᵧ`, `σZ` : the Pauli matrices, re-exported from `Spectra.QuantumMechanics.Pauli`
+* `I₂` : the 2×2 identity
+* `ρΨMinus` : the singlet density matrix, re-exported from `Spectra.QuantumInfo.bellStatePsiMinus`
+
+## Main results
+
+* `σₓ_hermitian`, `σᵧ_hermitian`, `σZ_hermitian` : the Pauli matrices are Hermitian
+* `σₓ_sq`, `σᵧ_sq`, `σZ_sq` : each Pauli matrix squares to the identity
+* `σₓ_σZ_anticomm` : `σₓ` and `σZ` anticommute
+* `ρΨMinus_trace` : the singlet density matrix has trace 1
+
+## Implementation notes
+
+`σₓ`, `σᵧ`, `σZ` are definitionally the matrices `Spectra.QuantumMechanics.Pauli.pauliX/Y/Z`
+(both sides unfold to the same literal), so their properties reuse the canonical module's proofs
+instead of re-deriving them from scratch. `ρΨMinus` is, likewise, a re-export of
+`Spectra.QuantumInfo.bellStatePsiMinus` (`BellsTheorem/Basic.lean`) under this port chain's own
+name, rather than an independent re-derivation of the same density matrix.
+
+## References
+
+* [Echenim, Mhalla, *A formalization of the CHSH inequality and Tsirelson's
+  upper-bound in Isabelle/HOL*][echenim2023]
+
+## Tags
+
+chsh, bell state, pauli matrices, quantum information
 -/
 import Spectra.QuantumMechanics.BellsTheorem.Basic
 import Spectra.QuantumMechanics.PauliMatrices
 import Mathlib.LinearAlgebra.Matrix.Hermitian
 import Mathlib.LinearAlgebra.Matrix.Trace
-import Mathlib.LinearAlgebra.Matrix.Kronecker
-import Mathlib.Analysis.Complex.Exponential
-import Mathlib.Analysis.SpecialFunctions.Trigonometric.Basic
-import Mathlib.Analysis.Matrix.Normed
 import Mathlib.Tactic.NoncommRing
 
-open Matrix Complex MatrixGroups
+open Matrix Complex
 
 namespace Spectra.QuantumCHSH
 
@@ -28,16 +60,17 @@ def σₓ : Matrix (Fin 2) (Fin 2) ℂ :=
 def σᵧ : Matrix (Fin 2) (Fin 2) ℂ :=
   !![0, -I; I, 0]
 
-/-- Pauli Z matrix: σ_z = |0⟩⟨0| - |1⟩⟨1| -/
-def σ_z : Matrix (Fin 2) (Fin 2) ℂ :=
+/-- Pauli Z matrix: σZ = |0⟩⟨0| - |1⟩⟨1| -/
+def σZ : Matrix (Fin 2) (Fin 2) ℂ :=
   !![1, 0; 0, -1]
 
-/-- The 2×2 identity matrix -/
+/-- The 2×2 identity matrix, feeding `Correlations.lean`'s `kroneckerMap (· * ·) σZ I₂`-style
+    tensor-product observables. -/
 def I₂ : Matrix (Fin 2) (Fin 2) ℂ := 1
 
 /-! ## Properties of Pauli Matrices
 
-`σₓ`, `σᵧ`, `σ_z` are definitionally the matrices `Spectra.QuantumMechanics.Pauli.pauliX/Y/Z`
+`σₓ`, `σᵧ`, `σZ` are definitionally the matrices `Spectra.QuantumMechanics.Pauli.pauliX/Y/Z`
 (both sides unfold to the same literal), so their properties reuse the canonical module's
 proofs instead of re-deriving them from scratch. -/
 
@@ -48,16 +81,16 @@ lemma σₓ_hermitian : σₓ.IsHermitian := pauliX_hermitian
 
 lemma σᵧ_hermitian : σᵧ.IsHermitian := pauliY_hermitian
 
-lemma σ_z_hermitian : σ_z.IsHermitian := pauliZ_hermitian
+lemma σZ_hermitian : σZ.IsHermitian := pauliZ_hermitian
 
 lemma σₓ_sq : σₓ * σₓ = 1 := pauliX_sq
 
 lemma σᵧ_sq : σᵧ * σᵧ = 1 := pauliY_sq
 
-lemma σ_z_sq : σ_z * σ_z = 1 := pauliZ_sq
+lemma σZ_sq : σZ * σZ = 1 := pauliZ_sq
 
-/-- Pauli matrices anticommute: σₓσ_z = -σ_zσₓ -/
-lemma σₓ_σ_z_anticomm : σₓ * σ_z = -σ_z * σₓ := by
+/-- Pauli matrices anticommute: σₓσZ = -σZσₓ -/
+lemma σₓ_σZ_anticomm : σₓ * σZ = -σZ * σₓ := by
   show pauliX * pauliZ = -pauliZ * pauliX
   linear_combination (norm := noncomm_ring) pauliXZ_anticommute
 
@@ -65,21 +98,16 @@ end
 
 /-! ## The Bell State -/
 
-/-- The singlet (Bell) state |Ψ⁻⟩ = (|01⟩ - |10⟩)/√2 as a ket vector -/
-noncomputable def ket_Ψ_minus : Fin 4 → ℂ := ![0, 1/Real.sqrt 2, -1/Real.sqrt 2, 0]
+/-- The singlet (Bell) state |Ψ⁻⟩ = (1/√2)(|01⟩ - |10⟩) as a density matrix.
 
-/-- The Bell state |Ψ⁻⟩ = (1/√2)(|01⟩ - |10⟩) as a density matrix -/
-noncomputable def ρ_Ψ_minus : Matrix (Fin 2 × Fin 2) (Fin 2 × Fin 2) ℂ :=
-  Matrix.of fun i j =>
-    match i, j with
-    | (0, 1), (0, 1) =>  (1/2 : ℂ)
-    | (0, 1), (1, 0) => -(1/2 : ℂ)
-    | (1, 0), (0, 1) => -(1/2 : ℂ)
-    | (1, 0), (1, 0) =>  (1/2 : ℂ)
-    | _, _ => 0
+A re-export of `Spectra.QuantumInfo.bellStatePsiMinus` (`BellsTheorem/Basic.lean`) under this
+port chain's own name, rather than an independent re-derivation of the same object. -/
+noncomputable def ρΨMinus : Matrix (Fin 2 × Fin 2) (Fin 2 × Fin 2) ℂ :=
+  Spectra.QuantumInfo.bellStatePsiMinus
 
-lemma ρ_Ψ_minus_trace : ρ_Ψ_minus.trace = 1 := by
-  simp only [Matrix.trace, Matrix.diag, ρ_Ψ_minus, Matrix.of_apply]
+lemma ρΨMinus_trace : ρΨMinus.trace = 1 := by
+  simp only [Matrix.trace, Matrix.diag, ρΨMinus, Spectra.QuantumInfo.bellStatePsiMinus,
+    Matrix.of_apply]
   rw [Fintype.sum_prod_type]
   simp only [Fin.sum_univ_two, Fin.isValue]
   norm_num

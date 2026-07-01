@@ -65,7 +65,7 @@ lemma yosidaJ_norm_bound {A : H →ₗ.[ℂ] H}
     rw [neg_mul, norm_neg, norm_I_mul_pnat]
   have h_res : ‖resolvent (I * (n : ℂ)) (I_mul_pnat_im_ne_zero n) hsym hplus hminus‖ ≤ 1 / (n : ℝ) := by
     calc ‖resolvent (I * (n : ℂ)) (I_mul_pnat_im_ne_zero n) hsym hplus hminus‖
-        ≤ 1 / |(I * (n : ℂ)).im| := resolvent_bound hsym hplus hminus _ _
+        ≤ 1 / |(I * (n : ℂ)).im| := resolvent_bound _ _ hsym hplus hminus
       _ = 1 / (n : ℝ) := by rw [abs_I_mul_pnat_im]
   have hn_pos : (0 : ℝ) < n := Nat.cast_pos.mpr n.pos
   calc ‖(-I * (n : ℂ)) • resolvent (I * (n : ℂ)) (I_mul_pnat_im_ne_zero n) hsym hplus hminus‖
@@ -87,7 +87,7 @@ lemma yosidaJNeg_norm_bound {A : H →ₗ.[ℂ] H}
   have h_coeff : ‖I * (n : ℂ)‖ = (n : ℝ) := norm_I_mul_pnat n
   have h_res : ‖resolvent (-I * (n : ℂ)) (neg_I_mul_pnat_im_ne_zero n) hsym hplus hminus‖ ≤ 1 / (n : ℝ) := by
     calc ‖resolvent (-I * (n : ℂ)) (neg_I_mul_pnat_im_ne_zero n) hsym hplus hminus‖
-        ≤ 1 / |(-I * (n : ℂ)).im| := resolvent_bound hsym hplus hminus _ _
+        ≤ 1 / |(-I * (n : ℂ)).im| := resolvent_bound _ _ hsym hplus hminus
       _ = 1 / (n : ℝ) := by
           simp only [neg_mul, neg_im, mul_im, I_re, I_im, zero_mul, one_mul, zero_add]
           rw [@abs_neg, natCast_re, abs_of_pos (Nat.cast_pos.mpr n.pos)]

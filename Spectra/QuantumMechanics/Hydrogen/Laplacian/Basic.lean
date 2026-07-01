@@ -786,7 +786,7 @@ resolvent estimate for self-adjoint operators, no Fourier analysis needed. -/
 theorem laplacian_resolvent_bound (z : ℂ) (hz : z.im ≠ 0) :
     ‖selfAdjointResolvent laplacian_isSelfAdjoint z hz‖ ≤ 1 / |z.im| := by
   rw [selfAdjointResolvent_eq_genToGroup]
-  exact resolvent_bound _ _ _ z hz
+  exact resolvent_bound z hz _ _ _
 
 /-! ## Interface summary
 

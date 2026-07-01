@@ -5,7 +5,7 @@ Authors: Adam Bornemann
 -/
 import Spectra.CayleyTransform.Generator.InverseAction   -- cayley, stoneExp, stoneGroup, resolventSymbol
 import Spectra.CayleyTransform.Generator.Resolvent     -- selfAdjointResolvent_eq_borelCalculus (keystone)
-import Spectra.CayleyTransform.Generator.Pushforward   -- ⚠ see note: the group-free helpers, relocated
+import Spectra.CayleyTransform.Generator.Pushforward   -- the group-free helpers: inverseMobiusReal, borelMeasure_stoneGroup_eq_map
 import Spectra.Resolvent.SpectralRepresentation       -- inner_resolvent_diag_eq_integral
 import Spectra.SpectralTheory.StoneFormula.Identities -- resolvent_left_inverse / _mem_domain / _solves
 import Spectra.Resolvent.Integral.Domain              -- generator, generator_isSelfAdjoint, ranges
@@ -25,18 +25,8 @@ obtained by comparing diagonals — the left through the generic group identity
 (`resolvent_left_inverse` + `resolvent_mem_domain` + `resolvent_solves`), giving
 `A ≤ generator (stoneGroup hA)`, and `IsSelfAdjoint.eq_of_le` finishes.
 
-`genToGroup` does not appear.  The consistency `stoneGroup_eq_genToGroup` is then a one-line
-corollary (see the bridge note at the end) — and with it, the Cauchy-transform comparison
-`borelMeasure_stoneGroup_eq_genToGroup` and everything it pulled in from the Yosida keystone
-becomes deletable.
-
-## ⚠ Dependency hygiene
-
-`inverseMobiusReal` (+ `_coe`, `_measurable`) and `borelMeasure_stoneGroup_eq_map` are group-free
-but currently live in `GeneratorStone.lean` alongside `genToGroup`.  Move them into a group-free
-file (here imported as `CayleyTransform/Pushforward`) so that *this* file imports nothing that
-mentions the Yosida group.  `borelMeasure_stoneGroup_eq_map` itself only uses `stoneExp`, the
-Riesz measure, and `Measure.ext_of_charFun` — it relocates unchanged.
+`genToGroup` does not appear. The consistency `stoneGroup_eq_genToGroup` (`StoneBridge/Basic.lean`)
+is then a one-line corollary of the two independent generator computations, via `group_unique`.
 -/
 open Complex MeasureTheory Filter Topology InnerProductSpace
 open scoped InnerProductSpace
@@ -137,26 +127,3 @@ theorem stoneExp_genDiffQuot_tendsto [Nontrivial H] (hA : IsSelfAdjoint A)
   exact generator_tendsto (stoneGroup hA) ⟨ψ, hψgen⟩
 
 end Spectra.Cayley
-
-/-!
-## The bridge file (the *only* place `genToGroup` survives)
-
-With both generators computed independently, the consistency of the two constructions of
-`e^{itA}` is a single `group_unique`.  Put this in `CayleyTransform/StoneBridge.lean`
-(importing this file and `Stone/Basic.lean`):
-
-```
-theorem stoneGroup_eq_genToGroup [Nontrivial H] (hA : IsSelfAdjoint A) :
-    stoneGroup hA = genToGroup hA :=
-  group_unique _ _ (by rw [generator_stoneGroup hA, generator_genToGroup hA])
-
-theorem stoneExp_eq_genToGroup [Nontrivial H] (hA : IsSelfAdjoint A) (t : ℝ) :
-    stoneExp hA t = (genToGroup hA).U t := by
-  rw [show stoneExp hA t = (stoneGroup hA).U t from rfl, stoneGroup_eq_genToGroup hA]
-```
-
-`borelMeasure_stoneGroup_eq_genToGroup` and `inner_stoneExp_eq_integral_borelMeasure` in your
-current `GeneratorStone.lean` are now dead weight: the former consumed the Yosida keystone
-`spectralPVM_resolvent_formula`, which was the whole reason the two developments were welded.
-Delete them, and the spectral route owes the Yosida construction nothing.
--/

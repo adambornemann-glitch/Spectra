@@ -293,7 +293,7 @@ private lemma norm_resolvent_apply_le {A : H →ₗ.[ℂ] H}
     (z : ℂ) (him : z.im ≠ 0) (χ : H) :
     ‖resolvent z him hsym hplus hminus χ‖ ≤ (1 / |z.im|) * ‖χ‖ :=
   ((resolvent z him hsym hplus hminus).le_opNorm χ).trans
-    (mul_le_mul_of_nonneg_right (resolvent_bound hsym hplus hminus z him)
+    (mul_le_mul_of_nonneg_right (resolvent_bound z him hsym hplus hminus)
       (norm_nonneg χ))
 
 private lemma norm_op_resolvent_le {A : H →ₗ.[ℂ] H}

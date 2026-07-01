@@ -5,12 +5,45 @@ Authors: Adam Bornemann
 -/
 import Spectra.PositiveDefinite.Unitary
 import Spectra.Herglotz.FejerMeasure
+
+/-!
+# Cumulative distribution function of the Fejér measure
+
+## Main definitions
+
+* `fejerCDF`: the cumulative distribution function `F_N(x) = σ_N([0, x])` of the `N`-th Fejér
+  mean measure `σ_N` (`Herglotz/FejerMeasure.lean`), clamped flat outside `[0, 2π]`.
+
+## Main results
+
+* `fejerCDF_zero`, `fejerCDF_two_pi`: the clamp values `F_N(0) = 0` and `F_N(2π) = ‖ψ‖²`.
+* `fejerCDF_monotone`: `F_N` is monotone non-decreasing.
+* `fejerCDF_bounded`: `0 ≤ F_N(x) ≤ ‖ψ‖²` for all `x`.
+* `fejerCDF_continuous`: `F_N` is continuous.
+* `fejerCDF_eq_measure`: the CDF-difference-equals-measure identity
+  `F_N(b) − F_N(a) = σ_N((a, b])` for `0 ≤ a ≤ b ≤ 2π`.
+
+## Implementation notes
+
+`fejerCDF` itself takes no unitarity hypothesis — it doesn't need one to be well-defined — and
+`hU : Operator.Unitary U` is added only on the lemmas whose proof actually uses positivity of the
+Fejér density (`fejerCDF_monotone`, `fejerCDF_bounded`, `fejerCDF_eq_measure`); `fejerCDF_zero`,
+`fejerCDF_two_pi`, and `fejerCDF_continuous` hold unconditionally.
+
+All six results are currently unused elsewhere in the library: this file stages the CDF package
+for the Helly-selection argument in `Stieltjes/Hellys.lean` (which imports it), but the actual
+wiring — applying `helly_selection` to `fejerCDF U ψ N` to extract a convergent CDF subsequence —
+has not been written yet.
+
+Three internal facts recur across several proofs and are factored into private lemmas below to
+avoid restating them: `fejerCDF_hR_two_pi` (`(1/2π) ∫₀^{2π} re(F_N) = ‖ψ‖²`, mirroring
+`fejerMeasure_total` in `FejerMeasure.lean`) and `fejerCDF_hGset` (interval integral = set integral
+for the primitive on `[0, x]`).
+-/
 open MeasureTheory
 open Spectra.PositiveDefinite
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
 namespace Spectra.Herglotz
-
-/-! ### §1. The cumulative distribution function of the Fejér measure -/
 
 variable (U : H →L[ℂ] H)
 
@@ -39,6 +72,35 @@ lemma fejerCDF_two_pi (ψ : H) (N : ℕ) :
   unfold fejerCDF
   rw [if_neg h0, if_pos (le_refl (2 * Real.pi))]
 
+/-- `(1/2π) ∫₀^{2π} re(F_N) = ‖ψ‖²`, unconditionally (mirrors `fejerMeasure_total`). Shared by
+`fejerCDF_monotone`, `fejerCDF_continuous`, and `fejerCDF_eq_measure`. -/
+private lemma fejerCDF_hR_two_pi (ψ : H) (N : ℕ) :
+    (1 / (2 * Real.pi)) * (∫ θ in Set.Icc (0:ℝ) (2 * Real.pi),
+      (fejerMeanDensity U ψ N θ).re) = ‖ψ‖ ^ 2 := by
+  have hF_int : IntegrableOn (fejerMeanDensity U ψ N)
+      (Set.Icc (0:ℝ) (2 * Real.pi)) volume :=
+    (fejerMeanDensity_continuous U ψ N).continuousOn.integrableOn_compact isCompact_Icc
+  have hint : (∫ θ in Set.Icc (0:ℝ) (2 * Real.pi), (fejerMeanDensity U ψ N θ).re)
+      = 2 * Real.pi * ‖ψ‖ ^ 2 := by
+    rw [show (fun θ => (fejerMeanDensity U ψ N θ).re)
+          = (fun θ => Complex.reCLM (fejerMeanDensity U ψ N θ)) from rfl]
+    rw [show (∫ θ in Set.Icc (0:ℝ) (2 * Real.pi), Complex.reCLM (fejerMeanDensity U ψ N θ))
+          = Complex.reCLM (∫ θ in Set.Icc (0:ℝ) (2 * Real.pi), fejerMeanDensity U ψ N θ)
+        from ContinuousLinearMap.integral_comp_comm _ hF_int]
+    rw [fejerMeanDensity_integral U ψ N, unitaryCorrelation_zero, Complex.reCLM_apply,
+        show ((2:ℂ) * (Real.pi:ℂ) * ((‖ψ‖ ^ 2 : ℝ):ℂ))
+            = (((2 * Real.pi * ‖ψ‖ ^ 2 : ℝ)):ℂ) from by push_cast; ring,
+        Complex.ofReal_re]
+  rw [hint, one_div, inv_mul_cancel_left₀ (by positivity : (2 * Real.pi : ℝ) ≠ 0)]
+
+/-- Interval integral equals set integral for the Fejér-density primitive on `[0, x]`.
+Shared by `fejerCDF_continuous` and `fejerCDF_eq_measure`. -/
+private lemma fejerCDF_hGset (ψ : H) (N : ℕ) : ∀ x : ℝ, 0 ≤ x →
+    (∫ t in (0:ℝ)..x, (fejerMeanDensity U ψ N t).re)
+      = ∫ θ in Set.Icc 0 x, (fejerMeanDensity U ψ N θ).re := by
+  intro x hx
+  rw [intervalIntegral.integral_of_le hx, ← integral_Icc_eq_integral_Ioc]
+
 /-- `F_N` is monotone non-decreasing. -/
 lemma fejerCDF_monotone (hU : Operator.Unitary U) (ψ : H) (N : ℕ) :
     Monotone (fejerCDF U ψ N) := by
@@ -66,25 +128,7 @@ lemma fejerCDF_monotone (hU : Operator.Unitary U) (ψ : H) (N : ℕ) :
     exact setIntegral_mono_set hintOn
       (ae_of_all _ (fun θ => fejerMeanDensity_nonneg U hU ψ N θ))
       (HasSubset.Subset.eventuallyLE (Set.Icc_subset_Icc_right hxy))
-  -- value at 2π:  (1/2π) ∫₀^{2π} re(density) = ‖ψ‖²   (mirrors `fejerMeasure_total`)
-  have hR_two_pi :
-      (1 / (2 * Real.pi)) * (∫ θ in Set.Icc (0:ℝ) (2 * Real.pi),
-        (fejerMeanDensity U ψ N θ).re) = ‖ψ‖ ^ 2 := by
-    have hF_int : IntegrableOn (fejerMeanDensity U ψ N)
-        (Set.Icc (0:ℝ) (2 * Real.pi)) volume :=
-      (fejerMeanDensity_continuous U ψ N).continuousOn.integrableOn_compact isCompact_Icc
-    have hint : (∫ θ in Set.Icc (0:ℝ) (2 * Real.pi), (fejerMeanDensity U ψ N θ).re)
-        = 2 * Real.pi * ‖ψ‖ ^ 2 := by
-      rw [show (fun θ => (fejerMeanDensity U ψ N θ).re)
-            = (fun θ => Complex.reCLM (fejerMeanDensity U ψ N θ)) from rfl]
-      rw [show (∫ θ in Set.Icc (0:ℝ) (2 * Real.pi), Complex.reCLM (fejerMeanDensity U ψ N θ))
-            = Complex.reCLM (∫ θ in Set.Icc (0:ℝ) (2 * Real.pi), fejerMeanDensity U ψ N θ)
-          from ContinuousLinearMap.integral_comp_comm _ hF_int]
-      rw [fejerMeanDensity_integral U ψ N, unitaryCorrelation_zero, Complex.reCLM_apply,
-          show ((2:ℂ) * (Real.pi:ℂ) * ((‖ψ‖ ^ 2 : ℝ):ℂ))
-              = (((2 * Real.pi * ‖ψ‖ ^ 2 : ℝ)):ℂ) from by push_cast; ring,
-          Complex.ofReal_re]
-    rw [hint, one_div, inv_mul_cancel_left₀ (by positivity : (2 * Real.pi : ℝ) ≠ 0)]
+  have hR_two_pi := fejerCDF_hR_two_pi U ψ N
   -- F_N ≥ 0 everywhere
   have hF_nonneg : ∀ x : ℝ, 0 ≤ fejerCDF U ψ N x := by
     intro x
@@ -157,31 +201,8 @@ lemma fejerCDF_continuous (ψ : H) (N : ℕ) :
       ∫ t in (0:ℝ)..(max 0 (min x (2 * Real.pi))), (fejerMeanDensity U ψ N t).re) :=
     continuous_const.mul
       ((intervalIntegral.continuous_primitive hf_ii 0).comp hc_cont)
-  -- interval integral = set integral when the upper limit is ≥ 0
-  have hGset : ∀ x : ℝ, 0 ≤ x →
-      (∫ t in (0:ℝ)..x, (fejerMeanDensity U ψ N t).re)
-        = ∫ θ in Set.Icc 0 x, (fejerMeanDensity U ψ N θ).re := by
-    intro x hx
-    rw [intervalIntegral.integral_of_le hx, ← integral_Icc_eq_integral_Ioc]
-  -- (1/2π) ∫₀^{2π} re(density) = ‖ψ‖²   (no unitarity needed)
-  have hR_two_pi :
-      (1 / (2 * Real.pi)) * (∫ θ in Set.Icc (0:ℝ) (2 * Real.pi),
-        (fejerMeanDensity U ψ N θ).re) = ‖ψ‖ ^ 2 := by
-    have hF_int : IntegrableOn (fejerMeanDensity U ψ N)
-        (Set.Icc (0:ℝ) (2 * Real.pi)) volume :=
-      (fejerMeanDensity_continuous U ψ N).continuousOn.integrableOn_compact isCompact_Icc
-    have hint : (∫ θ in Set.Icc (0:ℝ) (2 * Real.pi), (fejerMeanDensity U ψ N θ).re)
-        = 2 * Real.pi * ‖ψ‖ ^ 2 := by
-      rw [show (fun θ => (fejerMeanDensity U ψ N θ).re)
-            = (fun θ => Complex.reCLM (fejerMeanDensity U ψ N θ)) from rfl]
-      rw [show (∫ θ in Set.Icc (0:ℝ) (2 * Real.pi), Complex.reCLM (fejerMeanDensity U ψ N θ))
-            = Complex.reCLM (∫ θ in Set.Icc (0:ℝ) (2 * Real.pi), fejerMeanDensity U ψ N θ)
-          from ContinuousLinearMap.integral_comp_comm _ hF_int]
-      rw [fejerMeanDensity_integral U ψ N, unitaryCorrelation_zero, Complex.reCLM_apply,
-          show ((2:ℂ) * (Real.pi:ℂ) * ((‖ψ‖ ^ 2 : ℝ):ℂ))
-              = (((2 * Real.pi * ‖ψ‖ ^ 2 : ℝ)):ℂ) from by push_cast; ring,
-          Complex.ofReal_re]
-    rw [hint, one_div, inv_mul_cancel_left₀ (by positivity : (2 * Real.pi : ℝ) ≠ 0)]
+  have hGset := fejerCDF_hGset U ψ N
+  have hR_two_pi := fejerCDF_hR_two_pi U ψ N
   have hpi2 : (0 : ℝ) ≤ 2 * Real.pi := by positivity
   -- F_N agrees pointwise with the continuous candidate
   have key : ∀ x : ℝ, fejerCDF U ψ N x
@@ -221,31 +242,8 @@ lemma fejerCDF_eq_measure (hU : Operator.Unitary U) (ψ : H) (N : ℕ) (a b : �
       IntervalIntegrable (fun θ => (fejerMeanDensity U ψ N θ).re) volume p q :=
     fun p q => (Complex.continuous_re.comp
       (fejerMeanDensity_continuous U ψ N)).intervalIntegrable p q
-  -- interval integral = set integral when the upper limit is ≥ 0
-  have hGset : ∀ x : ℝ, 0 ≤ x →
-      (∫ t in (0:ℝ)..x, (fejerMeanDensity U ψ N t).re)
-        = ∫ θ in Set.Icc 0 x, (fejerMeanDensity U ψ N θ).re := by
-    intro x hx
-    rw [intervalIntegral.integral_of_le hx, ← integral_Icc_eq_integral_Ioc]
-  -- (1/2π) ∫₀^{2π} re(density) = ‖ψ‖²
-  have hR_two_pi :
-      (1 / (2 * Real.pi)) * (∫ θ in Set.Icc (0:ℝ) (2 * Real.pi),
-        (fejerMeanDensity U ψ N θ).re) = ‖ψ‖ ^ 2 := by
-    have hF_int : IntegrableOn (fejerMeanDensity U ψ N)
-        (Set.Icc (0:ℝ) (2 * Real.pi)) volume :=
-      (fejerMeanDensity_continuous U ψ N).continuousOn.integrableOn_compact isCompact_Icc
-    have hint : (∫ θ in Set.Icc (0:ℝ) (2 * Real.pi), (fejerMeanDensity U ψ N θ).re)
-        = 2 * Real.pi * ‖ψ‖ ^ 2 := by
-      rw [show (fun θ => (fejerMeanDensity U ψ N θ).re)
-            = (fun θ => Complex.reCLM (fejerMeanDensity U ψ N θ)) from rfl]
-      rw [show (∫ θ in Set.Icc (0:ℝ) (2 * Real.pi), Complex.reCLM (fejerMeanDensity U ψ N θ))
-            = Complex.reCLM (∫ θ in Set.Icc (0:ℝ) (2 * Real.pi), fejerMeanDensity U ψ N θ)
-          from ContinuousLinearMap.integral_comp_comm _ hF_int]
-      rw [fejerMeanDensity_integral U ψ N, unitaryCorrelation_zero, Complex.reCLM_apply,
-          show ((2:ℂ) * (Real.pi:ℂ) * ((‖ψ‖ ^ 2 : ℝ):ℂ))
-              = (((2 * Real.pi * ‖ψ‖ ^ 2 : ℝ)):ℂ) from by push_cast; ring,
-          Complex.ofReal_re]
-    rw [hint, one_div, inv_mul_cancel_left₀ (by positivity : (2 * Real.pi : ℝ) ≠ 0)]
+  have hGset := fejerCDF_hGset U ψ N
+  have hR_two_pi := fejerCDF_hR_two_pi U ψ N
   -- F_N on [0,2π] equals the primitive  (1/2π) ∫₀ˣ
   have hcdf_mid : ∀ x : ℝ, 0 ≤ x → x ≤ 2 * Real.pi →
       fejerCDF U ψ N x
