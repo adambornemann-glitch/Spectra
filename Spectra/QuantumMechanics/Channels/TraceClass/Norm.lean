@@ -3,7 +3,7 @@ Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Author: Adam Bornemann
 -/
-import Spectra.Analysis.OperatorAlgebra.TraceClass.Basic
+import Spectra.QuantumMechanics.Channels.TraceClass.Basic
 
 /-!
 # The trace norm `‖T‖₁` and the trace-class predicate
@@ -16,10 +16,10 @@ package it.
 
 ## Main definitions
 
-* `Spectra.OperatorAlgebra.stdHilbertBasis H` — a canonical Hilbert basis of `H`.
-* `Spectra.OperatorAlgebra.traceNorm T` — the trace norm `‖T‖₁ = (posTrace |T|).toReal`, valued in
+* `Spectra.QuantumMechanics.Channels.stdHilbertBasis H` — a canonical Hilbert basis of `H`.
+* `Spectra.QuantumMechanics.Channels.traceNorm T` — the trace norm `‖T‖₁ = (posTrace |T|).toReal`, valued in
   `ℝ` (junk value `0` when `T` is not trace-class, i.e. when `posTrace |T| = ∞`).
-* `Spectra.OperatorAlgebra.IsTraceClass T` — the predicate `posTrace |T| ≠ ∞`.
+* `Spectra.QuantumMechanics.Channels.IsTraceClass T` — the predicate `posTrace |T| ≠ ∞`.
 
 ## Main results
 
@@ -43,7 +43,7 @@ cyclicity `tr (AB) = tr (BA)`, and Banach completeness — is the next brick.
 open ContinuousLinearMap RCLike
 open scoped InnerProductSpace InnerProduct ENNReal NNReal
 
-namespace Spectra.OperatorAlgebra
+namespace Spectra.QuantumMechanics.Channels
 
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
 variable {ι : Type*}
@@ -167,4 +167,4 @@ lemma isTraceClass_iff_summable (b : HilbertBasis ι ℂ H) (T : H →L[ℂ] H) 
   rw [isTraceClass_iff b, ← ENNReal.tsum_coe_ne_top_iff_summable]
   simp only [posTrace, ENNReal.coe_pow]
 
-end Spectra.OperatorAlgebra
+end Spectra.QuantumMechanics.Channels

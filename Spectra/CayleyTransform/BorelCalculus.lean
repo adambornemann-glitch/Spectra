@@ -52,8 +52,8 @@ extends by simple-function approximation + bounded convergence (`tendsto_borelCa
 open Complex MeasureTheory Filter Topology InnerProductSpace
 open scoped InnerProductSpace ComplexConjugate ENNReal NNReal
 open Spectra Spectra.Cayley Spectra.Riesz
-open Spectra.QuantumMechanics.Observable
-open UnboundedObservable
+open Spectra.Operator
+open SelfAdjointOperator
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
 
 namespace Spectra.BorelCFC

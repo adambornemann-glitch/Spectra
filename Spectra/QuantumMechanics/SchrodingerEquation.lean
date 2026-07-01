@@ -27,12 +27,12 @@ outside (`A ψ(t)` rather than `U(t)(Aψ₀)`).
 ## Implementation notes
 
 `schrodingerEquation` is the Stone-correspondence-direct entry point (raw
-`OneParameterUnitaryGroup` input); `Observable.UnboundedObservable.schrodingerEquation`
+`OneParameterUnitaryGroup` input); `Spectra.Operator.SelfAdjointOperator.schrodingerEquation`
 (`QuantumMechanics/Generator/Basic.lean`) is the bundled-observable entry point for the same
 physics, built from Stone's theorem the other way around (starting from a self-adjoint operator).
 `schrodinger_of_selfAdjoint` below is the Hamiltonian-first analogue of `schrodingerEquation`: it
-is proved as a one-line corollary of `Observable.UnboundedObservable.schrodingerEquation` by
-bundling `⟨A, hA⟩` into an `UnboundedObservable`, rather than re-deriving the derivative from
+is proved as a one-line corollary of `Spectra.Operator.SelfAdjointOperator.schrodingerEquation` by
+bundling `⟨A, hA⟩` into a `SelfAdjointOperator`, rather than re-deriving the derivative from
 scratch.
 
 ## References
@@ -74,13 +74,13 @@ lemma genToGroup_domain_invariant {A : H →ₗ.[ℂ] H} (hA : IsSelfAdjoint A)
 `ψ₀ ∈ dom A`, the evolution `s ↦ (genToGroup hA).U s ψ₀` (i.e. `e^{isA}ψ₀`) solves
 `ψ'(t) = i A ψ(t)` — with `A` applied to the evolved state, on the nose.
 
-A one-line corollary of `Observable.UnboundedObservable.schrodingerEquation`
-(`QuantumMechanics/Generator/Basic.lean`), bundling `⟨A, hA⟩` into an `UnboundedObservable`. -/
+A one-line corollary of `Spectra.Operator.SelfAdjointOperator.schrodingerEquation`
+(`QuantumMechanics/Generator/Basic.lean`), bundling `⟨A, hA⟩` into a `SelfAdjointOperator`. -/
 theorem schrodinger_of_selfAdjoint {A : H →ₗ.[ℂ] H} (hA : IsSelfAdjoint A)
     (ψ₀ : H) (hψ₀ : ψ₀ ∈ A.domain) (t : ℝ) :
     HasDerivAt (fun s => (genToGroup hA).U s ψ₀)
       (I • A ⟨(genToGroup hA).U t ψ₀, genToGroup_domain_invariant hA t ψ₀ hψ₀⟩) t :=
-  Observable.UnboundedObservable.schrodingerEquation (⟨A, hA⟩ : Observable.UnboundedObservable H)
-    hψ₀ t
+  Spectra.Operator.SelfAdjointOperator.schrodingerEquation
+    (⟨A, hA⟩ : Spectra.Operator.SelfAdjointOperator H) hψ₀ t
 
 end Spectra.QuantumMechanics.Schrodinger

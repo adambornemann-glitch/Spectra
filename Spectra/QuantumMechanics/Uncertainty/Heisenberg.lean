@@ -38,11 +38,11 @@ relation".
 It does **not** construct the position and momentum operators, nor prove that
 they realize the CCR. On `L²(ℝ)` the canonical pair is `X = (mult. by x)` and
 `P = -iℏ d/dx`, essentially self-adjoint on the Schwartz space `𝒮(ℝ)`, with
-`[X,P] = iℏ` on that domain. Building these as `UnboundedObservable`s and
+`[X,P] = iℏ` on that domain. Building these as `SelfAdjointOperator`s and
 discharging their self-adjointness (via the Fourier transform conjugating `P` to
 `X`, deficiency-index analysis, etc.) is a substantial separate development and
 is left as future work; the relevant Sobolev/self-adjointness infrastructure is
-only partially available in Mathlib. Once such `X P : UnboundedObservable (Lp ℂ 2)`
+only partially available in Mathlib. Once such `X P : SelfAdjointOperator (Lp ℂ 2)`
 and a proof of `SatisfiesCCR X P ψ h ℏ` exist, `heisenberg_uncertainty` applies
 verbatim to give `σ_X σ_P ≥ ℏ/2`.
 
@@ -58,21 +58,21 @@ uncertainty principle, Heisenberg, canonical commutation relation, position, mom
 -/
 namespace Spectra.QuantumMechanics.Heisenberg
 
-open Operator SymmetricOperator Observable Schrodinger
+open Operator SymmetricOperator Schrodinger
 open scoped ComplexConjugate InnerProductSpace
 
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
 
 /-- The **canonical commutation relation** at `ψ`: the commutator `[A,B]ψ` acts as
 multiplication by `iℏ`, i.e. `[A,B]ψ = (iℏ)·ψ`. -/
-def SatisfiesCCR (A B : UnboundedObservable H) (ψ : H)
+def SatisfiesCCR (A B : SelfAdjointOperator H) (ψ : H)
     (h : ShiftedDomainConditions A.toSymmetricOperator B.toSymmetricOperator ψ) (ℏ : ℝ) : Prop :=
   commutatorAt A.toSymmetricOperator B.toSymmetricOperator ψ h.toDomainConditions
     = (Complex.I * (ℏ : ℂ)) • ψ
 
 /-- Under the canonical commutation relation, the expectation of the commutator has
 norm `ℏ`: `‖⟨ψ, [A,B]ψ⟩‖ = ℏ`. (Uses normalization `‖ψ‖ = 1`, carried by `h`.) -/
-lemma norm_inner_commutator_of_ccr (A B : UnboundedObservable H) (ψ : H)
+lemma norm_inner_commutator_of_ccr (A B : SelfAdjointOperator H) (ψ : H)
     (h : ShiftedDomainConditions A.toSymmetricOperator B.toSymmetricOperator ψ)
     (ℏ : ℝ) (hℏ : 0 ≤ ℏ)
     (hccr : commutatorAt A.toSymmetricOperator B.toSymmetricOperator ψ h.toDomainConditions
@@ -86,7 +86,7 @@ lemma norm_inner_commutator_of_ccr (A B : UnboundedObservable H) (ψ : H)
 /-- **Heisenberg uncertainty relation** (standard-deviation form). For self-adjoint
 observables `A`, `B` whose commutator acts as `iℏ` on a normalized state `ψ`,
 `σ_A σ_B ≥ ℏ/2`. -/
-theorem heisenberg_uncertainty (A B : UnboundedObservable H) (ψ : H)
+theorem heisenberg_uncertainty (A B : SelfAdjointOperator H) (ψ : H)
     (h : ShiftedDomainConditions A.toSymmetricOperator B.toSymmetricOperator ψ)
     (ℏ : ℝ) (hℏ : 0 ≤ ℏ) (hccr : SatisfiesCCR A B ψ h ℏ) :
     A.toSymmetricOperator.stdDev ψ h.h_norm h.hψ_A *
@@ -96,7 +96,7 @@ theorem heisenberg_uncertainty (A B : UnboundedObservable H) (ψ : H)
   linarith
 
 /-- **Heisenberg uncertainty relation** (variance form): `Var(A) Var(B) ≥ ℏ²/4`. -/
-theorem heisenberg_variance (A B : UnboundedObservable H) (ψ : H)
+theorem heisenberg_variance (A B : SelfAdjointOperator H) (ψ : H)
     (h : ShiftedDomainConditions A.toSymmetricOperator B.toSymmetricOperator ψ)
     (ℏ : ℝ) (hℏ : 0 ≤ ℏ) (hccr : SatisfiesCCR A B ψ h ℏ) :
     A.toSymmetricOperator.variance ψ h.h_norm h.hψ_A *

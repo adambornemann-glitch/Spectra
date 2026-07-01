@@ -6,7 +6,7 @@ Authors: Adam Bornemann
 -/
 import Spectra.OneParameterUnitaryGroup.Basic
 import Spectra.YosidaHille.Basic
-import Spectra.QuantumMechanics.Observable.Basic
+import Spectra.Operator.SelfAdjoint
 import Spectra.Resolvent.Defs
 import Spectra.Resolvent.NormExpansion
 import Spectra.Resolvent.Range
@@ -100,7 +100,7 @@ open Complex Filter InnerProductSpace
 open Spectra.OneParameterUnitaryGroup
 open Spectra.YosidaHille
 open Spectra.Resolvent
-open Spectra.QuantumMechanics.Observable
+open Spectra.Operator
 open Spectra.QuantumMechanics.SpectralTheory
 
 namespace Spectra.QuantumMechanics.Hamiltonian

@@ -3,7 +3,7 @@ Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Author: Adam Bornemann
 -/
-import Spectra.Analysis.OperatorAlgebra.TraceClass.Triangle
+import Spectra.QuantumMechanics.Channels.TraceClass.Triangle
 
 /-!
 # Stage F — the trace-class operators as a normed space (toward Banach)
@@ -34,7 +34,7 @@ Tomita–Takesaki fundamental theorem), building on the triangle inequality (`Tr
 open ContinuousLinearMap RCLike
 open scoped InnerProductSpace InnerProduct ENNReal NNReal
 
-namespace Spectra.OperatorAlgebra
+namespace Spectra.QuantumMechanics.Channels
 
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
 
@@ -334,4 +334,4 @@ noncomputable instance instCompleteSpace : CompleteSpace (TraceClass H) := by
 
 end TraceClass
 
-end Spectra.OperatorAlgebra
+end Spectra.QuantumMechanics.Channels

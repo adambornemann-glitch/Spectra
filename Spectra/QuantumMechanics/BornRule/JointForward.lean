@@ -29,7 +29,7 @@ that `BornRule.Joint` (sorry-free, easy/backward half) leaves open.  All `sorry`
 
 open MeasureTheory Complex Spectra Filter Topology
 open scoped InnerProductSpace
-open Spectra.QuantumMechanics.Observable
+open Spectra.Operator
 
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
 
@@ -317,7 +317,7 @@ spectral measure of `A` at the vector `E_B(T) ξ`.  (And symmetrically in `S`.) 
 Born/spectral measure.  Hence, for fixed `T`, the bimeasure is countably additive in `S` for free.
 Proof: `E_A(S)·E_B(T) = E_B(T)·E_A(S)·E_B(T)` (commute + `E_B(T)` idempotent), then move a
 self-adjoint `E_B(T)` across the inner product and read off `inner_proj`. -/
-theorem jointRect_inner_eq_diag_left (A B : Observable.UnboundedObservable H)
+theorem jointRect_inner_eq_diag_left (A B : Spectra.Operator.SelfAdjointOperator H)
     (hSC : StronglyCommute A B) {S T : Set ℝ} (hS : MeasurableSet S) (hT : MeasurableSet T)
     (ξ : H) :
     ⟪ξ, (A.spectralPVM.proj S hS * B.spectralPVM.proj T hT) ξ⟫_ℂ
@@ -339,7 +339,7 @@ theorem jointRect_inner_eq_diag_left (A B : Observable.UnboundedObservable H)
 /-- **The rectangle value is nonnegative real.**  `⟪ξ, E_A(S)·E_B(T) ξ⟫` is a nonnegative real
 (it equals `μ^A_{E_B(T)ξ}(S).toReal`), so the content `ENNReal.ofReal` of its real part is honest.
 Needed for the `AddContent` positivity. -/
-theorem jointRect_re_nonneg (A B : Observable.UnboundedObservable H)
+theorem jointRect_re_nonneg (A B : Spectra.Operator.SelfAdjointOperator H)
     (hSC : StronglyCommute A B) {S T : Set ℝ} (hS : MeasurableSet S) (hT : MeasurableSet T)
     (ξ : H) :
     0 ≤ (⟪ξ, (A.spectralPVM.proj S hS * B.spectralPVM.proj T hT) ξ⟫_ℂ).re := by
@@ -351,7 +351,7 @@ the vectors `E_A(S)·E_B(T₁)ξ` and `E_A(S)·E_B(T₂)ξ` are orthogonal.  (Cr
 `E_B(T₁)·E_B(T₂) = E_B(T₁ ∩ T₂) = E_B(∅) = 0`, using commutation + idempotence + self-adjointness.)
 Pythagoras then turns this into σ-additivity of the rectangle content in the `T`-slot:
 `‖E_A(S)·E_B(⋃ Tₙ)ξ‖² = ∑ₙ ‖E_A(S)·E_B(Tₙ)ξ‖²`. -/
-theorem jointRect_orthogonal (A B : Observable.UnboundedObservable H)
+theorem jointRect_orthogonal (A B : Spectra.Operator.SelfAdjointOperator H)
     (hSC : StronglyCommute A B) {S T₁ T₂ : Set ℝ} (hS : MeasurableSet S) (hT₁ : MeasurableSet T₁)
     (hT₂ : MeasurableSet T₂) (hd : Disjoint T₁ T₂) (ξ : H) :
     ⟪(A.spectralPVM.proj S hS * B.spectralPVM.proj T₁ hT₁) ξ,
@@ -388,7 +388,7 @@ countably additive.  Proof: finite Pythagoras (`norm_sum_sq_orthogonal` via `joi
 + finite additivity (`proj_biUnion`) collapse the partial sums to `E_A(S)·E_B(⋃_{i<N} Tᵢ)ξ`, which
 converge (`tendsto_proj_biUnion`, measure continuity-from-above); `hasSum_iff_tendsto_nat_of_nonneg`
 closes it.  This is the measure-theoretic heart that feeds the `AddContent` extension. -/
-theorem jointContent_hasSum (A B : Observable.UnboundedObservable H) (hSC : StronglyCommute A B)
+theorem jointContent_hasSum (A B : Spectra.Operator.SelfAdjointOperator H) (hSC : StronglyCommute A B)
     {S : Set ℝ} (hS : MeasurableSet S) {T : ℕ → Set ℝ} (hT : ∀ n, MeasurableSet (T n))
     (hd : Pairwise (fun i j => Disjoint (T i) (T j))) (ξ : H) :
     HasSum (fun n => ‖(A.spectralPVM.proj S hS * B.spectralPVM.proj (T n) (hT n)) ξ‖ ^ 2)
@@ -437,7 +437,7 @@ form).  The `ℝ≥0∞` lift and the finite additivity over *arbitrary* disjoin
 operator `E_A(S)·E_B(T)` is self-adjoint and idempotent (`IsStarProjection`): the product of the two
 *commuting* projections is again a projection.  This is the effect the joint PVM assigns to the
 rectangle `S × T`. -/
-theorem jointRect_isStarProjection (A B : Observable.UnboundedObservable H)
+theorem jointRect_isStarProjection (A B : Spectra.Operator.SelfAdjointOperator H)
     (hSC : StronglyCommute A B) {S T : Set ℝ} (hS : MeasurableSet S) (hT : MeasurableSet T) :
     IsStarProjection (A.spectralPVM.proj S hS * B.spectralPVM.proj T hT) :=
   IsStarProjection.mul
@@ -449,7 +449,7 @@ theorem jointRect_isStarProjection (A B : Observable.UnboundedObservable H)
 projections: `(E_A(S₁)E_B(T₁))·(E_A(S₂)E_B(T₂)) = E_A(S₁∩S₂)·E_B(T₁∩T₂)`.  Strong commutativity is
 exactly what lets the inner `E_B(T₁)` and `E_A(S₂)` swap; `proj_inter` closes each slot.  This is the
 `proj_inter` of the joint PVM on rectangles — the rectangle case of `IsProjective` (G2.4). -/
-theorem jointRect_mul (A B : Observable.UnboundedObservable H) (hSC : StronglyCommute A B)
+theorem jointRect_mul (A B : Spectra.Operator.SelfAdjointOperator H) (hSC : StronglyCommute A B)
     {S₁ S₂ T₁ T₂ : Set ℝ} (hS₁ : MeasurableSet S₁) (hS₂ : MeasurableSet S₂)
     (hT₁ : MeasurableSet T₁) (hT₂ : MeasurableSet T₂) :
     (A.spectralPVM.proj S₁ hS₁ * B.spectralPVM.proj T₁ hT₁)
@@ -475,7 +475,7 @@ projection (`jointRect_isStarProjection`), its squared norm equals its diagonal:
 `‖E_A(S)E_B(T)ξ‖² = ⟪ξ, E_A(S)E_B(T)ξ⟫.re = μ^A_{E_B(T)ξ}(S)`.  This reconciles the norm² form of the
 σ-additivity crux (`jointContent_hasSum`) with the bimeasure (`jointRect_inner_eq_diag_left`) — the
 nonnegative content the `AddContent` extension (G2.2) actually sums. -/
-theorem jointRect_norm_sq_eq_diag (A B : Observable.UnboundedObservable H)
+theorem jointRect_norm_sq_eq_diag (A B : Spectra.Operator.SelfAdjointOperator H)
     (hSC : StronglyCommute A B) {S T : Set ℝ} (hS : MeasurableSet S) (hT : MeasurableSet T) (ξ : H) :
     ‖(A.spectralPVM.proj S hS * B.spectralPVM.proj T hT) ξ‖ ^ 2
       = ((A.spectralPVM.diag (B.spectralPVM.proj T hT ξ)) S).toReal := by
@@ -494,7 +494,7 @@ behind the compact-inner-regularity (Alexandrov) discharge of `jointContentRing_
 /-- **A-marginal domination of the rectangle content.**  `‖E_A(S)E_B(T)ξ‖² ≤ μ^A_ξ(S)`.  Commute the
 factors so `E_A(S)E_B(T)ξ = E_B(T)(E_A(S)ξ)`, then `E_B(T)` is a contraction (`norm_proj_apply_le`)
 and `‖E_A(S)ξ‖² = μ^A_ξ(S)` (`norm_sq_proj_apply`).  Uses `StronglyCommute`. -/
-theorem jointRect_norm_sq_le_diag_left (A B : Observable.UnboundedObservable H)
+theorem jointRect_norm_sq_le_diag_left (A B : Spectra.Operator.SelfAdjointOperator H)
     (hSC : StronglyCommute A B) {S T : Set ℝ} (hS : MeasurableSet S) (hT : MeasurableSet T) (ξ : H) :
     ‖(A.spectralPVM.proj S hS * B.spectralPVM.proj T hT) ξ‖ ^ 2
       ≤ ((A.spectralPVM.diag ξ) S).toReal := by
@@ -507,7 +507,7 @@ theorem jointRect_norm_sq_le_diag_left (A B : Observable.UnboundedObservable H)
 /-- **B-marginal domination of the rectangle content.**  `‖E_A(S)E_B(T)ξ‖² ≤ μ^B_ξ(T)`.  `E_A(S)` is a
 contraction (`norm_proj_apply_le`) and `‖E_B(T)ξ‖² = μ^B_ξ(T)` (`norm_sq_proj_apply`).  No commutation
 needed. -/
-theorem jointRect_norm_sq_le_diag_right (A B : Observable.UnboundedObservable H)
+theorem jointRect_norm_sq_le_diag_right (A B : Spectra.Operator.SelfAdjointOperator H)
     {S T : Set ℝ} (hS : MeasurableSet S) (hT : MeasurableSet T) (ξ : H) :
     ‖(A.spectralPVM.proj S hS * B.spectralPVM.proj T hT) ξ‖ ^ 2
       ≤ ((B.spectralPVM.diag ξ) T).toReal := by
@@ -524,7 +524,7 @@ First piece bounded via `jointRect_norm_sq_le_diag_left` (A-marginal), second vi
 `mR((S×T) ∖ (S'×T'))` (finite additivity over the two disjoint pieces), so a compact inner
 approximation `S'×T' ⊆ S×T` with both marginal defects small makes the joint content defect small —
 the regularity that drives the Alexandrov discharge of `jointContentRing_tendsto_empty`. -/
-theorem jointRect_diff_defect_le (A B : Observable.UnboundedObservable H)
+theorem jointRect_diff_defect_le (A B : Spectra.Operator.SelfAdjointOperator H)
     (hSC : StronglyCommute A B) {S S' T T' : Set ℝ}
     (hS : MeasurableSet S) (hS' : MeasurableSet S') (hT : MeasurableSet T) (hT' : MeasurableSet T')
     (ξ : H) :
@@ -541,7 +541,7 @@ theorem jointRect_diff_defect_le (A B : Observable.UnboundedObservable H)
 `Tₙ`, the nonnegative rectangle values `μ^A_{E_B(Tₙ)ξ}(S)` sum to `μ^A_{E_B(⋃ₙ Tₙ)ξ}(S)`.  This is
 countable additivity of the bimeasure `S × · ↦ ⟪ξ, E_A(S)E_B(·)ξ⟫` in the `T`-slot, exactly the form
 the `AddContent` extension (G2.2) consumes. -/
-theorem jointContent_hasSum_diag (A B : Observable.UnboundedObservable H)
+theorem jointContent_hasSum_diag (A B : Spectra.Operator.SelfAdjointOperator H)
     (hSC : StronglyCommute A B) {S : Set ℝ} (hS : MeasurableSet S) {T : ℕ → Set ℝ}
     (hT : ∀ n, MeasurableSet (T n)) (hd : Pairwise (fun i j => Disjoint (T i) (T j))) (ξ : H) :
     HasSum (fun n => ((A.spectralPVM.diag (B.spectralPVM.proj (T n) (hT n) ξ)) S).toReal)
@@ -567,7 +567,7 @@ rectangle (`AddContent.sUnion'`), which by Pythagoras reduces to the **vector co
 `E_A(S₁∩S₂)E_B(T₁∩T₂)` (= `(E_A(S₁)E_B(T₁))·(E_A(S₂)E_B(T₂))` by `jointRect_mul`) vanishes, and a
 self-adjoint move (`jointRect_isStarProjection`) reads off the inner product.  This generalizes
 `jointRect_orthogonal` (the same-`S` case) and is the Pythagoras input for the grid additivity. -/
-theorem jointRect_orthogonal_general (A B : Observable.UnboundedObservable H)
+theorem jointRect_orthogonal_general (A B : Spectra.Operator.SelfAdjointOperator H)
     (hSC : StronglyCommute A B) {S₁ S₂ T₁ T₂ : Set ℝ}
     (hS₁ : MeasurableSet S₁) (hS₂ : MeasurableSet S₂)
     (hT₁ : MeasurableSet T₁) (hT₂ : MeasurableSet T₂)
@@ -595,7 +595,7 @@ disjoint measurable sets exhausts `S₀`, and likewise `τ` exhausts `T₀`, the
 vectors over the product grid sum to the whole-rectangle effect:
 `∑_{(a,b)} E_A(σ a)E_B(τ b)ξ = E_A(S₀)E_B(T₀)ξ`.  Pure finite additivity of each PVM
 (`proj_biUnion`) plus bilinearity of the operator product — no orthogonality, no induction. -/
-theorem jointVector_grid_collapse (A B : Observable.UnboundedObservable H)
+theorem jointVector_grid_collapse (A B : Spectra.Operator.SelfAdjointOperator H)
     {α β : Type*} [Fintype α] [Fintype β] (σ : α → Set ℝ) (τ : β → Set ℝ)
     (hσ : ∀ a, MeasurableSet (σ a)) (hτ : ∀ b, MeasurableSet (τ b))
     {S₀ T₀ : Set ℝ} (hS₀ : MeasurableSet S₀) (hT₀ : MeasurableSet T₀)
@@ -623,7 +623,7 @@ theorem jointVector_grid_collapse (A B : Observable.UnboundedObservable H)
 /-- **Grid-cell orthogonality.**  Distinct cells of the product grid give orthogonal effect vectors
 — immediate from `jointRect_orthogonal_general`, since distinct cells differ in some axis atom, and
 distinct atoms are disjoint, so the rectangles are disjoint. -/
-theorem jointGridCell_orthogonal (A B : Observable.UnboundedObservable H)
+theorem jointGridCell_orthogonal (A B : Spectra.Operator.SelfAdjointOperator H)
     (hSC : StronglyCommute A B) {α β : Type*} [Fintype α] [Fintype β]
     (σ : α → Set ℝ) (τ : β → Set ℝ)
     (hσ : ∀ a, MeasurableSet (σ a)) (hτ : ∀ b, MeasurableSet (τ b))
@@ -647,7 +647,7 @@ vectors with a `ℕ`-multiplicity coefficient; pointwise, a nonzero atom cell wi
 in exactly one cover rectangle (`card_filter_mem_eq_ite` + `hcover`), matching the multiplicity `1`
 the whole rectangle assigns.  This is the grid/atom refinement feeding the `AddContent.sUnion'`
 finite additivity (G2.2). -/
-theorem jointVector_sUnion (A B : Observable.UnboundedObservable H)
+theorem jointVector_sUnion (A B : Spectra.Operator.SelfAdjointOperator H)
     {κ : Type*} [Fintype κ] [DecidableEq κ] (Sp Tp : κ → Set ℝ)
     (hSp : ∀ k, MeasurableSet (Sp k)) (hTp : ∀ k, MeasurableSet (Tp k))
     {S₀ T₀ : Set ℝ} (hS₀ : MeasurableSet S₀) (hT₀ : MeasurableSet T₀)
@@ -774,7 +774,7 @@ theorem jointVector_sUnion (A B : Observable.UnboundedObservable H)
 orthogonality: over a disjoint rectangle cover of `S₀ ×ˢ T₀`, the whole-rectangle effect's squared
 norm splits as the sum of the cell effects' squared norms.  This is the Pythagoras identity the
 `AddContent.sUnion'` finite-additivity obligation (G2.2) consumes. -/
-theorem jointRect_sUnion_norm_sq (A B : Observable.UnboundedObservable H)
+theorem jointRect_sUnion_norm_sq (A B : Spectra.Operator.SelfAdjointOperator H)
     (hSC : StronglyCommute A B) {κ : Type*} [Fintype κ] [DecidableEq κ] (Sp Tp : κ → Set ℝ)
     (hSp : ∀ k, MeasurableSet (Sp k)) (hTp : ∀ k, MeasurableSet (Tp k))
     {S₀ T₀ : Set ℝ} (hS₀ : MeasurableSet S₀) (hT₀ : MeasurableSet T₀)
@@ -801,7 +801,7 @@ content the Carathéodory extension (`AddContent.measure`) consumes to build `μ
 all rectangle representations of `R`; representation independence (proved in `jointRectVal_prod`)
 makes the supremum collapse to the common value, and the empty index set gives `0` for
 non-rectangles. -/
-noncomputable def jointRectVal (A B : Observable.UnboundedObservable H) (ξ : H)
+noncomputable def jointRectVal (A B : Spectra.Operator.SelfAdjointOperator H) (ξ : H)
     (R : Set (ℝ × ℝ)) : ENNReal :=
   ⨆ (S : Set ℝ) (T : Set ℝ) (hS : MeasurableSet S) (hT : MeasurableSet T) (_ : R = S ×ˢ T),
     ENNReal.ofReal (‖(A.spectralPVM.proj S hS * B.spectralPVM.proj T hT) ξ‖ ^ 2)
@@ -809,7 +809,7 @@ noncomputable def jointRectVal (A B : Observable.UnboundedObservable H) (ξ : H)
 /-- **Representation independence.**  Two presentations `S ×ˢ T = S' ×ˢ T'` of the same rectangle
 give the same content value.  If the factors agree it is `proj_congr`; if some factor is empty then
 both products carry an `E(∅) = 0` factor and both values are `ENNReal.ofReal 0 = 0`. -/
-theorem jointRectVal_aux_indep (A B : Observable.UnboundedObservable H) (ξ : H)
+theorem jointRectVal_aux_indep (A B : Spectra.Operator.SelfAdjointOperator H) (ξ : H)
     {S T S' T' : Set ℝ} (hS : MeasurableSet S) (hT : MeasurableSet T)
     (hS' : MeasurableSet S') (hT' : MeasurableSet T') (heq : S ×ˢ T = S' ×ˢ T') :
     ENNReal.ofReal (‖(A.spectralPVM.proj S hS * B.spectralPVM.proj T hT) ξ‖ ^ 2)
@@ -833,7 +833,7 @@ theorem jointRectVal_aux_indep (A B : Observable.UnboundedObservable H) (ξ : H)
 /-- **The content value on a rectangle.**  `jointRectVal A B ξ (S ×ˢ T) = ENNReal.ofReal
 (‖E_A(S)E_B(T)ξ‖²)`.  The defining `⨆` collapses to the single common value by representation
 independence (`jointRectVal_aux_indep`). -/
-theorem jointRectVal_prod (A B : Observable.UnboundedObservable H) (ξ : H)
+theorem jointRectVal_prod (A B : Spectra.Operator.SelfAdjointOperator H) (ξ : H)
     {S T : Set ℝ} (hS : MeasurableSet S) (hT : MeasurableSet T) :
     jointRectVal A B ξ (S ×ˢ T)
       = ENNReal.ofReal (‖(A.spectralPVM.proj S hS * B.spectralPVM.proj T hT) ξ‖ ^ 2) := by
@@ -849,7 +849,7 @@ theorem jointRectVal_prod (A B : Observable.UnboundedObservable H) (ξ : H)
 
 /-- **The diagonal-measure form of the content value.**  Restating `jointRectVal_prod` through the
 content bridge `jointRect_norm_sq_eq_diag`: on a rectangle the content is `μ^A_{E_B(T)ξ}(S)`. -/
-theorem jointRectVal_prod_diag (A B : Observable.UnboundedObservable H) (hSC : StronglyCommute A B)
+theorem jointRectVal_prod_diag (A B : Spectra.Operator.SelfAdjointOperator H) (hSC : StronglyCommute A B)
     (ξ : H) {S T : Set ℝ} (hS : MeasurableSet S) (hT : MeasurableSet T) :
     jointRectVal A B ξ (S ×ˢ T)
       = (A.spectralPVM.diag (B.spectralPVM.proj T hT ξ)) S := by
@@ -859,7 +859,7 @@ theorem jointRectVal_prod_diag (A B : Observable.UnboundedObservable H) (hSC : S
 /-- **The joint rectangle content as a `MeasureTheory.AddContent`.**  `toFun = jointRectVal`;
 `empty'` is `E_A(∅) = 0`; `sUnion'` is the Pythagoras payload `jointRect_sUnion_norm_sq` lifted to
 `ℝ≥0∞` via `ENNReal.ofReal_sum_of_nonneg`.  This is the per-state content extended to `μ_ξ`. -/
-noncomputable def jointContent (A B : Observable.UnboundedObservable H) (hSC : StronglyCommute A B)
+noncomputable def jointContent (A B : Spectra.Operator.SelfAdjointOperator H) (hSC : StronglyCommute A B)
     (ξ : H) : MeasureTheory.AddContent ENNReal jointRectangles where
   toFun := jointRectVal A B ξ
   empty' := by
@@ -905,7 +905,7 @@ noncomputable def jointContent (A B : Observable.UnboundedObservable H) (hSC : S
 
 /-- **The content never takes the value `∞`.**  On a rectangle the value is `ENNReal.ofReal _`,
 which is finite.  (Feeds the local finiteness needed by the Carathéodory extension.) -/
-theorem jointContent_ne_top (A B : Observable.UnboundedObservable H) (hSC : StronglyCommute A B)
+theorem jointContent_ne_top (A B : Spectra.Operator.SelfAdjointOperator H) (hSC : StronglyCommute A B)
     (ξ : H) {R : Set (ℝ × ℝ)} (hR : R ∈ jointRectangles) : jointContent A B hSC ξ R ≠ ⊤ := by
   obtain ⟨S, T, hS, hT, rfl⟩ := hR
   show jointRectVal A B ξ (S ×ˢ T) ≠ ⊤
@@ -914,7 +914,7 @@ theorem jointContent_ne_top (A B : Observable.UnboundedObservable H) (hSC : Stro
 
 /-- **Total mass.**  The content of the full plane `univ ×ˢ univ` is `‖ξ‖²`: both factor projections
 are the identity (`proj_univ`), so the rectangle effect is the identity and `‖id ξ‖² = ‖ξ‖²`. -/
-theorem jointContent_univ (A B : Observable.UnboundedObservable H) (hSC : StronglyCommute A B)
+theorem jointContent_univ (A B : Spectra.Operator.SelfAdjointOperator H) (hSC : StronglyCommute A B)
     (ξ : H) : jointContent A B hSC ξ (Set.univ ×ˢ Set.univ) = ENNReal.ofReal (‖ξ‖ ^ 2) := by
   show jointRectVal A B ξ (Set.univ ×ˢ Set.univ) = ENNReal.ofReal (‖ξ‖ ^ 2)
   rw [jointRectVal_prod A B ξ MeasurableSet.univ MeasurableSet.univ,
@@ -934,7 +934,7 @@ G2.2 (`jointContentRing_tendsto_empty`, left as `sorry`); everything else here i
 never takes the value `⊤`: an element of the sup-closure is a finite disjoint union of rectangles
 (`mem_supClosure_iff`), its content is the finite sum of the rectangle values
 (`supClosure_apply_finpartition`), and each summand is finite (`jointContent_ne_top`). -/
-theorem jointContentRing_ne_top (A B : Observable.UnboundedObservable H) (hSC : StronglyCommute A B)
+theorem jointContentRing_ne_top (A B : Spectra.Operator.SelfAdjointOperator H) (hSC : StronglyCommute A B)
     (ξ : H) {s : Set (ℝ × ℝ)} (hs : s ∈ supClosure jointRectangles) :
     (jointContent A B hSC ξ).supClosure isSetSemiring_jointRectangles s ≠ ⊤ := by
   obtain ⟨P, hP⟩ := (isSetSemiring_jointRectangles.mem_supClosure_iff).mp hs
@@ -961,7 +961,7 @@ open scoped Classical in
 /-- The effect vector `E_A(S_R) E_B(T_R) ξ` attached to a rectangle `R = S_R ×ˢ T_R` (chosen
 representatives; `0` off the rectangle semiring).  Representation-independent on rectangles
 (`rectVec_prod`). -/
-noncomputable def rectVec (A B : Observable.UnboundedObservable H) (ξ : H)
+noncomputable def rectVec (A B : Spectra.Operator.SelfAdjointOperator H) (ξ : H)
     (R : Set (ℝ × ℝ)) : H :=
   if h : R ∈ jointRectangles then
     (A.spectralPVM.proj h.choose h.choose_spec.choose_spec.1
@@ -971,7 +971,7 @@ noncomputable def rectVec (A B : Observable.UnboundedObservable H) (ξ : H)
 /-- **Effect-vector representation independence.**  The vector form of `jointRectVal_aux_indep`: two
 presentations of the same rectangle give the same effect vector (factor-agreement, or an empty factor
 annihilates `ξ`). -/
-theorem rectVec_aux_indep (A B : Observable.UnboundedObservable H) (ξ : H)
+theorem rectVec_aux_indep (A B : Spectra.Operator.SelfAdjointOperator H) (ξ : H)
     {S T S' T' : Set ℝ} (hS : MeasurableSet S) (hT : MeasurableSet T)
     (hS' : MeasurableSet S') (hT' : MeasurableSet T') (heq : S ×ˢ T = S' ×ˢ T') :
     (A.spectralPVM.proj S hS * B.spectralPVM.proj T hT) ξ
@@ -990,7 +990,7 @@ theorem rectVec_aux_indep (A B : Observable.UnboundedObservable H) (ξ : H)
 
 /-- **`rectVec` on a rectangle is the effect vector.**  `rectVec ξ (S ×ˢ T) = E_A(S) E_B(T) ξ`,
 independent of the chosen presentation (`rectVec_aux_indep`). -/
-theorem rectVec_prod (A B : Observable.UnboundedObservable H) (ξ : H)
+theorem rectVec_prod (A B : Spectra.Operator.SelfAdjointOperator H) (ξ : H)
     {S T : Set ℝ} (hS : MeasurableSet S) (hT : MeasurableSet T) :
     rectVec A B ξ (S ×ˢ T) = (A.spectralPVM.proj S hS * B.spectralPVM.proj T hT) ξ := by
   classical
@@ -1003,7 +1003,7 @@ open scoped Classical in
 /-- The vector content of an elementary set `s`, as the sum of the rectangle effect vectors over a
 chosen disjoint rectangle partition (`0` off the sup-closure).  Partition-independent
 (`jointVectorContent_eq`). -/
-noncomputable def jointVectorContent (A B : Observable.UnboundedObservable H) (ξ : H)
+noncomputable def jointVectorContent (A B : Spectra.Operator.SelfAdjointOperator H) (ξ : H)
     (s : Set (ℝ × ℝ)) : H :=
   if h : s ∈ supClosure jointRectangles then
     ∑ R ∈ ((isSetSemiring_jointRectangles.mem_supClosure_iff).mp h).choose.parts,
@@ -1016,7 +1016,7 @@ the chosen partition `K` (from `mem_supClosure_iff`) and `J` have a common refin
 `{R ∩ R' : R ∈ J, R' ∈ K}`; for each fixed `R ∈ J`, `{R ∩ R' : R' ∈ K}` is a disjoint rectangle cover
 of the rectangle `R` (since `R ⊆ s = ⋃ K`), so `jointVector_sUnion` collapses
 `∑_{R'} E(R ∩ R') = E(R)`.  Summing over `J` and symmetrizing in `J, K` gives equality. -/
-theorem jointVectorContent_eq (A B : Observable.UnboundedObservable H) (ξ : H)
+theorem jointVectorContent_eq (A B : Spectra.Operator.SelfAdjointOperator H) (ξ : H)
     {s : Set (ℝ × ℝ)} (hs : s ∈ supClosure jointRectangles)
     {J : Finset (Set (ℝ × ℝ))} (hJC : ↑J ⊆ jointRectangles)
     (hJd : (J : Set (Set (ℝ × ℝ))).PairwiseDisjoint id) (hJs : s = ⋃₀ ↑J) :
@@ -1111,7 +1111,7 @@ theorem jointVectorContent_eq (A B : Observable.UnboundedObservable H) (ξ : H)
 /-- **The content of a rectangle is `‖rectVec‖²`.**  For `R ∈ jointRectangles`,
 `jointContent ξ R = ENNReal.ofReal (‖rectVec ξ R‖²)`.  Restates `jointRectVal_prod` through `rectVec`
 (`rectVec_prod`). -/
-theorem jointContent_rectVec (A B : Observable.UnboundedObservable H) (hSC : StronglyCommute A B)
+theorem jointContent_rectVec (A B : Spectra.Operator.SelfAdjointOperator H) (hSC : StronglyCommute A B)
     (ξ : H) {R : Set (ℝ × ℝ)} (hR : R ∈ jointRectangles) :
     jointContent A B hSC ξ R = ENNReal.ofReal (‖rectVec A B ξ R‖ ^ 2) := by
   obtain ⟨S, T, hS, hT, rfl⟩ := hR
@@ -1124,7 +1124,7 @@ theorem jointContent_rectVec (A B : Observable.UnboundedObservable H) (hSC : Str
 whose `.toReal` is `∑ ‖rectVec R‖²` (`toReal_sum`), which is `‖∑ rectVec R‖²` (finite Pythagoras over
 the pairwise-orthogonal disjoint cells, `jointRect_orthogonal_general`), i.e. `‖jointVectorContent‖²`
 (`jointVectorContent_eq`). -/
-theorem jointVectorContent_norm_sq (A B : Observable.UnboundedObservable H)
+theorem jointVectorContent_norm_sq (A B : Spectra.Operator.SelfAdjointOperator H)
     (hSC : StronglyCommute A B) (ξ : H) {s : Set (ℝ × ℝ)} (hs : s ∈ supClosure jointRectangles) :
     ‖jointVectorContent A B ξ s‖ ^ 2
       = ((jointContent A B hSC ξ).supClosure isSetSemiring_jointRectangles s).toReal := by
@@ -1166,7 +1166,7 @@ theorem jointVectorContent_norm_sq (A B : Observable.UnboundedObservable H)
 `a, b ∈ supClosure jointRectangles`.  Proof: chosen partitions `Ja, Jb` of `a, b` combine to a
 disjoint rectangle partition `Ja ∪ Jb` of `a ∪ b`; `jointVectorContent_eq` evaluates all three sides
 and `Finset.sum_union` (disjoint part-sets, since `a, b` disjoint) splits the sum. -/
-theorem jointVectorContent_add (A B : Observable.UnboundedObservable H) (ξ : H)
+theorem jointVectorContent_add (A B : Spectra.Operator.SelfAdjointOperator H) (ξ : H)
     {a b : Set (ℝ × ℝ)} (ha : a ∈ supClosure jointRectangles) (hb : b ∈ supClosure jointRectangles)
     (hab : Disjoint a b) :
     jointVectorContent A B ξ (a ∪ b)
@@ -1228,7 +1228,7 @@ intersection property and meet. -/
 
 /-- The ring content of a single rectangle is `ofReal ‖E_A(S)E_B(T)ξ‖²` (`supClosure_apply_of_mem` +
 `jointContent_rectVec` + `rectVec_prod`). -/
-theorem jointContentRing_prod (A B : Observable.UnboundedObservable H) (hSC : StronglyCommute A B)
+theorem jointContentRing_prod (A B : Spectra.Operator.SelfAdjointOperator H) (hSC : StronglyCommute A B)
     (ξ : H) {S T : Set ℝ} (hS : MeasurableSet S) (hT : MeasurableSet T) :
     (jointContent A B hSC ξ).supClosure isSetSemiring_jointRectangles (S ×ˢ T)
       = ENNReal.ofReal (‖(A.spectralPVM.proj S hS * B.spectralPVM.proj T hT) ξ‖ ^ 2) := by
@@ -1242,7 +1242,7 @@ theorem jointContentRing_prod (A B : Observable.UnboundedObservable H) (hSC : St
 difference decomposition `(S×T)∖(S'×T') = (S∖S')×T ⊔ (S∩S')×(T∖T')` + finite additivity
 (`addContent_union`).  Together with inner regularity of `μ^A_ξ, μ^B_ξ`, this is the compact
 inner-regularity input to the Alexandrov ∅-continuity argument. -/
-theorem jointContentRing_diff_le (A B : Observable.UnboundedObservable H) (hSC : StronglyCommute A B)
+theorem jointContentRing_diff_le (A B : Spectra.Operator.SelfAdjointOperator H) (hSC : StronglyCommute A B)
     (ξ : H) {S S' T T' : Set ℝ} (hS : MeasurableSet S) (hS' : MeasurableSet S')
     (hT : MeasurableSet T) (hT' : MeasurableSet T') :
     (jointContent A B hSC ξ).supClosure isSetSemiring_jointRectangles ((S ×ˢ T) \ (S' ×ˢ T'))
@@ -1275,7 +1275,7 @@ theorem jointContentRing_diff_le (A B : Observable.UnboundedObservable H) (hSC :
 from inside by a compact rectangle `K = S' ×ˢ T'` whose content defect is `< ε`: pick compact
 `S' ⊆ S`, `T' ⊆ T` by inner regularity of the marginals `μ^A_ξ, μ^B_ξ` (each defect `< ε/2`), then
 `jointContentRing_diff_le` bounds the joint defect by `μ^A_ξ(S∖S') + μ^B_ξ(T∖T') < ε`. -/
-theorem jointRect_inner_compact (A B : Observable.UnboundedObservable H) (hSC : StronglyCommute A B)
+theorem jointRect_inner_compact (A B : Spectra.Operator.SelfAdjointOperator H) (hSC : StronglyCommute A B)
     (ξ : H) {S T : Set ℝ} (hS : MeasurableSet S) (hT : MeasurableSet T) {ε : ENNReal} (hε : ε ≠ 0) :
     ∃ K : Set (ℝ × ℝ), K ∈ jointRectangles ∧ K ⊆ S ×ˢ T ∧ IsCompact K ∧
       (jointContent A B hSC ξ).supClosure isSetSemiring_jointRectangles ((S ×ˢ T) \ K) < ε := by
@@ -1300,7 +1300,7 @@ defect `mR(s ∖ K) ≤ ε`.  Induction over a rectangle cover of `s`: approxima
 a compact sub-rectangle (`jointRect_inner_compact`) at budget `ε/2ⁿ`, union them, and bound the total
 defect by finite subadditivity (`addContent_union_le`).  This is the tightness hypothesis the
 Alexandrov ∅-continuity argument feeds on. -/
-theorem jointElem_inner_compact (A B : Observable.UnboundedObservable H) (hSC : StronglyCommute A B)
+theorem jointElem_inner_compact (A B : Spectra.Operator.SelfAdjointOperator H) (hSC : StronglyCommute A B)
     (ξ : H) {s : Set (ℝ × ℝ)} (hs : s ∈ supClosure jointRectangles) {ε : ENNReal} (hε : ε ≠ 0) :
     ∃ K : Set (ℝ × ℝ), K ∈ supClosure jointRectangles ∧ K ⊆ s ∧ IsCompact K ∧
       (jointContent A B hSC ξ).supClosure isSetSemiring_jointRectangles (s \ K) ≤ ε := by
@@ -1377,7 +1377,7 @@ joint content's compact inner regularity comes from the genuine marginals via co
 (the approximation *defect* `mR((S×T)∖(S'×T')) ≤ μ^A_ξ(S∖S') + μ^B_ξ(T∖T')` is marginal-controlled even
 though the *mass* is not), and a finite-intersection-property argument on decreasing compacts forces
 `w = 0`.  `sorry`-free and axiom-clean. -/
-theorem jointContentRing_tendsto_empty (A B : Observable.UnboundedObservable H)
+theorem jointContentRing_tendsto_empty (A B : Spectra.Operator.SelfAdjointOperator H)
     (hSC : StronglyCommute A B) (ξ : H) ⦃s : ℕ → Set (ℝ × ℝ)⦄
     (hs : ∀ n, s n ∈ supClosure jointRectangles) (hanti : Antitone s) (hempty : (⋂ n, s n) = ∅) :
     Filter.Tendsto (fun n => (jointContent A B hSC ξ).supClosure isSetSemiring_jointRectangles (s n))
@@ -1583,7 +1583,7 @@ theorem jointContentRing_tendsto_empty (A B : Observable.UnboundedObservable H)
 (`isSigmaSubadditive_of_addContent_iUnion_eq_tsum`), then transfer down to the rectangles via
 `supClosure_apply_of_mem` (a rectangle is its own one-element sup-closure value).  Rests on the open
 ∅-continuity, hence transitively `sorry`-dependent. -/
-theorem jointContent_isSigmaSubadditive (A B : Observable.UnboundedObservable H)
+theorem jointContent_isSigmaSubadditive (A B : Spectra.Operator.SelfAdjointOperator H)
     (hSC : StronglyCommute A B) (ξ : H) : (jointContent A B hSC ξ).IsSigmaSubadditive := by
   have hRing : MeasureTheory.IsSetRing (supClosure jointRectangles) :=
     isSetSemiring_jointRectangles.isSetRing_supClosure
@@ -1626,7 +1626,7 @@ theorem generateFrom_jointRectangles :
 
 /-- **The per-state joint scalar measure `μ_ξ`.**  The Carathéodory extension of the rectangle
 content `jointContent` to a (finite, see below) Borel measure on `ℝ × ℝ`. -/
-noncomputable def jointScalarMeasure (A B : Observable.UnboundedObservable H)
+noncomputable def jointScalarMeasure (A B : Spectra.Operator.SelfAdjointOperator H)
     (hSC : StronglyCommute A B) (ξ : H) : MeasureTheory.Measure (ℝ × ℝ) :=
   (jointContent A B hSC ξ).measure isSetSemiring_jointRectangles
     generateFrom_jointRectangles.le (jointContent_isSigmaSubadditive A B hSC ξ)
@@ -1634,7 +1634,7 @@ noncomputable def jointScalarMeasure (A B : Observable.UnboundedObservable H)
 /-- **`μ_ξ` on a rectangle is the bimeasure value.**  `μ_ξ(S ×ˢ T) = μ^A_{E_B(T)ξ}(S)` — the
 Carathéodory measure agrees with the content on the semiring (`AddContent.measure_eq`), and the
 content on a rectangle is the diagonal form (`jointRectVal_prod_diag`). -/
-theorem jointScalarMeasure_prod (A B : Observable.UnboundedObservable H) (hSC : StronglyCommute A B)
+theorem jointScalarMeasure_prod (A B : Spectra.Operator.SelfAdjointOperator H) (hSC : StronglyCommute A B)
     (ξ : H) {S T : Set ℝ} (hS : MeasurableSet S) (hT : MeasurableSet T) :
     jointScalarMeasure A B hSC ξ (S ×ˢ T)
       = (A.spectralPVM.diag (B.spectralPVM.proj T hT ξ)) S := by
@@ -1645,14 +1645,14 @@ theorem jointScalarMeasure_prod (A B : Observable.UnboundedObservable H) (hSC : 
   rw [jointRectVal_prod_diag A B hSC ξ hS hT]
 
 /-- **`μ_ξ` on a rectangle, in norm² form.**  `μ_ξ(S ×ˢ T).toReal = ‖E_A(S)E_B(T)ξ‖²`. -/
-theorem jointScalarMeasure_prod_norm_sq (A B : Observable.UnboundedObservable H)
+theorem jointScalarMeasure_prod_norm_sq (A B : Spectra.Operator.SelfAdjointOperator H)
     (hSC : StronglyCommute A B) (ξ : H) {S T : Set ℝ} (hS : MeasurableSet S) (hT : MeasurableSet T) :
     (jointScalarMeasure A B hSC ξ (S ×ˢ T)).toReal
       = ‖(A.spectralPVM.proj S hS * B.spectralPVM.proj T hT) ξ‖ ^ 2 := by
   rw [jointScalarMeasure_prod A B hSC ξ hS hT, ← jointRect_norm_sq_eq_diag A B hSC hS hT ξ]
 
 /-- **`μ_ξ` is finite**, with total mass `‖ξ‖²`: `μ_ξ(univ) = μ_ξ(univ ×ˢ univ) = ‖ξ‖² < ∞`. -/
-instance jointScalarMeasure_isFiniteMeasure (A B : Observable.UnboundedObservable H)
+instance jointScalarMeasure_isFiniteMeasure (A B : Spectra.Operator.SelfAdjointOperator H)
     (hSC : StronglyCommute A B) (ξ : H) :
     MeasureTheory.IsFiniteMeasure (jointScalarMeasure A B hSC ξ) := by
   constructor
@@ -1676,7 +1676,7 @@ measure `μ_ξ`). -/
 /-- **`μ_ξ(E)` satisfies the parallelogram law in `ξ`, for every measurable `E`.**  Hence
 `ξ ↦ μ_ξ(E)` is a bounded (`≤ ‖ξ‖²`) quadratic form, and polarizes to the sesquilinear form of the
 operator `effect E` (G2.3).  Proved by Dynkin induction on the rectangle π-system. -/
-theorem jointScalarMeasure_parallelogram (A B : Observable.UnboundedObservable H)
+theorem jointScalarMeasure_parallelogram (A B : Spectra.Operator.SelfAdjointOperator H)
     (hSC : StronglyCommute A B) {E : Set (ℝ × ℝ)} (hE : MeasurableSet E) (ψ φ : H) :
     (jointScalarMeasure A B hSC (ψ + φ) E).toReal
         + (jointScalarMeasure A B hSC (ψ - φ) E).toReal
@@ -1771,7 +1771,7 @@ theorem inner_polarization_right (T : H →L[ℂ] H) (ψ φ : H) :
 /-- The **complex polarized form** of the joint scalar measure: `crossMeasureForm E ψ φ` is the
 `ℂ`-combination of the four real masses `μ_{ψ±φ}(E)`, `μ_{ψ±iφ}(E)` whose diagonal is `μ_ξ(E)` and
 whose rectangle value is `⟪ψ, E_A(S)E_B(T) φ⟫`.  It is the sesquilinear form of `jointEffect E`. -/
-noncomputable def crossMeasureForm (A B : Observable.UnboundedObservable H)
+noncomputable def crossMeasureForm (A B : Spectra.Operator.SelfAdjointOperator H)
     (hSC : StronglyCommute A B) (E : Set (ℝ × ℝ)) (ψ φ : H) : ℂ :=
   (1 / 4 : ℂ) *
     ( ((jointScalarMeasure A B hSC (ψ + φ) E).toReal : ℂ)
@@ -1786,7 +1786,7 @@ theorem inner_self_complex (ξ : H) : ⟪ξ, ξ⟫_ℂ = ((‖ξ‖ ^ 2 : ℝ) :
   rw [inner_self_eq_norm_sq_to_K]; norm_cast
 
 /-- **Complement mass.**  `μ_ξ(Eᶜ) = ‖ξ‖² − μ_ξ(E)`, since the total mass is `‖ξ‖²`. -/
-theorem jointScalarMeasure_compl_toReal (A B : Observable.UnboundedObservable H)
+theorem jointScalarMeasure_compl_toReal (A B : Spectra.Operator.SelfAdjointOperator H)
     (hSC : StronglyCommute A B) (ξ : H) {E : Set (ℝ × ℝ)} (hE : MeasurableSet E) :
     (jointScalarMeasure A B hSC ξ Eᶜ).toReal
       = ‖ξ‖ ^ 2 - (jointScalarMeasure A B hSC ξ E).toReal := by
@@ -1804,7 +1804,7 @@ theorem jointScalarMeasure_compl_toReal (A B : Observable.UnboundedObservable H)
 /-- **Diagonal of the rectangle effect.**  `μ_ξ(S ×ˢ T) = ⟪ξ, E_A(S)E_B(T) ξ⟫`: the diagonal mass is
 the diagonal of the (self-adjoint, idempotent) rectangle projection (`norm_sq_apply_of_isStarProjection`
 for the real part; idempotence + self-adjointness for vanishing imaginary part). -/
-theorem jointRect_diag_complex (A B : Observable.UnboundedObservable H) (hSC : StronglyCommute A B)
+theorem jointRect_diag_complex (A B : Spectra.Operator.SelfAdjointOperator H) (hSC : StronglyCommute A B)
     {S T : Set ℝ} (hS : MeasurableSet S) (hT : MeasurableSet T) (ξ : H) :
     ((jointScalarMeasure A B hSC ξ (S ×ˢ T)).toReal : ℂ)
       = ⟪ξ, (A.spectralPVM.proj S hS * B.spectralPVM.proj T hT) ξ⟫_ℂ := by
@@ -1823,7 +1823,7 @@ theorem jointRect_diag_complex (A B : Observable.UnboundedObservable H) (hSC : S
 /-- **Base case.**  On a rectangle the form is the honest projection effect:
 `crossMeasureForm (S ×ˢ T) ψ φ = ⟪ψ, E_A(S)E_B(T) φ⟫` — each diagonal mass is the star-projection
 diagonal (`jointRect_diag_complex`) and polarization (`inner_polarization_right`) reassembles it. -/
-theorem crossMeasureForm_rect (A B : Observable.UnboundedObservable H) (hSC : StronglyCommute A B)
+theorem crossMeasureForm_rect (A B : Spectra.Operator.SelfAdjointOperator H) (hSC : StronglyCommute A B)
     {S T : Set ℝ} (hS : MeasurableSet S) (hT : MeasurableSet T) (ψ φ : H) :
     crossMeasureForm A B hSC (S ×ˢ T) ψ φ
       = ⟪ψ, (A.spectralPVM.proj S hS * B.spectralPVM.proj T hT) φ⟫_ℂ := by
@@ -1835,7 +1835,7 @@ theorem crossMeasureForm_rect (A B : Observable.UnboundedObservable H) (hSC : St
 /-- **Complement closure.**  `crossMeasureForm Eᶜ ψ φ = ⟪ψ, φ⟫ − crossMeasureForm E ψ φ`: the four
 masses split as `μ_z(Eᶜ) = ‖z‖² − μ_z(E)`, the `‖·‖²` part polarizes to the inner product `⟪ψ, φ⟫`
 (`inner_polarization_right` at `id`), and the rest is `−crossMeasureForm E`. -/
-theorem crossMeasureForm_compl (A B : Observable.UnboundedObservable H) (hSC : StronglyCommute A B)
+theorem crossMeasureForm_compl (A B : Spectra.Operator.SelfAdjointOperator H) (hSC : StronglyCommute A B)
     {E : Set (ℝ × ℝ)} (hE : MeasurableSet E) (ψ φ : H) :
     crossMeasureForm A B hSC Eᶜ ψ φ = ⟪ψ, φ⟫_ℂ - crossMeasureForm A B hSC E ψ φ := by
   have hc : ∀ z : H, ((jointScalarMeasure A B hSC z Eᶜ).toReal : ℂ)
@@ -1854,7 +1854,7 @@ theorem crossMeasureForm_compl (A B : Observable.UnboundedObservable H) (hSC : S
 /-- **Countable disjoint-union closure.**  `crossMeasureForm (⋃ i, f i) ψ φ = ∑' i, crossMeasureForm
 (f i) ψ φ`: each mass is σ-additive (`measure_iUnion`), `Complex.ofReal_tsum` moves the coercion
 through, and `tsum` linearity reassembles the four series into one. -/
-theorem crossMeasureForm_iUnion (A B : Observable.UnboundedObservable H) (hSC : StronglyCommute A B)
+theorem crossMeasureForm_iUnion (A B : Spectra.Operator.SelfAdjointOperator H) (hSC : StronglyCommute A B)
     {f : ℕ → Set (ℝ × ℝ)} (hd : Pairwise (Function.onFun Disjoint f))
     (hm : ∀ i, MeasurableSet (f i)) (ψ φ : H) :
     crossMeasureForm A B hSC (⋃ i, f i) ψ φ = ∑' i, crossMeasureForm A B hSC (f i) ψ φ := by
@@ -1891,7 +1891,7 @@ theorem crossMeasureForm_iUnion (A B : Observable.UnboundedObservable H) (hSC : 
 
 /-- **Summability** of the per-cell forms (each of the four masses is summable; the `ℂ`-combination
 inherits it). -/
-theorem crossMeasureForm_summable (A B : Observable.UnboundedObservable H)
+theorem crossMeasureForm_summable (A B : Spectra.Operator.SelfAdjointOperator H)
     (hSC : StronglyCommute A B) {f : ℕ → Set (ℝ × ℝ)}
     (hd : Pairwise (Function.onFun Disjoint f)) (hm : ∀ i, MeasurableSet (f i)) (ψ φ : H) :
     Summable (fun i => crossMeasureForm A B hSC (f i) ψ φ) := by
@@ -1910,7 +1910,7 @@ Each identity reduces — on rectangles — to (conjugate-)linearity of the hone
 identity) and to countable disjoint unions (via `crossMeasureForm_iUnion` + `tsum` linearity). -/
 
 /-- Additive in the (conjugate-linear) left slot. -/
-theorem crossMeasureForm_add_left (A B : Observable.UnboundedObservable H)
+theorem crossMeasureForm_add_left (A B : Spectra.Operator.SelfAdjointOperator H)
     (hSC : StronglyCommute A B) {E : Set (ℝ × ℝ)} (hE : MeasurableSet E) (ψ₁ ψ₂ φ : H) :
     crossMeasureForm A B hSC E (ψ₁ + ψ₂) φ
       = crossMeasureForm A B hSC E ψ₁ φ + crossMeasureForm A B hSC E ψ₂ φ := by
@@ -1932,7 +1932,7 @@ theorem crossMeasureForm_add_left (A B : Observable.UnboundedObservable H)
     exact tsum_congr fun i => ih i ψ₁ ψ₂ φ
 
 /-- Conjugate-homogeneous in the left slot. -/
-theorem crossMeasureForm_smul_left (A B : Observable.UnboundedObservable H)
+theorem crossMeasureForm_smul_left (A B : Spectra.Operator.SelfAdjointOperator H)
     (hSC : StronglyCommute A B) {E : Set (ℝ × ℝ)} (hE : MeasurableSet E) (c : ℂ) (ψ φ : H) :
     crossMeasureForm A B hSC E (c • ψ) φ
       = (starRingEnd ℂ) c * crossMeasureForm A B hSC E ψ φ := by
@@ -1953,7 +1953,7 @@ theorem crossMeasureForm_smul_left (A B : Observable.UnboundedObservable H)
     exact tsum_congr fun i => ih i ψ φ
 
 /-- Additive in the (linear) right slot. -/
-theorem crossMeasureForm_add_right (A B : Observable.UnboundedObservable H)
+theorem crossMeasureForm_add_right (A B : Spectra.Operator.SelfAdjointOperator H)
     (hSC : StronglyCommute A B) {E : Set (ℝ × ℝ)} (hE : MeasurableSet E) (ψ φ₁ φ₂ : H) :
     crossMeasureForm A B hSC E ψ (φ₁ + φ₂)
       = crossMeasureForm A B hSC E ψ φ₁ + crossMeasureForm A B hSC E ψ φ₂ := by
@@ -1976,7 +1976,7 @@ theorem crossMeasureForm_add_right (A B : Observable.UnboundedObservable H)
     exact tsum_congr fun i => ih i ψ φ₁ φ₂
 
 /-- Homogeneous in the (linear) right slot. -/
-theorem crossMeasureForm_smul_right (A B : Observable.UnboundedObservable H)
+theorem crossMeasureForm_smul_right (A B : Spectra.Operator.SelfAdjointOperator H)
     (hSC : StronglyCommute A B) {E : Set (ℝ × ℝ)} (hE : MeasurableSet E) (c : ℂ) (ψ φ : H) :
     crossMeasureForm A B hSC E ψ (c • φ) = c * crossMeasureForm A B hSC E ψ φ := by
   refine MeasurableSpace.induction_on_inter
@@ -1999,7 +1999,7 @@ theorem crossMeasureForm_smul_right (A B : Observable.UnboundedObservable H)
 polarized form recovers the original quadratic form on the diagonal.  Dynkin induction: rectangles
 (`jointRect_diag_complex`), complements (`jointScalarMeasure_compl_toReal` + `inner_self_complex`),
 countable unions (σ-additivity). -/
-theorem crossMeasureForm_diag (A B : Observable.UnboundedObservable H) (hSC : StronglyCommute A B)
+theorem crossMeasureForm_diag (A B : Spectra.Operator.SelfAdjointOperator H) (hSC : StronglyCommute A B)
     {E : Set (ℝ × ℝ)} (hE : MeasurableSet E) (ξ : H) :
     crossMeasureForm A B hSC E ξ ξ = ((jointScalarMeasure A B hSC ξ E).toReal : ℂ) := by
   refine MeasurableSpace.induction_on_inter
@@ -2026,7 +2026,7 @@ by the operator `jointEffect E`, with `⟪ξ, jointEffect E ξ⟫ = μ_ξ(E)` (t
 
 /-- **Operator-norm bound** for the form, `‖crossMeasureForm E ψ φ‖ ≤ 2‖ψ‖‖φ‖`: a crude
 `‖ψ‖²+‖φ‖²` bound (mass bound + the two parallelogram laws), homogenized by rescaling `φ ↦ t•φ`. -/
-theorem crossMeasureForm_norm_le (A B : Observable.UnboundedObservable H) (hSC : StronglyCommute A B)
+theorem crossMeasureForm_norm_le (A B : Spectra.Operator.SelfAdjointOperator H) (hSC : StronglyCommute A B)
     {E : Set (ℝ × ℝ)} (hE : MeasurableSet E) (ψ φ : H) :
     ‖crossMeasureForm A B hSC E ψ φ‖ ≤ 2 * ‖ψ‖ * ‖φ‖ := by
   -- each mass `μ_z(E) ≤ μ_z(univ) = ‖z‖²`
@@ -2114,7 +2114,7 @@ theorem crossMeasureForm_norm_le (A B : Observable.UnboundedObservable H) (hSC :
 
 /-- The polarized pairing `(ψ, φ) ↦ crossMeasureForm E ψ φ`, bundled as a continuous sesquilinear
 map (`mk₂'ₛₗ` with conjugation on the left slot; the bound is `crossMeasureForm_norm_le`). -/
-noncomputable def crossMeasureFormBilin (A B : Observable.UnboundedObservable H)
+noncomputable def crossMeasureFormBilin (A B : Spectra.Operator.SelfAdjointOperator H)
     (hSC : StronglyCommute A B) {E : Set (ℝ × ℝ)} (hE : MeasurableSet E) : H →L⋆[ℂ] H →L[ℂ] ℂ :=
   LinearMap.mkContinuous₂
     (LinearMap.mk₂'ₛₗ (starRingEnd ℂ) (RingHom.id ℂ)
@@ -2127,20 +2127,20 @@ noncomputable def crossMeasureFormBilin (A B : Observable.UnboundedObservable H)
     2
     (fun ψ φ => crossMeasureForm_norm_le A B hSC hE ψ φ)
 
-@[simp] theorem crossMeasureFormBilin_apply (A B : Observable.UnboundedObservable H)
+@[simp] theorem crossMeasureFormBilin_apply (A B : Spectra.Operator.SelfAdjointOperator H)
     (hSC : StronglyCommute A B) {E : Set (ℝ × ℝ)} (hE : MeasurableSet E) (ψ φ : H) :
     crossMeasureFormBilin A B hSC hE ψ φ = crossMeasureForm A B hSC E ψ φ := rfl
 
 /-- **The joint effect** `jointEffect E`: the operator whose sesquilinear form is `crossMeasureForm E`
 (`continuousLinearMapOfBilin`, adjointed to put the operator in the second inner-product slot, as in
 `spectralCalculus`). -/
-noncomputable def jointEffect (A B : Observable.UnboundedObservable H) (hSC : StronglyCommute A B)
+noncomputable def jointEffect (A B : Spectra.Operator.SelfAdjointOperator H) (hSC : StronglyCommute A B)
     {E : Set (ℝ × ℝ)} (hE : MeasurableSet E) : H →L[ℂ] H :=
   ContinuousLinearMap.adjoint
     (InnerProductSpace.continuousLinearMapOfBilin (crossMeasureFormBilin A B hSC hE))
 
 /-- The defining identity: `⟪ξ, jointEffect E η⟫ = crossMeasureForm E ξ η`. -/
-theorem jointEffect_inner (A B : Observable.UnboundedObservable H) (hSC : StronglyCommute A B)
+theorem jointEffect_inner (A B : Spectra.Operator.SelfAdjointOperator H) (hSC : StronglyCommute A B)
     {E : Set (ℝ × ℝ)} (hE : MeasurableSet E) (ξ η : H) :
     ⟪ξ, jointEffect A B hSC hE η⟫_ℂ = crossMeasureForm A B hSC E ξ η := by
   simp only [jointEffect]
@@ -2149,7 +2149,7 @@ theorem jointEffect_inner (A B : Observable.UnboundedObservable H) (hSC : Strong
 
 /-- **The POVM weld.**  `⟪ξ, jointEffect E ξ⟫ = μ_ξ(E)` — the diagonal of the joint effect is the
 joint scalar measure. -/
-theorem jointEffect_diag (A B : Observable.UnboundedObservable H) (hSC : StronglyCommute A B)
+theorem jointEffect_diag (A B : Spectra.Operator.SelfAdjointOperator H) (hSC : StronglyCommute A B)
     {E : Set (ℝ × ℝ)} (hE : MeasurableSet E) (ξ : H) :
     ⟪ξ, jointEffect A B hSC hE ξ⟫_ℂ = ((jointScalarMeasure A B hSC ξ E).toReal : ℂ) := by
   rw [jointEffect_inner, crossMeasureForm_diag A B hSC hE ξ]
@@ -2157,14 +2157,14 @@ theorem jointEffect_diag (A B : Observable.UnboundedObservable H) (hSC : Strongl
 /-- **Rectangle agreement.**  `jointEffect (S ×ˢ T) = E_A(S)·E_B(T)` — the joint effect on a
 rectangle is the product of the spectral projections (determined by the diagonal,
 `op_ext_of_inner_self`). -/
-theorem jointEffect_rect (A B : Observable.UnboundedObservable H) (hSC : StronglyCommute A B)
+theorem jointEffect_rect (A B : Spectra.Operator.SelfAdjointOperator H) (hSC : StronglyCommute A B)
     {S T : Set ℝ} (hS : MeasurableSet S) (hT : MeasurableSet T) :
     jointEffect A B hSC (hS.prod hT) = A.spectralPVM.proj S hS * B.spectralPVM.proj T hT := by
   refine op_ext_of_inner_self fun ξ => ?_
   rw [jointEffect_inner, crossMeasureForm_rect A B hSC hS hT]
 
 /-- **Normalization.**  `jointEffect univ = 1`. -/
-theorem jointEffect_univ (A B : Observable.UnboundedObservable H) (hSC : StronglyCommute A B) :
+theorem jointEffect_univ (A B : Spectra.Operator.SelfAdjointOperator H) (hSC : StronglyCommute A B) :
     jointEffect A B hSC (MeasurableSet.univ : MeasurableSet (Set.univ : Set (ℝ × ℝ)))
       = ContinuousLinearMap.id ℂ H := by
   refine op_ext_of_inner_self fun ξ => ?_
@@ -2185,7 +2185,7 @@ the operator-level σ-additivity of the multivariate spectral theorem.) -/
 
 /-- **The joint POVM** of a strongly-commuting pair: the operator-valued measure on `ℝ²` whose
 effects are `jointEffect` and whose diagonal data is the joint scalar measure `μ_ξ`. -/
-noncomputable def jointPOVM (A B : Observable.UnboundedObservable H) (hSC : StronglyCommute A B) :
+noncomputable def jointPOVM (A B : Spectra.Operator.SelfAdjointOperator H) (hSC : StronglyCommute A B) :
     POVM H (ℝ × ℝ) where
   effect _ hE := jointEffect A B hSC hE
   diag ξ := jointScalarMeasure A B hSC ξ
@@ -2196,7 +2196,7 @@ noncomputable def jointPOVM (A B : Observable.UnboundedObservable H) (hSC : Stro
 /-- **G2.5 — the joint POVM has the right cylinder marginals.**  `M(S × ℝ) = E_A(S)` and
 `M(ℝ × T) = E_B(T)`: immediate from `jointEffect_rect` and `proj_univ` (the other factor is the
 identity).  This is the hypothesis that couples the joint PVM to `A` and `B` (`IsJointOf`). -/
-theorem jointPOVM_isJointOf (A B : Observable.UnboundedObservable H) (hSC : StronglyCommute A B) :
+theorem jointPOVM_isJointOf (A B : Spectra.Operator.SelfAdjointOperator H) (hSC : StronglyCommute A B) :
     (jointPOVM A B hSC).IsJointOf A B := by
   refine ⟨fun S hS => ?_, fun T hT => ?_⟩
   · show jointEffect A B hSC (hS.prod MeasurableSet.univ) = A.spectralPVM.proj S hS
@@ -2218,7 +2218,7 @@ to an arbitrary set (`crossMeasureForm_inter`, induct over `B₂`), using self-a
 
 /-- **Finite additivity of `crossMeasureForm`** in its set argument: each diagonal mass
 `μ_z(X ∪ Y) = μ_z(X) + μ_z(Y)` (`measure_union`), and the polarization is linear in the masses. -/
-theorem crossMeasureForm_union2 (A B : Observable.UnboundedObservable H) (hSC : StronglyCommute A B)
+theorem crossMeasureForm_union2 (A B : Spectra.Operator.SelfAdjointOperator H) (hSC : StronglyCommute A B)
     {X Y : Set (ℝ × ℝ)} (_hX : MeasurableSet X) (hY : MeasurableSet Y) (hd : Disjoint X Y) (ψ φ : H) :
     crossMeasureForm A B hSC (X ∪ Y) ψ φ
       = crossMeasureForm A B hSC X ψ φ + crossMeasureForm A B hSC Y ψ φ := by
@@ -2233,12 +2233,12 @@ theorem crossMeasureForm_union2 (A B : Observable.UnboundedObservable H) (hSC : 
 
 /-- **Each joint effect is self-adjoint.**  `⟪ξ, jointEffect E ξ⟫ = μ_ξ(E)` is real for every `ξ`
 (`jointEffect_diag`), and a real diagonal characterizes self-adjointness. -/
-theorem jointEffect_isSelfAdjoint (A B : Observable.UnboundedObservable H) (hSC : StronglyCommute A B)
+theorem jointEffect_isSelfAdjoint (A B : Spectra.Operator.SelfAdjointOperator H) (hSC : StronglyCommute A B)
     {E : Set (ℝ × ℝ)} (hE : MeasurableSet E) : IsSelfAdjoint (jointEffect A B hSC hE) :=
   (jointPOVM A B hSC).isSelfAdjoint_effect E hE
 
 /-- The self-adjointness swap: `⟪jointEffect E ζ, ω⟫ = ⟪ζ, jointEffect E ω⟫`. -/
-theorem jointEffect_swap (A B : Observable.UnboundedObservable H) (hSC : StronglyCommute A B)
+theorem jointEffect_swap (A B : Spectra.Operator.SelfAdjointOperator H) (hSC : StronglyCommute A B)
     {E : Set (ℝ × ℝ)} (hE : MeasurableSet E) (ζ ω : H) :
     ⟪(jointEffect A B hSC hE) ζ, ω⟫_ℂ = ⟪ζ, (jointEffect A B hSC hE) ω⟫_ℂ := by
   rw [← ContinuousLinearMap.adjoint_inner_right, (jointEffect_isSelfAdjoint A B hSC hE).adjoint_eq]
@@ -2247,7 +2247,7 @@ theorem jointEffect_swap (A B : Observable.UnboundedObservable H) (hSC : Strongl
 crossMeasureForm B₁ ξ (jointEffect (S₂×T₂) η)` for all measurable `B₁`.  Dynkin induction over `B₁`
 on the rectangle π-system: base = `jointRect_mul`, complement/⋃ = `crossMeasureForm_compl`/`_iUnion`
 with the vectors `(ξ, jointEffect (S₂×T₂) η)` fixed. -/
-theorem crossMeasureForm_inter_rect (A B : Observable.UnboundedObservable H)
+theorem crossMeasureForm_inter_rect (A B : Spectra.Operator.SelfAdjointOperator H)
     (hSC : StronglyCommute A B) {S₂ T₂ : Set ℝ} (hS₂ : MeasurableSet S₂) (hT₂ : MeasurableSet T₂)
     {B₁ : Set (ℝ × ℝ)} (hB₁ : MeasurableSet B₁) :
     ∀ ξ η : H, crossMeasureForm A B hSC (B₁ ∩ (S₂ ×ˢ T₂)) ξ η
@@ -2292,7 +2292,7 @@ theorem crossMeasureForm_inter_rect (A B : Observable.UnboundedObservable H)
 crossMeasureForm B₂ (jointEffect B₁ ξ) η`.  Dynkin induction over `B₂`: base = Step A + the
 self-adjointness swap of `jointEffect B₁`, complement/⋃ with the vectors `(jointEffect B₁ ξ, η)`
 fixed. -/
-theorem crossMeasureForm_inter (A B : Observable.UnboundedObservable H) (hSC : StronglyCommute A B)
+theorem crossMeasureForm_inter (A B : Spectra.Operator.SelfAdjointOperator H) (hSC : StronglyCommute A B)
     {B₁ : Set (ℝ × ℝ)} (hB₁ : MeasurableSet B₁) {B₂ : Set (ℝ × ℝ)} (hB₂ : MeasurableSet B₂) :
     ∀ ξ η : H, crossMeasureForm A B hSC (B₁ ∩ B₂) ξ η
       = crossMeasureForm A B hSC B₂ (jointEffect A B hSC hB₁ ξ) η := by
@@ -2330,7 +2330,7 @@ theorem crossMeasureForm_inter (A B : Observable.UnboundedObservable H) (hSC : S
 /-- **Operator multiplicativity of the joint effects** (`IsProjective` on the nose).
 `jointEffect (B₁ ∩ B₂) = jointEffect B₁ · jointEffect B₂`.  From the form identity
 `crossMeasureForm_inter` by full sesquilinear extensionality (`ext_inner_left`) + the swap. -/
-theorem jointEffect_inter (A B : Observable.UnboundedObservable H) (hSC : StronglyCommute A B)
+theorem jointEffect_inter (A B : Spectra.Operator.SelfAdjointOperator H) (hSC : StronglyCommute A B)
     {B₁ B₂ : Set (ℝ × ℝ)} (h₁ : MeasurableSet B₁) (h₂ : MeasurableSet B₂) :
     jointEffect A B hSC (h₁.inter h₂) = jointEffect A B hSC h₁ * jointEffect A B hSC h₂ := by
   refine ContinuousLinearMap.ext fun η => ext_inner_left ℂ fun ξ => ?_
@@ -2339,7 +2339,7 @@ theorem jointEffect_inter (A B : Observable.UnboundedObservable H) (hSC : Strong
     jointEffect_swap A B hSC h₁ ξ (jointEffect A B hSC h₂ η), ContinuousLinearMap.mul_apply]
 
 /-- **G2.4 — the joint POVM is projective.**  Immediate from `jointEffect_inter`. -/
-theorem jointPOVM_isProjective (A B : Observable.UnboundedObservable H) (hSC : StronglyCommute A B) :
+theorem jointPOVM_isProjective (A B : Spectra.Operator.SelfAdjointOperator H) (hSC : StronglyCommute A B) :
     (jointPOVM A B hSC).IsProjective :=
   fun _ _ h₁ h₂ => (jointEffect_inter A B hSC h₁ h₂).symm
 
@@ -2353,7 +2353,7 @@ theorem jointPOVM_isProjective (A B : Observable.UnboundedObservable H) (hSC : S
 
 This replaces the naive `commute_iff_joint_law`: the witness is an operator-valued PVM (`IsJointOf`),
 not a per-state coupling, which is why the equivalence has content. -/
-theorem stronglyCommute_iff_jointPVM (A B : UnboundedObservable H) :
+theorem stronglyCommute_iff_jointPVM (A B : SelfAdjointOperator H) :
     StronglyCommute A B ↔ ∃ M : POVM H (ℝ × ℝ), M.IsProjective ∧ M.IsJointOf A B :=
   ⟨fun hSC => ⟨jointPOVM A B hSC, jointPOVM_isProjective A B hSC, jointPOVM_isJointOf A B hSC⟩,
     fun ⟨_M, hproj, hjoint⟩ => stronglyCommute_of_jointPVM hproj hjoint⟩
@@ -2368,7 +2368,7 @@ The marginals of `μ_ξ = jointScalarMeasure A B hSC ξ` are `A`'s and `B`'s Bor
 /-- **A-coordinate second moment.**  `∫ p.1² dμ_ξ = ‖Aξ‖²` (needs `ξ ∈ D(A)`): push the integral to the
 first marginal `μ_ξ.fst = A.spectralPVM.diag ξ` (`jointBornMeasure_fst`, `integral_map`) and apply the
 1-D second moment `spectralPVM_integral_sq`. -/
-theorem jointScalarMeasure_integral_fst_sq (A B : Observable.UnboundedObservable H)
+theorem jointScalarMeasure_integral_fst_sq (A B : Spectra.Operator.SelfAdjointOperator H)
     (hSC : StronglyCommute A B) {ξ : H} (hξA : ξ ∈ A.domain) :
     ∫ p : ℝ × ℝ, p.1 ^ 2 ∂(jointScalarMeasure A B hSC ξ) = ‖A.toLinearPMap ⟨ξ, hξA⟩‖ ^ 2 := by
   have hfst : (jointScalarMeasure A B hSC ξ).fst = A.spectralPVM.diag ξ :=
@@ -2380,7 +2380,7 @@ theorem jointScalarMeasure_integral_fst_sq (A B : Observable.UnboundedObservable
     _ = ‖A.toLinearPMap ⟨ξ, hξA⟩‖ ^ 2 := SpectralTheory.spectralPVM_integral_sq A.selfAdjoint ξ hξA
 
 /-- **B-coordinate second moment.**  `∫ p.2² dμ_ξ = ‖Bξ‖²` (needs `ξ ∈ D(B)`). -/
-theorem jointScalarMeasure_integral_snd_sq (A B : Observable.UnboundedObservable H)
+theorem jointScalarMeasure_integral_snd_sq (A B : Spectra.Operator.SelfAdjointOperator H)
     (hSC : StronglyCommute A B) {ξ : H} (hξB : ξ ∈ B.domain) :
     ∫ p : ℝ × ℝ, p.2 ^ 2 ∂(jointScalarMeasure A B hSC ξ) = ‖B.toLinearPMap ⟨ξ, hξB⟩‖ ^ 2 := by
   have hsnd : (jointScalarMeasure A B hSC ξ).snd = B.spectralPVM.diag ξ :=
@@ -2393,7 +2393,7 @@ theorem jointScalarMeasure_integral_snd_sq (A B : Observable.UnboundedObservable
 
 /-- **`p.1²` is integrable** for `ξ ∈ D(A)` (the first marginal is `A`'s Born measure, whose second
 moment `‖Aξ‖²` is finite, `spectralPVM_integrable_sq`). -/
-theorem jointScalarMeasure_integrable_fst_sq (A B : Observable.UnboundedObservable H)
+theorem jointScalarMeasure_integrable_fst_sq (A B : Spectra.Operator.SelfAdjointOperator H)
     (hSC : StronglyCommute A B) {ξ : H} (hξA : ξ ∈ A.domain) :
     Integrable (fun p : ℝ × ℝ => p.1 ^ 2) (jointScalarMeasure A B hSC ξ) := by
   have hfst : (jointScalarMeasure A B hSC ξ).fst = A.spectralPVM.diag ξ :=
@@ -2404,7 +2404,7 @@ theorem jointScalarMeasure_integrable_fst_sq (A B : Observable.UnboundedObservab
     measurable_fst.aemeasurable).mp h2
 
 /-- **`p.2²` is integrable** for `ξ ∈ D(B)`. -/
-theorem jointScalarMeasure_integrable_snd_sq (A B : Observable.UnboundedObservable H)
+theorem jointScalarMeasure_integrable_snd_sq (A B : Spectra.Operator.SelfAdjointOperator H)
     (hSC : StronglyCommute A B) {ξ : H} (hξB : ξ ∈ B.domain) :
     Integrable (fun p : ℝ × ℝ => p.2 ^ 2) (jointScalarMeasure A B hSC ξ) := by
   have hsnd : (jointScalarMeasure A B hSC ξ).snd = B.spectralPVM.diag ξ :=
@@ -2417,7 +2417,7 @@ theorem jointScalarMeasure_integrable_snd_sq (A B : Observable.UnboundedObservab
 /-- **The symbol `xy` is integrable** for `ξ ∈ D(A) ∩ D(B)`: both coordinates are in `L²(μ_ξ)`
 (`memLp_two_iff_integrable_sq` + the second moments), so their product is in `L¹` (`MemLp.integrable_mul`,
 Hölder `2·2 → 1`).  The L¹ membership that makes `∫ xy dμ_ξ` an honest absolutely-convergent integral. -/
-theorem jointScalarMeasure_integrable_mul (A B : Observable.UnboundedObservable H)
+theorem jointScalarMeasure_integrable_mul (A B : Spectra.Operator.SelfAdjointOperator H)
     (hSC : StronglyCommute A B) {ξ : H} (hξA : ξ ∈ A.domain) (hξB : ξ ∈ B.domain) :
     Integrable (fun p : ℝ × ℝ => p.1 * p.2) (jointScalarMeasure A B hSC ξ) := by
   have hf : MemLp (fun p : ℝ × ℝ => p.1) 2 (jointScalarMeasure A B hSC ξ) :=
@@ -2479,7 +2479,7 @@ private lemma generator_commute {U_grp : OneParameterUnitaryGroup (H := H)} (C :
 `B`, for strongly-commuting `A, B`.  One application of the projection→calculus engine
 `commute_spectralCalculus_of_commute_proj` (lifting the `A`-indicators to a character), then
 `spectralCalculus_char`.  This is the hypothesis the domain-commutation engine above consumes. -/
-private lemma commute_groupA_projB (A B : Observable.UnboundedObservable H)
+private lemma commute_groupA_projB (A B : Spectra.Operator.SelfAdjointOperator H)
     (hSC : StronglyCommute A B) (t : ℝ) {T : Set ℝ} (hT : MeasurableSet T) :
     (genToGroup A.selfAdjoint).U t * B.spectralPVM.proj T hT
       = B.spectralPVM.proj T hT * (genToGroup A.selfAdjoint).U t := by
@@ -2494,7 +2494,7 @@ Route: the `y`-cylinder section of `μ_ξ` pushed to the `x`-axis is `μ^A_{E_B(
 (`jointScalarMeasure_prod`), so the integral is `∫ f dμ^A_{E_B(T)ξ} = ⟪E_B(T)ξ, Φ_A(f) E_B(T)ξ⟫`
 (`spectralForm_self`, `inner_spectralCalculus`), and the left `E_B(T)` drops by self-adjointness +
 idempotence + the calculus/projection commutation. -/
-private lemma joint_section_inner (A B : Observable.UnboundedObservable H)
+private lemma joint_section_inner (A B : Spectra.Operator.SelfAdjointOperator H)
     (hSC : StronglyCommute A B) {f : ℝ → ℂ} (hfm : Measurable f) (hfb : ∃ C, ∀ ω, ‖f ω‖ ≤ C)
     (ξ : H) {T : Set ℝ} (hT : MeasurableSet T) :
     ∫ p, f p.1 * Set.indicator T (fun _ => (1 : ℂ)) p.2 ∂(jointScalarMeasure A B hSC ξ)
@@ -2557,7 +2557,7 @@ private lemma simpleFunc_bdd (s : MeasureTheory.SimpleFunc ℝ ℂ) :
 `∫ f(x)·s(y) dμ_ξ` equals the `B`-spectral form `spectralForm_B (Φ_A(f)† ξ) ξ s`.  By
 `SimpleFunc.induction`: the indicator base case is `joint_section_inner` (scaled), and additivity is
 the bilinearity of both the integral and `spectralForm` (`spectralForm_add_fun`). -/
-private lemma joint_product_form_simple (A B : Observable.UnboundedObservable H)
+private lemma joint_product_form_simple (A B : Spectra.Operator.SelfAdjointOperator H)
     (hSC : StronglyCommute A B) {f : ℝ → ℂ} (hfm : Measurable f) (hfb : ∃ C, ∀ ω, ‖f ω‖ ≤ C)
     (ξ : H) (s : MeasureTheory.SimpleFunc ℝ ℂ) :
     ∫ p, f p.1 * (s : ℝ → ℂ) p.2 ∂(jointScalarMeasure A B hSC ξ)
@@ -2644,7 +2644,7 @@ bounded `g` by approximating with `SimpleFunc.approxOn` and dominated convergenc
 left integral over the finite `μ_ξ`; the right `spectralForm`, a fixed combination of integrals over
 the finite measures `μ^B_w`).  The operator product `Φ_A(f)Φ_B(g)` is what replaces the unavailable
 Fubini. -/
-private lemma joint_product_form (A B : Observable.UnboundedObservable H)
+private lemma joint_product_form (A B : Spectra.Operator.SelfAdjointOperator H)
     (hSC : StronglyCommute A B) {f g : ℝ → ℂ} (hfm : Measurable f) (hfb : ∃ C, ∀ ω, ‖f ω‖ ≤ C)
     (hgm : Measurable g) (hgb : ∃ C, ∀ ω, ‖g ω‖ ≤ C) (ξ : H) :
     ∫ p, f p.1 * g p.2 ∂(jointScalarMeasure A B hSC ξ)
@@ -2713,7 +2713,7 @@ nested truncated projections of `A(Bξ)`:
 (`generator_spectralProjection`), then `E_B([-N,N])` preserves `D(A)` and commutes with `A`
 (`generator_commute` + `commute_groupA_projB`), so `Φ_A(x·1_N)` acting on it is `E_A([-N,N])` applied
 to `E_B([-N,N])(A(Bξ))`. -/
-private lemma joint_truncated_vector (A B : Observable.UnboundedObservable H)
+private lemma joint_truncated_vector (A B : Spectra.Operator.SelfAdjointOperator H)
     (hSC : StronglyCommute A B) {ξ : H} (hξ : ξ ∈ B.domain)
     (hξ' : B.toLinearPMap ⟨ξ, hξ⟩ ∈ A.domain) (N : ℕ) :
     spectralCalculus (genToGroup A.selfAdjoint)
@@ -2762,7 +2762,7 @@ private lemma joint_truncated_vector (A B : Observable.UnboundedObservable H)
 `E_A([-N,N]) E_B([-N,N]) v → v`: `E_B([-N,N])v → v` and `E_A([-N,N])v → v`
 (`tendsto_spectralProjection_Icc_univ`), and `E_A` is a contraction, so the composite differs from
 `v` by at most `‖E_B([-N,N])v − v‖ + ‖E_A([-N,N])v − v‖ → 0`. -/
-private lemma joint_truncated_tendsto (A B : Observable.UnboundedObservable H) (v : H) :
+private lemma joint_truncated_tendsto (A B : Spectra.Operator.SelfAdjointOperator H) (v : H) :
     Filter.Tendsto (fun N : ℕ =>
         A.spectralPVM.proj (Set.Icc (-(N : ℝ)) (N : ℝ)) measurableSet_Icc
           (B.spectralPVM.proj (Set.Icc (-(N : ℝ)) (N : ℝ)) measurableSet_Icc v)) atTop (𝓝 v) := by
@@ -2801,7 +2801,7 @@ Proof (planned): the 2-D analogue of `weak_first_moment` — truncate `xy` to th
 the truncated integral via the commuting bounded calculi `Φ_A(x·1_N)Φ_B(y·1_N)`, then dominated
 convergence (left) and the domain-commutation engine `generator_spectralProjection_comm` (right) as
 `N → ∞`.  See the Vault plan `Plan - G3 Correlation.md`. -/
-theorem jointBornMeasure_correlation {A B : Observable.UnboundedObservable H}
+theorem jointBornMeasure_correlation {A B : Spectra.Operator.SelfAdjointOperator H}
     (hSC : StronglyCommute A B) {ξ : H} (hξA : ξ ∈ A.domain) (hξ : ξ ∈ B.domain)
     (hξ' : (B.toLinearPMap ⟨ξ, hξ⟩) ∈ A.domain) :
     ∫ p, p.1 * p.2 ∂(jointBornMeasure (jointPOVM A B hSC) ξ)

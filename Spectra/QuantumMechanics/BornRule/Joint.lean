@@ -4,7 +4,7 @@ Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Spectra.QuantumMechanics.BornRule.POVM
-import Spectra.QuantumMechanics.Observable.Basic
+import Spectra.Operator.SelfAdjoint
 import Spectra.SpectralTheory.Calculus.Bounded
 import Spectra.SpectralTheory.Measure.Convergence
 import Spectra.SpectralTheory.ResolventForm
@@ -71,7 +71,7 @@ the two-dimensional analogue of your Herglotz/Stone spectral-measure constructio
 
 open MeasureTheory Complex Spectra
 open scoped InnerProductSpace
-open Spectra.QuantumMechanics.Observable
+open Spectra.Operator
 
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
 
@@ -254,7 +254,7 @@ It is *strictly stronger* than `Commute A.toLinearPMap B.toLinearPMap` (algebrai
 common domain), which by Nelson's counterexample does **not** imply a joint spectral measure.  It is
 equivalent to: the resolvents commute; the unitary groups `e^{isA}`, `e^{itB}` commute (the form your
 Stone machinery exposes directly). -/
-def StronglyCommute (A B : UnboundedObservable H) : Prop :=
+def StronglyCommute (A B : SelfAdjointOperator H) : Prop :=
   ∀ (S T : Set ℝ) (hS : MeasurableSet S) (hT : MeasurableSet T),
     Commute (A.spectralPVM.proj S hS) (B.spectralPVM.proj T hT)
 
@@ -267,7 +267,7 @@ commutation via `commute_spectralCalculus_of_commute_group` (Fourier uniqueness)
 projection commutation to character commutation via `commute_spectralCalculus_of_commute_proj`
 (`Measure.ext`); each is two applications of an engine plus `Commute.symm`, using
 `E_A(S) = Φ_A(1_S)` and `e^{isA} = Φ_A(e^{is·})` (`spectralCalculus_char`). -/
-theorem stronglyCommute_iff_groups_commute (A B : UnboundedObservable H) :
+theorem stronglyCommute_iff_groups_commute (A B : SelfAdjointOperator H) :
     StronglyCommute A B ↔
       ∀ s t : ℝ, Commute ((YosidaHille.genToGroup A.selfAdjoint).U s)
         ((YosidaHille.genToGroup B.selfAdjoint).U t) := by
@@ -331,7 +331,7 @@ noncomputable def _root_.Spectra.POVM.marginalSnd (M : POVM H (ℝ × ℝ)) (ξ 
 /-- **The marginal PVM property** at the operator level: the effect on the cylinder `S × ℝ` is the
 spectral projection `E_A(S)`.  This is the hypothesis with teeth — it forces the marginal *operators*
 (not merely the marginal measures) to be `A`'s, which is what couples to commutativity. -/
-def _root_.Spectra.POVM.IsJointOf (M : POVM H (ℝ × ℝ)) (A B : UnboundedObservable H) : Prop :=
+def _root_.Spectra.POVM.IsJointOf (M : POVM H (ℝ × ℝ)) (A B : SelfAdjointOperator H) : Prop :=
   (∀ (S : Set ℝ) (hS : MeasurableSet S),
       M.effect (S ×ˢ Set.univ) (hS.prod MeasurableSet.univ) = A.spectralPVM.proj S hS)
     ∧ (∀ (T : Set ℝ) (hT : MeasurableSet T),
@@ -342,7 +342,7 @@ def _root_.Spectra.POVM.IsJointOf (M : POVM H (ℝ × ℝ)) (A B : UnboundedObse
 /-- `[done]` The easy half, isolated: a joint projective PVM forces strong commutativity.  For any
 `S, T`, `E_A(S)·E_B(T) = M(S×ℝ)·M(ℝ×T) = M((S×ℝ)∩(ℝ×T)) = M((ℝ×T)∩(S×ℝ)) = M(ℝ×T)·M(S×ℝ) =
 E_B(T)·E_A(S)`.  Pure algebra from `IsProjective` + `IsJointOf` + `Set.inter_comm`. -/
-theorem stronglyCommute_of_jointPVM {A B : UnboundedObservable H} {M : POVM H (ℝ × ℝ)}
+theorem stronglyCommute_of_jointPVM {A B : SelfAdjointOperator H} {M : POVM H (ℝ × ℝ)}
     (hproj : M.IsProjective) (hjoint : M.IsJointOf A B) :
     StronglyCommute A B := by
   intro S T hS hT
@@ -379,7 +379,7 @@ theorem isProbabilityMeasure_jointBornMeasure (M : POVM H (ℝ × ℝ)) {ξ : H}
 
 /-- `[done]` **The first marginal is `A`'s Born measure.**  From `IsJointOf` (operator marginal) and
 the welds: `(M.diag ξ).fst S = (M.diag ξ)(S×ℝ) = ⟪ξ, E_A(S) ξ⟫ = (A.spectralPVM.diag ξ) S`. -/
-theorem jointBornMeasure_fst {M : POVM H (ℝ × ℝ)} {A B : UnboundedObservable H}
+theorem jointBornMeasure_fst {M : POVM H (ℝ × ℝ)} {A B : SelfAdjointOperator H}
     (hjoint : M.IsJointOf A B) (ξ : H) :
     (jointBornMeasure M ξ).fst = bornMeasure A.spectralPVM ξ := by
   refine Measure.ext fun S hS => ?_
@@ -394,7 +394,7 @@ theorem jointBornMeasure_fst {M : POVM H (ℝ × ℝ)} {A B : UnboundedObservabl
     (by exact_mod_cast hcoe)
 
 /-- `[done]` **The second marginal is `B`'s Born measure.** -/
-theorem jointBornMeasure_snd {M : POVM H (ℝ × ℝ)} {A B : UnboundedObservable H}
+theorem jointBornMeasure_snd {M : POVM H (ℝ × ℝ)} {A B : SelfAdjointOperator H}
     (hjoint : M.IsJointOf A B) (ξ : H) :
     (jointBornMeasure M ξ).snd = bornMeasure B.spectralPVM ξ := by
   refine Measure.ext fun T hT => ?_
@@ -422,7 +422,7 @@ correctly. -/
 `∃ μ_ξ` with the right marginals is always true and is *not* equivalent to commutativity.  Proof:
 `Measure.fst_prod`, `Measure.snd_prod` (with each marginal a probability measure — hence the unit
 vector `‖ξ‖ = 1`, without which the product's marginals are scaled by `‖ξ‖²` and the claim is false). -/
-theorem exists_coupling_always (A B : UnboundedObservable H) {ξ : H} (hξ : ‖ξ‖ = 1) :
+theorem exists_coupling_always (A B : SelfAdjointOperator H) {ξ : H} (hξ : ‖ξ‖ = 1) :
     ∃ μ : Measure (ℝ × ℝ),
       μ.fst = bornMeasure A.spectralPVM ξ ∧ μ.snd = bornMeasure B.spectralPVM ξ := by
   haveI := isProbabilityMeasure_bornMeasure A.spectralPVM hξ
@@ -439,7 +439,7 @@ A family `A₁, A₂, B₁, B₂` that **pairwise** strongly commutes (in partic
 local-hidden-variable model in the sense of `BellsTheorem.LHV`, hence the CHSH bound:
 ```
 theorem chsh_le_two_of_stronglyCommute
-    (A₁ A₂ B₁ B₂ : UnboundedObservable H)
+    (A₁ A₂ B₁ B₂ : SelfAdjointOperator H)
     (hAA : StronglyCommute A₁ A₂) (hBB : StronglyCommute B₁ B₂)
     (hAB : ∀ i j, StronglyCommute (![A₁,A₂] i) (![B₁,B₂] j)) (ξ : H) :
     |⟪ξ, …CHSH operator… ξ⟫.re| ≤ 2

@@ -3,9 +3,9 @@ Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Author: Adam Bornemann
 -/
-import Spectra.Analysis.OperatorAlgebra.TraceClass.Norm
-import Spectra.Analysis.OperatorAlgebra.TraceClass.PartialIsometry
-import Spectra.Analysis.InnerProductSpace.TsumInner
+import Spectra.QuantumMechanics.Channels.TraceClass.Norm
+import Spectra.QuantumMechanics.Channels.TraceClass.PartialIsometry
+import Spectra.QuantumMechanics.Channels.TsumInner
 
 /-!
 # Stage B — the complex trace functional and `|tr T| ≤ ‖T‖₁`
@@ -20,7 +20,7 @@ trace and the bound `|tr T| ≤ ‖T‖₁`.
 
 ## Main definitions
 
-* `Spectra.OperatorAlgebra.trace T` — the complex trace `∑ᵢ ⟪eᵢ, T eᵢ⟫`.
+* `Spectra.QuantumMechanics.Channels.trace T` — the complex trace `∑ᵢ ⟪eᵢ, T eᵢ⟫`.
 
 ## Main results
 
@@ -40,10 +40,10 @@ Tomita–Takesaki fundamental theorem), building on Stage A (`PartialIsometry.le
 next bricks.
 -/
 
-open ContinuousLinearMap RCLike Spectra.Analysis
+open ContinuousLinearMap RCLike Spectra.QuantumMechanics.Channels
 open scoped InnerProductSpace InnerProduct ENNReal NNReal
 
-namespace Spectra.OperatorAlgebra
+namespace Spectra.QuantumMechanics.Channels
 
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
 variable {ι : Type*}
@@ -74,7 +74,7 @@ private lemma tsum_sq_eq_toReal (p : ι → H) :
 
 The weighted Cauchy–Schwarz estimate `weighted_norm_tsum_inner_le` and the inner-summability lemma
 `summable_inner_of_summable_sq` used below are the general `ℓ²`-pairing facts, kept in
-`Spectra.Analysis` (`Spectra/Analysis/InnerProductSpace/TsumInner.lean`). -/
+`Spectra.QuantumMechanics.Channels` (`Spectra/QuantumMechanics/Channels/TsumInner.lean`). -/
 
 /-- **The twist identity.** With `S = |T|^{1/2}` and `U = polarIsometry T`,
 `⟪(S ∘ U⋆) x, S y⟫ = ⟪x, T y⟫` — the reduction of a diagonal entry to a `|T|^{1/2}`-twisted pairing. -/
@@ -297,4 +297,4 @@ theorem tsum_norm_inner_comp_le {W S : H →L[ℂ] H} (hW : ‖W‖ ≤ 1) (hS :
         tsum_norm_inner_le hp_sum (summable_sqrtOp_absOp_sq hS)
     _ ≤ traceNorm S := by rw [hq_tsum]; linarith
 
-end Spectra.OperatorAlgebra
+end Spectra.QuantumMechanics.Channels

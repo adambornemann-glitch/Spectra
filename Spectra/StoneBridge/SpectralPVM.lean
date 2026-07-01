@@ -36,7 +36,8 @@ connects both of them to `spectralPVM`, closing the loop the Cayley directory wa
   `OneParameterUnitaryGroup.toPVM` — `groupPVM` is now an alias for `toPVM`, not a second
   construction, so the two names stay visibly interchangeable wherever a proof still reaches for
   `groupPVM` (the `AxiomCheck`-gated `spectralPVM`/`spectralPVM_resolvent_formula`) instead of
-  `.toPVM` (`UnboundedObservable.spectralPVM`, `QuantumMechanics.BornRule.Observable`).
+  `.toPVM` (`Spectra.Operator.SelfAdjointOperator.spectralPVM`,
+  `QuantumMechanics.BornRule.Observable`).
 -/
 open MeasureTheory
 open scoped InnerProductSpace
@@ -63,8 +64,8 @@ theorem spectralPVM_eq_groupPVM_stoneGroup [Nontrivial H] (hA : IsSelfAdjoint A)
   rw [stoneGroup_eq_genToGroup hA]
 
 /-- The `.toPVM` form of the bridge, for readers who reach `spectralPVM` through the
-`OneParameterUnitaryGroup.toPVM` route (e.g. `UnboundedObservable.spectralPVM`) instead of
-`groupPVM`. -/
+`OneParameterUnitaryGroup.toPVM` route (e.g. `Spectra.Operator.SelfAdjointOperator.spectralPVM`)
+instead of `groupPVM`. -/
 theorem spectralPVM_eq_stoneGroup_toPVM [Nontrivial H] (hA : IsSelfAdjoint A) :
     spectralPVM hA = (stoneGroup hA).toPVM := by
   rw [spectralPVM_eq_groupPVM_stoneGroup hA, groupPVM_eq_toPVM]

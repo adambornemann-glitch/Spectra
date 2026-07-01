@@ -25,7 +25,7 @@ open Complex MeasureTheory
 open scoped InnerProductSpace
 open Spectra.Resolvent
 open Spectra.YosidaHille
-open Spectra.QuantumMechanics.Observable
+open Spectra.Operator
 open Spectra.QuantumMechanics.SpectralTheory
 open Spectra.BorelCFC
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]

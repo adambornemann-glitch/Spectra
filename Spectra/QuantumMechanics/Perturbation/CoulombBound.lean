@@ -10,7 +10,7 @@ import Spectra.YosidaHille.Basic
 import Spectra.QuantumMechanics.Perturbation.HardyInequality
 import Spectra.QuantumMechanics.Perturbation.KatoRellich
 import Spectra.SobolevSpaces.DensityResults
-import Spectra.QuantumMechanics.Observable.Basic
+import Spectra.Operator.SelfAdjoint
 import Spectra.SpectralTheory.ResolventForm
 import Spectra.Resolvent.Range
 
@@ -83,7 +83,7 @@ the corresponding sorries with it.
 open MeasureTheory Complex Filter InnerProductSpace
 open Spectra.Sobolev
 open Spectra.OneParameterUnitaryGroup
-open Spectra.QuantumMechanics.Observable
+open Spectra.Operator
 open Spectra.QuantumMechanics.Hamiltonian
 open Spectra.Resolvent
 open scoped Topology NNReal ENNReal

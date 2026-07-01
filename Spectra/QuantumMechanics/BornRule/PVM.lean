@@ -3,7 +3,7 @@ Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
-import Spectra.QuantumMechanics.Observable.Basic
+import Spectra.Operator.SelfAdjoint
 import Spectra.ProjValMeasure.Basic
 import Spectra.SpectralTheory.Measure.Polarized
 import Spectra.SpectralTheory.Measure.PVM
@@ -36,7 +36,7 @@ operator-theoretic name:
 * `Spectra.ProjValMeasure.{isSelfAdjoint_proj, proj_idem, proj_union, norm_proj_apply_le}`
   are the resolution-of-identity facts the rule rests on.
 
-What is **not** done is the bridge from an `UnboundedObservable` to its PVM — the existence
+What is **not** done is the bridge from a `SelfAdjointOperator` to its PVM — the existence
 half of your keystone `∃! P, (resolvent formula against P.diag)`.  Its uniqueness half is
 `ProjValMeasure.ext_of_diag`; its existence half is `spectralPVM`, which you are building
 on the StoneFormula / Herglotz / CayleyTransform stack.  Until `spectralPVM` lands, every

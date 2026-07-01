@@ -9,7 +9,7 @@ import Spectra.SobolevSpaces.Submodules
 import Spectra.SobolevSpaces.IntegrationByParts
 import Spectra.SobolevSpaces.DensityResults
 import Spectra.QuantumMechanics.Perturbation.KatoRellich
-import Spectra.QuantumMechanics.Observable.Basic
+import Spectra.Operator.SelfAdjoint
 import Spectra.YosidaHille.Basic
 /-!
 # The free Dirac operator on `L²(ℝ³; ℂ⁴)`
@@ -78,7 +78,7 @@ open Complex MeasureTheory InnerProductSpace
 open scoped InnerProductSpace
 open Spectra.Sobolev
 open Spectra.QuantumMechanics.Hamiltonian
-open Spectra.QuantumMechanics.Observable
+open Spectra.Operator
 open Spectra.OneParameterUnitaryGroup
 open Spectra.YosidaHille
 open Spectra.QuantumMechanics.Hydrogen
@@ -567,8 +567,8 @@ perturbation of the self-adjoint kinetic operator (Kato–Rellich). -/
 theorem diracHamiltonian_isSelfAdjoint (mc2 : ℝ) : IsSelfAdjoint (diracHamiltonian mc2) :=
   kato_rellich_bounded diracKinetic_isSelfAdjoint (matrixOp_massTerm_isSelfAdjoint mc2)
 
-/-- The free Dirac Hamiltonian bundled as an `UnboundedObservable`. -/
-def diracHamiltonianObservable (mc2 : ℝ) : UnboundedObservable DiracSpinorL2 where
+/-- The free Dirac Hamiltonian bundled as a `SelfAdjointOperator`. -/
+def diracHamiltonianObservable (mc2 : ℝ) : SelfAdjointOperator DiracSpinorL2 where
   toLinearPMap := diracHamiltonian mc2
   selfAdjoint := diracHamiltonian_isSelfAdjoint mc2
 

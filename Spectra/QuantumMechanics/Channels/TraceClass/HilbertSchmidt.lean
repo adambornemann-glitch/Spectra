@@ -3,8 +3,8 @@ Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Author: Adam Bornemann
 -/
-import Spectra.Analysis.OperatorAlgebra.TraceClass.Norm
-import Spectra.Analysis.OperatorAlgebra.TraceClass.PartialIsometry
+import Spectra.QuantumMechanics.Channels.TraceClass.Norm
+import Spectra.QuantumMechanics.Channels.TraceClass.PartialIsometry
 
 /-!
 # Stage C — the Hilbert–Schmidt ideal
@@ -29,7 +29,7 @@ summability facts needed for cyclicity `tr (AB) = tr (BA)` (Stage D), where `A` 
 open ContinuousLinearMap RCLike
 open scoped InnerProductSpace InnerProduct ENNReal NNReal
 
-namespace Spectra.OperatorAlgebra
+namespace Spectra.QuantumMechanics.Channels
 
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
 variable {ι κ : Type*}
@@ -114,4 +114,4 @@ lemma IsHilbertSchmidt.comp_right {A : H →L[ℂ] H} (hA : IsHilbertSchmidt A) 
   rw [← isHilbertSchmidt_adjoint, ContinuousLinearMap.adjoint_comp]
   exact ((isHilbertSchmidt_adjoint A).mpr hA).comp_left (B†)
 
-end Spectra.OperatorAlgebra
+end Spectra.QuantumMechanics.Channels

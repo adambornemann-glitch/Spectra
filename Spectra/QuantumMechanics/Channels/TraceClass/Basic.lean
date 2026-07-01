@@ -3,7 +3,7 @@ Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Author: Adam Bornemann
 -/
-import Spectra.Analysis.OperatorAlgebra.PolarDecomp
+import Spectra.QuantumMechanics.Channels.PolarDecomp
 import Mathlib.Analysis.InnerProductSpace.l2Space
 import Mathlib.Analysis.SpecialFunctions.ContinuousFunctionalCalculus.Rpow.Basic
 
@@ -27,7 +27,7 @@ bricks. Part of the trace-class / von Neumann predual development.
 open ContinuousLinearMap RCLike
 open scoped InnerProductSpace InnerProduct ENNReal NNReal
 
-namespace Spectra.OperatorAlgebra
+namespace Spectra.QuantumMechanics.Channels
 
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
 
@@ -114,4 +114,4 @@ theorem posTrace_indep {κ : Type*} (b : HilbertBasis ι ℂ H) (b' : HilbertBas
     posTrace b T = posTrace b' T :=
   tsum_enorm_apply_sq_comm (sqrtOp T) (sqrtOp_isSelfAdjoint T) b b'
 
-end Spectra.OperatorAlgebra
+end Spectra.QuantumMechanics.Channels

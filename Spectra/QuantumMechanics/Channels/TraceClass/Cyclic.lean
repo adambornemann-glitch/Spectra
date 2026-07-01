@@ -3,8 +3,8 @@ Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Author: Adam Bornemann
 -/
-import Spectra.Analysis.OperatorAlgebra.TraceClass.Trace
-import Spectra.Analysis.OperatorAlgebra.TraceClass.HilbertSchmidt
+import Spectra.QuantumMechanics.Channels.TraceClass.Trace
+import Spectra.QuantumMechanics.Channels.TraceClass.HilbertSchmidt
 import Mathlib.Topology.Algebra.InfiniteSum.Real
 import Mathlib.Topology.Algebra.InfiniteSum.Constructions
 
@@ -33,7 +33,7 @@ Hilbert–Schmidt ideal (`HilbertSchmidt.lean`).
 open ContinuousLinearMap RCLike
 open scoped InnerProductSpace InnerProduct ENNReal NNReal
 
-namespace Spectra.OperatorAlgebra
+namespace Spectra.QuantumMechanics.Channels
 
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
 
@@ -120,4 +120,4 @@ theorem trace_comp_comm {A : H →L[ℂ] H} (hA : IsTraceClass A) (B : H →L[�
     _ = trace (B ∘L (C ∘L D)) := by rw [ContinuousLinearMap.comp_assoc]
     _ = trace (B ∘L A) := by rw [hCD]
 
-end Spectra.OperatorAlgebra
+end Spectra.QuantumMechanics.Channels

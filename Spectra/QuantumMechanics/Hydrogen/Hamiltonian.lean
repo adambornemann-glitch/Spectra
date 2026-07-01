@@ -18,13 +18,13 @@ This is the **interface file**: the analytic content lives upstream
 objects the spectral machinery consumes. In the current architecture the central
 object is `perturbedOp laplacianPMap (coulombPotential p)`, shown self-adjoint by
 `hydrogen_isSelfAdjoint` (Kato–Rellich) in `CoulombBound`; this file re-exports it
-under hydrogen-specific names and bundles it as an `UnboundedObservable` and a
+under hydrogen-specific names and bundles it as a `SelfAdjointOperator` and a
 `OneParameterUnitaryGroup`.
 
 ## Main definitions
 
 * `hydrogenHamiltonian` — `H = −Δ − Z/r` as a partial linear map.
-* `hydrogenObservable` — `H` bundled as an `UnboundedObservable`.
+* `hydrogenObservable` — `H` bundled as a `SelfAdjointOperator`.
 * `hydrogenUnitaryGroup` — the evolution `e^{itH}` (Stone's theorem).
 * `HydrogenData` — bundled hydrogen-atom data.
 
@@ -46,7 +46,7 @@ open Spectra.Sobolev
 open Spectra.OneParameterUnitaryGroup Spectra.YosidaHille Spectra.Resolvent
 open Spectra.QuantumMechanics.Hamiltonian
 open Spectra.QuantumMechanics.SpectralTheory
-open Spectra.QuantumMechanics.Observable
+open Spectra.Operator
 open scoped Topology NNReal ENNReal
 noncomputable section
 namespace Spectra.QuantumMechanics.Hydrogen
@@ -77,8 +77,8 @@ theorem hydrogenHamiltonian_apply (p : CoulombParams)
     hydrogenHamiltonian p ψ = halfLaplacianPMap ψ + coulombPotential p ψ :=
   rfl
 
-/-- The hydrogen Hamiltonian bundled as an `UnboundedObservable`. -/
-def hydrogenObservable (p : CoulombParams) : UnboundedObservable L2_R3 where
+/-- The hydrogen Hamiltonian bundled as a `SelfAdjointOperator`. -/
+def hydrogenObservable (p : CoulombParams) : SelfAdjointOperator L2_R3 where
   toLinearPMap := hydrogenHamiltonian p
   selfAdjoint := hydrogen_isSelfAdjoint p
 
@@ -106,8 +106,8 @@ namespace HydrogenData
 def hamiltonian (d : HydrogenData) : L2_R3 →ₗ.[ℂ] L2_R3 :=
   hydrogenHamiltonian d.params
 
-/-- The Hamiltonian as an `UnboundedObservable`. -/
-def observable (d : HydrogenData) : UnboundedObservable L2_R3 :=
+/-- The Hamiltonian as a `SelfAdjointOperator`. -/
+def observable (d : HydrogenData) : SelfAdjointOperator L2_R3 :=
   hydrogenObservable d.params
 
 /-- The unitary evolution `e^{itH}`. -/

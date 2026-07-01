@@ -21,15 +21,24 @@ The antilinear Tomita operator `S̃ = ofConj ∘ S : H ⊇ D(S) → H` (where `S
 `modularConjugation_apply_modularSqrt` (`J (Δ^{½} x) = ofConj (S x)`), these are the building blocks
 of the field-3 proof.
 
-## The remaining node (`J² = 1`, not yet closed here)
+## The Tomita involution on all of `D(S)` (closure level)
 
-Closing `J (J (Δ^{½} x)) = Δ^{½} x` requires knowing `S̃ x ∈ range Δ^{½}` (so the polar relation
-`W (Δ^{½} x') = S x'` fires on the outer `J`). The core `M Ω` carries the involution but is not
-contained in `D(Δ)` where the polar relation lives, while `range Δ^{½}` carries the polar relation but
-not (yet) the involution: the two dense sets do not line up. Bridging them needs either the
-closed-operator inclusion `S̃² ⊆ 1` with `S̃ (D(Δ)) ⊆ D(S)`, or `Δ^{½}` self-adjointness `(Δ^{½})² = Δ`
-(an open R2 nicety) plus polar-decomposition uniqueness. That step is deferred; this file supplies the
-verified foundation it will build on.
+`sTilde_involutive_core` gives `S̃²=1` only on the core `M Ω`. This is upgraded here to the whole
+domain `D(S)` of the closure — `sTilde_closure_involutive` (`S̃ (S̃ y) = y` for `y ∈ D(S)`) — by a
+graph-closure argument: the continuous conjugate-linear swap `σ(u,v) = (ofConj v, toConj u)` sends the
+core graph generator at `T` to the generator at `star T`, so it preserves `Γ(S₀)`, hence its closure
+`Γ(S)`; applied to `(y, S y)` it yields `(S̃ y, toConj y) ∈ Γ(S)`, i.e. `S̃ y ∈ D(S)` and `S̃(S̃ y)=y`.
+This is the genuine closed-operator `S² = 1`, proved with **no** `Δ`/`Δ^{½}`/adjoint calculus.
+
+## The remaining node (`J² = 1`, not closed here)
+
+Closing `J (J (Δ^{½} x)) = Δ^{½} x` needs `W (S̃ x)`, whose only handle is `range (Δ^{½}|_{D(Δ)})` (via
+the polar relation `W (Δ^{½} x') = S x'`). The involution `sTilde_closure_involutive` gives
+`S̃ x ∈ D(S) = D(Δ^{½})`, but that is a *strictly larger* set than `range (Δ^{½}|_{D(Δ)})`. Bridging the
+two is exactly extending the polar relation `S = J Δ^{½}` from `D(Δ)` to the full `D(Δ^{½})` — which is
+what `Δ^{½}` self-adjointness `(Δ^{½})² = Δ` plus polar-decomposition uniqueness deliver (Route B; see the
+vault plan `Field 3 - J Involution Plan.md`). That step is deferred; this file supplies the involution it
+will build on.
 -/
 
 open scoped InnerProductSpace
@@ -98,5 +107,79 @@ theorem sTilde_involutive_core (hsep : IsSeparating M Ω) {a : H →L[ℂ] H} (h
   have hcast : (⟨ofConj (tomitaClosure M Ω ⟨a Ω, h1⟩), h2⟩ : (tomitaClosure M Ω).domain)
       = ⟨(star a) Ω, star_smul_vacuum_mem_domain ha⟩ := Subtype.ext hval
   rw [hcast, sTilde_core hsep (star_mem ha) (star_smul_vacuum_mem_domain ha), star_star]
+
+/-! ## The Tomita involution on all of `D(S)`
+
+The continuous conjugate-linear swap `σ(u,v) = (ofConj v, toConj u)` preserves the core graph, hence
+its closure, upgrading `S̃²=1` from `M Ω` to the whole domain of the closure. -/
+
+/-- The continuous conjugate-linear swap `σ(u,v) = (ofConj v, toConj u)` on `H × Conj H`. -/
+private def swapConj : (H × Conj H) → (H × Conj H) := fun p => (ofConj p.2, toConj p.1)
+
+omit [CompleteSpace H] in
+private lemma continuous_swapConj : Continuous (swapConj : H × Conj H → H × Conj H) := by
+  have hct : Continuous (toConj : H → Conj H) := by
+    rw [← Conj.coe_toConjₗᵢ (E := H)]; exact (Conj.toConjₗᵢ H).continuous
+  have hco : Continuous (ofConj : Conj H → H) := by
+    rw [← Conj.coe_toConjₗᵢ_symm (E := H)]; exact (Conj.toConjₗᵢ H).symm.continuous
+  exact (hco.comp continuous_snd).prodMk (hct.comp continuous_fst)
+
+/-- `σ` sends the core graph `Γ(S₀)` into itself: the generator at `T` goes to the generator at
+`star T` (using `star T ∈ M` and `star (star T) = T`). -/
+private lemma swapConj_mem_tomitaGraph {v : H × Conj H} (hv : v ∈ tomitaGraph M Ω) :
+    swapConj v ∈ tomitaGraph M Ω := by
+  rw [tomitaGraph, Submodule.mem_map] at hv ⊢
+  obtain ⟨T, hT, rfl⟩ := hv
+  refine ⟨star T, mem_toSubmodule.mpr (star_mem (mem_toSubmodule.mp hT)), ?_⟩
+  have e1 : (evalAt Ω).prod (tomitaPre Ω) (star T)
+      = (evalAt Ω (star T), tomitaPre Ω (star T)) := rfl
+  have e2 : swapConj ((evalAt Ω).prod (tomitaPre Ω) T)
+      = (ofConj (tomitaPre Ω T), toConj (evalAt Ω T)) := rfl
+  rw [e1, e2, evalAt_apply, evalAt_apply, tomitaPre_apply, tomitaPre_apply, ofConj_toConj, star_star]
+
+/-- The swapped pair `(S̃ y, toConj y)` lands in the closed graph `Γ(S)` for `y ∈ D(S)`. -/
+theorem swapConj_tomitaClosure_graph (hcyc : IsCyclic M Ω) (hsep : IsSeparating M Ω)
+    (y : (tomitaClosure M Ω).domain) :
+    (ofConj (tomitaClosure M Ω y), toConj (y : H)) ∈ (tomitaClosure M Ω).graph := by
+  have hcl : (tomitaOp M Ω).IsClosable := tomitaOp_isClosable hcyc hsep
+  have hopgraph : (tomitaOp M Ω).graph = tomitaGraph M Ω :=
+    Submodule.toLinearPMap_graph_eq (tomitaGraph M Ω) (tomitaGraph_functional M Ω hsep)
+  have hclgraph : (tomitaClosure M Ω).graph = (tomitaGraph M Ω).topologicalClosure := by
+    rw [tomitaClosure, ← hcl.graph_closure_eq_closure_graph, hopgraph]
+  have hmem : ((y : H), tomitaClosure M Ω y) ∈ closure (↑(tomitaGraph M Ω) : Set (H × Conj H)) := by
+    have h := LinearPMap.mem_graph (tomitaClosure M Ω) y
+    rw [hclgraph, ← SetLike.mem_coe, Submodule.topologicalClosure_coe] at h
+    exact h
+  have himg : swapConj '' (↑(tomitaGraph M Ω) : Set (H × Conj H))
+      ⊆ (↑(tomitaGraph M Ω) : Set (H × Conj H)) := by
+    rintro _ ⟨v, hv, rfl⟩; exact swapConj_mem_tomitaGraph hv
+  have key : swapConj ((y : H), tomitaClosure M Ω y)
+      ∈ closure (↑(tomitaGraph M Ω) : Set (H × Conj H)) :=
+    ((image_closure_subset_closure_image continuous_swapConj).trans (closure_mono himg))
+      ⟨_, hmem, rfl⟩
+  rw [hclgraph, ← SetLike.mem_coe, Submodule.topologicalClosure_coe]
+  exact key
+
+/-- `S̃ y ∈ D(S)` for every `y ∈ D(S)`: the closure's domain is `S̃`-invariant. -/
+theorem sTilde_closure_mem_domain (hcyc : IsCyclic M Ω) (hsep : IsSeparating M Ω)
+    (y : (tomitaClosure M Ω).domain) :
+    ofConj (tomitaClosure M Ω y) ∈ (tomitaClosure M Ω).domain := by
+  obtain ⟨z, hz1, _⟩ := (LinearPMap.mem_graph_iff _).mp (swapConj_tomitaClosure_graph hcyc hsep y)
+  have hz1' : (z : H) = ofConj (tomitaClosure M Ω y) := hz1
+  exact hz1' ▸ z.2
+
+/-- **The Tomita involution on `D(S)`: `S̃ (S̃ y) = y`.** The genuine closed-operator `S² = 1`,
+upgraded from the core `M Ω` (`sTilde_involutive_core`) to the whole domain of the closure, via the
+continuous conjugate-linear graph-symmetry `swapConj`. No `Δ`/`Δ^{½}`/adjoint calculus is used. -/
+theorem sTilde_closure_involutive (hcyc : IsCyclic M Ω) (hsep : IsSeparating M Ω)
+    (y : (tomitaClosure M Ω).domain) :
+    ofConj (tomitaClosure M Ω
+        ⟨ofConj (tomitaClosure M Ω y), sTilde_closure_mem_domain hcyc hsep y⟩) = (y : H) := by
+  obtain ⟨z, hz1, hz2⟩ := (LinearPMap.mem_graph_iff _).mp (swapConj_tomitaClosure_graph hcyc hsep y)
+  have hz1' : (z : H) = ofConj (tomitaClosure M Ω y) := hz1
+  have hz2' : tomitaClosure M Ω z = toConj (y : H) := hz2
+  have hzeq : (⟨ofConj (tomitaClosure M Ω y), sTilde_closure_mem_domain hcyc hsep y⟩ :
+      (tomitaClosure M Ω).domain) = z := Subtype.ext hz1'.symm
+  rw [hzeq, hz2', Conj.ofConj_toConj]
 
 end Spectra.TomitaTakesaki

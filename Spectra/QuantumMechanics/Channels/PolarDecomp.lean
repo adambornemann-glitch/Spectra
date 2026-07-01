@@ -23,8 +23,8 @@ complete space) composed with the orthogonal projection onto `K = closure (range
 
 ## Main definitions
 
-* `Spectra.OperatorAlgebra.absOp T` — the modulus `|T| = CFC.abs T = (T⋆T)^{1/2}`.
-* `Spectra.OperatorAlgebra.polarIsometry T` — the partial isometry `U` with `U |T| = T`.
+* `Spectra.QuantumMechanics.Channels.absOp T` — the modulus `|T| = CFC.abs T = (T⋆T)^{1/2}`.
+* `Spectra.QuantumMechanics.Channels.polarIsometry T` — the partial isometry `U` with `U |T| = T`.
 
 ## Main results
 
@@ -41,7 +41,7 @@ cyclicity `tr (AB) = tr (BA)`. Upstreamable to Mathlib.
 open ContinuousLinearMap
 open scoped InnerProductSpace InnerProduct
 
-namespace Spectra.OperatorAlgebra
+namespace Spectra.QuantumMechanics.Channels
 
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
 
@@ -140,4 +140,4 @@ noncomputable def polarIsometry (T : H →L[ℂ] H) : H →L[ℂ] H :=
 theorem polar_decomposition (T : H →L[ℂ] H) : polarIsometry T ∘L absOp T = T := by
   ext x; simp
 
-end Spectra.OperatorAlgebra
+end Spectra.QuantumMechanics.Channels

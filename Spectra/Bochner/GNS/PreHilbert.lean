@@ -39,8 +39,8 @@ Implemented via `Finsupp.mapDomain (· + t)`.
 - Translation isometry: `⟨U(t)α, U(t)β⟩ = ⟨α, β⟩`
 - Group law: `U(s) ∘ U(t) = U(s + t)`
 
-The null space `N = {α : ⟨α, α⟩ = 0}` and completion to a Hilbert space
-are handled in `GNS/Completion.lean`.
+The null space `N = {α : ⟨α, α⟩ = 0}` is handled in `Hilbert/NullSpace.lean`, and the
+completion to a Hilbert space in `Hilbert/Constructor.lean`.
 
 ## References
 

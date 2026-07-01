@@ -4,6 +4,7 @@ Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Spectra.YosidaHille.Approximation.Bounds
+import Spectra.Resolvent.Identities
 
 /-!
 # Symmetry properties of the Yosida operators

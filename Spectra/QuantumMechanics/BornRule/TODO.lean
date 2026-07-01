@@ -13,7 +13,7 @@ the dependency is explicit.
 
 `[needs infra: InformationGeometry.StatisticalModel API]`  The weld.
 ```
-noncomputable def toStatisticalModel (A : UnboundedObservable H) (ψ : H) :
+noncomputable def toStatisticalModel (A : SelfAdjointOperator H) (ψ : H) :
     InformationGeometry.StatisticalModel ℝ
 ```
 The functor `(state, observable) ↦ classical model` that connects the spectral half of

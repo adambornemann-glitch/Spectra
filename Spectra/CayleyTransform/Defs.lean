@@ -4,7 +4,7 @@ Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Spectra.YosidaHille.Basic
-import Spectra.QuantumMechanics.Observable.Basic
+import Spectra.Operator.SelfAdjoint
 import Spectra.Resolvent.SpecialCases
 import Spectra.Resolvent.NormExpansion
 import Spectra.Resolvent.Integral.Domain
@@ -22,8 +22,7 @@ open Spectra.Resolvent
 open Spectra.OneParameterUnitaryGroup
 open Spectra.YosidaHille
 open Spectra.Operator
-open Spectra.QuantumMechanics.Observable
-open UnboundedObservable
+open SelfAdjointOperator
 
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H]
 

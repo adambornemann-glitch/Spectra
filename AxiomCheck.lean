@@ -45,6 +45,9 @@ assert_no_sorry Spectra.QuantumMechanics.SpectralTheory.spectralPVM_proj_singlet
 assert_no_sorry Spectra.YosidaHille.stoneEquiv
 assert_no_sorry Spectra.YosidaHille.stoneEquivSpectral
 assert_no_sorry Spectra.Bochner.bochner_theorem
+-- A finite Borel measure is determined by its characteristic function; consumed directly inside
+-- `bochner_theorem`'s proof.
+assert_no_sorry Spectra.Fourier.fourier_uniqueness
 assert_no_sorry Spectra.Bochner.GNS.gns_theorem
 -- The abstract 3ε extension (strong continuity on a dense set ⟹ strong continuity everywhere),
 -- load-bearing for `Modular/KMS/UnitaryGroup.lean`'s `invariantUnitaryGroup`.
@@ -63,6 +66,11 @@ assert_no_sorry Spectra.Resolvent.generatorDomain_dense_via_average
 assert_no_sorry Spectra.Resolvent.resolvent_bound
 assert_no_sorry Spectra.Resolvent.resolvent_apply_mem_domain
 assert_no_sorry Spectra.Resolvent.resolvent_sub_smul_apply
+-- Off-axis arithmetic of `z = ± in` for `n : ℕ+`, feeding the Yosida approximants built from
+-- `R(± in)` (`YosidaHille/Approximation/Helpers.lean`); load-bearing for `stoneEquiv` above.
+assert_no_sorry Spectra.YosidaHille.Approximation.I_mul_pnat_im_ne_zero
+assert_no_sorry Spectra.YosidaHille.Approximation.neg_I_mul_pnat_im_ne_zero
+assert_no_sorry Spectra.YosidaHille.Approximation.norm_I_mul_pnat
 
 /-! ## Essential spectrum · Weyl's theorem -/
 
@@ -212,6 +220,17 @@ assert_no_sorry QuantumMechanics.Hydrogen.Spectrum.hydrogen_eigenfunction_comple
 
 assert_no_sorry Spectra.QuantumInfo.CHSH_lhv_bound
 assert_no_sorry Spectra.QuantumCHSH.tsirelson_bound'
+-- Bell's original (1964) inequality — the historical precursor to CHSH.
+assert_no_sorry Spectra.BellTheorem.bell_1964_inequality
+-- Wigner's (1970) set-theoretic form — same physical conclusion via finite combinatorics.
+assert_no_sorry Spectra.BellTheorem.wigner_inequality
+-- The Popescu–Rohrlich box hits the algebraic maximum CHSH value 4, exceeding both the classical
+-- and quantum (Tsirelson) bounds while satisfying no-signaling exactly.
+assert_no_sorry Spectra.BellTheorem.prBox_chsh_eq_four
+assert_no_sorry Spectra.BellTheorem.prBox_chsh_exceeds_tsirelson
+-- Clauser–Horne (1974): the historically prior generalization of CHSH to sub-normalized
+-- [0,1]-valued detection probabilities.
+assert_no_sorry Spectra.BellTheorem.ch_bound
 assert_no_sorry Spectra.QuantumMechanics.Heisenberg.heisenberg_uncertainty
 assert_no_sorry Spectra.QuantumMechanics.Schrodinger.schrodingerEquation
 assert_no_sorry Spectra.QuantumMechanics.Ehrenfest.ehrenfest_theorem
@@ -356,14 +375,38 @@ assert_no_sorry Spectra.TomitaTakesaki.modularFlow_fixes_vacuum
 assert_no_sorry Spectra.TomitaTakesaki.sTilde_core
 assert_no_sorry Spectra.TomitaTakesaki.sTilde_involutive_core
 assert_no_sorry Spectra.TomitaTakesaki.modularConjugation_apply_modularSqrt
+-- Field-3 keystone spike result: the Tomita involution `S̃² = 1` upgraded from the core `M Ω` to the
+-- whole domain `D(S)` of the closure (`S̃ y ∈ D(S)` and `S̃ (S̃ y) = y`), via the continuous
+-- conjugate-linear graph-symmetry `swapConj`. No `Δ`/`Δ^{½}`/adjoint calculus. (Closing `J² = 1`
+-- still needs the polar relation on the full `D(Δ^{½})` — the Route B calculus.)
+assert_no_sorry Spectra.TomitaTakesaki.sTilde_closure_mem_domain
+assert_no_sorry Spectra.TomitaTakesaki.sTilde_closure_involutive
+-- R4a field 3, Route B gate (HC1): the modular square root `Δ^{½}` is SELF-ADJOINT — von Neumann's
+-- deficiency criterion `isSelfAdjoint_of_surjective_addSub` fed by symmetry + surjectivity of `Δ^{½} ± i`
+-- (bounded resolvent `Φ(1/(√±i))`). The single blocker of the J²=1 endgame; unblocks `(Δ^{½})²=Δ`.
+-- Plus the reusable NEW infrastructure: the mixed bounded/unbounded product law for the PVM calculus.
+assert_no_sorry Spectra.QuantumMechanics.SpectralTheory.pmapOfPVM_spectralCalculus_of_mul_bounded
+assert_no_sorry Spectra.TomitaTakesaki.modularSqrt_isSelfAdjoint
+-- R4a field 3, HC2: (Δ^{½})² = Δ (the modular square root squares to Δ), via a closed-graph
+-- argument on the now-self-adjoint Δ^{½} + the mixed product law. Unblocks the J²=1 endgame
+-- reduction. Ships the reusable unbounded output-density `μ_{(∫f dP)ξ} = μ_ξ.withDensity ‖f‖²`.
+assert_no_sorry Spectra.QuantumMechanics.SpectralTheory.borelMeasure_pmapOfPVM_eq_withDensity
+assert_no_sorry Spectra.TomitaTakesaki.modularSqrt_mem_domain_of_mem_modularOp
+assert_no_sorry Spectra.TomitaTakesaki.modularSqrt_sq_apply
+-- R4a field 3, polar-uniqueness DAG node 1.2 (the KILL-SPIKE — GREEN): the `s ↦ s²` resolvent
+-- identity `(A² − z)⁻¹ = Φ(1/(s²−z))` and its diagonal `⟪ξ,(A²−z)⁻¹ξ⟫ = ∫(s²−z)⁻¹ dμ^E_ξ`, via the
+-- mixed product law on the `s²` symbol. Validates the `posSqrt_unique` route on Spectra's calculus.
+assert_no_sorry Spectra.QuantumMechanics.SpectralTheory.resolvent_sq_identity
+assert_no_sorry Spectra.QuantumMechanics.SpectralTheory.resolvent_sq_mem
+assert_no_sorry Spectra.QuantumMechanics.SpectralTheory.inner_resolvent_sq
 
 /-! ## Inner-product `ℓ²`-pairing estimates (shared, trace-class-free)
 
 General `RCLike`-valued inner-product summability facts underpinning the trace bounds: inner
 summability from square-summability, and the weighted arithmetic–geometric estimate that yields the
 sharp Cauchy–Schwarz constant without any `Lᵖ`/Hölder machinery. -/
-assert_no_sorry Spectra.Analysis.summable_inner_of_summable_sq
-assert_no_sorry Spectra.Analysis.weighted_norm_tsum_inner_le
+assert_no_sorry Spectra.QuantumMechanics.Channels.summable_inner_of_summable_sq
+assert_no_sorry Spectra.QuantumMechanics.Channels.weighted_norm_tsum_inner_le
 
 /-! ## Operator algebra · bounded polar decomposition `T = U |T|`
 
@@ -371,103 +414,112 @@ First brick of the trace-class / von Neumann predual development (discharge-firs
 Tomita–Takesaki fundamental theorem). `|T| = CFC.abs T`, the polar isometry identity `‖|T|x‖ = ‖Tx‖`,
 and the partial isometry `U` with `U |T| = T` — the last built by hand since Mathlib's
 `LinearIsometry.extend` is finite-dimensional only. -/
-assert_no_sorry Spectra.OperatorAlgebra.norm_absOp_apply
-assert_no_sorry Spectra.OperatorAlgebra.denseRange_absOpCorestrict
-assert_no_sorry Spectra.OperatorAlgebra.polarIsometry_absOp
-assert_no_sorry Spectra.OperatorAlgebra.polar_decomposition
+assert_no_sorry Spectra.QuantumMechanics.Channels.norm_absOp_apply
+assert_no_sorry Spectra.QuantumMechanics.Channels.denseRange_absOpCorestrict
+assert_no_sorry Spectra.QuantumMechanics.Channels.polarIsometry_absOp
+assert_no_sorry Spectra.QuantumMechanics.Channels.polar_decomposition
 -- Trace of a positive operator: the per-term identity `‖T^{1/2} x‖² = ⟪x, T x⟫` behind
 -- `tr T = ∑ᵢ ‖T^{1/2} eᵢ‖²`.
-assert_no_sorry Spectra.OperatorAlgebra.sqrtOp_comp_self
-assert_no_sorry Spectra.OperatorAlgebra.norm_sqrtOp_sq
+assert_no_sorry Spectra.QuantumMechanics.Channels.sqrtOp_comp_self
+assert_no_sorry Spectra.QuantumMechanics.Channels.norm_sqrtOp_sq
 -- Basis-independence of the positive trace `∑ᵢ ‖T^{1/2} eᵢ‖²` (Parseval + Tonelli): the trace does
 -- not depend on the Hilbert basis, so the trace norm `‖T‖₁ = tr |T|` is well-defined.
-assert_no_sorry Spectra.OperatorAlgebra.hasSum_norm_inner_sq
-assert_no_sorry Spectra.OperatorAlgebra.posTrace_indep
+assert_no_sorry Spectra.QuantumMechanics.Channels.hasSum_norm_inner_sq
+assert_no_sorry Spectra.QuantumMechanics.Channels.posTrace_indep
 -- Trace norm `‖T‖₁ = tr |T|` and the trace-class predicate `IsTraceClass T := tr |T| ≠ ∞`, packaged
 -- over a canonical Hilbert basis (`stdHilbertBasis`) but proven basis-independent (`traceNorm_eq`,
 -- `isTraceClass_iff`). Absolute homogeneity `‖c • T‖₁ = ‖c‖ · ‖T‖₁` reduces to the `ℝ≥0∞`-level
 -- identity `tr |c • T| = ‖c‖ · tr |T|` (`posTrace_absOp_smul`), via the per-term expansion
 -- `tr S = ∑ᵢ re ⟪eᵢ, S eᵢ⟫` for `0 ≤ S` (`posTrace_eq_tsum_ofReal`).
-assert_no_sorry Spectra.OperatorAlgebra.posTrace_eq_tsum_ofReal
-assert_no_sorry Spectra.OperatorAlgebra.posTrace_absOp_smul
-assert_no_sorry Spectra.OperatorAlgebra.traceNorm_eq
-assert_no_sorry Spectra.OperatorAlgebra.isTraceClass_iff
-assert_no_sorry Spectra.OperatorAlgebra.traceNorm_nonneg
-assert_no_sorry Spectra.OperatorAlgebra.traceNorm_zero
-assert_no_sorry Spectra.OperatorAlgebra.isTraceClass_zero
-assert_no_sorry Spectra.OperatorAlgebra.traceNorm_of_nonneg
-assert_no_sorry Spectra.OperatorAlgebra.traceNorm_absOp
-assert_no_sorry Spectra.OperatorAlgebra.traceNorm_smul
-assert_no_sorry Spectra.OperatorAlgebra.isTraceClass_iff_summable
+assert_no_sorry Spectra.QuantumMechanics.Channels.posTrace_eq_tsum_ofReal
+assert_no_sorry Spectra.QuantumMechanics.Channels.posTrace_absOp_smul
+assert_no_sorry Spectra.QuantumMechanics.Channels.traceNorm_eq
+assert_no_sorry Spectra.QuantumMechanics.Channels.isTraceClass_iff
+assert_no_sorry Spectra.QuantumMechanics.Channels.traceNorm_nonneg
+assert_no_sorry Spectra.QuantumMechanics.Channels.traceNorm_zero
+assert_no_sorry Spectra.QuantumMechanics.Channels.isTraceClass_zero
+assert_no_sorry Spectra.QuantumMechanics.Channels.traceNorm_of_nonneg
+assert_no_sorry Spectra.QuantumMechanics.Channels.traceNorm_absOp
+assert_no_sorry Spectra.QuantumMechanics.Channels.traceNorm_smul
+assert_no_sorry Spectra.QuantumMechanics.Channels.isTraceClass_iff_summable
 -- Trace-class hard-core Stage A (partial-isometry infrastructure): the Hilbert–Schmidt sum is
 -- adjoint-invariant (`∑ᵢ ‖A eᵢ‖² = ∑ᵢ ‖A⋆ eᵢ‖²`), the polar partial isometry `U` is a contraction, and
 -- the initial-space identities `U⋆ U = P_K` and `U⋆ T = |T|` (load-bearing for trace-norm duality and
 -- the triangle inequality).
-assert_no_sorry Spectra.OperatorAlgebra.tsum_enorm_apply_sq_adjoint
-assert_no_sorry Spectra.OperatorAlgebra.norm_polarPartial_eq
-assert_no_sorry Spectra.OperatorAlgebra.norm_polarIsometry_le_one
-assert_no_sorry Spectra.OperatorAlgebra.polarIsometry_adjoint_comp_self
-assert_no_sorry Spectra.OperatorAlgebra.polarIsometry_adjoint_comp
+assert_no_sorry Spectra.QuantumMechanics.Channels.tsum_enorm_apply_sq_adjoint
+assert_no_sorry Spectra.QuantumMechanics.Channels.norm_polarPartial_eq
+assert_no_sorry Spectra.QuantumMechanics.Channels.norm_polarIsometry_le_one
+assert_no_sorry Spectra.QuantumMechanics.Channels.polarIsometry_adjoint_comp_self
+assert_no_sorry Spectra.QuantumMechanics.Channels.polarIsometry_adjoint_comp
 -- Trace-class hard-core Stage C (minimal Hilbert–Schmidt ideal): the predicate `IsHilbertSchmidt`
 -- (`∑ᵢ ‖A eᵢ‖² < ∞`) with basis-independence, `A⋆` HS ↔ `A` HS, `|A|^{1/2}` HS ↔ `A` trace-class, and
 -- the two-sided-ideal closure `B∘A`, `A∘B` HS — the factorization toolkit for cyclicity `tr(AB)=tr(BA)`.
-assert_no_sorry Spectra.OperatorAlgebra.hsSum_indep
-assert_no_sorry Spectra.OperatorAlgebra.isHilbertSchmidt_iff
-assert_no_sorry Spectra.OperatorAlgebra.isHilbertSchmidt_iff_summable
-assert_no_sorry Spectra.OperatorAlgebra.isHilbertSchmidt_adjoint
-assert_no_sorry Spectra.OperatorAlgebra.isHilbertSchmidt_sqrtOp_absOp
-assert_no_sorry Spectra.OperatorAlgebra.IsHilbertSchmidt.comp_left
-assert_no_sorry Spectra.OperatorAlgebra.IsHilbertSchmidt.comp_right
+assert_no_sorry Spectra.QuantumMechanics.Channels.hsSum_indep
+assert_no_sorry Spectra.QuantumMechanics.Channels.isHilbertSchmidt_iff
+assert_no_sorry Spectra.QuantumMechanics.Channels.isHilbertSchmidt_iff_summable
+assert_no_sorry Spectra.QuantumMechanics.Channels.isHilbertSchmidt_adjoint
+assert_no_sorry Spectra.QuantumMechanics.Channels.isHilbertSchmidt_sqrtOp_absOp
+assert_no_sorry Spectra.QuantumMechanics.Channels.IsHilbertSchmidt.comp_left
+assert_no_sorry Spectra.QuantumMechanics.Channels.IsHilbertSchmidt.comp_right
 -- Trace-class hard-core Stage B (the complex trace functional): `trace T = ∑ᵢ ⟪eᵢ, T eᵢ⟫` with the
 -- twisted-inner-product identity (`trace_summand_polar`), diagonal summability for trace-class `T`,
 -- linearity, the trace bound `|tr T| ≤ ‖T‖₁` (`norm_trace_le_traceNorm`), the duality-functional
 -- bound `|tr (B T)| ≤ ‖B‖ · ‖T‖₁` (`norm_trace_comp_le`, consumed by `B(H) = (TraceClass H)⋆`), and
 -- the positive-operator bridge `tr S = ((tr |S|).toReal : ℂ)` (`trace_of_nonneg`).
-assert_no_sorry Spectra.OperatorAlgebra.trace_summand_polar
-assert_no_sorry Spectra.OperatorAlgebra.trace_summable
-assert_no_sorry Spectra.OperatorAlgebra.trace_add
-assert_no_sorry Spectra.OperatorAlgebra.trace_smul
-assert_no_sorry Spectra.OperatorAlgebra.norm_trace_le_traceNorm
-assert_no_sorry Spectra.OperatorAlgebra.norm_trace_comp_le
-assert_no_sorry Spectra.OperatorAlgebra.trace_of_nonneg
+assert_no_sorry Spectra.QuantumMechanics.Channels.trace_summand_polar
+assert_no_sorry Spectra.QuantumMechanics.Channels.trace_summable
+assert_no_sorry Spectra.QuantumMechanics.Channels.trace_add
+assert_no_sorry Spectra.QuantumMechanics.Channels.trace_smul
+assert_no_sorry Spectra.QuantumMechanics.Channels.norm_trace_le_traceNorm
+assert_no_sorry Spectra.QuantumMechanics.Channels.norm_trace_comp_le
+assert_no_sorry Spectra.QuantumMechanics.Channels.trace_of_nonneg
 -- Trace-class hard-core Stage D (cyclicity of the trace): the Hilbert–Schmidt case `tr (X Y) = tr (Y X)`
 -- via a Fubini swap of the absolutely convergent double sum, and the general case `tr (A B) = tr (B A)`
 -- (`A` trace-class, `B` bounded) via the `A = (U |A|^{1/2}) |A|^{1/2}` Hilbert–Schmidt factorization.
-assert_no_sorry Spectra.OperatorAlgebra.trace_comp_comm_hs
-assert_no_sorry Spectra.OperatorAlgebra.trace_comp_comm
+assert_no_sorry Spectra.QuantumMechanics.Channels.trace_comp_comm_hs
+assert_no_sorry Spectra.QuantumMechanics.Channels.trace_comp_comm
 -- The contraction–trace bound `∑ᵢ ‖⟪W eᵢ, S eᵢ⟫‖ ≤ ‖S‖₁` (`‖W‖ ≤ 1`), the single-fixed-`W` estimate.
-assert_no_sorry Spectra.OperatorAlgebra.tsum_norm_inner_comp_le
+assert_no_sorry Spectra.QuantumMechanics.Channels.tsum_norm_inner_comp_le
 -- Trace-class hard-core Stage E (the triangle inequality): `tr |S+T| ≤ tr |S| + tr |T|` in `ℝ≥0∞` via
 -- the polar decomposition of `S + T` with one fixed partial isometry, closure of trace-class under
 -- addition, and the triangle inequality `‖S + T‖₁ ≤ ‖S‖₁ + ‖T‖₁`.
-assert_no_sorry Spectra.OperatorAlgebra.posTrace_absOp_add_le
-assert_no_sorry Spectra.OperatorAlgebra.isTraceClass_add
-assert_no_sorry Spectra.OperatorAlgebra.traceNorm_add_le
+assert_no_sorry Spectra.QuantumMechanics.Channels.posTrace_absOp_add_le
+assert_no_sorry Spectra.QuantumMechanics.Channels.isTraceClass_add
+assert_no_sorry Spectra.QuantumMechanics.Channels.traceNorm_add_le
 -- Trace-class hard-core Stage F (toward the Banach space): the trace class is a `ℂ`-submodule of `B(H)`
 -- (`traceClassSubmodule`, via `isTraceClass_smul`), and the operator norm is dominated by the trace
 -- norm `‖T‖ ≤ ‖T‖₁` (`norm_le_traceNorm`) — the comparison making `‖·‖₁`-Cauchy sequences `‖·‖`-Cauchy.
-assert_no_sorry Spectra.OperatorAlgebra.isTraceClass_smul
-assert_no_sorry Spectra.OperatorAlgebra.traceNorm_neg
-assert_no_sorry Spectra.OperatorAlgebra.traceClassSubmodule
-assert_no_sorry Spectra.OperatorAlgebra.norm_le_traceNorm
+assert_no_sorry Spectra.QuantumMechanics.Channels.isTraceClass_smul
+assert_no_sorry Spectra.QuantumMechanics.Channels.traceNorm_neg
+assert_no_sorry Spectra.QuantumMechanics.Channels.traceClassSubmodule
+assert_no_sorry Spectra.QuantumMechanics.Channels.norm_le_traceNorm
 -- Trace-class hard-core Stage F (F2, the normed space): the trace-class operators, as the
 -- non-reducible type synonym `TraceClass H` of `↥(traceClassSubmodule H)` carrying the trace norm
 -- `‖·‖₁`, form a `ℂ`-normed space (`NormedAddCommGroup`/`NormedSpace` via `NormedSpace.Core`); the
 -- operator norm is dominated by the trace norm on the synonym (`TraceClass.norm_toOp_le`).
-assert_no_sorry Spectra.OperatorAlgebra.TraceClass.toOp
-assert_no_sorry Spectra.OperatorAlgebra.TraceClass.isTraceClass
-assert_no_sorry Spectra.OperatorAlgebra.TraceClass.core
-assert_no_sorry Spectra.OperatorAlgebra.TraceClass.instNormedAddCommGroup
-assert_no_sorry Spectra.OperatorAlgebra.TraceClass.instNormedSpace
-assert_no_sorry Spectra.OperatorAlgebra.TraceClass.norm_toOp_le
+assert_no_sorry Spectra.QuantumMechanics.Channels.TraceClass.toOp
+assert_no_sorry Spectra.QuantumMechanics.Channels.TraceClass.isTraceClass
+assert_no_sorry Spectra.QuantumMechanics.Channels.TraceClass.core
+assert_no_sorry Spectra.QuantumMechanics.Channels.TraceClass.instNormedAddCommGroup
+assert_no_sorry Spectra.QuantumMechanics.Channels.TraceClass.instNormedSpace
+assert_no_sorry Spectra.QuantumMechanics.Channels.TraceClass.norm_toOp_le
 -- Trace-class hard-core Stage F (F3, completeness): the Fatou / lower-semicontinuity estimate — the
 -- operator-norm limit of a trace-norm-bounded sequence is trace-class with the limiting bound
 -- (`isTraceClass_and_traceNorm_le_of_tendsto`) — yields that `TraceClass H` is complete, hence a
 -- `ℂ`-Banach space (`TraceClass.instCompleteSpace`).
-assert_no_sorry Spectra.OperatorAlgebra.isTraceClass_sub
-assert_no_sorry Spectra.OperatorAlgebra.tendsto_re_inner_absOp_of_tendsto
-assert_no_sorry Spectra.OperatorAlgebra.isTraceClass_and_traceNorm_le_of_tendsto
-assert_no_sorry Spectra.OperatorAlgebra.TraceClass.instCompleteSpace
+assert_no_sorry Spectra.QuantumMechanics.Channels.isTraceClass_sub
+assert_no_sorry Spectra.QuantumMechanics.Channels.tendsto_re_inner_absOp_of_tendsto
+assert_no_sorry Spectra.QuantumMechanics.Channels.isTraceClass_and_traceNorm_le_of_tendsto
+assert_no_sorry Spectra.QuantumMechanics.Channels.TraceClass.instCompleteSpace
+
+-- Quantum channels (Schrödinger picture): complete positivity via the block-quadratic-form
+-- criterion on finite arrays of trace-class operators (`IsPositiveMatrix`/`IsCompletelyPositive`),
+-- the bundled `QuantumChannel` structure, and the identity channel.
+assert_no_sorry Spectra.QuantumMechanics.Channels.isPositiveMatrix_zero_iff
+assert_no_sorry Spectra.QuantumMechanics.Channels.blockForm_one
+assert_no_sorry Spectra.QuantumMechanics.Channels.isPositiveMatrix_one_iff
+assert_no_sorry Spectra.QuantumMechanics.Channels.IsCompletelyPositive.isPositive
+assert_no_sorry Spectra.QuantumMechanics.Channels.QuantumChannel.id_toFun_apply
 
 /-! ## Information geometry -/
 
@@ -497,16 +549,19 @@ and `Quot.sound` should appear — anything else (especially `sorryAx`) is a red
 #print axioms Spectra.YosidaHille.stoneEquiv
 #print axioms Spectra.Bochner.bochner_theorem
 #print axioms Spectra.QuantumCHSH.tsirelson_bound'
-#print axioms Spectra.OperatorAlgebra.traceNorm_smul
-#print axioms Spectra.OperatorAlgebra.polarIsometry_adjoint_comp
-#print axioms Spectra.OperatorAlgebra.IsHilbertSchmidt.comp_right
-#print axioms Spectra.OperatorAlgebra.norm_trace_le_traceNorm
-#print axioms Spectra.OperatorAlgebra.norm_trace_comp_le
-#print axioms Spectra.OperatorAlgebra.trace_comp_comm
-#print axioms Spectra.OperatorAlgebra.traceNorm_add_le
-#print axioms Spectra.OperatorAlgebra.norm_le_traceNorm
-#print axioms Spectra.OperatorAlgebra.TraceClass.instNormedAddCommGroup
-#print axioms Spectra.OperatorAlgebra.TraceClass.instNormedSpace
-#print axioms Spectra.OperatorAlgebra.TraceClass.norm_toOp_le
-#print axioms Spectra.OperatorAlgebra.isTraceClass_and_traceNorm_le_of_tendsto
-#print axioms Spectra.OperatorAlgebra.TraceClass.instCompleteSpace
+#print axioms Spectra.QuantumMechanics.Channels.traceNorm_smul
+#print axioms Spectra.QuantumMechanics.Channels.polarIsometry_adjoint_comp
+#print axioms Spectra.QuantumMechanics.Channels.IsHilbertSchmidt.comp_right
+#print axioms Spectra.QuantumMechanics.Channels.norm_trace_le_traceNorm
+#print axioms Spectra.QuantumMechanics.Channels.norm_trace_comp_le
+#print axioms Spectra.QuantumMechanics.Channels.trace_comp_comm
+#print axioms Spectra.QuantumMechanics.Channels.traceNorm_add_le
+#print axioms Spectra.QuantumMechanics.Channels.norm_le_traceNorm
+#print axioms Spectra.QuantumMechanics.Channels.TraceClass.instNormedAddCommGroup
+#print axioms Spectra.QuantumMechanics.Channels.TraceClass.instNormedSpace
+#print axioms Spectra.QuantumMechanics.Channels.TraceClass.norm_toOp_le
+#print axioms Spectra.QuantumMechanics.Channels.isTraceClass_and_traceNorm_le_of_tendsto
+#print axioms Spectra.QuantumMechanics.Channels.TraceClass.instCompleteSpace
+#print axioms Spectra.QuantumMechanics.Channels.isPositiveMatrix_one_iff
+#print axioms Spectra.QuantumMechanics.Channels.IsCompletelyPositive.isPositive
+#print axioms Spectra.QuantumMechanics.Channels.QuantumChannel.id_toFun_apply

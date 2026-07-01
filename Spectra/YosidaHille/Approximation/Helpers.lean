@@ -3,29 +3,26 @@ Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
-import Spectra.Resolvent.Analytic
+import Mathlib.Analysis.Complex.Norm
+import Mathlib.Data.PNat.Basic
 
 /-!
 # Basic lemmas for the Yosida approximation
 
 Foundational facts used throughout the Yosida-approximation construction: arithmetic of the
 imaginary parts and norms of `I * n` and `-I * n` for `n : ℕ+` (these supply the off-axis
-spectral parameters `z = I * n`), together with the defining specification of the resolvent
-obtained from the surjectivity of `A ± I` on a formally self-adjoint operator.
+spectral parameters `z = I * n`).
 
 ## Main statements
 
 * `I_mul_pnat_im_ne_zero` / `neg_I_mul_pnat_im_ne_zero` — `± I * n` has nonzero imaginary part,
   so it lies off the real axis and the resolvent is defined there.
 * `norm_I_mul_pnat` — `‖I * n‖ = n`.
-* `resolvent_spec` / `resolvent_spec'` — the resolvent `R(z)φ` lies in `dom A` and satisfies
-  `(A - z) R(z) φ = φ`.
+* `I_mul_pnat_im` / `abs_I_mul_pnat_im` / `norm_pnat_sq` — auxiliary arithmetic facts supporting
+  the headline results above.
 -/
 
 open Complex
-open Spectra.Resolvent
-
-variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
 
 namespace Spectra.YosidaHille.Approximation
 
@@ -52,43 +49,10 @@ lemma abs_I_mul_pnat_im (n : ℕ+) : |(I * (n : ℂ)).im| = (n : ℝ) := by
 
 /-- The norm of `(n : ℂ)²` equals `n²` for `n : ℕ+`. -/
 lemma norm_pnat_sq (n : ℕ+) : ‖((n : ℂ)^2)‖ = (n : ℝ)^2 := by
-  simp [norm_pow]
+  rw [Complex.norm_pow, Complex.norm_natCast]
 
 /-- The norm of `I * n` equals `n` for `n : ℕ+`. -/
 lemma norm_I_mul_pnat (n : ℕ+) : ‖I * (n : ℂ)‖ = (n : ℝ) := by
-  simp
-
-/-! ### Resolvent specifications -/
-
-/-- The resolvent `R(z)φ` lies in `dom A`, and the chosen domain witness satisfies
-`(A - z) R(z) φ = φ`. Here the membership proof is the `Classical.choose` witness coming from the
-surjectivity of `A - z` (via `self_adjoint_range_all_z`). -/
-lemma resolvent_spec {A : H →ₗ.[ℂ] H}
-    (hsym : A.IsFormalAdjoint A)
-    (hplus : ∀ φ : H, ∃ ψ : A.domain, A ψ + I • (ψ : H) = φ)
-    (hminus : ∀ φ : H, ∃ ψ : A.domain, A ψ - I • (ψ : H) = φ)
-    (z : ℂ) (hz : z.im ≠ 0) (φ : H) :
-    (Resolvent.resolvent z hz hsym hplus hminus φ) ∈ A.domain ∧
-    A ⟨Resolvent.resolvent z hz hsym hplus hminus φ,
-       (Classical.choose (self_adjoint_range_all_z hsym hplus hminus z hz φ).exists).property⟩ -
-    z • (Resolvent.resolvent z hz hsym hplus hminus φ) = φ := by
-  have h_eq := Classical.choose_spec (self_adjoint_range_all_z hsym hplus hminus z hz φ).exists
-  refine ⟨(Classical.choose
-    (self_adjoint_range_all_z hsym hplus hminus z hz φ).exists).property, ?_⟩
-  convert h_eq using 2
-
-/-- The existential form of `resolvent_spec`: there is a membership proof `h` for which the chosen
-domain witness satisfies `(A - z) R(z) φ = φ`. -/
-lemma resolvent_spec' {A : H →ₗ.[ℂ] H}
-    (hsym : A.IsFormalAdjoint A)
-    (hplus : ∀ φ : H, ∃ ψ : A.domain, A ψ + I • (ψ : H) = φ)
-    (hminus : ∀ φ : H, ∃ ψ : A.domain, A ψ - I • (ψ : H) = φ)
-    (z : ℂ) (hz : z.im ≠ 0) (φ : H) :
-    ∃ (h : Resolvent.resolvent z hz hsym hplus hminus φ ∈ A.domain),
-      A ⟨Resolvent.resolvent z hz hsym hplus hminus φ, h⟩ -
-      z • (Resolvent.resolvent z hz hsym hplus hminus φ) = φ := by
-  have h_eq := Classical.choose_spec (self_adjoint_range_all_z hsym hplus hminus z hz φ).exists
-  exact ⟨(Classical.choose
-    (self_adjoint_range_all_z hsym hplus hminus z hz φ).exists).property, h_eq⟩
+  rw [Complex.norm_mul, Complex.norm_I, one_mul, Complex.norm_natCast]
 
 end Spectra.YosidaHille.Approximation

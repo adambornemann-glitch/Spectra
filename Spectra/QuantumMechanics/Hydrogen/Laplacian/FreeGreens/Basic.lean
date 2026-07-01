@@ -12,7 +12,7 @@ open Spectra.OneParameterUnitaryGroup
 open Spectra.YosidaHille
 open Spectra.Resolvent
 open Spectra.Essential
-open Spectra.QuantumMechanics.Observable
+open Spectra.Operator
 open Spectra.QuantumMechanics.SpectralTheory
 open FourierTransform
 open scoped Topology NNReal ENNReal SchwartzMap ContDiff

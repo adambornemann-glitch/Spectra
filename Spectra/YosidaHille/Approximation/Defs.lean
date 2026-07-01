@@ -5,6 +5,7 @@ Authors: Adam Bornemann
 -/
 import Spectra.YosidaHille.Approximation.Helpers
 import Spectra.OneParameterUnitaryGroup.Basic
+import Spectra.Resolvent.Range
 
 /-!
 # Yosida approximation operators

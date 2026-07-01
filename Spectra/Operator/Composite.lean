@@ -5,7 +5,7 @@ Authors: Adam Bornemann
 -/
 import Spectra.QuantumMechanics.Uncertainty.SchrodingerRobertson
 import Spectra.InformationGeometry.CramerRao.Quantum
-import Spectra.QuantumMechanics.Observable.Basic
+import Spectra.Operator.SelfAdjoint
 /-!
 # Composite Symmetric Operators and the Quantum–Geometric Bridge
 
@@ -27,13 +27,13 @@ on tangent vectors (the **Riemannian metric** / SLD Fisher information)
 and the commutator expectation matrix a genuine 2-form (the
 **symplectic form**).
 
-## Why `SymmetricOperator`, not `UnboundedObservable`
+## Why `SymmetricOperator`, not `SelfAdjointOperator`
 
 The composite of genuinely self-adjoint operators is *symmetric* but in
 general **not** self-adjoint: a real linear combination `∑ vᵢ Oᵢ` of
 unbounded self-adjoint operators on a common dense domain can fail even
 essential self-adjointness (Nelson's example; Reed–Simon VIII.6).
-Bundling it as an `UnboundedObservable` under the refactored definition
+Bundling it as a `SelfAdjointOperator` under the refactored definition
 (`A† = A` including the domain equality) would therefore be an
 unjustified claim.
 
@@ -76,7 +76,6 @@ carries the symplectic structure responsible for uncertainty.
   §VIII.6 — sums of unbounded self-adjoint operators.
 -/
 open Spectra.Operator
-open Spectra.QuantumMechanics.Observable
 open Spectra.QuantumMechanics.Schrodinger
 open Spectra.InformationGeometry
 open SymmetricOperator
@@ -166,7 +165,7 @@ variable {n : ℕ} {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] 
 of genuinely self-adjoint observables.  Since `toSymmetricOperator`
 preserves the underlying `LinearPMap` definitionally, all domain
 conditions transport unchanged. -/
-def ofObservables (O : Fin n → UnboundedObservable H) (ψ : H)
+def ofObservables (O : Fin n → SelfAdjointOperator H) (ψ : H)
     (h_norm : ‖ψ‖ = 1)
     (hψ_all : ∀ i, ψ ∈ (O i).domain)
     (hOψ_all : ∀ i j,

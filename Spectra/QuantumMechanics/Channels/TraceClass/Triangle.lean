@@ -3,7 +3,7 @@ Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Author: Adam Bornemann
 -/
-import Spectra.Analysis.OperatorAlgebra.TraceClass.Trace
+import Spectra.QuantumMechanics.Channels.TraceClass.Trace
 
 /-!
 # Stage E — the triangle inequality for the trace norm
@@ -31,7 +31,7 @@ completeness is the final brick.
 open ContinuousLinearMap RCLike
 open scoped InnerProductSpace InnerProduct ENNReal NNReal
 
-namespace Spectra.OperatorAlgebra
+namespace Spectra.QuantumMechanics.Channels
 
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
 
@@ -107,4 +107,4 @@ theorem traceNorm_add_le {S T : H →L[ℂ] H} (hS : IsTraceClass S) (hT : IsTra
         ENNReal.toReal_mono hfin (posTrace_absOp_add_le S T)
     _ = traceNorm S + traceNorm T := ENNReal.toReal_add hS hT
 
-end Spectra.OperatorAlgebra
+end Spectra.QuantumMechanics.Channels

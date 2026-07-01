@@ -22,7 +22,7 @@ the library's partially-defined linear map) together with proofs of dense domain
 and formal self-adjointness. Building on `LinearPMap` rather than a bespoke
 `domain →ₗ[ℂ] H` field means the genuine unbounded adjoint `toLinearPMap.adjoint`
 and the real `IsSelfAdjoint` predicate are available to downstream refinements
-(see `UnboundedObservables.lean`), instead of having to be re-derived by hand.
+(see `Operator/SelfAdjoint.lean`), instead of having to be re-derived by hand.
 
 ## Main definitions
 
@@ -53,7 +53,7 @@ Note that symmetric ≠ self-adjoint for unbounded operators. Self-adjointness
 requires additionally that Dom(A) = Dom(A*). This module only assumes symmetry,
 which is the natural hypothesis for the Robertson/Schrödinger uncertainty
 inequalities (they never use the domain equality). The self-adjoint refinement
-lives in `UnboundedObservables.lean`.
+lives in `Operator/SelfAdjoint.lean`.
 
 ## References
 

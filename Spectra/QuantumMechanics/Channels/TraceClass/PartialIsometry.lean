@@ -3,7 +3,7 @@ Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Author: Adam Bornemann
 -/
-import Spectra.Analysis.OperatorAlgebra.TraceClass.Basic
+import Spectra.QuantumMechanics.Channels.TraceClass.Basic
 import Mathlib.Analysis.InnerProductSpace.Subspace
 import Mathlib.Analysis.InnerProductSpace.LinearMap
 import Mathlib.Topology.DenseEmbedding
@@ -31,7 +31,7 @@ bounded polar decomposition `T = U |T|` (`PolarDecomp.lean`).
 open ContinuousLinearMap RCLike
 open scoped InnerProductSpace InnerProduct ENNReal NNReal
 
-namespace Spectra.OperatorAlgebra
+namespace Spectra.QuantumMechanics.Channels
 
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
 
@@ -125,4 +125,4 @@ lemma polarIsometry_adjoint_comp (T : H →L[ℂ] H) :
       polarIsometry_adjoint_comp_self,
       Submodule.starProjection_eq_self_iff.2 (absOp_mem_polarRange T x)]
 
-end Spectra.OperatorAlgebra
+end Spectra.QuantumMechanics.Channels

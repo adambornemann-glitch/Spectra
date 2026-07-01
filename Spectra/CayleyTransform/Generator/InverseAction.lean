@@ -16,7 +16,7 @@ open scoped InnerProductSpace ComplexConjugate ENNReal NNReal
 open Spectra.YosidaHille
 open Spectra.OneParameterUnitaryGroup
 open Spectra.Resolvent
-open Spectra.QuantumMechanics.Observable
+open Spectra.Operator
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
 namespace Spectra.Cayley
 open BorelCFC

@@ -27,7 +27,7 @@ operator-level Schrödinger / Robertson inequalities be read as statements about
 variances: it composes `bornVariance_eq_central_moment` (variance as a squared norm) with
 `bornExpectation_eq_inner` (mean as the matrix element `⟪ψ, Aψ⟫`), after which both sides are
 the *same* squared norm `‖Aψ − ⟨A⟩ψ‖²` definitionally. -/
-lemma bornVariance_eq_variance (A : Observable.UnboundedObservable H) {ψ : H}
+lemma bornVariance_eq_variance (A : SelfAdjointOperator H) {ψ : H}
     (hψ_norm : ‖ψ‖ = 1) (hψ : ψ ∈ A.domain) :
     bornVariance A.spectralPVM ψ = A.toSymmetricOperator.variance ψ hψ_norm hψ := by
   rw [Observable.bornVariance_eq_central_moment A hψ,
@@ -44,7 +44,7 @@ The hypothesis is bundled as `ShiftedDomainConditions A B ψ` — exactly the da
 `[A,B]ψ` well-defined — matching the operator-level `Schrodinger.observable_robertson_uncertainty`
 verbatim.  Proof: rewrite each Born variance as the operator variance via
 `bornVariance_eq_variance`, then apply Robertson. -/
-theorem bornVariance_uncertainty (A B : Observable.UnboundedObservable H) {ψ : H}
+theorem bornVariance_uncertainty (A B : SelfAdjointOperator H) {ψ : H}
     (h : ShiftedDomainConditions A.toSymmetricOperator B.toSymmetricOperator ψ) :
     bornVariance A.spectralPVM ψ * bornVariance B.spectralPVM ψ
       ≥ (1 / 4) * ‖⟪ψ, SymmetricOperator.commutatorAt A.toSymmetricOperator B.toSymmetricOperator ψ

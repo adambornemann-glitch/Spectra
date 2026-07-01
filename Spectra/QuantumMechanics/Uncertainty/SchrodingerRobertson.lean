@@ -4,7 +4,7 @@ Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
 Filename: QuantumMechanics/Uncertainty/SchrodingerRobertson.lean
 -/
-import Spectra.QuantumMechanics.Observable.Basic
+import Spectra.Operator.SelfAdjoint
 /-!
 # The Schrödinger (and Robertson) Uncertainty Relations
 
@@ -29,7 +29,7 @@ standard-deviation forms) follow from it. It supersedes the earlier separate
 * `robertson_uncertainty`: Robertson's variance bound, a corollary (drop covariance)
 * `robertson_stddev`: Robertson's standard-deviation bound
 * `observable_schrodinger_uncertainty`, `observable_robertson_uncertainty`:
-  the same bounds stated for self-adjoint `UnboundedObservable`s
+  the same bounds stated for self-adjoint `SelfAdjointOperator`s
 
 
 ## Generality note
@@ -37,7 +37,7 @@ standard-deviation forms) follow from it. It supersedes the earlier separate
 The inequalities hold for *symmetric* operators — they never use the domain
 equality `Dom(A) = Dom(A†)` that distinguishes self-adjointness. They are
 therefore proved at `SymmetricOperator` generality, and specialized to genuine
-self-adjoint observables (`UnboundedObservable`) via `toSymmetricOperator` in the
+self-adjoint observables (`SelfAdjointOperator`) via `toSymmetricOperator` in the
 `observable_*` corollaries.
 
 ## References
@@ -49,7 +49,7 @@ self-adjoint observables (`UnboundedObservable`) via `toSymmetricOperator` in th
 
 uncertainty principle, Schrödinger inequality, Robertson inequality, covariance
 -/
-open Spectra.Operator SymmetricOperator Spectra.QuantumMechanics.Observable
+open Spectra.Operator SymmetricOperator
 open InnerProductSpace
 open scoped ComplexConjugate
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
@@ -286,7 +286,7 @@ statements for genuine self-adjoint observables, obtained by feeding
 specialize identically. -/
 
 /-- Schrödinger uncertainty for self-adjoint observables. -/
-lemma observable_schrodinger_uncertainty (A B : UnboundedObservable H) (ψ : H)
+lemma observable_schrodinger_uncertainty (A B : SelfAdjointOperator H) (ψ : H)
     (h : ShiftedDomainConditions A.toSymmetricOperator B.toSymmetricOperator ψ) :
     A.toSymmetricOperator.variance ψ h.h_norm h.hψ_A *
         B.toSymmetricOperator.variance ψ h.h_norm h.hψ_B ≥
@@ -296,7 +296,7 @@ lemma observable_schrodinger_uncertainty (A B : UnboundedObservable H) (ψ : H)
   schrodinger_uncertainty A.toSymmetricOperator B.toSymmetricOperator ψ h
 
 /-- Robertson uncertainty for self-adjoint observables. -/
-lemma observable_robertson_uncertainty (A B : UnboundedObservable H) (ψ : H)
+lemma observable_robertson_uncertainty (A B : SelfAdjointOperator H) (ψ : H)
     (h : ShiftedDomainConditions A.toSymmetricOperator B.toSymmetricOperator ψ) :
     A.toSymmetricOperator.variance ψ h.h_norm h.hψ_A *
         B.toSymmetricOperator.variance ψ h.h_norm h.hψ_B ≥
@@ -305,7 +305,7 @@ lemma observable_robertson_uncertainty (A B : UnboundedObservable H) (ψ : H)
   robertson_uncertainty A.toSymmetricOperator B.toSymmetricOperator ψ h
 
 /-- Schrödinger uncertainty (standard-deviation form) for self-adjoint observables. -/
-lemma observable_schrodinger_stddev (A B : UnboundedObservable H) (ψ : H)
+lemma observable_schrodinger_stddev (A B : SelfAdjointOperator H) (ψ : H)
     (h : ShiftedDomainConditions A.toSymmetricOperator B.toSymmetricOperator ψ) :
     A.toSymmetricOperator.stdDev ψ h.h_norm h.hψ_A *
         B.toSymmetricOperator.stdDev ψ h.h_norm h.hψ_B ≥
@@ -315,7 +315,7 @@ lemma observable_schrodinger_stddev (A B : UnboundedObservable H) (ψ : H)
   schrodinger_stddev A.toSymmetricOperator B.toSymmetricOperator ψ h
 
 /-- Robertson uncertainty (standard-deviation form) for self-adjoint observables. -/
-lemma observable_robertson_stddev (A B : UnboundedObservable H) (ψ : H)
+lemma observable_robertson_stddev (A B : SelfAdjointOperator H) (ψ : H)
     (h : ShiftedDomainConditions A.toSymmetricOperator B.toSymmetricOperator ψ) :
     A.toSymmetricOperator.stdDev ψ h.h_norm h.hψ_A *
         B.toSymmetricOperator.stdDev ψ h.h_norm h.hψ_B ≥

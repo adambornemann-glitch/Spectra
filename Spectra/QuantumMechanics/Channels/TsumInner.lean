@@ -17,9 +17,9 @@ underlying inner-product facts behind bounds such as `|tr T| ≤ ‖T‖₁`.
 
 ## Main results
 
-* `Spectra.Analysis.summable_inner_of_summable_sq` — `i ↦ ⟪p i, q i⟫` is summable when both
+* `Spectra.QuantumMechanics.Channels.summable_inner_of_summable_sq` — `i ↦ ⟪p i, q i⟫` is summable when both
   `i ↦ ‖p i‖²` and `i ↦ ‖q i‖²` are.
-* `Spectra.Analysis.weighted_norm_tsum_inner_le` — the weighted arithmetic–geometric bound
+* `Spectra.QuantumMechanics.Channels.weighted_norm_tsum_inner_le` — the weighted arithmetic–geometric bound
   `β · ‖∑ᵢ ⟪p i, q i⟫‖ ≤ (∑ᵢ ‖p i‖² + β² ∑ᵢ ‖q i‖²) / 2` for `β ≥ 0`.  Choosing the weight `β`
   recovers the sharp Cauchy–Schwarz constant without any `Lᵖ`/Hölder machinery.
 -/
@@ -27,7 +27,7 @@ underlying inner-product facts behind bounds such as `|tr T| ≤ ‖T‖₁`.
 open RCLike
 open scoped InnerProductSpace
 
-namespace Spectra.Analysis
+namespace Spectra.QuantumMechanics.Channels
 
 variable {𝕜 : Type*} [RCLike 𝕜] {E : Type*} [NormedAddCommGroup E] [InnerProductSpace 𝕜 E]
 variable {ι : Type*}
@@ -94,4 +94,4 @@ lemma tsum_norm_inner_le {p q : ι → E}
     _ = (∑' i, ‖p i‖ ^ 2 + ∑' i, ‖q i‖ ^ 2) / 2 := by
         rw [tsum_div_const, Summable.tsum_add hp hq]
 
-end Spectra.Analysis
+end Spectra.QuantumMechanics.Channels
