@@ -106,6 +106,11 @@ import Spectra.Modular.TomitaTakesaki.TomitaOperator
 import Spectra.Modular.TomitaTakesaki.Duality
 import Spectra.Modular.TomitaTakesaki.Closable
 import Spectra.Modular.TomitaTakesaki.ModularOperator
+import Spectra.Modular.TomitaTakesaki.VonNeumannTstarT
+import Spectra.Modular.TomitaTakesaki.ModularFlow
+import Spectra.Modular.Cocycle.ModularSqrt
+import Spectra.Modular.Cocycle.PolarIsometry
+import Spectra.Modular.Cocycle.ModularVacuum
 import Spectra.Operator.Symmetric
 import Spectra.Operator.Composite
 import Spectra.Operator.Unitary.Basic
@@ -268,6 +273,8 @@ import Spectra.SpectralTheory.ResolventForm
 import Spectra.SpectralTheory.Antilinear.Conjugation
 import Spectra.SpectralTheory.Antilinear.ConjugateSpace
 import Spectra.SpectralTheory.Calculus.Bounded
+import Spectra.SpectralTheory.Calculus.PMapOfPVM
+import Spectra.SpectralTheory.Calculus.PMapSquareRoot
 import Spectra.SpectralTheory.Measure.Convergence
 import Spectra.SpectralTheory.Measure.GeneratorLink
 import Spectra.SpectralTheory.Measure.Polarized

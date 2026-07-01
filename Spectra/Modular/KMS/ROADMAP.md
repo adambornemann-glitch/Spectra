@@ -95,10 +95,13 @@ explicitly flagged "MISSING".
   (Banach–Alaoglu), via the positive-functional norm bound `‖φ a‖ ≤ 2‖a‖`; `State.toWeakDual`
   embedding (`StateTopology.lean`). Pure states (C2) are one Krein–Milman call away (instance gap).
 
-**Placeholders in `Modular.lean`:** `IsVonNeumannAlgebra.has_predual : True` and
-`State.IsNormal := True`. The predual one is now *replaceable* with Mathlib's `WStarAlgebra`
-(see **W5**); `State.IsNormal` genuinely stays a placeholder for now (see §4 V1). Don't naively
-delete `IsNormal` — downstream signatures depend on it.
+**Placeholders in `Modular.lean`:** ~~`IsVonNeumannAlgebra.has_predual : True`~~ (→ `WStarAlgebra`,
+**W5**) and ~~`State.IsNormal := True`~~ — **both DISCHARGED.** `State.IsNormal` is now an honest,
+predual-free **order-continuity** predicate (2026-06-30): `ω` preserves suprema of bounded increasing
+nets of positives, using the spectral order `[PartialOrder A] [StarOrderedRing A]` threaded through the
+`FaithfulNormalState`/`ModularTheoryData` layer. `FaithfulNormalState` is now a genuine restriction (not
+"faithful state"). *Remaining as future work (not a placeholder):* proving concrete states — e.g. vector
+states — satisfy it. §4 V1 below is superseded by this change.
 
 ---
 
@@ -191,9 +194,10 @@ These need only the existing `State`/`KMSFunction`/`Hadamard` infrastructure.
   `WStarAlgebra A` (Sakai: `class … [CStarAlgebra M] : Prop` with `exists_predual`,
   `Analysis/VonNeumannAlgebra/Basic.lean`). The predual assumption now has real content. The
   migration was a pure binder swap — no instance is ever constructed in-project.
-- **Caveat (still true):** this fixed only the *predual* placeholder. `State.IsNormal := True`
-  stays a placeholder (see §4 V1): `exists_predual` is existential, so there is no *chosen*
-  predual / σ-weak topology to define normality against.
+- **Caveat (SUPERSEDED 2026-06-30):** at the time, this fixed only the *predual* placeholder and
+  `State.IsNormal := True` stayed. That is **no longer true** — `IsNormal` was replaced with an honest
+  predual-free **order-continuity** predicate (§4 V1 below is superseded); normality does not need a
+  chosen σ-weak topology, only the spectral order `[PartialOrder A] [StarOrderedRing A]`.
 
 > Note (refactor, not new work): the existing `eqOn_closedStrip_of_boundary_eq` could be
 > *derived from* `PhragmenLindelof.eqOn_horizontal_strip` instead of the bespoke Hadamard
@@ -380,23 +384,25 @@ reachable — this is the most valuable next *new-analysis* target.
 
 ## Tier 4 — von Neumann algebras & Tomita–Takesaki  ·  **research**
 
-### V1. Replace the `True` placeholders  ·  **predual: easy–medium · normal: hard**
+### V1. Replace the `True` placeholders  ·  **predual: ✅ DONE (W5) · normal: ✅ DONE (order-continuity, 2026-06-30)**
 - **Finding (corrected):** Mathlib has **both** flavors of von Neumann algebra in
   `Analysis/VonNeumannAlgebra/Basic.lean`:
   - **abstract** `WStarAlgebra M` (Sakai: `[CStarAlgebra M]` + `exists_predual`) — drops straight
     into the project's abstract setting;
-  - **concrete** `VonNeumannAlgebra H` (a `StarSubalgebra ℂ (H →L[ℂ] H)` equal to its bicommutant),
-    with `instance WStarAlgebra (H →L[ℂ] H)`.
+  - **concrete** `VonNeumannAlgebra H` (a `StarSubalgebra ℂ (H →L[ℂ] H)` equal to its bicommutant).
+    ⚠ **Correction (2026-06-30):** there is **no** `instance WStarAlgebra (H →L[ℂ] H)` — `Basic.lean:64`
+    is a future-tense TODO comment, not a declaration; constructing it is part of the predual build.
 - **Predual placeholder → real:** do **W5** — swap `IsVonNeumannAlgebra A` for `[WStarAlgebra A]`.
   Easy–medium, pure win.
-- **Normal-state placeholder (`State.IsNormal := True`) → real:** still hard. `exists_predual` only
-  *asserts* a predual; Mathlib has no chosen σ-weak/ultraweak topology on a general `WStarAlgebra`,
-  so "normal = σ-weakly continuous / order-continuous / predual-represented" can't be stated
-  off-the-shelf. Realistic paths: (a) keep `IsNormal` a placeholder; (b) define normality only
-  after a chosen predual is fixed (needs new dev); (c) use order-continuity (monotone-net
-  continuity) as the definition — more tractable but still new work.
-- **Recommendation:** land **W5** now (predual becomes real); keep `IsNormal` placeholder, revisit
-  alongside the state topology (Tier 2, C1) or an order-continuity definition.
+- **Normal-state placeholder (`State.IsNormal := True`) → real: ✅ DONE (2026-06-30)** via option (c),
+  order-continuity: `IsNormal ω := ∀ (s : Set A) (a : A), DirectedOn (·≤·) s → (∀ x∈s, 0≤x) →
+  IsLUB s a → IsLUB ((fun x => (ω x).re) '' s) (ω a).re` — ω preserves the suprema of bounded increasing
+  nets of positives. **Predual-free** (needs only the spectral order `[PartialOrder A] [StarOrderedRing A]`,
+  threaded through `FaithfulNormalState`/`ModularTheoryData`/`ConnesCocycle`; nothing inhabits these so no
+  proofs broke). `FaithfulNormalState` is now a genuine restriction, not "faithful state". Also purged the
+  vacuous `modular_state_is_kms` ("Takesaki's Theorem" = `hmod.kms_at_one` field access).
+- **Remaining (future work, NOT a placeholder):** prove concrete states — e.g. vector states — satisfy it
+  (the `Q1 = concrete` corollary that inhabits the predicate). Build + AxiomCheck green (4088).
 
 ### V2. Actual Tomita–Takesaki construction (Δ, J, modular flow)  ·  **research**
 - **Missing entirely** in Mathlib. The project rightly *axiomatizes* this via

@@ -46,7 +46,7 @@ signature did not appear in the catalogue; it is assumed here to read
     = ∫ s, ((s : ℂ) - z)⁻¹ ∂(borelMeasure U_grp ξ)`,
 
 as reconstructed from its use in `StoneFormula/Basic.lean`.  If the integrand
-is phrased through `resolvent_integrand`, adjust `spectralPVM_resolvent_formula`
+is phrased through `resolventIntegrand`, adjust `spectralPVM_resolvent_formula`
 (and the keystone's RHS) accordingly — the architecture is unaffected.
 -/
 

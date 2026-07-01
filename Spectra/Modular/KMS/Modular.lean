@@ -63,16 +63,23 @@ replaces the previous placeholder class and gives the predual assumption real co
 def State.IsFaithful (ω : State A) : Prop :=
   ∀ a : A, ω (star a * a) = 0 → a = 0
 
-/-- A state is normal if it is weak*-continuous (equivalently, comes from the predual).
+/-- A state is **normal** iff it is order-continuous: it preserves the suprema of bounded
+increasing nets of positive elements.
 
-Genuine normality (σ-weak continuity) requires a *chosen* predual / σ-weak topology, which
-`WStarAlgebra.exists_predual` only asserts existentially; we therefore keep this as a
-placeholder until a predual is fixed. -/
-def State.IsNormal [WStarAlgebra A] (_ω : State A) : Prop :=
-  True  -- Placeholder
+This is the standard predual-free characterization of normality — equivalent, for a positive
+functional on a von Neumann algebra, to σ-weak continuity and to complete additivity. It needs
+only the spectral order `[PartialOrder A] [StarOrderedRing A]`, *not* a chosen predual (which
+`WStarAlgebra.exists_predual` asserts only existentially). Discharging this predicate for concrete
+states — e.g. proving vector states normal — is future work; the point of this definition is that
+normality is now an honest restriction, not the vacuous `True` it used to be. -/
+def State.IsNormal [WStarAlgebra A] [PartialOrder A] [StarOrderedRing A] (ω : State A) : Prop :=
+  ∀ (s : Set A) (a : A),
+    DirectedOn (· ≤ ·) s → (∀ x ∈ s, 0 ≤ x) → IsLUB s a →
+      IsLUB ((fun x => (ω x).re) '' s) (ω a).re
 
 /-- A faithful normal state. These are the states for which modular theory applies. -/
 structure FaithfulNormalState (A : Type*) [CStarAlgebra A] [WStarAlgebra A]
+    [PartialOrder A] [StarOrderedRing A]
     extends State A where
   faithful : toState.IsFaithful
   normal : toState.IsNormal
@@ -107,7 +114,7 @@ Properties:
     (e.g. via `TomitaTakesaki.modularGroupBundle`); everything downstream
     lights up for free. -/
 structure ModularTheoryData (A : Type*) [CStarAlgebra A] [WStarAlgebra A]
-    (ω : FaithfulNormalState A) where
+    [PartialOrder A] [StarOrderedRing A] (ω : FaithfulNormalState A) where
   /-- The modular automorphism group σ^ω. -/
   dynamics : Dynamics A
   /-- ω is σ-invariant: ω ∘ σ_t = ω. -/
@@ -123,8 +130,10 @@ notation:max "σ[" hmod "]" => ModularTheoryData.dynamics hmod
 These are now projections from `ModularTheoryData`, not global axioms.
 -/
 
-/-- The modular automorphism group leaves the state invariant. (Currently unused.) -/
+/-- Trivial accessor: the bundled invariance field of `hmod`. This is a *projection* of the
+hypothesis `ModularTheoryData`, not a proof that invariant modular data exists. (Currently unused.) -/
 lemma modularAutomorphismGroup_invariant {A : Type*} [CStarAlgebra A] [WStarAlgebra A]
+    [PartialOrder A] [StarOrderedRing A]
     {ω : FaithfulNormalState A} (hmod : ModularTheoryData A ω) :
     IsInvariant ω.toState σ[hmod] :=
   hmod.invariant
@@ -137,34 +146,28 @@ normal states, their modular automorphism groups differ by a cocycle.
 This means the modular flow is "almost unique" - unique up to inner automorphisms.
 -/
 structure ConnesCocycle {A : Type*} [CStarAlgebra A] [WStarAlgebra A]
+    [PartialOrder A] [StarOrderedRing A]
     {ω : FaithfulNormalState A} (hmod : ModularTheoryData A ω) (u : ℝ → A) where
   unitary : ∀ t, u t * star (u t) = 1 ∧ star (u t) * u t = 1
   cocycle_law : ∀ s t, u (s + t) = u s * σ[hmod].evolve s (u t)
   continuous : Continuous u
 
-/-! ## The Main Theorem: Modular States are KMS
+/-! ## Takesaki's theorem — the target, NOT yet a theorem here
 
-This is the fundamental result of Tomita-Takesaki theory in its thermodynamic
-interpretation. The state ω is KMS at β = 1 with respect to its own modular
-automorphism group.
+Takesaki's theorem states that a faithful normal state `ω` is KMS at `β = 1` with respect to its
+own modular automorphism group `σ^ω`. In this file that fact is available **only as the bundled
+hypothesis** `ModularTheoryData.kms_at_one` — it is *assumed*, not proved.
 
-The proof requires constructing the KMS function F_{a,b}(z) explicitly:
-- F_{a,b}(t) = ω(a · σ_t(b)) for t real
-- Extend analytically to the strip 0 < Im(z) < 1
-- Show F_{a,b}(t + i) = ω(σ_t(b) · a)
+There is deliberately **no** lemma `modular_state_is_kms` here: such a lemma would be a
+content-free projection of `hmod.kms_at_one` dressed up as Takesaki's theorem, and
+`ModularTheoryData` is currently uninhabited, so it would assert nothing about any actual state.
+Callers that hold a `hmod` should write `hmod.kms_at_one` directly.
 
-The analyticity comes from the spectral theory of Δ:
-  ω(a · Δ^{iz} b Δ^{-iz}) is analytic in z for 0 < Im(z) < 1
--/
-
-/-- **Takesaki's Theorem**: A faithful normal state ω on a von Neumann algebra
-is KMS at β = 1 with respect to its modular automorphism group σ^ω.
-
-This is a direct projection from the bundled modular theory data. -/
-lemma modular_state_is_kms {A : Type*} [CStarAlgebra A] [WStarAlgebra A]
-    {ω : FaithfulNormalState A} (hmod : ModularTheoryData A ω) :
-    IsKMSState ω.toState σ[hmod] 1 :=
-  hmod.kms_at_one
+The genuine theorem is discharged only once `ModularTheoryData` is *constructed* from the
+Tomita–Takesaki data — the modular operator `Δ` and the KMS function
+`F_{a,b}(z) = ω(a · σ_z b)`, analytic on the strip `0 < Im z < 1` with
+`F_{a,b}(t + i) = ω(σ_t(b) · a)` — which is the objective of the `tomitaTakesaki_exists`
+construction. Until then this is an open target, not a result. -/
 
 /-! ## Scaling: KMS at Arbitrary Temperature
 
@@ -326,9 +329,13 @@ lemma IsKMSState.rescale {A : Type*} [CStarAlgebra A]
   obtain ⟨F⟩ := h a b
   exact ⟨F.rescaleGeneral β₂ hβ₁ hβ₂⟩
 
-/-- A faithful normal state is KMS at any inverse temperature β > 0 with respect
-to the rescaled modular automorphism group. -/
+/-- **Given** modular theory data `hmod` for a faithful normal state `ω` (in particular its KMS@1
+witness `hmod.kms_at_one`), `ω` is KMS at every inverse temperature `β > 0` for the rescaled
+modular flow. This is a genuine reparametrization — real content is the strip rescaling
+`KMSFunction.rescale` — but it is **conditional on `hmod`**; it does not assert that such `hmod`
+exists. -/
 lemma modular_state_is_kms_at_beta {A : Type*} [CStarAlgebra A] [WStarAlgebra A]
+    [PartialOrder A] [StarOrderedRing A]
     {ω : FaithfulNormalState A} (hmod : ModularTheoryData A ω)
     (β : ℝ) (hβ : 0 < β) :
     IsKMSState ω.toState (σ[hmod].rescale (1/β)) β := by

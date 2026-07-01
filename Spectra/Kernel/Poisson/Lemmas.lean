@@ -248,6 +248,15 @@ lemma integrable_two_sided_exp {ε : ℝ} (hε : 0 < ε) (ξ : ℝ) :
     rw [abs_of_pos ht, ← Complex.exp_add]
     push_cast; ring_nf
 
+/-- The one-sided real exponential `e^{-c|t|}` is integrable, as the norm of the two-sided
+complex exponential `integrable_two_sided_exp` at frequency `ξ = 0`. -/
+lemma integrable_exp_neg_abs_mul {c : ℝ} (hc : 0 < c) :
+    Integrable (fun t : ℝ => Real.exp (-(c * |t|))) volume := by
+  refine ((integrable_two_sided_exp hc 0).norm).congr ?_
+  filter_upwards with t
+  simp only [Complex.ofReal_zero, mul_zero, zero_mul, Complex.exp_zero, mul_one, Complex.norm_exp]
+  congr 1; simp [Complex.mul_re]
+
 /-- **Fourier transform of the two-sided exponential**:
     `∫ e^{-ε|t|} · e^{iξt} dt = 2ε/(ξ² + ε²)` for `ε > 0`. -/
 lemma fourier_two_sided_exp {ε : ℝ} (hε : 0 < ε) (ξ : ℝ) :

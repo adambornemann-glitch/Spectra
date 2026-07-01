@@ -179,6 +179,21 @@ assert_no_sorry Spectra.QuantumCHSH.tsirelson_bound'
 assert_no_sorry Spectra.QuantumMechanics.Heisenberg.heisenberg_uncertainty
 assert_no_sorry Spectra.QuantumMechanics.Ehrenfest.ehrenfest_theorem
 assert_no_sorry Spectra.QuantumMechanics.SpectralTheory.first_law
+assert_no_sorry Spectra.QuantumMechanics.Pauli.pauliX_hermitian
+assert_no_sorry Spectra.QuantumMechanics.Pauli.pauliY_hermitian
+assert_no_sorry Spectra.QuantumMechanics.Pauli.pauliZ_hermitian
+assert_no_sorry Spectra.QuantumMechanics.Pauli.pauliX_isSelfAdjoint
+assert_no_sorry Spectra.QuantumMechanics.Pauli.pauliY_isSelfAdjoint
+assert_no_sorry Spectra.QuantumMechanics.Pauli.pauliZ_isSelfAdjoint
+assert_no_sorry Spectra.QuantumMechanics.Pauli.pauliX_sq
+assert_no_sorry Spectra.QuantumMechanics.Pauli.pauliY_sq
+assert_no_sorry Spectra.QuantumMechanics.Pauli.pauliZ_sq
+assert_no_sorry Spectra.QuantumMechanics.Pauli.pauliXY_anticommute
+assert_no_sorry Spectra.QuantumMechanics.Pauli.pauliXZ_anticommute
+assert_no_sorry Spectra.QuantumMechanics.Pauli.pauliYZ_anticommute
+assert_no_sorry Spectra.QuantumMechanics.Pauli.pauliXY_commutator
+assert_no_sorry Spectra.QuantumMechanics.Pauli.pauliYZ_commutator
+assert_no_sorry Spectra.QuantumMechanics.Pauli.pauliZX_commutator
 assert_no_sorry Spectra.QuantumMechanics.Dirac.diracHamiltonian_isSelfAdjoint
 assert_no_sorry Spectra.QuantumMechanics.Dirac.diracHamiltonian_mass_gap
 assert_no_sorry Spectra.QuantumMechanics.Hamiltonian.kato_rellich
@@ -205,6 +220,56 @@ assert_no_sorry Spectra.QuantumMechanics.BornRule.jointBornMeasure_correlation
 
 assert_no_sorry Spectra.KMS.IsKMSState
 assert_no_sorry Spectra.KMS.isKMSState_iff_imaginaryTime
+
+-- von Neumann's `T⋆T` theorem: the modular operator `Δ = S⋆S` is self-adjoint and `≥ 0`
+-- (Tomita–Takesaki milestone H3 — the GATE of the modular-flow / RN-cocycle construction).
+assert_no_sorry Spectra.TomitaTakesaki.modularOp_isSelfAdjoint
+assert_no_sorry Spectra.TomitaTakesaki.modularOp_nonneg
+-- R1-link: the modular flow `Δ^{it}` constructed from `Δ` (Cayley transform → Borel calculus).
+assert_no_sorry Spectra.TomitaTakesaki.modularFlow_unitary
+assert_no_sorry Spectra.TomitaTakesaki.modularFlow_group_law
+-- R2: the unbounded (Cauchy-limit) functional calculus `∫ f dP` of a spectral PVM — the engine
+-- for the modular square root `Δ^{½}`. Operator + its `L²` isometry and pairing characterization.
+assert_no_sorry Spectra.QuantumMechanics.SpectralTheory.pmapOfPVM
+assert_no_sorry Spectra.QuantumMechanics.SpectralTheory.pmapTrunc_cauchySeq
+assert_no_sorry Spectra.QuantumMechanics.SpectralTheory.pmapOfPVM_apply_tendsto
+assert_no_sorry Spectra.QuantumMechanics.SpectralTheory.norm_sq_pmapOfPVM_apply
+assert_no_sorry Spectra.QuantumMechanics.SpectralTheory.inner_pmapOfPVM
+-- R2 cont.: the quadratic-form pairing `⟪ξ,(∫f dP)ξ⟫=∫f dμ_ξ`, symmetry of `∫f dP` for real `f`,
+-- and positivity `0≤Re⟪ξ,(∫f dP)ξ⟫` for `f≥0` — the "real f ⟹ self-adjoint, ≥0" prerequisites.
+assert_no_sorry Spectra.QuantumMechanics.SpectralTheory.inner_self_pmapOfPVM
+assert_no_sorry Spectra.QuantumMechanics.SpectralTheory.pmapOfPVM_isFormalAdjoint_self
+assert_no_sorry Spectra.QuantumMechanics.SpectralTheory.re_inner_self_pmapOfPVM_nonneg
+-- R2 square root: spectral-measure restriction, support of a `≥0` generator on `[0,∞)`, and the
+-- form identity `‖A^{½}x‖² = Re⟪x,Ax⟫` — the engine for `Δ^{½}` and `‖Δ^{½}x‖=‖Sx‖` (R3 input).
+assert_no_sorry Spectra.QuantumMechanics.SpectralTheory.borelMeasure_spectralProjection_restrict
+assert_no_sorry Spectra.QuantumMechanics.SpectralTheory.borelMeasure_Iio_zero_eq_zero
+assert_no_sorry Spectra.QuantumMechanics.SpectralTheory.norm_sq_pmapOfPVM_sqrt
+-- R2 capstone: the modular square root `Δ^{½} = pmapOfPVM (genToGroup Δ) √` and the polar isometry
+-- `‖Δ^{½}x‖ = ‖Sx‖` (the input `LinearEquiv.extendOfIsometry` needs for `W` in R3 / `S = JΔ^{½}`).
+assert_no_sorry Spectra.TomitaTakesaki.modularSqrt
+assert_no_sorry Spectra.TomitaTakesaki.norm_sq_modularSqrt
+assert_no_sorry Spectra.TomitaTakesaki.norm_modularSqrt_eq_norm_tomita
+-- R3 polar-decomposition substrate (`S = J Δ^{½}`): injectivity of `S` and `Δ` (`inj`), and the
+-- density inputs to `W = extendOfIsometry` — `range S` dense, and `S(D(Δ))` dense (`D(Δ)` a core
+-- for `S`, from `1+Δ` surjective). (Source density `Δ^{½}(D(Δ))` awaits R2-completion.)
+assert_no_sorry Spectra.TomitaTakesaki.tomitaClosure_injective
+assert_no_sorry Spectra.TomitaTakesaki.modularOp_injective
+assert_no_sorry Spectra.TomitaTakesaki.tomitaClosure_range_dense
+assert_no_sorry Spectra.TomitaTakesaki.denseRange_tomitaOnModularDomain
+-- R3 completion: the source density `Δ^{½}(D(Δ))` (direct spectral argument, no product law), then
+-- the polar isometry `W : H ≃ₗᵢ Conj H`, the modular conjugation `J = ofConj ∘ W : H ≃ₗᵢ⋆ H`, and
+-- the polar decomposition `S = J Δ^{½}`.
+assert_no_sorry Spectra.TomitaTakesaki.denseRange_modularSqrtOnModularDomain
+assert_no_sorry Spectra.TomitaTakesaki.modularW
+assert_no_sorry Spectra.TomitaTakesaki.modularConjugation
+assert_no_sorry Spectra.TomitaTakesaki.tomita_eq_modularConjugation_modularSqrt
+-- R4a vacuum-fixing facts: `Δ Ω = Ω`, `Δ^{½} Ω = Ω`, `J Ω = Ω` (Tomita's `J Ω = Ω`), each from the
+-- eigenvector `Δ Ω = Ω` (direct `S Ω = toConj Ω`, `S⋆ toConj Ω = Ω`) through the spectral atom and
+-- the polar decomposition `S = J Δ^{½}`.
+assert_no_sorry Spectra.TomitaTakesaki.modularOp_vacuum
+assert_no_sorry Spectra.TomitaTakesaki.modularSqrt_vacuum
+assert_no_sorry Spectra.TomitaTakesaki.modularConjugation_fixes_vacuum
 
 /-! ## Information geometry -/
 

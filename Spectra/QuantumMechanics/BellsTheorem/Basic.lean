@@ -44,6 +44,7 @@ import Mathlib.Analysis.InnerProductSpace.Basic
 import Mathlib.Analysis.InnerProductSpace.PiL2
 import Mathlib.LinearAlgebra.Matrix.DotProduct
 import Mathlib.Data.Matrix.Basic
+import Spectra.QuantumMechanics.PauliMatrices
 
 
 
@@ -238,13 +239,13 @@ theorem CHSH_lhv_bound (M : LocalHiddenVariableModel Λ) :
 
 /-! ## Quantum Violation -/
 
-/-- The Pauli Z matrix -/
+/-- The Pauli-Z matrix, re-exported for the Bell/CHSH namespace. -/
 def pauliZ : Matrix (Fin 2) (Fin 2) ℂ :=
-  !![1, 0; 0, -1]
+  Spectra.QuantumMechanics.Pauli.pauliZ
 
-/-- The Pauli X matrix -/
+/-- The Pauli-X matrix, re-exported for the Bell/CHSH namespace. -/
 def pauliX : Matrix (Fin 2) (Fin 2) ℂ :=
-  !![0, 1; 1, 0]
+  Spectra.QuantumMechanics.Pauli.pauliX
 
 /-- The Bell state |Ψ⁻⟩ = (1/√2)(|01⟩ - |10⟩) as a density matrix
     on the product space Fin 2 × Fin 2 -/
@@ -291,7 +292,8 @@ lemma alice_A₀_explicit :
     Matrix.of fun i j =>
       if i = j then (if i.1 = 0 then 1 else -1) else 0 := by
   ext i j
-  simp only [kroneckerMap_apply, alice_A₀, pauliZ, Matrix.one_apply]
+  simp only [kroneckerMap_apply, alice_A₀, pauliZ, Spectra.QuantumMechanics.Pauli.pauliZ,
+    Matrix.one_apply]
   fin_cases i <;> fin_cases j <;> simp
 
 /-- Alice's A₁ = X ⊗ I as explicit 4x4 matrix -/
@@ -300,7 +302,8 @@ lemma alice_A₁_explicit :
     Matrix.of fun i j =>
       if i.2 = j.2 ∧ i.1 ≠ j.1 then 1 else 0 := by
   ext i j
-  simp only [kroneckerMap_apply, alice_A₁, pauliX, Matrix.one_apply]
+  simp only [kroneckerMap_apply, alice_A₁, pauliX, Spectra.QuantumMechanics.Pauli.pauliX,
+    Matrix.one_apply]
   fin_cases i <;> fin_cases j <;> simp
 
 /-- Correlation E(A₀, B₁) for the Bell state -/
@@ -314,7 +317,8 @@ lemma correlation_A₀_B₁ :
   simp only [Fin.isValue, mul_zero, Finset.sum_const_zero, one_div, zero_add, add_zero]
   simp only [A₀, B₁]
   simp only [kroneckerMap_apply, Matrix.one_apply]
-  simp only [alice_A₀, bob_B₁, pauliZ, pauliX]
+  simp only [alice_A₀, bob_B₁, pauliZ, pauliX, Spectra.QuantumMechanics.Pauli.pauliZ,
+    Spectra.QuantumMechanics.Pauli.pauliX]
   simp only [Matrix.smul_apply, Matrix.add_apply]
   simp only [Fintype.sum_prod_type, Fin.sum_univ_two, Fin.isValue]
   simp only [Matrix.of_apply, Matrix.cons_val_zero, Matrix.cons_val_one,
@@ -335,7 +339,8 @@ lemma correlation_A₀_B₀ :
   simp only [Fin.isValue, mul_zero, Finset.sum_const_zero, one_div, zero_add, add_zero]
   simp only [A₀, B₀]
   simp only [kroneckerMap_apply, Matrix.one_apply]
-  simp only [alice_A₀, bob_B₀, pauliZ, pauliX]
+  simp only [alice_A₀, bob_B₀, pauliZ, pauliX, Spectra.QuantumMechanics.Pauli.pauliZ,
+    Spectra.QuantumMechanics.Pauli.pauliX]
   simp only [Matrix.smul_apply, Matrix.sub_apply]
   simp only [Fintype.sum_prod_type, Fin.sum_univ_two, Fin.isValue]
   simp only [Matrix.of_apply, Matrix.cons_val_zero, Matrix.cons_val_one,
@@ -357,7 +362,8 @@ lemma correlation_A₁_B₀ :
   simp only [Fin.isValue, mul_zero, Finset.sum_const_zero, one_div, zero_add, add_zero]
   simp only [A₁, B₀]
   simp only [kroneckerMap_apply, Matrix.one_apply]
-  simp only [alice_A₁, bob_B₀, pauliZ, pauliX]
+  simp only [alice_A₁, bob_B₀, pauliZ, pauliX, Spectra.QuantumMechanics.Pauli.pauliZ,
+    Spectra.QuantumMechanics.Pauli.pauliX]
   simp only [Matrix.smul_apply, Matrix.sub_apply]
   simp only [Fintype.sum_prod_type, Fin.sum_univ_two, Fin.isValue]
   simp only [Matrix.of_apply, Matrix.cons_val_zero, Matrix.cons_val_one,
@@ -378,7 +384,8 @@ lemma correlation_A₁_B₁ :
   simp only [Fin.isValue, mul_zero, Finset.sum_const_zero, one_div, zero_add, add_zero]
   simp only [A₁, B₁]
   simp only [kroneckerMap_apply, Matrix.one_apply]
-  simp only [alice_A₁, bob_B₁, pauliZ, pauliX]
+  simp only [alice_A₁, bob_B₁, pauliZ, pauliX, Spectra.QuantumMechanics.Pauli.pauliZ,
+    Spectra.QuantumMechanics.Pauli.pauliX]
   simp only [Matrix.smul_apply, Matrix.add_apply]
   simp only [Fintype.sum_prod_type, Fin.sum_univ_two, Fin.isValue]
   simp only [Matrix.of_apply, Matrix.cons_val_zero, Matrix.cons_val_one,

@@ -150,11 +150,12 @@ The conjugate-space reduction (M0) removes the old blocker: `S` is the *linear*
     (`tomitaClosure_domain_dense`), and the modular form is **non-negative**
     (`modularForm_nonneg`, `modularForm_eq_norm_sq`: `⟪Sx,Sx⟫ = ‖Sx‖²`). These are exactly von
     Neumann's hypotheses + `Δ ≥ 0`.
-  - ⏳ **The theorem itself — to be PROVED, not bundled** (see Tier 5 for the concrete plan).
-    It is **assemblable from Mathlib's graph machinery** (the orthogonal-complement-of-the-flipped-
-    graph adjoint is already there), not a build-from-nothing. The chain `M0→R1→H1→E1→H2` has reduced
-    the modular operator's existence to exactly this one classical theorem. Difficulty: **hard**
-    (multi-lemma assembly), but tractable.
+  - ✅ **PROVED, not bundled (2026-06-29)** — `Spectra/Modular/TomitaTakesaki/VonNeumannTstarT.lean`,
+    sorry-free, `#print axioms`-clean, in the root `Spectra` import + `AxiomCheck` gate:
+    `modularOp_isSelfAdjoint : IsCyclic M Ω → IsSeparating M Ω → IsSelfAdjoint (modularOp M Ω)`,
+    plus `modularOp_nonneg` (`Δ ≥ 0`). Assembled from Mathlib's graph machinery
+    (`LinearPMap.adjoint_graph_eq_graph_adjoint` + `Submodule.adjoint`/`skewSwap` +
+    `sup_orthogonal_of_hasOrthogonalProjection`) exactly as planned in Tier 5. **H3 discharged.**
 
 ## Tier 4 — `Δ^{it}`, `Δ^{½}`, polar decomposition, and the theorems
 
@@ -174,16 +175,108 @@ The conjugate-space reduction (M0) removes the old blocker: `S` is the *linear*
   - **Link remaining:** feed `V := cayleyTransform Δ` once `Δ` exists (H1–H3); positivity of `Δ`
     gives `0 < (inverseMobius z).re`, making `modularSymbol_eq_cpow` fire — then `borelModularGroup`
     is literally `Δ^{it}` and inhabits `ModularData.modularFlow`.
-- **R2. `Δ^{½}`, `Δ^{-½}` via unbounded functional calculus.** ❌ The remaining calculus gap:
-  `borelCalculus` is bounded-symbol only; `√λ`, `λ^{-½}` are unbounded. Extend it to unbounded
-  symbols, or integrate against `spectralPVM hΔ`. Needed only for the polar decomposition, **not**
-  for `Δ^{it}`. Difficulty: **hard**.
-- **R3. Polar decomposition `S = J Δ^{½}`; extract `J`.** ❌ MISSING in Mathlib for any operator
-  class. With `Δ^{½}` (R2) and the conjugate-space picture, `J` is the partial isometry of `S̃`
-  composed with `Conj H ≅ H`; it lands in the bounded `Conjugation` type. Difficulty: **research**.
-- **R4. The fundamental theorems.** Discharge `modularFlow_maps_into`, `modularFlow_maps_onto`,
-  `modularConjugation_eq_commutant` — i.e. *construct* a `ModularData M Ω`. Capstone:
-  `tomitaTakesaki_exists : IsCyclic M Ω → IsSeparating M Ω → Nonempty (ModularData M Ω)`.
+- **R2. `Δ^{½}` via unbounded functional calculus.** ✅ **DONE (operator + isometry).** The
+  unbounded calculus `pmapOfPVM U_grp f` (`Spectra/SpectralTheory/Calculus/PMapOfPVM.lean`,
+  sorry-free, axiom-gated) integrates a measurable symbol against a PVM on its natural `L²` domain;
+  the `√`-form identity `‖A^{½}x‖² = Re⟪x,Ax⟫` is `norm_sq_pmapOfPVM_sqrt`
+  (`…/Calculus/PMapSquareRoot.lean`). The **modular square root**
+  `modularSqrt := pmapOfPVM (genToGroup Δ) √` (`Spectra/Modular/Cocycle/ModularSqrt.lean`) is `≥ 0`,
+  and the polar isometry `‖Δ^{½}x‖ = ‖S x‖` is `norm_modularSqrt_eq_norm_tomita`. **Still open
+  (R2-completion):** `Δ^{½}` *self-adjoint* (natural domain maximal) and the *product law*
+  `(Δ^{½})² = Δ` — generic spectral-calculus facts; both are the only blocker for the source
+  density `Δ^{½}(D(Δ))` in R3.
+- **R3. Polar decomposition `S = J Δ^{½}`; extract `J`.** ✅ **DONE**
+  (`Spectra/Modular/Cocycle/PolarIsometry.lean`, sorry-free, axiom-gated). Route:
+  `W = LinearEquiv.extendOfIsometry (Δ^{½}x ↦ S x)`, then `J = ofConj ∘ W`. `extendOfIsometry` takes
+  the isometry (R2 `norm_modularSqrt_eq_norm_tomita`) plus two density inputs:
+  - `inj`: `tomitaClosure_injective` (`ker S = 0`, from `S⋆(toConj bΩ) = b⋆Ω` via `S ≤ S₀⋆⋆` + density
+    of `M'Ω`) and `modularOp_injective` (`ker Δ = 0`).
+  - `denserange` (target): `tomitaClosure_range_dense` and `denseRange_tomitaOnModularDomain`
+    (`S(D(Δ))` dense = *`D(Δ)` a core for `S`*), from the surjectivity of `1 + Δ`
+    (`one_add_modularOp_surjective`).
+  - `denserange` (source): `denseRange_modularSqrtOnModularDomain` (`Δ^{½}(D(Δ))` dense). Proved by a
+    **direct spectral argument** — for `y ⊥ Δ^{½}(D(Δ))`, the cut-offs `E([0,n])y ∈ D(Δ)` give
+    `∫_{[0,n]} √s dμ_y = 0`, so `μ_y((0,∞)) = 0`; `Δ ≥ 0` gives `μ_y((-∞,0)) = 0`; `ker Δ = 0` gives
+    `μ_y({0}) = 0`; hence `‖y‖² = μ_y(ℝ) = 0`. **Crucially this AVOIDS the product law `(Δ^{½})² = Δ`
+    and `Δ^{½}` self-adjointness** — it uses only spectral facts about the already-self-adjoint `Δ`
+    (bounded-calculus multiplicativity against `E(B)`, `μ_{E(B)ξ} = μ_ξ|_B`, `E((-∞,0)) = 0`).
+  - **Capstone:** `modularW : H ≃ₗᵢ[ℂ] Conj H` (the unitary `W`), `modularConjugation : H ≃ₗᵢ⋆[ℂ] H`
+    (the antiunitary `J = ofConj ∘ W`), and `tomita_eq_modularConjugation_modularSqrt` — the polar
+    decomposition `S = J Δ^{½}` (`toConj (J (Δ^{½} x)) = S x`).
+  - *Still open downstream:* `J² = 1`, `J Ω = Ω` (the `Jrel` node, Tomita involution `S² ⊆ 1`) and the
+    commutation `J M J = M'` — both R4 / `ModularData`-inhabitation. The product law `(Δ^{½})² = Δ`
+    remains an open (but now non-blocking) R2 nicety.
+- **R4. Inhabit `ModularData` — the fundamental theorems.** Discharge the 6 remaining fields and the
+  capstone `tomitaTakesaki_exists : IsCyclic M Ω → IsSeparating M Ω → Nonempty (ModularData M Ω)`.
+  **Derisked (2026-06-30, 3-agent recon — codebase inventory + literature survey + adversarial audit).
+  Staged plan (each stage a gateable, sorry-free deliverable):**
+  - **R4a — Ω-invariances + `J²=1`. 🟡 PARTLY DONE** (`Spectra/Modular/Cocycle/ModularVacuum.lean`,
+    sorry-free, axiom-gated): `modularOp_vacuum` (`ΔΩ=Ω`), `modularSqrt_vacuum` (`Δ^{½}Ω=Ω`), and
+    **`modularConjugation_fixes_vacuum` (`JΩ=Ω`, field 4)** done. **Field 5 `Δ^{it}Ω=Ω` deferred** —
+    `modularFlow` has generator `log Δ` (Cayley/Borel symbol `λ^{it}`), so it needs a
+    `borelCalculus`-on-a-`V`-eigenvector lemma (spectral measure of an eigenvector = Dirac mass) or the
+    `generator (modularFlow) = log Δ` bridge; the rest (`cayley_eigenvalue_correspondence`,
+    `modularSymbol`) is present. `J²=1` (field 3) still to do. *Original plan below:* All flow from
+    `Ω` being a `Δ`-eigenvector
+    at `1`: `SΩ = toConj Ω` (`tomitaOp_apply` at `T=1∈M`) and `S⋆(toConj Ω) = Ω`
+    (`tomitaAdjoint_apply_commutant` at `b=1∈M'`) give **`ΔΩ = Ω`**; then the single spectral lemma
+    `ΔΩ=Ω ⟹ μ_Ω = ‖Ω‖²δ₁ ⟹ f(Δ)Ω = f(1)Ω` (reuse `spectralPVM_proj_singleton_eq_self_of_eigen` +
+    the `denseRange_modularSqrt` machinery) yields **`Δ^{½}Ω = Ω`** (field 5 prereq), **`Δ^{it}Ω = Ω`**
+    (`modularFlow_fixes_vacuum`, field 5; `Δ^{it}` via the Cayley picture — `Ω` a `V`-eigenvector at
+    `-i`, `modularSymbol(·,t) = 1`), and **`JΩ = Ω`** (`J_fixes_vacuum`, field 4: `JΩ = J(Δ^{½}Ω) =
+    ofConj(SΩ) = Ω`). `J² = 1` (field 3, MEDIUM) needs the involution `S² ⊆ 1` + polar uniqueness; no
+    shortcut isolates it from `JΔJ = Δ^{-1}` (they come as a package). Enabling lemma:
+    `tomitaClosure.adjoint = tomitaOp.adjoint` (adjoint of closure = adjoint; graph argument).
+  - **R4b/c/d/e — Tomita's theorem (6,7) + commutation (8): ★ port Rieffel–van Daele.** The literature
+    survey is decisive: the **bounded two-real-subspaces** proof (Rieffel–van Daele, *Pacific J. Math.*
+    69 (1977)) is the ONLY route avoiding operator-valued Fourier/Mellin transforms, Carlson's theorem,
+    analytic-element calculus, and unbounded-operator analytic continuation. Construction: `K =
+    closure(M_sa Ω)` (a closed real subspace), `iK`, projections `P, Q`, `R = P + Q ∈ [0,2]` with
+    `R, 2−R` injective; `J` = unitary part of the polar decomposition of the **bounded** self-adjoint
+    `P − Q` (so `J² = 1` is bounded polar algebra), and `Δ = (2−R) R^{-1}` — an **unbounded**
+    functional-calculus object (`0 ∈ σ(R)` in the cyclic-separating case), built via the project's
+    `pmapOfPVM` on `R`'s PVM, **not** bounded CFC. The entire analytic content reduces to ONE
+    Hahn–Banach/Sakai-Radon–Nikodym lemma (RvD Lemma 4.3, on the predual) + ONE scalar Cauchy-residue
+    (Lemma 4.6, reusing the project's Morera/strip tooling). **Keystone risk:** the bridge
+    `(J, Δ)_ours = (J, R)_RvD` (spectral; **must land AFTER 4.3**, else circular via the `Re λ=1`
+    modular line). **Long pole:** the von Neumann predual `M = (M_*)^*` behind Lemma 4.3.
+    **Effort (2026-06-30 deep plan, 10-agent + 3 adversarial reviews; DISCHARGE-FIRST): FT + cocycle
+    land UNCONDITIONALLY via the R1 trace-class predual ~32–42 pw ≈ 8–10 months** — no conditional
+    milestone (Adam rejected the `NormalRadonNikodym` interface). Staged: P-audit (0.5) → residue 4.6
+    (2–3, parallel) → bridge `Δ_R=Δ_our` (2–3) → assemble Thm 4.2 (2–2.5, *proved from* Lemma 4.3) →
+    `tomitaTakesaki_exists` (1) → cocycle proper on `M₂(M)` (3–5); the discharge spine (P2 trace-class +
+    P3 predual/Sakai/RN, which *proves* Lemma 4.3) runs first/underneath.
+  - **R4f (downstream bonus).** With `σ_t(M)=M` in hand, the vector state's modular/KMS condition (β=1)
+    becomes a clean *corollary* connecting to the existing `KMS/` Morera work — NOT a route to the
+    theorem (KMS does not shortcut it; establishing KMS needs the same analytic floor).
+  - *Deep breakdowns in the vault Canvases: R4/R5 in
+    `Projects/Modular Theory/Fundamental Theorem and Cocycle.canvas`; the **predual sub-project** in
+    `Projects/Modular Theory/Von Neumann Predual.canvas` (2026-06-30 deep plan).* RvD ingredient status:
+    real subspaces + `Submodule.starProjection` **ready**; scalar residue (Lemma 4.6) **buildable**
+    (Mathlib `CauchyIntegral` + `KMS/PeriodicStrip`, but there is **no `residue` object** — assemble by
+    hand, ~2–3pw). **Corrections from the adversarial review:** (1) the bounded polar decomposition
+    `T=U|T|` is **MISSING from Mathlib** (from-scratch partial isometry, ~3–4pw), not "easy 1–2wk";
+    (2) the "single-vector Ω-relative RN that avoids trace-class" is **provably FALSE in the type III
+    case** — on-the-nose surjectivity `P_𝒦(x'Ω)∈M_sa Ω` needs σ-weak Alaoglu = the full trace-class
+    duality; it survives only as a **kill-criterion spike**, never a route; (3) the
+    `instance WStarAlgebra (H →L[ℂ] H)` **does not exist** (`VonNeumannAlgebra/Basic.lean:64` is a
+    future-tense TODO) — building it *is* the predual work. **Do NOT axiomatize Lemma 4.3, and (Adam's
+    decision, 2026-06-30) do NOT ship it as a conditional theorem either.** DISCHARGE-FIRST: build the
+    predual, whose non-commutative Radon–Nikodym theorem *proves* Lemma 4.3, so the fundamental theorem +
+    cocycle land **UNCONDITIONALLY** — sorry-free, axiom-clean. **Single true blocker = the von Neumann
+    predual** (`TraceClass H` → `B(H)=(TC)^*` σ-weak → Sakai `M=(M_*)^*` → non-comm RN), ~32–42pw.
+    **Q1 SETTLED = CONCRETE:** the certified target is the concrete `M ⊆ B(H)` FT + cocycle (vector states,
+    provably order-continuous ⟹ genuinely inhabits the bundles); the abstract `[WStarAlgebra]` statement is
+    a later GNS corollary, off the critical path.
+
+- **R5. The Connes RN cocycle (2×2 balanced weight) — NO research gaps; engineering.** After R4 inhabits
+  `ModularData`, the chain is `E2` (σ_t as `*`-automorphism) → `M3/M1` (GNS bridge) → `AMP` (M₂(M)) →
+  `BAL` (balanced state θ, Ω_θ) → `MTH` (ModularData(M₂(M),Ω_θ)) → `COC` (extract `u_t` from
+  `σ^θ_t(e₂₁)=u_t⊗e₂₁`; inhabit `ConnesCocycle`, `KMS/Modular.lean`) → `CHN` (chain rule) → capstone
+  **`connesCocycle_exists`**. **Parallelizable NOW, off the R4 gate:** `M1` GNS bridge
+  (`FaithfulNormalState → (π(A)'', Ω)` cyclic+separating; GNS fully done, MED), `AMP` (`SpikeM2` seed →
+  keystone `commutant_M2` bicommutant, MED 2–4d), `BAL` (MED 2–3d). Post-gate COC/CHN/CAP are pure
+  matrix algebra (~1–2wk, low-risk). Full breakdown: same Canvas.
 
 ---
 
@@ -191,6 +284,18 @@ The conjugate-space reduction (M0) removes the old blocker: `S` is the *linear*
 
 **Goal:** construct `Δ = S⋆ S` (`S = tomitaClosure M Ω`) as a self-adjoint, non-negative operator —
 *proved, not axiomatized*. Mathlib already supplies the hard graph-geometry; this is an assembly.
+
+> **✅ DONE (2026-06-29) — `Spectra/Modular/TomitaTakesaki/VonNeumannTstarT.lean`, sorry-free,
+> `#print axioms`-clean, root + `AxiomCheck`-gated (4082-job `lake build` green).** Headline
+> `modularOp_isSelfAdjoint`. Recon found: All cited Mathlib API is **verified present** (incl. the crux
+> `LinearPMap.adjoint_graph_eq_graph_adjoint` and `Submodule.adjoint`/`skewSwap`); there is **no**
+> pre-existing `T⋆T` for `LinearPMap`, so the gate is genuinely needed. **Already proved sorry-free in
+> the spike:** `modularDomain`, `modularOp` (Δ as a real `LinearPMap` — the `LinearPMap.comp` domain
+> obstruction is *dissolved* by `S⋆.comp (S.domRestrict modularDomain)`), `modularOp_apply`,
+> `modularOp_nonneg` (V4), `modularOp_isSymmetric`. **Remaining:** V1–V3 surjectivity (mechanical —
+> `LinearPMap.IsClosed` is closedness in `H × Conj H` but `Submodule.adjoint` works in
+> `WithLp 2 (H × Conj H)`; the only plumbing is that norm-equivalent transport — first lemma
+> `graphL2_hasOrthogonalProjection`), and the new V5 lemma (below).
 
 **Mathlib pieces in hand** (all verified present):
 - `LinearPMap.graph`, and `S.IsClosed` (H2) `= S.graph` closed; closed ⟹ `HasOrthogonalProjection`.
@@ -212,9 +317,14 @@ The conjugate-space reduction (M0) removes the old blocker: `S` is the *linear*
    (bounded, everywhere-defined inverse of `1 + Δ`).
 4. **`V4. Δ symmetric & ≥ 0`** — `⟪Δx,y⟫ = ⟪Sx,Sy⟫ = ⟪x,Δy⟫` and `⟪Δx,x⟫ = ‖Sx‖² ≥ 0`
    (`modularForm_nonneg` already covers the form).
-5. **`V5. Δ self-adjoint`** — symmetric `+ (1+Δ)` bijective-with-bounded-inverse ⟹ self-adjoint
-   (a densely-defined symmetric operator with `(1+Δ)` onto is self-adjoint), via the project's
-   `isSelfAdjoint_of_surjective_addSub` (deficiency criterion) or directly from `R`.
+5. **`V5. Δ self-adjoint`** — symmetric `+ (1+Δ)` bijective-with-bounded-inverse ⟹ self-adjoint.
+   ⚠️ **Correction (Spike A, 2026-06-29):** the project's `isSelfAdjoint_of_surjective_addSub` is
+   **not** directly applicable — it requires `Δ ± iI` surjective (imaginary shifts), whereas the graph
+   geometry delivers `1 + Δ` surjective; deriving the former from the latter is circular (it is the
+   resolvent at `i`, which presupposes self-adjointness). V5 therefore needs **one new ~50-line lemma**:
+   *a densely-defined symmetric `Δ` with `1+Δ` bijective and bounded inverse is self-adjoint* —
+   structurally parallel to `isSelfAdjoint_of_surjective_addSub` but with the positivity bound
+   `‖(1+Δ)x‖ ≥ ‖x‖` replacing the imaginary-shift isometry.
 6. **`V6. modularOp`** — package `Δ : H →ₗ.[ℂ] H` with `IsSelfAdjoint Δ` and `Δ ≥ 0`; *this is the
    theorem that discharges H3*, with **no new axioms**.
 
@@ -235,7 +345,7 @@ must have a *discharge plan* and ultimately a *constructor*; we do not accept st
 | `ModularData M Ω` (J, `Δ^{it}`, `Δ^{it}MΔ^{-it}=M`, `JMJ=M'`) | `Basic.lean` | `tomitaTakesaki_exists` (R4): a *constructor* from `IsCyclic`+`IsSeparating`, built on Tier 5 + R1–R3. Then `ModularData` is an *inhabited* structure, not an axiom. |
 | `Δ = S⋆S` self-adjoint `≥ 0` | this milestone (H3) | **Tier 5** above — proved from Mathlib's graph machinery. |
 | `Spectra.KMS.ModularTheoryData A ω` (abstract `Dynamics` + KMS@1) | `KMS/Modular.lean` | construct from the concrete `ModularData` via GNS (the `(M,Ω)`↔faithful-normal-state bridge, Tier 2 M1). |
-| `State.IsNormal := True` (`KMS/Modular.lean`) | `KMS/Modular.lean` | genuine σ-weak/order-continuity definition once a predual/topology is fixed (KMS ROADMAP §4 V1). |
+| ~~`State.IsNormal := True`~~ → **honest order-continuity (DONE 2026-06-30)** | `KMS/Modular.lean:75` | Replaced the `True` placeholder with the predual-free order-continuity predicate (`ω` preserves suprema of bounded increasing nets of positives), threading `[PartialOrder A] [StarOrderedRing A]` (the spectral order) through `FaithfulNormalState`/`ModularTheoryData`/`ConnesCocycle`. `FaithfulNormalState` is now a genuine restriction, not "faithful state." *Remaining:* proving concrete states normal (e.g. vector states) — future work, not a placeholder. Also purged the vacuous `modular_state_is_kms` ("Takesaki's Theorem" = `hmod.kms_at_one` field access). Build + AxiomCheck green (4088). |
 
 ---
 

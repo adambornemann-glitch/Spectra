@@ -2,12 +2,51 @@
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
-Filename: SpectralTheory/BochnerTheorem/Borel/Density.lean
 -/
 
 import Spectra.Bochner.Borel.Fubini
 import Spectra.Kernel.Lorentzian
+/-!
+# The Poisson Density of a Diagonal Resolvent
 
+For a one-parameter unitary group `U_grp` with generator resolvent `R(z)`, the diagonal matrix
+element `⟪ξ, R(λ+iε)ξ⟫` has non-negative imaginary part; normalizing it gives the Poisson
+density `borelDensity U_grp ξ hε λ := (1/π)·Im⟪ξ, R(λ+iε)ξ⟫`. This file establishes its
+core analytic properties and its Fourier-inversion link back to the group, feeding
+`Bochner/Borel/CDF.lean`.
+
+## Main definitions
+
+* `borelDensity`: the Poisson density `(1/π)·Im⟪ξ, R(λ+iε)ξ⟫`.
+
+## Main statements
+
+* `borelDensity_nonneg`, `borelDensity_continuous`: sign and continuity in `λ`.
+* `borelDensity_le`: the uniform bound `borelDensity ε λ ≤ ‖ξ‖²/(πε)`.
+* `borelDensity_mass`: `borelDensity` is integrable with total mass `‖ξ‖²`.
+* `borelDensity_fourier`: Fourier inversion,
+  `∫ e^{iλt}·borelDensity ε = e^{-ε|t|}·⟨ξ,U(t)ξ⟩`.
+
+## Implementation notes
+
+`borelDensity` need not be integrable a priori, so the mass and Fourier-inversion identities
+are both established by regularizing with `e^{-δ|λ|}` and letting `δ → 0⁺`: the regularized
+integrals are the honest Poisson-kernel integrals of `⟨ξ,U(t)ξ⟩` (via
+`fourier_poisson_tendsto` and `fourier_regularized_value`), which are controlled directly.
+`borelDensity_mass` passes to
+the `δ → 0` limit along the countable sequence `δₙ = 1/(n+1)` rather than the full filter,
+since Beppo Levi's monotone convergence theorem needs a sequence; `borelDensity_le` supplies
+the dominating function that makes each regularized integral finite in the first place.
+
+## References
+
+* Reed, Simon, *Methods of Modern Mathematical Physics I*, Section VII (Herglotz/Poisson
+  representation of the resolvent).
+
+## Tags
+
+Poisson kernel, resolvent, Herglotz representation, one-parameter unitary group
+-/
 open Complex MeasureTheory Filter Topology
 open Spectra.Resolvent
 open Spectra.Fourier
@@ -16,7 +55,6 @@ open Spectra.OneParameterUnitaryGroup
 open scoped InnerProductSpace
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
 namespace Spectra.Borel
-variable (U_grp : OneParameterUnitaryGroup (H := H))
 
 /-- Poisson density of the diagonal resolvent:
 `pε(λ) := (1/π)·Im⟪ξ, R(λ+iε)ξ⟫`. -/
@@ -30,7 +68,7 @@ noncomputable def borelDensity
         (range_plus_i_eq_top U_grp)
         (range_minus_i_eq_top U_grp) ξ⟫_ℂ).im
 
-/-- `key_identity` recast: the Fourier integral equals `2π · borelDensity`. -/
+/-- `fourier_identity` recast: the Fourier integral equals `2π · borelDensity`. -/
 lemma fourier_integral_eq_density
     (U_grp : OneParameterUnitaryGroup (H := H)) (ξ : H)
     {ε : ℝ} (hε : 0 < ε) (lambda : ℝ) :
@@ -78,23 +116,23 @@ lemma borelDensity_nonneg
         (⟨lambda, ε⟩ : ℂ) hε.ne' ξ]
   exact mul_nonneg hε.le (sq_nonneg _)
 
-/-- The Poisson-form integral tends to `2π‖ξ‖²` as `δ → 0⁺`. -/
-lemma poisson_integral_tendsto
+/-- The Poisson integral centered at `t` tends to
+`2π·cexp(-(ε|t|))·⟨ξ,U(t)ξ⟩` as `δ → 0⁺`. -/
+lemma fourier_poisson_tendsto
     (U_grp : OneParameterUnitaryGroup (H := H)) (ξ : H)
-    {ε : ℝ} (hε : 0 < ε) :
-    Tendsto (fun δ : ℝ => ∫ t : ℝ, cexp (-(↑ε * ↑|t|)) * ⟪ξ, U_grp.U t ξ⟫_ℂ
-                * ((2 * δ / (t ^ 2 + δ ^ 2) : ℝ) : ℂ))
-      (𝓝[>] 0) (𝓝 ((2 * Real.pi * ‖ξ‖ ^ 2 : ℝ) : ℂ)) := by
+    {ε : ℝ} (hε : 0 < ε) (t : ℝ) :
+    Tendsto (fun δ : ℝ => ∫ s : ℝ, cexp (-(↑ε * ↑|s|)) * ⟪ξ, U_grp.U s ξ⟫_ℂ
+                * ((2 * δ / ((t - s) ^ 2 + δ ^ 2) : ℝ) : ℂ))
+      (𝓝[>] 0)
+      (𝓝 (((2 * Real.pi : ℝ) : ℂ) *
+        (cexp (-(↑ε * ↑|t|)) * ⟪ξ, U_grp.U t ξ⟫_ℂ))) := by
   set g : ℝ → ℂ := fun s => cexp (-(↑ε * ↑|s|)) * ⟪ξ, U_grp.U s ξ⟫_ℂ with hg_def
   have hg_cont : Continuous g := by
     rw [hg_def]
     exact (Complex.continuous_exp.comp (by fun_prop)).mul
       (Continuous.inner continuous_const (U_grp.strong_continuous ξ))
-  have he_int : Integrable (fun s : ℝ => Real.exp (-(ε * |s|))) volume := by
-    refine ((integrable_two_sided_exp hε 0).norm).congr ?_
-    filter_upwards with s
-    simp only [Complex.ofReal_zero, mul_zero, zero_mul, Complex.exp_zero, mul_one, Complex.norm_exp]
-    congr 1; simp [Complex.mul_re]
+  have he_int : Integrable (fun s : ℝ => Real.exp (-(ε * |s|))) volume :=
+    integrable_exp_neg_abs_mul hε
   have hg_int : Integrable g volume := by
     refine (he_int.const_mul (‖ξ‖ ^ 2)).mono' hg_cont.aestronglyMeasurable ?_
     filter_upwards with s
@@ -103,29 +141,51 @@ lemma poisson_integral_tendsto
     have h_re : (-(↑ε * ↑|s|) : ℂ).re = -(ε * |s|) := by simp [Complex.mul_re]
     rw [h_re]
     have h_inner : ‖⟪ξ, U_grp.U s ξ⟫_ℂ‖ ≤ ‖ξ‖ ^ 2 :=
-      calc ‖⟪ξ, U_grp.U s ξ⟫_ℂ‖ ≤ ‖ξ‖ * ‖U_grp.U s ξ‖ := norm_inner_le_norm _ _
+      calc ‖⟪ξ, U_grp.U s ξ⟫_ℂ‖
+          ≤ ‖ξ‖ * ‖U_grp.U s ξ‖ := norm_inner_le_norm _ _
         _ = ‖ξ‖ * ‖ξ‖ := by rw [norm_preserving U_grp s ξ]
         _ = ‖ξ‖ ^ 2 := by ring
     calc Real.exp (-(ε * |s|)) * ‖⟪ξ, U_grp.U s ξ⟫_ℂ‖
         ≤ Real.exp (-(ε * |s|)) * ‖ξ‖ ^ 2 := by gcongr
       _ = ‖ξ‖ ^ 2 * Real.exp (-(ε * |s|)) := by ring
-  have hg0 : g 0 = (‖ξ‖ ^ 2 : ℂ) := by
-    rw [hg_def]
-    simp only [abs_zero, mul_zero, neg_zero, Complex.ofReal_zero, Complex.exp_zero, one_mul]
-    rw [U_grp.identity, ContinuousLinearMap.id_apply, inner_self_eq_norm_sq_to_K]
-    ring_nf; rfl
-  have h_lor := lorentzian_approx_delta g hg_cont hg_int 0
-  rw [hg0] at h_lor
+  -- lorentzian_approx_delta at t, scaled by 2π.
+  have h_lor := lorentzian_approx_delta g hg_cont hg_int t
   have h_scaled := h_lor.const_smul (2 * Real.pi : ℝ)
-  have h_limit_eq : (2 * Real.pi : ℝ) • (‖ξ‖ ^ 2 : ℂ) = ((2 * Real.pi * ‖ξ‖ ^ 2 : ℝ) : ℂ) := by
-    rw [Complex.real_smul]; push_cast; ring
+  have h_limit_eq : (2 * Real.pi : ℝ) • (g t)
+      = ((2 * Real.pi : ℝ) : ℂ) * (cexp (-(↑ε * ↑|t|)) * ⟪ξ, U_grp.U t ξ⟫_ℂ) := by
+    simp only [hg_def, Complex.real_smul]
   rw [h_limit_eq] at h_scaled
   refine h_scaled.congr (fun δ => ?_)
   rw [smul_smul, show (2 * Real.pi * (1 / Real.pi) : ℝ) = 2 by field_simp, ← integral_smul]
   apply integral_congr_ae
   filter_upwards with s
-  rw [smul_smul, sub_zero, Complex.real_smul]
+  rw [smul_smul, Complex.real_smul]
   push_cast; ring
+
+/-- The Poisson-form integral tends to `2π‖ξ‖²` as `δ → 0⁺` — the `t = 0` case of
+`fourier_poisson_tendsto`, since `(0 - s)² = s²` and
+`cexp(-ε|0|)·⟨ξ,U(0)ξ⟩ = ‖ξ‖²`. -/
+lemma poisson_integral_tendsto
+    (U_grp : OneParameterUnitaryGroup (H := H)) (ξ : H)
+    {ε : ℝ} (hε : 0 < ε) :
+    Tendsto (fun δ : ℝ => ∫ t : ℝ, cexp (-(↑ε * ↑|t|)) * ⟪ξ, U_grp.U t ξ⟫_ℂ
+                * ((2 * δ / (t ^ 2 + δ ^ 2) : ℝ) : ℂ))
+      (𝓝[>] 0) (𝓝 ((2 * Real.pi * ‖ξ‖ ^ 2 : ℝ) : ℂ)) := by
+  have h := fourier_poisson_tendsto U_grp ξ hε 0
+  have hlim :
+      cexp (-(↑ε * ↑|(0 : ℝ)|)) * ⟪ξ, U_grp.U (0 : ℝ) ξ⟫_ℂ
+        = (‖ξ‖ ^ 2 : ℂ) := by
+    simp only [abs_zero, mul_zero, neg_zero, Complex.ofReal_zero, Complex.exp_zero, one_mul]
+    rw [U_grp.identity, ContinuousLinearMap.id_apply, inner_self_eq_norm_sq_to_K]
+    ring_nf; rfl
+  have hkernel : (fun δ : ℝ => ∫ s : ℝ, cexp (-(↑ε * ↑|s|)) * ⟪ξ, U_grp.U s ξ⟫_ℂ
+                    * ((2 * δ / ((0 - s) ^ 2 + δ ^ 2) : ℝ) : ℂ))
+      = (fun δ : ℝ => ∫ t : ℝ, cexp (-(↑ε * ↑|t|)) * ⟪ξ, U_grp.U t ξ⟫_ℂ
+                    * ((2 * δ / (t ^ 2 + δ ^ 2) : ℝ) : ℂ)) := by
+    funext δ; congr 1; funext s; rw [zero_sub, neg_sq]
+  rw [hlim, hkernel] at h
+  rwa [show ((2 * Real.pi : ℝ) : ℂ) * (‖ξ‖ ^ 2 : ℂ)
+      = ((2 * Real.pi * ‖ξ‖ ^ 2 : ℝ) : ℂ) from by push_cast; ring] at h
 
 /-- The Poisson density is continuous in `λ`,
 by continuity of the resolvent on the strip. -/
@@ -182,11 +242,7 @@ lemma borelDensity_le
     unfold borelDensity
     simp only [← hRξ, him]; ring
   have hcs : ε * ‖Rξ‖ ^ 2 ≤ ‖ξ‖ * ‖Rξ‖ := by
-    have h1 : (⟪ξ, Rξ⟫_ℂ).im ≤ ‖⟪ξ, Rξ⟫_ℂ‖ := by
-      rw [hRξ]; exact im_le_norm
-        ⟪ξ,(resolvent { re := lambda, im := ε } (LT.lt.ne' hε)
-            (generator_isFormalAdjoint U_grp) (range_plus_i_eq_top U_grp)
-            (range_minus_i_eq_top U_grp)) ξ⟫_ℂ
+    have h1 : (⟪ξ, Rξ⟫_ℂ).im ≤ ‖⟪ξ, Rξ⟫_ℂ‖ := im_le_norm _
     rw [← him]; exact h1.trans (norm_inner_le_norm ξ Rξ)
   have key : ε * ‖Rξ‖ ≤ ‖ξ‖ := by
     rcases eq_or_lt_of_le (norm_nonneg Rξ) with h0 | hpos
@@ -206,16 +262,12 @@ theorem borelDensity_mass
     Integrable (borelDensity U_grp ξ hε) volume ∧
       ∫ lambda : ℝ, borelDensity U_grp ξ hε lambda = ‖ξ‖ ^ 2 := by
   set D : ℝ → ℝ := borelDensity U_grp ξ hε with hD_def
-  have hD_nonneg : ∀ lambda, 0 ≤ D lambda := fun lambda => borelDensity_nonneg U_grp ξ hε lambda
+  have hD_nonneg : ∀ lambda, 0 ≤ D lambda :=
+    fun lambda => borelDensity_nonneg U_grp ξ hε lambda
   have hD_cont : Continuous D := borelDensity_continuous U_grp ξ hε
   have hexp_int : ∀ {c : ℝ}, 0 < c →
-      Integrable (fun lambda : ℝ => Real.exp (-(c * |lambda|))) volume := by
-    intro c hc
-    refine ((integrable_two_sided_exp hc 0).norm).congr ?_
-    filter_upwards with s
-    simp only [Complex.ofReal_zero, mul_zero, zero_mul, Complex.exp_zero, mul_one,
-      Complex.norm_exp]
-    congr 1; simp [Complex.mul_re]
+      Integrable (fun lambda : ℝ => Real.exp (-(c * |lambda|))) volume :=
+    fun hc => integrable_exp_neg_abs_mul hc
   -- δₙ = 1/(n+1) ↓ 0 within (0, ∞).
   set dseq : ℕ → ℝ := fun n => 1 / (n + 1) with hdseq_def
   have hdseq_pos : ∀ n, 0 < dseq n := fun n => by positivity
@@ -229,7 +281,8 @@ theorem borelDensity_mass
     · rw [hdseq_def]; exact tendsto_one_div_add_atTop_nhds_zero_nat
     · exact Filter.Eventually.of_forall hdseq_pos
   -- fₙ λ = D λ · e^{-δₙ|λ|}.
-  set f : ℕ → ℝ → ℝ := fun n lambda => D lambda * Real.exp (-(dseq n * |lambda|)) with hf_def
+  set f : ℕ → ℝ → ℝ := fun n lambda => D lambda * Real.exp (-(dseq n * |lambda|))
+    with hf_def
   have hf_nonneg : ∀ n lambda, 0 ≤ f n lambda := fun n lambda =>
     mul_nonneg (hD_nonneg lambda) (Real.exp_nonneg _)
   have hf_cont : ∀ n, Continuous (f n) := by
@@ -271,7 +324,8 @@ theorem borelDensity_mass
   have h_mct := MeasureTheory.lintegral_tendsto_of_tendsto_of_monotone
     (fun n => ((hf_cont n).measurable.ennreal_ofReal).aemeasurable) hmono' htend'
   -- ∫ fₙ → ‖ξ‖² along the sequence, lifted through ofReal and the lintegral identity.
-  have h_int_tendsto : Tendsto (fun n => ∫ lambda, f n lambda ∂volume) atTop (𝓝 (‖ξ‖ ^ 2)) := by
+  have h_int_tendsto :
+      Tendsto (fun n => ∫ lambda, f n lambda ∂volume) atTop (𝓝 (‖ξ‖ ^ 2)) := by
     refine ((regularized_mass_tendsto U_grp ξ hε).comp hdseq_tendsto).congr (fun n => ?_)
     simp only [Function.comp_apply, hf_def, hD_def]
   have h_lim : Tendsto (fun n => ∫⁻ lambda, ENNReal.ofReal (f n lambda) ∂volume) atTop
@@ -280,7 +334,8 @@ theorem borelDensity_mass
     refine h.congr (fun n => ?_)
     exact MeasureTheory.ofReal_integral_eq_lintegral_ofReal (hf_int n)
       (Filter.Eventually.of_forall (hf_nonneg n))
-  have h_mass : ∫⁻ lambda, ENNReal.ofReal (D lambda) ∂volume = ENNReal.ofReal (‖ξ‖ ^ 2) :=
+  have h_mass :
+      ∫⁻ lambda, ENNReal.ofReal (D lambda) ∂volume = ENNReal.ofReal (‖ξ‖ ^ 2) :=
     tendsto_nhds_unique h_mct h_lim
   -- Integrability and value.
   have hD_int : Integrable D volume := by
@@ -303,16 +358,10 @@ lemma fourier_regularized_value
   let F : ℝ → ℝ → ℂ := fun lambda s =>
     (cexp (I * ↑lambda * ↑t) * (Real.exp (-(δ * |lambda|)) : ℂ)) *
     (cexp (-(I * ↑lambda * ↑s)) * cexp (-(↑ε * ↑|s|)) * ⟪ξ, U_grp.U s ξ⟫_ℂ)
-  have hδ_int : Integrable (fun lambda : ℝ => Real.exp (-(δ * |lambda|))) volume := by
-    refine ((integrable_two_sided_exp hδ 0).norm).congr ?_
-    filter_upwards with lambda
-    simp only [Complex.ofReal_zero, mul_zero, zero_mul, Complex.exp_zero, mul_one, Complex.norm_exp]
-    congr 1; simp [Complex.mul_re]
-  have hε_int : Integrable (fun s : ℝ => Real.exp (-(ε * |s|))) volume := by
-    refine ((integrable_two_sided_exp hε 0).norm).congr ?_
-    filter_upwards with s
-    simp only [Complex.ofReal_zero, mul_zero, zero_mul, Complex.exp_zero, mul_one, Complex.norm_exp]
-    congr 1; simp [Complex.mul_re]
+  have hδ_int : Integrable (fun lambda : ℝ => Real.exp (-(δ * |lambda|))) volume :=
+    integrable_exp_neg_abs_mul hδ
+  have hε_int : Integrable (fun s : ℝ => Real.exp (-(ε * |s|))) volume :=
+    integrable_exp_neg_abs_mul hε
   have hF_int : Integrable (Function.uncurry F) (volume.prod volume) := by
     have h_meas : AEStronglyMeasurable (Function.uncurry F) (volume.prod volume) := by
       apply Continuous.aestronglyMeasurable
@@ -327,7 +376,8 @@ lemma fourier_regularized_value
         · apply Continuous.mul
           · exact Complex.continuous_exp.comp (by fun_prop)
           · exact Complex.continuous_exp.comp (by fun_prop)
-        · exact (Continuous.inner continuous_const (U_grp.strong_continuous ξ)).comp continuous_snd
+        · exact (Continuous.inner continuous_const
+            (U_grp.strong_continuous ξ)).comp continuous_snd
     have h_dom : Integrable
         (fun p : ℝ × ℝ => ‖ξ‖ ^ 2 * (Real.exp (-(δ * |p.1|)) * Real.exp (-(ε * |p.2|))))
         (volume.prod volume) :=
@@ -335,7 +385,8 @@ lemma fourier_regularized_value
     refine h_dom.mono' h_meas ?_
     filter_upwards with p
     show ‖(cexp (I * ↑p.1 * ↑t) * (Real.exp (-(δ * |p.1|)) : ℂ)) *
-          (cexp (-(I * ↑p.1 * ↑p.2)) * cexp (-(↑ε * ↑|p.2|)) * ⟪ξ, U_grp.U p.2 ξ⟫_ℂ)‖ ≤
+          (cexp (-(I * ↑p.1 * ↑p.2)) * cexp (-(↑ε * ↑|p.2|)) *
+            ⟪ξ, U_grp.U p.2 ξ⟫_ℂ)‖ ≤
           ‖ξ‖ ^ 2 * (Real.exp (-(δ * |p.1|)) * Real.exp (-(ε * |p.2|)))
     simp only [norm_mul, Complex.norm_exp, Complex.norm_real]
     have h0 : (I * ↑p.1 * ↑t).re = 0 := by simp [Complex.mul_re]
@@ -344,14 +395,15 @@ lemma fourier_regularized_value
     rw [h0, h1, h2]
     simp only [Real.exp_zero, one_mul, Real.abs_exp, Real.norm_eq_abs]
     have h_inner : ‖⟪ξ, U_grp.U p.2 ξ⟫_ℂ‖ ≤ ‖ξ‖ ^ 2 := by
-      calc ‖⟪ξ, U_grp.U p.2 ξ⟫_ℂ‖ ≤ ‖ξ‖ * ‖U_grp.U p.2 ξ‖ := norm_inner_le_norm _ _
+      calc ‖⟪ξ, U_grp.U p.2 ξ⟫_ℂ‖
+          ≤ ‖ξ‖ * ‖U_grp.U p.2 ξ‖ := norm_inner_le_norm _ _
         _ = ‖ξ‖ * ‖ξ‖ := by rw [norm_preserving U_grp p.2 ξ]
         _ = ‖ξ‖ ^ 2 := by ring
     nlinarith [mul_nonneg (mul_pos (Real.exp_pos (-(δ * |p.1|)))
         (Real.exp_pos (-(ε * |p.2|)))).le (sub_nonneg.mpr h_inner),
       Real.exp_pos (-(δ * |p.1|)), Real.exp_pos (-(ε * |p.2|)),
       norm_nonneg ⟪ξ, U_grp.U p.2 ξ⟫_ℂ]
-  -- Move 2π in, expose the inner s-integral via key_integral_eq_density, swap.
+  -- Move 2π in, expose the inner s-integral via fourier_integral_eq_density, swap.
   rw [← integral_const_mul]
   have hstep : (fun lambda : ℝ => ((2 * Real.pi : ℝ) : ℂ) *
         (cexp (I * ↑lambda * ↑t) * (borelDensity U_grp ξ hε lambda : ℂ) *
@@ -360,7 +412,8 @@ lemma fourier_regularized_value
     funext lambda
     have hpull : (∫ s : ℝ, F lambda s)
         = (cexp (I * ↑lambda * ↑t) * (Real.exp (-(δ * |lambda|)) : ℂ)) *
-          (∫ s : ℝ, cexp (-(I * ↑lambda * ↑s)) * cexp (-(↑ε * ↑|s|)) * ⟪ξ, U_grp.U s ξ⟫_ℂ) := by
+          (∫ s : ℝ, cexp (-(I * ↑lambda * ↑s)) * cexp (-(↑ε * ↑|s|)) *
+            ⟪ξ, U_grp.U s ξ⟫_ℂ) := by
       simp only [F]; rw [integral_const_mul]
     rw [hpull, fourier_integral_eq_density U_grp ξ hε lambda]
     push_cast; ring
@@ -377,56 +430,10 @@ lemma fourier_regularized_value
     rw [show (cexp (I * ↑lambda * ↑t) * (Real.exp (-(δ * |lambda|)) : ℂ)) *
           (cexp (-(I * ↑lambda * ↑s)) * cexp (-(↑ε * ↑|s|)) * ⟪ξ, U_grp.U s ξ⟫_ℂ)
           = (cexp (I * ↑lambda * ↑t) * cexp (-(I * ↑lambda * ↑s))) *
-            ((Real.exp (-(δ * |lambda|)) : ℂ) * cexp (-(↑ε * ↑|s|)) * ⟪ξ, U_grp.U s ξ⟫_ℂ) from by
-      ring]
+            ((Real.exp (-(δ * |lambda|)) : ℂ) * cexp (-(↑ε * ↑|s|)) *
+              ⟪ξ, U_grp.U s ξ⟫_ℂ) from by ring]
     rw [hexp]; ring
   rw [hreorder, integral_const_mul, fourier_kernel_eval hδ (s - t)]
-  push_cast; ring
-
-/-- The Poisson integral centered at `t` tends to `2π·cexp(-(ε|t|))·⟨ξ,U(t)ξ⟩` as `δ → 0⁺`. -/
-lemma fourier_poisson_tendsto
-    (U_grp : OneParameterUnitaryGroup (H := H)) (ξ : H)
-    {ε : ℝ} (hε : 0 < ε) (t : ℝ) :
-    Tendsto (fun δ : ℝ => ∫ s : ℝ, cexp (-(↑ε * ↑|s|)) * ⟪ξ, U_grp.U s ξ⟫_ℂ
-                * ((2 * δ / ((t - s) ^ 2 + δ ^ 2) : ℝ) : ℂ))
-      (𝓝[>] 0)
-      (𝓝 (((2 * Real.pi : ℝ) : ℂ) * (cexp (-(↑ε * ↑|t|)) * ⟪ξ, U_grp.U t ξ⟫_ℂ))) := by
-  set g : ℝ → ℂ := fun s => cexp (-(↑ε * ↑|s|)) * ⟪ξ, U_grp.U s ξ⟫_ℂ with hg_def
-  have hg_cont : Continuous g := by
-    rw [hg_def]
-    exact (Complex.continuous_exp.comp (by fun_prop)).mul
-      (Continuous.inner continuous_const (U_grp.strong_continuous ξ))
-  have he_int : Integrable (fun s : ℝ => Real.exp (-(ε * |s|))) volume := by
-    refine ((integrable_two_sided_exp hε 0).norm).congr ?_
-    filter_upwards with s
-    simp only [Complex.ofReal_zero, mul_zero, zero_mul, Complex.exp_zero, mul_one, Complex.norm_exp]
-    congr 1; simp [Complex.mul_re]
-  have hg_int : Integrable g volume := by
-    refine (he_int.const_mul (‖ξ‖ ^ 2)).mono' hg_cont.aestronglyMeasurable ?_
-    filter_upwards with s
-    rw [hg_def]
-    simp only [norm_mul, Complex.norm_exp]
-    have h_re : (-(↑ε * ↑|s|) : ℂ).re = -(ε * |s|) := by simp [Complex.mul_re]
-    rw [h_re]
-    have h_inner : ‖⟪ξ, U_grp.U s ξ⟫_ℂ‖ ≤ ‖ξ‖ ^ 2 :=
-      calc ‖⟪ξ, U_grp.U s ξ⟫_ℂ‖ ≤ ‖ξ‖ * ‖U_grp.U s ξ‖ := norm_inner_le_norm _ _
-        _ = ‖ξ‖ * ‖ξ‖ := by rw [norm_preserving U_grp s ξ]
-        _ = ‖ξ‖ ^ 2 := by ring
-    calc Real.exp (-(ε * |s|)) * ‖⟪ξ, U_grp.U s ξ⟫_ℂ‖
-        ≤ Real.exp (-(ε * |s|)) * ‖ξ‖ ^ 2 := by gcongr
-      _ = ‖ξ‖ ^ 2 * Real.exp (-(ε * |s|)) := by ring
-  -- lorentzian_approx_delta at t, scaled by 2π.
-  have h_lor := lorentzian_approx_delta g hg_cont hg_int t
-  have h_scaled := h_lor.const_smul (2 * Real.pi : ℝ)
-  have h_limit_eq : (2 * Real.pi : ℝ) • (g t)
-      = ((2 * Real.pi : ℝ) : ℂ) * (cexp (-(↑ε * ↑|t|)) * ⟪ξ, U_grp.U t ξ⟫_ℂ) := by
-    simp only [hg_def, Complex.real_smul]
-  rw [h_limit_eq] at h_scaled
-  refine h_scaled.congr (fun δ => ?_)
-  rw [smul_smul, show (2 * Real.pi * (1 / Real.pi) : ℝ) = 2 by field_simp, ← integral_smul]
-  apply integral_congr_ae
-  filter_upwards with s
-  rw [smul_smul, Complex.real_smul]
   push_cast; ring
 
 /-- Fourier inversion of the density:
@@ -441,7 +448,8 @@ theorem borelDensity_fourier
   have h_lhs : Tendsto (fun δ : ℝ => ∫ lambda : ℝ, cexp (I * ↑lambda * ↑t) *
         (borelDensity U_grp ξ hε lambda : ℂ) * (Real.exp (-(δ * |lambda|)) : ℂ))
       (𝓝[>] 0)
-      (𝓝 (∫ lambda : ℝ, cexp (I * ↑lambda * ↑t) * (borelDensity U_grp ξ hε lambda : ℂ))) := by
+      (𝓝 (∫ lambda : ℝ,
+        cexp (I * ↑lambda * ↑t) * (borelDensity U_grp ξ hε lambda : ℂ))) := by
     apply MeasureTheory.tendsto_integral_filter_of_dominated_convergence
       (bound := fun lambda => borelDensity U_grp ξ hε lambda)
     · refine Filter.Eventually.of_forall (fun δ => ?_)
@@ -470,7 +478,8 @@ theorem borelDensity_fourier
         have hc : Continuous (fun δ : ℝ => Real.exp (-(δ * |lambda|))) := by fun_prop
         refine Tendsto.mono_left ?_ nhdsWithin_le_nhds
         simpa using hc.tendsto 0
-      have hlim1 : Tendsto (fun δ : ℝ => (Real.exp (-(δ * |lambda|)) : ℂ)) (𝓝[>] 0) (𝓝 1) := by
+      have hlim1 :
+          Tendsto (fun δ : ℝ => (Real.exp (-(δ * |lambda|)) : ℂ)) (𝓝[>] 0) (𝓝 1) := by
         have := (Complex.continuous_ofReal.tendsto 1).comp hr
         simpa [Function.comp_def] using this
       simpa using (Filter.Tendsto.const_mul
@@ -479,7 +488,9 @@ theorem borelDensity_fourier
   have h_rhs : Tendsto (fun δ : ℝ => ((2 * Real.pi : ℝ) : ℂ) * ∫ lambda : ℝ,
         cexp (I * ↑lambda * ↑t) * (borelDensity U_grp ξ hε lambda : ℂ) *
         (Real.exp (-(δ * |lambda|)) : ℂ))
-      (𝓝[>] 0) (𝓝 (((2 * Real.pi : ℝ) : ℂ) * (cexp (-(↑ε * ↑|t|)) * ⟪ξ, U_grp.U t ξ⟫_ℂ))) := by
+      (𝓝[>] 0)
+      (𝓝 (((2 * Real.pi : ℝ) : ℂ) *
+        (cexp (-(↑ε * ↑|t|)) * ⟪ξ, U_grp.U t ξ⟫_ℂ))) := by
     refine (fourier_poisson_tendsto U_grp ξ hε t).congr' ?_
     filter_upwards [self_mem_nhdsWithin] with δ hδ
     exact (fourier_regularized_value U_grp ξ hε t (Set.mem_Ioi.mp hδ)).symm

@@ -41,6 +41,55 @@ namespace TwiceDifferentiableModel
 
 variable (M : TwiceDifferentiableModel n Ω)
 
+/-- The standard-coordinate expansion in `ParamSpace n`. -/
+private lemma paramSpace_eq_sum_single (u : ParamSpace n) :
+    u = ∑ i : Fin n, u.ofLp i • EuclideanSpace.single i 1 := by
+  ext p
+  simp [Pi.single, Function.update_apply, Finset.mem_univ]
+
+/-- A scalar continuous linear functional is determined by its values on
+the standard basis, expanded through the corresponding inner-product
+coordinate functionals. -/
+private lemma continuousLinearMap_eq_sum_innerSL (L : ParamSpace n →L[ℝ] ℝ) :
+    L = ∑ i : Fin n, L (EuclideanSpace.single i 1) •
+      (innerSL ℝ (EuclideanSpace.single i (1 : ℝ)) : ParamSpace n →L[ℝ] ℝ) := by
+  ext w
+  simp only [ContinuousLinearMap.sum_apply, ContinuousLinearMap.smul_apply,
+    smul_eq_mul, innerSL_apply_apply]
+  conv_lhs => rw [paramSpace_eq_sum_single w]
+  simp only [map_sum, map_smul, smul_eq_mul]
+  apply Finset.sum_congr rfl
+  intro i _
+  erw [EuclideanSpace.inner_single_left, RCLike.conj_to_real, one_mul]
+  ring
+
+/-- Small inverse steps along a coordinate line eventually stay in the
+open parameter domain. -/
+private lemma eventually_single_inv_smul_mem_paramDomain
+    {θ : ParamSpace n} (hθ : θ ∈ M.paramDomain) (k : Fin n) :
+    ∀ᶠ m : ℕ in atTop,
+      θ + ((m + 1 : ℝ)⁻¹ • EuclideanSpace.single k (1 : ℝ)) ∈
+        M.paramDomain := by
+  rw [Filter.eventually_atTop]
+  obtain ⟨δ, hδ_pos, hδ_ball⟩ := Metric.isOpen_iff.mp M.isOpen_paramDomain θ hθ
+  obtain ⟨N, hN⟩ := exists_nat_gt δ⁻¹
+  refine ⟨N, fun m hm => hδ_ball (Metric.mem_ball.mpr ?_)⟩
+  simp only [dist_eq_norm, add_sub_cancel_left]
+  calc ‖((m + 1 : ℝ)⁻¹ • EuclideanSpace.single k (1 : ℝ) : ParamSpace n)‖
+      ≤ (m + 1 : ℝ)⁻¹ := by
+        rw [norm_smul, Real.norm_eq_abs, abs_of_nonneg (inv_nonneg.mpr (by positivity))]
+        calc (m + 1 : ℝ)⁻¹ * ‖(EuclideanSpace.single k (1 : ℝ) : ParamSpace n)‖
+            ≤ (m + 1 : ℝ)⁻¹ * 1 := by
+              apply mul_le_mul_of_nonneg_left _ (inv_nonneg.mpr (by positivity))
+              simp only [PiLp.norm_single, one_mem, CStarRing.norm_of_mem_unitary, le_refl]
+          _ = (m + 1 : ℝ)⁻¹ := mul_one _
+    _ < δ := by
+        have hm_pos : (0 : ℝ) < m + 1 := by positivity
+        rw [inv_lt_comm₀ hm_pos hδ_pos]
+        calc δ⁻¹ < N := hN
+          _ ≤ m := by exact_mod_cast hm
+          _ < m + 1 := by linarith
+
 /-! ### Calculus of the KL divergence
 
 `klDiv` is defined at the model level in `StatisticalModel.lean`; here we establish its
@@ -271,7 +320,6 @@ lemma score_deriv_aestronglyMeasurable
       (fun ω => M.density θ ω •
         fderiv ℝ (fun θ' => M.toRegularStatisticalModel.score θ' j ω) θ)
       M.refMeasure := by
-  obtain ⟨δ, hδ_pos, hδ_ball⟩ := Metric.isOpen_iff.mp M.isOpen_paramDomain θ hθ
   obtain ⟨ε₁, hε₁_pos, _, _, h_ae⟩ := M.score_fderiv_bound θ hθ θ hθ j
   have h_comp : ∀ k : Fin n,
       AEStronglyMeasurable
@@ -282,29 +330,7 @@ lemma score_deriv_aestronglyMeasurable
     intro k
     have h_eventually : ∀ᶠ m : ℕ in atTop,
         θ + ((m + 1 : ℝ)⁻¹ • EuclideanSpace.single k (1 : ℝ)) ∈ M.paramDomain := by
-      rw [Filter.eventually_atTop]
-      obtain ⟨N, hN⟩ : ∃ N : ℕ, ∀ m ≥ N,
-          ‖((m + 1 : ℝ)⁻¹ • EuclideanSpace.single k (1 : ℝ) : ParamSpace n)‖ < δ := by
-        have : ∀ m : ℕ,
-            ‖((m + 1 : ℝ)⁻¹ • EuclideanSpace.single k (1 : ℝ) : ParamSpace n)‖ ≤
-            (m + 1 : ℝ)⁻¹ := by
-          intro m
-          rw [norm_smul, Real.norm_eq_abs, abs_of_nonneg (inv_nonneg.mpr (by positivity))]
-          calc (m + 1 : ℝ)⁻¹ * ‖(EuclideanSpace.single k (1 : ℝ) : ParamSpace n)‖
-              ≤ (m + 1 : ℝ)⁻¹ * 1 := by
-                apply mul_le_mul_of_nonneg_left _ (inv_nonneg.mpr (by positivity))
-                simp only [PiLp.norm_single, one_mem,
-                        CStarRing.norm_of_mem_unitary, le_refl]
-            _ = (m + 1 : ℝ)⁻¹ := mul_one _
-        obtain ⟨N, hN⟩ := exists_nat_gt δ⁻¹
-        exact ⟨N, fun m hm => lt_of_le_of_lt (this m) (by
-          have hm_pos : (0 : ℝ) < m + 1 := by positivity
-          rw [inv_lt_comm₀ hm_pos hδ_pos]
-          calc δ⁻¹ < N := hN
-            _ ≤ m := by exact_mod_cast hm
-            _ < m + 1 := by linarith)⟩
-      exact ⟨N, fun m hm => hδ_ball (Metric.mem_ball.mpr (by
-        simp only [dist_eq_norm, add_sub_cancel_left]; exact hN m hm))⟩
+      exact M.eventually_single_inv_smul_mem_paramDomain hθ k
     obtain ⟨N₀, hN₀⟩ := h_eventually.exists_forall_of_atTop
     set dq : ℕ → Ω → ℝ := fun m ω =>
       (↑(m + 1 + N₀) : ℝ) *
@@ -425,11 +451,7 @@ lemma score_deriv_aestronglyMeasurable
     apply ContinuousLinearMap.ext
     intro w
     simp only [ContinuousLinearMap.smul_apply, smul_eq_mul, innerSL_apply_apply]
-    conv_lhs => rw [show w = ∑ k : Fin n, w k • EuclideanSpace.single k 1 from by
-      ext i;
-      simp only [WithLp.ofLp_sum, WithLp.ofLp_smul, PiLp.ofLp_single, sum_apply,
-                Pi.smul_apply, smul_eq_mul, Pi.single_apply, mul_ite, mul_one, mul_zero,
-                                                        sum_ite_eq, mem_univ, ↓reduceIte]]
+    conv_lhs => rw [paramSpace_eq_sum_single w]
     rw [map_sum, Finset.mul_sum]
     simp only [map_smul, smul_eq_mul, ← mul_assoc]
     simp only [PiLp.inner_apply, v,
@@ -440,6 +462,37 @@ lemma score_deriv_aestronglyMeasurable
     rw [NonUnitalRing.mul_assoc]
     rfl
   exact (innerSL ℝ |>.continuous.comp_aestronglyMeasurable hv).congr
+    (h_eq.mono fun ω hω => hω.symm)
+
+/-- Off-diagonal density-weighted score derivative measurability, obtained
+from the diagonal version by rescaling with the density ratio
+`p(θ,ω) / p(θ₀,ω)`. -/
+private lemma weighted_score_deriv_aestronglyMeasurable
+    {θ θ₀ : ParamSpace n} (hθ : θ ∈ M.paramDomain) (hθ₀ : θ₀ ∈ M.paramDomain)
+    (j : Fin n) :
+    AEStronglyMeasurable
+      (fun ω => M.density θ ω •
+        fderiv ℝ (fun θ' => M.toRegularStatisticalModel.score θ' j ω) θ₀)
+      M.refMeasure := by
+  have h_base := M.score_deriv_aestronglyMeasurable hθ₀ j
+  have h_ratio : AEStronglyMeasurable
+      (fun ω => M.density θ ω * (M.density θ₀ ω)⁻¹)
+      M.refMeasure :=
+    ((M.toStatisticalModel.density_measurable θ hθ).mul
+      (M.toStatisticalModel.density_measurable θ₀ hθ₀).inv).aestronglyMeasurable
+  have h_eq : ∀ᵐ ω ∂M.refMeasure,
+      M.density θ ω •
+        fderiv ℝ (fun θ' =>
+          M.toRegularStatisticalModel.score θ' j ω) θ₀ =
+      (M.density θ ω * (M.density θ₀ ω)⁻¹) •
+        (M.density θ₀ ω •
+          fderiv ℝ (fun θ' =>
+            M.toRegularStatisticalModel.score θ' j ω) θ₀) := by
+    filter_upwards [M.density_pos_ae θ₀ hθ₀] with ω hω
+    ext v
+    simp only [ContinuousLinearMap.smul_apply, smul_eq_mul]
+    field_simp
+  exact (h_ratio.smul h_base).congr
     (h_eq.mono fun ω hω => hω.symm)
 
 /-- The second mixed partial ω ↦ fderiv(θ' ↦ ∂ⱼp(θ',ω))(θ) is a.e. strongly measurable. -/
@@ -467,23 +520,10 @@ private lemma fderiv_partialDensity_aestronglyMeasurable
           (EuclideanSpace.single k 1))
         M.refMeasure := by
     intro k
-    obtain ⟨δ, hδ_pos, hδ_ball⟩ := Metric.isOpen_iff.mp M.isOpen_paramDomain θ hθ
     obtain ⟨N₀, hN₀⟩ : ∃ N₀ : ℕ, ∀ m ≥ N₀,
         θ + ((m + 1 : ℝ)⁻¹ • EuclideanSpace.single k (1 : ℝ)) ∈
         M.paramDomain := by
-      obtain ⟨N, hN⟩ := exists_nat_gt δ⁻¹
-      exact ⟨N, fun m hm => hδ_ball (Metric.mem_ball.mpr (by
-        simp only [dist_eq_norm, add_sub_cancel_left]
-        calc ‖((m + 1 : ℝ)⁻¹ • EuclideanSpace.single k (1 : ℝ) :
-                ParamSpace n)‖
-            ≤ (m + 1 : ℝ)⁻¹ := by
-              rw [norm_smul, Real.norm_eq_abs,
-                  abs_of_nonneg (inv_nonneg.mpr (by positivity))]
-              exact mul_le_of_le_one_right (inv_nonneg.mpr (by positivity))
-                (by simp [PiLp.norm_single])
-          _ < δ := by
-              rw [inv_lt_comm₀ (by positivity) hδ_pos]
-              linarith [show (N : ℝ) ≤ m from by exact_mod_cast hm]))⟩
+      exact (M.eventually_single_inv_smul_mem_paramDomain hθ k).exists_forall_of_atTop
     apply aestronglyMeasurable_of_tendsto_ae (ι := ℕ) atTop
       (f := fun m ω => (↑(m + 1 + N₀) : ℝ) *
         (fderiv ℝ (fun θ'' => M.density θ'' ω)
@@ -551,17 +591,8 @@ private lemma fderiv_partialDensity_aestronglyMeasurable
     exact (Finset.aestronglyMeasurable_sum Finset.univ (fun k _ =>
       (h_comp k).smul_const _)).congr
       (by filter_upwards with ω; simp only [Finset.sum_apply]; exact (h_sum ω).symm)
-  intro ω; ext w
-  simp only [ContinuousLinearMap.sum_apply, ContinuousLinearMap.smul_apply,
-    smul_eq_mul, innerSL_apply_apply]
-  conv_lhs => rw [show w = ∑ k : Fin n, w.ofLp k • EuclideanSpace.single k (1 : ℝ) from by
-    ext i; simp only [WithLp.ofLp_sum, WithLp.ofLp_smul, PiLp.ofLp_single, sum_apply,
-      Pi.smul_apply, smul_eq_mul, Pi.single_apply, mul_ite, mul_one, mul_zero];
-      exact Eq.symm (Fintype.sum_ite_eq i w.ofLp)]
-  simp only [map_sum, map_smul, smul_eq_mul]
-  apply Finset.sum_congr rfl; intro k _
-  erw [EuclideanSpace.inner_single_left, RCLike.conj_to_real, one_mul]
-  ring
+  intro ω
+  exact continuousLinearMap_eq_sum_innerSL _
 
 /-- The second mixed partial of ∫ p dμ vanishes:
 ∫ ∂ᵢ∂ⱼp(θ,ω) dμ = 0, since ∂ᵢ∂ⱼ(∫ p dμ) = ∂ᵢ∂ⱼ(1) = 0. -/
@@ -708,7 +739,7 @@ lemma cross_score_hasFDerivAt
     set ε := min ε₁ ε₂
     have hε_pos : 0 < ε := lt_min hε₁ hε₂
     have hF'_meas : AEStronglyMeasurable F' M.refMeasure :=
-      M.score_deriv_aestronglyMeasurable hθ j
+      M.weighted_score_deriv_aestronglyMeasurable hθ hθ j
     constructor
     · apply Integrable.mono hbound_int.norm
       · exact hF'_meas
@@ -931,26 +962,7 @@ lemma cross_score_differentiableAt
         fderiv ℝ (fun θ' =>
           M.toRegularStatisticalModel.score θ' j ω) θ₀)
       M.refMeasure := by
-    have h_base := M.score_deriv_aestronglyMeasurable hθ₀ j
-    have h_ratio : AEStronglyMeasurable
-        (fun ω => M.density θ ω * (M.density θ₀ ω)⁻¹)
-        M.refMeasure :=
-      ((M.toStatisticalModel.density_measurable θ hθ).mul
-        (M.toStatisticalModel.density_measurable θ₀ hθ₀).inv).aestronglyMeasurable
-    have h_eq : ∀ᵐ ω ∂M.refMeasure,
-        M.density θ ω •
-          fderiv ℝ (fun θ' =>
-            M.toRegularStatisticalModel.score θ' j ω) θ₀ =
-        (M.density θ ω * (M.density θ₀ ω)⁻¹) •
-          (M.density θ₀ ω •
-            fderiv ℝ (fun θ' =>
-              M.toRegularStatisticalModel.score θ' j ω) θ₀) := by
-      filter_upwards [M.density_pos_ae θ₀ hθ₀] with ω hω
-      ext v
-      simp only [ContinuousLinearMap.smul_apply, smul_eq_mul]
-      field_simp
-    exact (h_ratio.smul h_base).congr
-      (h_eq.mono fun ω hω => hω.symm)
+    exact M.weighted_score_deriv_aestronglyMeasurable hθ hθ₀ j
   have hLeibniz : HasFDerivAt
       (fun θ' => ∫ ω, M.density θ ω *
         M.toRegularStatisticalModel.score θ' j ω ∂M.refMeasure)
@@ -1283,17 +1295,8 @@ lemma klDiv_hessian_vec {θ : ParamSpace n} (hθ : θ ∈ M.paramDomain)
           fderiv ℝ (M.klDiv θ) θ₀ (EuclideanSpace.single j 1) •
           (innerSL ℝ (EuclideanSpace.single j (1 : ℝ)) :
             ParamSpace n →L[ℝ] ℝ)) := by
-      ext θ₀ w
-      simp only [ContinuousLinearMap.sum_apply, ContinuousLinearMap.smul_apply,
-        smul_eq_mul, innerSL_apply_apply]
-      conv_lhs => rw [show w = ∑ j : Fin n, w.ofLp j • EuclideanSpace.single j (1 : ℝ) from by
-        ext i; simp only [WithLp.ofLp_sum, WithLp.ofLp_smul, PiLp.ofLp_single, sum_apply,
-          Pi.smul_apply, smul_eq_mul, Pi.single_apply, mul_ite, mul_one, mul_zero]
-        exact Eq.symm (Fintype.sum_ite_eq i w.ofLp)]
-      simp only [map_sum, map_smul, smul_eq_mul]
-      apply Finset.sum_congr rfl; intro j _
-      erw [EuclideanSpace.inner_single_left, RCLike.conj_to_real, one_mul]
-      ring
+      funext θ₀
+      exact continuousLinearMap_eq_sum_innerSL _
     show DifferentiableAt ℝ (fun θ₀ => fderiv ℝ (M.klDiv θ) θ₀) θ
     rw [h_eq]
     refine DifferentiableAt.fun_sum fun j _ => ?_
@@ -1334,14 +1337,10 @@ lemma klDiv_hessian_vec {θ : ParamSpace n} (hθ : θ ∈ M.paramDomain)
         M.toRegularStatisticalModel.fisherMatrix θ i j := by
     intro j
     rw [hcomp_j j]
-    conv_lhs => rw [show x = ∑ i : Fin n, x.ofLp i •
-        EuclideanSpace.single i 1 from by ext p; simp [Pi.single,
-          Function.update_apply, Finset.mem_univ]]
+    conv_lhs => rw [paramSpace_eq_sum_single x]
     rw [map_sum]; simp_rw [map_smul, smul_eq_mul, (hSj j).choose_spec.2]
   -- ── Second slot in the basis; close against the Fisher double sum. ──
-  conv_lhs => rw [show y = ∑ j : Fin n, y.ofLp j •
-      EuclideanSpace.single j 1 from by ext p; simp [Pi.single,
-        Function.update_apply, Finset.mem_univ]]
+  conv_lhs => rw [paramSpace_eq_sum_single y]
   rw [map_sum]; simp_rw [map_smul, smul_eq_mul, hx_expand]
   rw [M.toRegularStatisticalModel.fisherBilin_eq_sum_fisherMatrix hθ
     (M.scoreSqIntegrable θ hθ)]

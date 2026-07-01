@@ -364,9 +364,10 @@ group — the **GNS implementation of the modular flow**, written `Δ^{it}`, wit
 invariant-state results, not new Tomita–Takesaki content):
 
 * The construction uses **only** `hmod.dynamics` and `hmod.invariant`. The `kms_at_one` field,
-  `ω.faithful`, and `ω.normal` are **not** used by any lemma below; indeed `State.IsNormal` is
-  currently the placeholder `True`. So each statement in fact holds for *any* invariant dynamics,
-  and the `FaithfulNormalState` / `ModularTheoryData` framing is contextual.
+  `ω.faithful`, and `ω.normal` are **not** used by any lemma below. So each statement in fact holds
+  for *any* invariant dynamics, and the `FaithfulNormalState` / `ModularTheoryData` framing is
+  contextual. (`State.IsNormal` is now an honest order-continuity predicate, no longer a
+  placeholder, but nothing below depends on it.)
 * The abstract `Δ` and `J` (from the polar decomposition `S = JΔ^{1/2}`) are **not** constructed —
   they remain axiomatized in `ModularTheoryData`. We never form `log Δ` nor prove
   `generator = ±log Δ`. The labels `Δ^{it}` and `K = -log Δ` name the canonical implementation *by
@@ -375,7 +376,8 @@ invariant-state results, not new Tomita–Takesaki content):
 
 section Modular
 
-variable [WStarAlgebra A] (ω : FaithfulNormalState A) (hmod : ModularTheoryData A ω)
+variable [WStarAlgebra A] [PartialOrder A] [StarOrderedRing A]
+  (ω : FaithfulNormalState A) (hmod : ModularTheoryData A ω)
 
 /-- **The modular unitary group `Δ^{it}`.** The GNS implementation of the modular flow `σ^ω`: a
 strongly continuous one-parameter unitary group on `H_ω`. Definitionally this is

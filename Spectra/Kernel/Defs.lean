@@ -3,76 +3,60 @@ Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
-import Spectra.Resolvent.Analytic
 import Spectra.Resolvent.Defs
 /-!
-# Resolvent Kernel Analysis
+# Resolvent Kernel Definitions
 
-This file develops the analytical properties of the resolvent kernel `(s - z)⁻¹`
-and the associated Lorentzian approximation to the delta function.
+The shared off-real-axis evaluation points and scalar resolvent integrand that
+`Kernel.Resolvent`, `Kernel.Lorentzian`, and `Kernel.Arctan` build their analysis on top of.
+This file holds no theorems of its own — just the four building blocks below.
 
 ## Main definitions
 
-* `offRealPoint`: Helper to construct `t + iε` as an `OffRealAxis` point
-* `offRealPointNeg`: Helper to construct `t - iε` as an `OffRealAxis` point
-* `resolvent_integrand`: The kernel `(s - z)⁻¹`
-
-## Main statements
-
-### Resolvent kernel
-* `resolvent_integrand_bound`: `|(s - z)⁻¹| ≤ 1/|Im(z)|` for all `s ∈ ℝ`
-* `resolvent_kernel_im`: `Im((s - (t + iε))⁻¹) = ε/((s-t)² + ε²)`
-* `resolvent_kernel_diff`: `(s - (t+iε))⁻¹ - (s - (t-iε))⁻¹ = 2iε/((s-t)² + ε²)`
-
-### Lorentzian kernel
-* `lorentzian_nonneg`: The Lorentzian is non-negative
-* `lorentzian_bound`: The Lorentzian is bounded by `1/ε`
-* `lorentzian_total_integral`: `∫ ε/((s-t)² + ε²) ds = π` (axiom)
-* `lorentzian_concentration`: Lorentzian concentrates at `t` as `ε → 0` (axiom)
-* `lorentzian_approx_delta`: `(1/π) · ε/((s-t)² + ε²) → δ(s-t)` as `ε → 0`
-
-### Arctan integration
-* `lorentzian_arctan_integral`: `∫_a^b ε/((s-t)² + ε²) dt = arctan(...) - arctan(...)`
-* `arctan_indicator_limit`: The arctan kernel converges to the indicator function
-* `arctan_kernel_bound`: The arctan kernel is uniformly bounded by 1
+* `OffRealAxis`: re-export of `Resolvent.OffRealAxis`, the subtype `{z : ℂ // z.im ≠ 0}`,
+  shared so the `Kernel` and `Resolvent` namespaces use a single underlying type.
+* `offRealPoint`, `offRealPointNeg`: construct `t + iε` and `t - iε` as `OffRealAxis` points.
+* `resolventIntegrand`: the kernel `(s - z)⁻¹`.
 
 ## Physical interpretation
 
-The Lorentzian kernel `ε/((s-t)² + ε²)` is the imaginary part of the resolvent
-kernel at `z = t + iε`. As `ε → 0`, it becomes an approximation to the delta
-function `δ(s-t)`, which is the key to extracting spectral information from
-the resolvent.
+Evaluating the resolvent at `z = t ± iε` and letting `ε → 0⁺` is the standard route from the
+resolvent to spectral information (Stieltjes inversion): the imaginary part of the boundary
+value is a Lorentzian approximate identity concentrating at `t`. That limit and the Lorentzian
+kernel itself are developed in `Kernel.Lorentzian`; this file only fixes the evaluation points
+and the raw kernel they feed.
 
 ## References
 
-* [Reed, Simon, *Methods of Modern Mathematical Physics I*][reed1980], Section VII
-* Stone, "Linear Transformations in Hilbert Space" (1932)
+* [Reed, Simon, *Methods of Modern Mathematical Physics I*][reed1980], Section VII.
+* Stone, "Linear Transformations in Hilbert Space" (1932).
 
 ## Tags
 
-resolvent, Lorentzian, approximate identity, Poisson kernel
+resolvent, off-real axis, Cauchy transform, kernel
 -/
-open Complex MeasureTheory Filter Topology TopologicalSpace
-open scoped NNReal ENNReal InnerProductSpace
+open Complex
 namespace Spectra.Kernels
 
 /-- A complex number with non-zero imaginary part.
 Re-export of `Spectra.Resolvent.OffRealAxis` (the subtype `{z : ℂ // z.im ≠ 0}`),
-shared so the Kernel and Resolvent modules use a single type. -/
+shared so the Kernel and Resolvent modules use a single type. Declared as `abbrev`, not
+`def`, so it stays reducibly transparent with `Resolvent.OffRealAxis` — no coercions or
+separate instance search needed to move a term between the two namespaces. -/
 abbrev OffRealAxis := Spectra.Resolvent.OffRealAxis
 
 /-- Construct `t + iε` as an off-real point. -/
 def offRealPoint (t : ℝ) (ε : ℝ) (hε : ε > 0) : OffRealAxis :=
-  ⟨↑t + ↑ε * I, by simp [Complex.add_im]; exact ne_of_gt hε⟩
+  ⟨↑t + ↑ε * I, by simpa [Complex.add_im] using ne_of_gt hε⟩
 
 /-- Construct `t - iε` as an off-real point. -/
 def offRealPointNeg (t : ℝ) (ε : ℝ) (hε : ε > 0) : OffRealAxis :=
-  ⟨↑t - ↑ε * I, by simp [Complex.sub_im]; exact ne_of_gt hε⟩
+  ⟨↑t - ↑ε * I, by simpa [Complex.sub_im] using ne_of_gt hε⟩
 
 /-! ### Resolvent kernel -/
 
 /-- The resolvent integrand `(s - z)⁻¹`. -/
-noncomputable def resolvent_integrand (z : ℂ) : ℝ → ℂ :=
+noncomputable def resolventIntegrand (z : ℂ) : ℝ → ℂ :=
   fun s => ((s : ℂ) - z)⁻¹
 
 end Spectra.Kernels

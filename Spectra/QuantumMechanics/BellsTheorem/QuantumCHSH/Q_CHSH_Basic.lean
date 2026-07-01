@@ -5,12 +5,14 @@ Authors: Ported from Isabelle/HOL formalization by Echenim & Mhalla
 Ported by: Adam Bornemann
 -/
 import Spectra.QuantumMechanics.BellsTheorem.Basic
+import Spectra.QuantumMechanics.PauliMatrices
 import Mathlib.LinearAlgebra.Matrix.Hermitian
 import Mathlib.LinearAlgebra.Matrix.Trace
 import Mathlib.LinearAlgebra.Matrix.Kronecker
 import Mathlib.Analysis.Complex.Exponential
 import Mathlib.Analysis.SpecialFunctions.Trigonometric.Basic
 import Mathlib.Analysis.Matrix.Normed
+import Mathlib.Tactic.NoncommRing
 
 open Matrix Complex MatrixGroups
 
@@ -33,60 +35,33 @@ def σ_z : Matrix (Fin 2) (Fin 2) ℂ :=
 /-- The 2×2 identity matrix -/
 def I₂ : Matrix (Fin 2) (Fin 2) ℂ := 1
 
-/-! ## Properties of Pauli Matrices -/
+/-! ## Properties of Pauli Matrices
 
-lemma σₓ_hermitian : σₓ.IsHermitian := by
-  rw [Matrix.IsHermitian]
-  ext i j
-  fin_cases i <;> fin_cases j <;> simp [σₓ, conjTranspose, of_apply, star] <;> rfl
+`σₓ`, `σᵧ`, `σ_z` are definitionally the matrices `Spectra.QuantumMechanics.Pauli.pauliX/Y/Z`
+(both sides unfold to the same literal), so their properties reuse the canonical module's
+proofs instead of re-deriving them from scratch. -/
 
-lemma σᵧ_hermitian : σᵧ.IsHermitian := by
-  rw [Matrix.IsHermitian]
-  ext i j
-  fin_cases i <;> fin_cases j <;>
-  simp only [Fin.zero_eta, Fin.isValue, conjTranspose_apply, RCLike.star_def]
-  simp only [σᵧ, of_apply, Fin.isValue,
-    cons_val', cons_val_zero, empty_val', cons_val_fin_one]
-  · simp only [map_zero]
-  · simp only [Fin.mk_one, Fin.isValue]
-    simp only [σᵧ, of_apply, cons_val', cons_val_zero, cons_val_one, empty_val', cons_val_fin_one]
-    simp only [Complex.conj_I]
-  · simp only [Fin.isValue, Fin.mk_one]
-    simp only [σᵧ, of_apply, cons_val', cons_val_zero, cons_val_one, empty_val', cons_val_fin_one]
-    exact conj_neg_I
-  · simp only [Fin.mk_one, Fin.isValue]; exact conj_eq_iff_re.mpr rfl
+section
+open Spectra.QuantumMechanics.Pauli
 
-lemma σ_z_hermitian : σ_z.IsHermitian := by
-  rw [Matrix.IsHermitian]
-  ext i j
-  fin_cases i <;> fin_cases j <;>
-  simp only [σ_z, conjTranspose_apply, of_apply, star, Fin.zero_eta, Fin.isValue,
-    cons_val', cons_val_zero, empty_val', cons_val_fin_one]
-  · simp only [one_re, one_im, neg_zero]; rfl
-  · simp only [Fin.mk_one, Fin.isValue, cons_val_one, zero_re, zero_im, neg_zero, cons_val_fin_one]; rfl
-  · simp only [Fin.mk_one, Fin.isValue, cons_val_one, cons_val_fin_one, zero_re, zero_im, neg_zero]; rfl
-  · simp only [Fin.mk_one, Fin.isValue, cons_val_one, cons_val_fin_one, neg_re, one_re, neg_im,
-    one_im, neg_zero]
-    exact Complex.ext rfl (by simp [Complex.neg_im, Complex.one_im])
+lemma σₓ_hermitian : σₓ.IsHermitian := pauliX_hermitian
 
-lemma σₓ_sq : σₓ * σₓ = 1 := by
-  ext i j
-  fin_cases i <;> fin_cases j <;> simp [σₓ, Matrix.mul_apply, Fin.sum_univ_two]
+lemma σᵧ_hermitian : σᵧ.IsHermitian := pauliY_hermitian
 
-lemma σᵧ_sq : σᵧ * σᵧ = 1 := by
-  ext i j
-  fin_cases i <;> fin_cases j <;>
-  simp [σᵧ, Matrix.mul_apply, Fin.sum_univ_two]
+lemma σ_z_hermitian : σ_z.IsHermitian := pauliZ_hermitian
 
-lemma σ_z_sq : σ_z * σ_z = 1 := by
-  ext i j
-  fin_cases i <;> fin_cases j <;> simp [σ_z, Matrix.mul_apply, Fin.sum_univ_two]
+lemma σₓ_sq : σₓ * σₓ = 1 := pauliX_sq
+
+lemma σᵧ_sq : σᵧ * σᵧ = 1 := pauliY_sq
+
+lemma σ_z_sq : σ_z * σ_z = 1 := pauliZ_sq
 
 /-- Pauli matrices anticommute: σₓσ_z = -σ_zσₓ -/
 lemma σₓ_σ_z_anticomm : σₓ * σ_z = -σ_z * σₓ := by
-  ext i j
-  fin_cases i <;> fin_cases j <;>
-  simp [σₓ, σ_z, Matrix.mul_apply, Fin.sum_univ_two]
+  show pauliX * pauliZ = -pauliZ * pauliX
+  linear_combination (norm := noncomm_ring) pauliXZ_anticommute
+
+end
 
 /-! ## The Bell State -/
 
