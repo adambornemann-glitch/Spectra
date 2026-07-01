@@ -2,7 +2,7 @@
 Spectra: Convergence.lean
 Strong convergence of the bounded functional calculus, and spectral projections.
 
-Filename: SpectralTheory/SpectralMeasure/Convergence.lean
+Filename: SpectralTheory/Measure/Convergence.lean
 -/
 import Mathlib.MeasureTheory.Integral.DominatedConvergence
 import Spectra.SpectralTheory.Calculus.Bounded

@@ -2,7 +2,7 @@
 Spectra: Calculus.lean
 The bounded functional calculus `Φ(g)` of a one-parameter unitary group.
 
-Filename: FunctionalCalculus/Bounded.lean
+Filename: SpectralTheory/Calculus/Bounded.lean
 -/
 import Mathlib.Analysis.InnerProductSpace.Dual
 import Spectra.SpectralTheory.Measure.Polarized

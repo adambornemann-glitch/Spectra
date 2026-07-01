@@ -2,7 +2,7 @@
 Copyright (c) 2026 Spectra Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
-Filename: QuantumMechanics/Generator.lean
+Filename: QuantumMechanics/Generator/Basic.lean
 Target: Mathlib v4.31.0-rc1
 -/
 import Spectra.YosidaHille.Basic

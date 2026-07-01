@@ -2,7 +2,7 @@
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
-Filename: BochnerTheorem/GNS/Completion/ToStone.lean
+Filename: Bochner/GNS/Representation/ToStone.lean
 -/
 import Spectra.Bochner.GNS.Representation.StronglyEx
 import Spectra.Bochner.GNS.Representation.Cyclic

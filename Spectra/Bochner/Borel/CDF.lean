@@ -2,7 +2,7 @@
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
-Filename: QuantumMechanics/SpectralTheory/ScalarMeasure/Borel/CDF.lean
+Filename: Bochner/Borel/CDF.lean
 -/
 import Spectra.Bochner.Borel.Density
 import Spectra.Herglotz.Stieltjes.Hellys

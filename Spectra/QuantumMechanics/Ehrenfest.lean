@@ -2,7 +2,7 @@
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
-Filename: UnitaryEvolution/Ehrenfest.lean
+Filename: QuantumMechanics/Ehrenfest.lean
 -/
 import Spectra.QuantumMechanics.SchrodingerEquation
 import Mathlib.Analysis.InnerProductSpace.Continuous

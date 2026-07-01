@@ -2,7 +2,7 @@
 Spectra: Operators.lean
 Dirac Operator and Hamiltonian, rebuilt on the constructed spectral calculus.
 
-Filename: DiracEquation/Operators.lean
+Filename: QuantumMechanics/DiracEquation/Operators.lean
 -/
 import Mathlib.Analysis.InnerProductSpace.PiL2
 import Spectra.SpectralTheory.Measure.GeneratorLink

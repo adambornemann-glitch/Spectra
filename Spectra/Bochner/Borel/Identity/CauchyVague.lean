@@ -2,7 +2,7 @@
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
-Filename: BochnerTheorem/Borel/Identity/CauchyVague.lean
+Filename: Bochner/Borel/Identity/CauchyVague.lean
 -/
 import Spectra.Bochner.Borel.Identity.CauchyTransform
 import Spectra.Bochner.Borel.Identity.BoundedCDF

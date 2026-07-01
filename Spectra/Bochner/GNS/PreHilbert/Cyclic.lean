@@ -2,7 +2,7 @@
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
-Filename: BochnerTheorem/GNS/PreHilbert/Cyclic.lean
+Filename: Bochner/GNS/PreHilbert/Cyclic.lean
 -/
 import Spectra.Bochner.GNS.PreHilbert.TransAction
 open Complex Finsupp

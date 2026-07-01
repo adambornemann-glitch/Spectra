@@ -2,7 +2,7 @@
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
-Filename: BochnerTheorem/GNS/PreHilbert/Defs.lean
+Filename: Bochner/GNS/PreHilbert/Defs.lean
 -/
 import Spectra.Bochner.GNS.Continuity
 import Mathlib.Data.Finsupp.Defs

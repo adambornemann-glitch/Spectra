@@ -2,7 +2,7 @@
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
-Filename: QuantumMechanics/SpectralTheory/ScalarMeasure/Exists.lean
+Filename: Bochner/Borel/Measure/Basic.lean
 -/
 import Spectra.Bochner.Borel.Identity.CauchyVague
 import Spectra.Mathlib.CharFunBridge

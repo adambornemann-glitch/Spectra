@@ -1,0 +1,9 @@
+import Spectra.OneParameterUnitaryGroup.Basic
+
+#print axioms Spectra.OneParameterUnitaryGroup.inverse_eq_adjoint
+#print axioms Spectra.OneParameterUnitaryGroup.norm_preserving
+#print axioms Spectra.OneParameterUnitaryGroup.norm_one
+#print axioms Spectra.OneParameterUnitaryGroup.generator_isFormalAdjoint
+#print axioms Spectra.OneParameterUnitaryGroup.generator_domain_invariant
+#print axioms Spectra.OneParameterUnitaryGroup.isSelfAdjoint_of_surjective_addSub
+#print axioms Spectra.OneParameterUnitaryGroup.genDiffQuot_reversedGroup

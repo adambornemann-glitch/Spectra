@@ -2,23 +2,50 @@
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
-Filename: BochnerTheorem/Borel/Identity.lean
+Filename: Bochner/Borel/Identity/BoundedCDF.lean
 -/
 import Spectra.Bochner.Borel.CDF
-import Spectra.Kernel.Resolvent
 import Spectra.Herglotz.Stieltjes.IntegralConv
-import Mathlib.Topology.Algebra.Module.Cardinality
+
+/-!
+# Bounded-window convergence of Riemann–Stieltjes integrals
+
+## Main results
+
+* `integral_Ioc_tendsto_of_cdf_tendsto`: if a sequence of monotone, right-continuous CDFs
+  `F (φ k)` converges pointwise to a monotone `G` at every continuity point of `G`, then for
+  any bounded window `Ioc a b` with `a`, `b` continuity points of `G` and any continuous `g`,
+  the Riemann–Stieltjes integrals over that window converge:
+  `∫_{Ioc a b} g dμ_{F (φ k)} → ∫_{Ioc a b} g dμ_G`.
+
+## Implementation notes
+
+This is the bounded-window counterpart of `integral_tendsto_of_cdf_tendsto`
+(`Herglotz/Stieltjes/IntegralConv.lean`), which additionally assumes `F`/`G` are supported on
+`[0, 2π]`. Once the window `[a, b]` is bounded and its endpoints are continuity points of `G`,
+those support hypotheses become unnecessary: the same partition-and-triangle-inequality
+argument goes through, with the `Icc`-first-cell decomposition of the unbounded case replaced
+by a decomposition entirely in terms of `Ioc` cells — slightly simpler here, since `a` and `b`
+are already continuity points of `G`, so there is no asymmetric first cell to special-case.
+
+## References
+
+* [Billingsley, *Convergence of Probability Measures*][billingsley1999], for the portmanteau
+  theorem underlying this style of weak-convergence argument.
+* `Herglotz/Stieltjes/IntegralConv.lean`, for the unbounded/`[0, 2π]`-supported sibling result
+  `integral_tendsto_of_cdf_tendsto`.
+
+## Tags
+
+Riemann–Stieltjes integral, portmanteau lemma, weak convergence, cumulative distribution
+function
+-/
 
 open Complex MeasureTheory Filter Topology
-open Spectra.Resolvent
-open Spectra.Fourier
-open Spectra.Kernels
 open Spectra.Herglotz
-open Spectra.OneParameterUnitaryGroup
-open scoped InnerProductSpace NNReal ENNReal ComplexConjugate
-variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
+open scoped ENNReal
+
 namespace Spectra.Borel
-variable (U_grp : OneParameterUnitaryGroup (H := H))
 
 /-- Bounded-window version of `integral_tendsto_of_cdf_tendsto`.
 The `[0,2π]`/support hypotheses are unused once the interval is bounded — what survives
@@ -33,12 +60,12 @@ lemma integral_Ioc_tendsto_of_cdf_tendsto
     {g : ℝ → ℂ} (hg : Continuous g) :
     Tendsto (fun k => ∫ x in Set.Ioc a b, g x ∂((mono_F (φ k)).stieltjesFunction.measure))
       atTop (𝓝 (∫ x in Set.Ioc a b, g x ∂(mono_G.stieltjesFunction.measure))) := by
-  -- ═════════════════════════ TRIVIAL CASE  a = b ═════════════════════════
+  -- ══════ TRIVIAL CASE  a = b ══════
   rcases eq_or_lt_of_le hab with hab_eq | hab_lt
   · rw [hab_eq, show Set.Ioc b b = (∅ : Set ℝ) from Set.Ioc_eq_empty_of_le (le_refl b)]
-    simp only [MeasureTheory.setIntegral_empty]
+    simp only [setIntegral_empty]
     exact tendsto_const_nhds
-  -- ═════════════════════════ SETUP  (case a < b) ═════════════════════════
+  -- ══════ SETUP  (case a < b) ══════
   set μk : ℕ → Measure ℝ := fun k => (mono_F (φ k)).stieltjesFunction.measure with hμk_def
   set μ  : Measure ℝ     := mono_G.stieltjesFunction.measure                  with hμ_def
   -- Cell-mass identity (F-side: rc_F directly).
@@ -63,33 +90,24 @@ lemma integral_Ioc_tendsto_of_cdf_tendsto
   have hM_nn : 0 ≤ M := sub_nonneg.mpr (mono_G hab)
   have hMk_tendsto : Tendsto (fun k => F (φ k) b - F (φ k) a) atTop (𝓝 M) :=
     (conv b hb).sub (conv a ha)
-  -- ═════════════════════════ ε-δ UNWRAP ═════════════════════════
+  -- ══════ ε-δ UNWRAP ══════
   rw [Metric.tendsto_atTop]
   intro ε₀ hε₀
-  have hMp : (0 : ℝ) < M + 1 := by linarith
   set ε := ε₀ / (4 * (M + 1)) with hε_def
   have hε_pos : 0 < ε := by rw [hε_def]; positivity
   have hε_safe : ε * (M + 1) = ε₀ / 4 := by
     rw [hε_def]; field_simp
-  have hεM : ε * M ≤ ε₀ / 4 := by
-    have h1 : ε * M ≤ ε * (M + 1) :=
-      mul_le_mul_of_nonneg_left (by linarith) hε_pos.le
-    linarith
   -- Uniform continuity on the compact [a, b].
   have huc : UniformContinuousOn g (Set.Icc a b) :=
     isCompact_Icc.uniformContinuousOn_of_continuous hg.continuousOn
   obtain ⟨δ, hδ_pos, hδ_uc⟩ := Metric.uniformContinuousOn_iff.mp huc ε hε_pos
-  -- ═════════════════════════ PARTITION ═════════════════════════
+  -- ══════ PARTITION ══════
   -- a = t 0 < t 1 < ⋯ < t n = b, all t_i continuity points of G, gaps < δ.
-  have hDense : Dense {x : ℝ | ContinuousAt G x} := by
-    have heq : {x : ℝ | ContinuousAt G x} = {x : ℝ | ¬ ContinuousAt G x}ᶜ := by
-      ext x; simp only [Set.mem_setOf_eq, Set.mem_compl_iff, not_not]
-    rw [heq]; exact mono_G.countable_not_continuousAt.dense_compl ℝ
   have hS : {x : ℝ | ¬ ContinuousAt G x}.Countable := mono_G.countable_not_continuousAt
   have ha' : a ∉ {x | ¬ ContinuousAt G x} := fun h => h ha
   have hb' : b ∉ {x | ¬ ContinuousAt G x} := fun h => h hb
   obtain ⟨n, t, hn, h_t0, h_tn, h_mono_t, h_gap, h_notS⟩ :=
-    exists_partition_avoiding_countable hS hab_lt ha' hb' hδ_pos --hε_pos -- or whichever δ
+    exists_partition_avoiding_countable hS hab_lt ha' hb' hδ_pos
   have h_cont_t : ∀ i ≤ n, ContinuousAt G (t i) := fun i hi => not_not.mp (h_notS i hi)
   -- t monotone in i; t_i ∈ [a, b]
   have h_tmono : ∀ j, j ≤ n → ∀ i, i ≤ j → t i ≤ t j := by
@@ -106,13 +124,13 @@ lemma integral_Ioc_tendsto_of_cdf_tendsto
   have h_tmem : ∀ i, i ≤ n → t i ∈ Set.Icc a b := fun i hi =>
     ⟨by rw [← h_t0]; exact h_tmono i hi 0 (Nat.zero_le i),
      by rw [← h_tn]; exact h_tmono n (le_refl n) i hi⟩
-  -- ═════════════════════════ INTEGRABILITY ═════════════════════════
+  -- ══════ INTEGRABILITY ══════
   have hg_int : ∀ (ν : Measure ℝ) [IsLocallyFiniteMeasure ν] (c d : ℝ),
       IntegrableOn g (Set.Ioc c d) ν := by
     intro ν _ c d
     exact (hg.continuousOn.integrableOn_compact isCompact_Icc).mono_set
       Set.Ioc_subset_Icc_self
-  -- ═════════════════════════ INTEGRAL SPLIT  Ioc a b = ⨆ Ioc-cells ═════════════════════════
+  -- ══════ INTEGRAL SPLIT  Ioc a b = ⨆ Ioc-cells ══════
   have split_lemma : ∀ (ν : Measure ℝ) [IsLocallyFiniteMeasure ν],
       ∫ x in Set.Ioc a b, g x ∂ν
         = ∑ i ∈ Finset.range n, ∫ x in Set.Ioc (t i) (t (i + 1)), g x ∂ν := by
@@ -126,7 +144,7 @@ lemma integral_Ioc_tendsto_of_cdf_tendsto
           intro _
           rw [show Set.Ioc (t 0) (t 0) = (∅ : Set ℝ) from
                 Set.Ioc_eq_empty_of_le (le_refl _),
-              MeasureTheory.setIntegral_empty, Finset.sum_range_zero]
+              setIntegral_empty, Finset.sum_range_zero]
       | succ k ih =>
           intro hk
           have hk' : k ≤ n := by omega
@@ -142,13 +160,13 @@ lemma integral_Ioc_tendsto_of_cdf_tendsto
             rintro x ⟨_, hx2⟩ ⟨hx3, _⟩
             exact absurd hx3 (not_lt.mpr hx2)
           rw [hsplit,
-              MeasureTheory.setIntegral_union hdisj measurableSet_Ioc
+              setIntegral_union hdisj measurableSet_Ioc
                 (hg_int ν (t 0) (t k)) (hg_int ν (t k) (t (k + 1))),
               ih hk', Finset.sum_range_succ]
     have hmain := hind n (le_refl n)
     rw [h_t0, h_tn] at hmain
     exact hmain
-  -- ═════════════════════════ CELL MASS CONVERGENCE ═════════════════════════
+  -- ══════ CELL MASS CONVERGENCE ══════
   have cell_mass_F : ∀ k i, i < n →
       (μk k (Set.Ioc (t i) (t (i + 1)))).toReal
         = F (φ k) (t (i + 1)) - F (φ k) (t i) :=
@@ -164,8 +182,8 @@ lemma integral_Ioc_tendsto_of_cdf_tendsto
     rw [cell_mass_G i hi]
     refine ((conv (t (i + 1)) (h_cont_t (i + 1) hi)).sub
       (conv (t i) (h_cont_t i (le_of_lt hi)))).congr' ?_
-    exact Filter.Eventually.of_forall (fun k => (cell_mass_F k i hi).symm)
-  -- ═════════════════════════ RIEMANN–STIELTJES SUMS ═════════════════════════
+    exact Eventually.of_forall (fun k => (cell_mass_F k i hi).symm)
+  -- ══════ RIEMANN–STIELTJES SUMS ══════
   set RS : ℕ → ℂ := fun k =>
     ∑ i ∈ Finset.range n,
       (μk k (Set.Ioc (t i) (t (i + 1)))).toReal • g (t (i + 1)) with hRS_def
@@ -179,7 +197,7 @@ lemma integral_Ioc_tendsto_of_cdf_tendsto
         (μ (Set.Ioc (t i) (t (i + 1)))).toReal • g (t (i + 1))))
     refine tendsto_finsetSum _ (fun i hi => ?_)
     exact (cell_mass_tendsto i (Finset.mem_range.mp hi)).smul_const (g (t (i + 1)))
-  -- ═════════════════════════ PER-CELL ERROR BOUND ═════════════════════════
+  -- ══════ PER-CELL ERROR BOUND ══════
   have cell_bound : ∀ (ν : Measure ℝ) [IsLocallyFiniteMeasure ν] (i : ℕ), i < n →
       ‖(∫ x in Set.Ioc (t i) (t (i + 1)), g x ∂ν)
           - (ν (Set.Ioc (t i) (t (i + 1)))).toReal • g (t (i + 1))‖
@@ -206,16 +224,16 @@ lemma integral_Ioc_tendsto_of_cdf_tendsto
     have h1 : (∫ x in Set.Ioc (t i) (t (i + 1)), (g x - g (t (i + 1))) ∂ν)
         = (∫ x in Set.Ioc (t i) (t (i + 1)), g x ∂ν)
           - ∫ x in Set.Ioc (t i) (t (i + 1)), g (t (i + 1)) ∂ν :=
-      MeasureTheory.integral_sub hg_intS h_const_intS
+      integral_sub hg_intS h_const_intS
     have h_diff : (∫ x in Set.Ioc (t i) (t (i + 1)), g x ∂ν)
           - (ν (Set.Ioc (t i) (t (i + 1)))).toReal • g (t (i + 1))
         = ∫ x in Set.Ioc (t i) (t (i + 1)), (g x - g (t (i + 1))) ∂ν := by
-      rw [h1, MeasureTheory.setIntegral_const, MeasureTheory.measureReal_def]
+      rw [h1, setIntegral_const, measureReal_def]
     rw [h_diff]
-    have h_bd := MeasureTheory.norm_setIntegral_le_of_norm_le_const (μ := ν)
+    have h_bd := norm_setIntegral_le_of_norm_le_const (μ := ν)
       (s := Set.Ioc (t i) (t (i + 1))) (C := ε) hS_fin h_osc
-    rwa [MeasureTheory.measureReal_def] at h_bd
-  -- ═════════════════════════ TOTAL APPROXIMATION BOUND ═════════════════════════
+    rwa [measureReal_def] at h_bd
+  -- ══════ TOTAL APPROXIMATION BOUND ══════
   have total_bound : ∀ (ν : Measure ℝ) [IsLocallyFiniteMeasure ν] (totalMass : ℝ),
       ∑ i ∈ Finset.range n, (ν (Set.Ioc (t i) (t (i + 1)))).toReal = totalMass →
       ‖(∫ x in Set.Ioc a b, g x ∂ν)
@@ -254,7 +272,7 @@ lemma integral_Ioc_tendsto_of_cdf_tendsto
         = G (t n) - G (t 0) :=
       Finset.sum_range_sub (fun i => G (t i)) n
     rw [htel, h_tn, h_t0, hM_def]
-  -- ═════════════════════════ COMBINE  (triangle inequality) ═════════════════════════
+  -- ══════ COMBINE  (triangle inequality) ══════
   obtain ⟨K₁, hK₁⟩ : ∃ K, ∀ k ≥ K, F (φ k) b - F (φ k) a ≤ M + 1 := by
     obtain ⟨K, hK⟩ := Metric.tendsto_atTop.mp hMk_tendsto 1 (by norm_num)
     refine ⟨K, fun k hk => ?_⟩
@@ -266,23 +284,23 @@ lemma integral_Ioc_tendsto_of_cdf_tendsto
   refine ⟨max K₁ K₂, fun k hk => ?_⟩
   have hk1 : k ≥ K₁ := le_of_max_le_left hk
   have hk2 : k ≥ K₂ := le_of_max_le_right hk
-  set A := ∫ x in Set.Ioc a b, g x ∂(μk k)
-  set B := RS k
-  set C := RS_inf
-  set D := ∫ x in Set.Ioc a b, g x ∂μ
-  have h_tri : ‖A - D‖ ≤ ‖A - B‖ + ‖B - C‖ + ‖C - D‖ := by
-    have heq : A - D = (A - B) + ((B - C) + (C - D)) := by ring
-    calc ‖A - D‖ = ‖(A - B) + ((B - C) + (C - D))‖ := by rw [heq]
-      _ ≤ ‖A - B‖ + ‖(B - C) + (C - D)‖ := norm_add_le _ _
-      _ ≤ ‖A - B‖ + (‖B - C‖ + ‖C - D‖) := by gcongr; exact norm_add_le _ _
-      _ = ‖A - B‖ + ‖B - C‖ + ‖C - D‖ := by ring
-  have hAB : ‖A - B‖ ≤ ε * (F (φ k) b - F (φ k) a) := by
+  set intFk := ∫ x in Set.Ioc a b, g x ∂(μk k)
+  set RSk := RS k
+  set RSinf := RS_inf
+  set intG := ∫ x in Set.Ioc a b, g x ∂μ
+  have h_tri : ‖intFk - intG‖ ≤ ‖intFk - RSk‖ + ‖RSk - RSinf‖ + ‖RSinf - intG‖ := by
+    have heq : intFk - intG = (intFk - RSk) + ((RSk - RSinf) + (RSinf - intG)) := by ring
+    calc ‖intFk - intG‖ = ‖(intFk - RSk) + ((RSk - RSinf) + (RSinf - intG))‖ := by rw [heq]
+      _ ≤ ‖intFk - RSk‖ + ‖(RSk - RSinf) + (RSinf - intG)‖ := norm_add_le _ _
+      _ ≤ ‖intFk - RSk‖ + (‖RSk - RSinf‖ + ‖RSinf - intG‖) := by gcongr; exact norm_add_le _ _
+      _ = ‖intFk - RSk‖ + ‖RSk - RSinf‖ + ‖RSinf - intG‖ := by ring
+  have hAB : ‖intFk - RSk‖ ≤ ε * (F (φ k) b - F (φ k) a) := by
     show ‖(∫ x in Set.Ioc a b, g x ∂(μk k))
         - ∑ i ∈ Finset.range n,
             (μk k (Set.Ioc (t i) (t (i + 1)))).toReal • g (t (i + 1))‖
         ≤ ε * (F (φ k) b - F (φ k) a)
     exact total_bound (μk k) _ (sum_masses_F k)
-  have hCD : ‖C - D‖ ≤ ε * M := by
+  have hCD : ‖RSinf - intG‖ ≤ ε * M := by
     show ‖RS_inf - ∫ x in Set.Ioc a b, g x ∂μ‖ ≤ ε * M
     rw [norm_sub_rev]
     show ‖(∫ x in Set.Ioc a b, g x ∂μ)
@@ -293,13 +311,12 @@ lemma integral_Ioc_tendsto_of_cdf_tendsto
     calc ε * (F (φ k) b - F (φ k) a)
         ≤ ε * (M + 1) := mul_le_mul_of_nonneg_left (hK₁ k hk1) hε_pos.le
       _ = ε₀ / 4 := hε_safe
-  rw [Complex.dist_eq]
-  calc ‖A - D‖
-      ≤ ‖A - B‖ + ‖B - C‖ + ‖C - D‖ := h_tri
+  rw [dist_eq]
+  calc ‖intFk - intG‖
+      ≤ ‖intFk - RSk‖ + ‖RSk - RSinf‖ + ‖RSinf - intG‖ := h_tri
     _ < ε * (F (φ k) b - F (φ k) a) + ε₀ / 2 + ε * M := by
         linarith [hAB, hK₂ k hk2, hCD]
     _ ≤ ε₀ / 4 + ε₀ / 2 + ε₀ / 4 := by linarith
     _ = ε₀ := by ring
-
 
 end Spectra.Borel

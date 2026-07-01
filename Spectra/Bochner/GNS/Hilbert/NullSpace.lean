@@ -2,7 +2,7 @@
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
-Filename: BochnerTheorem/GNS/Completion/NullSpace.lean
+Filename: Bochner/GNS/Hilbert/NullSpace.lean
 -/
 import Spectra.Bochner.GNS.PreHilbert
 import Mathlib.Analysis.InnerProductSpace.Basic

@@ -2,7 +2,7 @@
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
-Filename: BochnerTheorem/GNS/PreHilbert/Conjugate.lean
+Filename: Bochner/GNS/PreHilbert/Conjugate.lean
 -/
 import Spectra.Bochner.GNS.PreHilbert.Linearity
 open Complex Finsupp

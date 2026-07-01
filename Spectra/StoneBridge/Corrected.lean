@@ -2,7 +2,7 @@
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
-Filename: CayleyTransform/StoneBridge.lean
+Filename: StoneBridge/Corrected.lean
 -/
 import Spectra.CayleyTransform.Generator.Stone   -- stoneGroup, stoneExp, generator_stoneGroup
 import Spectra.YosidaHille.Basic                 -- genToGroup, generator_genToGroup, stoneEquiv

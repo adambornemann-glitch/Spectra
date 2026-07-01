@@ -2,7 +2,7 @@
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
-Filename: StonesFormula/Identities.lean
+Filename: SpectralTheory/StoneFormula/Identities.lean
 -/
 import Spectra.Resolvent.SpectralRepresentation
 import Spectra.Kernel.Lorentzian

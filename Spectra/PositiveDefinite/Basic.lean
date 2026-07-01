@@ -2,7 +2,7 @@
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
-Filename: SpectralTheory/PositiveDefinite/Basic.lean
+Filename: PositiveDefinite/Basic.lean
 -/
 import Mathlib.Analysis.InnerProductSpace.Basic
 import Mathlib.Data.Matrix.Basic

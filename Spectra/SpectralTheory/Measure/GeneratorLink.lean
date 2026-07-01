@@ -3,7 +3,7 @@ Spectra: GeneratorLink.lean
 The generator of a one-parameter unitary group acts through the bounded functional
 calculus on spectrally bounded vectors.
 
-Filename: SpectralTheory/SpectralMeasure/GeneratorLink.lean
+Filename: SpectralTheory/Measure/GeneratorLink.lean
 -/
 import Spectra.SpectralTheory.Measure.Convergence
 /-!

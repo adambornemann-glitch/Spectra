@@ -2,7 +2,7 @@
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
-Filename: BochnerTheorem/GNS/PreHilbert/PosSemiDef.lean
+Filename: Bochner/GNS/PreHilbert/PosSemiDef.lean
 -/
 import Spectra.Bochner.GNS.PreHilbert.Conjugate
 open Complex Finsupp

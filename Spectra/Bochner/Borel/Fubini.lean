@@ -2,7 +2,7 @@
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
-Filename: QuantumMechanics/SpectralTheory/ScalarMeasure/Borel.lean
+Filename: Bochner/Borel/Fubini.lean
 -/
 import Spectra.Fourier.Identity
 import Spectra.Resolvent.Diagonal.Basic

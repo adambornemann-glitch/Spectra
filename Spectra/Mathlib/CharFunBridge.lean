@@ -2,7 +2,7 @@
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
-Filename: Spectra/Mathlib/CharFunBridge.lean
+Filename: Mathlib/CharFunBridge.lean
 Target: Mathlib master (2026-06-10)
 -/
 import Mathlib.MeasureTheory.Measure.CharacteristicFunction.Basic

@@ -2,7 +2,7 @@
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
-Filename: SpectralTheory/Keystone.lean
+Filename: SpectralTheory/ResolventForm.lean
 -/
 import Spectra.ProjValMeasure.Basic               -- ProjValMeasure, ext_of_diag
 import Spectra.Herglotz.CauchyInjective           -- measure_ext_of_cauchyTransform

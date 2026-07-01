@@ -2,7 +2,7 @@
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
-Filename: BochnerTheorem/GNS/Completion/StronglyEx.lean
+Filename: Bochner/GNS/Representation/StronglyEx.lean
 -/
 import Spectra.Bochner.GNS.Representation.UnitaryConstructor
 open Complex Finsupp Filter Topology
