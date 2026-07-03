@@ -3,7 +3,7 @@ Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Author: Adam Bornemann
 -/
-import Spectra.Modular.Cocycle.ModularSqrtSelfAdjoint
+import Spectra.SpectralTheory.Calculus.MixedProduct
 /-!
 # KILL-SPIKE — the `s ↦ s²` resolvent identity (Field-3 polar-uniqueness, DAG node 1.2)
 
@@ -31,13 +31,12 @@ bounded spectral-calculus symbol `1/(s² − z)`:
 Together these ARE DAG node 1.2 — the `s ↦ s²` machinery works on Spectra's calculus with no new
 analytic infrastructure, using only the already-built mixed product law and change-of-density.
 
-**Import-hygiene note (for the eventual non-circular Stage-1 build).** The two generic lemmas reused
-here — `mem_pmapDomain_spectralCalculus` and `pmapOfPVM_spectralCalculus_of_mul_bounded` — presently
-live in `Spectra/Modular/Cocycle/ModularSqrtSelfAdjoint.lean` (a `J`-bearing modular file), so this
-spike imports it. They are *pure spectral* facts (no `J`/`modularConjugation`/`S̃`); the real Stage-1
-build should first **relocate** them to a `J`-free spectral file so `SquarePushforward.lean` need not
-import any modular/`J` file (see the plan's landmine #5). This does not affect the spike's verdict:
-the spike proves a pure-`Δ`/PVM statement, so importing a `J` file cannot make it circular.
+**Import hygiene (done).** The two generic lemmas reused here —
+`mem_pmapDomain_spectralCalculus` and `pmapOfPVM_spectralCalculus_of_mul_bounded` — now live in the
+`J`-free `Spectra/SpectralTheory/Calculus/MixedProduct.lean` (relocated there from the `J`-bearing
+`ModularSqrtSelfAdjoint.lean`). This file therefore imports **no** modular/`J` file, so circularity for
+the Field-3 build is structurally impossible (landmine #5): the whole `s ↦ s²` pushforward layer is a
+statement purely about a PVM/`Δ`, never about `J`/`modularConjugation`/`S̃`.
 -/
 
 open Complex MeasureTheory Filter Topology

@@ -118,7 +118,7 @@ theorem exists_schwartz_seq_tendsto (g : L2_R3) :
 
 /-! ## Instance bridging: `R3`'s `borel` measurable space vs `EuclideanSpace`'s `WithLp` one.
 
-`Spectra.SobolevSpaces.WeakDerivative` registers a *custom* `MeasurableSpace R3 := borel R3`
+`Spectra.Spaces.Sobolev.WeakDerivative` registers a *custom* `MeasurableSpace R3 := borel R3`
 instance, propositionally (but not definitionally) equal to the canonical `WithLp.measurableSpace`
 that the banked `young_L1_conv_L2` (stated over `EuclideanSpace ℝ (Fin 3)`) carries. The lemmas
 below shuttle `MemLp`/`MeasureSpace` facts across the two. -/

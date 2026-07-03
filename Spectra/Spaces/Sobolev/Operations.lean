@@ -2,9 +2,9 @@
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
-File: Spectra/SobolevSpaces/Operations.lean
+File: Spectra/Spaces/Sobolev/Operations.lean
 -/
-import Spectra.SobolevSpaces.DuBoisReymond
+import Spectra.Spaces.Sobolev.DuBoisReymond
 import Mathlib.Analysis.Calculus.FDeriv.Symmetric
 
 open MeasureTheory

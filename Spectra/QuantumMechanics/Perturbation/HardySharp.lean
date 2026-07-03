@@ -4,9 +4,9 @@ Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Spectra.QuantumMechanics.Perturbation.HardyInequality
-import Spectra.SobolevSpaces.WeakDerivative
-import Spectra.SobolevSpaces.IntegrationByParts
-import Spectra.SobolevSpaces.DensityResults
+import Spectra.Spaces.Sobolev.WeakDerivative
+import Spectra.Spaces.Sobolev.IntegrationByParts
+import Spectra.Spaces.Sobolev.DensityResults
 import Mathlib.Analysis.Calculus.LineDeriv.IntegrationByParts
 import Mathlib.Analysis.SpecialFunctions.Pow.Integral
 import Mathlib.Analysis.InnerProductSpace.Calculus

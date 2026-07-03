@@ -33,7 +33,7 @@ only the `L^∞`-small tail, and the truncated resolvent kernel `Vⁿ(x)·G̃_i(
 
 open MeasureTheory Complex Filter InnerProductSpace Metric Set
 open Spectra.Sobolev Spectra.CompactOperator
-open Spectra.QuantumMechanics.SpectralTheory Spectra.QuantumMechanics.Hamiltonian Spectra.Essential
+open Spectra.QuantumMechanics.SpectralTheory Spectra.Operator Spectra.Essential
 open scoped Topology
 
 noncomputable section

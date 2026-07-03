@@ -297,7 +297,7 @@ structure RiemannianMetric (n : ℕ) where
         v i * v j * metricMatrix θ i j
   /-- Each matrix entry is `C^∞` on the domain. -/
   metricMatrix_smooth :
-    ∀ i j, ContDiffOn ℝ ⊤ (fun θ => metricMatrix θ i j) domain
+    ∀ i j, ContDiffOn ℝ (⊤ : ℕ∞) (fun θ => metricMatrix θ i j) domain
 
 
 
@@ -380,7 +380,7 @@ structure SmoothFisherModel where
   /-- Each Fisher matrix entry is `C^∞` on the parameter domain. -/
   fisherMatrix_smooth :
     ∀ i j : Fin n,
-      ContDiffOn ℝ ⊤
+      ContDiffOn ℝ (⊤ : ℕ∞)
         (fun θ => M.fisherMatrix θ i j) M.paramDomain
 
 /-! ### The Fisher–Rao metric -/

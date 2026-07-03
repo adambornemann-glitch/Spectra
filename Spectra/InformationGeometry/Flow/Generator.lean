@@ -182,8 +182,8 @@ lemma killing_expansion
       HasFDerivAt (Function.uncurry F.φ)
         (fderiv ℝ (Function.uncurry F.φ) p) p :=
     fun p => ((F.smooth.differentiable (by simp)) p).hasFDerivAt
-  have hΨs : ContDiff ℝ ⊤ (fderiv ℝ (Function.uncurry F.φ)) :=
-    F.smooth.fderiv_right le_top
+  have hΨs : ContDiff ℝ (⊤ : ℕ∞) (fderiv ℝ (Function.uncurry F.φ)) :=
+    F.smooth.fderiv_right (m := (⊤ : ℕ∞)) (by exact_mod_cast le_top)
   have hΨd : HasFDerivAt (fderiv ℝ (Function.uncurry F.φ))
       (fderiv ℝ (fderiv ℝ (Function.uncurry F.φ)) ((0:ℝ), θ)) ((0:ℝ), θ) :=
     ((hΨs.differentiable (by simp)) ((0:ℝ), θ)).hasFDerivAt

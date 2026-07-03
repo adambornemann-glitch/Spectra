@@ -2,9 +2,9 @@
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
-File: Spectra/SobolevSpaces/Density.lean
+File: Spectra/Spaces/Sobolev/Density.lean
 -/
-import Spectra.SobolevSpaces.WeakDerivative
+import Spectra.Spaces.Sobolev.WeakDerivative
 import Mathlib.MeasureTheory.Function.ContinuousMapDense
 /-!
 # Density of Test Functions in L²(ℝ³)

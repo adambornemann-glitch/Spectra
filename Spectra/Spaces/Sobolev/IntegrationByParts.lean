@@ -2,9 +2,9 @@
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
-File: Spectra/SobolevSpaces/IntegrationByParts.lean
+File: Spectra/Spaces/Sobolev/IntegrationByParts.lean
 -/
-import Spectra.SobolevSpaces.MeyersSerrin
+import Spectra.Spaces.Sobolev.MeyersSerrin
 
 open MeasureTheory Complex
 open scoped ContDiff

@@ -2,9 +2,9 @@
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
-File: Spectra/SobolevSpaces/MeyersCommon.lean
+File: Spectra/Spaces/Sobolev/MeyersCommon.lean
 -/
-import Spectra.SobolevSpaces.Mollification
+import Spectra.Spaces.Sobolev.Mollification
 
 /-!
 # Shared helpers for the Meyers-Serrin approximation

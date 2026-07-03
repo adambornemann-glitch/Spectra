@@ -330,10 +330,10 @@ theorem denseRange_tomitaOnModularDomain (hcyc : IsCyclic M Ω) (hsep : IsSepara
     ext y
     constructor
     · rintro ⟨_, ⟨x, rfl⟩, rfl⟩
-      exact ⟨x, by simp only [hπ₂def, modularPairing_apply, WithLp.ofLp_toLp]⟩
+      exact ⟨x, by simp only [hπ₂def, modularPairing_apply]⟩
     · rintro ⟨x, rfl⟩
       exact ⟨modularPairing M Ω x, LinearMap.mem_range_self _ x,
-        by simp only [hπ₂def, modularPairing_apply, WithLp.ofLp_toLp]⟩
+        by simp only [hπ₂def, modularPairing_apply]⟩
   -- The dense set `↑(range S.toFun)` sits inside `closure (range (tomitaOnModularDomain))`.
   have hsub : (LinearMap.range (tomitaClosure M Ω).toFun : Set (Conj H))
       ⊆ closure (Set.range (tomitaOnModularDomain M Ω)) := by
@@ -351,7 +351,7 @@ theorem denseRange_tomitaOnModularDomain (hcyc : IsCyclic M Ω) (hsep : IsSepara
     have hmem := image_closure_subset_closure_image hπ₂cont (Set.mem_image_of_mem π₂ hqK)
     rw [himg] at hmem
     have hval : π₂ (WithLp.toLp 2 ((y : H), tomitaClosure M Ω y)) = tomitaClosure M Ω y := by
-      simp only [hπ₂def, WithLp.ofLp_toLp]
+      simp only [hπ₂def]
     rw [hval] at hmem
     -- `tomitaClosure M Ω y = (tomitaClosure M Ω).toFun y` definitionally.
     exact hmem

@@ -27,9 +27,8 @@ divergence the role of the conserved inner product.
 open MeasureTheory Finset Filter Topology TopologicalSpace
 variable {n : ℕ} {Ω : Type*} [MeasurableSpace Ω]
 namespace Spectra.InformationGeometry
-variable (M : TwiceDifferentiableModel n Ω)
+variable {M : TwiceDifferentiableModel n Ω}
 namespace TwiceDifferentiableModel
-variable (F : M.DivergencePreservingFamily)
 
 /-! ### IG Schrödinger equations
 
@@ -84,7 +83,7 @@ theorem infoGeometric_schrodinger₂
     (θ : ParamSpace n) (t : ℝ) :
     HasDerivAt (fun s => F.φ s θ) (F.generator (F.φ t θ)) t := by
   have h₀ : HasDerivAt (fun u => F.φ u (F.φ t θ)) (F.generator (F.φ t θ)) 0 :=
-    infoGeometric_schrodinger₁ M F (F.φ t θ)
+    infoGeometric_schrodinger₁ F (F.φ t θ)
   have h_eq : (fun s => F.φ s θ) = (fun s => F.φ (s - t) (F.φ t θ)) := by
     ext s; rw [← F.group_law (s - t) t θ, sub_add_cancel]
   rw [h_eq]
@@ -143,7 +142,7 @@ theorem infoGeometric_ehrenfest
     HasDerivAt (fun s => f (F.φ s θ))
       (fderiv ℝ f (F.φ t θ) (F.generator (F.φ t θ))) t :=
   (hf (F.φ t θ)).hasFDerivAt.comp_hasDerivAt t
-    (infoGeometric_schrodinger₂ M F θ t)
+    (infoGeometric_schrodinger₂ F θ t)
 
 
 end TwiceDifferentiableModel

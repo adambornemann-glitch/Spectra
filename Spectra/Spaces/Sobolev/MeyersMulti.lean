@@ -2,10 +2,10 @@
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
-File: Spectra/SobolevSpaces/MeyersMulti.lean
+File: Spectra/Spaces/Sobolev/MeyersMulti.lean
 -/
-import Spectra.SobolevSpaces.Mollification
-import Spectra.SobolevSpaces.MeyersCommon
+import Spectra.Spaces.Sobolev.Mollification
+import Spectra.Spaces.Sobolev.MeyersCommon
 
 open MeasureTheory
 open scoped Pointwise ContDiff

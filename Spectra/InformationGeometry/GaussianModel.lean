@@ -253,15 +253,17 @@ lemma score_gaussianShift (R : Matrix (Fin m) (Fin n) ℝ)
 
 /-! ### Smoothness of the density -/
 
-/-- Each Gaussian factor is `C^∞` in `θ`. -/
+/-- Each Gaussian factor is `C^∞` in `θ`.  (It is in fact real-analytic, but the
+statement is kept at `C^∞` (`(⊤ : ℕ∞)`) to match `StatisticalModel.density_smooth`.) -/
 lemma contDiff_gaussianFactor (R : Matrix (Fin m) (Fin n) ℝ) (k : Fin m) (x : Fin m → ℝ) :
-    ContDiff ℝ ⊤ (gaussianFactor R k x) := by
+    ContDiff ℝ (⊤ : ℕ∞) (gaussianFactor R k x) := by
   have hfun : gaussianFactor R k x =
       (fun θ' : ParamSpace n => (Real.sqrt (2 * π))⁻¹ *
         Real.exp (-(x k - meanCLM R k θ') ^ 2 / 2)) := by
     ext θ'; rw [gaussianFactor_eq, meanCLM_apply]
   rw [hfun]
-  have hmean : ContDiff ℝ ⊤ (fun θ' : ParamSpace n => meanCLM R k θ') := (meanCLM R k).contDiff
+  have hmean : ContDiff ℝ (⊤ : ℕ∞) (fun θ' : ParamSpace n => meanCLM R k θ') :=
+    (meanCLM R k).contDiff
   apply contDiff_const.mul
   apply ContDiff.exp
   apply ContDiff.div_const
@@ -271,7 +273,7 @@ lemma contDiff_gaussianFactor (R : Matrix (Fin m) (Fin n) ℝ) (k : Fin m) (x : 
 
 /-- The density is `C^∞` in `θ` for each `x`. -/
 lemma contDiff_gaussianShiftDensity (R : Matrix (Fin m) (Fin n) ℝ) (x : Fin m → ℝ) :
-    ContDiff ℝ ⊤ (fun θ => gaussianShiftDensity R θ x) := by
+    ContDiff ℝ (⊤ : ℕ∞) (fun θ => gaussianShiftDensity R θ x) := by
   have hfun : (fun θ => gaussianShiftDensity R θ x) =
       (fun θ => ∏ k : Fin m, gaussianFactor R k x θ) := by
     ext θ; simp only [gaussianShiftDensity, gaussianFactor]

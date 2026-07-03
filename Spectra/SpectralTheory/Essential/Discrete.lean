@@ -179,7 +179,7 @@ theorem mem_essSpectrum_of_proj_singleton_eq_zero {A : H →ₗ.[ℂ] H} (hA : I
     have hm₀spec : x ∉ D (Nat.find hex) := Nat.find_spec hex
     have hposm : N < Nat.find hex := by
       by_contra hle
-      push_neg at hle
+      push Not at hle
       exact hm₀spec (hDanti hle hxD)
     have hxprev : x ∈ D (Nat.find hex - 1) := by
       by_contra hno
@@ -205,7 +205,7 @@ theorem mem_essSpectrum_of_proj_singleton_eq_zero {A : H →ₗ.[ℂ] H} (hA : I
   have hstep : ∀ N : ℕ, ∃ k, N ≤ k ∧ P.proj (C k) (hCm k) ≠ 0 := by
     intro N
     by_contra hcon
-    push_neg at hcon
+    push Not at hcon
     have hDNzero : P.proj (D N) (hDm N) = 0 := by
       refine diag_zero_proj_zero (hDm N) (fun φ => ?_)
       haveI := P.diag_finite φ

@@ -5,10 +5,10 @@ Authors: Adam Bornemann
 -/
 import Spectra.QuantumMechanics.DiracEquation.SpinorSpaceL2
 import Spectra.QuantumMechanics.DiracEquation.DiracFourier
-import Spectra.SobolevSpaces.Submodules
-import Spectra.SobolevSpaces.IntegrationByParts
-import Spectra.SobolevSpaces.DensityResults
-import Spectra.QuantumMechanics.Perturbation.KatoRellich
+import Spectra.Spaces.Sobolev.Submodules
+import Spectra.Spaces.Sobolev.IntegrationByParts
+import Spectra.Spaces.Sobolev.DensityResults
+import Spectra.Operator.KatoRellich
 import Spectra.Operator.SelfAdjoint
 import Spectra.YosidaHille.Basic
 /-!
@@ -77,7 +77,6 @@ Dirac equation, free Dirac operator, self-adjoint, unbounded operator, Stone's t
 open Complex MeasureTheory InnerProductSpace
 open scoped InnerProductSpace
 open Spectra.Sobolev
-open Spectra.QuantumMechanics.Hamiltonian
 open Spectra.Operator
 open Spectra.OneParameterUnitaryGroup
 open Spectra.YosidaHille

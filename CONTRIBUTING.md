@@ -42,7 +42,7 @@ goal view, hover docstrings, and the `#lint` / `#check` commands inline.
   When you add a new file, add a matching `import Spectra.…` line here (kept sorted) so it is part
   of the build.
 - Source lives under [`Spectra/`](Spectra/), organized by topic — `Resolvent/`, `SpectralTheory/`,
-  `QuantumMechanics/`, `SobolevSpaces/`, and so on.
+  `QuantumMechanics/`, `Spaces/Sobolev/`, and so on.
 - `Spectra/Mathlib/` holds material that is intended to eventually be upstreamed to Mathlib, mirroring
   Mathlib's own directory structure. Keep things here Mathlib-general (no Spectra-specific
   assumptions) so the eventual port is mechanical.

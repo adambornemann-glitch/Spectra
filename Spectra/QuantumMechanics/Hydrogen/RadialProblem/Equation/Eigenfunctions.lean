@@ -214,7 +214,7 @@ private lemma differentiable_deriv_laguerre (p : ℕ) (α : ℝ) :
       (-1 : ℝ) ^ k * realBinom (p + α) (p - k) * ((k : ℝ) * y ^ (k - 1) / (k.factorial : ℝ)) := by
     funext y; exact deriv_laguerrePolynomial p α y
   rw [heq]
-  have hcd : ContDiff ℝ ⊤ (fun y : ℝ => ∑ k ∈ Finset.range (p + 1),
+  have hcd : ContDiff ℝ (⊤ : ℕ∞) (fun y : ℝ => ∑ k ∈ Finset.range (p + 1),
       (-1 : ℝ) ^ k * realBinom (p + α) (p - k) * ((k : ℝ) * y ^ (k - 1) / (k.factorial : ℝ))) := by
     apply ContDiff.sum
     intro k _

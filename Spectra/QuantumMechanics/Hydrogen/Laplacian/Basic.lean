@@ -6,7 +6,7 @@ Authors: Adam Bornemann
 import Spectra.OneParameterUnitaryGroup.Basic
 import Spectra.YosidaHille.Basic
 import Spectra.Operator.SelfAdjoint
-import Spectra.SobolevSpaces.DensityResults
+import Spectra.Spaces.Sobolev.DensityResults
 import Spectra.SpectralTheory.ResolventForm
 import Mathlib.Analysis.Fourier.LpSpace
 import Mathlib.Analysis.Real.Pi.Bounds
@@ -29,7 +29,7 @@ partial linear map, self-adjointness is Mathlib's star-based `IsSelfAdjoint`
 on `LinearPMap`, and the unitary group is *derived* by Stone's theorem:
 
 ```
-  SobolevSpaces.lean                       this file
+  Spaces/Sobolev/*.lean                    this file
   ┌───────────────────┐                    ┌──────────────────────────────┐
   │ SobolevH2         │── domain ────────→ │ laplacianPMap : L2 →ₗ.[ℂ] L2 │
   │ laplacianLinearMap│── toFun ─────────→ │                              │
@@ -112,7 +112,7 @@ namespace Spectra.QuantumMechanics.Hydrogen
 /-- **The negative Laplacian as an unbounded operator on L²(ℝ³).**
 
     Domain H²(ℝ³), action `laplacianLinearMap` (= the weak −Δ from
-    `SobolevSpaces.lean`).  Both fields are supplied by `SobolevSpaces.lean`,
+    `Spaces/Sobolev/`).  Both fields are supplied by `Spaces/Sobolev/`,
     so this definition is sorry-free, and the domain/action lemmas below are
     `rfl`. -/
 def laplacianPMap : L2_R3 →ₗ.[ℂ] L2_R3 where
@@ -141,7 +141,7 @@ theorem laplacian_domain_dense :
 /-- The L² Fourier transform on `L²(ℝ³)`, as an isometric equivalence (Plancherel).
 
     A literal one-liner: the project's custom `MeasureSpace R3` instance was removed
-    (see `SobolevSpaces/WeakDerivative.lean`) so that `L2_R3`'s measure IS Mathlib's
+    (see `Spaces/Sobolev/WeakDerivative.lean`) so that `L2_R3`'s measure IS Mathlib's
     `measureSpaceOfInnerProductSpace` volume — the same measure `Lp.fourierTransformₗᵢ`
     lives over.  No measure-diamond transport needed. -/
 def fourierL2 : L2_R3 ≃ₗᵢ[ℂ] L2_R3 :=

@@ -3,9 +3,9 @@ Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
-import Spectra.SobolevSpaces.WeakDerivative
-import Spectra.SobolevSpaces.IntegrationByParts
-import Spectra.SobolevSpaces.DensityResults
+import Spectra.Spaces.Sobolev.WeakDerivative
+import Spectra.Spaces.Sobolev.IntegrationByParts
+import Spectra.Spaces.Sobolev.DensityResults
 import Mathlib.Analysis.Calculus.LineDeriv.IntegrationByParts
 import Mathlib.Analysis.SpecialFunctions.Pow.Integral
 /-!
@@ -48,7 +48,7 @@ The integration by parts identity comes from:
 and the divergence theorem on ℝ³ \ B(0,ε), then ε → 0.
 
 **Step 2 (Density extension):** Extend from C_c^∞ to H¹ via
-`smooth_compactly_supported_dense_H1` from SobolevSpaces.lean.
+`smooth_compactly_supported_dense_H1` from Spaces/Sobolev/.
 The ∫|ψ|²/|x|² functional is lower semicontinuous with respect to
 H¹ convergence, so the bound passes to the closure.
 
@@ -186,15 +186,15 @@ lemma norm_hardyField_of_ne {x : R3} (hx : x ≠ 0) :
     inverse is smooth there. Scalar-multiplying by the smooth identity preserves
     smoothness. -/
 lemma hardyField_contDiffOn :
-    ContDiffOn ℝ ⊤ hardyField ({0}ᶜ : Set R3) := by
+    ContDiffOn ℝ ∞ hardyField ({0}ᶜ : Set R3) := by
   -- Step 1: (‖x‖²)⁻¹ is smooth on the complement of {0}.
-  have h_inv : ContDiffOn ℝ ⊤ (fun x : R3 => (‖x‖^2)⁻¹) ({0}ᶜ : Set R3) := by
+  have h_inv : ContDiffOn ℝ ∞ (fun x : R3 => (‖x‖^2)⁻¹) ({0}ᶜ : Set R3) := by
     refine ContDiffOn.inv (contDiff_norm_sq (𝕜 := ℝ)).contDiffOn ?_
     intro x hx
     have hx_ne : x ≠ 0 := by simpa using hx
     exact pow_ne_zero 2 (norm_ne_zero_iff.mpr hx_ne)
   -- Step 2: smul of a smooth scalar field with the (smooth) identity.
-  have h_smul : ContDiffOn ℝ ⊤ (fun x : R3 => (‖x‖^2)⁻¹ • x) ({0}ᶜ : Set R3) :=
+  have h_smul : ContDiffOn ℝ ∞ (fun x : R3 => (‖x‖^2)⁻¹ • x) ({0}ᶜ : Set R3) :=
     h_inv.smul contDiff_id.contDiffOn
   -- Step 3: this agrees with `hardyField` off the origin.
   exact h_smul.congr (fun x hx => by
@@ -285,7 +285,7 @@ is classical.
 
 /-- Each component `x ↦ (hardyField x) i` is smooth on `ℝ³ \ {0}`. -/
 private lemma hardyField_apply_contDiffOn (i : Fin 3) :
-    ContDiffOn ℝ ⊤ (fun x : R3 => hardyField x i) ({0}ᶜ : Set R3) := by
+    ContDiffOn ℝ ∞ (fun x : R3 => hardyField x i) ({0}ᶜ : Set R3) := by
   exact (EuclideanSpace.proj i).contDiff.comp_contDiffOn hardyField_contDiffOn
 
 /-- If `u` vanishes on the open ball `B(0, r)` with `r > 0`, then the topological
@@ -382,7 +382,7 @@ private lemma integrable_u_mul_fderiv_hardyField
   refine integrable_mul_singular hu_cont hu_supp r hr_pos hu_zero ?_
   refine ContinuousOn.clm_apply ?_ continuousOn_const
   exact (hardyField_apply_contDiffOn i).continuousOn_fderiv_of_isOpen
-    isOpen_compl_singleton (by apply right_eq_inf.mp rfl)
+    isOpen_compl_singleton (by simp)
 
 /-- IBP integrand `u · gᵢ` is integrable. -/
 private lemma integrable_u_mul_hardyField
@@ -440,9 +440,8 @@ private lemma ibp_direction_hardyField
         rw [Metric.mem_ball, dist_zero_right] at hy; linarith
       simp [gReg, hχ_eq_zero_in_ball hy_norm]
     · have h_in : x ∈ ({0}ᶜ : Set R3) := by simpa using hx
-      have h_inf_le_top : (∞ : WithTop ℕ∞) ≤ ⊤ := right_eq_inf.mp rfl
       exact hχ_smooth.contDiffAt.mul
-        (((hardyField_apply_contDiffOn i).of_le h_inf_le_top).contDiffAt
+        ((hardyField_apply_contDiffOn i).contDiffAt
           (isOpen_compl_singleton.mem_nhds h_in))
   -- On a neighborhood of any x ∈ tsupport u: χ = 1, so gReg = hardyField · i nearby.
   have h_gReg_eq_nbhd : ∀ x ∈ tsupport u, gReg =ᶠ[𝓝 x] (fun y => hardyField y i) := by

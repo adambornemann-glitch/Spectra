@@ -5,7 +5,7 @@ Authors: Adam Bornemann
 -/
 import Mathlib.Analysis.InnerProductSpace.Laplacian
 import Mathlib.Analysis.Calculus.IteratedDeriv.FaaDiBruno
-import Spectra.SobolevSpaces.WeakDerivative
+import Spectra.Spaces.Sobolev.WeakDerivative
 import Spectra.SphericalHarmonics.Basic
 /-!
 # Separation of the Laplacian in spherical coordinates (scaffolding)

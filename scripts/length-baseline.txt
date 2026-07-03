@@ -87,18 +87,18 @@ decl Spectra.Resolvent.Identities resolvent_identity 77
 decl Spectra.Resolvent.Integral.Limits.Helpers tendsto_integral_Ici_exp_unitary 83
 decl Spectra.Resolvent.Range.ClosedRange range_sub_smul_closed 92
 decl Spectra.Resolvent.Range.Orthogonal orthogonal_range_eq_zero 118
-decl Spectra.SobolevSpaces.Density exists_smooth_uniform_approx 224
-decl Spectra.SobolevSpaces.Density smooth_approx_continuous_compactSupport 80
-decl Spectra.SobolevSpaces.Embeddings eLpNorm_fderiv_le_sqrt_sum_partialDeriv 81
-decl Spectra.SobolevSpaces.Embeddings sobolev_embedding_L6 86
-decl Spectra.SobolevSpaces.MeyersCommon exists_smooth_cutoff_scaled 95
-decl Spectra.SobolevSpaces.MeyersMulti truncation_approx_multi 245
-decl Spectra.SobolevSpaces.MeyersSerrin truncation_approx 223
-decl Spectra.SobolevSpaces.Mollification bumpConvolve_fderiv_eq 236
-decl Spectra.SobolevSpaces.Mollification bumpConvolve_tendsto_continuous 171
-decl Spectra.SobolevSpaces.Mollification eLpNorm_bumpConvolve_le 114
-decl Spectra.SobolevSpaces.Mollification eLpNorm_real_convolve_le 197
-decl Spectra.SobolevSpaces.Mollification mollify_compactly_supported_multi 76
+decl Spectra.Spaces.Sobolev.Density exists_smooth_uniform_approx 224
+decl Spectra.Spaces.Sobolev.Density smooth_approx_continuous_compactSupport 80
+decl Spectra.Spaces.Sobolev.Embeddings eLpNorm_fderiv_le_sqrt_sum_partialDeriv 81
+decl Spectra.Spaces.Sobolev.Embeddings sobolev_embedding_L6 86
+decl Spectra.Spaces.Sobolev.MeyersCommon exists_smooth_cutoff_scaled 95
+decl Spectra.Spaces.Sobolev.MeyersMulti truncation_approx_multi 245
+decl Spectra.Spaces.Sobolev.MeyersSerrin truncation_approx 223
+decl Spectra.Spaces.Sobolev.Mollification bumpConvolve_fderiv_eq 236
+decl Spectra.Spaces.Sobolev.Mollification bumpConvolve_tendsto_continuous 171
+decl Spectra.Spaces.Sobolev.Mollification eLpNorm_bumpConvolve_le 114
+decl Spectra.Spaces.Sobolev.Mollification eLpNorm_real_convolve_le 197
+decl Spectra.Spaces.Sobolev.Mollification mollify_compactly_supported_multi 76
 decl Spectra.SpectralTheory.Algebra generator_sub_smul_norm_le_Icc 122
 decl Spectra.SpectralTheory.Algebra spectralProjection_re_inner_eq_integral 106
 decl Spectra.SpectralTheory.Essential.Weyl essSpectrum_subset_of_isCompactOperator_resolvent_sub 115
@@ -179,10 +179,10 @@ line Spectra.Resolvent.Diagonal.IntegralZ.Tendsto 1
 line Spectra.Resolvent.Identities 4
 line Spectra.Resolvent.Integral.Domain 3
 line Spectra.Resolvent.Range 2
-line Spectra.SobolevSpaces.Density 3
-line Spectra.SobolevSpaces.Embeddings 1
-line Spectra.SobolevSpaces.MeyersCommon 3
-line Spectra.SobolevSpaces.Mollification 1
+line Spectra.Spaces.Sobolev.Density 3
+line Spectra.Spaces.Sobolev.Embeddings 1
+line Spectra.Spaces.Sobolev.MeyersCommon 3
+line Spectra.Spaces.Sobolev.Mollification 1
 line Spectra.SpectralTheory.Algebra 3
 line Spectra.SpectralTheory.Essential.Weyl 1
 line Spectra.SpectralTheory.StoneFormula.Identities 3

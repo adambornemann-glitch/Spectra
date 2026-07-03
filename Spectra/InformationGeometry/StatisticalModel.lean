@@ -114,9 +114,11 @@ structure StatisticalModel (n : ℕ) (Ω : Type*) [MeasurableSpace Ω] where
   with the reference measure. -/
   density_pos_ae :
     ∀ θ ∈ paramDomain, ∀ᵐ ω ∂refMeasure, 0 < density θ ω
-  /-- `θ ↦ p(θ, ω)` is `C^∞` on `Θ` for each `ω`. -/
+  /-- `θ ↦ p(θ, ω)` is `C^∞` on `Θ` for each `ω`.  (`(⊤ : ℕ∞)` is `C^∞`;
+  bare `⊤` would be `ω` = analytic, which would wrongly exclude smooth
+  non-analytic families.) -/
   density_smooth :
-    ∀ ω, ContDiffOn ℝ ⊤ (fun θ => density θ ω) paramDomain
+    ∀ ω, ContDiffOn ℝ (⊤ : ℕ∞) (fun θ => density θ ω) paramDomain
 
 attribute [instance] StatisticalModel.sigmaFinite_refMeasure
 
@@ -251,8 +253,7 @@ for each `ω`. Since `Θ` is open, membership suffices. -/
 lemma density_differentiableAt {θ : ParamSpace n}
     (hθ : θ ∈ M.paramDomain) (ω : Ω) :
     DifferentiableAt ℝ (fun θ' => M.density θ' ω) θ := by
-  have h : (⊤ : WithTop ℕ∞) ≠ 0 := WithTop.top_ne_zero
-  exact ((M.density_smooth ω).differentiableOn h).differentiableAt
+  exact ((M.density_smooth ω).differentiableOn (by simp)).differentiableAt
     (M.isOpen_paramDomain.mem_nhds hθ)
 
 /-! ### Identifiability -/

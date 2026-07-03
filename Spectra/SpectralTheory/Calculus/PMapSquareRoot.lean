@@ -121,6 +121,33 @@ theorem borelMeasure_Iio_zero_eq_zero
   exact measure_iUnion_null fun k =>
     borelMeasure_Iio_neg_eq_zero U_grp hpos x (by positivity)
 
+/-- **∀-vector upgrade** of `borelMeasure_Iio_zero_eq_zero`: for a *densely-defined* non-negative
+generator, the spectral measure of **every** `y : H` charges no negative reals.  The projection
+`E((-∞,0))` vanishes on the dense domain `D(generator U)` (there `‖E((-∞,0))z‖² = μ_z((-∞,0)) = 0`),
+hence everywhere by continuity, and `μ_y((-∞,0)) = ‖E((-∞,0))y‖² = 0`. -/
+theorem borelMeasure_Iio_zero_eq_zero_of_dense
+    (hdense : Dense ((generator U_grp).domain : Set H))
+    (hpos : ∀ z : (generator U_grp).domain, 0 ≤ (⟪(z : H), generator U_grp z⟫_ℂ).re) (y : H) :
+    borelMeasure U_grp y (Set.Iio (0 : ℝ)) = 0 := by
+  have hdense' : Dense (Submodule.span ℂ ((generator U_grp).domain : Set H) : Set H) := by
+    rwa [Submodule.span_eq]
+  have hzero : Set.EqOn (spectralProjection U_grp (Set.Iio 0) measurableSet_Iio) 0
+      ((generator U_grp).domain : Set H) := by
+    intro z hz
+    have hμ : borelMeasure U_grp z (Set.Iio 0) = 0 :=
+      borelMeasure_Iio_zero_eq_zero U_grp hpos ⟨z, hz⟩
+    show spectralProjection U_grp (Set.Iio 0) measurableSet_Iio z = 0
+    rw [← norm_eq_zero, ← sq_eq_zero_iff,
+      norm_sq_spectralProjection U_grp (Set.Iio 0) measurableSet_Iio z, hμ]
+    simp
+  have hE0 : spectralProjection U_grp (Set.Iio 0) measurableSet_Iio = 0 :=
+    ContinuousLinearMap.ext_on hdense' hzero
+  haveI : IsFiniteMeasure (borelMeasure U_grp y) := borelMeasure_isFiniteMeasure U_grp y
+  have hnorm : ((borelMeasure U_grp y (Set.Iio 0)).toReal) = 0 := by
+    rw [← norm_sq_spectralProjection U_grp (Set.Iio 0) measurableSet_Iio y, hE0]
+    simp
+  exact ((ENNReal.toReal_eq_zero_iff _).mp hnorm).resolve_right (measure_ne_top _ _)
+
 /-! ## The square-root form identity -/
 
 /-- The real square-root symbol `s ↦ (√s : ℂ)` is measurable. -/
@@ -135,7 +162,9 @@ lemma norm_sqrtC_sq (s : ℝ) : ‖(Real.sqrt s : ℂ)‖ ^ 2 = Real.sqrt s ^ 2 
 lemma sq_sqrt_le_abs (s : ℝ) : Real.sqrt s ^ 2 ≤ |s| := by
   by_cases hs : 0 ≤ s
   · rw [Real.sq_sqrt hs]; exact le_abs_self s
-  · rw [Real.sqrt_eq_zero_of_nonpos (not_le.mp hs).le]; simpa using abs_nonneg s
+  · rw [Real.sqrt_eq_zero_of_nonpos (not_le.mp hs).le];
+    simp only [ne_eq, OfNat.ofNat_ne_zero, not_false_eq_true,
+      zero_pow, abs_nonneg];
 
 /-- A generator-domain vector lies in the `L²` domain of the `√` calculus: `∫ ‖√·‖² dμ_x < ∞`,
 since `‖(√s:ℂ)‖² = (√s)² ≤ |s|` and `s ∈ L¹(μ_x)` (`weak_first_moment`). -/

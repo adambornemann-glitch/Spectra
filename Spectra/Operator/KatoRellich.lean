@@ -100,10 +100,9 @@ open Complex Filter InnerProductSpace
 open Spectra.OneParameterUnitaryGroup
 open Spectra.YosidaHille
 open Spectra.Resolvent
-open Spectra.Operator
 open Spectra.QuantumMechanics.SpectralTheory
 
-namespace Spectra.QuantumMechanics.Hamiltonian
+namespace Spectra.Operator
 
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
 
@@ -639,7 +638,7 @@ lemma bounded_relative_bound_zero (A : H →ₗ.[ℂ] H) (T : H →L[ℂ] H)
       (bounded_is_relatively_bounded A T).bound)
     (relativeBound_nonneg A _ hT)
 
-end Spectra.QuantumMechanics.Hamiltonian
+end Spectra.Operator
 /-!
 ## Compilation notes
 

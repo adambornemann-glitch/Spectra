@@ -319,7 +319,7 @@ lemma kl_faa_di_bruno
   -- ═══ Setup ═══
   set α := F.φ t θ with hα_def
   have hα : α ∈ M.paramDomain := F.maps_domain t θ hθ
-  have hφ_smooth : ContDiff ℝ ⊤ (F.φ t) :=
+  have hφ_smooth : ContDiff ℝ (⊤ : ℕ∞) (F.φ t) :=
     F.smooth.comp (contDiff_const.prodMk contDiff_id)
   have hf'_zero : fderiv ℝ (M.klDiv α) α = 0 :=
     (M.klDiv_fderiv_eq_zero hα).fderiv
@@ -337,7 +337,7 @@ lemma kl_faa_di_bruno
               with θ' hθ'; exact M.klDiv_decomp hα hθ')
     show fderiv ℝ (M.klDiv α ∘ F.φ t) θ₂ (EuclideanSpace.single c 1) = _
     rw [(hKL_diff.hasFDerivAt.comp θ₂
-      ((hφ_smooth.differentiable WithTop.top_ne_zero).differentiableAt).hasFDerivAt).fderiv]
+      ((hφ_smooth.differentiable (by simp)).differentiableAt).hasFDerivAt).fderiv]
     rfl
   -- ═══ Level 2→3: fderiv_eq cascade ═══
   have h_L2 : ∀ θ₁ ∈ M.paramDomain,
@@ -388,12 +388,12 @@ lemma kl_faa_di_bruno
       have h_fKL : DifferentiableAt ℝ (fderiv ℝ (M.klDiv α)) (F.φ t θ₁) :=
         M.klDiv_fderiv_differentiableAt hα hθ₁_im
       exact h_fKL.comp θ₁
-        (hφ_smooth.differentiable WithTop.top_ne_zero).differentiableAt
+        (hφ_smooth.differentiable (by simp)).differentiableAt
     -- v(θ₂) := fderiv(φ_t)(θ₂)(eᶜ) is differentiable at θ₁
     have hv_diff : DifferentiableAt ℝ
         (fun θ₂ => fderiv ℝ (F.φ t) θ₂ (EuclideanSpace.single c 1)) θ₁ :=
-      ((hφ_smooth.fderiv_right le_rfl).differentiable
-        WithTop.top_ne_zero).differentiableAt.clm_apply
+      ((hφ_smooth.fderiv_right (m := (⊤ : ℕ∞)) (by exact_mod_cast le_top)).differentiable
+        (by simp)).differentiableAt.clm_apply
         (differentiableAt_const _)
     -- Product rule for CL map evaluation: d(L(·)(v(·))) = dL(·)(v) + L(dv(·))
     have h_pr := hL_diff.hasFDerivAt.clm_apply hv_diff.hasFDerivAt
@@ -420,7 +420,7 @@ lemma kl_faa_di_bruno
     intro θ' hθ'
     exact M.klDiv_fderiv_differentiableAt hα hθ'
   have hF_diff : ∀ θ₂, DifferentiableAt ℝ (F.φ t) θ₂ := fun _ =>
-    (hφ_smooth.differentiable WithTop.top_ne_zero).differentiableAt
+    (hφ_smooth.differentiable (by simp)).differentiableAt
   -- ─── Step 2: Chain rule formula for fderiv of K := (fderiv(klDiv α)) ∘ φ_t.
   -- Holds on a neighborhood of θ (= the open set paramDomain).
   have hK_fderiv_ev :
@@ -630,7 +630,7 @@ lemma kl_faa_di_bruno
       (f := F.φ t)
       θ h_helper' (hF_diff θ)
   have h2 : DifferentiableAt ℝ (fun θ₂ => fderiv ℝ (F.φ t) θ₂) θ :=
-    ((hφ_smooth.fderiv_right le_rfl).differentiable WithTop.top_ne_zero).differentiableAt
+    ((hφ_smooth.fderiv_right (m := (⊤ : ℕ∞)) (by exact_mod_cast le_top)).differentiable (by simp)).differentiableAt
   have h_RHS_diff : DifferentiableAt ℝ
       (fun θ₂ => (fderiv ℝ (fun θ' => fderiv ℝ (M.klDiv α) θ') (F.φ t θ₂)).comp
         (fderiv ℝ (F.φ t) θ₂)) θ :=
@@ -647,7 +647,7 @@ lemma kl_faa_di_bruno
   -- ─── Step 6: v(θ₁) := dφ(θ₁)(single c 1) DifferentiableAt θ (same as h_Q_diff's hw level 1).
   have hv_diff : DifferentiableAt ℝ
       (fun θ₁ => fderiv ℝ (F.φ t) θ₁ (EuclideanSpace.single c 1)) θ :=
-    ((hφ_smooth.fderiv_right le_rfl).differentiable WithTop.top_ne_zero
+    ((hφ_smooth.fderiv_right (m := (⊤ : ℕ∞)) (by exact_mod_cast le_top)).differentiable (by simp)
       ).differentiableAt.clm_apply (differentiableAt_const _)
   have h_P_diff : DifferentiableAt ℝ (fun θ₁ =>
       fderiv ℝ (fun θ₂ => fderiv ℝ (M.klDiv α) (F.φ t θ₂)) θ₁
@@ -672,17 +672,17 @@ lemma kl_faa_di_bruno
       have h_fKL : DifferentiableAt ℝ (fderiv ℝ (M.klDiv α)) α :=
         M.klDiv_fderiv_differentiableAt hα hα
       exact h_fKL.comp θ
-        (hφ_smooth.differentiable WithTop.top_ne_zero).differentiableAt
+        (hφ_smooth.differentiable (by simp)).differentiableAt
     -- w differentiable at θ: φ_t is C^⊤, hence so is fderiv(φ_t), hence so is
     -- (· (single c 1)) ∘ fderiv(φ_t), hence so is its fderiv, hence we can
     -- apply at the constant single b 1.
     have hw_diff : DifferentiableAt ℝ
         (fun θ₁ => fderiv ℝ (fun θ₂ => fderiv ℝ (F.φ t) θ₂
           (EuclideanSpace.single c 1)) θ₁ (EuclideanSpace.single b 1)) θ := by
-      have hg : ContDiff ℝ ⊤
+      have hg : ContDiff ℝ (⊤ : ℕ∞)
           (fun θ₂ => fderiv ℝ (F.φ t) θ₂ (EuclideanSpace.single c 1)) :=
-        (hφ_smooth.fderiv_right le_rfl).clm_apply contDiff_const
-      exact ((hg.fderiv_right le_rfl).differentiable WithTop.top_ne_zero
+        (hφ_smooth.fderiv_right (m := (⊤ : ℕ∞)) (by exact_mod_cast le_top)).clm_apply contDiff_const
+      exact ((hg.fderiv_right (m := (⊤ : ℕ∞)) (by exact_mod_cast le_top)).differentiable (by simp)
         ).differentiableAt.clm_apply (differentiableAt_const _)
     exact hL_diff.clm_apply hw_diff
   -- Split fderiv(P + Q) = fderiv(P) + fderiv(Q) via HasFDerivAt
@@ -729,10 +729,10 @@ lemma kl_faa_di_bruno
         have hV : DifferentiableAt ℝ
             (fun θ₁ => fderiv ℝ (fun θ₂ => fderiv ℝ (F.φ t) θ₂
               (EuclideanSpace.single c 1)) θ₁ (EuclideanSpace.single b 1)) θ := by
-          have hg : ContDiff ℝ ⊤
+          have hg : ContDiff ℝ (⊤ : ℕ∞)
               (fun θ₂ => fderiv ℝ (F.φ t) θ₂ (EuclideanSpace.single c 1)) :=
-            (hφ_smooth.fderiv_right le_rfl).clm_apply contDiff_const
-          exact ((hg.fderiv_right le_rfl).differentiable WithTop.top_ne_zero
+            (hφ_smooth.fderiv_right (m := (⊤ : ℕ∞)) (by exact_mod_cast le_top)).clm_apply contDiff_const
+          exact ((hg.fderiv_right (m := (⊤ : ℕ∞)) (by exact_mod_cast le_top)).differentiable (by simp)
             ).differentiableAt.clm_apply (differentiableAt_const _)
         rw [hα_def]
         exact
@@ -781,7 +781,7 @@ lemma kl_faa_di_bruno
         have hφtθ : F.φ t θ = α := hα_def.symm
         have hv_b : DifferentiableAt ℝ
             (fun θ₁ => fderiv ℝ (F.φ t) θ₁ (EuclideanSpace.single b 1)) θ :=
-          ((hφ_smooth.fderiv_right le_rfl).differentiable WithTop.top_ne_zero
+          ((hφ_smooth.fderiv_right (m := (⊤ : ℕ∞)) (by exact_mod_cast le_top)).differentiable (by simp)
             ).differentiableAt.clm_apply (differentiableAt_const _)
         -- ── Rule 1: split fderiv(P)(θ)(eₐ) = M(θ)(w'(eₐ)) + (dM(eₐ))(w(θ)). ──
         have h_pr := hN_diff.hasFDerivAt.clm_apply hv_diff.hasFDerivAt

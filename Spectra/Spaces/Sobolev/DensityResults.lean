@@ -2,10 +2,10 @@
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
-File: Spectra/SobolevSpaces/DensityResults.lean
+File: Spectra/Spaces/Sobolev/DensityResults.lean
 -/
-import Spectra.SobolevSpaces.IntegrationByParts
-import Spectra.SobolevSpaces.MeyersMulti
+import Spectra.Spaces.Sobolev.IntegrationByParts
+import Spectra.Spaces.Sobolev.MeyersMulti
 import Mathlib.Analysis.Calculus.LineDeriv.IntegrationByParts
 
 open MeasureTheory Complex

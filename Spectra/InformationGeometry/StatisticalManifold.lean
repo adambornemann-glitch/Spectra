@@ -114,7 +114,7 @@ structure StatisticalManifold (n : ℕ) (Ω : Type*)
   /-- Each Fisher matrix entry varies `C^∞`-ly in `θ`. -/
   fisherMatrix_smooth_everywhere :
     ∀ i j : Fin n,
-      ContDiffOn ℝ ⊤
+      ContDiffOn ℝ (⊤ : ℕ∞)
         (fun θ => toRegularStatisticalModel.fisherMatrix θ i j)
         paramDomain
 
@@ -177,7 +177,7 @@ lemma fisherMetric_pos_def {θ : ParamSpace n}
 
 /-- Each Fisher metric entry is smooth on the domain. -/
 lemma fisherMetric_smooth (i j : Fin n) :
-    ContDiffOn ℝ ⊤ (fun θ => S.fisherMetric.metricMatrix θ i j)
+    ContDiffOn ℝ (⊤ : ℕ∞) (fun θ => S.fisherMetric.metricMatrix θ i j)
       S.domain :=
   S.fisherMetric.metricMatrix_smooth i j
 

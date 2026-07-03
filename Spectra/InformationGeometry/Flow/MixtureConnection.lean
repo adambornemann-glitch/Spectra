@@ -346,14 +346,14 @@ variable (F : M.DivergencePreservingFamily)
 /-- Schwarz symmetry of the flow: `d²φ_t(θ)(eₐ, eᵦ) = d²φ_t(θ)(eᵦ, eₐ)`. -/
 lemma secondDerivPhi_symm (t : ℝ) (θ : ParamSpace n) (a b : Fin n) :
     F.secondDerivPhi t θ a b = F.secondDerivPhi t θ b a := by
-  have hφ_smooth : ContDiff ℝ ⊤ (F.φ t) :=
+  have hφ_smooth : ContDiff ℝ (⊤ : ℕ∞) (F.φ t) :=
     F.smooth.comp (contDiff_const.prodMk contDiff_id)
   have h1 : DifferentiableAt ℝ (fderiv ℝ (F.φ t)) θ :=
-    ((hφ_smooth.fderiv_right le_rfl).differentiable
-      WithTop.top_ne_zero).differentiableAt
+    ((hφ_smooth.fderiv_right (m := (⊤ : ℕ∞)) (by exact_mod_cast le_top)).differentiable
+      (by simp)).differentiableAt
   have hev : ∀ᶠ y in 𝓝 θ, HasFDerivAt (F.φ t) (fderiv ℝ (F.φ t) y) y := by
     filter_upwards with y
-    exact ((hφ_smooth.differentiable WithTop.top_ne_zero) y).hasFDerivAt
+    exact ((hφ_smooth.differentiable (by simp)) y).hasFDerivAt
   have hsymm := second_derivative_symmetric_of_eventually_of_real hev
     h1.hasFDerivAt (EuclideanSpace.single a 1) (EuclideanSpace.single b 1)
   unfold secondDerivPhi
@@ -783,14 +783,14 @@ lemma pullback_metric_fderiv_split
   have hα : F.φ t θ ∈ M.paramDomain := F.maps_domain t θ hθ
   have hSq : M.toRegularStatisticalModel.ScoreSqIntegrableModel (F.φ t θ) :=
     M.scoreSqIntegrable _ hα
-  have hφ_smooth : ContDiff ℝ ⊤ (F.φ t) :=
+  have hφ_smooth : ContDiff ℝ (⊤ : ℕ∞) (F.φ t) :=
     F.smooth.comp (contDiff_const.prodMk contDiff_id)
   have hφ_diff : ∀ θ', DifferentiableAt ℝ (F.φ t) θ' := fun θ' =>
-    (hφ_smooth.differentiable WithTop.top_ne_zero).differentiableAt
+    (hφ_smooth.differentiable (by simp)).differentiableAt
   have hV_diff : ∀ x : Fin n, DifferentiableAt ℝ
       (fun θ' => fderiv ℝ (F.φ t) θ' (EuclideanSpace.single x 1)) θ :=
-    fun x => ((hφ_smooth.fderiv_right le_rfl).differentiable
-      WithTop.top_ne_zero).differentiableAt.clm_apply (differentiableAt_const _)
+    fun x => ((hφ_smooth.fderiv_right (m := (⊤ : ℕ∞)) (by exact_mod_cast le_top)).differentiable
+      (by simp)).differentiableAt.clm_apply (differentiableAt_const _)
   -- coordinates of the moving frame, with explicit derivatives
   -- NOTE: if `EuclideanSpace.proj`/`EuclideanSpace.proj_apply` are named
   -- differently in your Mathlib pin, `innerSL ℝ (EuclideanSpace.single i 1)`

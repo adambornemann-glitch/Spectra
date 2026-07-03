@@ -1,211 +1,250 @@
 # Spectra
 
-**A Lean 4 formalization of spectral theory and mathematical quantum mechanics, built on [Mathlib](https://github.com/leanprover-community/mathlib4).**
+**A Lean 4 formalization of operator theory, spectral theory, and mathematical quantum mechanics, built on [Mathlib](https://github.com/leanprover-community/mathlib4).**
 
-Spectra develops the operator-theoretic backbone of quantum mechanics — the spectral
-theorem, Stone's theorem, the resolvent and functional calculus — and then *uses* it to
-formalize genuine physics: the Born rule, the uncertainty principle, Bell/CHSH inequalities,
-the Dirac equation, KMS states and modular theory, and information geometry. Its conventions
-follow [PhysLean / PhysLib](https://physlib.io) and Mathlib closely, so anyone fluent in those
-libraries can read it without a ramp-up.
+Spectra develops the operator-theoretic backbone of quantum mechanics — unbounded self-adjoint
+operators, the spectral theorem, Stone's theorem, resolvents and functional calculus, modular
+theory — and *uses* it to formalize real physics: the Born rule, uncertainty, Bell inequalities,
+the Dirac equation, and the hydrogen atom's spectrum. The long-range target is a rigorous route to
+**density functional theory (DFT/MDFT)**; everything below is a step on that road or a cross-check
+along it. Conventions follow [PhysLean / PhysLib](https://physlib.io) and Mathlib.
 
 | | |
 |---|---|
 | **Toolchain** | `leanprover/lean4:v4.31.0-rc1` (pinned in [`lean-toolchain`](lean-toolchain)) |
 | **Depends on** | Mathlib (pinned in [`lake-manifest.json`](lake-manifest.json)) |
 | **License** | MIT — see [`LICENSE`](LICENSE) |
-| **Size** | 279 source files, ≈78,000 lines |
+| **Size** | ~370 source files, ~107,000 lines |
 | **Build status** | `sorry`-free default build, enforced by the [`AxiomCheck`](AxiomCheck.lean) gate (CI runs `lake build`) |
 
 ---
 
 ## Overview
 
-The library is organized as a tower. At the bottom sits a self-contained theory of **unbounded
-self-adjoint operators on complex Hilbert space** — resolvents, the Cayley transform, Yosida
-approximation — culminating in two independent proofs of **Stone's theorem** and a proof of the
-**spectral theorem** in resolvent / projection-valued-measure form. On top of that foundation,
-each physics module is built as a *theorem*, not an axiom: the Born rule is derived from the
-spectral measure, the uncertainty principle from the Cauchy–Schwarz inequality on the GNS inner
-product, Ehrenfest's theorem from Stone's differentiation, and so on.
+The library is a tower. At the base is a self-contained theory of **unbounded operators on complex
+Hilbert space** — symmetric and self-adjoint operators, closability and the double adjoint,
+deficiency indices, and von Neumann's self-adjoint extension theory. On that base sits the
+**spectral theorem** (in resolvent / projection-valued-measure form, proved two independent ways)
+and **Stone's theorem**, then the functional calculus, the **essential spectrum with Weyl's
+theorem**, and **Tomita–Takesaki modular theory**. The physics layers — the Born rule, Bell/CHSH,
+the Dirac operator, and the **hydrogen atom's spectrum** — are then built as *theorems*, not
+axioms.
 
-A deliberate design choice runs through the whole project: **the hard analytic content is
-proved, not assumed.** There are no bespoke `axiom` declarations standing in for the difficult
-step, no `native_decide`, and no `sorry` anywhere the build can reach it.
+A single discipline runs throughout: **the hard analytic content is proved, not assumed.** There
+are no bespoke `axiom` declarations standing in for the difficult step, no `native_decide`, and no
+`sorry` anywhere the build can reach — a property the CI gate enforces on every commit (see
+[Proof status](#proof-status)).
 
 ---
 
 ## What's formalized
 
-Every result below is **proved and `sorry`-free in the default build** unless explicitly marked
-otherwise. Declaration names are given so you can `grep` for them.
+Every result named below is **proved and `sorry`-free in the default build**; each is guarded by
+name in [`AxiomCheck.lean`](AxiomCheck.lean), so the claim is machine-checked. Names are given so
+you can `grep` for them.
 
-### The spectral-theory core
+### Operator theory on Hilbert space  (`Operator/`)
 
-| Result | Statement | Where |
-|---|---|---|
-| **Spectral theorem** (`spectralTheorem`) | Every self-adjoint `A` admits a *unique* projection-valued measure `E` with `⟪ξ, (A−z)⁻¹ξ⟫ = ∫ (s−z)⁻¹ d⟪ξ, E(·)ξ⟫` for `Im z ≠ 0`. | `SpectralTheory/ResolventForm.lean` |
-| **Stone's theorem** (`stoneEquiv`) | `OneParameterUnitaryGroup H ≃ {self-adjoint operators on H}`, generator ↔ group. | `Stone/Basic.lean` |
-| **Stone, second construction** (`stoneEquivSpectral`) | The same equivalence built from the Cayley transform + Borel calculus, *proved equal* to `stoneEquiv`. | `StoneBridge/Basic.lean` |
-| **Weak spectral moments** (`weak_first_moment`, `weak_second_moment`) | For `φ ∈ dom A`: `∫ s dμ_φ = ⟪φ, Aφ⟫` and `∫ s² dμ_φ = ‖Aφ‖²`. | `SpectralTheory/Weak.lean` |
-| **Stone's formula** (`stonesFormula_spectralPVM`) | Spectral projections recovered from boundary limits of the resolvent. | `SpectralTheory/ResolventForm.lean` |
-| **Bochner's theorem** (`bochner_theorem`) | A continuous `f : ℝ → ℂ` is positive-definite iff it is the Fourier–Stieltjes transform of a *unique* finite measure. Proved via the GNS construction (`gns_theorem`). | `Bochner/Basic.lean` |
-| **Herglotz / Helly** (`helly_selection`) | Helly's selection theorem and the Herglotz–Nevanlinna integral representation. | `Herglotz/` |
+A full treatment of unbounded operators, culminating in von Neumann's extension theory:
 
-This core (`Operator`, `Resolvent`, `SpectralTheory`, `Stone`, `CayleyTransform`, `Bochner`,
-`Herglotz`, `Kernel`, `Fourier`, `ProjValMeasure`, `OneParameterUnitaryGroup`) is the most
-heavily-tested part of the library and is entirely `sorry`-free.
+- **Closability & the double adjoint** — `T** = T̄` for symmetric `T` (`adjoint_adjoint_eq_closure`),
+  bounded ⟺ closed on a full domain, the `HasCore`/graph-closure bridge.
+- **Deficiency indices** `n±(A) = dim ker(A* ∓ i)` and their orthogonal-complement descriptions.
+- **Von Neumann's self-adjoint extension theorem** — a symmetric operator admits a self-adjoint
+  extension iff `N₊ ≃ₗᵢ N₋` (`exists_le_isSelfAdjoint_iff_nonempty_deficiencyEquiv`), the explicit
+  extension `A_V` (`vonNeumannExtension`), and the **classification** `V ↦ A_V` as a bijection
+  (`selfAdjointExtensionEquiv`); essential self-adjointness ⟺ a *unique* self-adjoint extension
+  (`isEssentiallySelfAdjoint_iff_existsUnique_le_isSelfAdjoint`).
+- **The first and second von Neumann formulas** — `D(A*) = D(Ā) ⊔ N₊ ⊔ N₋` (`vonNeumannFormula`,
+  graph-orthogonal and unique), and the boundary-form classification of *symmetric* extensions
+  (`exists_eq_vonNeumannExtensionOn`).
+- **Kato–Rellich** (`kato_rellich`) and essential self-adjointness of sums on a common domain.
+- **Numerical range** — `spectrum ⊆ closure(numerical range)` (`spectrum_subset_closure_numericalRange`),
+  via a genuine resolvent construction.
 
-### Quantum mechanics
+### The spectral theorem, functional calculus & Stone's theorem
 
-| Result | Statement | Where |
-|---|---|---|
-| **Born rule** | Outcome probabilities `‖E_B ψ‖²`; expectation `⟪ψ, Aψ⟫`; variance `‖(A−⟨A⟩)ψ‖²`, built on the spectral PVM. | `QuantumMechanics/BornRule/` |
-| **Uncertainty** (`heisenberg_uncertainty`, `schrodinger_uncertainty`) | Heisenberg `σ_A σ_B ≥ ℏ/2` under the CCR, and the stronger Schrödinger–Robertson bound with the covariance term. | `QuantumMechanics/Uncertainty/` |
-| **Ehrenfest's theorem** (`ehrenfest_theorem`) | `d/dt ⟪ψ(t), Bψ(t)⟫ = ⟪iAψ, Bψ⟫ + ⟪ψ, B(iAψ)⟫` under Schrödinger flow. | `QuantumMechanics/Ehrenfest.lean` |
-| **First law / unitary invariance** (`first_law`) | The entire energy distribution `μ_ψ` is invariant under the unitary flow it generates. | `QuantumMechanics/Unitarity/FirstLawIff.lean` |
-| **CHSH / Bell** (`CHSH_lhv_bound`, `tsirelson_bound'`) | Local hidden-variable models obey `|S| ≤ 2`; quantum states obey Tsirelson's `|S| ≤ 2√2`, and the gap is achieved. | `QuantumMechanics/BellsTheorem/` |
-| **Free Dirac operator** (`diracHamiltonian_isSelfAdjoint`, `diracHamiltonian_mass_gap`) | `H_D = α·p + βmc²` is self-adjoint on `H¹(ℝ³;ℂ⁴)`; the dispersion relation `D² = (\|p\|²+m²)I` and the mass gap of width `2mc²` are proved. | `QuantumMechanics/DiracEquation/` |
-| **Kato–Rellich & Hardy** (`kato_rellich`, `hardy_inequality`) | Relative-bound self-adjointness of `A+V`; Hardy's inequality `∫\|ψ\|²/\|x\|² ≤ 4∫\|∇ψ\|²` in 3D, giving the Coulomb potential relative bound 0 w.r.t. `−Δ`. | `QuantumMechanics/Perturbation/` |
+- **Spectral theorem** (`spectralTheorem`) — every self-adjoint `A` admits a *unique* PVM with
+  `⟪ξ,(A−z)⁻¹ξ⟫ = ∫ (s−z)⁻¹ d⟪ξ,E(·)ξ⟫`, `Im z ≠ 0`. Proved **twice**: via Stone/Yosida and,
+  independently, via the Cayley transform + Riesz–Markov (`spectralTheoremCayley`).
+- **Stone's theorem** (`YosidaHille.stoneEquiv`, `stoneEquivSpectral`) — `OneParameterUnitaryGroup H
+  ≃ {self-adjoint operators}`, built both ways and proved equal.
+- **Functional calculus** — the bounded/Borel calculus and the unbounded `∫ f dP`
+  (`pmapOfPVM`), identified with Mathlib's `cfcHom` through the Cayley transform.
+- **Weak moments** (`weak_first_moment`, `weak_second_moment`), **Stone's formula**, and
+  **resolvent meromorphy** on the resolvent set.
 
-### Information geometry
+### Essential spectrum & Weyl's theorem  (`SpectralTheory/Essential/`)
 
-| Result | Statement | Where |
-|---|---|---|
-| **Fisher metric** (`fisherMatrix`) | The Fisher information `g_{ij} = E_θ[s_i s_j]` as a Riemannian metric on a statistical manifold. | `InformationGeometry/Fisher/` |
-| **KL Hessian = Fisher** (`klDiv_hessian_eq_fisher`) | `∂²D(θ‖θ')/∂θ'ⁱ∂θ'ʲ \|_{θ'=θ} = g_{ij}(θ)`. | `InformationGeometry/Divergence.lean` |
-| **Cramér–Rao** (`cramerRao_scalar`) | `Var_θ(T) ≥ (∂_i τ)² / g_{ii}` for regular unbiased estimators; quantum Schrödinger–Cramér–Rao bound. | `InformationGeometry/CramerRao/` |
-| **Amari–Chentsov** (`cubicTensor`) | The totally-symmetric cubic tensor and the dual `α`-connections (`Γ⁽¹⁾ + Γ⁽⁻¹⁾ = 2Γ⁽⁰⁾`). | `InformationGeometry/Connection/` |
+`σ_ess` invariance under relatively compact perturbation
+(`essSpectrum_eq_of_isCompactOperator_perturb`), and `σ_ess(−½Δ) = [0,∞)` on `L²(ℝ³)`
+(`essSpectrum_halfLaplacian`, `essSpectrum_laplacian`) — the engine for Schrödinger operators.
 
-### Modular theory & KMS
+### Bochner, Herglotz & Fourier
 
-| Result | Statement | Where |
-|---|---|---|
-| **KMS condition** (`IsKMSState`) | The strip/boundary definition of a `(α, β)`-KMS state, plus invariance. | `Modular/KMS/Condition.lean` |
-| **KMS ⇔ imaginary time** (`isKMSState_iff_imaginaryTime`) | Equivalence of the strip condition and the imaginary-time form (via density of analytic elements + Hadamard three-lines, no Montel). | `Modular/KMS/Equivalence.lean` |
-| **Extremal KMS states** | The KMS state set is weak-\* compact convex; extremal states exist (Krein–Milman). | `Modular/KMS/ExtremalKMS.lean` |
-| **Tomita–Takesaki seed** | Cyclic/separating vectors and commutant duality (easy direction) proved. The modular data `(J, Δ^{it})` is bundled as an **interface awaiting a constructor** — see below. | `Modular/TomitaTakesaki/Basic.lean` |
+Bochner's theorem via a genuine **GNS construction** (`bochner_theorem`, `gns_theorem`), Herglotz /
+**Helly selection** (`helly_selection`), and Fourier uniqueness (`fourier_uniqueness`).
 
-### Sobolev spaces & analysis
+### Modular theory — Tomita–Takesaki & KMS  (`Modular/`)
 
-`meyers_serrin_approx` (the `H = W` theorem), `sobolev_embedding_L6` (`H¹(ℝ³) ↪ L⁶`, the
-scaling-correct exponent), the du Bois-Reymond lemma, mollification, and integration by parts —
-all in `SobolevSpaces/`, all `sorry`-free.
+The modular apparatus is **constructed**, not postulated:
 
-### Headed for Mathlib
+- **KMS condition** (`IsKMSState`) and its imaginary-time equivalence (`isKMSState_iff_imaginaryTime`).
+- **Modular operator** `Δ = S⋆S`, self-adjoint and `≥ 0` (`modularOp_isSelfAdjoint`,
+  `modularOp_nonneg` — the von Neumann `T⋆T` milestone), the **modular flow** `Δ^{it}`
+  (`modularFlow_unitary`, `modularFlow_group_law`), the **square root** `Δ^{½}` with `(Δ^{½})² = Δ`,
+  and the **polar decomposition** `S = J Δ^{½}` with the antiunitary **modular conjugation** `J`
+  (`tomita_eq_modularConjugation_modularSqrt_full`, `modularConjugation`).
+- Vacuum invariance (`Δ Ω = Ω`, `J Ω = Ω`, `Δ^{it} Ω = Ω`) and the reciprocals `Δ⁻¹`, `Δ^{-½}`.
 
-`Spectra/Mathlib/` holds small, Spectra-agnostic bridges written for eventual upstreaming —
-chiefly `CharFunBridge` (a finite measure is determined by its characteristic function), on which
-the Bochner and spectral-uniqueness proofs depend. The rough-path development that once lived here
-(the Sewing Lemma, p-variation, Young integration) has been split into its own repository: it is
-orthogonal to the spectral-theory goal and large enough to stand on its own.
+The final commutation theorem (`JMJ = M′`, `Δ^{it}MΔ^{-it} = M`) is the current endgame; the
+objects it is stated in terms of now all exist and carry their defining properties.
+
+### Operator algebras & quantum information  (`QuantumMechanics/Channels/`, `Spaces/`)
+
+- **Trace-class operators** — polar decomposition `T = U|T|`, the trace norm, the Hilbert–Schmidt
+  ideal, the complex trace with cyclicity `tr(AB) = tr(BA)`, the triangle inequality, and
+  `TraceClass H` as a **ℂ-Banach space** (`TraceClass.instCompleteSpace`).
+- **Quantum channels** — complete positivity (`IsCompletelyPositive`) and the `QuantumChannel`
+  bundle.
+- **Hilbert tensor products** `E ⊗̂ F` — cross norm `‖A ⊗̂ B‖ = ‖A‖·‖B‖`, the tensor Hilbert basis,
+  the tensor powers `⨂ⁿ H`, and the **full Fock space** `fullFock`.
+
+### Quantum mechanics  (`QuantumMechanics/`)
+
+- **Born rule & the multivariate spectral theorem** — strong commutativity ⟺ a joint PVM
+  (`stronglyCommute_iff_jointPVM`) and the correlation identity
+  `∫ xy dμ = ⟪ξ,A(Bξ)⟫.re` (`jointBornMeasure_correlation`), the bridge to Bell/CHSH.
+- **Uncertainty** (`heisenberg_uncertainty`), **Ehrenfest** (`ehrenfest_theorem`), the Schrödinger
+  equation, the **first law** / unitary invariance (`first_law`), and the Pauli algebra.
+- **Bell inequalities** — the classical CHSH bound (`CHSH_lhv_bound`), **Tsirelson's** `2√2`
+  (`tsirelson_bound'`), Bell's original 1964 inequality, Wigner's form, Clauser–Horne, and the
+  Popescu–Rohrlich box hitting the algebraic maximum `4` (`prBox_chsh_eq_four`).
+- **Dirac operator** — self-adjointness (`diracHamiltonian_isSelfAdjoint`) and the mass gap
+  (`diracHamiltonian_mass_gap`).
+
+### The hydrogen atom  (`QuantumMechanics/Hydrogen/`) — the showcase
+
+The Coulomb Hamiltonian's spectrum, assembled end to end:
+
+- **Self-adjointness** via Kato–Rellich, powered by **Hardy's inequality** with the sharp constant
+  (`hardy_inequality`, `hardy_constant_sharp`, `coulomb_kato_rellich`, `hydrogen_isSelfAdjoint`).
+- **Continuous spectrum** `σ_ess(H) = [0,∞)` and **no positive eigenvalues** (Kato)
+  (`hydrogen_continuous_spectrum`, `hydrogen_no_positive_eigenvalues`).
+- **Bound states** — radial quantization and explicit eigenfunctions (`RadialEq.radial_quantization`,
+  orthonormality, uniqueness), the eigenfunction equation `H ψ_{nℓm} = Eₙ ψ_{nℓm}`, the `n²`-fold
+  degeneracy and its spectral projection `E({Eₙ})`, and **resolvent meromorphy** — simple poles at
+  each `Eₙ = −Z²/2n²` with residue `−E({Eₙ})` (`hydrogen_meromorphicOn`, `hydrogen_residue_eigenvalue`).
+
+### Information geometry  (`InformationGeometry/`)
+
+The Fisher metric, **Cramér–Rao** (`cramerRao_scalar`), `∂²D_KL = Fisher` (`klDiv_hessian_eq_fisher`),
+the Amari–Chentsov tensor and dual connections, an information-geometric Stone theorem, and the
+classical–quantum dichotomy (`classical_quantum_dichotomy`).
+
+### Analysis infrastructure  (`Spaces/Sobolev/`, `SphericalHarmonics/`, `Mathlib/`)
+
+Sobolev spaces (`meyers_serrin_approx`, the scaling-correct `sobolev_embedding_L6`, density chains),
+spherical harmonics, and `Mathlib/`: small **upstreamable** bridges — `CharFunBridge` and the
+Hilbert tensor product (which closes Mathlib's "complete space of tensor products" TODO).
 
 ---
 
 ## Library architecture
 
 ```
-Foundations
-  Operator/                symmetric (unbounded) & unitary operators, commutators
-  Resolvent/               (A−z)⁻¹: identities, analyticity, spectrum, integral form
-  ProjValMeasure/          projection-valued measures via diagonal scalar measures
-  OneParameterUnitaryGroup/  generators of strongly continuous unitary groups
+Operator theory
+  Operator/               symmetric/self-adjoint operators, closability, double adjoint,
+                          deficiency indices, von Neumann extension theory, numerical range
+  Resolvent/              (A−z)⁻¹: identities, analyticity, spectrum, meromorphy
+  ProjValMeasure/         projection-valued measures (+ pushforward)
+  OneParameterUnitaryGroup/
 
 Spectral theorem & Stone's theorem
-  Stone/  CayleyTransform/  StoneBridge/  SpectralTheory/
-  Bochner/                 GNS construction → Bochner's theorem
-  Herglotz/  Kernel/  Fourier/   integral-representation machinery
+  YosidaHille/  CayleyTransform/  StoneBridge/  SpectralTheory/   (incl. Essential/, Calculus/)
+  Bochner/                GNS construction → Bochner's theorem
+  Herglotz/  Kernel/  Fourier/
+
+Modular theory
+  Modular/KMS/  Modular/TomitaTakesaki/  Modular/Cocycle/   (Δ, Δ^{it}, Δ^{½}, S = JΔ^{½})
+
+Operator algebras / quantum information
+  QuantumMechanics/Channels/   trace-class operators, quantum channels
+  Spaces/Tensor/  Spaces/Fock/  Hilbert tensor products, Fock space
 
 Applications
-  QuantumMechanics/        Born rule, uncertainty, Bell/CHSH, Dirac, hydrogen, perturbation
-  InformationGeometry/     Fisher metric, Cramér–Rao, connections, geometric flows
-  Modular/                 KMS condition, modular theory, Tomita–Takesaki seed
-  SobolevSpaces/  SphericalHarmonics/   supporting analysis
+  QuantumMechanics/       Born rule + joint PVM, uncertainty, Bell/CHSH, Dirac, hydrogen
+  InformationGeometry/    Fisher metric, Cramér–Rao, connections, flows
+  Spaces/Sobolev/  SphericalHarmonics/    supporting analysis
 
 Upstream-bound
-  Mathlib/                 small upstreamable bridges (characteristic-function uniqueness)
+  Mathlib/                CharFunBridge, Hilbert tensor product, completion functoriality
 ```
 
-The directory path and namespace always match: `Spectra/Resolvent/Defs.lean` declares
-`namespace Spectra.Resolvent`. The root module [`Spectra.lean`](Spectra.lean) imports every file
-that is part of the build.
+The directory path and namespace match: `Spectra/Operator/Symmetric.lean` lives in
+`namespace Spectra.Operator`. The root [`Spectra.lean`](Spectra.lean) imports every module in the
+build. (`Scratch/` holds throwaway axiom-probes and is not part of the library.)
 
 ---
 
 ## Proof status
 
-Spectra takes the [`CONTRIBUTING.md`](CONTRIBUTING.md) rule seriously: *a `sorry` may live only in
-a clearly work-in-progress file, never in a file that a finished result imports.* A source audit
-confirms this is upheld:
+Spectra keeps the [`CONTRIBUTING.md`](CONTRIBUTING.md) rule: a `sorry` may live only in a clearly
+work-in-progress file, never in one a finished result imports. A source audit and the CI gate
+confirm it holds:
 
-- **The default build target — everything reachable from [`Spectra.lean`](Spectra.lean) — is
-  `sorry`-free and `admit`-free, and contains no bespoke `axiom` declarations, no `native_decide`,
-  and no `opaque`/`unsafe` shortcuts.** All headline results above are proved to the kernel.
-- The genuine `sorry`s in the tree live **only in modules with no active importer**, deliberately
-  commented out of the root so they are not compiled:
-  - `QuantumMechanics/Hydrogen/Spectrum/`, `…/RadialProblem/Equation/`, `…/Laplacian/{FreeGreens,Spherical}` — the assembly of the hydrogen discrete spectrum `E_n = −Z²/2n²`. The *operator scaffolding* it will rest on (the self-adjoint Laplacian, the radial/angular decomposition, Laguerre polynomials) **is** proved and in the build; the spectral assembly is not yet finished.
-  - `QuantumMechanics/Perturbation/HardySharp.lean` — sharpness of the Hardy constant (the inequality itself is proved and in the build).
-- **Interface bundles.** A few advanced structures are stated as bundles of defining properties
-  whose *constructor* is future work — most notably `ModularData` (the Tomita–Takesaki modular
-  operator and conjugation), which is blocked on Mathlib infrastructure (antilinear unbounded
-  operators, polar decomposition, Borel calculus for unbounded operators). These are honest
-  output types, not proofs in disguise: downstream code may *assume* a `ModularData` and reason
-  from its fields, but the library does not yet *construct* one. The same pattern applies to the
-  `State.IsNormal` predicate in the (non-built) `KMS/Modular.lean`, which is currently a
-  placeholder pending a chosen predual in Mathlib.
+- **The default build is `sorry`-free, `admit`-free, and free of bespoke `axiom`s,
+  `native_decide`, and `opaque`/`unsafe` shortcuts.** [`AxiomCheck.lean`](AxiomCheck.lean) runs
+  `assert_no_sorry` on every headline result above, as a `@[default_target]`, so a `sorry`
+  reaching any of them fails `lake build`. `#print axioms` on the crown jewels (spectral theorem,
+  Stone, Bochner, Tsirelson, the trace-class Banach structure, the von Neumann formulas, the
+  modular reciprocals, the tensor product) reports only `propext`, `Classical.choice`, `Quot.sound`.
+- **The single `sorry` in the tree** sits in `Scratch/SpikeM2.lean`, a probe file with no active
+  importer — not compiled by the build.
+- **Ongoing endgames**, stated in terms of objects that already exist and are proved: the
+  Tomita–Takesaki commutation theorem (`JMJ = M′`); a few hydrogen analytic tracks not yet in the
+  enforced gate (Coulomb relative compactness via integral kernels); and the `QuantumMechanics/Logic/`
+  quantum-logic development. These are honest works-in-progress, not placeholders — nothing
+  downstream assumes them.
 
-> **Known cleanup:** a handful of docstrings still describe a `sorry` that has since been
-> discharged (e.g. the file headers of `SphericalHarmonics/Basic.lean`, `Ehrenfest.lean`, and the
-> "Sorry strategy" note in `HardyInequality.lean`). These understate completeness and are slated
-> for removal; the proofs are finished.
-
-This is now **enforced**, not merely audited. [`AxiomCheck.lean`](AxiomCheck.lean) runs Mathlib's
-`assert_no_sorry` on every headline result as a `@[default_target]`, so a `sorry` reaching any of
-them fails `lake build`; [`.github/workflows/ci.yml`](.github/workflows/ci.yml) runs that build on
-every push and pull request. For transparency the gate also `#print axioms` the crown jewels —
-`spectralTheorem`, `stoneEquiv`, `bochner_theorem`, `tsirelson_bound'` — which depend only on
-`propext`, `Classical.choice`, and `Quot.sound`.
+A CI workflow ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) runs the build+gate and a
+`scripts/check_lengths.py` length ratchet on every push and pull request.
 
 ---
 
 ## Building
 
-Spectra uses the standard Lean 4 / Lake toolchain; `elan` installs the pinned compiler
-automatically.
-
 ```sh
-# 1. install elan (https://github.com/leanprover/elan), then:
+# install elan (https://github.com/leanprover/elan), then:
 git clone <your-fork-url> Spectra
 cd Spectra
-lake exe cache get   # fetch prebuilt Mathlib artifacts — avoids recompiling Mathlib
-lake build           # build the Spectra library
+lake exe cache get   # fetch prebuilt Mathlib oleans
+lake build           # builds the library and runs the axiom gate
 ```
 
-The recommended editor is **VS Code with the Lean 4 extension** for the interactive goal view and
-hover docstrings.
+The recommended editor is **VS Code with the Lean 4 extension**.
 
 ---
 
 ## Contributing
 
-Contributions of every size are welcome — see [`CONTRIBUTING.md`](CONTRIBUTING.md) for the workflow
-and [`STYLE.md`](STYLE.md) for conventions. The non-negotiables: the MIT copyright header, a module
-docstring (`# Title`, `## Main definitions`, `## Main statements`, `## References`), a `/-- … -/`
-docstring on **every** declaration, and a clean `lake build` with no new `sorry` in finished files.
-Small, focused pull requests are strongly preferred.
+See [`CONTRIBUTING.md`](CONTRIBUTING.md) for the workflow and [`STYLE.md`](STYLE.md) for
+conventions. The non-negotiables: the MIT copyright header, a module docstring, a `/-- … -/`
+docstring on every declaration, a clean `lake build` with no new `sorry` in finished files, and —
+when you add a headline result — an `assert_no_sorry` line in [`AxiomCheck.lean`](AxiomCheck.lean).
 
 ---
 
 ## License
 
-Spectra is released under the MIT License — see [`LICENSE`](LICENSE).
-Copyright © 2026 Spectra Project, Adam Bornemann.
+MIT — see [`LICENSE`](LICENSE). Copyright © 2026 Spectra Project, Adam Bornemann.
 
 ---
 
 ## References
 
-The formalization follows standard sources, cited per-file in `## References` blocks. The main
-ones: Reed & Simon, *Methods of Modern Mathematical Physics*; Kato, *Perturbation Theory for
-Linear Operators*; Bratteli & Robinson, *Operator Algebras and Quantum Statistical Mechanics*
-(KMS / modular theory); and Amari & Nagaoka, *Methods of Information Geometry*.
+Cited per-file in `## References` blocks. Principal sources: Reed & Simon, *Methods of Modern
+Mathematical Physics* (I–IV); Kato, *Perturbation Theory for Linear Operators*; Bratteli &
+Robinson, *Operator Algebras and Quantum Statistical Mechanics* and Takesaki, *Theory of Operator
+Algebras* (KMS / Tomita–Takesaki); Simon, *Trace Ideals and Their Applications*; and Amari &
+Nagaoka, *Methods of Information Geometry*.

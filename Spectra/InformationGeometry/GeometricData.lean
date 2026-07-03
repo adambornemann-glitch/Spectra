@@ -92,7 +92,7 @@ structure Generator (Γ : GeometricData n) where
   /-- The vector field `X : Θ → ℝⁿ` in coordinates. -/
   vectorField : ParamSpace n → ParamSpace n
   /-- Smoothness of the field. -/
-  smooth : ContDiff ℝ ⊤ vectorField
+  smooth : ContDiff ℝ (⊤ : ℕ∞) vectorField
   /-- **Killing's equation**: `L_X g = 0`.  In coordinates:
   `∑ₖ Xᵏ ∂ₖg_{ij} + g_{kj} ∂ᵢXᵏ + g_{ik} ∂ⱼXᵏ = 0`. -/
   killing : ∀ θ ∈ Γ.domain, ∀ i j : Fin n,
@@ -129,6 +129,16 @@ fields are propositions). -/
     {G₁ G₂ : Γ.Generator} (h : G₁.vectorField = G₂.vectorField) :
     G₁ = G₂ := by
   cases G₁; cases G₂; cases h; rfl
+
+/-- Each coordinate component of a generator's field is smooth. -/
+lemma Generator.contDiff_component {Γ : GeometricData n} (G : Γ.Generator)
+    (k : Fin n) : ContDiff ℝ (⊤ : ℕ∞) fun θ => G.vectorField θ k := by
+  have h : (fun θ => G.vectorField θ k)
+      = ⇑(EuclideanSpace.proj k : ParamSpace n →L[ℝ] ℝ) ∘ G.vectorField := by
+    funext θ
+    simp [EuclideanSpace.coe_proj]
+  rw [h]
+  exact (EuclideanSpace.proj k : ParamSpace n →L[ℝ] ℝ).contDiff.comp G.smooth
 
 end GeometricData
 

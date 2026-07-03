@@ -84,7 +84,7 @@ structure DivergencePreservingFamily where
   statistical setting, smoothness is the natural regularity — it is
   stronger than Stone's strong continuity, but the statistical manifold
   is finite-dimensional so this is not restrictive. -/
-  smooth : ContDiff ℝ ⊤ (Function.uncurry φ)
+  smooth : ContDiff ℝ (⊤ : ℕ∞) (Function.uncurry φ)
 
 
 /-- The m-connection as a trilinear form:
@@ -208,10 +208,10 @@ lemma fderiv_klDiv_phi_apply_live
       (fderiv ℝ (F.φ t) θ (EuclideanSpace.single a 1)) (V θ) := by
   set α := F.φ t θ with hα_def
   have hα : α ∈ M.paramDomain := F.maps_domain t θ hθ
-  have hφ_smooth : ContDiff ℝ ⊤ (F.φ t) :=
+  have hφ_smooth : ContDiff ℝ (⊤ : ℕ∞) (F.φ t) :=
     F.smooth.comp (contDiff_const.prodMk contDiff_id)
   have hφ_diff_at : ∀ θ₂, DifferentiableAt ℝ (F.φ t) θ₂ :=
-    fun θ₂ => (hφ_smooth.differentiable WithTop.top_ne_zero).differentiableAt
+    fun θ₂ => (hφ_smooth.differentiable (by simp)).differentiableAt
   have hKL_zero : fderiv ℝ (M.klDiv α) α = 0 :=
     (M.klDiv_fderiv_eq_zero hα).fderiv
   set v₀ := V θ with hv₀_def
@@ -461,10 +461,10 @@ lemma preserves_fisher {θ : ParamSpace n} (hθ : θ ∈ M.paramDomain)
           (fderiv ℝ (F.φ t) θ (EuclideanSpace.single a 1))
           (fderiv ℝ (F.φ t) θ (EuclideanSpace.single b 1)) := by
       -- Key differentiability facts
-      have hφ_smooth : ContDiff ℝ ⊤ (F.φ t) :=
+      have hφ_smooth : ContDiff ℝ (⊤ : ℕ∞) (F.φ t) :=
         F.smooth.comp (contDiff_const.prodMk contDiff_id)
       have hφ_diff_at : ∀ θ₂, DifferentiableAt ℝ (F.φ t) θ₂ :=
-        fun θ₂ => (hφ_smooth.differentiable WithTop.top_ne_zero).differentiableAt
+        fun θ₂ => (hφ_smooth.differentiable (by simp)).differentiableAt
       have hKL_zero : fderiv ℝ (M.klDiv α) α = 0 :=
         (M.klDiv_fderiv_eq_zero hα).fderiv
       -- Step 1: Chain rule — near θ, the b-th partial factors
@@ -489,7 +489,7 @@ lemma preserves_fisher {θ : ParamSpace n} (hθ : θ ∈ M.paramDomain)
       rw [DFunLike.congr_fun h_fderiv_eq (EuclideanSpace.single a 1)]
       have hV : DifferentiableAt ℝ
           (fun θ₂ => fderiv ℝ (F.φ t) θ₂ (EuclideanSpace.single b 1)) θ := by
-        exact ((hφ_smooth.fderiv_right le_rfl).differentiable WithTop.top_ne_zero
+        exact ((hφ_smooth.fderiv_right (m := (⊤ : ℕ∞)) (by exact_mod_cast le_top)).differentiable (by simp)
           ).differentiableAt.clm_apply (differentiableAt_const _)
       exact F.fderiv_klDiv_phi_apply_live hθ t a hV
 

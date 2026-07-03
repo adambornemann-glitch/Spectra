@@ -66,6 +66,161 @@ assert_no_sorry Spectra.Resolvent.generatorDomain_dense_via_average
 assert_no_sorry Spectra.Resolvent.resolvent_bound
 assert_no_sorry Spectra.Resolvent.resolvent_apply_mem_domain
 assert_no_sorry Spectra.Resolvent.resolvent_sub_smul_apply
+
+/-! ## Numerical range · spectrum ⊆ closure(numerical range) -/
+
+assert_no_sorry Spectra.Operator.numericalRange_range_isClosed
+assert_no_sorry Spectra.Operator.numericalRange_conj_notMem_of_notMem
+assert_no_sorry Spectra.Operator.numericalRange_range_dense
+assert_no_sorry Spectra.Resolvent.numericalRange_range_all_z
+assert_no_sorry Spectra.Resolvent.numericalRange_mem_resolventSet
+-- The marquee theorem: the spectrum of a self-adjoint operator lies inside the closure of its
+-- numerical range, via a genuine resolvent construction (injective + closed range + dense range
+-- glued into a bounded two-sided inverse).
+assert_no_sorry Spectra.Resolvent.spectrum_subset_closure_numericalRange
+
+/-! ## Essential self-adjointness · Kato-Rellich companion (sums on a common domain) -/
+
+-- Generic closability backbone (Lane A extraction): any operator with a densely-defined formal
+-- adjoint is closable; the classical `D(T*)` dense ⟹ `T` closable criterion; and the bridge
+-- identifying Mathlib's `LinearPMap.HasCore` with topological density of the restricted graph.
+assert_no_sorry Spectra.Operator.isClosable_of_isFormalAdjoint
+assert_no_sorry Spectra.Operator.isClosable_of_dense_adjoint_domain
+assert_no_sorry Spectra.Operator.hasCore_iff_topologicalClosure_graph
+assert_no_sorry Spectra.Operator.mem_closure_graph_of_hasCore
+-- The bounded ⟺ closed loop (Lane A): norm-bounded on a closed domain ⟹ closed graph
+-- (Reed–Simon VIII.1 at `domain = ⊤`), and conversely everywhere-defined + closed ⟹ bounded,
+-- via Mathlib's closed graph theorem (`ContinuousLinearMap.ofIsClosedGraph`).
+assert_no_sorry Spectra.Operator.isClosed_of_bound_of_isClosed_domain
+assert_no_sorry Spectra.Operator.isClosed_of_bound_of_domain_eq_top
+assert_no_sorry Spectra.Operator.exists_bound_of_isClosed_of_domain_eq_top
+assert_no_sorry Spectra.Operator.symmetric_isClosable
+assert_no_sorry Spectra.Operator.closure_le_adjoint
+assert_no_sorry Spectra.Operator.Submodule.adjoint_topologicalClosure_eq
+assert_no_sorry Spectra.Operator.closure_adjoint_eq_adjoint
+-- The double adjoint (Reed–Simon VIII.1(b)): at the graph level `g.adjoint.adjoint =
+-- g.topologicalClosure` (skew-swaps compose to `-1`, double orthocomplement is closure), hence
+-- `T** = T̄` for densely-defined `T` with densely-defined adjoint — `T** = T` when `T` is
+-- closed, and unconditionally `T** = T̄` for symmetric `T`. Plus adjoint antitonicity.
+assert_no_sorry Spectra.Operator.adjoint_le_adjoint_of_le
+assert_no_sorry Spectra.Operator.Submodule.adjoint_adjoint
+assert_no_sorry Spectra.Operator.Submodule.isClosed_adjoint
+assert_no_sorry Spectra.Operator.adjoint_adjoint_eq_closure
+assert_no_sorry Spectra.Operator.adjoint_adjoint_eq_self
+assert_no_sorry Spectra.Operator.adjoint_adjoint_eq_closure_of_isFormalAdjoint
+-- The classical closability criterion as an IFF (RS VIII.1(a)): closable ⟺ D(T*) dense. The
+-- necessity half puts `(0, ψ)` for `ψ ⊥ D(T*)` into `Γ(T)ᵃᵃ = Γ(T)‾ = Γ(T̄)`, forcing `ψ = 0`;
+-- plus `T** = T̄` restated for closable `T`.
+assert_no_sorry Spectra.Operator.dense_adjoint_domain_of_isClosable
+assert_no_sorry Spectra.Operator.isClosable_iff_dense_adjoint_domain
+assert_no_sorry Spectra.Operator.adjoint_adjoint_eq_closure_of_isClosable
+-- The dense-range von Neumann criterion for essential self-adjointness: symmetric + dense domain
+-- + dense range of `B ± i` (not necessarily surjective) already gives `B.closure` self-adjoint.
+assert_no_sorry Spectra.Operator.isEssentiallySelfAdjoint_of_denseRange_addSub
+-- The Kato-Rellich companion: essential self-adjointness of a sum on a common domain, reduced to
+-- the deficiency condition for the sum itself (deliberately not automatic — Nelson's
+-- counterexample, see `Operator/CommonCoreSum.lean`'s docstring).
+assert_no_sorry Spectra.Operator.isEssentiallySelfAdjoint_sumOp_of_denseRange_addSub
+
+/-! ## Deficiency subspaces and indices (von Neumann's self-adjoint extension theory, N1–N4) -/
+
+-- N₊(A) = ker(A* - i) = ran(A + i)ᗮ, N₋(A) = ker(A* + i) = ran(A - i)ᗮ, unconditional for any
+-- densely-defined `A` (no symmetry hypothesis needed).
+assert_no_sorry Spectra.Operator.deficiencySubspacePlus_eq_orthogonal
+assert_no_sorry Spectra.Operator.deficiencySubspaceMinus_eq_orthogonal
+-- Deficiency indices `n±(A) := Module.rank ℂ N±(A)` vanish for self-adjoint `A`.
+assert_no_sorry Spectra.Operator.deficiencyIndexPlus_eq_zero_of_isSelfAdjoint
+assert_no_sorry Spectra.Operator.deficiencyIndexMinus_eq_zero_of_isSelfAdjoint
+-- Cross-lane unification: both deficiency subspaces trivial is exactly the dense-range hypothesis
+-- of `isEssentiallySelfAdjoint_of_denseRange_addSub` above.
+assert_no_sorry Spectra.Operator.deficiencySubspacesBot_iff_denseRange_addSub
+-- Von Neumann extension theory (N3): the extension `A_V = A*|_{D(A) ⊔ (1-V)N₊}` along a unitary
+-- `V : N₊(A) ≃ₗᵢ N₋(A)`, its symmetry, and its (essential) self-adjointness — self-adjoint for
+-- closed `A`, essentially self-adjoint with no closedness hypothesis.
+assert_no_sorry Spectra.Operator.vonNeumannExtension
+assert_no_sorry Spectra.Operator.le_vonNeumannExtension
+assert_no_sorry Spectra.Operator.vonNeumannExtension_apply_add_defect
+assert_no_sorry Spectra.Operator.vonNeumannExtension_isFormalAdjoint
+assert_no_sorry Spectra.Operator.vonNeumannExtension_isSelfAdjoint
+assert_no_sorry Spectra.Operator.vonNeumannExtension_isEssentiallySelfAdjoint
+-- Von Neumann's self-adjoint extension theorem (N4, unitary-equivalence phrasing): a symmetric
+-- densely-defined `A` admits a self-adjoint extension iff `N₊(A) ≃ₗᵢ N₋(A)`. The "only if" half
+-- restricts the Cayley transform of the extension along `Submodule.map_orthogonal_equiv`.
+assert_no_sorry Spectra.Operator.nonempty_deficiencyEquiv_of_le_isSelfAdjoint
+assert_no_sorry Spectra.Operator.exists_le_isSelfAdjoint_of_nonempty_deficiencyEquiv
+assert_no_sorry Spectra.Operator.exists_le_isSelfAdjoint_iff_nonempty_deficiencyEquiv
+-- Von Neumann's CLASSIFICATION (N3d): the correspondence `V ↦ A_V` is a bijection —
+-- completeness (every self-adjoint extension is the von Neumann extension at the deficiency
+-- identification its own Cayley transform induces; closure thereof for non-closed `A`) plus
+-- injectivity, packaged as `∃!` and as an explicit `Equiv`.
+assert_no_sorry Spectra.Operator.vonNeumannExtension_inducedDeficiencyEquiv_le
+assert_no_sorry Spectra.Operator.eq_closure_vonNeumannExtension_inducedDeficiencyEquiv
+assert_no_sorry Spectra.Operator.eq_vonNeumannExtension_inducedDeficiencyEquiv
+assert_no_sorry Spectra.Operator.vonNeumannExtension_injective
+assert_no_sorry Spectra.Operator.existsUnique_vonNeumannExtension_eq
+assert_no_sorry Spectra.Operator.selfAdjointExtensionEquiv
+-- The classical characterization closing the loop: essential self-adjointness ⟺ EXACTLY ONE
+-- self-adjoint extension (forward: closures are minimal + self-adjoint operators are maximal;
+-- converse: nontrivial deficiency spaces of `Ā` would give two distinct von Neumann extensions
+-- via the `-1` twist + injectivity of `V ↦ A_V`), plus the ≥2-extensions dichotomy.
+assert_no_sorry Spectra.Operator.existsUnique_le_isSelfAdjoint_of_isEssentiallySelfAdjoint
+assert_no_sorry Spectra.Operator.isEssentiallySelfAdjoint_of_existsUnique_le_isSelfAdjoint
+assert_no_sorry Spectra.Operator.isEssentiallySelfAdjoint_iff_existsUnique_le_isSelfAdjoint
+assert_no_sorry Spectra.Operator.exists_ne_of_not_isEssentiallySelfAdjoint
+-- The FIRST VON NEUMANN FORMULA: for closed symmetric densely-defined `A`,
+-- `D(A*) = D(A) ⊔ N₊(A) ⊔ N₋(A)` — with the decomposition unique (`∃!`), graph-orthogonal
+-- (`⟪u,v⟫ + ⟪A*u,A*v⟫ = 0` across the three summands), and the adjoint acting as
+-- `A*(ψ + η + ξ) = Aψ + iη - iξ`; for general symmetric `A`, `D(A*) = D(Ā) ⊔ N₊(A) ⊔ N₋(A)`
+-- via `N±(Ā) = N±(A)`.
+assert_no_sorry Spectra.Operator.deficiencySubspacePlus_closure
+assert_no_sorry Spectra.Operator.deficiencySubspaceMinus_closure
+assert_no_sorry Spectra.Operator.graphInner_domain_deficiencySubspacePlus
+assert_no_sorry Spectra.Operator.graphInner_domain_deficiencySubspaceMinus
+assert_no_sorry Spectra.Operator.graphInner_deficiencySubspaces
+assert_no_sorry Spectra.Operator.adjoint_domain_cases
+assert_no_sorry Spectra.Operator.vonNeumannFormula
+assert_no_sorry Spectra.Operator.adjoint_apply_add_deficiency
+assert_no_sorry Spectra.Operator.eq_zero_of_add_deficiency_eq_zero
+assert_no_sorry Spectra.Operator.existsUnique_deficiency_decomposition
+assert_no_sorry Spectra.Operator.vonNeumannFormula_closure
+assert_no_sorry Spectra.Operator.eq_zero_of_mem_closure_add_deficiency_eq_zero
+-- The SECOND VON NEUMANN FORMULA: the boundary form of `A*` collapses to the defect components
+-- (`⟪A*u,w⟫ - ⟪u,A*w⟫ = -2i(⟪η,η'⟫ - ⟪ξ,ξ'⟫)`), the partial von Neumann extension
+-- `A_V = A*|_{D(A) ⊔ (1-V)F}` along an isometry `V : F →ₗᵢ N₋(A)` on `F ≤ N₊(A)` is a symmetric
+-- extension, and — for closed `A` — EVERY symmetric extension `B ≥ A` arises this way
+-- (`exists_eq_vonNeumannExtensionOn`), with `F` and `V` recoverable from the operator
+-- (injectivity of the correspondence).
+assert_no_sorry Spectra.Operator.adjoint_boundaryForm
+assert_no_sorry Spectra.Operator.adjoint_boundaryForm_defect
+assert_no_sorry Spectra.Operator.vonNeumannExtensionOn
+assert_no_sorry Spectra.Operator.le_vonNeumannExtensionOn
+assert_no_sorry Spectra.Operator.vonNeumannExtensionOn_apply_add_defect
+assert_no_sorry Spectra.Operator.vonNeumannExtensionOn_isFormalAdjoint
+-- compatibility: the partial construction at `F = N₊` with a full unitary is definitionally the
+-- original `vonNeumannExtension`.
+assert_no_sorry Spectra.Operator.vonNeumannExtensionOn_toLinearIsometry
+assert_no_sorry Spectra.Operator.le_adjoint_of_le_of_isFormalAdjoint
+assert_no_sorry Spectra.Operator.eq_zero_of_mem_domain_of_mem_deficiencySubspaceMinus
+assert_no_sorry Spectra.Operator.defect_partner_unique
+assert_no_sorry Spectra.Operator.inducedDefectIsometry
+assert_no_sorry Spectra.Operator.domain_eq_vonNeumannDomainOn_induced
+assert_no_sorry Spectra.Operator.eq_vonNeumannExtensionOn_induced
+assert_no_sorry Spectra.Operator.exists_eq_vonNeumannExtensionOn
+assert_no_sorry Spectra.Operator.inducedDefectDomain_vonNeumannExtensionOn
+assert_no_sorry Spectra.Operator.vonNeumannExtensionOn_inj_apply
+-- VON NEUMANN'S CONJUGATION CRITERION (Reed–Simon X.3): a symmetric densely-defined operator
+-- commuting with a conjugation (antiunitary involution) admits self-adjoint extensions — the
+-- conjugation swaps N₊ ↔ N₋, restricts to an antiunitary equivalence, and the general
+-- Hilbert-basis transport `nonempty_linearIsometryEquiv_of_antiunitary` (antiunitarily
+-- equivalent Hilbert spaces are unitarily equivalent) feeds von Neumann's extension theorem.
+-- Covers Schrödinger operators with real potentials.
+assert_no_sorry Spectra.Operator.nonempty_linearIsometryEquiv_of_antiunitary
+assert_no_sorry Spectra.Operator.deficiencySubspacePlus_isClosed
+assert_no_sorry Spectra.Operator.deficiencySubspaceMinus_isClosed
+assert_no_sorry Spectra.Operator.conj_mem_deficiencySubspaceMinus
+assert_no_sorry Spectra.Operator.conj_mem_deficiencySubspacePlus
+assert_no_sorry Spectra.Operator.conjDeficiencyEquiv
+assert_no_sorry Spectra.Operator.exists_le_isSelfAdjoint_of_conjugation
 -- Off-axis arithmetic of `z = ± in` for `n : ℕ+`, feeding the Yosida approximants built from
 -- `R(± in)` (`YosidaHille/Approximation/Helpers.lean`); load-bearing for `stoneEquiv` above.
 assert_no_sorry Spectra.YosidaHille.Approximation.I_mul_pnat_im_ne_zero
@@ -252,7 +407,7 @@ assert_no_sorry Spectra.QuantumMechanics.Pauli.pauliYZ_commutator
 assert_no_sorry Spectra.QuantumMechanics.Pauli.pauliZX_commutator
 assert_no_sorry Spectra.QuantumMechanics.Dirac.diracHamiltonian_isSelfAdjoint
 assert_no_sorry Spectra.QuantumMechanics.Dirac.diracHamiltonian_mass_gap
-assert_no_sorry Spectra.QuantumMechanics.Hamiltonian.kato_rellich
+assert_no_sorry Spectra.Operator.kato_rellich
 assert_no_sorry Spectra.QuantumMechanics.Hydrogen.hardy_inequality
 assert_no_sorry Spectra.QuantumMechanics.Hydrogen.hardy_constant_sharp
 assert_no_sorry Spectra.QuantumMechanics.Hydrogen.hydrogen_isSelfAdjoint
@@ -399,6 +554,83 @@ assert_no_sorry Spectra.TomitaTakesaki.modularSqrt_sq_apply
 assert_no_sorry Spectra.QuantumMechanics.SpectralTheory.resolvent_sq_identity
 assert_no_sorry Spectra.QuantumMechanics.SpectralTheory.resolvent_sq_mem
 assert_no_sorry Spectra.QuantumMechanics.SpectralTheory.inner_resolvent_sq
+-- The projection-valued pushforward `P.map φ` (`(P.map φ).proj B = P.proj (φ⁻¹ B)`,
+-- `(P.map φ).diag ξ = (P.diag ξ).map φ`) — the previously-missing PVM constructor, carrier of the
+-- spectral-mapping `E^{f(A)} = (spectralPVM A).map f` for the polar-uniqueness build.
+assert_no_sorry Spectra.ProjValMeasure.map
+-- The `s ↦ s²` spectral-mapping theorem `spectralPVM (A²) = (spectralPVM A).map (·²)` (DAG node
+-- `spectralPVM_sq_eq_pushforward`), with `A²` self-adjoint (`sq_isSelfAdjoint`) and the resolvent bridge
+-- `(A²−z)⁻¹ = Φ(1/(s²−z))` — the crux of positive-square-root uniqueness for Field-3 polar uniqueness.
+assert_no_sorry Spectra.QuantumMechanics.SpectralTheory.sq_isSelfAdjoint
+assert_no_sorry Spectra.QuantumMechanics.SpectralTheory.selfAdjointResolvent_sq_eq
+assert_no_sorry Spectra.QuantumMechanics.SpectralTheory.spectralPVM_sq_eq_pushforward
+-- Injectivity of the `s↦s²` pushforward on `[0,∞)`-supported PVMs, that a self-adjoint operator is
+-- determined by its spectral measure, and the ★ KEYSTONE positive-square-root uniqueness
+-- `posSqrt_unique` (P,Q≥0 self-adjoint, P²=Q² ⟹ P=Q) — the crux of Field-3 polar uniqueness.
+assert_no_sorry Spectra.QuantumMechanics.SpectralTheory.sq_pushforward_injective
+assert_no_sorry Spectra.QuantumMechanics.SpectralTheory.spectralPVM_determines
+assert_no_sorry Spectra.QuantumMechanics.SpectralTheory.posSqrt_unique
+
+/-! ## Field-3 Stage 0 — the reciprocal modular calculus `Δ⁻¹`, `Δ^{-½}` (COMPLETE)
+
+The generic J-free real-symbol self-adjointness engine (surjectivity of `A_f ± i` is unconditional for
+a real symbol `f`, since `1/(f ± i)` is bounded), the away-from-zero band density engine
+(`D(∫f dP)` dense whenever every `μ_y` is carried by `(0,∞)` and `f` is bounded on each band
+`[1/(n+1), n+1]`), and their instantiation at the reciprocal symbols `1/s`, `1/√s`:
+`Δ⁻¹ = modularOpInv` and `Δ^{-½} = modularSqrtInv` are **unconditionally self-adjoint**, with
+`(Δ^{-½})² = Δ⁻¹` on `D(Δ⁻¹)` — the operators needed to *state* the final Tomita relation
+`J Δ J⁻¹ = Δ⁻¹`. -/
+assert_no_sorry Spectra.QuantumMechanics.SpectralTheory.pmapOfPVM_add_I_surjective
+assert_no_sorry Spectra.QuantumMechanics.SpectralTheory.pmapOfPVM_sub_I_surjective
+assert_no_sorry Spectra.QuantumMechanics.SpectralTheory.pmapOfPVM_isSelfAdjoint_of_real
+assert_no_sorry Spectra.QuantumMechanics.SpectralTheory.spectralProjection_band_mem_pmapDomain
+assert_no_sorry Spectra.QuantumMechanics.SpectralTheory.pmapOfPVM_domain_dense_of_support_Ioi
+assert_no_sorry Spectra.TomitaTakesaki.modularOpInv
+assert_no_sorry Spectra.TomitaTakesaki.modularSqrtInv
+assert_no_sorry Spectra.TomitaTakesaki.modularOpInv_isSelfAdjoint_of_dense
+assert_no_sorry Spectra.TomitaTakesaki.modularSqrtInv_isSelfAdjoint_of_dense
+assert_no_sorry Spectra.TomitaTakesaki.modularOpInv_domain_dense
+assert_no_sorry Spectra.TomitaTakesaki.modularSqrtInv_domain_dense
+assert_no_sorry Spectra.TomitaTakesaki.modularOpInv_isSelfAdjoint
+assert_no_sorry Spectra.TomitaTakesaki.modularSqrtInv_isSelfAdjoint
+assert_no_sorry Spectra.TomitaTakesaki.modularOpInv_domain_le_modularSqrtInv_domain
+assert_no_sorry Spectra.TomitaTakesaki.modularSqrtInv_mem_domain_of_mem_modularOpInv
+assert_no_sorry Spectra.TomitaTakesaki.modularSqrtInv_sq_apply
+
+/-! ## Field-3 kill-spikes KS1–KS3 — ALL GREEN
+
+The three binary go/no-go probes of the Route-B staged DAG, each landed as a full sorry-free
+theorem rather than a mere feasibility verdict.  **KS1** (Stage-3 pin): `D(Δ)` is a core for
+`Δ^{½}` (Mathlib `LinearPMap.HasCore`, via spectral cut-offs `E([0,n])y`).  **KS2** (Stage-4/5
+stateability): the conjugation `J Δ^{½} J⁻¹` by the antiunitary modular conjugation exists as a
+`LinearPMap` (`conjPMap`), is self-adjoint, and its spectral measures charge no negative reals —
+the exact `posSqrt_unique` input shapes.  **KS3** (Stage-1 substrate): the bounded-factor
+adjoint law `(b∘A)⋆ = A⋆∘b⁻¹` for a unitary factor `b`, absent from Mathlib. -/
+assert_no_sorry Spectra.QuantumMechanics.SpectralTheory.borelMeasure_Iio_zero_eq_zero_of_dense
+assert_no_sorry Spectra.TomitaTakesaki.modularSqrt_hasCore_modularOp_domain
+assert_no_sorry Spectra.TomitaTakesaki.modularSqrt_mem_closure_graph_domRestrict
+
+/-! ## Field-3 Route B Stage 3 — the extended polar decomposition `S = W ∘ Δ^{½}` (COMPLETE)
+
+The polar relation `W(Δ^{½}x) = Sx` extended from `D(Δ)` to the full square-root domain, with the
+polar domains coinciding: `D(S) = D(Δ^{½})`, `S y = W(Δ^{½}y)`, the extended isometry
+`‖Δ^{½}y‖ = ‖Sy‖`, and the `J`-form `toConj (J (Δ^{½}y)) = S y`.  Both directions are image-closure
+pushes of the two core facts (KS1's `HasCore` and the graph-L² closure) through `(u,v) ↦ (u, W^{±1}v)`
+into the closed graphs.  This pins `W` on `cl(ran Δ^{½})` — the Stage-4 ingredient. -/
+assert_no_sorry Spectra.TomitaTakesaki.modularSqrt_domain_le_tomitaClosure_domain
+assert_no_sorry Spectra.TomitaTakesaki.tomitaClosure_domain_le_modularSqrt_domain
+assert_no_sorry Spectra.TomitaTakesaki.tomitaClosure_domain_eq_modularSqrt_domain
+assert_no_sorry Spectra.TomitaTakesaki.tomitaClosure_eq_modularW_modularSqrt
+assert_no_sorry Spectra.TomitaTakesaki.norm_modularSqrt_eq_norm_tomitaClosure
+assert_no_sorry Spectra.TomitaTakesaki.tomita_eq_modularConjugation_modularSqrt_full
+assert_no_sorry Spectra.TomitaTakesaki.conjPMap
+assert_no_sorry Spectra.TomitaTakesaki.conjPMap_isSelfAdjoint
+assert_no_sorry Spectra.TomitaTakesaki.inner_modularConjugation
+assert_no_sorry Spectra.TomitaTakesaki.conjModularSqrt
+assert_no_sorry Spectra.TomitaTakesaki.conjModularSqrt_isSelfAdjoint
+assert_no_sorry Spectra.TomitaTakesaki.conjModularSqrt_borelMeasure_Iio_zero
+assert_no_sorry Spectra.Operator.mem_compPMap_adjoint_domain_iff
+assert_no_sorry Spectra.Operator.compPMap_adjoint_apply
 
 /-! ## Inner-product `ℓ²`-pairing estimates (shared, trace-class-free)
 
@@ -525,6 +757,80 @@ assert_no_sorry Spectra.QuantumMechanics.Channels.QuantumChannel.id_toFun_apply
 
 assert_no_sorry Spectra.InformationGeometry.RegularStatisticalModel.cramerRao_scalar
 assert_no_sorry Spectra.InformationGeometry.TwiceDifferentiableModel.klDiv_hessian_eq_fisher
+-- The information-geometric Stone theorem: refutation of global flow-completeness for bounded
+-- domains (why `FlowComplete` is domain-relative), invariant-set flow uniqueness, and the
+-- packaged existence-plus-uniqueness statement.
+assert_no_sorry Spectra.InformationGeometry.TwiceDifferentiableModel.not_forall_hasGlobalFlow_of_isBounded
+assert_no_sorry Spectra.InformationGeometry.TwiceDifferentiableModel.flow_eqOn_of_generator_eqOn
+assert_no_sorry Spectra.InformationGeometry.TwiceDifferentiableModel.infoGeometric_stone_unique
+assert_no_sorry Spectra.InformationGeometry.TwiceDifferentiableModel.infoGeometric_stone
+-- The classical–quantum dichotomy: classical-bit rigidity, the qubit generator classification
+-- (every generator is `c·∂_β` on the domain), and their conjunction.
+assert_no_sorry Spectra.InformationGeometry.GeometricData.classicalBit_rigid
+assert_no_sorry Spectra.InformationGeometry.GeometricData.qubit_generator_azimuthal
+assert_no_sorry Spectra.InformationGeometry.GeometricData.classical_quantum_dichotomy
+
+/-! ## Hilbert tensor product `E ⊗̂[𝕜] F` (Fock Spaces M0) -/
+
+-- The completed tensor product of inner product spaces: inner product and cross norm on
+-- pure tensors, density of pure-tensor span, and isometric functoriality through the
+-- completion (map/congr/comm/lid/assoc). Closes Mathlib's "Complete space of tensor
+-- products" TODO on the Spectra side.
+assert_no_sorry Spectra.HilbertTensor.inner_tmul_tmul
+assert_no_sorry Spectra.HilbertTensor.norm_tmul
+assert_no_sorry Spectra.HilbertTensor.dense_span_tmul
+assert_no_sorry Spectra.HilbertTensor.span_tmul_topologicalClosure
+assert_no_sorry Spectra.HilbertTensor.tmulL
+assert_no_sorry Spectra.HilbertTensor.map_tmul
+assert_no_sorry Spectra.HilbertTensor.congr_tmul
+assert_no_sorry Spectra.HilbertTensor.comm_tmul
+assert_no_sorry Spectra.HilbertTensor.lid_tmul
+assert_no_sorry Spectra.HilbertTensor.assoc_tmul
+-- General completion functoriality for linear isometries (upstream candidates).
+assert_no_sorry LinearIsometry.completionMap_coe
+assert_no_sorry LinearIsometryEquiv.completionMap_coe
+-- Bounded functoriality `A ⊗̂ B` (`Spaces/Tensor/Map.lean`): the orthonormal fiber
+-- representation, tensor Pythagoras, the rTensor/lTensor/map operator bounds, and the
+-- cross-norm identity `‖A ⊗̂ B‖ = ‖A‖·‖B‖` on both the algebraic and completed products.
+assert_no_sorry Spectra.HilbertTensor.exists_sum_tmul_orthonormal
+assert_no_sorry Spectra.HilbertTensor.norm_sq_sum_tmul_orthonormal
+assert_no_sorry Spectra.HilbertTensor.norm_rTensor_apply_le
+assert_no_sorry Spectra.HilbertTensor.norm_lTensor_apply_le
+assert_no_sorry Spectra.HilbertTensor.norm_map_apply_le
+assert_no_sorry Spectra.HilbertTensor.mapCLM
+assert_no_sorry Spectra.HilbertTensor.norm_mapCLM
+assert_no_sorry Spectra.HilbertTensor.mapL
+assert_no_sorry Spectra.HilbertTensor.mapL_tmul
+assert_no_sorry Spectra.HilbertTensor.norm_mapL
+-- `‖f.completion‖ = ‖f‖`, companion to `ContinuousLinearMap.completion` (upstream candidate).
+assert_no_sorry ContinuousLinearMap.norm_completion
+-- The tensor Hilbert basis (`Spaces/Tensor/Basis.lean`): Hilbert bases of the factors
+-- tensor to a Hilbert basis of `E ⊗̂[𝕜] F`, indexed by `ι × κ`.
+assert_no_sorry Spectra.HilbertTensor.orthonormal_tmul
+assert_no_sorry Spectra.HilbertTensor.dense_span_tensor
+assert_no_sorry Spectra.HilbertTensor.tensorHilbertBasis
+assert_no_sorry Spectra.HilbertTensor.tensorHilbertBasis_apply
+
+/-! ## Tensor powers `⨂[𝕜]^n H` and the full Fock space (Fock Spaces M1) -/
+
+-- The inner product space structure on the algebraic n-fold tensor power
+-- (`Spaces/Tensor/PowerInner.lean`) — the PiTensorProduct generalization of Mathlib's
+-- binary construction: ⟪⨂ₜ x, ⨂ₜ y⟫ = ∏ ⟪x i, y i⟫, positive-definiteness by induction
+-- through the splitting (⨂ⁿH) ⊗ H ≃ ⨂ⁿ⁺¹H and the orthonormal fiber representation.
+assert_no_sorry Spectra.TensorPower.instInner
+assert_no_sorry Spectra.TensorPower.instNormedAddCommGroup
+assert_no_sorry Spectra.TensorPower.instInnerProductSpace
+assert_no_sorry Spectra.TensorPower.inner_tprod_tprod
+assert_no_sorry Spectra.TensorPower.norm_tprod
+-- The Hilbert tensor power (`Spaces/Tensor/Power.lean`): the completed n-particle sector,
+-- with pure tensors, dense span, and the permutation unitaries feeding symmetrization.
+assert_no_sorry Spectra.HilbertTensorPower.inner_tprod_tprod
+assert_no_sorry Spectra.HilbertTensorPower.norm_tprod
+assert_no_sorry Spectra.HilbertTensorPower.dense_span_tprod
+assert_no_sorry Spectra.HilbertTensorPower.permUnitary
+assert_no_sorry Spectra.HilbertTensorPower.permUnitary_tprod
+-- The full Fock space (`Spaces/Fock/Basic.lean`): the Hilbert sum of the sectors.
+assert_no_sorry Spectra.fullFock
 
 /-! ## Sobolev spaces -/
 
@@ -565,3 +871,48 @@ and `Quot.sound` should appear — anything else (especially `sorryAx`) is a red
 #print axioms Spectra.QuantumMechanics.Channels.isPositiveMatrix_one_iff
 #print axioms Spectra.QuantumMechanics.Channels.IsCompletelyPositive.isPositive
 #print axioms Spectra.QuantumMechanics.Channels.QuantumChannel.id_toFun_apply
+#print axioms Spectra.Resolvent.spectrum_subset_closure_numericalRange
+#print axioms Spectra.Operator.isEssentiallySelfAdjoint_of_denseRange_addSub
+#print axioms Spectra.Operator.isEssentiallySelfAdjoint_sumOp_of_denseRange_addSub
+#print axioms Spectra.Operator.deficiencySubspacesBot_iff_denseRange_addSub
+#print axioms Spectra.Operator.vonNeumannExtension_isSelfAdjoint
+#print axioms Spectra.Operator.exists_le_isSelfAdjoint_iff_nonempty_deficiencyEquiv
+#print axioms Spectra.Operator.eq_vonNeumannExtension_inducedDeficiencyEquiv
+#print axioms Spectra.Operator.selfAdjointExtensionEquiv
+#print axioms Spectra.Operator.isEssentiallySelfAdjoint_iff_existsUnique_le_isSelfAdjoint
+#print axioms Spectra.Operator.adjoint_adjoint_eq_closure
+#print axioms Spectra.Operator.vonNeumannFormula
+#print axioms Spectra.Operator.existsUnique_deficiency_decomposition
+#print axioms Spectra.Operator.vonNeumannFormula_closure
+#print axioms Spectra.Operator.vonNeumannExtensionOn_isFormalAdjoint
+#print axioms Spectra.Operator.exists_eq_vonNeumannExtensionOn
+#print axioms Spectra.Operator.inducedDefectDomain_vonNeumannExtensionOn
+#print axioms Spectra.Operator.nonempty_linearIsometryEquiv_of_antiunitary
+#print axioms Spectra.Operator.exists_le_isSelfAdjoint_of_conjugation
+#print axioms Spectra.Operator.isClosable_iff_dense_adjoint_domain
+#print axioms Spectra.QuantumMechanics.SpectralTheory.pmapOfPVM_isSelfAdjoint_of_real
+#print axioms Spectra.QuantumMechanics.SpectralTheory.pmapOfPVM_domain_dense_of_support_Ioi
+#print axioms Spectra.TomitaTakesaki.modularOpInv
+#print axioms Spectra.TomitaTakesaki.modularSqrtInv
+#print axioms Spectra.TomitaTakesaki.modularOpInv_isSelfAdjoint_of_dense
+#print axioms Spectra.TomitaTakesaki.modularSqrtInv_isSelfAdjoint_of_dense
+#print axioms Spectra.TomitaTakesaki.modularOpInv_isSelfAdjoint
+#print axioms Spectra.TomitaTakesaki.modularSqrtInv_isSelfAdjoint
+#print axioms Spectra.TomitaTakesaki.modularSqrtInv_sq_apply
+#print axioms Spectra.TomitaTakesaki.modularSqrt_hasCore_modularOp_domain
+#print axioms Spectra.TomitaTakesaki.tomitaClosure_domain_eq_modularSqrt_domain
+#print axioms Spectra.TomitaTakesaki.tomitaClosure_eq_modularW_modularSqrt
+#print axioms Spectra.TomitaTakesaki.tomita_eq_modularConjugation_modularSqrt_full
+#print axioms Spectra.TomitaTakesaki.conjModularSqrt_isSelfAdjoint
+#print axioms Spectra.TomitaTakesaki.conjModularSqrt_borelMeasure_Iio_zero
+#print axioms Spectra.Operator.compPMap_adjoint_apply
+#print axioms Spectra.HilbertTensor.dense_span_tmul
+#print axioms Spectra.HilbertTensor.inner_tmul_tmul
+#print axioms Spectra.HilbertTensor.norm_mapL
+#print axioms Spectra.HilbertTensor.tensorHilbertBasis
+#print axioms Spectra.InformationGeometry.TwiceDifferentiableModel.not_forall_hasGlobalFlow_of_isBounded
+#print axioms Spectra.InformationGeometry.TwiceDifferentiableModel.infoGeometric_stone
+#print axioms Spectra.InformationGeometry.GeometricData.qubit_generator_azimuthal
+#print axioms Spectra.InformationGeometry.GeometricData.classical_quantum_dichotomy
+#print axioms Spectra.TensorPower.instInnerProductSpace
+#print axioms Spectra.fullFock

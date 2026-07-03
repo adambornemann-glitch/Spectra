@@ -44,7 +44,6 @@ under hydrogen-specific names and bundles it as a `SelfAdjointOperator` and a
 open MeasureTheory Complex Filter InnerProductSpace
 open Spectra.Sobolev
 open Spectra.OneParameterUnitaryGroup Spectra.YosidaHille Spectra.Resolvent
-open Spectra.QuantumMechanics.Hamiltonian
 open Spectra.QuantumMechanics.SpectralTheory
 open Spectra.Operator
 open scoped Topology NNReal ENNReal

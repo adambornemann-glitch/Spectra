@@ -484,7 +484,13 @@ theorem laguerre_differential_eq (n : ℕ) (α : ℝ) (x : ℝ) :
 
 /-! ## Smoothness -/
 
-/-- L_n^α is smooth (it is a polynomial for integer α, smooth for all α). -/
+/-- L_n^α is analytic: it is a polynomial in `x` for every real `α`.
+
+Here the bare `⊤` exponent is `ω` (`C^ω` = real-analytic, the top of
+`WithTop ℕ∞`), and this is deliberate — not the usual `C^∞` spelling
+`(⊤ : ℕ∞)`.  Polynomials are honestly analytic, and downstream consumers
+(e.g. `Spectrum/SeparatedEigenfunction/Profile.lean`) rely on this via
+`.of_le le_top` to extract `ContDiff` at every lower exponent. -/
 lemma laguerre_smooth (n : ℕ) (α : ℝ) :
     ContDiff ℝ ⊤ (laguerrePolynomial n α) := by
   unfold laguerrePolynomial
@@ -554,7 +560,7 @@ lemma laguerre_self_adjoint (n : ℕ) (α : ℝ) {x : ℝ} (hx : 0 < x) :
             ((k : ℝ) * y ^ (k - 1) / (k.factorial : ℝ)) := by
         funext y; exact deriv_laguerrePolynomial n α y
       rw [heq]
-      refine ContDiff.differentiable (n := ⊤) ?_ (by simp)
+      refine ContDiff.differentiable (n := (⊤ : ℕ∞)) ?_ (by simp)
       apply ContDiff.sum
       intro k _
       exact contDiff_const.mul ((contDiff_const.mul (contDiff_id.pow (k - 1))).div_const _)
@@ -594,7 +600,7 @@ lemma laguerre_self_adjoint_continuousOn (n : ℕ) (α : ℝ) (hα : -1 < α) :
           ((k : ℝ) * y ^ (k - 1) / (k.factorial : ℝ)) := by
       funext y; exact deriv_laguerrePolynomial n α y
     rw [heq]
-    refine ContDiff.continuous (𝕜 := ℝ) (n := ⊤) ?_
+    refine ContDiff.continuous (𝕜 := ℝ) (n := (⊤ : ℕ∞)) ?_
     apply ContDiff.sum
     intro k _
     exact contDiff_const.mul ((contDiff_const.mul (contDiff_id.pow (k - 1))).div_const _)

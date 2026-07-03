@@ -13,6 +13,8 @@ import Mathlib.Algebra.BigOperators.WithTop
 import Mathlib.Analysis.ODE.Gronwall
 import Mathlib.Analysis.ODE.PicardLindelof
 import Mathlib.Topology.Order.Compact
+-- For the bounded-domain refutation of global flow-completeness --
+import Mathlib.Analysis.SpecialFunctions.SmoothTransition
 
 /-!
 # The Information-Geometric Stone's Theorem
@@ -38,18 +40,33 @@ their infinitesimal generators (Killing + cubic-preserving vector fields).
   model hierarchy does not carry.  Following the bundled-regularity
   design of the library, it is taken as a hypothesis.
 
-* The completeness hypothesis is `FlowComplete`, which asserts directly
-  that every info-geometric generator integrates to a global
-  divergence-preserving flow.  This replaces an earlier
-  `GeodesicallyComplete` class whose statement was vacuous (it was
-  satisfied by constant curves) and which could not support the
-  surjectivity direction: deriving divergence preservation of the flow
-  from `L_X g = L_X C = 0` is a rigidity theorem (the divergence is an
-  integral functional, not yet known *in this development* to be
-  determined by `g` and `C`).  Deriving `FlowComplete` from genuine
-  Fisher geodesic completeness (Picard–Lindelöf, conservation of
+* Smoothness throughout is `ContDiff ℝ (⊤ : ℕ∞)`, i.e. `C^∞`.  (In
+  current mathlib the bare exponent `⊤` is `ω`, *analyticity* — not what
+  these structures mean.)
+
+* The completeness hypothesis is `FlowComplete` (a `Prop`-valued `def`,
+  taken as an explicit hypothesis): every info-geometric generator
+  integrates to a global divergence-preserving family whose generator
+  agrees with the given field *on the parameter domain*.  The
+  domain-relative form is forced: a generator's field is constrained
+  only on the domain, and demanding a global flow with prescribed
+  velocity at every point of `ℝⁿ` is not merely unprovable but
+  *refutable* once the domain is bounded —
+  `not_forall_hasGlobalFlow_of_isBounded` constructs a generator that
+  vanishes near the domain (Killing and cubic conditions hold for free)
+  yet grows quadratically far out, so its trajectories blow up in
+  finite time.  `FlowComplete` remains a genuine hypothesis, the
+  analogue of essential self-adjointness in Stone's theorem: the
+  flat location model on a bounded interval with `X = d/dθ` — the
+  mirror of the momentum operator on `(0,1)`, symmetric with no
+  self-adjoint extension — is Killing and cubic-preserving but
+  generates no domain-preserving family.  Deriving `FlowComplete` for
+  concrete models from Fisher geodesic completeness (conservation of
   `‖X‖_g` along flow lines, divergence rigidity) is future work; the
-  hypothesis isolates exactly what the theorem needs.
+  definition isolates exactly what the surjectivity half of the Stone
+  correspondence needs.  (It replaces an earlier vacuous
+  `GeodesicallyComplete` class — satisfied by constant curves — and an
+  earlier global `FlowComplete` class, unsatisfiable as above.)
 -/
 
 open MeasureTheory Finset Filter Topology TopologicalSpace
@@ -80,7 +97,7 @@ structure InfoGeometricGenerator (M : TwiceDifferentiableModel n Ω) where
   /-- The vector field X : Θ → T_θΘ ≅ ℝⁿ. -/
   vectorField : ParamSpace n → ParamSpace n
   /-- X is smooth. -/
-  smooth : ContDiff ℝ ⊤ vectorField
+  smooth : ContDiff ℝ (⊤ : ℕ∞) vectorField
   /-- **Killing condition**: L_X g = 0.
   In coordinates: ∑ₖ Xᵏ ∂ₖg_{ij} + g_{kj} ∂ᵢXᵏ + g_{ik} ∂ⱼXᵏ = 0. -/
   killing : ∀ θ ∈ M.paramDomain, ∀ i j : Fin n,
@@ -189,10 +206,10 @@ field: X(θ) = D(uncurry φ)(0,θ)(1,0) is the composition of the C^∞ map
 `fderiv ℝ (uncurry φ)` with smooth injections and evaluations. -/
 lemma DivergencePreservingFamily.generator_smooth
     (F : M.DivergencePreservingFamily) :
-    ContDiff ℝ ⊤ F.generator := by
+    ContDiff ℝ (⊤ : ℕ∞) F.generator := by
   rw [DivergencePreservingFamily.generator_eq_fderiv_uncurry F]
-  have hDg : ContDiff ℝ ⊤ (fderiv ℝ (Function.uncurry F.φ)) :=
-    F.smooth.fderiv_right le_top
+  have hDg : ContDiff ℝ (⊤ : ℕ∞) (fderiv ℝ (Function.uncurry F.φ)) :=
+    F.smooth.fderiv_right (m := (⊤ : ℕ∞)) (by exact_mod_cast le_top)
   exact (ContinuousLinearMap.apply ℝ (ParamSpace n)
         ((1 : ℝ), (0 : ParamSpace n))).contDiff |>.comp
     (hDg.comp (contDiff_const.prodMk contDiff_id))
@@ -379,8 +396,8 @@ private lemma DivergencePreservingFamily.cubic_expansion
       HasFDerivAt (Function.uncurry F.φ)
         (fderiv ℝ (Function.uncurry F.φ) p) p :=
     fun p => ((F.smooth.differentiable (by simp)) p).hasFDerivAt
-  have hΨs : ContDiff ℝ ⊤ (fderiv ℝ (Function.uncurry F.φ)) :=
-    F.smooth.fderiv_right le_top
+  have hΨs : ContDiff ℝ (⊤ : ℕ∞) (fderiv ℝ (Function.uncurry F.φ)) :=
+    F.smooth.fderiv_right (m := (⊤ : ℕ∞)) (by exact_mod_cast le_top)
   have hΨd : HasFDerivAt (fderiv ℝ (Function.uncurry F.φ))
       (fderiv ℝ (fderiv ℝ (Function.uncurry F.φ)) ((0:ℝ), θ)) ((0:ℝ), θ) :=
     ((hΨs.differentiable (by simp)) ((0:ℝ), θ)).hasFDerivAt
@@ -617,103 +634,250 @@ noncomputable def DivergencePreservingFamily.toGenerator
 Given an `InfoGeometricGenerator`, the ODE dθ/dt = X(θ) must have a
 global solution which, moreover, preserves the divergence.
 
-**This is where completeness enters.** In Stone's theorem,
-self-adjointness of A guarantees that exp(itA) exists globally as a
-unitary operator — essential self-adjointness prevents "escape to
-infinity."  The expected information-geometric analogue is Fisher
-geodesic completeness: the Killing condition L_X g = 0 makes ‖X‖_g
-constant along flow lines, so bounded speed plus completeness prevents
-finite-time blowup, and a rigidity theorem ("the divergence is
+**This is where completeness enters — and where a subtlety lives.**  In
+Stone's theorem, self-adjointness of A guarantees that exp(itA) exists
+globally as a unitary operator — essential self-adjointness prevents
+"escape to infinity."  The expected information-geometric analogue is
+Fisher geodesic completeness: the Killing condition L_X g = 0 makes
+‖X‖_g constant along flow lines, so bounded speed plus completeness
+prevents finite-time blowup, and a rigidity theorem ("the divergence is
 determined by g and C") should upgrade the infinitesimal conditions
 L_X g = L_X C = 0 to divergence preservation of the flow.
 
-Neither the geodesic machinery (Christoffel symbols, the geodesic
-equation) nor the rigidity theorem is formalized at this point of the
-development, so the completeness hypothesis is stated *extrinsically*:
-`FlowComplete` asserts exactly the conclusion of that future chain of
-arguments — every generator integrates to a global divergence-preserving
-flow.  (An earlier `GeodesicallyComplete` class asserted only the
-existence of continuous curves through each point, which is vacuous —
-constant curves satisfy it — and cannot support the theorem.) -/
+The subtlety: a generator's vector field carries geometric content only
+*on* `M.paramDomain`; off the domain it is arbitrary smooth data.  So
+the completeness hypothesis must not demand anything of the flow off the
+domain.  Demanding a global flow with velocity `X θ` at *every*
+`θ : ℝⁿ` — as an earlier `class FlowComplete` did — is not merely
+unprovable but false whenever the domain is bounded:
+`not_forall_hasGlobalFlow_of_isBounded` below refutes it by exhibiting a
+generator that vanishes on a neighborhood of the domain (so the Killing
+and cubic conditions hold for free) but grows quadratically far out
+along a coordinate axis, so that its trajectories blow up in finite
+time.  Hypotheses over such a class would have been vacuous for every
+bounded-domain model.
+
+`FlowComplete` therefore asks only for what the geometry can see:
+a global divergence-preserving family whose generator agrees with the
+given field on the domain.  Neither the geodesic machinery (Christoffel
+symbols, the geodesic equation) nor the rigidity theorem is formalized
+at this point of the development, so this remains an *extrinsic*
+hypothesis — and a genuine one, not a theorem-in-waiting for arbitrary
+`M`: the flat location model on a bounded interval with `X = d/dθ` (the
+information-geometric mirror of the momentum operator on `(0,1)`,
+symmetric with no self-adjoint extension) is Killing and
+cubic-preserving, but no domain-preserving family realizes it.  (An
+earlier `GeodesicallyComplete` class asserted only the existence of
+continuous curves through each point, which is vacuous — constant curves
+satisfy it — and cannot support the theorem.) -/
+
+/-- **Global integration of generators is impossible for bounded domains.**
+
+If `0 < n` and the parameter domain is bounded, there is *no* assignment,
+to every info-geometric generator, of a global flow (group law, identity,
+prescribed velocity at every point of `ℝⁿ`): the witness generator
+vanishes on a neighborhood of the domain — hence is Killing and
+cubic-preserving for trivial reasons — and equals `(θ 0)² • e₀` far out
+along the `0`-th axis, where its trajectories blow up in finite time.
+
+This is why `FlowComplete` constrains the flow's generator only on the
+parameter domain: the conjunction refuted here is (a weakening of) the
+earlier global formulation of flow-completeness, which was therefore
+unsatisfiable for every bounded-domain model. -/
+theorem not_forall_hasGlobalFlow_of_isBounded
+    (hn : 0 < n) (hbdd : Bornology.IsBounded M.paramDomain) :
+    ¬ ∀ G : InfoGeometricGenerator M,
+        ∃ φ : ℝ → ParamSpace n → ParamSpace n,
+          (∀ s t θ, φ (s + t) θ = φ s (φ t θ)) ∧
+          (∀ θ, φ 0 θ = θ) ∧
+          (∀ θ, HasDerivAt (fun t => φ t θ) (G.vectorField θ) 0) := by
+  intro hall
+  -- ═══ Step 0: a nonnegative radius bounding the domain ═══
+  obtain ⟨R₀, hR₀⟩ := hbdd.subset_closedBall 0
+  set R : ℝ := max R₀ 0 with hR_def
+  have hR0 : (0 : ℝ) ≤ R := le_max_right _ _
+  have hsub : M.paramDomain ⊆ Metric.closedBall 0 R :=
+    hR₀.trans (Metric.closedBall_subset_closedBall (le_max_left _ _))
+  set i₀ : Fin n := ⟨0, hn⟩ with hi₀_def
+  -- ═══ Step 1: the field X θ = f(θ i₀) • e₀; f vanishes on (-∞, R+1],
+  --     equals s² on [R+2, ∞) ═══
+  set f : ℝ → ℝ := fun s => Real.smoothTransition (s - (R + 1)) * s ^ 2 with hf_def
+  have hf_smooth : ContDiff ℝ (⊤ : ℕ∞) f := by
+    have h1 : ContDiff ℝ (⊤ : ℕ∞) fun s : ℝ => Real.smoothTransition (s - (R + 1)) :=
+      Real.smoothTransition.contDiff.comp (contDiff_id.sub contDiff_const)
+    exact h1.mul (contDiff_id.pow 2)
+  have hf_nonneg : ∀ s, 0 ≤ f s := fun s =>
+    mul_nonneg (Real.smoothTransition.nonneg _) (sq_nonneg s)
+  have hf_zero : ∀ s ≤ R + 1, f s = 0 := fun s hs => by
+    simp [hf_def, Real.smoothTransition.zero_of_nonpos
+      (by linarith : s - (R + 1) ≤ 0)]
+  have hf_sq : ∀ s, R + 2 ≤ s → f s = s ^ 2 := fun s hs => by
+    simp [hf_def, Real.smoothTransition.one_of_one_le
+      (by linarith : 1 ≤ s - (R + 1))]
+  set X : ParamSpace n → ParamSpace n :=
+    fun θ => f (θ i₀) • EuclideanSpace.single i₀ 1 with hX_def
+  -- X vanishes on the open half-space U ⊇ paramDomain
+  have hU_open : IsOpen {θ : ParamSpace n | θ i₀ < R + 1} := by
+    have : {θ : ParamSpace n | θ i₀ < R + 1} =
+        (⇑(EuclideanSpace.proj i₀ : ParamSpace n →L[ℝ] ℝ)) ⁻¹' Set.Iio (R + 1) := by
+      ext θ; simp [EuclideanSpace.coe_proj]
+    rw [this]
+    exact isOpen_Iio.preimage (EuclideanSpace.proj i₀ :
+      ParamSpace n →L[ℝ] ℝ).continuous
+  have hXU : ∀ θ : ParamSpace n, θ i₀ < R + 1 → X θ = 0 := fun θ hθ => by
+    rw [hX_def]; dsimp only
+    rw [hf_zero (θ i₀) hθ.le, zero_smul]
+  have hdomU : ∀ θ ∈ M.paramDomain, θ i₀ < R + 1 := by
+    intro θ hθ
+    have hnorm : ‖θ‖ ≤ R := by
+      have := hsub hθ
+      rwa [Metric.mem_closedBall, dist_zero_right] at this
+    have habs : |θ i₀| ≤ ‖θ‖ := by
+      simpa [Real.norm_eq_abs] using PiLp.norm_apply_le θ i₀
+    linarith [le_trans (le_abs_self (θ i₀)) (habs.trans hnorm)]
+  have hXval : ∀ θ ∈ M.paramDomain, ∀ k : Fin n, X θ k = 0 := by
+    intro θ hθ k
+    rw [hXU θ (hdomU θ hθ)]; rfl
+  have hXfderiv : ∀ θ ∈ M.paramDomain, ∀ k : Fin n,
+      fderiv ℝ (fun θ' => X θ' k) θ = 0 := by
+    intro θ hθ k
+    have hev : (fun θ' => X θ' k) =ᶠ[𝓝 θ] fun _ => (0 : ℝ) := by
+      filter_upwards [hU_open.mem_nhds (hdomU θ hθ)] with θ' hθ'
+      rw [hXU θ' hθ']; rfl
+    rw [hev.fderiv_eq, (hasFDerivAt_const (0 : ℝ) θ).fderiv]
+  -- ═══ Step 2: X is an info-geometric generator ═══
+  have hX_smooth : ContDiff ℝ (⊤ : ℕ∞) X := by
+    have hproj : ContDiff ℝ (⊤ : ℕ∞) fun θ : ParamSpace n => θ i₀ := by
+      simpa [EuclideanSpace.coe_proj] using
+        (EuclideanSpace.proj i₀ : ParamSpace n →L[ℝ] ℝ).contDiff
+    exact (hf_smooth.comp hproj).smul contDiff_const
+  obtain ⟨φ, hgrp, hid, hvel₀⟩ := hall
+    { vectorField := X
+      smooth := hX_smooth
+      killing := by
+        intro θ hθ i j
+        refine Finset.sum_eq_zero fun k _ => ?_
+        rw [hXval θ hθ k, hXfderiv θ hθ k]
+        simp
+      preserves_cubic := by
+        intro θ hθ i j k
+        refine Finset.sum_eq_zero fun l _ => ?_
+        rw [hXval θ hθ l, hXfderiv θ hθ l]
+        simp }
+  have hvel : ∀ θ : ParamSpace n, HasDerivAt (fun t => φ t θ) (X θ) 0 := hvel₀
+  -- ═══ Step 3: velocity at all times, via the group law ═══
+  have hvel_all : ∀ (θ' : ParamSpace n) (t : ℝ),
+      HasDerivAt (fun s => φ s θ') (X (φ t θ')) t := by
+    intro θ' t
+    have h_eq : (fun s => φ s θ') = fun s => φ (s - t) (φ t θ') := by
+      funext s; rw [← hgrp (s - t) t θ', sub_add_cancel]
+    rw [h_eq]
+    set g := fun s => φ s (φ t θ') with hg_def
+    set fs := fun s : ℝ => s - t with hfs_def
+    have hg : HasFDerivAt g
+        (ContinuousLinearMap.smulRight (1 : ℝ →L[ℝ] ℝ) (X (φ t θ'))) (fs t) := by
+      simp only [hfs_def, sub_self]
+      exact (hvel (φ t θ')).hasFDerivAt
+    have hf : HasFDerivAt fs (ContinuousLinearMap.id ℝ ℝ) t :=
+      hasFDerivAt_sub_const t
+    have h_comp := hg.comp t hf
+    rw [show g ∘ fs = fun s => φ (s - t) (φ t θ') from rfl] at h_comp
+    rwa [ContinuousLinearMap.comp_id] at h_comp
+  -- ═══ Step 4: the escaping trajectory u(t) = φ_t(θ₀) · e₀ ═══
+  set θ₀ : ParamSpace n := (R + 2) • EuclideanSpace.single i₀ 1 with hθ₀_def
+  have hθ₀i : θ₀ i₀ = R + 2 := by
+    rw [hθ₀_def]
+    simp [PiLp.smul_apply, PiLp.single_eq_same]
+  set u : ℝ → ℝ := fun t => φ t θ₀ i₀ with hu_def
+  have hXi : ∀ p : ParamSpace n, X p i₀ = f (p i₀) := by
+    intro p
+    rw [hX_def]; dsimp only
+    simp [PiLp.smul_apply, PiLp.single_eq_same]
+  have hu_deriv : ∀ t, HasDerivAt u (f (u t)) t := by
+    intro t
+    have h := (EuclideanSpace.proj i₀ :
+      ParamSpace n →L[ℝ] ℝ).hasFDerivAt.comp_hasDerivAt t (hvel_all θ₀ t)
+    have hfn : (⇑(EuclideanSpace.proj i₀ : ParamSpace n →L[ℝ] ℝ) ∘
+        fun s => φ s θ₀) = u := by
+      funext s; simp [EuclideanSpace.coe_proj, hu_def]
+    have hval : (EuclideanSpace.proj i₀ : ParamSpace n →L[ℝ] ℝ) (X (φ t θ₀))
+        = f (u t) := by
+      simp [hXi, hu_def]
+    rw [hfn, hval] at h
+    exact h
+  -- monotonicity and lower bound: u(t) ≥ R+2 for t ≥ 0
+  have humono : Monotone u :=
+    monotone_of_deriv_nonneg (fun t => (hu_deriv t).differentiableAt)
+      (fun t => by rw [(hu_deriv t).deriv]; exact hf_nonneg _)
+  have hu0 : u 0 = R + 2 := by
+    rw [hu_def]; dsimp only
+    rw [hid θ₀, hθ₀i]
+  have hu_ge : ∀ t, 0 ≤ t → R + 2 ≤ u t := fun t ht => hu0 ▸ humono ht
+  have hR2 : (0 : ℝ) < R + 2 := by linarith
+  -- on [0, (R+2)⁻¹] the quantity (u t)⁻¹ + t has derivative 0 …
+  set T : ℝ := (R + 2)⁻¹ with hT_def
+  have hT_pos : 0 < T := inv_pos.mpr hR2
+  have hH_deriv : ∀ t ∈ Set.Icc (0 : ℝ) T,
+      HasDerivAt (fun s => (u s)⁻¹ + s) 0 t := by
+    intro t ht
+    have hut : R + 2 ≤ u t := hu_ge t ht.1
+    have hut_pos : 0 < u t := lt_of_lt_of_le hR2 hut
+    have hinv : HasDerivAt (fun s => (u s)⁻¹)
+        (-(f (u t)) / u t ^ 2) t := (hu_deriv t).inv hut_pos.ne'
+    have hne : -(f (u t)) / u t ^ 2 = -1 := by
+      rw [hf_sq (u t) hut]
+      field_simp
+    rw [hne] at hinv
+    have hsum := hinv.add (hasDerivAt_id t)
+    rw [show (-1 : ℝ) + 1 = 0 by norm_num] at hsum
+    exact hsum
+  -- … so it is constant there, forcing (u T)⁻¹ = 0: absurd.
+  have hconst := constant_of_has_deriv_right_zero
+    (f := fun s => (u s)⁻¹ + s) (a := (0 : ℝ)) (b := T)
+    (fun t ht => (hH_deriv t ht).continuousAt.continuousWithinAt)
+    (fun t ht => (hH_deriv t (Set.Ico_subset_Icc_self ht)).hasDerivWithinAt)
+  have hend := hconst T (Set.right_mem_Icc.mpr hT_pos.le)
+  have huT_pos : 0 < u T := lt_of_lt_of_le hR2 (hu_ge T hT_pos.le)
+  have hzero : (u T)⁻¹ = 0 := by
+    have h0 : (u 0)⁻¹ + 0 = T := by rw [hu0, hT_def, add_zero]
+    rw [h0] at hend
+    linarith
+  exact absurd hzero (inv_pos.mpr huT_pos).ne'
 
 /-- **Flow-completeness hypothesis.**
 
 Every information-geometric generator integrates to a global,
-divergence-preserving, smooth one-parameter flow whose velocity at
-t = 0 is the given vector field.  This is the information-geometric
-analogue of essential self-adjointness in Stone's theorem; deriving it
-from Fisher geodesic completeness is future work (see the section
-docstring). -/
-class FlowComplete (M : TwiceDifferentiableModel n Ω) : Prop where
-  complete : ∀ G : InfoGeometricGenerator M,
-    ∃ φ : ℝ → ParamSpace n → ParamSpace n,
-      (∀ t, ∀ θ ∈ M.paramDomain, φ t θ ∈ M.paramDomain) ∧
-      (∀ t, ∀ θ₁ ∈ M.paramDomain, ∀ θ₂ ∈ M.paramDomain,
-        M.klDiv (φ t θ₁) (φ t θ₂) = M.klDiv θ₁ θ₂) ∧
-      (∀ s t θ, φ (s + t) θ = φ s (φ t θ)) ∧
-      (∀ θ, φ 0 θ = θ) ∧
-      ContDiff ℝ ⊤ (Function.uncurry φ) ∧
-      ∀ θ, HasDerivAt (fun t => φ t θ) (G.vectorField θ) 0
+divergence-preserving, smooth one-parameter family whose infinitesimal
+generator agrees with the given vector field **on the parameter domain**.
 
-/-- Under flow-completeness, every information-geometric generator
-integrates to a global divergence-preserving family whose generator is
-the given vector field. -/
-theorem generator_integrates_to_family
-    [FlowComplete M]
-    (M₃ : ThriceDifferentiableModel n Ω)
-    (hM₃ : M₃.toTwiceDifferentiableModel = M)
-    (hC : ∀ θ ∈ M.paramDomain, ∀ a b c : Fin n,
-      DifferentiableAt ℝ (fun θ' => M.cubicTensor θ' a b c) θ)
-    (G : InfoGeometricGenerator M) :
-    ∃ F : M.DivergencePreservingFamily, F.toGenerator M₃ hM₃ hC = G := by
-  obtain ⟨φ, hdom, hdiv, hgrp, hid, hsm, hflow⟩ := FlowComplete.complete G
-  refine ⟨⟨φ, hdom, hdiv, hgrp, hid, hsm⟩, ?_⟩
-  apply InfoGeometricGenerator.ext_vectorField
-  funext θ
-  -- the generator of the constructed family is d/dt φ_t(θ)|₀ = X(θ)
-  show fderiv ℝ (fun t => φ t θ) 0 1 = G.vectorField θ
-  rw [fderiv_apply_one_eq_deriv]
-  exact (hflow θ).deriv
+The agreement is required only on the domain because that is where — and
+only where — the generator structure carries geometric content: demanding
+it globally is unsatisfiable once the domain is bounded
+(`not_forall_hasGlobalFlow_of_isBounded`).
+
+This is the information-geometric analogue of essential self-adjointness
+in Stone's theorem, and like it, a genuine hypothesis: the flat location
+model on a bounded interval with `X = d/dθ` — mirroring the momentum
+operator on `(0,1)`, symmetric with no self-adjoint extension — is
+Killing and cubic-preserving, but no domain-preserving family realizes
+it.  Deriving `FlowComplete` for concrete models from Fisher geodesic
+completeness and divergence rigidity is future work (see the section
+docstring). -/
+def FlowComplete (M : TwiceDifferentiableModel n Ω) : Prop :=
+  ∀ G : InfoGeometricGenerator M, ∃ F : M.DivergencePreservingFamily,
+    ∀ θ ∈ M.paramDomain, F.generator θ = G.vectorField θ
 
 -- ============================================================================
 -- §8. The Information-Geometric Stone's Theorem
 -- ============================================================================
 
-/-- **The Information-Geometric Stone's Theorem (weak form).**
-
-| Stone's Theorem                     | IG Stone's Theorem                      |
-|-------------------------------------|-----------------------------------------|
-| One-parameter unitary groups        | Divergence-preserving families          |
-| Self-adjoint operators              | Info-geometric generators (L_Xg=L_XC=0) |
-| Essential self-adjointness          | Flow completeness                       |
-| U(t) = e^{itA}                      | φ_t = flow of X                         |
-| Schrödinger equation                | Flow equation dθ/dt = X(θ)              |
-
-When the statistical manifold is the pure state space of a Hilbert space
-(with Fisher metric = 4 × Fubini-Study metric), this reduces to Stone's
-theorem for one-parameter unitary groups. -/
-theorem infoGeometric_stone_weak
-    (M₃ : ThriceDifferentiableModel n Ω)
-    (hM₃ : M₃.toTwiceDifferentiableModel = M)
-    (hC : ∀ θ ∈ M.paramDomain, ∀ a b c : Fin n,
-      DifferentiableAt ℝ (fun θ' => M.cubicTensor θ' a b c) θ) :
-    ∀ F : M.DivergencePreservingFamily,
-    ∃! G : InfoGeometricGenerator M,
-      F.toGenerator M₃ hM₃ hC = G ∧
-      (∃ F' : M.DivergencePreservingFamily,
-        F'.toGenerator M₃ hM₃ hC = G ∧ ∀ t θ, F'.φ t θ = F.φ t θ) := by
-  intro F
-  refine ⟨F.toGenerator M₃ hM₃ hC, ⟨rfl, F, rfl, fun _ _ => rfl⟩, ?_⟩
-  intro G ⟨hG, _⟩
-  exact hG.symm
-
 /-- Two smooth solutions of γ' = X(γ) with the same initial condition
     agree on a neighborhood of 0. Uses Grönwall via
     `dist_le_of_trajectories_ODE_of_mem` with δ = 0. -/
 private lemma smooth_ode_local_unique
-    {X : ParamSpace n → ParamSpace n} (hX : ContDiff ℝ ⊤ X)
+    {X : ParamSpace n → ParamSpace n} (hX : ContDiff ℝ (⊤ : ℕ∞) X)
     {γ₁ γ₂ : ℝ → ParamSpace n}
-    (hγ₁ : ContDiff ℝ ⊤ γ₁) (hγ₂ : ContDiff ℝ ⊤ γ₂)
+    (hγ₁ : ContDiff ℝ (⊤ : ℕ∞) γ₁) (hγ₂ : ContDiff ℝ (⊤ : ℕ∞) γ₂)
     (h_ode₁ : ∀ s, HasDerivAt γ₁ (X (γ₁ s)) s)
     (h_ode₂ : ∀ s, HasDerivAt γ₂ (X (γ₂ s)) s)
     (h₀ : γ₁ 0 = γ₂ 0) :
@@ -816,23 +980,21 @@ private lemma smooth_ode_local_unique
       rwa [neg_neg] at this⟩
 
 
-/-- **Uniqueness of the flow**: Two divergence-preserving families with
-the same infinitesimal generator have identical flows.
+/-- **Uniqueness of flows on an invariant set.**  Two divergence-preserving
+families whose generators agree on a set `D` invariant under both flows
+have identical flows on `D`.
 
-This is ODE uniqueness (Picard–Lindelöf) applied to dθ/dt = X(θ):
-both families solve the same smooth ODE with the same initial condition
-φ_0 = id, so they agree for all time. No completeness hypothesis needed. -/
-lemma infoGeometric_stone_unique
-    (F₁ F₂ : M.DivergencePreservingFamily)
-    (M₃ : ThriceDifferentiableModel n Ω)
-    (hM₃ : M₃.toTwiceDifferentiableModel = M)
-    (hC : ∀ θ ∈ M.paramDomain, ∀ a b c : Fin n,
-      DifferentiableAt ℝ (fun θ' => M.cubicTensor θ' a b c) θ)
-    (h : F₁.toGenerator M₃ hM₃ hC = F₂.toGenerator M₃ hM₃ hC) :
-    ∀ t θ, F₁.φ t θ = F₂.φ t θ := by
-  have hgen : ∀ θ, F₁.generator θ = F₂.generator θ :=
-    fun θ => congr_fun (congr_arg InfoGeometricGenerator.vectorField h) θ
-  intro t θ
+This is ODE uniqueness (Grönwall plus a clopen argument in `t`) applied to
+dθ/dt = X(θ): both trajectories through a point of `D` stay in `D`, where
+they solve the *same* smooth ODE with the same initial condition.  Note the
+hypotheses — no completeness, and none of the third-order model data that
+the forward map `toGenerator` needs. -/
+lemma flow_eqOn_of_generator_eqOn
+    (F₁ F₂ : M.DivergencePreservingFamily) {D : Set (ParamSpace n)}
+    (hD₁ : ∀ t, Set.MapsTo (F₁.φ t) D D) (hD₂ : ∀ t, Set.MapsTo (F₂.φ t) D D)
+    (hgen : ∀ θ ∈ D, F₁.generator θ = F₂.generator θ) :
+    ∀ t, ∀ θ ∈ D, F₁.φ t θ = F₂.φ t θ := by
+  intro t θ hθ
   set S := {t : ℝ | F₁.φ t θ = F₂.φ t θ}
   suffices hS : S = Set.univ from Set.eq_univ_iff_forall.mp hS t
   -- 0 ∈ S
@@ -847,8 +1009,9 @@ lemma infoGeometric_stone_unique
   have hopen : IsOpen S := by
       rw [isOpen_iff_forall_mem_open]
       intro t₀ ht₀
-      -- At t₀, both flows pass through θ₀ := F₁.φ t₀ θ = F₂.φ t₀ θ
-      set θ₀ := F₁.φ t₀ θ
+      -- At t₀, both flows pass through θ₀ := F₁.φ t₀ θ = F₂.φ t₀ θ ∈ D
+      set θ₀ := F₁.φ t₀ θ with hθ₀_def
+      have hθ₀ : θ₀ ∈ D := hD₁ t₀ hθ
       have h_ode_unique : ∃ ε > 0, ∀ s, |s| < ε →
           F₁.φ s θ₀ = F₂.φ s θ₀ := by
         apply smooth_ode_local_unique (X := F₁.generator)
@@ -865,14 +1028,15 @@ lemma infoGeometric_stone_unique
               (by simp)).differentiableAt
           have h := h_diff.hasFDerivAt.hasDerivAt
           rwa [F₁.flow_equation θ₀ s] at h
-        -- h_ode₂: F₂ solves the SAME ODE (generator = F₁.generator by hgen)
+        -- h_ode₂: F₂ solves the SAME ODE on D (generators agree there, and
+        -- F₂'s trajectory through θ₀ ∈ D stays in D)
         · intro s
           have h_diff : DifferentiableAt ℝ (fun t => F₂.φ t θ₀) s :=
             ((F₂.smooth.comp (contDiff_id.prodMk contDiff_const)).differentiable
               (by simp)).differentiableAt
           have h := h_diff.hasFDerivAt.hasDerivAt
           rw [F₂.flow_equation θ₀ s] at h
-          rwa [← hgen] at h
+          rwa [← hgen _ (hD₂ s hθ₀)] at h
         -- h₀: same initial condition
         · rw [F₁.identity, F₂.identity]
       obtain ⟨ε, hε, h_agree⟩ := h_ode_unique
@@ -895,42 +1059,49 @@ lemma infoGeometric_stone_unique
   exact (isClopen_iff.mp ⟨hclosed, hopen⟩).resolve_left
     (Set.Nonempty.ne_empty ⟨0, h0⟩)
 
-/-- **Existence of the flow**: Under flow-completeness, every
-info-geometric generator integrates to a global divergence-preserving
-family. -/
-lemma infoGeometric_stone_exists
-    [FlowComplete M]
-    (M₃ : ThriceDifferentiableModel n Ω)
-    (hM₃ : M₃.toTwiceDifferentiableModel = M)
-    (hC : ∀ θ ∈ M.paramDomain, ∀ a b c : Fin n,
-      DifferentiableAt ℝ (fun θ' => M.cubicTensor θ' a b c) θ)
-    (G : InfoGeometricGenerator M) :
-    ∃ F : M.DivergencePreservingFamily, F.toGenerator M₃ hM₃ hC = G :=
-  generator_integrates_to_family M₃ hM₃ hC G
+/-- **Uniqueness of the flow.**  Two divergence-preserving families whose
+generators agree on the parameter domain have identical flows on the
+domain: the instance of `flow_eqOn_of_generator_eqOn` for
+`D = M.paramDomain`, which is invariant under both flows by
+`maps_domain`.  No completeness hypothesis needed. -/
+lemma infoGeometric_stone_unique
+    (F₁ F₂ : M.DivergencePreservingFamily)
+    (h : ∀ θ ∈ M.paramDomain, F₁.generator θ = F₂.generator θ) :
+    ∀ t, ∀ θ ∈ M.paramDomain, F₁.φ t θ = F₂.φ t θ :=
+  flow_eqOn_of_generator_eqOn F₁ F₂
+    (fun t _ hθ => F₁.maps_domain t _ hθ)
+    (fun t _ hθ => F₂.maps_domain t _ hθ) h
 
 /-- **The Information-Geometric Stone's Theorem.**
 
-Under flow-completeness, the map `toGenerator` is a bijection
-(up to pointwise flow equality) between divergence-preserving
-one-parameter families and info-geometric generators.
+Under flow-completeness, every information-geometric generator integrates
+to a divergence-preserving family realizing its field on the parameter
+domain — and the family is unique there: any other family realizing the
+same field on the domain has the same flow on the domain.
 
-| Direction   | Content                        | Analogue in Stone's theorem     |
-|-------------|--------------------------------|---------------------------------|
-| Surjective  | Every generator has a flow     | e^{itA} exists (self-adjoint A) |
-| Injective   | Generator determines the flow  | A determines U(t) uniquely      |
--/
-theorem infoGeometric_stone [FlowComplete M]
-    (M₃ : ThriceDifferentiableModel n Ω)
-    (hM₃ : M₃.toTwiceDifferentiableModel = M)
-    (hC : ∀ θ ∈ M.paramDomain, ∀ a b c : Fin n,
-      DifferentiableAt ℝ (fun θ' => M.cubicTensor θ' a b c) θ) :
-    (∀ G : InfoGeometricGenerator M,
-      ∃ F : M.DivergencePreservingFamily, F.toGenerator M₃ hM₃ hC = G) ∧
-    (∀ F₁ F₂ : M.DivergencePreservingFamily,
-      F₁.toGenerator M₃ hM₃ hC = F₂.toGenerator M₃ hM₃ hC →
-      ∀ t θ, F₁.φ t θ = F₂.φ t θ) :=
-  ⟨fun G => infoGeometric_stone_exists M₃ hM₃ hC G,
-   fun F₁ F₂ h => infoGeometric_stone_unique F₁ F₂ M₃ hM₃ hC h⟩
+| Stone's Theorem                     | IG Stone's Theorem                       |
+|-------------------------------------|------------------------------------------|
+| One-parameter unitary groups        | Divergence-preserving families           |
+| Self-adjoint operators              | Info-geometric generators (L_Xg=L_XC=0)  |
+| Essential self-adjointness          | Flow completeness                        |
+| U(t) = e^{itA}                      | φ_t = flow of X                          |
+| A determines U(t) uniquely          | X on the domain determines φ_t there     |
+
+The forward direction — the generator of every family is itself an
+info-geometric generator — is `DivergencePreservingFamily.toGenerator`;
+it needs third-order model regularity, which this statement does not.
+When the statistical manifold is the pure state space of a Hilbert space
+(with Fisher metric = 4 × Fubini–Study metric), this reduces to Stone's
+theorem for one-parameter unitary groups. -/
+theorem infoGeometric_stone (hM : FlowComplete M) (G : InfoGeometricGenerator M) :
+    ∃ F : M.DivergencePreservingFamily,
+      (∀ θ ∈ M.paramDomain, F.generator θ = G.vectorField θ) ∧
+      ∀ F' : M.DivergencePreservingFamily,
+        (∀ θ ∈ M.paramDomain, F'.generator θ = G.vectorField θ) →
+        ∀ t, ∀ θ ∈ M.paramDomain, F'.φ t θ = F.φ t θ := by
+  obtain ⟨F, hF⟩ := hM G
+  exact ⟨F, hF, fun F' hF' =>
+    infoGeometric_stone_unique F' F fun θ hθ => (hF' θ hθ).trans (hF θ hθ).symm⟩
 
 end TwiceDifferentiableModel
 

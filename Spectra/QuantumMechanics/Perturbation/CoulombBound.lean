@@ -8,8 +8,8 @@ import Spectra.QuantumMechanics.Hydrogen.Laplacian.HalfLaplacian
 import Spectra.OneParameterUnitaryGroup.Basic
 import Spectra.YosidaHille.Basic
 import Spectra.QuantumMechanics.Perturbation.HardyInequality
-import Spectra.QuantumMechanics.Perturbation.KatoRellich
-import Spectra.SobolevSpaces.DensityResults
+import Spectra.Operator.KatoRellich
+import Spectra.Spaces.Sobolev.DensityResults
 import Spectra.Operator.SelfAdjoint
 import Spectra.SpectralTheory.ResolventForm
 import Spectra.Resolvent.Range
@@ -84,7 +84,6 @@ open MeasureTheory Complex Filter InnerProductSpace
 open Spectra.Sobolev
 open Spectra.OneParameterUnitaryGroup
 open Spectra.Operator
-open Spectra.QuantumMechanics.Hamiltonian
 open Spectra.Resolvent
 open scoped Topology NNReal ENNReal
 

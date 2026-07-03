@@ -3,10 +3,10 @@ Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
-import Spectra.SobolevSpaces.WeakDerivative
-import Spectra.SobolevSpaces.IntegrationByParts
-import Spectra.SobolevSpaces.MeyersMulti
-import Spectra.SobolevSpaces.Density
+import Spectra.Spaces.Sobolev.WeakDerivative
+import Spectra.Spaces.Sobolev.IntegrationByParts
+import Spectra.Spaces.Sobolev.MeyersMulti
+import Spectra.Spaces.Sobolev.Density
 import Mathlib.Analysis.FunctionalSpaces.SobolevInequality
 import Mathlib.MeasureTheory.Function.ConvergenceInMeasure
 import Mathlib.MeasureTheory.Function.LpSpace.Complete

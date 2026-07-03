@@ -4,7 +4,7 @@ Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Spectra.QuantumMechanics.DiracEquation.CliffordAlgebra
-import Spectra.SobolevSpaces.WeakDerivative
+import Spectra.Spaces.Sobolev.WeakDerivative
 import Mathlib.Analysis.InnerProductSpace.PiL2
 import Mathlib.Analysis.InnerProductSpace.Adjoint
 /-!
@@ -17,7 +17,7 @@ scalar space `L²(ℝ³)`:
   `L²(ℝ³; ℂ⁴) ≅ L²(ℝ³) ⊕ L²(ℝ³) ⊕ L²(ℝ³) ⊕ L²(ℝ³)`.
 
 We take this `ℓ²`-sum model directly: `DiracSpinorL2 := PiLp 2 (fun _ : Fin 4 => L2_R3)`, where
-`L2_R3` is the scalar space from `SobolevSpaces`. This makes all of the scalar Sobolev/Fourier
+`L2_R3` is the scalar space from `Spaces.Sobolev`. This makes all of the scalar Sobolev/Fourier
 machinery available componentwise, which is what later files use to build the free Dirac operator.
 
 The first piece of structure beyond the space itself is the action of a **constant** `4 × 4`
