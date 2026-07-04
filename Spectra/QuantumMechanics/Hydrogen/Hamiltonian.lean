@@ -14,7 +14,7 @@ Assembly of `H = −Δ − Z/r` as a self-adjoint operator on `H²(ℝ³)`, and 
 connection to the spectral pipeline (Stone's theorem, the resolvent).
 
 This is the **interface file**: the analytic content lives upstream
-(`HardyInequality`, `CoulombBound`), and here we package it into the abstract
+(`Hardy/Inequality/`, `CoulombBound`), and here we package it into the abstract
 objects the spectral machinery consumes. In the current architecture the central
 object is `perturbedOp laplacianPMap (coulombPotential p)`, shown self-adjoint by
 `hydrogen_isSelfAdjoint` (Kato–Rellich) in `CoulombBound`; this file re-exports it
@@ -55,7 +55,7 @@ namespace Spectra.QuantumMechanics.Hydrogen
 /-- The hydrogen Hamiltonian `H = −½Δ − Z/r` as a partial linear map on `L²(ℝ³)`,
 with domain `H²(ℝ³)`. (The sign and charge are inside `coulombMultiplier`; the
 kinetic term is the textbook `−½Δ`.) -/
-def hydrogenHamiltonian (p : CoulombParams) : L2_R3 →ₗ.[ℂ] L2_R3 :=
+def hydrogenHamiltonian (p : CoulombParams) : l2R3 →ₗ.[ℂ] l2R3 :=
   perturbedOp halfLaplacianPMap (coulombPotential p)
 
 /-- The hydrogen Hamiltonian is self-adjoint on `H²(ℝ³)` (Kato–Rellich, via Hardy);
@@ -77,13 +77,13 @@ theorem hydrogenHamiltonian_apply (p : CoulombParams)
   rfl
 
 /-- The hydrogen Hamiltonian bundled as a `SelfAdjointOperator`. -/
-def hydrogenObservable (p : CoulombParams) : SelfAdjointOperator L2_R3 where
+def hydrogenObservable (p : CoulombParams) : SelfAdjointOperator l2R3 where
   toLinearPMap := hydrogenHamiltonian p
   selfAdjoint := hydrogen_isSelfAdjoint p
 
 /-- The hydrogen unitary evolution `U(t) = e^{itH}` (Stone's theorem). -/
 def hydrogenUnitaryGroup (p : CoulombParams) :
-    OneParameterUnitaryGroup (H := L2_R3) :=
+    OneParameterUnitaryGroup (H := l2R3) :=
   genToGroup (hydrogen_isSelfAdjoint p)
 
 /-- The generator of `e^{itH}` is `H`. -/
@@ -102,15 +102,15 @@ structure HydrogenData where
 namespace HydrogenData
 
 /-- The Hamiltonian `H = −Δ − Z/r`. -/
-def hamiltonian (d : HydrogenData) : L2_R3 →ₗ.[ℂ] L2_R3 :=
+def hamiltonian (d : HydrogenData) : l2R3 →ₗ.[ℂ] l2R3 :=
   hydrogenHamiltonian d.params
 
 /-- The Hamiltonian as a `SelfAdjointOperator`. -/
-def observable (d : HydrogenData) : SelfAdjointOperator L2_R3 :=
+def observable (d : HydrogenData) : SelfAdjointOperator l2R3 :=
   hydrogenObservable d.params
 
 /-- The unitary evolution `e^{itH}`. -/
-def unitaryGroup (d : HydrogenData) : OneParameterUnitaryGroup (H := L2_R3) :=
+def unitaryGroup (d : HydrogenData) : OneParameterUnitaryGroup (H := l2R3) :=
   hydrogenUnitaryGroup d.params
 
 /-- Self-adjointness of the Hamiltonian. -/

@@ -29,14 +29,17 @@ where I(θ) is the Fisher information. Equality holds iff T is an
 
 ## Main statements
 
-* `covariance_score_identity` — Cov_θ(T, sᵢ) = ∂ᵢE_θ[T]
-* `integral_mul_sq_le` — Cauchy–Schwarz for density-weighted integrals
-* `cramerRao_scalar` — the scalar Cramér–Rao bound
-* `cramerRao_saturated` — equality characterization
+* `variance_eq_centered` — Var_θ(T) as a density-weighted integral of the centred square
+
+This file supplies only the estimation vocabulary and the centering identity; the bound itself
+is assembled downstream, by name: `Covariance.covariance_score_eq_deriv_target` (the
+covariance–score identity), `CauchySchwarz.integral_mul_sq_le` (density-weighted
+Cauchy–Schwarz), and `Bound.cramerRao_scalar` / `Bound.cramerRao_saturated` (the bound and its
+saturation case). See `[[Cramer-Rao Bound]]` in the vault for the assembled statement.
 
 ## Proof strategy
 
-The key steps are:
+The key steps of the full derivation — spread across this cluster, not this file alone — are:
 1. **Differentiate the unbiasedness constraint** E_θ[T] = τ(θ) to get
    ∫ T · ∂ᵢp dμ = ∂ᵢτ (the Leibniz–unbiasedness identity)
 2. **Rewrite** using `∂ᵢp = sᵢ · p` a.e. to get `∫ T · sᵢ · p dμ = ∂ᵢτ`
@@ -47,20 +50,6 @@ The key steps are:
 
 The inequality is tight iff `T − E[T]` and `sᵢ` are linearly dependent
 in `L²(P_θ)`, i.e. `T = a + b · sᵢ` a.e. for constants `a`, `b`.
-
-## Connection to thermodynamics
-
-The Cramér–Rao bound is a statement about information geometry: the
-Fisher metric measures the "stiffness" of the statistical manifold.
-Lower variance requires higher Fisher information, which means the
-distributions are more distinguishable — exactly the regime where
-entropy production (in measurement) is maximised.
-
-Fisher information `I(θ) = ∫ (∂ log p)² p dμ` has the same form as
-entropy production rate in irreversible thermodynamics: both measure
-the cost of change.  The Cramér–Rao bound can therefore be read as a
-thermodynamic uncertainty relation: the precision of any measurement
-is bounded by the entropy cost of making it.
 
 ## References
 
@@ -83,14 +72,22 @@ variable (M : RegularStatisticalModel n Ω)
 
 /-- The **variance** of a random variable `T : Ω → ℝ` under the
 model distribution `P_θ`:
-  `Var_θ(T) = E_θ[(T − E_θ[T])²] = E_θ[T²] − E_θ[T]²` -/
+  `Var_θ(T) = E_θ[(T − E_θ[T])²] = E_θ[T²] − E_θ[T]²`
+
+`expectation` is the (totalized) Bochner integral `∫ T · p dμ`, defined for *every* `T` and
+junk-valued (`0`) off integrability. This definition is therefore density-form notation for
+every `T`, and only certified to be the statistical variance once `T` and `T²` are integrable —
+`variance_eq_centered` gives that certification under `IsRegularEstimator`. -/
 noncomputable def variance {θ : ParamSpace n} (hθ : θ ∈ M.paramDomain)
     (T : Ω → ℝ) : ℝ :=
   M.toStatisticalModel.expectation hθ (fun ω => (T ω) ^ 2) -
     (M.toStatisticalModel.expectation hθ T) ^ 2
 
 /-- The **covariance** of random variables `T, U` under `P_θ`:
-  `Cov_θ(T, U) = E_θ[TU] − E_θ[T] E_θ[U]` -/
+  `Cov_θ(T, U) = E_θ[TU] − E_θ[T] E_θ[U]`
+
+Totalized the same way as `variance` above: defined via the Bochner integral for every `T, U`,
+and the statistical covariance interpretation needs their integrability. -/
 noncomputable def covariance {θ : ParamSpace n} (hθ : θ ∈ M.paramDomain)
     (T U : Ω → ℝ) : ℝ :=
   M.toStatisticalModel.expectation hθ (fun ω => T ω * U ω) -
@@ -170,8 +167,8 @@ lemma variance_eq_centered {θ : ParamSpace n}
     integral_sub hf₁ hf₂
   rw [h1, h2, h3]
   -- Unfold f's, pull constants, normalize, fold ∫ Tp back to E_T
-  simp only [f₁, f₂, f₃]-- unused: integral_const_mul, M.toStatisticalModel.density_integral_one θ hθ, ← hE_def
-  ring_nf;
+  simp only [f₁, f₂, f₃]
+  ring_nf
   -- Pull constants out of the middle integral
   have mid : ∫ ω, E_T * T ω * M.density θ ω * 2 ∂M.refMeasure =
       2 * E_T * ∫ ω, T ω * M.density θ ω ∂M.refMeasure := by

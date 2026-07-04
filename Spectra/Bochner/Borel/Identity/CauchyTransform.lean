@@ -2,19 +2,55 @@
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
-Filename: Bochner/Borel/Identity/CauchyTransform.lean
 -/
 import Spectra.Bochner.Borel.CDF
 import Spectra.Kernel.Resolvent
 import Spectra.Resolvent.Identities
 
+/-!
+# The Cauchy Transform of the Helly Limit and the Diagonal Resolvent
+
+The Bochner-route proof of the spectral theorem identifies the diagonal resolvent matrix element
+`⟪ξ, R(z)ξ⟫` (`z` off the real axis) as the Cauchy transform of a limit measure obtained via
+Helly selection from the mollified Poisson densities `borelDensity`. This file proves that
+identification: the Cauchy transform of the approximants along the Helly subsequence converges to
+`⟪ξ, R(z)ξ⟫` for every `z` with nonzero imaginary part
+(`borel_cauchy_approx_tendsto`).
+
+## Main definitions
+
+* `borelSubseq`: the strictly monotone subsequence of indices selected by Helly's theorem.
+* `borelCauchyApprox`: the Cauchy transform `∫ (λ - z)⁻¹ dμ_k(λ)` of the `k`-th approximant's
+  Poisson density, evaluated along the Helly subsequence.
+
+## Main statements
+
+* `borel_cauchy_approx_tendsto`: `borelCauchyApprox U_grp ξ z` tends to `⟪ξ, R(z)ξ⟫` as `k → ∞`.
+
+## Implementation notes
+
+The proof has two parts. First, a lower-half-plane core case (`w.im < 0`): the Cauchy kernel
+`(λ - w)⁻¹` is rewritten via its Laplace representation as a one-sided Fourier integral, a Fubini
+swap exposes the Fourier-transform identity `borelDensity_fourier`, and the resulting expression is
+recognised as the resolvent at `w - iε k`, which tends to the resolvent at `w` as `ε k → 0`.
+Second, a conjugation dichotomy transports the lower-half-plane result to the upper half-plane:
+for `z.im > 0`, `borelCauchyApprox U_grp ξ z` is the complex conjugate of the (already-proved)
+lower-half-plane value at `conj z`.
+
+## References
+
+* Reed, Simon, *Methods of Modern Mathematical Physics I*, Section VII (Stieltjes–Perron
+  inversion and the Cauchy/Poisson representation of the resolvent).
+
+## Tags
+
+Cauchy transform, resolvent, Herglotz representation, Helly selection
+-/
+
 open Complex MeasureTheory Filter Topology
 open Spectra.Resolvent
-open Spectra.Fourier
-open Spectra.Kernels
-open Spectra.Herglotz
 open Spectra.OneParameterUnitaryGroup
-open scoped InnerProductSpace ENNReal ComplexConjugate
+open scoped InnerProductSpace ComplexConjugate
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
 namespace Spectra.Borel
 variable (U_grp : OneParameterUnitaryGroup (H := H))
@@ -34,6 +70,7 @@ private lemma borelSubseq_eps_tendsto (U_grp : OneParameterUnitaryGroup (H := H)
   tendsto_one_div_add_atTop_nhds_zero_nat.comp
     (borelHelly U_grp ξ).choose_spec.choose_spec.1.tendsto_atTop
 
+/-- `borelSubseq` is strictly monotone, as guaranteed by Helly's selection theorem. -/
 lemma borelSubseq_strictMono (U_grp : OneParameterUnitaryGroup (H := H)) (ξ : H) :
     StrictMono (borelSubseq U_grp ξ) :=
   (borelHelly U_grp ξ).choose_spec.choose_spec.1
@@ -42,14 +79,14 @@ lemma borelSubseq_strictMono (U_grp : OneParameterUnitaryGroup (H := H)) (ξ : H
 lemma borelApproxCDF_tendsto_rat (U_grp : OneParameterUnitaryGroup (H := H)) (ξ : H) (q : ℚ) :
     Tendsto (fun k => borelApproxCDF U_grp ξ (borelSubseq U_grp ξ k) (q : ℝ)) atTop
       (𝓝 (borelLimitCDF U_grp ξ (q : ℝ))) :=
-  (borelHelly U_grp ξ).choose_spec.choose_spec.2.2.2.1 q
+  borelLimitCDF_tendsto_rat U_grp ξ q
 
 /-- Convergence at continuity points of the limit CDF — the input to vague convergence (a). -/
 lemma borelApproxCDF_tendsto_continuousAt (U_grp : OneParameterUnitaryGroup (H := H)) (ξ : H)
     {x : ℝ} (hx : ContinuousAt (borelLimitCDF U_grp ξ) x) :
     Tendsto (fun k => borelApproxCDF U_grp ξ (borelSubseq U_grp ξ k) x) atTop
       (𝓝 (borelLimitCDF U_grp ξ x)) :=
-  (borelHelly U_grp ξ).choose_spec.choose_spec.2.2.2.2 x hx
+  borelLimitCDF_tendsto_continuousAt U_grp ξ x hx
 
 /-- Cauchy transform under complex conjugation (density form): for a real-
 valued density `ρ`, conjugating the Cauchy-type integral at `z` gives the
@@ -61,7 +98,8 @@ lemma cauchy_density_integral_conj (ρ : ℝ → ℝ) (z : ℂ) :
   refine integral_congr_ae (Filter.Eventually.of_forall fun l => ?_)
   simp only [map_mul, map_inv₀, map_sub, Complex.conj_ofReal]
 
-/-- The approximant's Cauchy transform tends to `m z`. -/
+/-- The approximant's Cauchy transform tends to the diagonal resolvent matrix element
+`⟪ξ, R(z)ξ⟫`. -/
 lemma borel_cauchy_approx_tendsto
     (U_grp : OneParameterUnitaryGroup (H := H)) (ξ : H) {z : ℂ} (hz : z.im ≠ 0) :
     Tendsto (borelCauchyApprox U_grp ξ z) atTop
@@ -70,7 +108,7 @@ lemma borel_cauchy_approx_tendsto
   have hsym  := generator_isFormalAdjoint U_grp
   have hplus := range_plus_i_eq_top  U_grp
   have hmin  := range_minus_i_eq_top U_grp
-  ------------------------------------------------------------------ LOWER-HALF CORE
+  -- The lower-half-plane core case: `w.im < 0`.
   have core : ∀ (w : ℂ) (hw : w.im < 0),
       Tendsto (borelCauchyApprox U_grp ξ w) atTop
         (𝓝 ⟪ξ, resolvent w (ne_of_lt hw) hsym hplus hmin ξ⟫_ℂ) := by
@@ -83,7 +121,8 @@ lemma borel_cauchy_approx_tendsto
                      Complex.ofReal_re, Complex.ofReal_im]
     have hwk : ∀ k, (w - I * (ε k : ℂ)).im < 0 := fun k => by
       rw [hwk_im k]; linarith [hε k]
-    -- ════════ STEP A ════════
+    -- Step A: the approximant's Cauchy transform equals the resolvent at the shifted point
+    -- `w - iε k`, via the Laplace representation of the Cauchy kernel and `borelDensity_fourier`.
     have stepA : ∀ k,
         borelCauchyApprox U_grp ξ w k
           = ⟪ξ, resolvent (w - I*(ε k:ℂ)) (ne_of_lt (hwk k)) hsym hplus hmin ξ⟫_ℂ := by
@@ -141,16 +180,22 @@ lemma borel_cauchy_approx_tendsto
       -- (iii) unfold, substitute kernel, pull constants, swap, apply borelDensity_fourier:
       unfold borelCauchyApprox
       simp_rw [hker]
-      rw [show (∫ lambda : ℝ, (-I * ∫ t in Set.Ici (0:ℝ),
-                  cexp (-(I*w*(t:ℂ))) * cexp (I*(lambda:ℂ)*(t:ℂ)))
-                  * (borelDensity U_grp ξ (borelEps_pos (borelSubseq U_grp ξ k)) lambda : ℂ))
+      -- Pull the constant `-I` out of the outer λ-integral, past the inner t-integral.
+      have hpull_neg_I :
+          (∫ lambda : ℝ, (-I * ∫ t in Set.Ici (0:ℝ),
+                cexp (-(I*w*(t:ℂ))) * cexp (I*(lambda:ℂ)*(t:ℂ)))
+                * (borelDensity U_grp ξ (borelEps_pos (borelSubseq U_grp ξ k)) lambda : ℂ))
             = -I * ∫ lambda : ℝ, ∫ t in Set.Ici (0:ℝ),
-                  cexp (-(I*w*(t:ℂ))) * cexp (I*(lambda:ℂ)*(t:ℂ))
-                  * (borelDensity U_grp ξ (borelEps_pos (borelSubseq U_grp ξ k)) lambda : ℂ)
-            from by rw [← integral_const_mul]; congr 1; funext lambda
-                    field_simp; rw [← integral_mul_const]; congr 1;
-                    grind]
-      rw [integral_integral_swap hswap_int]
+                cexp (-(I*w*(t:ℂ))) * cexp (I*(lambda:ℂ)*(t:ℂ))
+                * (borelDensity U_grp ξ (borelEps_pos (borelSubseq U_grp ξ k)) lambda : ℂ) := by
+        rw [← integral_const_mul]
+        congr 1
+        funext lambda
+        field_simp
+        rw [← integral_mul_const]
+        congr 1
+        grind
+      rw [hpull_neg_I, integral_integral_swap hswap_int]
       -- inner λ-integral: pull e^{-iwt} out, fold by borelDensity_fourier
       have hinner : ∀ t : ℝ,
           (∫ lambda : ℝ, cexp (-(I*w*(t:ℂ))) * cexp (I*(lambda:ℂ)*(t:ℂ))
@@ -186,7 +231,7 @@ lemma borel_cauchy_approx_tendsto
         simp [Complex.mul_re, Complex.mul_im, Complex.I_re, Complex.I_im,
               Complex.ofReal_re, Complex.ofReal_im, Complex.neg_re, Complex.neg_im,
               Complex.add_re, Complex.add_im]; ring
-    -- ════════ STEP B  ✓ ════════
+    -- Step B: the shifted resolvent tends to the resolvent at `w` as `ε k → 0`.
     have stepB :
         Tendsto (fun k => ⟪ξ, resolvent (w - I*(ε k:ℂ)) (ne_of_lt (hwk k)) hsym hplus hmin ξ⟫_ℂ)
           atTop (𝓝 ⟪ξ, resolvent w (ne_of_lt hw) hsym hplus hmin ξ⟫_ℂ) := by
@@ -199,7 +244,8 @@ lemma borel_cauchy_approx_tendsto
         (resolvent_tendsto hsym hplus hmin (ne_of_lt hw)
           (fun k => ne_of_lt (hwk k)) h_lim ξ)
     exact stepB.congr (fun k => (stepA k).symm)
-  ------------------------------------------------------------------ DICHOTOMY  ✓
+  -- Dichotomy: the lower-half-plane case is `core`; the upper-half-plane case transports it
+  -- through the conjugation identity `cauchy_density_integral_conj`.
   rcases hz.lt_or_gt with hneg | hpos
   · exact core z hneg
   · have hcz_lt : (starRingEnd ℂ z).im < 0 := by

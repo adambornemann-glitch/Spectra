@@ -98,7 +98,7 @@ pairing the `i`-component against an arbitrary `R` reduces, through the unitary
 `sphericalDecomposition` (`lp.inner_single_left`, `inner_map_map`,
 `sphericalDecomposition_symm_single`) and the Fubini identity
 `inner_sectorEmbedding_eq_integral_coeffFun`, to the radial pairing of `R` against `coeffFun i Φ`. -/
-lemma sphericalDecomposition_eq_toLp_coeffFun (Φ : Decomposition.L2_R3) (i : HarmonicIdx) :
+lemma sphericalDecomposition_eq_toLp_coeffFun (Φ : Decomposition.l2R3) (i : HarmonicIdx) :
     sphericalDecomposition Φ i = (memLp_coeffFun i Φ).toLp (coeffFun i Φ) := by
   refine ext_inner_left ℂ (fun R => ?_)
   -- LHS: ⟪R, w i⟫ = ⟪single i R, w⟫ = ⟪symm (single i R), Φ⟫ = ⟪sectorEmbedding i R, Φ⟫
@@ -126,16 +126,16 @@ is `forward_eigenvalue`'s sector analysis run with the *given* eigenvalue and cl
 lemma sector_reIm_dichotomy (n : ℕ) (hn1 : 1 ≤ n)
     (ψ' : (hydrogenHamiltonian ⟨1, one_pos⟩).domain)
     (heig' : hydrogenHamiltonian ⟨1, one_pos⟩ ψ'
-      = ((hydrogenEigenvalue n hn1 : ℝ) : ℂ) • (ψ' : Spectra.Sobolev.L2_R3))
+      = ((hydrogenEigenvalue n hn1 : ℝ) : ℂ) • (ψ' : Spectra.Sobolev.l2R3))
     (ℓ m : ℕ) (hm : m ≤ ℓ) (L : ℂ →L[ℝ] ℝ) :
     (∀ᵐ r ∂radialMeasure, L (coeffFun ⟨ℓ, -(m : ℤ), by rw [abs_neg]; simpa using hm⟩
-        (chartRealization (ψ' : Spectra.Sobolev.L2_R3)) r) = 0) ∨
+        (chartRealization (ψ' : Spectra.Sobolev.l2R3)) r) = 0) ∨
       (∃ (hℓn : ℓ + 1 ≤ n) (c : ℝ), ∀ᵐ r ∂radialMeasure,
         L (coeffFun ⟨ℓ, -(m : ℤ), by rw [abs_neg]; simpa using hm⟩
-          (chartRealization (ψ' : Spectra.Sobolev.L2_R3)) r)
+          (chartRealization (ψ' : Spectra.Sobolev.l2R3)) r)
           = c * hydrogenRadialWavefunction n ℓ hℓn r) := by
   classical
-  set Φ' := chartRealization (ψ' : Spectra.Sobolev.L2_R3) with hΦ'
+  set Φ' := chartRealization (ψ' : Spectra.Sobolev.l2R3) with hΦ'
   set g : ℝ → ℂ := coeffFun ⟨ℓ, -(m : ℤ), by rw [abs_neg]; simpa using hm⟩ Φ' with hg
   set E := hydrogenEigenvalue n hn1 with hE
   -- raw classical `C²` solution of the log-coordinate ODE (mirrors `forward_eigenvalue`)
@@ -187,17 +187,17 @@ multiple of `R_{nℓ}`. -/
 lemma sector_complex_dichotomy (n : ℕ) (hn1 : 1 ≤ n)
     (ψ' : (hydrogenHamiltonian ⟨1, one_pos⟩).domain)
     (heig' : hydrogenHamiltonian ⟨1, one_pos⟩ ψ'
-      = ((hydrogenEigenvalue n hn1 : ℝ) : ℂ) • (ψ' : Spectra.Sobolev.L2_R3))
+      = ((hydrogenEigenvalue n hn1 : ℝ) : ℂ) • (ψ' : Spectra.Sobolev.l2R3))
     (ℓ m : ℕ) (hm : m ≤ ℓ) :
     (coeffFun ⟨ℓ, -(m : ℤ), by rw [abs_neg]; simpa using hm⟩
-        (chartRealization (ψ' : Spectra.Sobolev.L2_R3)) =ᵐ[radialMeasure] 0) ∨
+        (chartRealization (ψ' : Spectra.Sobolev.l2R3)) =ᵐ[radialMeasure] 0) ∨
       (∃ (hℓn : ℓ + 1 ≤ n) (c : ℂ),
         coeffFun ⟨ℓ, -(m : ℤ), by rw [abs_neg]; simpa using hm⟩
-          (chartRealization (ψ' : Spectra.Sobolev.L2_R3))
+          (chartRealization (ψ' : Spectra.Sobolev.l2R3))
           =ᵐ[radialMeasure] fun r => c * Rc n ℓ hℓn r) := by
   classical
   set g : ℝ → ℂ := coeffFun ⟨ℓ, -(m : ℤ), by rw [abs_neg]; simpa using hm⟩
-    (chartRealization (ψ' : Spectra.Sobolev.L2_R3)) with hg
+    (chartRealization (ψ' : Spectra.Sobolev.l2R3)) with hg
   have hre := sector_reIm_dichotomy n hn1 ψ' heig' ℓ m hm Complex.reCLM
   have him := sector_reIm_dichotomy n hn1 ψ' heig' ℓ m hm Complex.imCLM
   rw [← hg] at hre him
@@ -247,11 +247,11 @@ of `sector_complex_dichotomy` via conjugation (`coeffFun_star`, `hydrogenHamilto
 lemma coeffFun_dichotomy (n : ℕ) (hn1 : 1 ≤ n)
     (ψ : (hydrogenHamiltonian ⟨1, one_pos⟩).domain)
     (heig : hydrogenHamiltonian ⟨1, one_pos⟩ ψ
-      = ((hydrogenEigenvalue n hn1 : ℝ) : ℂ) • (ψ : Spectra.Sobolev.L2_R3))
+      = ((hydrogenEigenvalue n hn1 : ℝ) : ℂ) • (ψ : Spectra.Sobolev.l2R3))
     (ℓ : ℕ) (M : ℤ) (hM : |M| ≤ (ℓ : ℤ)) :
-    (coeffFun ⟨ℓ, M, hM⟩ (chartRealization (ψ : Spectra.Sobolev.L2_R3)) =ᵐ[radialMeasure] 0) ∨
+    (coeffFun ⟨ℓ, M, hM⟩ (chartRealization (ψ : Spectra.Sobolev.l2R3)) =ᵐ[radialMeasure] 0) ∨
       (∃ (hℓn : ℓ + 1 ≤ n) (c : ℂ),
-        coeffFun ⟨ℓ, M, hM⟩ (chartRealization (ψ : Spectra.Sobolev.L2_R3))
+        coeffFun ⟨ℓ, M, hM⟩ (chartRealization (ψ : Spectra.Sobolev.l2R3))
           =ᵐ[radialMeasure] fun r => c * Rc n ℓ hℓn r) := by
   classical
   rcases le_total M 0 with hMle | hMge
@@ -283,19 +283,19 @@ lemma coeffFun_dichotomy (n : ℕ) (hn1 : 1 ≤ n)
       (mul_ne_zero (sphericalNorm_pos _ _).ne' (reflectionFactor_ne_zero _ _))
     -- `star ψ` is an eigenpair at `Eₙ`; run the dichotomy on its `-(m:ℤ)` coefficient
     set ψs : (hydrogenHamiltonian ⟨1, one_pos⟩).domain :=
-      ⟨star (ψ : Spectra.Sobolev.L2_R3), memSobolevH2_star _ ψ.2⟩ with hψs
+      ⟨star (ψ : Spectra.Sobolev.l2R3), memSobolevH2_star _ ψ.2⟩ with hψs
     have heigs : hydrogenHamiltonian ⟨1, one_pos⟩ ψs
-        = ((hydrogenEigenvalue n hn1 : ℝ) : ℂ) • (ψs : Spectra.Sobolev.L2_R3) :=
+        = ((hydrogenEigenvalue n hn1 : ℝ) : ℂ) • (ψs : Spectra.Sobolev.l2R3) :=
       hydrogenHamiltonian_star ⟨1, one_pos⟩ (hydrogenEigenvalue n hn1) ψ heig
     -- `coeffFun_star`: the `-(m:ℤ)` coefficient of `star ψ` is `κ·conj` of the `m` coefficient of ψ
-    have hcs := coeffFun_star ℓ m hm (ψ : Spectra.Sobolev.L2_R3)
+    have hcs := coeffFun_star ℓ m hm (ψ : Spectra.Sobolev.l2R3)
     rcases sector_complex_dichotomy n hn1 ψs heigs ℓ m hm with h | ⟨hℓn, c, hc⟩
     · -- the `-(m:ℤ)` coefficient of `star ψ` is a.e. 0, hence so is the `m` coefficient of ψ
       left
       -- `hcs : coeffFun⟨ℓ,-(m)⟩(chartReal (star ψ)) =ᵐ κ·conj(coeffFun⟨ℓ,m⟩(chartReal ψ))`
       have hzero : (fun r => (κ : ℂ) *
           starRingEnd ℂ (coeffFun ⟨ℓ, (m : ℤ), hmI⟩
-            (chartRealization (ψ : Spectra.Sobolev.L2_R3)) r)) =ᵐ[radialMeasure] 0 :=
+            (chartRealization (ψ : Spectra.Sobolev.l2R3)) r)) =ᵐ[radialMeasure] 0 :=
         hcs.symm.trans h
       filter_upwards [hzero] with r hr
       simp only [Pi.zero_apply] at hr ⊢
@@ -308,13 +308,13 @@ lemma coeffFun_dichotomy (n : ℕ) (hn1 : 1 ≤ n)
       -- from `hcs` and `hc`: `κ·conj(coeffFun⟨ℓ,m⟩ Φ) =ᵐ c·Rc`, so `coeffFun⟨ℓ,m⟩ Φ =ᵐ conj(κ⁻¹c)·Rc`
       have hcomb : (fun r => (κ : ℂ) *
           starRingEnd ℂ (coeffFun ⟨ℓ, (m : ℤ), hmI⟩
-            (chartRealization (ψ : Spectra.Sobolev.L2_R3)) r))
+            (chartRealization (ψ : Spectra.Sobolev.l2R3)) r))
           =ᵐ[radialMeasure] fun r => c * Rc n ℓ hℓn r := hcs.symm.trans hc
       filter_upwards [hcomb] with r hr
       have hκc : (κ : ℂ) ≠ 0 := Complex.ofReal_ne_zero.mpr hκne
       -- solve for the `m` coefficient and conjugate (Rc is real)
       have hval : starRingEnd ℂ (coeffFun ⟨ℓ, (m : ℤ), hmI⟩
-          (chartRealization (ψ : Spectra.Sobolev.L2_R3)) r) = (κ : ℂ)⁻¹ * (c * Rc n ℓ hℓn r) := by
+          (chartRealization (ψ : Spectra.Sobolev.l2R3)) r) = (κ : ℂ)⁻¹ * (c * Rc n ℓ hℓn r) := by
         field_simp at hr ⊢
         linear_combination hr
       have hRcconj : starRingEnd ℂ (Rc n ℓ hℓn r) = Rc n ℓ hℓn r := by
@@ -363,15 +363,15 @@ and `radialLp_coeFn` (`⇑(radialLp) =ᵐ R_{nℓ}`): the `i`-component is `0` o
 lemma sectorEmbedding_w_mem_span (n : ℕ) (hn1 : 1 ≤ n)
     (ψ : (hydrogenHamiltonian ⟨1, one_pos⟩).domain)
     (heig : hydrogenHamiltonian ⟨1, one_pos⟩ ψ
-      = ((hydrogenEigenvalue n hn1 : ℝ) : ℂ) • (ψ : Spectra.Sobolev.L2_R3))
+      = ((hydrogenEigenvalue n hn1 : ℝ) : ℂ) • (ψ : Spectra.Sobolev.l2R3))
     (i : HarmonicIdx) :
     sectorEmbedding i (sphericalDecomposition
-        (chartRealization (ψ : Spectra.Sobolev.L2_R3)) i)
+        (chartRealization (ψ : Spectra.Sobolev.l2R3)) i)
       ∈ Submodule.span ℂ (Set.range (degenFamily n)) ∧
-    (n ≤ i.1 → sphericalDecomposition (chartRealization (ψ : Spectra.Sobolev.L2_R3)) i = 0) := by
+    (n ≤ i.1 → sphericalDecomposition (chartRealization (ψ : Spectra.Sobolev.l2R3)) i = 0) := by
   classical
   obtain ⟨ℓ, M, hM⟩ := i
-  set Φ := chartRealization (ψ : Spectra.Sobolev.L2_R3) with hΦ
+  set Φ := chartRealization (ψ : Spectra.Sobolev.l2R3) with hΦ
   -- Step A: the component is the `toLp` of the angular coefficient
   have hA := sphericalDecomposition_eq_toLp_coeffFun Φ ⟨ℓ, M, hM⟩
   rcases coeffFun_dichotomy n hn1 ψ heig ℓ M hM with hzero | ⟨hℓn, c, hc⟩
@@ -428,13 +428,13 @@ which `chartRealization.symm` transports back. -/
 theorem eigenspace_subset_span (n : ℕ) (hn : 1 ≤ n)
     (ψ : (hydrogenHamiltonian ⟨1, one_pos⟩).domain)
     (heig : hydrogenHamiltonian ⟨1, one_pos⟩ ψ
-      = ((hydrogenEigenvalue n hn : ℝ) : ℂ) • (ψ : Spectra.Sobolev.L2_R3)) :
-    (ψ : Spectra.Sobolev.L2_R3)
+      = ((hydrogenEigenvalue n hn : ℝ) : ℂ) • (ψ : Spectra.Sobolev.l2R3)) :
+    (ψ : Spectra.Sobolev.l2R3)
       ∈ Submodule.span ℂ (Set.range (fun i => chartRealization.symm (degenFamily n i))) := by
   classical
-  set Φ := chartRealization (ψ : Spectra.Sobolev.L2_R3) with hΦ
+  set Φ := chartRealization (ψ : Spectra.Sobolev.l2R3) with hΦ
   set w := sphericalDecomposition Φ with hw
-  set f : HarmonicIdx → Decomposition.L2_R3 := fun i => sectorEmbedding i (w i) with hf
+  set f : HarmonicIdx → Decomposition.l2R3 := fun i => sectorEmbedding i (w i) with hf
   -- the per-sector data: each summand lies in the span; support is within `{ℓ < n}`
   have hsector := fun i => sectorEmbedding_w_mem_span n hn ψ heig i
   -- Step C reassembly on the *spherical* side: `Φ = ∑' i, f i`
@@ -464,10 +464,10 @@ theorem eigenspace_subset_span (n : ℕ) (hn : 1 ≤ n)
   have htrans : chartRealization.symm Φ
       ∈ Submodule.span ℂ (chartRealization.symm '' Set.range (degenFamily n)) :=
     Submodule.apply_mem_span_image_of_mem_span
-      (f := (chartRealization.symm : Decomposition.L2_R3 →ₗ[ℂ] Spectra.Sobolev.L2_R3)) hΦmem
+      (f := (chartRealization.symm : Decomposition.l2R3 →ₗ[ℂ] Spectra.Sobolev.l2R3)) hΦmem
   rw [← Set.range_comp] at htrans
   -- `chartRealization.symm Φ = ψ`
-  have hψ : chartRealization.symm Φ = (ψ : Spectra.Sobolev.L2_R3) := by
+  have hψ : chartRealization.symm Φ = (ψ : Spectra.Sobolev.l2R3) := by
     rw [hΦ, LinearIsometryEquiv.symm_apply_apply]
   rwa [hψ] at htrans
 

@@ -18,7 +18,7 @@ namespace Spectra.QuantumMechanics.Hydrogen
 /-! ## STEP A — multiplication by the ball indicator as a CLM -/
 
 /-- The underlying linear map `f ↦ (𝟙_{closedBall 0 (n+1)} · f).toLp`. -/
-noncomputable def multIndicatorBallLM (n : ℕ) : L2_R3 →ₗ[ℂ] L2_R3 where
+noncomputable def multIndicatorBallLM (n : ℕ) : l2R3 →ₗ[ℂ] l2R3 where
   toFun f := (MemLp.indicator (s := closedBall (0 : R3) (n + 1 : ℝ))
       (f := (f : R3 → ℂ)) (μ := (volume : Measure R3)) (p := 2)
       measurableSet_closedBall (Lp.memLp f)).toLp
@@ -39,7 +39,7 @@ noncomputable def multIndicatorBallLM (n : ℕ) : L2_R3 →ₗ[ℂ] L2_R3 where
     · simp only [Set.indicator_of_notMem h, smul_zero]
 
 /-- The coeFn of the underlying map. -/
-lemma multIndicatorBallLM_coeFn (n : ℕ) (f : L2_R3) :
+lemma multIndicatorBallLM_coeFn (n : ℕ) (f : l2R3) :
     (multIndicatorBallLM n f : R3 → ℂ) =ᵐ[volume]
       (closedBall (0 : R3) (n + 1 : ℝ)).indicator (f : R3 → ℂ) :=
   MemLp.coeFn_toLp (MemLp.indicator (s := closedBall (0 : R3) (n + 1 : ℝ))
@@ -47,7 +47,7 @@ lemma multIndicatorBallLM_coeFn (n : ℕ) (f : L2_R3) :
     measurableSet_closedBall (Lp.memLp f))
 
 /-- Boundedness: `‖𝟙·f‖₂ ≤ 1 · ‖f‖₂`. -/
-lemma multIndicatorBallLM_bound (n : ℕ) (f : L2_R3) :
+lemma multIndicatorBallLM_bound (n : ℕ) (f : l2R3) :
     ‖multIndicatorBallLM n f‖ ≤ 1 * ‖f‖ := by
   rw [one_mul, Lp.norm_def, Lp.norm_def]
   apply ENNReal.toReal_mono (Lp.eLpNorm_ne_top f)
@@ -60,10 +60,10 @@ lemma multIndicatorBallLM_bound (n : ℕ) (f : L2_R3) :
         exact norm_indicator_le_norm_self _ _
 
 /-- **Step A.** Multiplication by `𝟙_{closedBall 0 (n+1)}` as a CLM on `L²`. -/
-noncomputable def multIndicatorBall (n : ℕ) : L2_R3 →L[ℂ] L2_R3 :=
+noncomputable def multIndicatorBall (n : ℕ) : l2R3 →L[ℂ] l2R3 :=
   LinearMap.mkContinuous (multIndicatorBallLM n) 1 (multIndicatorBallLM_bound n)
 
-lemma multIndicatorBall_coeFn (n : ℕ) (f : L2_R3) :
+lemma multIndicatorBall_coeFn (n : ℕ) (f : l2R3) :
     (multIndicatorBall n f : R3 → ℂ) =ᵐ[volume]
       (closedBall (0 : R3) (n + 1 : ℝ)).indicator (f : R3 → ℂ) :=
   multIndicatorBallLM_coeFn n f
@@ -71,7 +71,7 @@ lemma multIndicatorBall_coeFn (n : ℕ) (f : L2_R3) :
 /-! ## W coeFn -/
 
 /-- The Coulomb resolvent acts a.e. as multiplication by `coulombMultiplier` on `R_z ψ`. -/
-lemma coulombResolventAt_coeFn (p : CoulombParams) (z : ℂ) (hz : z.im ≠ 0) (ψ : L2_R3) :
+lemma coulombResolventAt_coeFn (p : CoulombParams) (z : ℂ) (hz : z.im ≠ 0) (ψ : l2R3) :
     (coulombResolventAt p z hz ψ : R3 → ℂ) =ᵐ[volume]
       fun x => (coulombMultiplier p x : ℂ) * (freeResolventAt z hz ψ : R3 → ℂ) x := by
   rw [coulombResolventAt_apply]
@@ -84,7 +84,7 @@ lemma coulombResolventAt_coeFn (p : CoulombParams) (z : ℂ) (hz : z.im ≠ 0) (
     (coulomb_mul_memLp_H2 p (freeResolventAt z hz ψ) (freeResolventAt_mem_domain z hz ψ))
 
 /-- The `z = i` instance. -/
-lemma coulombResolvent_coeFn (p : CoulombParams) (ψ : L2_R3) :
+lemma coulombResolvent_coeFn (p : CoulombParams) (ψ : l2R3) :
     (coulombResolvent p ψ : R3 → ℂ) =ᵐ[volume]
       fun x => (coulombMultiplier p x : ℂ) * (freeResolvent ψ : R3 → ℂ) x :=
   coulombResolventAt_coeFn p Complex.I I_im_ne_zero ψ
@@ -174,7 +174,7 @@ lemma step_C_at (p : CoulombParams) (n : ℕ) (z : ℂ) (hz : z.im ≠ 0) :
     SchwartzMap.denseRange_toLpCLM (by norm_num)
   -- density of the span of the range
   have hdense : Dense (Submodule.span ℂ
-      (Set.range (SchwartzMap.toLpCLM ℂ ℂ (2 : ℝ≥0∞) (volume : Measure R3))) : Set L2_R3) :=
+      (Set.range (SchwartzMap.toLpCLM ℂ ℂ (2 : ℝ≥0∞) (volume : Measure R3))) : Set l2R3) :=
     Dense.mono Submodule.subset_span hdr
   refine ContinuousLinearMap.ext_on hdense ?_
   rintro _ ⟨φ, rfl⟩

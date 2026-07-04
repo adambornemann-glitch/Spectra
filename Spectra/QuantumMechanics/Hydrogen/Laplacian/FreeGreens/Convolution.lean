@@ -103,7 +103,7 @@ theorem conv_sub_left {h₁ h₂ : R3 → ℂ} (hh₁ : MemLp h₁ 2 volume) (hh
   simp only [Pi.sub_apply]; ring
 
 /-- Schwartz functions are `L²`-dense: every `g ∈ L²` is the limit of a Schwartz sequence. -/
-theorem exists_schwartz_seq_tendsto (g : L2_R3) :
+theorem exists_schwartz_seq_tendsto (g : l2R3) :
     ∃ φ : ℕ → 𝓢(R3, ℂ), Tendsto (fun n => (φ n).toLp (2 : ℝ≥0∞)) atTop (𝓝 g) := by
   have hdense : DenseRange (SchwartzMap.toLpCLM ℂ ℂ (2 : ℝ≥0∞) (volume : Measure R3)) :=
     SchwartzMap.denseRange_toLpCLM (by norm_num)
@@ -206,7 +206,7 @@ theorem conv_comm_mul (a b : R3 → ℂ) (x : R3) :
 
 /-- **Companion.** `g ∈ L²` and `χ` Schwartz imply `g ⋆ χ ∈ L²`. Proof: `χ ∈ L¹ ∩ L²`, Young's
 `L¹ ⋆ L² → L²` gives `χ ⋆ g ∈ L²`, and convolution commutativity rewrites it to `g ⋆ χ`. -/
-theorem memLp_conv_L2_schwartz (g : L2_R3) (χ : 𝓢(R3, ℂ)) :
+theorem memLp_conv_L2_schwartz (g : l2R3) (χ : 𝓢(R3, ℂ)) :
     MemLp ((g : R3 → ℂ) ⋆[ContinuousLinearMap.mul ℂ ℂ, volume] (χ : R3 → ℂ)) 2 volume := by
   have y := (young_R3 (a := (χ : R3 → ℂ)) (b := (g : R3 → ℂ)) (χ.memLp 1 volume) (Lp.memLp g)).1
   have hcomm : ((χ : R3 → ℂ) ⋆[ContinuousLinearMap.mul ℂ ℂ, volume] (g : R3 → ℂ))
@@ -236,7 +236,7 @@ theorem fourier_chi_meas (χ : 𝓢(R3, ℂ)) : AEStronglyMeasurable (𝓕 (χ :
   exact (SchwartzMap.fourierTransformCLM ℂ χ).continuous.aestronglyMeasurable
 
 /-- The target of S2 is in `L²`: `fourierL2 g · 𝓕χ ∈ L²` (`fourierL2 g ∈ L²`, `𝓕χ ∈ L^∞`). -/
-theorem memLp_fourierL2_mul_chi (g : L2_R3) (χ : 𝓢(R3, ℂ)) :
+theorem memLp_fourierL2_mul_chi (g : l2R3) (χ : 𝓢(R3, ℂ)) :
     MemLp (fun ξ => (fourierL2 g : R3 → ℂ) ξ * 𝓕 (χ : R3 → ℂ) ξ) 2 volume := by
   have hfg : MemLp (fourierL2 g : R3 → ℂ) 2 volume := Lp.memLp _
   have hmul := (memLp_bdd_mul (m := 𝓕 (χ:R3→ℂ)) (f := (fourierL2 g : R3 → ℂ))
@@ -256,7 +256,7 @@ theorem fourierL2_toLp_ae (φ : 𝓢(R3, ℂ)) :
 set_option maxHeartbeats 270000 in
 /-- Per-index estimate for `Fₙ → B`: the `L²` distance between `fourierL2 (φ ⋆ χ).toLp` and the
 `L²` symbol `(fourierL2 g · 𝓕χ).toLp` is bounded by `‖𝓕χ‖_∞ · ‖fourierL2 (φ.toLp) − fourierL2 g‖`. -/
-theorem fourier_conv_seqB_bound (g : L2_R3) (χ : 𝓢(R3, ℂ)) (φ : 𝓢(R3, ℂ))
+theorem fourier_conv_seqB_bound (g : l2R3) (χ : 𝓢(R3, ℂ)) (φ : 𝓢(R3, ℂ))
     (memB : MemLp (fun ξ => (fourierL2 g : R3 → ℂ) ξ * 𝓕 (χ : R3 → ℂ) ξ) 2 volume) :
     eLpNorm (⇑(fourierL2 ((memLp_schwartz_conv φ χ).toLp _)) - ⇑(memB.toLp _)) 2 volume
       ≤ ((SchwartzMap.seminorm ℝ 0 0 (SchwartzMap.fourierTransformCLM ℂ χ)).toNNReal : ℝ≥0∞)
@@ -282,7 +282,7 @@ theorem fourier_conv_seqB_bound (g : L2_R3) (χ : 𝓢(R3, ℂ)) (φ : 𝓢(R3, 
 
 /-- **`Fₙ → B`.** `fourierL2 (φₙ ⋆ χ).toLp → (fourierL2 g · 𝓕χ).toLp` in `L²`, from the per-index
 estimate and `L²`-continuity of `fourierL2`. -/
-theorem fourier_conv_seqB_tendsto (g : L2_R3) (χ : 𝓢(R3, ℂ)) (φ : ℕ → 𝓢(R3, ℂ))
+theorem fourier_conv_seqB_tendsto (g : l2R3) (χ : 𝓢(R3, ℂ)) (φ : ℕ → 𝓢(R3, ℂ))
     (memB : MemLp (fun ξ => (fourierL2 g : R3 → ℂ) ξ * 𝓕 (χ : R3 → ℂ) ξ) 2 volume)
     (hφ : Tendsto (fun n => (φ n).toLp (2:ℝ≥0∞)) atTop (𝓝 g)) :
     Tendsto (fun n => fourierL2 ((memLp_schwartz_conv (φ n) χ).toLp _)) atTop
@@ -303,7 +303,7 @@ theorem fourier_conv_seqB_tendsto (g : L2_R3) (χ : 𝓢(R3, ℂ)) (φ : ℕ →
 
 /-- **`seqₙ → A`.** `(φₙ ⋆ χ).toLp → (g ⋆ χ).toLp` in `L²`, by Young's estimate
 `‖(φₙ − g) ⋆ χ‖₂ = ‖χ ⋆ (φₙ − g)‖₂ ≤ ‖χ‖₁ · ‖φₙ − g‖₂` and `L²`-density of `φₙ`. -/
-theorem conv_seqA_tendsto (g : L2_R3) (χ : 𝓢(R3, ℂ)) (φ : ℕ → 𝓢(R3, ℂ))
+theorem conv_seqA_tendsto (g : l2R3) (χ : 𝓢(R3, ℂ)) (φ : ℕ → 𝓢(R3, ℂ))
     (hφ : Tendsto (fun n => (φ n).toLp (2:ℝ≥0∞)) atTop (𝓝 g)) :
     Tendsto (fun n => (memLp_schwartz_conv (φ n) χ).toLp _) atTop
       (𝓝 ((memLp_conv_L2_schwartz g χ).toLp _)) := by
@@ -344,7 +344,7 @@ theorem conv_seqA_tendsto (g : L2_R3) (χ : 𝓢(R3, ℂ)) (φ : ℕ → 𝓢(R3
 product `(fourierL2 g) · 𝓕χ`. Proved by density on `g`: a Schwartz sequence `φₙ → g` makes
 `Fₙ := fourierL2 (φₙ ⋆ χ).toLp` converge to both `fourierL2 ((g ⋆ χ).toLp)` and
 `(fourierL2 g · 𝓕χ).toLp`; uniqueness of limits identifies the two. -/
-theorem fourier_conv_L2_schwartz (g : L2_R3) (χ : 𝓢(R3, ℂ)) :
+theorem fourier_conv_L2_schwartz (g : l2R3) (χ : 𝓢(R3, ℂ)) :
     (fourierL2 ((memLp_conv_L2_schwartz g χ).toLp _) : R3 → ℂ)
       =ᵐ[volume] fun ξ => (fourierL2 g : R3 → ℂ) ξ * 𝓕 (χ : R3 → ℂ) ξ := by
   obtain ⟨φ, hφ⟩ := exists_schwartz_seq_tendsto g

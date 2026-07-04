@@ -639,31 +639,3 @@ lemma bounded_relative_bound_zero (A : H →ₗ.[ℂ] H) (T : H →L[ℂ] H)
     (relativeBound_nonneg A _ hT)
 
 end Spectra.Operator
-/-!
-## Compilation notes
-
-This file was written against the API of the compiled Spectra library as of
-the `OneParameterUnitaryGroup`/`LinearPMap` refactor (signatures verified
-against the library's generated signature listing) but could not be compiled
-in the authoring environment.  Points to check first if anything fails:
-
-1. **Imports.** Module paths follow the source tree
-   (`Resolvent/Defs.lean`, `Resolvent/NormExpansion.lean`,
-   `Resolvent/Range.lean`, `SpectralTheory/StoneFormula/Identities.lean`,
-   `QuantumMechanics/Observable/Basic.lean`).  Adjust prefixes if the Lake
-   package roots them differently.
-2. **Namespaces.**  `resolvent_mem_domain` / `resolvent_solves` are assumed
-   to be in `Spectra.Resolvent` (they are declared in
-   `StoneFormula/Identities.lean`); if not, add the corresponding `open`.
-3. **Mathlib name drift.**  `div_lt_iff₀` (older: `div_lt_iff`);
-   `Real.sqrt_sq` / `Real.sqrt_le_sqrt`;
-   `LinearMap.mkContinuous_norm_le f hC h`;
-   `ContinuousLinearMap.adjoint_inner_right` / `star_eq_adjoint`.
-4. **Defeq-sensitive steps.**  The `show`-steps in
-   `perturbedOp_isFormalAdjoint`, `isSymmetricOn_of_selfAdjoint`, and
-   `perturbedOp_sub_smul_surjective` rely on `perturbedOp`, subtype-`mk`
-   coercions, `Submodule.subtypeL`, and `LinearMap.mkContinuous` unfolding
-   definitionally; the final calc step `_ = φ := hχ` of the workhorse
-   likewise.  If the elaborator balks, insert `rfl`-bridging steps using
-   `resolventPerturb_apply`.
--/

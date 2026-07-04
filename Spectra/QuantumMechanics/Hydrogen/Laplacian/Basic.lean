@@ -17,7 +17,7 @@ import Spectra.Resolvent.Range
 # The Laplacian as a Self-Adjoint Operator
 
 This file packages the negative Laplacian −Δ on H²(ℝ³) as an unbounded
-operator `laplacianPMap : L2_R3 →ₗ.[ℂ] L2_R3` and establishes the spectral
+operator `laplacianPMap : l2R3 →ₗ.[ℂ] l2R3` and establishes the spectral
 pipeline around it.
 
 ## Architecture
@@ -115,7 +115,7 @@ namespace Spectra.QuantumMechanics.Hydrogen
     `Spaces/Sobolev/`).  Both fields are supplied by `Spaces/Sobolev/`,
     so this definition is sorry-free, and the domain/action lemmas below are
     `rfl`. -/
-def laplacianPMap : L2_R3 →ₗ.[ℂ] L2_R3 where
+def laplacianPMap : l2R3 →ₗ.[ℂ] l2R3 where
   domain := SobolevH2
   toFun := laplacianLinearMap
 
@@ -123,7 +123,7 @@ def laplacianPMap : L2_R3 →ₗ.[ℂ] L2_R3 where
   rfl
 
 /-- The action of `laplacianPMap` is the weak Laplacian.  Definitional. -/
-theorem laplacianPMap_apply (ψ : L2_R3) (hψ : MemSobolevH2 ψ) :
+theorem laplacianPMap_apply (ψ : l2R3) (hψ : MemSobolevH2 ψ) :
     laplacianPMap ⟨ψ, hψ⟩ = weakLaplacian ψ hψ :=
   rfl
 
@@ -135,30 +135,30 @@ theorem laplacian_isFormalAdjoint :
 
 /-- H² is dense in L².  Direct repackaging of `sobolevH2_dense`. -/
 theorem laplacian_domain_dense :
-    Dense (laplacianPMap.domain : Set L2_R3) :=
+    Dense (laplacianPMap.domain : Set l2R3) :=
   sobolevH2_dense
 
 /-- The L² Fourier transform on `L²(ℝ³)`, as an isometric equivalence (Plancherel).
 
     A literal one-liner: the project's custom `MeasureSpace R3` instance was removed
-    (see `Spaces/Sobolev/WeakDerivative.lean`) so that `L2_R3`'s measure IS Mathlib's
+    (see `Spaces/Sobolev/WeakDerivative.lean`) so that `l2R3`'s measure IS Mathlib's
     `measureSpaceOfInnerProductSpace` volume — the same measure `Lp.fourierTransformₗᵢ`
     lives over.  No measure-diamond transport needed. -/
-def fourierL2 : L2_R3 ≃ₗᵢ[ℂ] L2_R3 :=
+def fourierL2 : l2R3 ≃ₗᵢ[ℂ] l2R3 :=
   Lp.fourierTransformₗᵢ R3 ℂ
 
 /-! ## The Fourier symbol of −Δ -/
 
 /-- The multiplier that −Δ becomes under the Fourier transform: `m(ξ) = (2π)²‖ξ‖²`
     (real, `≥ 0`).  Content of `SchwartzMap.laplacian_eq_fourierMultiplierCLM`
-    transported to `L2_R3`. -/
+    transported to `l2R3`. -/
 def laplacianSymbol (ξ : R3) : ℝ := (2 * Real.pi) ^ 2 * ‖ξ‖ ^ 2
 
 lemma laplacianSymbol_nonneg (ξ : R3) : 0 ≤ laplacianSymbol ξ :=
   mul_nonneg (sq_nonneg _) (sq_nonneg _)
 
 /-- `fourierL2` is definitionally the L² Fourier transform `𝓕`. -/
-lemma fourierL2_eq (f : L2_R3) : fourierL2 f = 𝓕 f := rfl
+lemma fourierL2_eq (f : l2R3) : fourierL2 f = 𝓕 f := rfl
 
 /-- The symbol `(2π)²‖ξ‖²` as a complex function has temperate growth. -/
 lemma laplacianSymbol_hasTemperateGrowth :
@@ -182,26 +182,26 @@ never H²-norm density (which it lacks).  Helpers first. -/
 
 /-- The weak gradient of an `H²` function is itself `H¹`: its weak `j`-derivative
     is the `(i,j)` second derivative of the original, which exists by `hψ.2 i j`. -/
-lemma memSobolevH1_weakGradient (ψ : L2_R3) (hψ : MemSobolevH2 ψ) (i : Fin 3) :
-    MemSobolevH1 (weakGradient ψ (sobolevH2_le_H1 hψ) i) := by
+lemma memSobolevH1_weakGradient (ψ : l2R3) (hψ : MemSobolevH2 ψ) (i : Fin 3) :
+    MemSobolevH1 (weakGradient ψ (sobolevH2_le_sobolevH1 hψ) i) := by
   intro j
   obtain ⟨g, mid, hmid_i, hmid_j⟩ := hψ.2 i j
   refine ⟨g, ?_⟩
-  have hmid : mid = weakGradient ψ (sobolevH2_le_H1 hψ) i :=
-    hasWeakDerivative_unique ψ i mid _ hmid_i (weakGradient_spec ψ (sobolevH2_le_H1 hψ) i)
+  have hmid : mid = weakGradient ψ (sobolevH2_le_sobolevH1 hψ) i :=
+    hasWeakDerivative_unique ψ i mid _ hmid_i (weakGradient_spec ψ (sobolevH2_le_sobolevH1 hψ) i)
   rwa [hmid] at hmid_j
 
 /-- `−Δψ` as the iterated weak gradient: `weakLaplacian ψ = −Σᵢ ∂ᵢ(∂ᵢψ)`. -/
-lemma weakLaplacian_eq_neg_sum (ψ : L2_R3) (hψ : MemSobolevH2 ψ) :
+lemma weakLaplacian_eq_neg_sum (ψ : l2R3) (hψ : MemSobolevH2 ψ) :
     weakLaplacian ψ hψ
-      = -∑ i, weakGradient (weakGradient ψ (sobolevH2_le_H1 hψ) i)
+      = -∑ i, weakGradient (weakGradient ψ (sobolevH2_le_sobolevH1 hψ) i)
           (memSobolevH1_weakGradient ψ hψ i) i := by
   unfold weakLaplacian
   congr 1
   refine Finset.sum_congr rfl (fun i _ => ?_)
   obtain ⟨mid, hmid_i, hmid_ii⟩ := (hψ.2 i i).choose_spec
-  have hmid : mid = weakGradient ψ (sobolevH2_le_H1 hψ) i :=
-    hasWeakDerivative_unique ψ i mid _ hmid_i (weakGradient_spec ψ (sobolevH2_le_H1 hψ) i)
+  have hmid : mid = weakGradient ψ (sobolevH2_le_sobolevH1 hψ) i :=
+    hasWeakDerivative_unique ψ i mid _ hmid_i (weakGradient_spec ψ (sobolevH2_le_sobolevH1 hψ) i)
   rw [hmid] at hmid_ii
   exact hasWeakDerivative_unique _ i _ _ hmid_ii
     (weakGradient_spec _ (memSobolevH1_weakGradient ψ hψ i) i)
@@ -241,7 +241,7 @@ lemma lineDerivOp_toTD_of_smooth (φ : R3 → ℂ) (hφ : ContDiff ℝ ∞ φ)
     for each smooth approximant the identity is classical (`lineDerivOp_toTD_of_smooth`);
     pass to the limit using that `toTemperedDistributionCLM` and `∂ᵢ` are continuous
     on `𝓢'` (T₂). -/
-lemma lineDerivOp_toTD_weakGradient (f : L2_R3) (hf : MemSobolevH1 f) (i : Fin 3) :
+lemma lineDerivOp_toTD_weakGradient (f : l2R3) (hf : MemSobolevH1 f) (i : Fin 3) :
     LineDeriv.lineDerivOp (EuclideanSpace.single i (1 : ℝ) : R3) (Lp.toTemperedDistribution f)
       = Lp.toTemperedDistribution (weakGradient f hf i) := by
   set m : R3 := EuclideanSpace.single i (1 : ℝ) with hm
@@ -249,15 +249,15 @@ lemma lineDerivOp_toTD_weakGradient (f : L2_R3) (hf : MemSobolevH1 f) (i : Fin 3
   choose φ hφ hsupp hand using fun n : ℕ =>
     meyers_serrin_approx_multi f (weakGradient f hf) (weakGradient_spec f hf)
       (1 / (n + 1 : ℝ)) (by positivity)
-  set g : ℕ → L2_R3 :=
+  set g : ℕ → l2R3 :=
     fun n => (memLp_of_smooth_compactSupport (φ n) (hφ n) (hsupp n)).toLp (φ n) with hg
-  set dgn : ℕ → L2_R3 := fun n => (memLp_partialDeriv (φ n) i (hφ n) (hsupp n)).toLp
+  set dgn : ℕ → l2R3 := fun n => (memLp_partialDeriv (φ n) i (hφ n) (hsupp n)).toLp
     (fun x => fderiv ℝ (φ n) x (EuclideanSpace.single i 1)) with hdgn
   -- `Lp.toTemperedDistribution` is continuous (it is a CLM)
-  have htoTD : (Lp.toTemperedDistribution : L2_R3 → 𝓢'(R3, ℂ))
+  have htoTD : (Lp.toTemperedDistribution : l2R3 → 𝓢'(R3, ℂ))
       = ⇑(Lp.toTemperedDistributionCLM ℂ (volume : Measure R3) 2) :=
     funext fun x => (Lp.toTemperedDistributionCLM_apply x).symm
-  have hcont_toTD : Continuous (Lp.toTemperedDistribution : L2_R3 → 𝓢'(R3, ℂ)) := by
+  have hcont_toTD : Continuous (Lp.toTemperedDistribution : l2R3 → 𝓢'(R3, ℂ)) := by
     rw [htoTD]; exact (Lp.toTemperedDistributionCLM ℂ (volume : Measure R3) 2).continuous
   -- L² convergence from the 1/(n+1) bounds
   have hg_tend : Tendsto g atTop (𝓝 f) := by
@@ -284,7 +284,7 @@ lemma lineDerivOp_toTD_weakGradient (f : L2_R3) (hf : MemSobolevH1 f) (i : Fin 3
 /-- **The analytic core.**  The weak Laplacian, as a tempered distribution, equals
     the negative distributional Laplacian.  Assembled from the first-order bridge
     (applied to `ψ` and to each `weakGradient ψ i`) and `weakLaplacian_eq_neg_sum`. -/
-theorem weakLaplacian_toTD (ψ : L2_R3) (hψ : MemSobolevH2 ψ) :
+theorem weakLaplacian_toTD (ψ : l2R3) (hψ : MemSobolevH2 ψ) :
     Lp.toTemperedDistribution (weakLaplacian ψ hψ)
       = - Laplacian.laplacian (Lp.toTemperedDistribution ψ) := by
   -- each second distributional derivative is `toTD` of an iterated weak gradient
@@ -292,13 +292,13 @@ theorem weakLaplacian_toTD (ψ : L2_R3) (hψ : MemSobolevH2 ψ) :
       LineDeriv.lineDerivOp (EuclideanSpace.single i (1 : ℝ) : R3)
         (LineDeriv.lineDerivOp (EuclideanSpace.single i (1 : ℝ) : R3)
           (Lp.toTemperedDistribution ψ))
-        = Lp.toTemperedDistribution (weakGradient (weakGradient ψ (sobolevH2_le_H1 hψ) i)
+        = Lp.toTemperedDistribution (weakGradient (weakGradient ψ (sobolevH2_le_sobolevH1 hψ) i)
             (memSobolevH1_weakGradient ψ hψ i) i) := fun i => by
-    rw [lineDerivOp_toTD_weakGradient ψ (sobolevH2_le_H1 hψ) i,
-      lineDerivOp_toTD_weakGradient (weakGradient ψ (sobolevH2_le_H1 hψ) i)
+    rw [lineDerivOp_toTD_weakGradient ψ (sobolevH2_le_sobolevH1 hψ) i,
+      lineDerivOp_toTD_weakGradient (weakGradient ψ (sobolevH2_le_sobolevH1 hψ) i)
         (memSobolevH1_weakGradient ψ hψ i) i]
   -- `Lp.toTemperedDistribution` as the underlying continuous linear map
-  have htoTD : (Lp.toTemperedDistribution : L2_R3 → 𝓢'(R3, ℂ))
+  have htoTD : (Lp.toTemperedDistribution : l2R3 → 𝓢'(R3, ℂ))
       = ⇑(Lp.toTemperedDistributionCLM ℂ (volume : Measure R3) 2) :=
     funext fun f => (Lp.toTemperedDistributionCLM_apply f).symm
   rw [TemperedDistribution.laplacian_eq_sum (EuclideanSpace.basisFun (Fin 3) ℝ)]
@@ -306,7 +306,7 @@ theorem weakLaplacian_toTD (ψ : L2_R3) (hψ : MemSobolevH2 ψ) :
   rw [weakLaplacian_eq_neg_sum ψ hψ, htoTD, map_neg, map_sum]
 
 /-- Local integrability of `(2π)²‖ξ‖² · g` for `g ∈ L²`: continuous × L²-loc. -/
-lemma locallyIntegrable_laplacianSymbol_mul (g : L2_R3) :
+lemma locallyIntegrable_laplacianSymbol_mul (g : l2R3) :
     LocallyIntegrable (fun ξ => (laplacianSymbol ξ : ℂ) * (g : R3 → ℂ) ξ) volume := by
   have hLI : LocallyIntegrable (g : R3 → ℂ) volume :=
     (Lp.memLp g).locallyIntegrable one_le_two
@@ -319,7 +319,7 @@ lemma locallyIntegrable_laplacianSymbol_mul (g : L2_R3) :
 /-- Plumbing: a distributional identity `toTD A = (m • ·)(toTD B)` with `m` of
     temperate growth recovers the a.e. pointwise product, by testing against
     `C_c^∞` (`ae_eq_of_integral_contDiff_smul_eq`). -/
-lemma aeEq_of_toTD_smulLeft {A B : L2_R3} {m : R3 → ℂ} (hm : Function.HasTemperateGrowth m)
+lemma aeEq_of_toTD_smulLeft {A B : l2R3} {m : R3 → ℂ} (hm : Function.HasTemperateGrowth m)
     (hmloc : LocallyIntegrable (fun ξ => m ξ * (B : R3 → ℂ) ξ) volume)
     (h : Lp.toTemperedDistribution A
         = TemperedDistribution.smulLeftCLM ℂ m (Lp.toTemperedDistribution B)) :
@@ -342,7 +342,7 @@ lemma aeEq_of_toTD_smulLeft {A B : L2_R3} {m : R3 → ℂ} (hm : Function.HasTem
 
 /-- **Fourier diagonalises −Δ.**  Assembled from `weakLaplacian_toTD` (analytic
     core) and Mathlib's `laplacian_eq_fourierMultiplierCLM` via `aeEq_of_toTD_smulLeft`. -/
-theorem fourier_weakLaplacian (ψ : L2_R3) (hψ : MemSobolevH2 ψ) :
+theorem fourier_weakLaplacian (ψ : l2R3) (hψ : MemSobolevH2 ψ) :
     (fourierL2 (weakLaplacian ψ hψ) : R3 → ℂ)
       =ᵐ[volume] fun ξ => (laplacianSymbol ξ : ℂ) * (fourierL2 ψ : R3 → ℂ) ξ := by
   have hsym : Function.HasTemperateGrowth (fun x : R3 => Complex.ofReal (‖x‖ ^ 2)) := by
@@ -378,7 +378,7 @@ multiplier `2πi⟪ξ,eₖ⟫` builds the weak derivatives. -/
 
 /-- Converse of `aeEq_of_toTD_smulLeft`: an a.e. pointwise product lifts to a
     distributional `smulLeft` identity (test against all Schwartz `u`). -/
-lemma toTD_smulLeft_eq {A B : L2_R3} {m : R3 → ℂ} (hm : Function.HasTemperateGrowth m)
+lemma toTD_smulLeft_eq {A B : l2R3} {m : R3 → ℂ} (hm : Function.HasTemperateGrowth m)
     (hAB : (A : R3 → ℂ) =ᵐ[volume] fun ξ => m ξ * (B : R3 → ℂ) ξ) :
     Lp.toTemperedDistribution A
       = TemperedDistribution.smulLeftCLM ℂ m (Lp.toTemperedDistribution B) := by
@@ -393,7 +393,7 @@ lemma toTD_smulLeft_eq {A B : L2_R3} {m : R3 → ℂ} (hm : Function.HasTemperat
 /-- Converse of the first-order bridge: a distributional identity
     `∂_{eₖ}(toTD ψ) = toTD g` yields a weak derivative `HasWeakDerivative ψ k g`
     (test against `C_c^∞`). -/
-lemma hasWeakDerivative_of_distEq (ψ g : L2_R3) (k : Fin 3)
+lemma hasWeakDerivative_of_distEq (ψ g : l2R3) (k : Fin 3)
     (hd : LineDeriv.lineDerivOp (EuclideanSpace.single k (1 : ℝ) : R3)
         (Lp.toTemperedDistribution ψ) = Lp.toTemperedDistribution g) :
     HasWeakDerivative ψ k g := by
@@ -429,9 +429,9 @@ lemma fourierTD_injective :
 /-- **Construct the `k`-th weak derivative from Fourier decay.**  If
     `derivSymbol k · 𝓕ψ ∈ L²`, its inverse Fourier transform `g` is the weak
     `k`-derivative of `ψ`, with `𝓕g = derivSymbol k · 𝓕ψ`. -/
-lemma weakDeriv_construct (ψ : L2_R3) (k : Fin 3)
+lemma weakDeriv_construct (ψ : l2R3) (k : Fin 3)
     (hmem : MemLp (fun ξ => derivSymbol k ξ * (fourierL2 ψ : R3 → ℂ) ξ) 2 volume) :
-    ∃ g : L2_R3, HasWeakDerivative ψ k g ∧
+    ∃ g : l2R3, HasWeakDerivative ψ k g ∧
       (fourierL2 g : R3 → ℂ) =ᵐ[volume] fun ξ => derivSymbol k ξ * (fourierL2 ψ : R3 → ℂ) ξ := by
   refine ⟨fourierL2.symm (hmem.toLp _), ?_, ?_⟩
   swap
@@ -440,7 +440,7 @@ lemma weakDeriv_construct (ψ : L2_R3) (k : Fin 3)
   have hfg : (fourierL2 (fourierL2.symm (hmem.toLp _)) : R3 → ℂ)
       =ᵐ[volume] fun ξ => derivSymbol k ξ * (fourierL2 ψ : R3 → ℂ) ξ := by
     rw [LinearIsometryEquiv.apply_symm_apply]; exact hmem.coeFn_toLp
-  set g : L2_R3 := fourierL2.symm (hmem.toLp _) with hgdef
+  set g : l2R3 := fourierL2.symm (hmem.toLp _) with hgdef
   -- distribution identity  ∂_{eₖ}(toTD ψ) = toTD g, then test against C_c^∞
   apply hasWeakDerivative_of_distEq
   apply fourierTD_injective
@@ -453,7 +453,7 @@ lemma weakDeriv_construct (ψ : L2_R3) (k : Fin 3)
     ← ContinuousLinearMap.smul_apply, ← TemperedDistribution.smulLeftCLM_smul hg₀]
   congr 2
 
-theorem memSobolevH2_of_fourier_decay (ψ : L2_R3)
+theorem memSobolevH2_of_fourier_decay (ψ : l2R3)
     (h : MemLp (fun ξ => ((1 + ‖ξ‖ ^ 2 : ℝ) : ℂ) * (fourierL2 ψ : R3 → ℂ) ξ) 2 volume) :
     MemSobolevH2 ψ := by
   -- `‖derivSymbol k ξ‖ ≤ 2π‖ξ‖`, and the weaker `≤ 2π(1+‖ξ‖²)`
@@ -476,7 +476,7 @@ theorem memSobolevH2_of_fourier_decay (ψ : L2_R3)
       = (1 + ‖ξ‖ ^ 2) * ‖(fourierL2 ψ : R3 → ℂ) ξ‖ := by
     intro ξ; rw [norm_mul, Complex.norm_real, Real.norm_eq_abs, abs_of_nonneg (by positivity)]
   -- generic L²-membership of a Fourier multiplier dominated by `C(1+‖ξ‖²)·𝓕ψ`
-  have hmemMul : ∀ (k : Fin 3) (B : L2_R3),
+  have hmemMul : ∀ (k : Fin 3) (B : l2R3),
       (B : R3 → ℂ) =ᵐ[volume] (fourierL2 ψ : R3 → ℂ) →
       MemLp (fun ξ => derivSymbol k ξ * (B : R3 → ℂ) ξ) 2 volume := by
     intro k B hB
@@ -517,7 +517,7 @@ theorem memSobolevH2_of_fourier_decay (ψ : L2_R3)
 /-- Pointwise multiplication by an essentially-bounded measurable symbol keeps an
     L² function in L².  `eLpNorm` domination via `MemLp.of_le_mul`. -/
 lemma memLp_two_boundedMul {m : R3 → ℂ} (hm : AEStronglyMeasurable m volume)
-    {C : ℝ} (hC : ∀ᵐ ξ ∂volume, ‖m ξ‖ ≤ C) (g : L2_R3) :
+    {C : ℝ} (hC : ∀ᵐ ξ ∂volume, ‖m ξ‖ ≤ C) (g : l2R3) :
     MemLp (fun ξ => m ξ * (g : R3 → ℂ) ξ) 2 volume := by
   refine MemLp.of_le_mul (c := C) (Lp.memLp g) (hm.mul (Lp.aestronglyMeasurable g)) ?_
   filter_upwards [hC] with ξ hξ
@@ -525,7 +525,7 @@ lemma memLp_two_boundedMul {m : R3 → ℂ} (hm : AEStronglyMeasurable m volume)
   exact mul_le_mul_of_nonneg_right hξ (norm_nonneg _)
 
 /-- Two L² elements with a.e.-equal representatives are equal. -/
-lemma L2_ext {a b : L2_R3} (h : (a : R3 → ℂ) =ᵐ[volume] (b : R3 → ℂ)) : a = b :=
+lemma L2_ext {a b : l2R3} (h : (a : R3 → ℂ) =ᵐ[volume] (b : R3 → ℂ)) : a = b :=
   Lp.ext h
 
 /-! ## The resolvent symbol and its bound -/
@@ -609,8 +609,8 @@ lemma aestronglyMeasurable_weighted_resolventSymbol (ε : ℂ) :
 
 Assembles the obligations: for `ε` with `ε.im ≠ 0`, `(−Δ + ε)` is onto. -/
 
-theorem laplacian_range_general (ε : ℂ) (hε : ε.im ≠ 0) (φ : L2_R3) :
-    ∃ ψ : laplacianPMap.domain, laplacianPMap ψ + ε • (ψ : L2_R3) = φ := by
+theorem laplacian_range_general (ε : ℂ) (hε : ε.im ≠ 0) (φ : l2R3) :
+    ∃ ψ : laplacianPMap.domain, laplacianPMap ψ + ε • (ψ : l2R3) = φ := by
   -- candidate Fourier transform of the solution: ψ̂ = φ̂ / ((2π)²‖ξ‖² + ε)
   set ĝ : R3 → ℂ := fun ξ => resolventSymbol ε ξ * (fourierL2 φ : R3 → ℂ) ξ with hĝ
   -- ψ̂ ∈ L² (bounded multiplier, `|resolventSymbol| ≤ 1/|ε.im|`)
@@ -618,7 +618,7 @@ theorem laplacian_range_general (ε : ℂ) (hε : ε.im ≠ 0) (φ : L2_R3) :
     memLp_two_boundedMul (aestronglyMeasurable_resolventSymbol ε)
       (Filter.Eventually.of_forall fun ξ => norm_resolventSymbol_le hε ξ) (fourierL2 φ)
   -- the solution ψ := 𝓕⁻¹ ψ̂
-  set ψ : L2_R3 := fourierL2.symm (hĝ_mem.toLp ĝ) with hψ_def
+  set ψ : l2R3 := fourierL2.symm (hĝ_mem.toLp ĝ) with hψ_def
   have hFψ : fourierL2 ψ = hĝ_mem.toLp ĝ := by
     rw [hψ_def, LinearIsometryEquiv.apply_symm_apply]
   have hFψ_fun : (fourierL2 ψ : R3 → ℂ) =ᵐ[volume] ĝ := by
@@ -665,14 +665,14 @@ as direct instances of the Fourier-multiplier resolvent `laplacian_range_general
 
 /-- Drop-in for `laplacian_range_add_I`. -/
 theorem laplacian_range_add_I :
-    ∀ φ : L2_R3, ∃ ψ : laplacianPMap.domain,
-      laplacianPMap ψ + I • (ψ : L2_R3) = φ :=
+    ∀ φ : l2R3, ∃ ψ : laplacianPMap.domain,
+      laplacianPMap ψ + I • (ψ : l2R3) = φ :=
   fun φ => laplacian_range_general I (by simp) φ
 
 /-- Drop-in for `laplacian_range_sub_I`. -/
 theorem laplacian_range_sub_I :
-    ∀ φ : L2_R3, ∃ ψ : laplacianPMap.domain,
-      laplacianPMap ψ - I • (ψ : L2_R3) = φ := by
+    ∀ φ : l2R3, ∃ ψ : laplacianPMap.domain,
+      laplacianPMap ψ - I • (ψ : l2R3) = φ := by
   intro φ
   obtain ⟨ψ, hψ⟩ := laplacian_range_general (-I) (by simp) φ
   exact ⟨ψ, by rw [sub_eq_add_neg, ← neg_smul]; exact hψ⟩
@@ -687,7 +687,7 @@ theorem laplacian_isSelfAdjoint : IsSelfAdjoint laplacianPMap :=
     laplacian_range_add_I laplacian_range_sub_I
 
 /-- −Δ packaged as a `SelfAdjointOperator` (kinetic energy). -/
-def laplacianObservable : SelfAdjointOperator L2_R3 where
+def laplacianObservable : SelfAdjointOperator l2R3 where
   toLinearPMap := laplacianPMap
   selfAdjoint := laplacian_isSelfAdjoint
 
@@ -698,7 +698,7 @@ evolution `e^{it(−Δ)}`; the generator-extraction round-trip gives back `−Δ
 -/
 
 /-- The free-particle unitary group generated by `−Δ`, `U(t) = e^{it(−Δ)}`. -/
-def freeParticleGroup : OneParameterUnitaryGroup (H := L2_R3) :=
+def freeParticleGroup : OneParameterUnitaryGroup (H := l2R3) :=
   genToGroup laplacian_isSelfAdjoint
 
 /-- The generator of the free-particle group is `−Δ` (Stone's theorem). -/
@@ -716,7 +716,7 @@ theorem freeParticleGroup_generator_domain :
 /-- Any eigenvalue of `−Δ` is nonnegative: from `laplacian_nonneg`,
 `λ‖ψ‖² = re⟪−Δψ, ψ⟫ = ‖∇ψ‖² ≥ 0`, and `ψ ≠ 0`. -/
 theorem laplacian_spectrum_nonneg
-    (ψ : L2_R3) (hψ : MemSobolevH2 ψ) (lam : ℝ)
+    (ψ : l2R3) (hψ : MemSobolevH2 ψ) (lam : ℝ)
     (hψ_ne : ψ ≠ 0)
     (heig : weakLaplacian ψ hψ = (lam : ℂ) • ψ) :
     0 ≤ lam := by
@@ -737,7 +737,7 @@ If `−Δψ = λψ` then in Fourier space `((2π)²‖ξ‖² − λ)·𝓕ψ = 
 `‖ξ‖ = √λ/(2π)`, a Lebesgue-null set in `ℝ³` (`Measure.addHaar_sphere`); hence
 `𝓕ψ = 0` a.e. and, since `fourierL2` is a linear isometry (Plancherel), `ψ = 0`. -/
 theorem laplacian_no_eigenvalues
-    (lam : ℝ) (ψ : L2_R3) (hψ : MemSobolevH2 ψ)
+    (lam : ℝ) (ψ : l2R3) (hψ : MemSobolevH2 ψ)
     (heig : weakLaplacian ψ hψ = (lam : ℂ) • ψ) :
     ψ = 0 := by
   -- The frequencies where the symbol `(2π)²‖ξ‖²` hits `λ` form a sphere — null.
@@ -793,7 +793,7 @@ theorem laplacian_resolvent_bound (z : ℂ) (hz : z.im ≠ 0) :
 ### For `CoulombBound.lean`:
 - `laplacianPMap` is the unperturbed `A`; `laplacianPMap.domain = SobolevH2`
   holds by `rfl`, so **no domain transport is needed**: a linear map
-  `SobolevH2 →ₗ[ℂ] L2_R3` *is* a `laplacianPMap.domain →ₗ[ℂ] L2_R3`.
+  `SobolevH2 →ₗ[ℂ] l2R3` *is* a `laplacianPMap.domain →ₗ[ℂ] l2R3`.
 - `laplacianPMap_apply` bridges `laplacianPMap ⟨ψ, hψ⟩ ↔ weakLaplacian ψ hψ`
   (also `rfl`), so Hardy estimates in terms of `weakLaplacian` transfer
   verbatim to estimates in terms of `‖laplacianPMap ψ‖`.

@@ -18,16 +18,26 @@ group law for scalar multiples, special values, and agreement with Mathlib's `No
 
 ## Main statements
 
-* `expBounded_summable` — the defining series is summable.
+* `expBounded_summable` / `expBounded_norm_summable` — the defining series, and its series of
+  norms, are summable.
 * `expBounded_norm_bound` — `‖exp(tB)‖ ≤ exp(|t|·‖B‖)`.
 * `expBounded_add_smul` — the group law `exp((s+t)B) = exp(sB) ∘ exp(tB)`.
-* `expBounded_at_zero` / `expBounded_at_zero'` — `exp(0·B) = id`.
+* `expBounded_at_zero` / `expBounded_at_zero'` / `expBounded_zero_op` — special values at
+  `t = 0` and `B = 0`.
 * `expBounded_eq_exp` — agreement with `NormedSpace.exp`.
+* `expBounded_smul_commute` / `B_commute_expBounded` — commutativity helpers feeding the group
+  law and the operator's own exponential.
 -/
-open Complex Filter Topology Spectra.Resolvent
-variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
-namespace Spectra.YosidaHille.Approximation
+open Complex Spectra.Resolvent
+variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H]
 
+/-- Every scalar multiple of `H →L[ℂ] H` restricts to a `ℚ`-algebra, needed to apply
+`Commute.exp_right`/`NormedSpace.exp_add_of_commute` to bounded-operator exponentials. -/
+noncomputable instance instNormedAlgebraRatContinuousLinearMap :
+    NormedAlgebra ℚ (H →L[ℂ] H) := NormedAlgebra.restrictScalars ℚ ℂ _
+
+variable [CompleteSpace H]
+namespace Spectra.YosidaHille.Approximation
 
 /-! ### Definition -/
 
@@ -50,9 +60,7 @@ lemma expBounded_summable (B : H →L[ℂ] H) (t : ℝ) :
             mul_le_mul_of_nonneg_left (opNorm_pow_le _ _) (norm_nonneg _)
       _ = (1 / k.factorial) * ‖(t : ℂ) • B‖ ^ k := by
             congr 1
-            simp only [norm_div]
-            simp_all only [one_mem, CStarRing.norm_of_mem_unitary, one_div]
-            simp only [_root_.norm_natCast]
+            simp
       _ = ‖(t : ℂ) • B‖ ^ k / k.factorial := by ring
   apply Summable.of_nonneg_of_le
   · intro k; exact norm_nonneg _
@@ -178,54 +186,33 @@ lemma expBounded_zero_op (t : ℝ) : expBounded (0 : H →L[ℂ] H) t = 1 := by
 /-- `expBounded` agrees with Mathlib's `NormedSpace.exp`: `exp(tB) = exp((t : ℂ) • B)`. -/
 lemma expBounded_eq_exp (B : H →L[ℂ] H) (t : ℝ) :
     expBounded B t = NormedSpace.exp ((t : ℂ) • B) := by
-  unfold expBounded
-  rw [NormedSpace.exp_eq_tsum ℂ]
-  congr 1
-  ext k
-  congr 1
-  · field_simp
+  simp only [expBounded, NormedSpace.exp_eq_tsum ℂ, one_div]
 
 /-! ### Commutativity helpers -/
 
 /-- Scalar multiples of B commute. -/
-lemma smul_commute (B : H →L[ℂ] H) (s t : ℂ) : Commute (s • B) (t • B) := by
+lemma expBounded_smul_commute (B : H →L[ℂ] H) (s t : ℂ) : Commute (s • B) (t • B) := by
   unfold Commute SemiconjBy
   rw [smul_mul_smul, smul_mul_smul, mul_comm s t]
 
 /-- B commutes with exp(τB). -/
 lemma B_commute_expBounded (B : H →L[ℂ] H) (τ : ℝ) :
     Commute B (expBounded B τ) := by
-  unfold expBounded
-  have h_eq : (∑' k : ℕ, (1 / k.factorial : ℂ) • ((τ : ℂ) • B) ^ k) =
-              NormedSpace.exp ((τ : ℂ) • B) := by
-    rw [NormedSpace.exp_eq_tsum ℂ]
-    congr 1; ext k; simp only [one_div]
-  rw [h_eq]
+  rw [expBounded_eq_exp]
   have h_comm : Commute B ((τ : ℂ) • B) := by
     unfold Commute SemiconjBy
     rw [mul_smul_comm, smul_mul_assoc]
-  haveI : NormedAlgebra ℚ (H →L[ℂ] H) :=
-    NormedAlgebra.restrictScalars ℚ ℂ _
   exact h_comm.exp_right
-
 
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
 
 /-- The exponential group law for scalar multiples. -/
 lemma expBounded_add_smul (B : H →L[ℂ] H) (s t : ℝ) :
     expBounded B (s + t) = (expBounded B s).comp (expBounded B t) := by
-  unfold expBounded
-  have h_eq : ∀ τ : ℝ, (∑' k : ℕ, (1 / k.factorial : ℂ) • ((τ : ℂ) • B) ^ k) =
-              NormedSpace.exp ((τ : ℂ) • B) := by
-    intro τ
-    rw [NormedSpace.exp_eq_tsum ℂ]
-    congr 1; ext k; simp only [one_div]
-  simp_rw [h_eq]
-  have h_comm : Commute ((s : ℂ) • B) ((t : ℂ) • B) := smul_commute B s t
+  simp_rw [expBounded_eq_exp]
+  have h_comm : Commute ((s : ℂ) • B) ((t : ℂ) • B) := expBounded_smul_commute B s t
   rw [show ((s + t : ℝ) : ℂ) • B = (s : ℂ) • B + (t : ℂ) • B by
       rw [ofReal_add, add_smul]]
-  haveI : NormedAlgebra ℚ (H →L[ℂ] H) :=
-    NormedAlgebra.restrictScalars ℚ ℂ _
   rw [NormedSpace.exp_add_of_commute h_comm]
   rfl
 

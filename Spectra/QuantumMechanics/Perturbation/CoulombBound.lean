@@ -7,7 +7,7 @@ import Spectra.QuantumMechanics.Hydrogen.Laplacian.Basic
 import Spectra.QuantumMechanics.Hydrogen.Laplacian.HalfLaplacian
 import Spectra.OneParameterUnitaryGroup.Basic
 import Spectra.YosidaHille.Basic
-import Spectra.QuantumMechanics.Perturbation.HardyInequality
+import Spectra.QuantumMechanics.Perturbation.Hardy.Inequality.Basic
 import Spectra.Operator.KatoRellich
 import Spectra.Spaces.Sobolev.DensityResults
 import Spectra.Operator.SelfAdjoint
@@ -29,7 +29,7 @@ self-adjoint on H²(ℝ³) for every real coupling λ).
 ## Architecture
 
 ```
-  HardyInequality.lean             KatoRellich.lean
+  Hardy/Inequality/                KatoRellich.lean
   ┌────────────────────┐           ┌─────────────────────────┐
   │ hardy_operator_    │           │ IsRelativelyBounded     │
   │   bound            │──(a)────→ │ IsSymmetricOn           │
@@ -54,15 +54,15 @@ The old file carried a "transport to Generator.domain" layer
 (`coulombOnGeneratorDomain` and friends), because the generator's domain
 equality with `SobolevH2` was a propositional theorem.  In the current
 architecture `laplacianPMap.domain = SobolevH2` holds by `rfl`, so
-`coulombPotential p : SobolevH2 →ₗ[ℂ] L2_R3` *is* a
-`laplacianPMap.domain →ₗ[ℂ] L2_R3`.  The transport layer is deleted, and
+`coulombPotential p : SobolevH2 →ₗ[ℂ] l2R3` *is* a
+`laplacianPMap.domain →ₗ[ℂ] l2R3`.  The transport layer is deleted, and
 the corresponding sorries with it.
 
 ## Main definitions
 
 * `CoulombParams` — the nuclear charge Z > 0.
 * `coulombMultiplier` — the function x ↦ −Z/|x| (real-valued; key for symmetry).
-* `coulombPotential` — V = −Z/r as a linear map `SobolevH2 →ₗ[ℂ] L2_R3`.
+* `coulombPotential` — V = −Z/r as a linear map `SobolevH2 →ₗ[ℂ] l2R3`.
 
 ## Main statements
 
@@ -139,7 +139,7 @@ lemma coulombMultiplier_sq (p : CoulombParams) (x : R3) :
 /-- `(Z/r)ψ ∈ L²` for `ψ ∈ H¹`. Pointwise `‖(−Z/|x|)·ψ(x)‖² = Z²·inverseRSq(x)·‖ψ(x)‖²`,
 which is integrable by Hardy's inequality (`inverseRSq_mul_sq_integrable`). -/
 theorem coulomb_mul_memLp
-    (p : CoulombParams) (ψ : L2_R3) (hψ : MemSobolevH1 ψ) :
+    (p : CoulombParams) (ψ : l2R3) (hψ : MemSobolevH1 ψ) :
     MemLp (fun x => (coulombMultiplier p x : ℂ) * (ψ : R3 → ℂ) x)
       2 (volume : Measure R3) := by
   have h_meas : AEStronglyMeasurable
@@ -155,23 +155,23 @@ theorem coulomb_mul_memLp
 
 /-- The Coulomb potential applied to an H² function is in L². -/
 theorem coulomb_mul_memLp_H2
-    (p : CoulombParams) (ψ : L2_R3) (hψ : MemSobolevH2 ψ) :
+    (p : CoulombParams) (ψ : l2R3) (hψ : MemSobolevH2 ψ) :
     MemLp (fun x => (coulombMultiplier p x : ℂ) * (ψ : R3 → ℂ) x)
       2 (volume : Measure R3) :=
-  coulomb_mul_memLp p ψ (sobolevH2_le_H1 hψ)
+  coulomb_mul_memLp p ψ (sobolevH2_le_sobolevH1 hψ)
 
 /-! ## The Coulomb potential as a linear map on H²
 
 Because `laplacianPMap.domain = SobolevH2` definitionally, this map needs
 no further transport: it is already of the type
-`laplacianPMap.domain →ₗ[ℂ] L2_R3` that Kato–Rellich consumes.
+`laplacianPMap.domain →ₗ[ℂ] l2R3` that Kato–Rellich consumes.
 -/
 
 /-- The Coulomb potential `V = −Z/r` as a `ℂ`-linear map `H²(ℝ³) →ₗ[ℂ] L²(ℝ³)`,
 `(Vψ)(x) = (−Z/|x|)·ψ(x)`, well-defined by `coulomb_mul_memLp_H2`. Since
 `laplacianPMap.domain = SobolevH2` definitionally, this is already of the type
-`laplacianPMap.domain →ₗ[ℂ] L2_R3` consumed by Kato–Rellich. -/
-noncomputable def coulombPotential (p : CoulombParams) : SobolevH2 →ₗ[ℂ] L2_R3 where
+`laplacianPMap.domain →ₗ[ℂ] l2R3` consumed by Kato–Rellich. -/
+noncomputable def coulombPotential (p : CoulombParams) : SobolevH2 →ₗ[ℂ] l2R3 where
   toFun := fun ⟨ψ, hψ⟩ =>
     (coulomb_mul_memLp_H2 p ψ hψ).toLp
       (fun x => (coulombMultiplier p x : ℂ) * (ψ : R3 → ℂ) x)
@@ -192,8 +192,8 @@ noncomputable def coulombPotential (p : CoulombParams) : SobolevH2 →ₗ[ℂ] L
 multiplication by the real-valued `−Z/|x|`, both sides equal `∫ (−Z/|x|)·conj(ψ)·φ`. -/
 theorem coulomb_symmetric (p : CoulombParams) :
     ∀ (ψ φ : SobolevH2),
-      ⟪coulombPotential p ψ, (φ : L2_R3)⟫_ℂ =
-      ⟪(ψ : L2_R3), coulombPotential p φ⟫_ℂ := by
+      ⟪coulombPotential p ψ, (φ : l2R3)⟫_ℂ =
+      ⟪(ψ : l2R3), coulombPotential p φ⟫_ℂ := by
   rintro ⟨ψ, hψ⟩ ⟨φ, hφ⟩
   rw [MeasureTheory.L2.inner_def, MeasureTheory.L2.inner_def]
   refine integral_congr_ae ?_
@@ -214,17 +214,17 @@ theorem coulomb_isSymmetricOn (p : CoulombParams) :
 /-- The `L²`-norm of `Vψ` in terms of the Hardy integral: `‖Vψ‖ = Z·√(hardyIntegral ψ)`,
 from `‖Vψ‖² = Z²·∫ inverseRSq·‖ψ‖² = Z²·hardyIntegral ψ`. -/
 theorem coulomb_norm_eq (p : CoulombParams)
-    (ψ : L2_R3) (hψ : MemSobolevH2 ψ) :
-    ‖(coulombPotential p ⟨ψ, hψ⟩ : L2_R3)‖ =
+    (ψ : l2R3) (hψ : MemSobolevH2 ψ) :
+    ‖(coulombPotential p ⟨ψ, hψ⟩ : l2R3)‖ =
       p.Z * Real.sqrt (hardyIntegral ψ) := by
-  have hsq : ‖(coulombPotential p ⟨ψ, hψ⟩ : L2_R3)‖ ^ 2 = p.Z ^ 2 * hardyIntegral ψ := by
+  have hsq : ‖(coulombPotential p ⟨ψ, hψ⟩ : l2R3)‖ ^ 2 = p.Z ^ 2 * hardyIntegral ψ := by
     rw [norm_sq_eq_integral_norm_sq, hardyIntegral, ← integral_const_mul]
     refine integral_congr_ae ?_
     filter_upwards [(coulomb_mul_memLp_H2 p ψ hψ).coeFn_toLp] with x hx
     simp only [coulombPotential, LinearMap.coe_mk, AddHom.coe_mk]
     rw [hx, norm_mul, mul_pow, Complex.norm_real, Real.norm_eq_abs, sq_abs, coulombMultiplier_sq]
     ring
-  rw [← Real.sqrt_sq (norm_nonneg (coulombPotential p ⟨ψ, hψ⟩ : L2_R3)), hsq,
+  rw [← Real.sqrt_sq (norm_nonneg (coulombPotential p ⟨ψ, hψ⟩ : l2R3)), hsq,
     Real.sqrt_mul (sq_nonneg p.Z), Real.sqrt_sq p.hZ.le]
 
 /-- **The Coulomb potential is (−Δ)-bounded with any slope ε > 0.**
@@ -234,8 +234,8 @@ theorem coulomb_norm_eq (p : CoulombParams)
 theorem coulomb_relatively_bounded_H2 (p : CoulombParams)
     (ε : ℝ) (hε : 0 < ε) :
     ∃ C : ℝ, 0 ≤ C ∧
-    ∀ (ψ : L2_R3) (hψ : MemSobolevH2 ψ),
-      ‖(coulombPotential p ⟨ψ, hψ⟩ : L2_R3)‖ ≤
+    ∀ (ψ : l2R3) (hψ : MemSobolevH2 ψ),
+      ‖(coulombPotential p ⟨ψ, hψ⟩ : l2R3)‖ ≤
         ε * ‖weakLaplacian ψ hψ‖ + C * ‖ψ‖ := by
   obtain ⟨C, hC₀, hC⟩ := hardy_operator_bound (ε / p.Z) (div_pos hε p.hZ)
   refine ⟨p.Z * C, mul_nonneg p.hZ.le hC₀, fun ψ hψ => ?_⟩
@@ -254,7 +254,7 @@ theorem coulomb_relative_bound_is_zero (p : CoulombParams) :
     ∃ b : ℝ, 0 ≤ b ∧
     ∀ ψ : laplacianPMap.domain,
       ‖coulombPotential p ψ‖ ≤
-        a * ‖laplacianPMap ψ‖ + b * ‖(ψ : L2_R3)‖ := by
+        a * ‖laplacianPMap ψ‖ + b * ‖(ψ : l2R3)‖ := by
   intro a ha
   obtain ⟨C, hC₀, hC⟩ := coulomb_relatively_bounded_H2 p a ha
   exact ⟨C, hC₀, fun ψ => hC ψ.1 ψ.2⟩
@@ -301,24 +301,24 @@ theorem coulomb_isSymmetricOn_half (p : CoulombParams) :
 theorem coulomb_relative_bound_is_zero_half (p : CoulombParams) :
     ∀ ε : ℝ, 0 < ε → ∃ b : ℝ, 0 ≤ b ∧
       ∀ ψ : halfLaplacianPMap.domain,
-        ‖coulombPotential p ψ‖ ≤ ε * ‖halfLaplacianPMap ψ‖ + b * ‖(ψ : L2_R3)‖ := by
+        ‖coulombPotential p ψ‖ ≤ ε * ‖halfLaplacianPMap ψ‖ + b * ‖(ψ : l2R3)‖ := by
   intro ε hε
   obtain ⟨b, hb0, hb⟩ := coulomb_relative_bound_is_zero p (ε / 2) (by positivity)
   refine ⟨b, hb0, fun ψ => ?_⟩
-  have hdom : (ψ : L2_R3) ∈ laplacianPMap.domain := ψ.2
-  have hb' := hb ⟨(ψ : L2_R3), hdom⟩
-  have hnorm : ‖halfLaplacianPMap ψ‖ = (1 / 2 : ℝ) * ‖laplacianPMap ⟨(ψ : L2_R3), hdom⟩‖ := by
+  have hdom : (ψ : l2R3) ∈ laplacianPMap.domain := ψ.2
+  have hb' := hb ⟨(ψ : l2R3), hdom⟩
+  have hnorm : ‖halfLaplacianPMap ψ‖ = (1 / 2 : ℝ) * ‖laplacianPMap ⟨(ψ : l2R3), hdom⟩‖ := by
     rw [halfLaplacianPMap_apply ψ, norm_smul]
     have hc : ‖((1 / 2 : ℝ) : ℂ)‖ = (1 / 2 : ℝ) := by
       rw [Complex.norm_real, Real.norm_eq_abs]; norm_num
     rw [hc]
     rfl
   rw [hnorm]
-  have hVeq : ‖coulombPotential p ψ‖ = ‖coulombPotential p ⟨(ψ : L2_R3), hdom⟩‖ := by congr 1
+  have hVeq : ‖coulombPotential p ψ‖ = ‖coulombPotential p ⟨(ψ : l2R3), hdom⟩‖ := by congr 1
   rw [hVeq]
-  calc ‖coulombPotential p ⟨(ψ : L2_R3), hdom⟩‖
-      ≤ (ε / 2) * ‖laplacianPMap ⟨(ψ : L2_R3), hdom⟩‖ + b * ‖(ψ : L2_R3)‖ := hb'
-    _ = ε * (1 / 2 * ‖laplacianPMap ⟨(ψ : L2_R3), hdom⟩‖) + b * ‖(ψ : L2_R3)‖ := by ring
+  calc ‖coulombPotential p ⟨(ψ : l2R3), hdom⟩‖
+      ≤ (ε / 2) * ‖laplacianPMap ⟨(ψ : l2R3), hdom⟩‖ + b * ‖(ψ : l2R3)‖ := hb'
+    _ = ε * (1 / 2 * ‖laplacianPMap ⟨(ψ : l2R3), hdom⟩‖) + b * ‖(ψ : l2R3)‖ := by ring
 
 /-- **The hydrogen Hamiltonian `H = −½Δ − Z/r` is self-adjoint on `H²(ℝ³)`.**
 

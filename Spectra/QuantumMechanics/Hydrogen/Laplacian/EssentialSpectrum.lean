@@ -117,7 +117,7 @@ section Construction
 variable (lam : ℝ) (hlam : 0 ≤ lam)
 
 /-- The L²-normalized indicator of the `n`-th energy shell, in momentum space. -/
-noncomputable def shellFun (n : ℕ) : L2_R3 :=
+noncomputable def shellFun (n : ℕ) : l2R3 :=
   indicatorConstLp 2 (measurableSet_laplacianShell lam (1 / (n + 1)))
     (volume_laplacianShell_lt_top hlam (by positivity)).ne
     (((Real.sqrt (volume (laplacianShell lam (1 / (n + 1)))).toReal)⁻¹ : ℝ) : ℂ)
@@ -134,7 +134,7 @@ lemma norm_shellFun (n : ℕ) : ‖shellFun lam hlam n‖ = 1 := by
   exact inv_mul_cancel₀ hsqrt.ne'
 
 /-- The candidate Weyl sequence for `−Δ` at `λ`: `ψₙ := 𝓕⁻¹(gₙ)`. -/
-noncomputable def weylSeq (n : ℕ) : L2_R3 := fourierL2.symm (shellFun lam hlam n)
+noncomputable def weylSeq (n : ℕ) : l2R3 := fourierL2.symm (shellFun lam hlam n)
 
 lemma norm_weylSeq (n : ℕ) : ‖weylSeq lam hlam n‖ = 1 := by
   rw [weylSeq, LinearIsometryEquiv.norm_map, norm_shellFun]
@@ -204,7 +204,7 @@ lemma eigendefect_weylSeq (n : ℕ) :
 include hlam in
 /-- `∫_{Sₙ} ‖𝓕h‖² → 0`: the shells shrink to the measure-zero energy sphere, so by dominated
 convergence the mass of `‖𝓕h‖² ∈ L¹` on them vanishes. -/
-lemma tendsto_setIntegral_normSq (h : L2_R3) :
+lemma tendsto_setIntegral_normSq (h : l2R3) :
     Tendsto (fun (n : ℕ) => ∫ ξ in laplacianShell lam (1 / (n + 1)),
         ‖(fourierL2 h : R3 → ℂ) ξ‖ ^ 2 ∂volume) atTop (𝓝 0) := by
   have hmeas : AEStronglyMeasurable (fun ξ => ‖(fourierL2 h : R3 → ℂ) ξ‖ ^ 2) volume :=
@@ -238,7 +238,7 @@ lemma tendsto_setIntegral_normSq (h : L2_R3) :
 include hlam in
 /-- Cauchy–Schwarz bound: `‖⟪𝓕h, gₙ⟫‖ ≤ √(∫_{Sₙ}‖𝓕h‖²)` (because `gₙ` is normalized and lives on
 `Sₙ`). -/
-lemma norm_inner_shellFun_le (h : L2_R3) (n : ℕ) :
+lemma norm_inner_shellFun_le (h : l2R3) (n : ℕ) :
     ‖⟪fourierL2 h, shellFun lam hlam n⟫_ℂ‖
       ≤ Real.sqrt (∫ ξ in laplacianShell lam (1 / (n + 1)),
           ‖(fourierL2 h : R3 → ℂ) ξ‖ ^ 2 ∂volume) := by
@@ -292,7 +292,7 @@ lemma norm_inner_shellFun_le (h : L2_R3) (n : ℕ) :
 
 include hlam in
 /-- The Weyl sequence is weakly null. -/
-lemma weaklyNull_weylSeq (h : L2_R3) :
+lemma weaklyNull_weylSeq (h : l2R3) :
     Tendsto (fun n => ⟪h, weylSeq lam hlam n⟫_ℂ) atTop (𝓝 0) := by
   rw [tendsto_zero_iff_norm_tendsto_zero]
   have hreduce : ∀ n, ⟪h, weylSeq lam hlam n⟫_ℂ = ⟪fourierL2 h, shellFun lam hlam n⟫_ℂ := by
@@ -327,26 +327,26 @@ theorem essSpectrum_laplacian_subset_Ici :
   rw [Set.mem_Ici]
   -- `⟪(−Δ−λ)ψₙ, ψₙ⟫ → 0`.
   have hinner0 : Tendsto (fun n => inner (𝕜 := ℂ)
-      (laplacianPMap (ψ n) - (lam : ℂ) • (ψ n : L2_R3)) (ψ n : L2_R3)) atTop (𝓝 0) := by
+      (laplacianPMap (ψ n) - (lam : ℂ) • (ψ n : l2R3)) (ψ n : l2R3)) atTop (𝓝 0) := by
     rw [tendsto_zero_iff_norm_tendsto_zero]
     refine squeeze_zero (fun n => norm_nonneg _) (fun n => norm_inner_le_norm _ _) ?_
     simpa using hψeig.mul hψnorm
   have ha : Tendsto (fun n => -(inner (𝕜 := ℂ)
-      (laplacianPMap (ψ n) - (lam : ℂ) • (ψ n : L2_R3)) (ψ n : L2_R3)).re) atTop (𝓝 0) := by
+      (laplacianPMap (ψ n) - (lam : ℂ) • (ψ n : l2R3)) (ψ n : l2R3)).re) atTop (𝓝 0) := by
     have h1 := (Complex.continuous_re.tendsto (0 : ℂ)).comp hinner0
     simp only [Complex.zero_re] at h1
     simpa using h1.neg
   -- `λ‖ψₙ‖² → λ`.
-  have hb : Tendsto (fun n => lam * ‖(ψ n : L2_R3)‖ ^ 2) atTop (𝓝 lam) := by
+  have hb : Tendsto (fun n => lam * ‖(ψ n : l2R3)‖ ^ 2) atTop (𝓝 lam) := by
     simpa using (hψnorm.pow 2).const_mul lam
   -- the per-`n` inequality `−⟪(−Δ−λ)ψₙ,ψₙ⟫.re ≤ λ‖ψₙ‖²` from positivity.
   refine le_of_tendsto_of_tendsto' ha hb (fun n => ?_)
-  have hnn : 0 ≤ (inner (𝕜 := ℂ) (laplacianPMap (ψ n)) (ψ n : L2_R3)).re :=
-    laplacian_nonneg (ψ n : L2_R3) (ψ n).2
-  have hself : (inner (𝕜 := ℂ) (ψ n : L2_R3) (ψ n : L2_R3)).re = ‖(ψ n : L2_R3)‖ ^ 2 := by
-    simpa using inner_self_eq_norm_sq (𝕜 := ℂ) (ψ n : L2_R3)
-  have hid : (inner (𝕜 := ℂ) (laplacianPMap (ψ n) - (lam : ℂ) • (ψ n : L2_R3)) (ψ n : L2_R3)).re
-      = (inner (𝕜 := ℂ) (laplacianPMap (ψ n)) (ψ n : L2_R3)).re - lam * ‖(ψ n : L2_R3)‖ ^ 2 := by
+  have hnn : 0 ≤ (inner (𝕜 := ℂ) (laplacianPMap (ψ n)) (ψ n : l2R3)).re :=
+    laplacian_nonneg (ψ n : l2R3) (ψ n).2
+  have hself : (inner (𝕜 := ℂ) (ψ n : l2R3) (ψ n : l2R3)).re = ‖(ψ n : l2R3)‖ ^ 2 := by
+    simpa using inner_self_eq_norm_sq (𝕜 := ℂ) (ψ n : l2R3)
+  have hid : (inner (𝕜 := ℂ) (laplacianPMap (ψ n) - (lam : ℂ) • (ψ n : l2R3)) (ψ n : l2R3)).re
+      = (inner (𝕜 := ℂ) (laplacianPMap (ψ n)) (ψ n : l2R3)).re - lam * ‖(ψ n : l2R3)‖ ^ 2 := by
     rw [inner_sub_left, inner_smul_left, Complex.conj_ofReal, Complex.sub_re,
       Complex.re_ofReal_mul, hself]
   rw [hid]; linarith

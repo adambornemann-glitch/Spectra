@@ -13,7 +13,7 @@ This file builds the free Green's function **directly as an `L²` element** as t
 `L²`-Fourier transform of the resolvent symbol `m_z(ξ) = (laplacianSymbol ξ − z)⁻¹`, sidestepping
 the explicit Yukawa formula `e^{−√(−z)|x|}/(4π|x|)` and the `S²` sphere integral entirely.
 
-* `freeGreensFunctionL2 z hz : L2_R3` — the inverse `L²`-Fourier transform of `(m_z).toLp`.
+* `freeGreensFunctionL2 z hz : l2R3` — the inverse `L²`-Fourier transform of `(m_z).toLp`.
 * `fourierL2_freeGreensFunctionL2` — `𝓕 (G̃_z) =ᵐ m_z`, immediate from `apply_symm_apply`.
 * `integrable_conv_integrand` / `integrable_freeGreens_conv_integrand` — the convolution
   integrand `y ↦ G̃_z(x − y) · ψ(y)` is integrable for every `x`, so the convolution
@@ -32,7 +32,7 @@ namespace Spectra.QuantumMechanics.Hydrogen
 /-- The free Green's function defined directly as an `L²` element: the inverse `L²`-Fourier
 transform of the resolvent symbol `m_z(ξ) = (laplacianSymbol ξ − z)⁻¹`.  No explicit Yukawa
 formula, no sphere integral — just the isometric equivalence `fourierL2`. -/
-noncomputable def freeGreensFunctionL2 (z : ℂ) (hz : z.im ≠ 0) : L2_R3 :=
+noncomputable def freeGreensFunctionL2 (z : ℂ) (hz : z.im ≠ 0) : l2R3 :=
   fourierL2.symm ((memLp_inv_laplacianSymbol_sub z hz).toLp _)
 
 /-- `𝓕 (G̃_z) =ᵐ m_z`, where `m_z(ξ) = (laplacianSymbol ξ − z)⁻¹`.  Immediate from
@@ -47,7 +47,7 @@ theorem fourierL2_freeGreensFunctionL2 (z : ℂ) (hz : z.im ≠ 0) :
 /-- For `g, ψ ∈ L²` and any `x`, the integrand `y ↦ g(x−y)·ψ(y)` is integrable: `g(x−·)` is in
 `L²` (translation invariance of `volume`) and `L² · L² ⊆ L¹` by Cauchy–Schwarz.  Hence the
 convolution `(g ⋆ ψ)(x) = ∫ y, g(x−y)·ψ(y)` is well-defined. -/
-theorem integrable_conv_integrand (g ψ : L2_R3) (x : R3) :
+theorem integrable_conv_integrand (g ψ : l2R3) (x : R3) :
     Integrable (fun y => (g : R3 → ℂ) (x - y) * (ψ : R3 → ℂ) y) volume := by
   have hg : MemLp (g : R3 → ℂ) 2 volume := Lp.memLp g
   have hψ : MemLp (ψ : R3 → ℂ) 2 volume := Lp.memLp ψ
@@ -56,7 +56,7 @@ theorem integrable_conv_integrand (g ψ : L2_R3) (x : R3) :
   exact hgx.integrable_mul hψ
 
 /-- Specialisation of `integrable_conv_integrand` to `g = G̃_z`. -/
-theorem integrable_freeGreens_conv_integrand (z : ℂ) (hz : z.im ≠ 0) (ψ : L2_R3) (x : R3) :
+theorem integrable_freeGreens_conv_integrand (z : ℂ) (hz : z.im ≠ 0) (ψ : l2R3) (x : R3) :
     Integrable
       (fun y => (freeGreensFunctionL2 z hz : R3 → ℂ) (x - y) * (ψ : R3 → ℂ) y) volume :=
   integrable_conv_integrand (freeGreensFunctionL2 z hz) ψ x

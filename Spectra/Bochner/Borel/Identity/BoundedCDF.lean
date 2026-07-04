@@ -2,7 +2,6 @@
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
-Filename: Bochner/Borel/Identity/BoundedCDF.lean
 -/
 import Spectra.Bochner.Borel.CDF
 import Spectra.Herglotz.Stieltjes.IntegralConv
@@ -10,7 +9,7 @@ import Spectra.Herglotz.Stieltjes.IntegralConv
 /-!
 # Bounded-window convergence of Riemann–Stieltjes integrals
 
-## Main results
+## Main statements
 
 * `integral_Ioc_tendsto_of_cdf_tendsto`: if a sequence of monotone, right-continuous CDFs
   `F (φ k)` converges pointwise to a monotone `G` at every continuity point of `G`, then for
@@ -27,6 +26,14 @@ those support hypotheses become unnecessary: the same partition-and-triangle-ine
 argument goes through, with the `Icc`-first-cell decomposition of the unbounded case replaced
 by a decomposition entirely in terms of `Ioc` cells — slightly simpler here, since `a` and `b`
 are already continuity points of `G`, so there is no asymmetric first cell to special-case.
+
+The proof fixes a partition `a = t 0 < t 1 < ⋯ < t n = b` of continuity points of `G` whose mesh
+is below the modulus of uniform continuity of `g` on `[a, b]`, then approximates each of
+`∫ g dμ_{F(φ k)}` and `∫ g dμ_G` by the Riemann–Stieltjes sum over that partition. The final
+bound is a triangle inequality through those two sums,
+`‖∫ g dμ_{F(φ k)} − ∫ g dμ_G‖ ≤ ‖∫ g dμ_{F(φ k)} − RS k‖ + ‖RS k − RS_inf‖ + ‖RS_inf − ∫ g dμ_G‖`,
+where the outer two terms are controlled by the oscillation bound on each cell and the middle
+term by convergence of the cell masses themselves.
 
 ## References
 
@@ -87,6 +94,8 @@ lemma integral_Ioc_tendsto_of_cdf_tendsto
         stieltjes_eq_at_continuousAt G mono_G c hcc,
         ENNReal.toReal_ofReal (sub_nonneg.mpr (mono_G hcd))]
   set M : ℝ := G b - G a with hM_def
+  -- Not referenced by name below: `positivity` uses it to prove `0 < M + 1` (hence `0 < ε`) and
+  -- `field_simp` uses it to discharge `M + 1 ≠ 0` in `hε_safe`, both via local-context search.
   have hM_nn : 0 ≤ M := sub_nonneg.mpr (mono_G hab)
   have hMk_tendsto : Tendsto (fun k => F (φ k) b - F (φ k) a) atTop (𝓝 M) :=
     (conv b hb).sub (conv a ha)
@@ -106,7 +115,7 @@ lemma integral_Ioc_tendsto_of_cdf_tendsto
   have hS : {x : ℝ | ¬ ContinuousAt G x}.Countable := mono_G.countable_not_continuousAt
   have ha' : a ∉ {x | ¬ ContinuousAt G x} := fun h => h ha
   have hb' : b ∉ {x | ¬ ContinuousAt G x} := fun h => h hb
-  obtain ⟨n, t, hn, h_t0, h_tn, h_mono_t, h_gap, h_notS⟩ :=
+  obtain ⟨n, t, _hn, h_t0, h_tn, h_mono_t, h_gap, h_notS⟩ :=
     exists_partition_avoiding_countable hS hab_lt ha' hb' hδ_pos
   have h_cont_t : ∀ i ≤ n, ContinuousAt G (t i) := fun i hi => not_not.mp (h_notS i hi)
   -- t monotone in i; t_i ∈ [a, b]

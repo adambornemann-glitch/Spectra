@@ -19,8 +19,11 @@ import Mathlib.Analysis.SpecialFunctions.SmoothTransition
 /-!
 # The Information-Geometric Stone's Theorem
 
-The bijection between divergence-preserving one-parameter families and
+The correspondence between divergence-preserving one-parameter families and
 their infinitesimal generators (Killing + cubic-preserving vector fields).
+The generator direction is unconditional (`DivergencePreservingFamily.toGenerator`);
+the integration direction holds under the `FlowComplete` hypothesis, and is
+unique on the domain regardless (`infoGeometric_stone`).
 
 ## Design notes
 
@@ -871,6 +874,38 @@ def FlowComplete (M : TwiceDifferentiableModel n Ω) : Prop :=
 -- §8. The Information-Geometric Stone's Theorem
 -- ============================================================================
 
+/-- **Grönwall uniqueness on a ball.** Two trajectories of the same ODE `γ' = X'(γ)` that stay
+in a common closed ball and share an initial value agree on `[0, ε]`. This is the one Grönwall
+call (`dist_le_of_trajectories_ODE_of_mem` with `δ = 0`) shared by the forward and backward
+halves of `smooth_ode_local_unique` below — the backward half applies it to the negated field
+and the time-reversed curves. -/
+private lemma gronwall_uniqueness_on_ball
+    {X' : ParamSpace n → ParamSpace n} {K : NNReal} {θ₀ : ParamSpace n}
+    (hK : LipschitzOnWith K X' (Metric.closedBall θ₀ 1))
+    {γ₁' γ₂' : ℝ → ParamSpace n} {ε : ℝ}
+    (hγ₁' : Continuous γ₁') (hγ₂' : Continuous γ₂')
+    (h_ode₁' : ∀ s, HasDerivAt γ₁' (X' (γ₁' s)) s)
+    (h_ode₂' : ∀ s, HasDerivAt γ₂' (X' (γ₂' s)) s)
+    (h_stay₁' : ∀ s, |s| ≤ ε → γ₁' s ∈ Metric.closedBall θ₀ 1)
+    (h_stay₂' : ∀ s, |s| ≤ ε → γ₂' s ∈ Metric.closedBall θ₀ 1)
+    (h₀' : γ₁' 0 = γ₂' 0) :
+    ∀ s ∈ Set.Icc (0 : ℝ) ε, γ₁' s = γ₂' s := by
+  intro s hs
+  have h_dist := dist_le_of_trajectories_ODE_of_mem
+    (v := fun _ => X') (s := fun _ => Metric.closedBall θ₀ 1)
+    (K := K) (δ := 0)
+    (hv := fun _ _ => hK)
+    (hf := hγ₁'.continuousOn)
+    (hf' := fun t _ => (h_ode₁' t).hasDerivWithinAt)
+    (hfs := fun t ht => h_stay₁' t (by rw [abs_of_nonneg ht.1]; exact ht.2.le))
+    (hg := hγ₂'.continuousOn)
+    (hg' := fun t _ => (h_ode₂' t).hasDerivWithinAt)
+    (hgs := fun t ht => h_stay₂' t (by rw [abs_of_nonneg ht.1]; exact ht.2.le))
+    (ha := by rw [← h₀', dist_self])
+    s hs
+  simp only [zero_mul] at h_dist
+  exact dist_eq_zero.mp (le_antisymm h_dist dist_nonneg)
+
 /-- Two smooth solutions of γ' = X(γ) with the same initial condition
     agree on a neighborhood of 0. Uses Grönwall via
     `dist_le_of_trajectories_ODE_of_mem` with δ = 0. -/
@@ -917,37 +952,21 @@ private lemma smooth_ode_local_unique
   set ε := min ε₁ ε₂ with hε_def
   have hε : 0 < ε := lt_min hε₁ hε₂
   -- ═══ Step 3: Forward uniqueness on [0, ε] via Grönwall ═══
-  have h_fwd : ∀ s ∈ Set.Icc 0 ε, γ₁ s = γ₂ s := by
-    intro s hs
-    have h_dist := dist_le_of_trajectories_ODE_of_mem
-      (v := fun _ => X) (s := fun _ => Metric.closedBall θ₀ 1)
-      (K := K) (δ := 0)
-      (hv := fun _ _ => hK)
-      (hf := hγ₁.continuous.continuousOn)
-      (hf' := fun t _ => (h_ode₁ t).hasDerivWithinAt)
-      (hfs := fun t ht => h_stay₁ t (by rw [abs_of_nonneg ht.1]; exact ht.2.le.trans (min_le_left _ _)))
-      (hg := hγ₂.continuous.continuousOn)
-      (hg' := fun t _ => (h_ode₂ t).hasDerivWithinAt)
-      (hgs := fun t ht => h_stay₂ t (by rw [abs_of_nonneg ht.1]; exact ht.2.le.trans (min_le_right _ _)))
-      (ha := by rw [← h₀, dist_self])
-      s hs
-    -- h_dist : dist (γ₁ s) (γ₂ s) ≤ 0 * exp(...) = 0
-    simp only [zero_mul] at h_dist
-    exact dist_eq_zero.mp (le_antisymm h_dist dist_nonneg)
+  have h_fwd : ∀ s ∈ Set.Icc 0 ε, γ₁ s = γ₂ s :=
+    gronwall_uniqueness_on_ball hK hγ₁.continuous hγ₂.continuous h_ode₁ h_ode₂
+      (fun s hs => h_stay₁ s (hs.trans (min_le_left _ _)))
+      (fun s hs => h_stay₂ s (hs.trans (min_le_right _ _)))
+      h₀
   -- ═══ Step 4: Backward uniqueness on [0, ε] for reversed curves ═══
+  -- γ̃ᵢ(t) := γᵢ(-t) solves γ̃' = -X(γ̃), γ̃(0) = θ₀; -X is Lipschitz on the same ball with the
+  -- same K, so the same Grönwall call applies to the negated field and reversed curves.
   have h_bwd : ∀ s ∈ Set.Icc 0 ε, γ₁ (-s) = γ₂ (-s) := by
-    -- γ̃ᵢ(t) := γᵢ(-t) solves γ̃' = -X(γ̃), γ̃(0) = θ₀
-    -- -X is Lipschitz on the same ball with same K
-    -- Same Grönwall argument
-    intro s hs
-    set f := γ₁ ∘ Neg.neg
-    set g := γ₂ ∘ Neg.neg
-    have hf_ode : ∀ t, HasDerivAt f (-X (f t)) t := by
+    have hf_ode : ∀ t, HasDerivAt (γ₁ ∘ Neg.neg) (-X ((γ₁ ∘ Neg.neg) t)) t := by
       intro t
       have h := (h_ode₁ (-t)).scomp t (hasDerivAt_neg t)
       simp only [neg_one_smul] at h
       exact h
-    have hg_ode : ∀ t, HasDerivAt g (-X (g t)) t := by
+    have hg_ode : ∀ t, HasDerivAt (γ₂ ∘ Neg.neg) (-X ((γ₂ ∘ Neg.neg) t)) t := by
       intro t
       have h := (h_ode₂ (-t)).scomp t (hasDerivAt_neg t)
       simp only [neg_one_smul] at h
@@ -957,20 +976,12 @@ private lemma smooth_ode_local_unique
       calc edist (-X x) (-X y)
           = edist (X x) (X y) := by rw [edist_neg_neg]
         _ ≤ K * edist x y := hK hx hy
-    have h_dist := dist_le_of_trajectories_ODE_of_mem
-      (v := fun _ x => -X x) (s := fun _ => Metric.closedBall θ₀ 1)
-      (K := K) (δ := 0)
-      (hv := fun _ _ => hK_neg)
-      (hf := (hγ₁.comp contDiff_neg).continuous.continuousOn)
-      (hf' := fun t _ => (hf_ode t).hasDerivWithinAt)
-      (hfs := fun t ht => h_stay₁ (-t) (by rw [abs_neg, abs_of_nonneg ht.1]; exact ht.2.le.trans (min_le_left _ _)))
-      (hg := (hγ₂.comp contDiff_neg).continuous.continuousOn)
-      (hg' := fun t _ => (hg_ode t).hasDerivWithinAt)
-      (hgs := fun t ht => h_stay₂ (-t) (by rw [abs_neg, abs_of_nonneg ht.1]; exact ht.2.le.trans (min_le_right _ _)))
-      (ha := by simp [← h₀]; rfl)
-      s hs
-    simp only [zero_mul, Function.comp] at h_dist
-    exact dist_eq_zero.mp (le_antisymm h_dist dist_nonneg)
+    exact gronwall_uniqueness_on_ball hK_neg
+      (hγ₁.comp contDiff_neg).continuous (hγ₂.comp contDiff_neg).continuous
+      hf_ode hg_ode
+      (fun s hs => h_stay₁ (-s) (by rw [abs_neg]; exact hs.trans (min_le_left _ _)))
+      (fun s hs => h_stay₂ (-s) (by rw [abs_neg]; exact hs.trans (min_le_right _ _)))
+      (by simp only [neg_zero]; exact h₀)
   -- ═══ Combine forward and backward ═══
   exact ⟨ε, hε, fun s hs => by
     by_cases h : 0 ≤ s

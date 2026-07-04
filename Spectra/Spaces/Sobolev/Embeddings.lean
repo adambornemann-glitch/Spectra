@@ -37,23 +37,17 @@ file claims its name.
 
 The Kato–Rellich argument for the hydrogen atom does *not* need this lemma: relative
 boundedness of the Coulomb potential is already supplied by the Hardy inequality
-(`hardy_operator_bound` / `coulomb_relative_bound_zero` in `HardyInequality.lean`),
+(`hardy_operator_bound` / `coulomb_relative_bound_zero` in `Hardy/Inequality/Basic.lean`),
 whose proof is scaling-critical in exactly the right way. The L⁶ embedding proved
 here is forward-looking infrastructure for variational and spectral arguments.
-
-## Required one-line patch to the monolith
-
-Remove the `private` modifier from `meyers_serrin_approx_multi`. The public
-corollary `smooth_compactly_supported_dense_H1` returns only the approximating `Lp`
-*element*, but to apply Mathlib's Gagliardo–Nirenberg–Sobolev inequality we need
-the smooth *function* together with its `ContDiff`/`HasCompactSupport` witnesses,
-which is exactly what `meyers_serrin_approx_multi` provides.
 
 ## Main results
 
 * `exists_smooth_approx_H1`: public restatement of Meyers–Serrin H¹-density in
   terms of `weakGradient`.
 * `opNorm_le_sqrt_sum_sq`: `‖T‖ ≤ (∑ᵢ ‖T eᵢ‖²)^{1/2}` for `T : ℝ³ →L[ℝ] ℂ`.
+* `smoothGradNormSq`: `∑ᵢ ‖∂ᵢφ‖²_{L²}` for smooth compactly supported `φ`, the
+  shared building block of the next two results.
 * `eLpNorm_fderiv_le_sqrt_sum_partialDeriv`: `‖Dφ‖_{L²} ≤ (∑ᵢ ‖∂ᵢφ‖²_{L²})^{1/2}`.
 * `sobolev_embedding_L6_smooth`: GNS for smooth compactly supported functions,
   via `MeasureTheory.eLpNorm_le_eLpNorm_fderiv_of_eq_inner`.
@@ -70,7 +64,7 @@ Fix `f ∈ H¹` and pick `φₙ ∈ C_c^∞` with `‖f − φₙ‖₂ < 1/(n+1
 converges a.e., so Fatou (`eLpNorm_lim_le_liminf_eLpNorm` at `p = 6`) gives
 `‖f‖₆ ≤ liminf ‖φ_{n_k}‖₆ ≤ C·√(gradientNormSq f)`.
 -/
-open MeasureTheory Complex Filter MeasurableSet Topology MeasureTheory.Lp
+open MeasureTheory Filter Topology MeasureTheory.Lp
 open scoped Topology NNReal ENNReal ContDiff
 
 namespace Spectra.Sobolev
@@ -81,9 +75,9 @@ namespace Spectra.Sobolev
     accuracy `ε > 0` by a smooth compactly supported `φ`, simultaneously in the
     L² norm and in the L² norms of all three first-order derivatives.
 
-    This is `meyers_serrin_approx_multi` specialised to the canonical weak
-    gradient; it requires that lemma to be made non-`private`. -/
-theorem exists_smooth_approx_H1 (f : L2_R3) (hf : MemSobolevH1 f)
+    This is `meyers_serrin_approx_multi` (`MeyersMulti.lean`) specialised to the
+    canonical weak gradient. -/
+theorem exists_smooth_approx_H1 (f : l2R3) (hf : MemSobolevH1 f)
     (ε : ℝ) (hε : 0 < ε) :
     ∃ (φ : R3 → ℂ) (hφ : ContDiff ℝ ∞ φ) (hsupp : HasCompactSupport φ),
       ‖f - (memLp_of_smooth_compactSupport φ hφ hsupp).toLp φ‖ < ε ∧
@@ -133,6 +127,16 @@ lemma opNorm_le_sqrt_sum_sq (T : R3 →L[ℝ] ℂ) :
     _ = Real.sqrt (∑ i : Fin 3, ‖T (EuclideanSpace.single i 1)‖ ^ 2) * ‖v‖ := by
         rw [Real.sqrt_mul (Finset.sum_nonneg fun i _ => sq_nonneg _), hnormv, mul_comm]
 
+/-- The ℓ² combination of the L² norms of the three coordinate partial derivatives of a
+    smooth compactly supported `φ : ℝ³ → ℂ`: `∑ᵢ ‖∂ᵢφ‖²_{L²}`. This is the smooth-function
+    analogue of `gradientNormSq` (`Submodules.lean`), shared between
+    `eLpNorm_fderiv_le_sqrt_sum_partialDeriv` and `sobolev_embedding_L6_smooth` so the sum is
+    written out only once. -/
+noncomputable def smoothGradNormSq (φ : R3 → ℂ) (hφ : ContDiff ℝ ∞ φ)
+    (hsupp : HasCompactSupport φ) : ℝ :=
+  ∑ i : Fin 3, ‖(memLp_partialDeriv φ i hφ hsupp).toLp
+    (fun x => fderiv ℝ φ x (EuclideanSpace.single i 1))‖ ^ 2
+
 /-- The L² norm of the full Fréchet derivative of a smooth compactly supported
     function is controlled by the ℓ² combination of the L² norms of its three
     coordinate partial derivatives:
@@ -144,11 +148,8 @@ lemma opNorm_le_sqrt_sum_sq (T : R3 →L[ℝ] ℂ) :
 lemma eLpNorm_fderiv_le_sqrt_sum_partialDeriv (φ : R3 → ℂ)
     (hφ : ContDiff ℝ ∞ φ) (hsupp : HasCompactSupport φ) :
     eLpNorm (fderiv ℝ φ) 2 (volume : Measure R3) ≤
-      ENNReal.ofReal (Real.sqrt (∑ i : Fin 3,
-        ‖(memLp_partialDeriv φ i hφ hsupp).toLp
-          (fun x => fderiv ℝ φ x (EuclideanSpace.single i 1))‖ ^ 2)) := by
-  set S : ℝ := ∑ i : Fin 3, ‖(memLp_partialDeriv φ i hφ hsupp).toLp
-      (fun x => fderiv ℝ φ x (EuclideanSpace.single i 1))‖ ^ 2 with hS
+      ENNReal.ofReal (Real.sqrt (smoothGradNormSq φ hφ hsupp)) := by
+  set S : ℝ := smoothGradNormSq φ hφ hsupp with hS
   have hS_nonneg : 0 ≤ S :=
     Finset.sum_nonneg fun i _ => sq_nonneg _
   have hp_ne_zero : (2 : ℝ≥0∞) ≠ 0 := by norm_num
@@ -197,8 +198,9 @@ lemma eLpNorm_fderiv_le_sqrt_sum_partialDeriv (φ : R3 → ℂ)
       _ = ∑ i : Fin 3, ∫⁻ x,
             ‖fderiv ℝ φ x (EuclideanSpace.single i 1)‖ₑ ^ (2:ℝ)
               ∂(volume : Measure R3) :=
-          lintegral_finsetSum _ fun i _ =>
-            ((contDiff_partialDeriv φ i hφ).continuous.measurable.nnnorm.coe_nnreal_ennreal).pow_const _
+          lintegral_finsetSum _ fun i _ => by
+            have hmeas := (contDiff_partialDeriv φ i hφ).continuous.measurable
+            exact (hmeas.nnnorm.coe_nnreal_ennreal).pow_const _
       _ = ∑ i : Fin 3, eLpNorm
             (fun x => fderiv ℝ φ x (EuclideanSpace.single i 1)) 2
             (volume : Measure R3) ^ (2:ℝ) :=
@@ -211,7 +213,7 @@ lemma eLpNorm_fderiv_le_sqrt_sum_partialDeriv (φ : R3 → ℂ)
               (by norm_num : (0:ℝ) ≤ 2),
             ENNReal.ofReal_toReal (memLp_partialDeriv φ i hφ hsupp).eLpNorm_ne_top]
       _ = ENNReal.ofReal S := by
-          rw [hS, ENNReal.ofReal_sum_of_nonneg fun i _ => sq_nonneg _]
+          rw [hS, smoothGradNormSq, ENNReal.ofReal_sum_of_nonneg fun i _ => sq_nonneg _]
   -- Take square roots (rpow at exponent 2 is order-reflecting on ℝ≥0∞).
   have hfinal : eLpNorm (fderiv ℝ φ) 2 (volume : Measure R3) ^ (2:ℝ) ≤
       ENNReal.ofReal (Real.sqrt S) ^ (2:ℝ) := by
@@ -237,9 +239,7 @@ theorem sobolev_embedding_L6_smooth :
     ∃ C : ℝ, 0 < C ∧ ∀ (φ : R3 → ℂ) (hφ : ContDiff ℝ ∞ φ)
       (hsupp : HasCompactSupport φ),
       eLpNorm φ 6 (volume : Measure R3) ≤
-        ENNReal.ofReal (C * Real.sqrt (∑ i : Fin 3,
-          ‖(memLp_partialDeriv φ i hφ hsupp).toLp
-            (fun x => fderiv ℝ φ x (EuclideanSpace.single i 1))‖ ^ 2)) := by
+        ENNReal.ofReal (C * Real.sqrt (smoothGradNormSq φ hφ hsupp)) := by
   haveI : (volume : Measure R3).IsAddHaarMeasure := by
     infer_instance
   have hrank : Module.finrank ℝ R3 = 3 := finrank_euclideanSpace_fin
@@ -254,10 +254,11 @@ theorem sobolev_embedding_L6_smooth :
       (hψ.of_le (mod_cast le_top)) hs (p := 2) (p' := 6)
       (by norm_num) (by rw [hrank]; norm_num)
       (by rw [hrank]; push_cast; norm_num)
+  -- `max (C₀ : ℝ) 1` only pads `C₀` up to guarantee positivity (`0 < C`); it is not
+  -- claimed to be the sharp Gagliardo–Nirenberg–Sobolev constant.
   refine ⟨max (C₀ : ℝ) 1, lt_of_lt_of_le one_pos (le_max_right _ _),
     fun φ hφ hsupp => ?_⟩
-  set S : ℝ := ∑ i : Fin 3, ‖(memLp_partialDeriv φ i hφ hsupp).toLp
-      (fun x => fderiv ℝ φ x (EuclideanSpace.single i 1))‖ ^ 2 with hS
+  set S : ℝ := smoothGradNormSq φ hφ hsupp with hS
   have hgrad := eLpNorm_fderiv_le_sqrt_sum_partialDeriv φ hφ hsupp
   rw [← hS] at hgrad
   calc eLpNorm φ 6 (volume : Measure R3)
@@ -287,7 +288,7 @@ theorem sobolev_embedding_L6_smooth :
     of the L²-convergent sequence `φₙ → f`, and conclude with Fatou's lemma for
     `eLpNorm` at `p = 6`. -/
 theorem sobolev_embedding_L6 :
-    ∃ C : ℝ, 0 < C ∧ ∀ (f : L2_R3) (hf : MemSobolevH1 f),
+    ∃ C : ℝ, 0 < C ∧ ∀ (f : l2R3) (hf : MemSobolevH1 f),
       eLpNorm (f : R3 → ℂ) 6 (volume : Measure R3) ≤
         ENNReal.ofReal (C * Real.sqrt (gradientNormSq f hf)) := by
   obtain ⟨C, hC, hsmooth⟩ := sobolev_embedding_L6_smooth
@@ -376,7 +377,7 @@ theorem sobolev_embedding_L6 :
 /-! ### Consequences -/
 
 /-- Every H¹ function on ℝ³ lies in L⁶. -/
-theorem memLp_six_of_memSobolevH1 (f : L2_R3) (hf : MemSobolevH1 f) :
+theorem memLp_six_of_memSobolevH1 (f : l2R3) (hf : MemSobolevH1 f) :
     MemLp (f : R3 → ℂ) 6 (volume : Measure R3) := by
   obtain ⟨C, _, hbound⟩ := sobolev_embedding_L6
   exact ⟨Lp.aestronglyMeasurable f,
@@ -385,7 +386,7 @@ theorem memLp_six_of_memSobolevH1 (f : L2_R3) (hf : MemSobolevH1 f) :
 /-- **Sobolev embedding, norm form.** The norm of the `Lp 6` element associated
     to an H¹ function is bounded by `C · √(gradientNormSq f) = C · ‖∇f‖_{L²}`. -/
 theorem sobolev_embedding_L6_norm :
-    ∃ C : ℝ, 0 < C ∧ ∀ (f : L2_R3) (hf : MemSobolevH1 f),
+    ∃ C : ℝ, 0 < C ∧ ∀ (f : l2R3) (hf : MemSobolevH1 f),
       ‖(memLp_six_of_memSobolevH1 f hf).toLp (f : R3 → ℂ)‖ ≤
         C * Real.sqrt (gradientNormSq f hf) := by
   obtain ⟨C, hC, hbound⟩ := sobolev_embedding_L6

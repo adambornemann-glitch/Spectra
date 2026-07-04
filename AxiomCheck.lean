@@ -208,12 +208,41 @@ assert_no_sorry Spectra.Operator.eq_vonNeumannExtensionOn_induced
 assert_no_sorry Spectra.Operator.exists_eq_vonNeumannExtensionOn
 assert_no_sorry Spectra.Operator.inducedDefectDomain_vonNeumannExtensionOn
 assert_no_sorry Spectra.Operator.vonNeumannExtensionOn_inj_apply
+-- Which partial von Neumann extensions are self-adjoint (endgame plan Ⓡ2): exactly the full
+-- deficiency unitaries — `IsSelfAdjoint A_V ↔ F = N₊(A) ∧ Surjective V` for closed `A`.
+-- ⟸ re-runs the surjectivity engine (no cast along `F = N₊` ever happens); ⟹ is a direct
+-- range-orthogonality argument needing no closedness and no classification machinery.
+assert_no_sorry Spectra.Operator.vonNeumannExtensionOn_isSelfAdjoint
+assert_no_sorry Spectra.Operator.deficiencySubspacePlus_le_of_vonNeumannExtensionOn_isSelfAdjoint
+assert_no_sorry Spectra.Operator.surjective_of_vonNeumannExtensionOn_isSelfAdjoint
+assert_no_sorry Spectra.Operator.vonNeumannExtensionOn_isSelfAdjoint_iff
+-- Which partial von Neumann extensions are CLOSED (endgame plan Ⓡ1): exactly those with closed
+-- `F` — via graph-Pythagoras (`‖u‖² + ‖A*u‖²` splits over the first-formula decomposition,
+-- `norm_sq_add_deficiency_decomposition`, symmetry-free), a triple-Cauchy transfer for ⟸, and
+-- the first formula's unique decomposition for ⟹. Closed symmetric extensions ↔ isometries on
+-- closed subspaces of N₊(A): the textbook classification is now complete.
+assert_no_sorry Spectra.Operator.norm_sq_add_deficiency_decomposition
+assert_no_sorry Spectra.Operator.norm_sq_graph_defect
+assert_no_sorry Spectra.Operator.vonNeumannExtensionOn_isClosed_of_isClosed
+assert_no_sorry Spectra.Operator.isClosed_of_vonNeumannExtensionOn_isClosed
+assert_no_sorry Spectra.Operator.vonNeumannExtensionOn_isClosed_iff
 -- VON NEUMANN'S CONJUGATION CRITERION (Reed–Simon X.3): a symmetric densely-defined operator
 -- commuting with a conjugation (antiunitary involution) admits self-adjoint extensions — the
 -- conjugation swaps N₊ ↔ N₋, restricts to an antiunitary equivalence, and the general
 -- Hilbert-basis transport `nonempty_linearIsometryEquiv_of_antiunitary` (antiunitarily
 -- equivalent Hilbert spaces are unitarily equivalent) feeds von Neumann's extension theorem.
 -- Covers Schrödinger operators with real potentials.
+-- The PVM-free Weyl criterion (endgame plan Ⓦ): `λ ∈ spectrum A` ⟺ approximate eigensequence,
+-- proved via the parametric bounded-below core — closed range from a closed graph + lower bound
+-- (no symmetry), dense range at real λ for self-adjoint A, and the generic
+-- bounded-below + surjective ⟹ resolvent-point gluing. Drops the former
+-- `SpectralTheory.Essential` dependency of `Operator/WeylCriterion.lean` entirely.
+assert_no_sorry Spectra.Resolvent.range_isClosed_of_boundedBelow
+assert_no_sorry Spectra.Resolvent.range_dense_of_boundedBelow_real
+assert_no_sorry Spectra.Resolvent.sub_smul_injective_of_boundedBelow
+assert_no_sorry Spectra.Resolvent.mem_resolventSet_of_boundedBelow_surjective
+assert_no_sorry Spectra.Resolvent.mem_resolventSet_of_boundedBelow_real
+assert_no_sorry Spectra.Operator.mem_spectrum_iff_exists_weylSequence
 assert_no_sorry Spectra.Operator.nonempty_linearIsometryEquiv_of_antiunitary
 assert_no_sorry Spectra.Operator.deficiencySubspacePlus_isClosed
 assert_no_sorry Spectra.Operator.deficiencySubspaceMinus_isClosed
@@ -226,6 +255,41 @@ assert_no_sorry Spectra.Operator.exists_le_isSelfAdjoint_of_conjugation
 assert_no_sorry Spectra.YosidaHille.Approximation.I_mul_pnat_im_ne_zero
 assert_no_sorry Spectra.YosidaHille.Approximation.neg_I_mul_pnat_im_ne_zero
 assert_no_sorry Spectra.YosidaHille.Approximation.norm_I_mul_pnat
+-- Strong convergence of the Yosida approximants `Aₙ`, `Aₙ⁻`, `Aₙˢʸᵐ` to the generator `A` on its
+-- domain, and `Aₙ`'s commutation with every resolvent (`YosidaHille/Approximation/Convergence/
+-- Approximants.lean`).
+assert_no_sorry Spectra.YosidaHille.Approximation.yosidaApprox_eq_J_comp_A
+assert_no_sorry Spectra.YosidaHille.Approximation.yosidaApprox_tendsto_on_domain
+assert_no_sorry Spectra.YosidaHille.Approximation.yosidaApproxNeg_eq_JNeg_A
+assert_no_sorry Spectra.YosidaHille.Approximation.yosidaApproxNeg_tendsto_on_domain
+assert_no_sorry Spectra.YosidaHille.Approximation.yosidaApproxSym_eq_avg
+assert_no_sorry Spectra.YosidaHille.Approximation.yosidaApproxSym_tendsto_on_domain
+assert_no_sorry Spectra.YosidaHille.Approximation.yosidaApprox_commutes_resolvent
+-- Self-adjointness of the symmetric Yosida approximant and skew-adjointness of `I` times it —
+-- together what makes `exp(i·Aₙˢʸᵐ·t)` unitary (`YosidaHille/Approximation/Symmetry.lean`).
+assert_no_sorry Spectra.YosidaHille.Approximation.yosidaApproxSym_selfAdjoint
+assert_no_sorry Spectra.YosidaHille.Approximation.I_smul_yosidaApproxSym_skewAdjoint
+-- The bounded-operator exponential `expBounded` (power series `Σₖ (tB)ᵏ/k!`) and its analytic
+-- backbone (`YosidaHille/Approximation/ExpBounded/Helpers.lean`).
+assert_no_sorry Spectra.YosidaHille.Approximation.expBounded_summable
+assert_no_sorry Spectra.YosidaHille.Approximation.expBounded_norm_summable
+assert_no_sorry Spectra.YosidaHille.Approximation.expBounded_norm_bound
+assert_no_sorry Spectra.YosidaHille.Approximation.expBounded_at_zero
+assert_no_sorry Spectra.YosidaHille.Approximation.expBounded_at_zero'
+assert_no_sorry Spectra.YosidaHille.Approximation.expBounded_zero_op
+assert_no_sorry Spectra.YosidaHille.Approximation.expBounded_eq_exp
+assert_no_sorry Spectra.YosidaHille.Approximation.expBounded_smul_commute
+assert_no_sorry Spectra.YosidaHille.Approximation.B_commute_expBounded
+assert_no_sorry Spectra.YosidaHille.Approximation.expBounded_add_smul
+-- Unitarity of exponentials of skew-adjoint operators, specialized to `exp(i·Aₙˢʸᵐ·t)`
+-- (`YosidaHille/Approximation/ExpBounded/Unitary.lean`).
+assert_no_sorry Spectra.YosidaHille.Approximation.expBounded_skewAdjoint_unitary
+assert_no_sorry Spectra.YosidaHille.Approximation.expBounded_mem_unitary
+assert_no_sorry Spectra.YosidaHille.Approximation.smul_I_skewSelfAdjoint
+assert_no_sorry Spectra.YosidaHille.Approximation.expBounded_yosidaApproxSym_unitary
+assert_no_sorry Spectra.YosidaHille.Approximation.expBounded_yosidaApproxSym_isometry
+assert_no_sorry Spectra.YosidaHille.Approximation.expBounded_hasDerivAt_zero
+assert_no_sorry Spectra.YosidaHille.Approximation.expBounded_hasDerivAt
 
 /-! ## Essential spectrum · Weyl's theorem -/
 
@@ -769,6 +833,12 @@ assert_no_sorry Spectra.InformationGeometry.TwiceDifferentiableModel.infoGeometr
 assert_no_sorry Spectra.InformationGeometry.GeometricData.classicalBit_rigid
 assert_no_sorry Spectra.InformationGeometry.GeometricData.qubit_generator_azimuthal
 assert_no_sorry Spectra.InformationGeometry.GeometricData.classical_quantum_dichotomy
+-- The m-connection transformation law: cubic-tensor preservation (the key intermediate step)
+-- and the main law, each a `#print axioms`-worthy capstone of the four-file
+-- MixtureSymmetry → ThirdDerivative → PullbackIdentities → MixtureConnection cluster — gating
+-- the final theorem transitively certifies every lemma it depends on throughout that chain.
+assert_no_sorry Spectra.InformationGeometry.ThriceDifferentiableModel.DivergencePreservingFamily.preserves_cubic_basis
+assert_no_sorry Spectra.InformationGeometry.ThriceDifferentiableModel.DivergencePreservingFamily.mConnection_correction
 
 /-! ## Hilbert tensor product `E ⊗̂[𝕜] F` (Fock Spaces M0) -/
 
@@ -834,7 +904,15 @@ assert_no_sorry Spectra.fullFock
 
 /-! ## Sobolev spaces -/
 
+-- `WeakDerivative.lean`: the foundational file for the whole directory (configuration space
+-- `R3`, Hilbert space `l2R3`, the `HasWeakDerivative` distributional pairing, and the closure
+-- lemmas for smooth compactly supported test functions that everything downstream reuses).
+assert_no_sorry Spectra.Sobolev.memLp_of_smooth_compactSupport
+assert_no_sorry Spectra.Sobolev.hasCompactSupport_partialDeriv
+assert_no_sorry Spectra.Sobolev.contDiff_partialDeriv
+assert_no_sorry Spectra.Sobolev.memLp_partialDeriv
 assert_no_sorry Spectra.Sobolev.meyers_serrin_approx
+assert_no_sorry Spectra.Sobolev.meyers_serrin_approx_multi
 assert_no_sorry Spectra.Sobolev.sobolev_embedding_L6
 -- Meyers–Serrin mollification step: bump convolution simultaneously approximates a compactly
 -- supported L² function and its weak derivative(s) by a smooth compactly supported function.
@@ -844,6 +922,42 @@ assert_no_sorry Spectra.Sobolev.mollify_compactly_supported_multi
 -- `DuBoisReymond.lean`, `DensityResults.lean`, and `MeyersCommon.lean`.
 assert_no_sorry Spectra.Sobolev.dense_test_functions_L2
 assert_no_sorry Spectra.Sobolev.dense_continuous_compactSupport_L2
+-- `DuBoisReymond.lean`: the fundamental lemma of the calculus of variations for L²(ℝ³,ℂ) and its
+-- corollary, uniqueness of the weak derivative.
+assert_no_sorry Spectra.Sobolev.inner_L2_test_eq_zero
+assert_no_sorry Spectra.Sobolev.eq_zero_of_integral_against_test_eq_zero
+assert_no_sorry Spectra.Sobolev.hasWeakDerivative_unique
+-- `Operations.lean`: the calculus of weak derivatives (closure under `0`/`+`/`•`, Schwarz
+-- symmetry, and uniqueness of second weak derivatives) — consumed by `Submodules.lean`'s
+-- `Submodule` instance and by the Hydrogen-atom formalization (`RadialEigenfunction/`,
+-- `SectorProjection.lean`, `Eigenpair.lean`).
+assert_no_sorry Spectra.Sobolev.hasWeakDerivative_zero
+assert_no_sorry Spectra.Sobolev.hasWeakDerivative_add
+assert_no_sorry Spectra.Sobolev.hasWeakDerivative_smul
+assert_no_sorry Spectra.Sobolev.hasWeakSecondDerivative_comm
+assert_no_sorry Spectra.Sobolev.hasWeakSecondDerivative_unique
+-- `Submodules.lean`: `SobolevH1`/`SobolevH2` as `Submodule ℂ l2R3`, the weak gradient/Dirichlet
+-- norm, and the weak Laplacian `-Δ` bundled as a linear map — consumed by `IntegrationByParts.lean`
+-- and, downstream, the Hydrogen/Dirac Laplacian developments.
+assert_no_sorry Spectra.Sobolev.sobolevH2_le_sobolevH1
+assert_no_sorry Spectra.Sobolev.laplacianLinearMap
+-- `IntegrationByParts.lean`: the no-boundary integration-by-parts identity for the weak Laplacian
+-- on `ℝ³` and its corollaries (symmetry, the Dirichlet energy identity, non-negativity, and
+-- first-order skew-symmetry of the weak gradient) — consumed by `DensityResults.lean`,
+-- `Embeddings.lean`, and the Hydrogen/Dirac Laplacian developments.
+assert_no_sorry Spectra.Sobolev.integration_by_parts
+assert_no_sorry Spectra.Sobolev.laplacian_symmetric
+assert_no_sorry Spectra.Sobolev.gradient_norm_sq_eq_laplacian_inner
+assert_no_sorry Spectra.Sobolev.laplacian_nonneg
+assert_no_sorry Spectra.Sobolev.weakGradient_inner_skew
+-- `DensityResults.lean`: the two headline density results the operator theory needs to build
+-- `-Δ` with a core — `H²(ℝ³)` dense in `L²(ℝ³)`, and `C_c^∞(ℝ³)` dense in `H¹(ℝ³)` — plus the
+-- two supporting lemmas that identify smooth compactly supported functions with their weak
+-- derivatives / full `H²` membership.
+assert_no_sorry Spectra.Sobolev.hasWeakDerivative_of_smooth_compactSupport
+assert_no_sorry Spectra.Sobolev.smooth_compactSupport_memSobolevH2
+assert_no_sorry Spectra.Sobolev.sobolevH2_dense
+assert_no_sorry Spectra.Sobolev.smooth_compactly_supported_dense_H1
 
 /-! ## Axiom transparency
 
@@ -890,6 +1004,10 @@ and `Quot.sound` should appear — anything else (especially `sorryAx`) is a red
 #print axioms Spectra.Operator.nonempty_linearIsometryEquiv_of_antiunitary
 #print axioms Spectra.Operator.exists_le_isSelfAdjoint_of_conjugation
 #print axioms Spectra.Operator.isClosable_iff_dense_adjoint_domain
+#print axioms Spectra.Operator.mem_spectrum_iff_exists_weylSequence
+#print axioms Spectra.Resolvent.mem_resolventSet_of_boundedBelow_real
+#print axioms Spectra.Operator.vonNeumannExtensionOn_isSelfAdjoint_iff
+#print axioms Spectra.Operator.vonNeumannExtensionOn_isClosed_iff
 #print axioms Spectra.QuantumMechanics.SpectralTheory.pmapOfPVM_isSelfAdjoint_of_real
 #print axioms Spectra.QuantumMechanics.SpectralTheory.pmapOfPVM_domain_dense_of_support_Ioi
 #print axioms Spectra.TomitaTakesaki.modularOpInv
@@ -914,5 +1032,7 @@ and `Quot.sound` should appear — anything else (especially `sorryAx`) is a red
 #print axioms Spectra.InformationGeometry.TwiceDifferentiableModel.infoGeometric_stone
 #print axioms Spectra.InformationGeometry.GeometricData.qubit_generator_azimuthal
 #print axioms Spectra.InformationGeometry.GeometricData.classical_quantum_dichotomy
+#print axioms Spectra.InformationGeometry.ThriceDifferentiableModel.DivergencePreservingFamily.preserves_cubic_basis
+#print axioms Spectra.InformationGeometry.ThriceDifferentiableModel.DivergencePreservingFamily.mConnection_correction
 #print axioms Spectra.TensorPower.instInnerProductSpace
 #print axioms Spectra.fullFock

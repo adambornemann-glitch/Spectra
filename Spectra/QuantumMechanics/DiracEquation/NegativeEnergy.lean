@@ -345,7 +345,7 @@ lemma wpSpinor_fourier_eigen (mc2 R : ℝ) (a : Fin 4) :
         rw [keya]; ring
 
 /-- L²-norm² as an integral of the pointwise norm²: `‖f‖² = ∫ ‖f(ξ)‖²`. -/
-lemma L2_normSq_integral (f : L2_R3) : ‖f‖ ^ 2 = ∫ ξ, ‖(f : R3 → ℂ) ξ‖ ^ 2 ∂volume := by
+lemma L2_normSq_integral (f : l2R3) : ‖f‖ ^ 2 = ∫ ξ, ‖(f : R3 → ℂ) ξ‖ ^ 2 ∂volume := by
   rw [← inner_self_eq_norm_sq (𝕜 := ℂ) f, MeasureTheory.L2.inner_def,
     ← integral_re (MeasureTheory.L2.integrable_inner f f)]
   exact integral_congr_ae (Filter.Eventually.of_forall fun ξ => inner_self_eq_norm_sq _)

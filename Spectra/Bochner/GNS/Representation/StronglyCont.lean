@@ -2,11 +2,49 @@
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
-Filename: Bochner/GNS/Representation/StronglyCont.lean
 -/
 import Spectra.Bochner.GNS.Representation.Lemmas
 import Spectra.Bochner.GNS.Representation.StronglyEx
-open Complex Finsupp Filter Topology
+
+/-!
+# Strong Continuity of the GNS Translation Representation
+
+This file proves strong continuity of the GNS translation representation on the completion
+`UniformSpace.Completion (GNSQuotient hPD hH)`: for every `ψ`, the orbit map `t ↦
+completionTranslate hPD hH t ψ` is continuous. This is the strong-continuity hypothesis a
+Stone's-theorem argument needs to turn `completionTranslate` into a genuine one-parameter unitary
+group.
+
+## Main statements
+
+* `pdInner_translate_left_continuous` — `t ↦ ⟨translate t α, β⟩_f` is continuous, by rewriting it
+  as a finite double sum of translates of the continuous `f`.
+* `quotientTranslate_continuous` — the orbit map of a quotient representative
+  `t ↦ quotientTranslate t (mkQ α)` is continuous, via an ε–δ argument on `norm_sub_sq`.
+* `completionTranslate_coe_continuous` — the same continuity, transported across the completion
+  map at one fixed point `↑(mkQ α)` in the dense range of the quotient.
+* `completionTranslate_dist` — `completionTranslate t` is an isometry of the completion.
+* `completionTranslate_strong_continuous` — the headline result: continuity of `t ↦
+  completionTranslate t ψ` for *every* `ψ` in the completion, obtained from the three lemmas above
+  by the generic 3ε extension `strong_continuity_extends`.
+
+## Implementation notes
+
+The three-stage lift mirrors the GNS construction itself: finite-sum continuity of `pdInner`
+(purely algebraic, no completion in sight) → an ε–δ argument on the pre-Hilbert quotient
+(`quotientTranslate_continuous`) → density transport to the full completion
+(`completionTranslate_coe_continuous`). The final step cannot avoid an ε/3-style argument: strong
+continuity is only known on the dense image of the quotient, and
+`completionTranslate_strong_continuous` needs it at *every* point of the completion, so
+`strong_continuity_extends` approximates an arbitrary `ψ` by a dense `w`, using the isometry
+(`completionTranslate_dist`) for the two outer legs of the triangle inequality and
+continuity-on-the-dense-set for the middle leg.
+
+## References
+
+* Reed–Simon, *Methods of Modern Mathematical Physics I*, §VIII.4 (strong continuity of the
+  translation representation)
+-/
 open Spectra.PositiveDefinite
 namespace Spectra.Bochner.GNS
 
@@ -27,6 +65,9 @@ lemma pdInner_translate_left_continuous {f : ℝ → ℂ}
       (fun r c₁ c₂ => by
         simp only [Finsupp.sum, map_add, ← Finset.sum_add_distrib]
         apply Finset.sum_congr rfl; intro s _; ring)]
+    -- Goal is now `Finsupp.sum ... = Finset.sum ...` over the same support/terms: the two
+    -- `Finsupp.sum` unfoldings agree with the `Finset.sum` on `α.support`/`β.support`
+    -- component-wise (real and imaginary parts each reduce definitionally).
     exact Eq.symm (Complex.ext rfl rfl)
   simp_rw [heq]
   apply continuous_finsetSum; intro r _
@@ -37,16 +78,12 @@ lemma pdInner_translate_left_continuous {f : ℝ → ℂ}
 /-- For Finsupp α, the map t ↦ quotientTranslate t (mkQ α) is continuous ℝ → V. -/
 lemma quotientTranslate_continuous {f : ℝ → ℂ}
     (hPD : IsPositiveDefinite f) (hH : IsHermitian f) (hf : IsContinuous f) (α : ℝ →₀ ℂ) :
-    letI : NormedAddCommGroup (GNSQuotient hPD hH) :=
-      @InnerProductSpace.Core.toNormedAddCommGroup ℂ _ _ _ _ (quotientCore hPD hH)
-    letI : InnerProductSpace ℂ (GNSQuotient hPD hH) :=
-      InnerProductSpace.ofCore (quotientCore hPD hH).toCore
+    letI := gnsQuotientNACG hPD hH
+    letI := gnsQuotientIPS hPD hH
     Continuous (fun t => quotientTranslate hPD hH t
       ((pdNullSubmodule hPD hH).mkQ α)) := by
-  letI nacgV : NormedAddCommGroup (GNSQuotient hPD hH) :=
-    @InnerProductSpace.Core.toNormedAddCommGroup ℂ _ _ _ _ (quotientCore hPD hH)
-  letI ipsV : InnerProductSpace ℂ (GNSQuotient hPD hH) :=
-    InnerProductSpace.ofCore (quotientCore hPD hH).toCore
+  letI nacgV := gnsQuotientNACG hPD hH
+  letI ipsV := gnsQuotientIPS hPD hH
   set mkQ := (pdNullSubmodule hPD hH).mkQ
   set qα := mkQ α
   rw [continuous_iff_continuousAt]; intro t₀
@@ -80,30 +117,27 @@ lemma quotientTranslate_continuous {f : ℝ → ℂ}
     rw [← Real.dist_eq]; exact hδ_spec ht
   -- ‖x - y‖² = 2(cross t₀ - cross t) = 2(‖qα‖² - cross t)
   rw [← hcross_eq] at hnorm_sq
-  -- ‖x - y‖² < ε²
+  -- ‖x - y‖² < ε²: unfold `hcross_near`'s absolute value to the two-sided bound
+  -- `cross t₀ - cross t < ε²/2`, then substitute into `hnorm_sq = 2 * (cross t₀ - cross t)`.
   have hnn : 0 ≤ ‖x - y‖ ^ 2 := sq_nonneg _
   have hnorm_bound : ‖x - y‖ ^ 2 < ε ^ 2 := by
-    grind only [= abs.eq_1, = max_def]
+    have := abs_lt.mp hcross_near
+    linarith [this.2]
   -- ‖x - y‖ < ε
   nlinarith [sq_nonneg ‖x - y‖, sq_abs ε]
 
-
 /-- For Finsupp α, t ↦ completionTranslate t (↑(mkQ α)) is continuous in the completion. -/
-lemma completionTranslate_continuous_on_dense {f : ℝ → ℂ}
+lemma completionTranslate_coe_continuous {f : ℝ → ℂ}
     (hPD : IsPositiveDefinite f) (hH : IsHermitian f) (hf : IsContinuous f) (α : ℝ →₀ ℂ) :
-    letI : NormedAddCommGroup (GNSQuotient hPD hH) :=
-      @InnerProductSpace.Core.toNormedAddCommGroup ℂ _ _ _ _ (quotientCore hPD hH)
-    letI : InnerProductSpace ℂ (GNSQuotient hPD hH) :=
-      InnerProductSpace.ofCore (quotientCore hPD hH).toCore
+    letI := gnsQuotientNACG hPD hH
+    letI := gnsQuotientIPS hPD hH
     letI : UniformContinuousConstSMul ℂ (GNSQuotient hPD hH) :=
       gnsQuotient_uniformContinuousConstSMul hPD hH
     Continuous (fun t => completionTranslate hPD hH t
       (↑((pdNullSubmodule hPD hH).mkQ α) :
         UniformSpace.Completion (GNSQuotient hPD hH))) := by
-  letI : NormedAddCommGroup (GNSQuotient hPD hH) :=
-    @InnerProductSpace.Core.toNormedAddCommGroup ℂ _ _ _ _ (quotientCore hPD hH)
-  letI : InnerProductSpace ℂ (GNSQuotient hPD hH) :=
-    InnerProductSpace.ofCore (quotientCore hPD hH).toCore
+  letI := gnsQuotientNACG hPD hH
+  letI := gnsQuotientIPS hPD hH
   haveI : UniformContinuousConstSMul ℂ (GNSQuotient hPD hH) :=
     gnsQuotient_uniformContinuousConstSMul hPD hH
   -- completionTranslate t (↑(mkQ α)) = ↑(quotientTranslate t (mkQ α))
@@ -117,23 +151,18 @@ lemma completionTranslate_continuous_on_dense {f : ℝ → ℂ}
   exact (UniformSpace.Completion.continuous_coe _).comp
     (quotientTranslate_continuous hPD hH hf α)
 
-
 /-- `completionTranslate t` preserves distances (isometry on the completion). -/
 lemma completionTranslate_dist {f : ℝ → ℂ}
     (hPD : IsPositiveDefinite f) (hH : IsHermitian f) (t : ℝ) :
-    letI : NormedAddCommGroup (GNSQuotient hPD hH) :=
-      @InnerProductSpace.Core.toNormedAddCommGroup ℂ _ _ _ _ (quotientCore hPD hH)
-    letI : InnerProductSpace ℂ (GNSQuotient hPD hH) :=
-      InnerProductSpace.ofCore (quotientCore hPD hH).toCore
+    letI := gnsQuotientNACG hPD hH
+    letI := gnsQuotientIPS hPD hH
     letI : UniformContinuousConstSMul ℂ (GNSQuotient hPD hH) :=
       gnsQuotient_uniformContinuousConstSMul hPD hH
     ∀ (x y : UniformSpace.Completion (GNSQuotient hPD hH)),
     dist (completionTranslate hPD hH t x) (completionTranslate hPD hH t y) =
     dist x y := by
-  letI : NormedAddCommGroup (GNSQuotient hPD hH) :=
-    @InnerProductSpace.Core.toNormedAddCommGroup ℂ _ _ _ _ (quotientCore hPD hH)
-  letI : InnerProductSpace ℂ (GNSQuotient hPD hH) :=
-    InnerProductSpace.ofCore (quotientCore hPD hH).toCore
+  letI := gnsQuotientNACG hPD hH
+  letI := gnsQuotientIPS hPD hH
   haveI : UniformContinuousConstSMul ℂ (GNSQuotient hPD hH) :=
     gnsQuotient_uniformContinuousConstSMul hPD hH
   intro x y
@@ -144,29 +173,23 @@ lemma completionTranslate_dist {f : ℝ → ℂ}
   exact (pow_left_inj₀ (norm_nonneg _) (norm_nonneg _) two_ne_zero).mp
     (by exact_mod_cast h)
 
-
 /-- **Strong continuity**: for every ψ in the completion,
     t ↦ completionTranslate t ψ is continuous.
 
     A direct instance of the generic 3ε extension `Spectra.Bochner.GNS.strong_continuity_extends`:
     `completionTranslate` is norm-preserving (from `completionTranslate_dist`, specialized at `0`)
     and continuous on the dense range of the quotient embedding
-    (`completionTranslate_continuous_on_dense`, via `mkQ`'s surjectivity). -/
+    (`completionTranslate_coe_continuous`, via `mkQ`'s surjectivity). -/
 theorem completionTranslate_strong_continuous {f : ℝ → ℂ}
     (hPD : IsPositiveDefinite f) (hH : IsHermitian f) (hf : IsContinuous f) :
-    letI : NormedAddCommGroup (GNSQuotient hPD hH) :=
-      @InnerProductSpace.Core.toNormedAddCommGroup ℂ _ _ _ _ (quotientCore hPD hH)
-    letI : InnerProductSpace ℂ (GNSQuotient hPD hH) :=
-      InnerProductSpace.ofCore (quotientCore hPD hH).toCore
+    letI := gnsQuotientNACG hPD hH
+    letI := gnsQuotientIPS hPD hH
     letI : UniformContinuousConstSMul ℂ (GNSQuotient hPD hH) :=
       gnsQuotient_uniformContinuousConstSMul hPD hH
     ∀ (ψ : UniformSpace.Completion (GNSQuotient hPD hH)),
     Continuous (fun t => completionTranslate hPD hH t ψ) := by
-
-  letI : NormedAddCommGroup (GNSQuotient hPD hH) :=
-    @InnerProductSpace.Core.toNormedAddCommGroup ℂ _ _ _ _ (quotientCore hPD hH)
-  letI : InnerProductSpace ℂ (GNSQuotient hPD hH) :=
-    InnerProductSpace.ofCore (quotientCore hPD hH).toCore
+  letI := gnsQuotientNACG hPD hH
+  letI := gnsQuotientIPS hPD hH
   haveI : UniformContinuousConstSMul ℂ (GNSQuotient hPD hH) :=
     gnsQuotient_uniformContinuousConstSMul hPD hH
   have hiso : ∀ (t : ℝ) (ψ : UniformSpace.Completion (GNSQuotient hPD hH)),
@@ -181,6 +204,6 @@ theorem completionTranslate_strong_continuous {f : ℝ → ℂ}
     (by
       rintro φ ⟨v, rfl⟩
       obtain ⟨α, rfl⟩ := Submodule.mkQ_surjective (pdNullSubmodule hPD hH) v
-      exact completionTranslate_continuous_on_dense hPD hH hf α)
+      exact completionTranslate_coe_continuous hPD hH hf α)
 
 end Spectra.Bochner.GNS

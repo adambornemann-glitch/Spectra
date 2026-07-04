@@ -2,11 +2,28 @@
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
-Filename: Bochner/Borel/Fubini.lean
 -/
 import Spectra.Fourier.Identity
-import Spectra.Resolvent.Diagonal.Basic
+/-!
+# Regularized Fubini for the Poisson-Density Fourier Identity
 
+The single lemma `fubini_regularized` is the regularized-Fubini step between
+`Spectra.Fourier.fourier_identity` and the Poisson-density identity it feeds
+(`fourier_integral_eq_density` in `Bochner/Borel/Density.lean`): it swaps the order of the
+double integral `∫_λ (∫_t e^{-iλt} e^{-ε|t|} ⟨ξ,U(t)ξ⟩ dt) · e^{-δ|λ|} dλ` and evaluates the
+resulting inner λ-integral against the Poisson kernel, collapsing the whole expression to
+`∫_t e^{-ε|t|} ⟨ξ,U(t)ξ⟩ · (2δ/(t²+δ²)) dt`.
+
+## Main statements
+
+* `fubini_regularized` — the double-integral swap and Poisson-kernel evaluation described above.
+
+## Implementation notes
+
+The swap itself is ordinary Fubini for the jointly-integrable product kernel; the inner
+λ-integral is then evaluated via `Spectra.Fourier.fourier_kernel_eval` (`Fourier/Identity.lean`),
+the Fourier transform of the two-sided exponential specialized to the Poisson kernel.
+-/
 open Complex MeasureTheory
 open scoped InnerProductSpace
 open Spectra.OneParameterUnitaryGroup
@@ -15,10 +32,12 @@ variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteS
 namespace Spectra.Borel
 variable (U_grp : OneParameterUnitaryGroup (H := H))
 
-/-- Integrate `key_identity`'s integrand
-against `e^{-δ|λ|}`, swap, evaluate. -/
+/-- Integrate `fourier_identity`'s integrand `e^{-iλt}e^{-ε|t|}⟨ξ,U(t)ξ⟩` against `e^{-δ|λ|}`,
+swap the order of integration, and evaluate the resulting λ-integral against the Poisson
+kernel: the double integral collapses to `∫_t e^{-ε|t|}⟨ξ,U(t)ξ⟩·(2δ/(t²+δ²))dt`, the input to
+the Poisson-kernel density in `Bochner/Borel/Density.lean`. -/
 lemma fubini_regularized
-    (U_grp : OneParameterUnitaryGroup (H := H)) (ξ : H)
+    (ξ : H)
     {ε : ℝ} (hε : 0 < ε) {δ : ℝ} (hδ : 0 < δ) :
     (∫ lambda : ℝ,
         (∫ t : ℝ, cexp (-(I * (lambda : ℂ) * (t : ℂ))) *
@@ -62,7 +81,8 @@ lemma fubini_regularized
     show ‖cexp (-(I * (p.1 : ℂ) * (p.2 : ℂ))) * cexp (-(↑ε * ↑|p.2|)) * ⟪ξ, U_grp.U p.2 ξ⟫_ℂ *
           (Real.exp (-(δ * |p.1|)) : ℂ)‖ ≤ _
     rw [norm_mul, norm_mul, norm_mul, Complex.norm_exp, Complex.norm_exp, Complex.norm_real]
-    have h1 : (-(I * (p.1 : ℂ) * (p.2 : ℂ))).re = 0 := by simp [Complex.mul_re]
+    have h1 : (-(I * (p.1 : ℂ) * (p.2 : ℂ))).re = 0 := by
+      rw [Complex.neg_re, re_I_mul_ofReal_mul_ofReal, neg_zero]
     have h2 : (-((ε : ℂ) * (|p.2|))).re = -(ε * |p.2|) := by
       simp [Complex.mul_re]
     simp [h1, h2, Real.exp_zero, one_mul, abs_of_pos (Real.exp_pos _)]
@@ -83,7 +103,7 @@ lemma fubini_regularized
   congr 1; funext t
   have hreorder : (fun lambda : ℝ => F lambda t) =
         (fun lambda : ℝ => (cexp (-(↑ε * ↑|t|)) * ⟪ξ, U_grp.U t ξ⟫_ℂ) *
-                       (cexp (-(I * (lambda : ℂ) * (t : ℂ))) * (Real.exp (-(δ * |lambda|)) : ℂ))) := by
+          (cexp (-(I * (lambda : ℂ) * (t : ℂ))) * (Real.exp (-(δ * |lambda|)) : ℂ))) := by
     funext lambda; show F lambda t = _; simp only [F]; ring
   rw [hreorder, integral_const_mul, fourier_kernel_eval hδ t]
 

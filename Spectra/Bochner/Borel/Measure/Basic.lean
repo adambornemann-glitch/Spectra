@@ -2,13 +2,12 @@
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
-Filename: Bochner/Borel/Measure/Basic.lean
 -/
 import Spectra.Bochner.Borel.Identity.CauchyVague
 import Spectra.Mathlib.CharFunBridge
 import Spectra.Fourier.Inversion
 /-!
-# Statement
+# Existence of the diagonal Bochner spectral measure
 
 For any strongly continuous one-parameter unitary group `U(t)` on a Hilbert
 space `H` and any vector `ξ ∈ H`, there exists a finite positive Borel measure
@@ -23,6 +22,24 @@ The measure is `borelMeasure U ξ` and the identity is the named lemma
 
 Combined with Fourier uniqueness (**proved**, `Fourier/Unique.lean`), this
 gives the complete Bochner theorem.
+
+## Main definitions
+
+* `borelMeasure U_grp ξ` — the diagonal Bochner spectral measure (defined upstream in
+  `Bochner/Borel/CDF.lean`), used throughout this file but not redefined here.
+
+## Main statements
+
+* `borelMeasure_fourier` — the defining identity `⟨ξ,U(t)ξ⟩ = ∫ e^{itlambda} dμ(lambda)`.
+* `spectral_scalar_measure_exists` — the packaged existence theorem.
+* `m_eq_cauchy_transform` — the Cauchy-transform companion identity, `⟪ξ, R(z)ξ⟫ =
+  ∫ (λ - z)⁻¹ dμ(λ)` for `z` off the real axis.
+* `borelMeasure_mass` — total mass `μ(ℝ) = ‖ξ‖²`.
+* `borelMeasure_smul` — `μ_{c•ξ} = ‖c‖² • μ_ξ`.
+* `borelMeasure_zero` — the zero vector carries the zero measure.
+* `borel_combination_ext` — extensionality bridge for complex combinations of diagonal
+  measures, used downstream to prove the sesquilinearity lemmas of the polarized measure
+  (`SpectralTheory/Measure/Polarized.lean`).
 
 ## Tags
 
@@ -59,7 +76,8 @@ private lemma two_sided_split {h : ℝ → ℂ} (hcont : Continuous h)
         cexp (-(I * (s:ℂ) * (t:ℂ))) * cexp (-((ε:ℂ) * ((|t| : ℝ):ℂ)))) volume := by
       refine (integrable_two_sided_exp hε (-s)).congr ?_
       filter_upwards with t
-      rw [show I * ((-s : ℝ) : ℂ) * (t : ℂ) = -(I * (s:ℂ) * (t:ℂ)) from by push_cast; ring]
+      rw [show I * ((-s : ℝ) : ℂ) * (t : ℂ) = -(I * (s:ℂ) * (t:ℂ))
+            from by push_cast; ring]
       ring
     exact hker.mul_bdd hcont.aestronglyMeasurable (.of_forall hbnd)
   -- ℝ = Iic 0 ⊔ Ioi 0
@@ -96,12 +114,15 @@ private lemma two_sided_split {h : ℝ → ℂ} (hcont : Continuous h)
             (fun u : ℝ => cexp (-(I * (s:ℂ) * ((-u : ℝ):ℂ)))
                 * cexp (-((ε:ℂ) * ((|(-u)| : ℝ):ℂ))) * h (-u)) (-t) from by
         refine setIntegral_congr_fun measurableSet_Iic (fun t _ => ?_); simp]
+    -- push the `Iic`-integral through the `neg` embedding onto `Ici`
     rw [← h_pre,
-        h_mp.setIntegral_preimage_emb h_emb                            -- ⚠ orientation (mirror of fourier_identity)
+        h_mp.setIntegral_preimage_emb h_emb
           (fun u : ℝ => cexp (-(I * (s:ℂ) * ((-u : ℝ):ℂ)))
               * cexp (-((ε:ℂ) * ((|(-u)| : ℝ):ℂ))) * h (-u)) (Set.Ici 0),
         ← integral_conj]
     refine setIntegral_congr_fun measurableSet_Ici (fun u hu => ?_)
+    -- clear the `-(-u)` double negation and normalize the `cexp` argument left over
+    -- from the `neg`-embedding substitution, matching the pointwise goal below
     field_simp
     -- pointwise (u ≥ 0):  F(-u) = conj(e^{-izu} h u)
     rw [map_mul, ← hherm u]
@@ -155,11 +176,7 @@ theorem borelMeasure_fourier
     · intro t
       filter_upwards with lambda
       have hnorm : ‖cexp (I * (lambda:ℂ) * (t:ℂ))‖ = 1 := by
-        rw [Complex.norm_exp]
-        have h0 : (I * (lambda:ℂ) * (t:ℂ)).re = 0 := by
-          simp [Complex.mul_re, Complex.mul_im, Complex.I_re, Complex.I_im,
-                Complex.ofReal_re, Complex.ofReal_im]
-        rw [h0, Real.exp_zero]
+        rw [Complex.norm_exp, re_I_mul_ofReal_mul_ofReal, Real.exp_zero]
       exact hnorm.le
     · exact integrable_const (1:ℝ)
     · filter_upwards with lambda
@@ -172,16 +189,14 @@ theorem borelMeasure_fourier
   have hg_bdd : ∃ C, ∀ t, ‖g t‖ ≤ C := ⟨(μ Set.univ).toReal, fun t => by
     simp only [hg]
     calc ‖∫ lambda, cexp (I * (lambda:ℂ) * (t:ℂ)) ∂μ‖
-        ≤ ∫ lambda, ‖cexp (I * (lambda:ℂ) * (t:ℂ))‖ ∂μ := norm_integral_le_integral_norm _
+        ≤ ∫ lambda, ‖cexp (I * (lambda:ℂ) * (t:ℂ))‖ ∂μ :=
+            norm_integral_le_integral_norm _
       _ = ∫ _lambda, (1:ℝ) ∂μ := by
             refine integral_congr_ae (Filter.Eventually.of_forall (fun lambda => ?_))
             simp only [Complex.norm_exp]
-            have h0 : (I * (lambda:ℂ) * (t:ℂ)).re = 0 := by
-              simp [Complex.mul_re, Complex.mul_im, Complex.I_re, Complex.I_im,
-                    Complex.ofReal_re, Complex.ofReal_im]
-            rw [h0, Real.exp_zero]
+            rw [re_I_mul_ofReal_mul_ofReal, Real.exp_zero]
       _ = (μ Set.univ).toReal := by
-        rw [integral_const, smul_eq_mul, mul_one];
+        rw [integral_const, smul_eq_mul, mul_one]
         exact Measure.real_def μ Set.univ⟩
   -- Hermitian symmetry of f : exactly `inner_unitary_neg`
   have hf_herm : ∀ t, f (-t) = (starRingEnd ℂ) (f t) := by
@@ -252,11 +267,9 @@ theorem borelMeasure_fourier
               ≤ Real.exp (z.im * p.1) * (1:ℝ)
         have h1 : (-(I * z * (p.1:ℂ))).re = z.im * p.1 := by
           simp [Complex.neg_re, Complex.mul_re, Complex.mul_im, Complex.I_re, Complex.I_im,
-                Complex.ofReal_re, Complex.ofReal_im];
-        have h2 : (I * (p.2:ℂ) * (p.1:ℂ)).re = 0 := by
-          simp [Complex.mul_re, Complex.mul_im, Complex.I_re, Complex.I_im,
                 Complex.ofReal_re, Complex.ofReal_im]
-        simp only [norm_mul, Complex.norm_exp, Complex.norm_exp, h1, h2, Real.exp_zero, mul_one, mul_one]
+        have h2 : (I * (p.2:ℂ) * (p.1:ℂ)).re = 0 := re_I_mul_ofReal_mul_ofReal p.2 p.1
+        simp only [norm_mul, Complex.norm_exp, h1, h2, Real.exp_zero, mul_one]
         exact le_refl (Real.exp (z.im * p.1))
       rw [integral_integral_swap hswap_int]
       -- (3) inner t-integral via laplace_exp
@@ -273,7 +286,8 @@ theorem borelMeasure_fourier
   -- two-sided regularized transforms coincide:  2·Re of `hL`
   have hdecay : ∀ ε : ℝ, 0 < ε → ∀ s : ℝ,
       (∫ t : ℝ, cexp (-(I * (s:ℂ) * (t:ℂ))) * cexp (-((ε:ℂ) * ((|t| : ℝ):ℂ))) * f t)
-        = ∫ t : ℝ, cexp (-(I * (s:ℂ) * (t:ℂ))) * cexp (-((ε:ℂ) * ((|t| : ℝ):ℂ))) * g t := by
+        = ∫ t : ℝ,
+            cexp (-(I * (s:ℂ) * (t:ℂ))) * cexp (-((ε:ℂ) * ((|t| : ℝ):ℂ))) * g t := by
     intro ε hε s
     obtain ⟨Cf, hCf⟩ := hf_bdd
     obtain ⟨Cg, hCg⟩ := hg_bdd
@@ -313,7 +327,7 @@ lemma borelMeasure_mass (ξ : H) :
   rw [hint, ← coe_algebraMap] at h
   exact_mod_cast h.symm
 
-/-- Scaling: `μ_{c•ξ} = ‖c‖₊² • μ_ξ`.  Both sides have transform `‖c‖²·⟪ξ, U(t)ξ⟫`;
+/-- Scaling: `μ_{c•ξ} = ‖c‖₊² • μ_ξ`.  Both sides have transform `‖c‖²·⟪ξ,U(t)ξ⟫`;
 conclude by `measure_ext_of_fourier`. -/
 lemma borelMeasure_smul (c : ℂ) (ξ : H) :
     borelMeasure U_grp (c • ξ) = (‖c‖₊ ^ 2) • borelMeasure U_grp ξ := by
@@ -338,7 +352,8 @@ lemma borelMeasure_zero : borelMeasure U_grp (0 : H) = 0 := by
 /-- **Bridge to the workhorse.**  Two complex combinations of diagonal spectral measures whose
 matrix-element combinations agree for all `t` have equal integrals against every bounded
 measurable function.  Specialization of `integral_combination_ext'` along
-`borelMeasure_fourier`; every sesquilinearity lemma below is an instance. -/
+`borelMeasure_fourier`; the sesquilinearity lemmas of the polarized measure
+(`SpectralTheory/Measure/Polarized.lean`) are instances of this bridge. -/
 lemma borel_combination_ext {n m : ℕ} (c : Fin n → ℂ) (v : Fin n → H)
     (d : Fin m → ℂ) (w : Fin m → H)
     (h : ∀ t : ℝ, ∑ i, c i * ⟪v i, U_grp.U t (v i)⟫_ℂ

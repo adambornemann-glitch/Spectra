@@ -16,11 +16,34 @@ what make `exp(i·Aₙˢʸᵐ·t)` unitary — the key step in assembling the on
 
 * `yosidaApproxSym_selfAdjoint` — `(Aₙˢʸᵐ)* = Aₙˢʸᵐ`.
 * `I_smul_yosidaApproxSym_skewAdjoint` — `(i·Aₙˢʸᵐ)* = -(i·Aₙˢʸᵐ)`.
+
+## Implementation notes
+
+`Aₙˢʸᵐ` is the `n²/2`-weighted average of the two resolvents `R(in)`, `R(-in)`, each other's
+adjoint by `resolvent_adjoint` — averaging conjugate-paired operators symmetrizes, giving
+`yosidaApproxSym_selfAdjoint`. Multiplying a self-adjoint operator by `I` always yields a
+skew-adjoint one (`⟨φ, I•Tψ⟩ = I⟨φ,Tψ⟩ = I⟨Tφ,ψ⟩ = -⟨I•Tφ,ψ⟩` using `T* = T`), giving
+`I_smul_yosidaApproxSym_skewAdjoint`. Self-adjoint and skew-adjoint together are exactly what
+make `NormedSpace.exp (I • t • Aₙˢʸᵐ)` unitary (`expBounded_skewAdjoint_unitary` in
+`ExpBounded/Unitary.lean`), the key step in assembling the one-parameter group.
 -/
 open Complex InnerProductSpace Spectra.Resolvent
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
 namespace Spectra.YosidaHille.Approximation
-variable {U_grp : OneParameterUnitaryGroup (H := H)}
+
+/-- `⟪φ, R(z)ψ⟫ = ⟪R(z̄)φ, ψ⟫`: swapping a resolvent from one side of an inner product to the
+other conjugates its spectral parameter. Repackages `resolvent_adjoint` via
+`ContinuousLinearMap.adjoint_inner_left`. -/
+private lemma resolvent_inner_swap {A : H →ₗ.[ℂ] H}
+    (hsym : A.IsFormalAdjoint A)
+    (hplus : ∀ φ : H, ∃ ψ : A.domain, A ψ + I • (ψ : H) = φ)
+    (hminus : ∀ φ : H, ∃ ψ : A.domain, A ψ - I • (ψ : H) = φ)
+    (z : ℂ) (hz : z.im ≠ 0) (φ ψ : H) :
+    ⟪φ, resolvent z hz hsym hplus hminus ψ⟫_ℂ =
+    ⟪resolvent (starRingEnd ℂ z)
+        (by simp only [Complex.conj_im, neg_ne_zero]; exact hz)
+        hsym hplus hminus φ, ψ⟫_ℂ := by
+  rw [← resolvent_adjoint hsym hplus hminus z hz, ContinuousLinearMap.adjoint_inner_left]
 
 /-- The symmetric Yosida approximant is self-adjoint: `(Aₙˢʸᵐ)* = Aₙˢʸᵐ`. -/
 lemma yosidaApproxSym_selfAdjoint {A : H →ₗ.[ℂ] H}
@@ -39,10 +62,7 @@ lemma yosidaApproxSym_selfAdjoint {A : H →ₗ.[ℂ] H}
   simp only [ContinuousLinearMap.smul_apply, ContinuousLinearMap.add_apply]
   -- The scalar n²/2 is real
   have h_scalar_real : (starRingEnd ℂ) ((n : ℂ)^2 / 2) = (n : ℂ)^2 / 2 := by
-    simp only [map_div₀, map_pow]
-    congr 1
-    simp
-    exact conj_eq_iff_re.mpr rfl
+    simp [map_div₀, map_pow, map_ofNat]
   -- Pull scalars through inner products
   rw [inner_smul_right, inner_smul_left, h_scalar_real]
   congr 1
@@ -51,24 +71,10 @@ lemma yosidaApproxSym_selfAdjoint {A : H →ₗ.[ℂ] H}
   -- Use resolvent_adjoint: ⟨φ, R(z)ψ⟩ = ⟨R(z̄)φ, ψ⟩
   have h1 : ⟪φ, resolvent (I * ↑↑n) (I_mul_pnat_im_ne_zero n) hsym hplus hminus ψ⟫_ℂ =
             ⟪resolvent (-I * ↑↑n) (neg_I_mul_pnat_im_ne_zero n) hsym hplus hminus φ, ψ⟫_ℂ := by
-    have hadj := resolvent_adjoint hsym hplus hminus (I * ↑↑n) (I_mul_pnat_im_ne_zero n)
-    have h_conj : (starRingEnd ℂ) (I * ↑↑n) = -I * ↑↑n := by simp
-    rw [← ContinuousLinearMap.adjoint_inner_left]
-    congr 1
-    rw [hadj]
-    congr 1
-    rw [← hadj]
-    simp_all only [map_div₀, map_pow, map_natCast, neg_mul, map_mul, conj_I]
+    simpa using resolvent_inner_swap hsym hplus hminus (I * ↑↑n) (I_mul_pnat_im_ne_zero n) φ ψ
   have h2 : ⟪φ, resolvent (-I * ↑↑n) (neg_I_mul_pnat_im_ne_zero n) hsym hplus hminus ψ⟫_ℂ =
             ⟪resolvent (I * ↑↑n) (I_mul_pnat_im_ne_zero n) hsym hplus hminus φ, ψ⟫_ℂ := by
-    have hadj := resolvent_adjoint hsym hplus hminus (-I * ↑↑n) (neg_I_mul_pnat_im_ne_zero n)
-    have h_conj : (starRingEnd ℂ) (-I * ↑↑n) = I * ↑↑n := by simp
-    rw [← ContinuousLinearMap.adjoint_inner_left]
-    congr 1
-    rw [hadj]
-    congr 1
-    rw [← hadj]
-    simp_all only [map_div₀, map_pow, map_natCast, neg_mul, map_neg, map_mul, conj_I, neg_neg]
+    simpa using resolvent_inner_swap hsym hplus hminus (-I * ↑↑n) (neg_I_mul_pnat_im_ne_zero n) φ ψ
   rw [h1, h2]
   ring
 
@@ -78,7 +84,8 @@ lemma I_smul_yosidaApproxSym_skewAdjoint {A : H →ₗ.[ℂ] H}
     (hplus : ∀ φ : H, ∃ ψ : A.domain, A ψ + I • (ψ : H) = φ)
     (hminus : ∀ φ : H, ∃ ψ : A.domain, A ψ - I • (ψ : H) = φ)
     (n : ℕ+) :
-    (I • yosidaApproxSym hsym hplus hminus n).adjoint = -(I • yosidaApproxSym hsym hplus hminus n) := by
+    (I • yosidaApproxSym hsym hplus hminus n).adjoint =
+      -(I • yosidaApproxSym hsym hplus hminus n) := by
   ext φ
   apply ext_inner_right ℂ
   intro ψ
@@ -93,6 +100,6 @@ lemma I_smul_yosidaApproxSym_skewAdjoint {A : H →ₗ.[ℂ] H}
   -- This follows from self-adjointness of Aₙˢʸᵐ
   -- ⟨φ, Aₙˢʸᵐ ψ⟩ = ⟨(Aₙˢʸᵐ)* φ, ψ⟩ = ⟨Aₙˢʸᵐ φ, ψ⟩
   rw [← ContinuousLinearMap.adjoint_inner_left, yosidaApproxSym_selfAdjoint hsym hplus hminus n]
-  rw [neg_mul, eq_neg_iff_add_eq_zero, add_eq_zero_iff_neg_eq', neg_eq_iff_eq_neg]
+  ring
 
 end Spectra.YosidaHille.Approximation

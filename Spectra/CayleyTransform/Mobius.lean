@@ -4,19 +4,42 @@ Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Mathlib.Analysis.Complex.Basic
-import Mathlib.Analysis.SpecialFunctions.Complex.Log
 /-!
 # The Möbius Map from ℝ to the Unit Circle
 
 This file develops properties of the Möbius transformation `μ ↦ (μ - i)/(μ + i)` which
-maps the real line bijectively onto the unit circle minus `{1}`.
+maps the real line bijectively onto the unit circle minus `{1}`, together with its inverse
+`w ↦ i(1 + w)/(1 - w)`. This is the algebraic engine behind the Cayley transform of a
+self-adjoint operator: `Eigenvalue.lean` and `BorelCalculus.lean` build the spectral
+correspondence between a self-adjoint operator's real spectrum and its Cayley transform's
+unitary spectrum on the circle directly on top of the identities proved here.
 
 ## Main statements
 
 * `real_add_I_ne_zero`: `μ + i ≠ 0` for real `μ`
-* `mobius_norm_one`: The Möbius image of a real number has norm 1
-* `one_sub_mobius`: Formula for `1 - (μ - i)/(μ + i)`
-* `mobius_coeff_identity`: Key algebraic identity used in spectral correspondence
+* `mobius_norm_one`: the Möbius image of a real number has norm 1
+* `one_sub_mobius`: formula for `1 - (μ - i)/(μ + i)`
+* `one_add_mobius`: formula for `1 + (μ - i)/(μ + i)`
+* `mobius_coeff_identity`: key algebraic identity used in spectral correspondence
+* `one_sub_mobius_ne_zero`: `1 - w ≠ 0` for the Möbius image `w`
+* `one_sub_mobius_norm_pos`: `‖1 - w‖ > 0` for the Möbius image `w`
+* `inverseMobius`: the inverse map `w ↦ i(1 + w)/(1 - w)`, recovering `μ` from `w`
+* `inverseMobius_real`: the inverse map sends the unit circle (minus `1`) back to the reals
+* `mobius_inverseMobius`: the inverse map really is a left inverse of the Möbius map
+
+## Implementation notes
+
+Six lemmas (`mobius_norm_one` through `one_sub_mobius_norm_pos`) take `hμ_ne : (↑μ:ℂ) + I ≠ 0`
+as an explicit hypothesis even though `real_add_I_ne_zero μ` proves it unconditionally for every
+real `μ`. This is deliberate, not an oversight: `Eigenvalue.lean`'s own public lemmas thread the
+identical hypothesis through their signatures the same way (e.g. `cayley_shift_identity`), so
+callers already carry `hμ_ne` as a named local fact from one proof step to the next rather than
+re-deriving it at each call; matching that convention here keeps the two files consistent.
+
+## References
+
+* Reed–Simon, *Methods of Modern Mathematical Physics I*, §VIII.3 (the Cayley transform of a
+  self-adjoint operator, built on this scalar Möbius correspondence)
 -/
 open Complex
 namespace Spectra.Cayley
@@ -74,36 +97,23 @@ lemma one_sub_mobius_norm_pos (hμ_ne : (↑μ : ℂ) + I ≠ 0) :
 /-- The inverse Möbius transformation, recovering μ from w. -/
 noncomputable def inverseMobius (w : ℂ) : ℂ := I * (1 + w) / (1 - w)
 
-/-- The inverse Möbius map sends the unit circle (minus 1) to reals. -/
+/-- The inverse Möbius map sends the unit circle (minus 1) to reals.
+
+Proof: `‖w‖ = 1` gives `conj w = w⁻¹`, from which `conj (inverseMobius w) = inverseMobius w`
+follows by a direct field computation; a complex number fixed by conjugation is real. -/
 lemma inverseMobius_real (w : ℂ) (hw_norm : ‖w‖ = 1) (hw_ne : w ≠ 1) :
     (inverseMobius w).im = 0 := by
-  simp only [inverseMobius]
-  have h1_sub_ne : 1 - w ≠ 0 := sub_ne_zero.mpr (Ne.symm hw_ne)
-  set a := w.re with ha
-  set b := w.im with hb
-  have hab : a^2 + b^2 = 1 := by
-    have hw_normSq : normSq w = 1 := by
-      exact Real.sqrt_eq_one.mp hw_norm
-    have : normSq w = a^2 + b^2 := by simp [normSq, ha, hb, sq]
-    rw [hw_normSq] at this
-    linarith
-  have h_normSq_ne : Complex.normSq (1 - w) ≠ 0 := by exact (map_ne_zero normSq).mpr h1_sub_ne
-  have h_normSq_eq : Complex.normSq (1 - w) = (1 - a)^2 + b^2 := by
-    simp only [Complex.normSq,MonoidWithZeroHom.coe_mk, ZeroHom.coe_mk, sub_re, one_re,
-      sub_im, one_im, zero_sub, mul_neg, neg_mul, neg_neg]
-    ring
-  have h_denom_pos : (1 - a)^2 + b^2 > 0 := by
-    rw [← h_normSq_eq]
-    exact Complex.normSq_pos.mpr h1_sub_ne
-  rw [div_eq_mul_inv, Complex.mul_im]
-  simp only [Complex.inv_re, Complex.inv_im, Complex.mul_re, Complex.mul_im,
-             Complex.add_re, Complex.add_im, Complex.sub_re, Complex.sub_im,
-             Complex.one_re, Complex.one_im, Complex.I_re, Complex.I_im,
-             ← ha, ← hb]
-  simp only [zero_mul, one_mul, zero_add, zero_sub, neg_neg]
-  rw [h_normSq_eq]
-  field_simp [ne_of_gt h_denom_pos]
-  nlinarith [sq_nonneg a, sq_nonneg b, hab]
+  have hw_ne0 : w ≠ 0 := fun h => by simp [h] at hw_norm
+  have h1_sub_ne : (1 : ℂ) - w ≠ 0 := sub_ne_zero.mpr (Ne.symm hw_ne)
+  have hw1_ne : w - 1 ≠ 0 := sub_ne_zero.mpr hw_ne
+  have h1_sub_inv_ne : (1 : ℂ) - w⁻¹ ≠ 0 := by
+    have hrw : (1 : ℂ) - w⁻¹ = -(1 - w) * w⁻¹ := by field_simp; ring
+    rw [hrw]
+    exact mul_ne_zero (neg_ne_zero.mpr h1_sub_ne) (inv_ne_zero hw_ne0)
+  rw [← Complex.conj_eq_iff_im, inverseMobius, map_div₀, map_mul, map_add, map_sub, map_one,
+      Complex.conj_I, ← Complex.inv_eq_conj hw_norm]
+  field_simp [h1_sub_ne, h1_sub_inv_ne, hw_ne0, hw1_ne]
+  ring
 
 /-- Möbius composed with inverse Möbius is identity on unit circle minus {1}. -/
 lemma mobius_inverseMobius (w : ℂ) (hw_ne : w ≠ 1) :

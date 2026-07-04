@@ -128,7 +128,7 @@ applies the (linear, isometric) Fourier transform to the resolvent equation
 `(−Δ − z)(R_z f) = f` (`selfAdjointResolvent_solves`) and diagonalises `−Δ` with
 `fourier_weakLaplacian`. The remaining content of the kernel identity is then purely the Fourier
 transform of `G_z` (see the roadmap on `freeGreensFunction_is_resolvent_kernel`). -/
-theorem fourierL2_selfAdjointResolvent (z : ℂ) (hz : z.im ≠ 0) (f : L2_R3) :
+theorem fourierL2_selfAdjointResolvent (z : ℂ) (hz : z.im ≠ 0) (f : l2R3) :
     (fourierL2 (selfAdjointResolvent laplacian_isSelfAdjoint z hz f) : R3 → ℂ)
       =ᵐ[volume] fun ξ => ((laplacianSymbol ξ : ℂ) - z)⁻¹ * (fourierL2 f : R3 → ℂ) ξ := by
   have hmem : MemSobolevH2 (selfAdjointResolvent laplacian_isSelfAdjoint z hz f) :=
@@ -138,7 +138,7 @@ theorem fourierL2_selfAdjointResolvent (z : ℂ) (hz : z.im ≠ 0) (f : L2_R3) :
       - z • selfAdjointResolvent laplacian_isSelfAdjoint z hz f = f := by
     have h := selfAdjointResolvent_solves laplacian_isSelfAdjoint z hz f
     rwa [laplacianPMap_apply] at h
-  set u : L2_R3 := selfAdjointResolvent laplacian_isSelfAdjoint z hz f with hu
+  set u : l2R3 := selfAdjointResolvent laplacian_isSelfAdjoint z hz f with hu
   -- apply the linear isometry `fourierL2` to the resolvent equation.
   have hF : fourierL2 (weakLaplacian u hmem) - z • fourierL2 u = fourierL2 f := by
     rw [← hsolve, map_sub, map_smul]

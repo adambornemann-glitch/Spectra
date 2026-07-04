@@ -355,9 +355,8 @@ theorem stronglyCommute_of_jointPVM {A B : SelfAdjointOperator H} {M : POVM H (�
   exact M.effect_congr (Set.inter_comm _ _) _ _
 
 /- The full equivalence `stronglyCommute_iff_jointPVM` (whose **forward** direction is the genuine
-multivariate-spectral-theorem construction, still open) lives in `BornRule.JointForward`, the
-roadmap file carrying this layer's remaining `sorry`s.  Its **backward** half is the proved
-`stronglyCommute_of_jointPVM` above. -/
+multivariate-spectral-theorem construction) lives in `BornRule.Joint.Forward`, sorry-free.  Its
+**backward** half is the proved `stronglyCommute_of_jointPVM` above. -/
 
 /-! ## §4  The joint Born law (forward corollary)
 
@@ -410,7 +409,7 @@ theorem jointBornMeasure_snd {M : POVM H (ℝ × ℝ)} {A B : SelfAdjointOperato
 
 /- The correlation identity `jointBornMeasure_correlation`
 (`∫ p, p.1 * p.2 ∂(jointBornMeasure M ξ) = (⟪ξ, A(Bξ)⟫).re`), a corollary of the joint functional
-calculus that depends on the open forward construction, lives in `BornRule.JointForward`. -/
+calculus, lives in `BornRule.Joint.Forward`. -/
 
 /-! ## §5  The Bell bridge, and the vacuity of the naive backward direction
 

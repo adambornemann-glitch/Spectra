@@ -2,12 +2,10 @@
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
-Filename: Bochner/GNS/PreHilbert/Defs.lean
 -/
 import Spectra.Bochner.GNS.Continuity
 import Mathlib.Data.Finsupp.Defs
 import Mathlib.Data.Finsupp.Basic
-import Mathlib.Data.Finsupp.Order
 
 /-!
 # The GNS Pre-Hilbert Space for Positive Definite Functions
@@ -39,7 +37,7 @@ Implemented via `Finsupp.mapDomain (· + t)`.
 ## Properties established
 
 - Conjugate symmetry: `⟨β, α⟩ = conj ⟨α, β⟩` (from `IsHermitian f`)
-- Positive semi-definiteness: `0 ≤ Re⟨α, α⟩` (from `PositiveDefinite f`)
+- Positive semi-definiteness: `0 ≤ Re⟨α, α⟩` (from `IsPositiveDefinite f`)
 - Translation isometry: `⟨U(t)α, U(t)β⟩ = ⟨α, β⟩`
 - Group law: `U(s) ∘ U(t) = U(s + t)`
 
@@ -57,7 +55,7 @@ are handled in `GNS/Completion.lean`.
 GNS construction, positive definite function, pre-Hilbert space,
 Bochner's theorem, cyclic representation
 -/
-open Complex Finsupp
+open Finsupp
 
 namespace Spectra.Bochner.GNS
 
@@ -69,8 +67,8 @@ Convention: conjugate-linear in the first argument, linear in the second,
 matching `@inner ℂ` in Mathlib.
 
 Implementation note: we use `Finsupp.sum` (= `∑ over support`) twice.
-The definition is independent of how one enlarges the support, because
-`Finsupp.sum` ignores indices where the coefficient is zero. -/
+The definition is independent of how `α.support`/`β.support` are enlarged,
+because `Finsupp.sum` ignores indices where the coefficient is zero. -/
 noncomputable def pdInner (f : ℝ → ℂ) (α β : ℝ →₀ ℂ) : ℂ :=
   α.sum fun t ct =>
     β.sum fun s ds =>
@@ -82,6 +80,5 @@ This is `U(t)` in the unitary representation. Implemented as
 `Finsupp.mapDomain (· + t)`, which reindexes the support. -/
 noncomputable def translate (t : ℝ) (α : ℝ →₀ ℂ) : ℝ →₀ ℂ :=
   Finsupp.mapDomain (· + t) α
-
 
 end Spectra.Bochner.GNS

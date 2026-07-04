@@ -20,10 +20,14 @@ smooth bump approximates both the function and its weak derivative(s) simultaneo
 
 ## Main statements
 
-* `mollify_compactly_supported` — a single bump convolution `ε`-approximates a compactly supported
-  `L²` function and its weak derivative in direction `i` simultaneously.
-* `mollify_compactly_supported_multi` — the three-direction generalization: one bump convolution
-  `ε`-approximates the function and all three of its weak partial derivatives at once.
+* `mollify_compactly_supported_family` — the shared construction, parametrized by an arbitrary
+  nonempty `Fintype` index `ι` of directions: one bump convolution `ε`-approximates a compactly
+  supported `L²` function and, for every `j : ι`, its weak derivative in direction `dir j`,
+  simultaneously.
+* `mollify_compactly_supported` — the `ι := Unit` specialization: a single bump convolution
+  `ε`-approximates a compactly supported `L²` function and its weak derivative in direction `i`.
+* `mollify_compactly_supported_multi` — the `ι := Fin 3`, `dir := id` specialization: one bump
+  convolution `ε`-approximates the function and all three of its weak partial derivatives at once.
 
 ## Implementation notes
 
@@ -1143,12 +1147,94 @@ private lemma norm_toLp_sub_lt {f g : R3 → ℂ}
         (ENNReal.toReal_lt_toReal h_ne ENNReal.ofReal_ne_top).mpr h
     _ = ε := ENNReal.toReal_ofReal hε.le
 
-/-- **Mollification of compactly supported L² functions**: simultaneous
-    approximation of function and weak derivative by smooth c.s. functions.
+/-- **Shared mollification construction**, parametrized by an arbitrary nonempty
+    `Fintype` index `ι` of directions to control simultaneously. A single bump
+    convolution `ε`-approximates `h_R` and, for every `j : ι`, its truncated weak
+    derivative `dh_R j` in direction `dir j`, all at once. `mollify_compactly_supported`
+    (`ι := Unit`) and `mollify_compactly_supported_multi` (`ι := Fin 3`, `dir := id`)
+    both specialize this lemma; it exists so the bump-radius argument is maintained
+    in exactly one place.
 
     Proof: pick a ContDiffBump ρ with rOut small enough that both
-    ρ ⋆ h_R ≈ h_R and ρ ⋆ dh_R ≈ dh_R in L², then use the derivative
-    identity ∂ᵢ(ρ ⋆ h_R) = ρ ⋆ dh_R to couple the two bounds. -/
+    ρ ⋆ h_R ≈ h_R and, for every j, ρ ⋆ dh_R j ≈ dh_R j in L², then use the derivative
+    identity ∂_{dir j}(ρ ⋆ h_R) = ρ ⋆ dh_R j to couple the function bound to each
+    derivative bound. -/
+lemma mollify_compactly_supported_family {ι : Type*} [Fintype ι] [Nonempty ι]
+    (dir : ι → Fin 3) (h_R : R3 → ℂ) (dh_R : ι → R3 → ℂ)
+    (hh : MemLp h_R 2 volume) (hdh : ∀ j, MemLp (dh_R j) 2 volume)
+    (hh_supp : HasCompactSupport h_R) (hdh_supp : ∀ j, HasCompactSupport (dh_R j))
+    (h_wk : ∀ j, HasWeakDerivative (hh.toLp h_R) (dir j) ((hdh j).toLp (dh_R j)))
+    (ε : ℝ) (hε : 0 < ε) :
+    ∃ (φ : R3 → ℂ) (hφ : ContDiff ℝ ∞ φ) (hφ_supp : HasCompactSupport φ),
+      ‖hh.toLp h_R - (memLp_of_smooth_compactSupport φ hφ hφ_supp).toLp φ‖ < ε ∧
+      ∀ j, ‖(hdh j).toLp (dh_R j) -
+        (memLp_partialDeriv φ (dir j) hφ hφ_supp).toLp
+          (fun x => fderiv ℝ φ x (EuclideanSpace.single (dir j) 1))‖ < ε := by
+  -- L² convergence radii: δ₀ for h_R; δ_dg j for each dh_R j.
+  obtain ⟨δ₀, hδ₀_pos, happrox₀⟩ := bumpConvolve_L2_tendsto h_R hh ε hε
+  choose δ_dg hδ_dg_pos happrox_dg using
+    fun j => bumpConvolve_L2_tendsto (dh_R j) (hdh j) ε hε
+  -- A single δ small enough to dominate all the convergence facts.
+  set δ := min δ₀ (Finset.univ.inf' Finset.univ_nonempty δ_dg) with hδ_def
+  have hδ_dg_inf_pos : 0 < Finset.univ.inf' Finset.univ_nonempty δ_dg :=
+    (Finset.lt_inf'_iff _).mpr (fun j _ => hδ_dg_pos j)
+  have hδ_pos : 0 < δ := lt_min hδ₀_pos hδ_dg_inf_pos
+  have hδ_le_δ₀ : δ ≤ δ₀ := min_le_left _ _
+  have hδ_le_dg : ∀ j, δ ≤ δ_dg j := fun j =>
+    le_trans (min_le_right _ _) (Finset.inf'_le δ_dg (Finset.mem_univ j))
+  let ρ : ContDiffBump (0 : R3) := ⟨δ / 2, δ, by positivity, by linarith⟩
+  have hρ_le_δ₀ : ρ.rOut ≤ δ₀ := hδ_le_δ₀
+  have hρ_le_dg : ∀ j, ρ.rOut ≤ δ_dg j := hδ_le_dg
+  -- A single φ approximates all targets simultaneously.
+  set φ := bumpConvolve ρ h_R with hφ_def
+  haveI : IsLocallyFiniteMeasure (volume : Measure R3) := inferInstance
+  have hli : LocallyIntegrable h_R volume :=
+    hh.locallyIntegrable (by norm_num : (1 : ℝ≥0∞) ≤ 2)
+  have hφ_smooth : ContDiff ℝ ∞ φ := bumpConvolve_smooth ρ h_R hli
+  have hφ_supp : HasCompactSupport φ := bumpConvolve_hasCompactSupport ρ h_R hh_supp
+  -- Per-j derivative identity: ∂_{dir j} φ = bumpConvolve ρ (dh_R j) pointwise.
+  have hderiv_eq : ∀ j,
+      (fun x => fderiv ℝ φ x (EuclideanSpace.single (dir j) 1)) =
+        bumpConvolve ρ (dh_R j) :=
+    fun j => funext (bumpConvolve_fderiv_eq (dir j) h_R (dh_R j)
+      hh (hdh j) (h_wk j) ρ)
+  -- L² closeness bounds (one for the function, one per direction).
+  have h_close₀ : eLpNorm (h_R - φ) 2 volume < ENNReal.ofReal ε :=
+    happrox₀ ρ hρ_le_δ₀
+  have h_close_dg : ∀ j,
+      eLpNorm (dh_R j - bumpConvolve ρ (dh_R j)) 2 volume < ENNReal.ofReal ε :=
+    fun j => happrox_dg j ρ (hρ_le_dg j)
+  refine ⟨φ, hφ_smooth, hφ_supp, ?_, ?_⟩
+  · -- ‖toLp h_R - toLp φ‖ < ε
+    exact norm_toLp_sub_lt hh
+      (memLp_of_smooth_compactSupport φ hφ_smooth hφ_supp) hε h_close₀
+  · -- ∀ j, ‖toLp (dh_R j) - toLp ∂_{dir j}φ‖ < ε
+    intro j
+    have hdh_li : LocallyIntegrable (dh_R j) volume :=
+      (hdh j).locallyIntegrable (by norm_num : (1 : ℝ≥0∞) ≤ 2)
+    have hconv_dh_smooth : ContDiff ℝ ∞ (bumpConvolve ρ (dh_R j)) :=
+      bumpConvolve_smooth ρ (dh_R j) hdh_li
+    have hconv_dh_supp : HasCompactSupport (bumpConvolve ρ (dh_R j)) :=
+      bumpConvolve_hasCompactSupport ρ (dh_R j) (hdh_supp j)
+    have h_memLp_deriv := memLp_partialDeriv φ (dir j) hφ_smooth hφ_supp
+    have h_memLp_conv :=
+      memLp_of_smooth_compactSupport _ hconv_dh_smooth hconv_dh_supp
+    -- The two Lp elements agree since the functions match pointwise.
+    have h_toLp_eq : h_memLp_deriv.toLp
+          (fun x => fderiv ℝ φ x (EuclideanSpace.single (dir j) 1)) =
+        h_memLp_conv.toLp (bumpConvolve ρ (dh_R j)) :=
+      Subtype.ext (AEEqFun.ext (h_memLp_deriv.coeFn_toLp.trans
+        (by rw [hderiv_eq j]; exact h_memLp_conv.coeFn_toLp.symm)))
+    rw [h_toLp_eq]
+    exact norm_toLp_sub_lt (hdh j) h_memLp_conv hε (h_close_dg j)
+
+/-- **Mollification of compactly supported L² functions**: simultaneous
+    approximation of function and weak derivative by smooth c.s. functions.
+    This is the `ι := Unit` specialization of the shared
+    `mollify_compactly_supported_family` construction; see
+    `mollify_compactly_supported_multi` for the `Fin 3` sibling. We unpack the
+    trivial `Unit`-indexed output back into the bare, un-indexed shape this
+    lemma has always had. -/
 lemma mollify_compactly_supported (i : Fin 3)
     (h_R : R3 → ℂ) (dh_R : R3 → ℂ)
     (hh : MemLp h_R 2 volume) (hdh : MemLp dh_R 2 volume)
@@ -1160,57 +1246,16 @@ lemma mollify_compactly_supported (i : Fin 3)
       ‖hdh.toLp dh_R -
         (memLp_partialDeriv φ i hφ hφ_supp).toLp
           (fun x => fderiv ℝ φ x (EuclideanSpace.single i 1))‖ < ε := by
-  -- L² convergence gives δ₁ for h_R, δ₂ for dh_R
-  obtain ⟨δ₁, hδ₁_pos, happrox₁⟩ := bumpConvolve_L2_tendsto h_R hh ε hε
-  obtain ⟨δ₂, hδ₂_pos, happrox₂⟩ := bumpConvolve_L2_tendsto dh_R hdh ε hε
-  -- Common bump with rOut ≤ min(δ₁, δ₂)
-  set δ := min δ₁ δ₂ with hδ_def
-  have hδ_pos : 0 < δ := lt_min hδ₁_pos hδ₂_pos
-  let ρ : ContDiffBump (0 : R3) := ⟨δ / 2, δ, by positivity, by linarith⟩
-  have hρ_le₁ : ρ.rOut ≤ δ₁ := min_le_left _ _
-  have hρ_le₂ : ρ.rOut ≤ δ₂ := min_le_right _ _
-  -- φ := ρ ⋆ h_R
-  set φ := bumpConvolve ρ h_R with hφ_def
-  -- Local integrability (compactly supported L² ⟹ locally integrable)
-  have hli : LocallyIntegrable h_R volume :=
-    haveI : IsLocallyFiniteMeasure (volume : Measure R3) := inferInstance
-    hh.locallyIntegrable (by norm_num : (1 : ℝ≥0∞) ≤ 2)
-  have hφ_smooth : ContDiff ℝ ∞ φ := bumpConvolve_smooth ρ h_R hli
-  have hφ_supp : HasCompactSupport φ := bumpConvolve_hasCompactSupport ρ h_R hh_supp
-  -- Derivative identity: ∂ᵢφ = ρ ⋆ dh_R pointwise
-  have hderiv_eq : (fun x => fderiv ℝ φ x (EuclideanSpace.single i 1)) =
-      bumpConvolve ρ dh_R :=
-    funext (bumpConvolve_fderiv_eq i h_R dh_R hh hdh h_wk ρ)
-  -- MemLp for bumpConvolve ρ dh_R (smooth + compactly supported)
-  have hdh_li : LocallyIntegrable dh_R volume :=
-    haveI : IsLocallyFiniteMeasure (volume : Measure R3) := inferInstance
-    hdh.locallyIntegrable (by norm_num : (1 : ℝ≥0∞) ≤ 2)
-  have hconv_dh_smooth : ContDiff ℝ ∞ (bumpConvolve ρ dh_R) :=
-    bumpConvolve_smooth ρ dh_R hdh_li
-  have hconv_dh_supp : HasCompactSupport (bumpConvolve ρ dh_R) :=
-    bumpConvolve_hasCompactSupport ρ dh_R hdh_supp
-  -- L² bounds
-  have h_close₁ : eLpNorm (h_R - φ) 2 volume < ENNReal.ofReal ε := happrox₁ ρ hρ_le₁
-  have h_close₂ : eLpNorm (dh_R - bumpConvolve ρ dh_R) 2 volume < ENNReal.ofReal ε :=
-    happrox₂ ρ hρ_le₂
-  refine ⟨φ, hφ_smooth, hφ_supp, ?_, ?_⟩
-  · -- Function approximation: ‖toLp h_R - toLp φ‖ < ε
-    exact norm_toLp_sub_lt hh (memLp_of_smooth_compactSupport φ hφ_smooth hφ_supp) hε h_close₁
-  · -- Derivative approximation: ‖toLp dh_R - toLp ∂ᵢφ‖ < ε
-    -- Rewrite ∂ᵢφ = bumpConvolve ρ dh_R
-    have h_memLp_deriv := memLp_partialDeriv φ i hφ_smooth hφ_supp
-    have h_memLp_conv := memLp_of_smooth_compactSupport _ hconv_dh_smooth hconv_dh_supp
-    -- The toLp elements agree since the functions are equal
-    have h_toLp_eq : h_memLp_deriv.toLp (fun x => fderiv ℝ φ x (EuclideanSpace.single i 1)) =
-        h_memLp_conv.toLp (bumpConvolve ρ dh_R) :=
-      Subtype.ext (AEEqFun.ext (h_memLp_deriv.coeFn_toLp.trans
-        (by rw [hderiv_eq]; exact h_memLp_conv.coeFn_toLp.symm)))
-    rw [h_toLp_eq]
-    exact norm_toLp_sub_lt hdh h_memLp_conv hε h_close₂
+  obtain ⟨φ, hφ, hφ_supp, hφ_close, hdφ_close⟩ :=
+    mollify_compactly_supported_family (ι := Unit) (fun _ => i) h_R (fun _ => dh_R)
+      hh (fun _ => hdh) hh_supp (fun _ => hdh_supp) (fun _ => h_wk) ε hε
+  exact ⟨φ, hφ, hφ_supp, hφ_close, hdφ_close ()⟩
 
 /-- **Multi-direction mollification step of Meyers-Serrin**: a single bump
     convolution approximates `h_R` and all three `dh_R i` in L² simultaneously.
-    Parallels `mollify_compactly_supported`. -/
+    This is the `ι := Fin 3`, `dir := id` specialization of the shared
+    `mollify_compactly_supported_family` construction; see
+    `mollify_compactly_supported` for the single-direction sibling. -/
 lemma mollify_compactly_supported_multi
     (h_R : R3 → ℂ) (dh_R : Fin 3 → R3 → ℂ)
     (hh : MemLp h_R 2 volume) (hdh : ∀ i, MemLp (dh_R i) 2 volume)
@@ -1222,69 +1267,7 @@ lemma mollify_compactly_supported_multi
       ‖hh.toLp h_R - (memLp_of_smooth_compactSupport φ hφ hφ_supp).toLp φ‖ < ε ∧
       ∀ i, ‖(hdh i).toLp (dh_R i) -
         (memLp_partialDeriv φ i hφ hφ_supp).toLp
-          (fun x => fderiv ℝ φ x (EuclideanSpace.single i 1))‖ < ε := by
-  -- L² convergence radii: δ₀ for h_R; δ_dg i for each dh_R i.
-  obtain ⟨δ₀, hδ₀_pos, happrox₀⟩ := bumpConvolve_L2_tendsto h_R hh ε hε
-  choose δ_dg hδ_dg_pos happrox_dg using
-    fun i => bumpConvolve_L2_tendsto (dh_R i) (hdh i) ε hε
-  -- A single δ small enough to dominate all four convergence facts.
-  set δ := min δ₀ (min (δ_dg 0) (min (δ_dg 1) (δ_dg 2))) with hδ_def
-  have hδ_pos : 0 < δ :=
-    lt_min hδ₀_pos
-      (lt_min (hδ_dg_pos 0) (lt_min (hδ_dg_pos 1) (hδ_dg_pos 2)))
-  have hδ_le_δ₀ : δ ≤ δ₀ := min_le_left _ _
-  have hδ_le_dg : ∀ i, δ ≤ δ_dg i := by
-    intro i
-    fin_cases i
-    · exact le_trans (min_le_right _ _) (min_le_left _ _)
-    · exact le_trans (min_le_right _ _)
-        (le_trans (min_le_right _ _) (min_le_left _ _))
-    · exact le_trans (min_le_right _ _)
-        (le_trans (min_le_right _ _) (min_le_right _ _))
-  let ρ : ContDiffBump (0 : R3) := ⟨δ / 2, δ, by positivity, by linarith⟩
-  have hρ_le_δ₀ : ρ.rOut ≤ δ₀ := hδ_le_δ₀
-  have hρ_le_dg : ∀ i, ρ.rOut ≤ δ_dg i := hδ_le_dg
-  -- A single φ approximates all four targets simultaneously.
-  set φ := bumpConvolve ρ h_R with hφ_def
-  haveI : IsLocallyFiniteMeasure (volume : Measure R3) := inferInstance
-  have hli : LocallyIntegrable h_R volume :=
-    hh.locallyIntegrable (by norm_num : (1 : ℝ≥0∞) ≤ 2)
-  have hφ_smooth : ContDiff ℝ ∞ φ := bumpConvolve_smooth ρ h_R hli
-  have hφ_supp : HasCompactSupport φ := bumpConvolve_hasCompactSupport ρ h_R hh_supp
-  -- Per-i derivative identity: ∂ᵢ φ = bumpConvolve ρ (dh_R i) pointwise.
-  have hderiv_eq : ∀ i,
-      (fun x => fderiv ℝ φ x (EuclideanSpace.single i 1)) =
-        bumpConvolve ρ (dh_R i) :=
-    fun i => funext (bumpConvolve_fderiv_eq i h_R (dh_R i)
-      hh (hdh i) (h_wk i) ρ)
-  -- L² closeness bounds (one for the function, three for the derivatives).
-  have h_close₀ : eLpNorm (h_R - φ) 2 volume < ENNReal.ofReal ε :=
-    happrox₀ ρ hρ_le_δ₀
-  have h_close_dg : ∀ i,
-      eLpNorm (dh_R i - bumpConvolve ρ (dh_R i)) 2 volume < ENNReal.ofReal ε :=
-    fun i => happrox_dg i ρ (hρ_le_dg i)
-  refine ⟨φ, hφ_smooth, hφ_supp, ?_, ?_⟩
-  · -- ‖toLp h_R - toLp φ‖ < ε
-    exact norm_toLp_sub_lt hh
-      (memLp_of_smooth_compactSupport φ hφ_smooth hφ_supp) hε h_close₀
-  · -- ∀ i, ‖toLp (dh_R i) - toLp ∂ᵢφ‖ < ε
-    intro i
-    have hdh_li : LocallyIntegrable (dh_R i) volume :=
-      (hdh i).locallyIntegrable (by norm_num : (1 : ℝ≥0∞) ≤ 2)
-    have hconv_dh_smooth : ContDiff ℝ ∞ (bumpConvolve ρ (dh_R i)) :=
-      bumpConvolve_smooth ρ (dh_R i) hdh_li
-    have hconv_dh_supp : HasCompactSupport (bumpConvolve ρ (dh_R i)) :=
-      bumpConvolve_hasCompactSupport ρ (dh_R i) (hdh_supp i)
-    have h_memLp_deriv := memLp_partialDeriv φ i hφ_smooth hφ_supp
-    have h_memLp_conv :=
-      memLp_of_smooth_compactSupport _ hconv_dh_smooth hconv_dh_supp
-    -- The two Lp elements agree since the functions match pointwise.
-    have h_toLp_eq : h_memLp_deriv.toLp
-          (fun x => fderiv ℝ φ x (EuclideanSpace.single i 1)) =
-        h_memLp_conv.toLp (bumpConvolve ρ (dh_R i)) :=
-      Subtype.ext (AEEqFun.ext (h_memLp_deriv.coeFn_toLp.trans
-        (by rw [hderiv_eq i]; exact h_memLp_conv.coeFn_toLp.symm)))
-    rw [h_toLp_eq]
-    exact norm_toLp_sub_lt (hdh i) h_memLp_conv hε (h_close_dg i)
+          (fun x => fderiv ℝ φ x (EuclideanSpace.single i 1))‖ < ε :=
+  mollify_compactly_supported_family (ι := Fin 3) id h_R dh_R hh hdh hh_supp hdh_supp h_wk ε hε
 
 end Spectra.Sobolev

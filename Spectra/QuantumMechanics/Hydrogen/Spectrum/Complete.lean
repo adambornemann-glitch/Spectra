@@ -80,46 +80,46 @@ theorem hydrogen_eigenfunction_complete :
         (Set.range (fun i => chartRealization.symm (degenFamily (n + 1) i)))).topologicalClosure
       = LinearMap.range ((PVM.spectralPVM (hydrogenHamiltonian_isSelfAdjoint ⟨1, one_pos⟩)).proj
           (Set.Iio 0) measurableSet_Iio :
-          Spectra.Sobolev.L2_R3 →ₗ[ℂ] Spectra.Sobolev.L2_R3) := by
+          Spectra.Sobolev.l2R3 →ₗ[ℂ] Spectra.Sobolev.l2R3) := by
   classical
   set hA := hydrogenHamiltonian_isSelfAdjoint ⟨1, one_pos⟩ with hAdef
   set P := PVM.spectralPVM hA with hPdef
   set Ev : ℕ → ℝ := fun n => hydrogenEigenvalue (n + 1) (by omega) with hEv
-  set En : ℕ → (Spectra.Sobolev.L2_R3 →L[ℂ] Spectra.Sobolev.L2_R3) :=
+  set En : ℕ → (Spectra.Sobolev.l2R3 →L[ℂ] Spectra.Sobolev.l2R3) :=
     fun n => P.proj {Ev n} (measurableSet_singleton _) with hEn
   set EIio := P.proj (Set.Iio 0) measurableSet_Iio with hEIio
   -- convert the degeneracy spans to spectral ranges via M1
   have hM1 : ∀ n : ℕ,
-      LinearMap.range (En n : Spectra.Sobolev.L2_R3 →ₗ[ℂ] Spectra.Sobolev.L2_R3)
+      LinearMap.range (En n : Spectra.Sobolev.l2R3 →ₗ[ℂ] Spectra.Sobolev.l2R3)
         = Submodule.span ℂ (Set.range (fun i => chartRealization.symm (degenFamily (n + 1) i))) :=
     fun n => hydrogen_spectral_projection_discrete (n + 1) (by omega)
   rw [show (⨆ n : ℕ, Submodule.span ℂ
         (Set.range (fun i => chartRealization.symm (degenFamily (n + 1) i))))
-      = ⨆ n : ℕ, LinearMap.range (En n : Spectra.Sobolev.L2_R3 →ₗ[ℂ] Spectra.Sobolev.L2_R3)
+      = ⨆ n : ℕ, LinearMap.range (En n : Spectra.Sobolev.l2R3 →ₗ[ℂ] Spectra.Sobolev.l2R3)
       from (iSup_congr hM1).symm]
-  set K := ⨆ n : ℕ, LinearMap.range (En n : Spectra.Sobolev.L2_R3 →ₗ[ℂ] Spectra.Sobolev.L2_R3)
+  set K := ⨆ n : ℕ, LinearMap.range (En n : Spectra.Sobolev.l2R3 →ₗ[ℂ] Spectra.Sobolev.l2R3)
     with hK
   -- `Eₙ < 0` so `{Eₙ} ⊆ (−∞,0)`
   have hEvneg : ∀ n, Ev n < 0 := fun n => hydrogenEigenvalue_neg (n + 1) (by omega)
   have hEvsub : ∀ n, ({Ev n} : Set ℝ) ⊆ Set.Iio 0 := by
     intro n z hz; rw [Set.mem_singleton_iff] at hz; subst hz; exact hEvneg n
   -- `K ≤ range EIio`
-  have hKle : K ≤ LinearMap.range (EIio : Spectra.Sobolev.L2_R3 →ₗ[ℂ] Spectra.Sobolev.L2_R3) := by
+  have hKle : K ≤ LinearMap.range (EIio : Spectra.Sobolev.l2R3 →ₗ[ℂ] Spectra.Sobolev.l2R3) := by
     refine iSup_le (fun n => ?_)
     intro y hy
     rw [LinearMap.mem_range] at hy ⊢
     obtain ⟨x, rfl⟩ := hy
     exact ⟨En n x, P.proj_apply_of_subset measurableSet_Iio (measurableSet_singleton _) (hEvsub n) x⟩
   -- `range EIio` is closed (range of a continuous idempotent = its fixed-point set)
-  have hclosed : IsClosed (LinearMap.range (EIio : Spectra.Sobolev.L2_R3 →ₗ[ℂ] Spectra.Sobolev.L2_R3)
-      : Set Spectra.Sobolev.L2_R3) := by
+  have hclosed : IsClosed (LinearMap.range (EIio : Spectra.Sobolev.l2R3 →ₗ[ℂ] Spectra.Sobolev.l2R3)
+      : Set Spectra.Sobolev.l2R3) := by
     have hidem : IsIdempotentElem EIio := P.proj_idem (Set.Iio 0) measurableSet_Iio
-    have hfixset : (LinearMap.range (EIio : Spectra.Sobolev.L2_R3 →ₗ[ℂ] Spectra.Sobolev.L2_R3)
-        : Set Spectra.Sobolev.L2_R3) = {z | EIio z = z} := by
+    have hfixset : (LinearMap.range (EIio : Spectra.Sobolev.l2R3 →ₗ[ℂ] Spectra.Sobolev.l2R3)
+        : Set Spectra.Sobolev.l2R3) = {z | EIio z = z} := by
       ext z
       constructor
       · rintro ⟨w, rfl⟩
-        have hw := congrArg (fun T : Spectra.Sobolev.L2_R3 →L[ℂ] Spectra.Sobolev.L2_R3 => T w) hidem
+        have hw := congrArg (fun T : Spectra.Sobolev.l2R3 →L[ℂ] Spectra.Sobolev.l2R3 => T w) hidem
         simpa [ContinuousLinearMap.mul_apply] using hw
       · intro hz; exact ⟨z, hz⟩
     rw [hfixset]
@@ -139,7 +139,7 @@ theorem hydrogen_eigenfunction_complete :
       intro n
       refine P.proj_apply_eq_zero_of_mem_orthogonal (measurableSet_singleton _) ?_
       exact Submodule.orthogonal_le
-        (le_iSup (fun n => LinearMap.range (En n : Spectra.Sobolev.L2_R3 →ₗ[ℂ] Spectra.Sobolev.L2_R3))
+        (le_iSup (fun n => LinearMap.range (En n : Spectra.Sobolev.l2R3 →ₗ[ℂ] Spectra.Sobolev.l2R3))
           n) hyv
     have hμatom : ∀ n, (P.diag yv) {Ev n} = 0 := fun n =>
       P.diag_apply_eq_zero_of_proj_apply_eq_zero (measurableSet_singleton _) (hEnyv n)
@@ -181,12 +181,12 @@ theorem hydrogen_eigenfunction_complete :
     have hadj : ContinuousLinearMap.adjoint EIio = EIio := by
       have := P.isSelfAdjoint_proj (Set.Iio 0) measurableSet_Iio
       rwa [ContinuousLinearMap.isSelfAdjoint_iff'] at this
-    calc inner ℂ yv ((EIio : Spectra.Sobolev.L2_R3 →ₗ[ℂ] Spectra.Sobolev.L2_R3) w)
+    calc inner ℂ yv ((EIio : Spectra.Sobolev.l2R3 →ₗ[ℂ] Spectra.Sobolev.l2R3) w)
         = inner ℂ yv (EIio w) := rfl
       _ = inner ℂ (ContinuousLinearMap.adjoint EIio yv) w :=
           (ContinuousLinearMap.adjoint_inner_left EIio w yv).symm
       _ = inner ℂ (EIio yv) w := by rw [hadj]
-      _ = inner ℂ (0 : Spectra.Sobolev.L2_R3) w := by rw [hEIioyv]
+      _ = inner ℂ (0 : Spectra.Sobolev.l2R3) w := by rw [hEIioyv]
       _ = 0 := inner_zero_left _
 
 end QuantumMechanics.Hydrogen.Spectrum

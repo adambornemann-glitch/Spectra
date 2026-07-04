@@ -104,7 +104,7 @@ lemma degenIndex_bounds {n : ℕ} (i : ↥(degenIndex n)) :
 
 /-- The family of the `n²` hydrogen bound states at level `n`: `ψ_{n ℓ m}` for
     `0 ≤ ℓ < n` and `m = j − ℓ` with `0 ≤ j ≤ 2ℓ`. -/
-noncomputable def degenFamily (n : ℕ) : ↥(degenIndex n) → L2_R3 :=
+noncomputable def degenFamily (n : ℕ) : ↥(degenIndex n) → l2R3 :=
   fun i => hydrogenEigenfunction n i.1.1 ((i.1.2 : ℤ) - i.1.1)
     (degenIndex_bounds i).1 (degenIndex_bounds i).2
 
@@ -137,7 +137,7 @@ lemma orthonormal_degenFamily (n : ℕ) : Orthonormal ℂ (degenFamily n) := by
     This makes the lower bound `dim ker(H − E_n) ≥ n²` precise. That the span is
     *exactly* the `E_n`-eigenspace additionally needs completeness within each
     sector and the as-yet-unbuilt unitary identifying this spherical-coordinate
-    `L²(ℝ³)` with `Sobolev.L2_R3` (where `hydrogenHamiltonian` lives), so the full
+    `L²(ℝ³)` with `Sobolev.l2R3` (where `hydrogenHamiltonian` lives), so the full
     `dim ker(H − E_n) = n²` is not yet available. -/
 theorem hydrogen_degeneracy (_p : CoulombParams) (n : ℕ) (_hn : 1 ≤ n) :
     Module.finrank ℂ (Submodule.span ℂ (Set.range (degenFamily n))) = n ^ 2 := by

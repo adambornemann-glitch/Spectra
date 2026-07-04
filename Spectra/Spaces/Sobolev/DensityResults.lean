@@ -13,22 +13,67 @@ open scoped Pointwise ContDiff
 
 namespace Spectra.Sobolev
 
-/-! ### Density results -/
+/-!
+# Density of smooth compactly supported functions in the Sobolev scale
+
+This file assembles the Meyers–Serrin approximation machinery (`MeyersSerrin.lean`,
+`MeyersMulti.lean`) and the `L²` test-function density chain (`dense_test_functions_L2`,
+from `Density.lean`) into the two density results the operator theory needs to build `-Δ`
+with a core: `H²(ℝ³)` is dense in `L²(ℝ³)`, and `C_c^∞(ℝ³)` is dense in `H¹(ℝ³)`.
+
+## Main results
+
+* `sobolevH2_dense`: `H²(ℝ³)` is dense in `L²(ℝ³)`.
+* `smooth_compactly_supported_dense_H1`: `C_c^∞(ℝ³)` is dense in `H¹(ℝ³)` — every `f ∈ H¹(ℝ³)`
+  is `ε`-approximated by a smooth, compactly supported `g ∈ H²(ℝ³)`, simultaneously in the
+  ambient `L²` norm and in *every* weak-gradient component (`‖f - g‖ < ε` together with
+  `‖∂ᵢf - ∂ᵢg‖ < ε` for each `i`), not as a single combined Sobolev norm.
+
+Both are instances of the classical Meyers–Serrin "H = W" theorem: for domains with no
+boundary regularity to worry about (here, all of `ℝ³`), the space of functions with weak
+derivatives coincides with the closure of smooth functions in the corresponding Sobolev norm.
+
+## Implementation notes
+
+Density is proved via `dense_test_functions_L2` composed with Meyers–Serrin, not via a
+mollifier argument run directly against an arbitrary `H¹`/`H²` element. Concretely:
+
+* `hasWeakDerivative_of_smooth_compactSupport` identifies the classical partial derivative
+  `∂ᵢφ` of a smooth, compactly supported `φ` with the weak derivative of its `L²` class, via
+  Fréchet-derivative integration by parts
+  (`integral_mul_fderiv_eq_neg_fderiv_mul_of_integrable`).
+* `smooth_compactSupport_memSobolevH2` upgrades this to full `H²` membership (both a first
+  weak derivative in every direction and a second weak derivative in every pair of
+  directions).
+* `sobolevH2_dense` transports `H²`-membership along `dense_test_functions_L2`: every point of
+  the ambient `L²` test-function-dense set is already smooth and compactly supported, hence
+  (by the previous bullet) already in `H²`.
+* `smooth_compactly_supported_dense_H1` instead starts from an arbitrary `f ∈ H¹(ℝ³)`, invokes
+  the three-direction Meyers–Serrin approximation `meyers_serrin_approx_multi` to produce a
+  smooth compactly supported approximant `φ` within `ε` of `f` and of every weak-gradient
+  component, and closes with weak-derivative uniqueness (`hasWeakDerivative_unique`) to
+  identify `φ`'s classical partial derivatives with `g`'s weak gradient.
+
+This two-stage route (test-function density first, Meyers–Serrin second) is what lets both
+theorems reuse the same smoothing machinery instead of re-deriving a mollifier argument for
+each Sobolev order.
+
+## References
+
+* [Meyers, Serrin, *H = W*][meyers1964]
+* [Adams, Fournier, *Sobolev Spaces*][adams2003]
+-/
 
 /-- For smooth compactly supported `φ`, the classical partial derivative `∂ᵢφ`
     is the weak derivative of `hmem.toLp φ` in direction `i`. -/
 lemma hasWeakDerivative_of_smooth_compactSupport
-    {φ : R3 → ℂ} (hφ : ContDiff ℝ ∞ φ) (hsupp : HasCompactSupport φ)
+    (φ : R3 → ℂ) (hφ : ContDiff ℝ ∞ φ) (hsupp : HasCompactSupport φ)
     {i : Fin 3}
     (hmem : MemLp φ 2 (volume : Measure R3))
     (hdmem : MemLp (fun x => fderiv ℝ φ x (EuclideanSpace.single i 1)) 2
       (volume : Measure R3)) :
     HasWeakDerivative (hmem.toLp φ) i
       (hdmem.toLp (fun x => fderiv ℝ φ x (EuclideanSpace.single i 1))) := by
-  haveI : (volume : Measure R3).IsAddHaarMeasure := by
-    infer_instance
-  haveI : IsFiniteMeasureOnCompacts (volume : Measure R3) := by
-    infer_instance
   intro ψ hψ_s hψ_c
   -- Continuities & compact supports
   have hφ_cont  : Continuous φ := hφ.continuous
@@ -74,31 +119,34 @@ lemma hasWeakDerivative_of_smooth_compactSupport
 
 /-- Smooth compactly supported functions belong to H². -/
 lemma smooth_compactSupport_memSobolevH2 (φ : R3 → ℂ)
-    (hφ_inf : ContDiff ℝ ∞ φ) (hsupp : HasCompactSupport φ)
+    (hφ : ContDiff ℝ ∞ φ) (hsupp : HasCompactSupport φ)
     (hmem : MemLp φ 2 (volume : Measure R3)) :
     MemSobolevH2 (MemLp.toLp φ hmem) := by
   refine ⟨?h1, ?h2⟩
   case h1 =>
     intro i
-    exact ⟨_, hasWeakDerivative_of_smooth_compactSupport hφ_inf hsupp
-      hmem (memLp_partialDeriv φ i hφ_inf hsupp)⟩
+    exact ⟨_, hasWeakDerivative_of_smooth_compactSupport φ hφ hsupp
+      hmem (memLp_partialDeriv φ i hφ hsupp)⟩
   case h2 =>
     intro i j
     have hdiφ_s : ContDiff ℝ ∞
         (fun x => fderiv ℝ φ x (EuclideanSpace.single i 1)) :=
-      contDiff_partialDeriv φ i hφ_inf
+      contDiff_partialDeriv φ i hφ
     have hdiφ_c : HasCompactSupport
         (fun x => fderiv ℝ φ x (EuclideanSpace.single i 1)) :=
       hasCompactSupport_partialDeriv φ i hsupp
     exact ⟨_, _,
-      hasWeakDerivative_of_smooth_compactSupport hφ_inf hsupp
-        hmem (memLp_partialDeriv φ i hφ_inf hsupp),
-      hasWeakDerivative_of_smooth_compactSupport hdiφ_s hdiφ_c
-        (memLp_partialDeriv φ i hφ_inf hsupp)
+      hasWeakDerivative_of_smooth_compactSupport φ hφ hsupp
+        hmem (memLp_partialDeriv φ i hφ hsupp),
+      hasWeakDerivative_of_smooth_compactSupport _ hdiφ_s hdiφ_c
+        (memLp_partialDeriv φ i hφ hsupp)
         (memLp_partialDeriv _ j hdiφ_s hdiφ_c)⟩
 
-/-- **H²(ℝ³) is dense in L²(ℝ³).** -/
-theorem sobolevH2_dense : Dense (SobolevH2 : Set L2_R3) := by
+/-- **H²(ℝ³) is dense in L²(ℝ³).** An instance of the classical Meyers–Serrin "H = W"
+    theorem: every point of the `L²`-dense set of smooth, compactly supported test functions
+    (`dense_test_functions_L2`) already lies in `H²(ℝ³)`
+    (`smooth_compactSupport_memSobolevH2`), so density transports along the inclusion. -/
+theorem sobolevH2_dense : Dense (SobolevH2 : Set l2R3) := by
   apply Dense.mono _ dense_test_functions_L2
   rintro g ⟨φ, hφ, hsupp, hae⟩
   show MemSobolevH2 g
@@ -108,13 +156,16 @@ theorem sobolevH2_dense : Dense (SobolevH2 : Set L2_R3) := by
   rw [h_eq]
   exact smooth_compactSupport_memSobolevH2 φ hφ hsupp hmem
 
-/-- **C_c^∞(ℝ³) is dense in H¹(ℝ³).**-/
-theorem smooth_compactly_supported_dense_H1 :
-    ∀ (f : L2_R3) (hf : MemSobolevH1 f) (ε : ℝ) (_hε : 0 < ε),
-    ∃ (g : L2_R3) (hg : MemSobolevH2 g),
+/-- **C_c^∞(ℝ³) is dense in H¹(ℝ³).** The classical Meyers–Serrin "H = W" theorem: every
+    `f ∈ H¹(ℝ³)` is `ε`-approximated by a smooth, compactly supported `g ∈ H²(ℝ³)`, with the
+    approximation holding simultaneously in the ambient `L²` norm (`‖f - g‖ < ε`) and in every
+    weak-gradient component separately (`‖∂ᵢf - ∂ᵢg‖ < ε` for each `i`) — not as a single
+    combined Sobolev norm. -/
+theorem smooth_compactly_supported_dense_H1 (f : l2R3) (hf : MemSobolevH1 f) (ε : ℝ)
+    (hε : 0 < ε) :
+    ∃ (g : l2R3) (hg : MemSobolevH2 g),
       ‖f - g‖ < ε ∧
-      ∀ i, ‖weakGradient f hf i - weakGradient g (sobolevH2_le_H1 hg) i‖ < ε := by
-  intro f hf ε hε
+      ∀ i, ‖weakGradient f hf i - weakGradient g (sobolevH2_le_sobolevH1 hg) i‖ < ε := by
   obtain ⟨φ, hφ, hφ_supp, hf_close, hgrad_close⟩ :=
     meyers_serrin_approx_multi f (weakGradient f hf)
       (weakGradient_spec f hf) ε hε
@@ -124,13 +175,13 @@ theorem smooth_compactly_supported_dense_H1 :
     hf_close, ?_⟩
   intro i
   have h_grad_eq : weakGradient (hmem.toLp φ)
-      (sobolevH2_le_H1
+      (sobolevH2_le_sobolevH1
         (smooth_compactSupport_memSobolevH2 φ hφ hφ_supp hmem)) i =
       (memLp_partialDeriv φ i hφ hφ_supp).toLp
         (fun x => fderiv ℝ φ x (EuclideanSpace.single i 1)) := by
     apply hasWeakDerivative_unique (hmem.toLp φ) i
     · exact weakGradient_spec _ _ i
-    · exact hasWeakDerivative_of_smooth_compactSupport hφ hφ_supp hmem
+    · exact hasWeakDerivative_of_smooth_compactSupport φ hφ hφ_supp hmem
         (memLp_partialDeriv φ i hφ hφ_supp)
   rw [h_grad_eq]
   exact hgrad_close i

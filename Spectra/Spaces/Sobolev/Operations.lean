@@ -7,6 +7,46 @@ File: Spectra/Spaces/Sobolev/Operations.lean
 import Spectra.Spaces.Sobolev.DuBoisReymond
 import Mathlib.Analysis.Calculus.FDeriv.Symmetric
 
+/-!
+# Calculus of Weak Derivatives
+
+This file develops the algebraic and analytic calculus of `HasWeakDerivative` and
+`HasWeakSecondDerivative` that the rest of the Sobolev-space development (in particular the
+`Submodule` structure of `H¹(ℝ³)`/`H²(ℝ³)` in `Submodules.lean`) is built on.
+
+## Main definitions
+
+* `HasWeakSecondDerivative f i j g`: `g` is the weak partial derivative in direction `j` of some
+  weak partial derivative of `f` in direction `i` — the distributional analogue of `∂ᵢ∂ⱼf = g`.
+
+## Main results
+
+* `hasWeakDerivative_zero`, `hasWeakDerivative_add`, `hasWeakDerivative_smul`: `HasWeakDerivative`
+  is closed under the zero function, addition, and scalar multiplication — exactly the trio needed
+  for the `zero_mem'`/`add_mem'`/`smul_mem'` fields of `Submodules.lean`'s `Submodule` instance.
+* `hasWeakSecondDerivative_comm`: Schwarz symmetry for weak second derivatives — if `∂ᵢ∂ⱼf = g`
+  and `∂ⱼf` exists, then `∂ⱼ∂ᵢf = g` too.
+* `hasWeakSecondDerivative_unique`: the weak second derivative, when it exists, is unique.
+
+## Implementation notes
+
+The Schwarz-symmetry proof (`hasWeakSecondDerivative_comm`) does not reprove commutativity of
+mixed partials from scratch. Instead it reduces to the classical, smooth-function statement:
+private lemma `schwarz_partials` transports Mathlib's `ContDiffAt.isSymmSndFDerivAt` (symmetry of
+the second Fréchet derivative of a `C^∞` function) onto the pairing `fderiv ℝ (fun y => fderiv ℝ
+φ y v) x w`, using that `fderiv ℝ φ` applied to a fixed vector is itself a derivative of a
+composite map. Once mixed partials of the *test function* `φ` commute, the four distributional
+identities defining `HasWeakDerivative` are recombined by `linear_combination` to transport that
+symmetry onto `f`'s weak derivatives — no separate mollification or approximation argument is
+needed here, since the test functions are already smooth by definition.
+
+## References
+
+* [Adams, Fournier, *Sobolev Spaces*][adams2003]
+* [Reed, Simon, *Methods of Modern Mathematical Physics II*][reed1975]
+* [Lieb, Loss, *Analysis*][lieb2001], Chapter 7.
+-/
+
 open MeasureTheory
 open scoped ContDiff
 
@@ -14,16 +54,16 @@ namespace Spectra.Sobolev
 
 /-- The zero function has weak derivative zero. -/
 lemma hasWeakDerivative_zero (i : Fin 3) :
-    HasWeakDerivative (0 : L2_R3) i 0 := by
+    HasWeakDerivative (0 : l2R3) i 0 := by
   intro φ hφ hsupp
   have hae := Lp.coeFn_zero ℂ 2 (volume : Measure R3)
-  have lhs : ∫ x, ((0 : L2_R3) : R3 → ℂ) x *
+  have lhs : ∫ x, ((0 : l2R3) : R3 → ℂ) x *
       fderiv ℝ φ x (EuclideanSpace.single i 1) = 0 :=
     integral_eq_zero_of_ae (hae.mono fun x hx => by
       simp only [ZeroMemClass.coe_zero, Pi.zero_apply, mul_eq_zero]
       exact mul_eq_mul_left_iff.mp (congrArg (HMul.hMul ((fderiv ℝ φ x)
         (EuclideanSpace.single i 1))) hx))
-  have rhs : ∫ x, ((0 : L2_R3) : R3 → ℂ) x * φ x = 0 :=
+  have rhs : ∫ x, ((0 : l2R3) : R3 → ℂ) x * φ x = 0 :=
     integral_eq_zero_of_ae (hae.mono fun x hx => by
       simp only [ZeroMemClass.coe_zero, Pi.zero_apply, mul_eq_zero]
       exact mul_eq_mul_left_iff.mp (congrArg (HMul.hMul (φ x)) hx))
@@ -31,7 +71,7 @@ lemma hasWeakDerivative_zero (i : Fin 3) :
 
 /-- Weak derivative is linear in f. -/
 lemma hasWeakDerivative_add
-    (f₁ f₂ : L2_R3) (i : Fin 3) (g₁ g₂ : L2_R3)
+    (f₁ f₂ : l2R3) (i : Fin 3) (g₁ g₂ : l2R3)
     (h₁ : HasWeakDerivative f₁ i g₁) (h₂ : HasWeakDerivative f₂ i g₂) :
     HasWeakDerivative (f₁ + f₂) i (g₁ + g₂) := by
   intro φ hφ hsupp
@@ -50,14 +90,14 @@ lemma hasWeakDerivative_add
   have hint_r2 : Integrable (fun x => (g₂ : R3 → ℂ) x * φ x) volume :=
     (Lp.memLp g₂).integrable_mul hφ_L2
   -- Rewrite LHS pointwise via ae
-  have lhs : ∫ x, ((f₁ + f₂ : L2_R3) : R3 → ℂ) x *
+  have lhs : ∫ x, ((f₁ + f₂ : l2R3) : R3 → ℂ) x *
       fderiv ℝ φ x (EuclideanSpace.single i 1) =
     (∫ x, (f₁ : R3 → ℂ) x * fderiv ℝ φ x (EuclideanSpace.single i 1)) +
     (∫ x, (f₂ : R3 → ℂ) x * fderiv ℝ φ x (EuclideanSpace.single i 1)) := by
     rw [integral_congr_ae ((Lp.coeFn_add f₁ f₂).mono fun x hx => by
       simp only [Pi.add_apply] at hx; rw [hx, add_mul])]
     exact integral_add hint_l1 hint_l2
-  have rhs : ∫ x, ((g₁ + g₂ : L2_R3) : R3 → ℂ) x * φ x =
+  have rhs : ∫ x, ((g₁ + g₂ : l2R3) : R3 → ℂ) x * φ x =
     (∫ x, (g₁ : R3 → ℂ) x * φ x) + (∫ x, (g₂ : R3 → ℂ) x * φ x) := by
     rw [integral_congr_ae ((Lp.coeFn_add g₁ g₂).mono fun x hx => by
       simp only [Pi.add_apply] at hx; rw [hx, add_mul])]
@@ -65,35 +105,32 @@ lemma hasWeakDerivative_add
   rw [lhs, rhs, neg_add]
   exact congr_arg₂ (· + ·) e₁ e₂
 
-
 /-- Weak derivative commutes with scalar multiplication. -/
 lemma hasWeakDerivative_smul
-    (c : ℂ) (f : L2_R3) (i : Fin 3) (g : L2_R3)
+    (c : ℂ) (f : l2R3) (i : Fin 3) (g : l2R3)
     (h : HasWeakDerivative f i g) :
     HasWeakDerivative (c • f) i (c • g) := by
   intro φ hφ hsupp
   have e := h φ hφ hsupp
   -- LHS: ∫ (c • f) · ∂ᵢφ = c * ∫ f · ∂ᵢφ
-  have lhs : ∫ x, ((c • f : L2_R3) : R3 → ℂ) x *
+  have lhs : ∫ x, ((c • f : l2R3) : R3 → ℂ) x *
       fderiv ℝ φ x (EuclideanSpace.single i 1) =
     c * ∫ x, (f : R3 → ℂ) x * fderiv ℝ φ x (EuclideanSpace.single i 1) := by
     rw [integral_congr_ae ((Lp.coeFn_smul c f).mono fun x hx => by
       simp only [Pi.smul_apply, smul_eq_mul] at hx; rw [hx, mul_assoc])]
     exact integral_const_mul c _
   -- RHS: ∫ (c • g) · φ = c * ∫ g · φ
-  have rhs : ∫ x, ((c • g : L2_R3) : R3 → ℂ) x * φ x =
+  have rhs : ∫ x, ((c • g : l2R3) : R3 → ℂ) x * φ x =
     c * ∫ x, (g : R3 → ℂ) x * φ x := by
     rw [integral_congr_ae ((Lp.coeFn_smul c g).mono fun x hx => by
       simp only [Pi.smul_apply, smul_eq_mul] at hx; rw [hx, mul_assoc])]
     exact integral_const_mul c _
   rw [lhs, rhs, e, mul_neg]
 
-
 /-- Second-order weak partial derivative. -/
 def HasWeakSecondDerivative
-    (f : L2_R3) (i j : Fin 3) (g : L2_R3) : Prop :=
-  ∃ (h : L2_R3), HasWeakDerivative f i h ∧ HasWeakDerivative h j g
-
+    (f : l2R3) (i j : Fin 3) (g : l2R3) : Prop :=
+  ∃ (h : l2R3), HasWeakDerivative f i h ∧ HasWeakDerivative h j g
 
 /-- Classical Schwarz: mixed partials of smooth functions commute. -/
 private lemma schwarz_partials (φ : R3 → ℂ) (hφ : ContDiff ℝ ∞ φ)
@@ -126,7 +163,7 @@ private lemma schwarz_partials (φ : R3 → ℂ) (hφ : ContDiff ℝ ∞ φ)
 /-- Symmetry of second weak derivatives (Schwarz's theorem, L² version).
     Requires that `∂ⱼf` exists (automatic for H² functions). -/
 lemma hasWeakSecondDerivative_comm
-    (f : L2_R3) (i j : Fin 3) (g : L2_R3)
+    (f : l2R3) (i j : Fin 3) (g : l2R3)
     (h : HasWeakSecondDerivative f i j g)
     (hfj : ∃ mid', HasWeakDerivative f j mid') :
     HasWeakSecondDerivative f j i g := by
@@ -162,7 +199,7 @@ lemma hasWeakSecondDerivative_comm
 
 /-- Second weak derivative is unique. -/
 lemma hasWeakSecondDerivative_unique
-    (f : L2_R3) (i j : Fin 3) (g₁ g₂ : L2_R3)
+    (f : l2R3) (i j : Fin 3) (g₁ g₂ : l2R3)
     (h₁ : HasWeakSecondDerivative f i j g₁)
     (h₂ : HasWeakSecondDerivative f i j g₂) :
     g₁ = g₂ := by

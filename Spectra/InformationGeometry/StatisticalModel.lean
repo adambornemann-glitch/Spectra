@@ -150,15 +150,17 @@ lemma aestronglyMeasurable {θ : ParamSpace n}
 /-! ### The induced probability measure -/
 
 /-- The probability measure on `Ω` induced by parameter `θ`:
-  `P_θ = p(θ, ·) dμ`. -/
-def measure {θ : ParamSpace n} (_hθ : θ ∈ M.paramDomain) :
-    Measure Ω :=
+  `P_θ = p(θ, ·) dμ`.
+
+Defined for every `θ`, matching `logDensity` below: it is only certified to be a probability
+measure once `θ ∈ paramDomain`, via `isProbabilityMeasure`. -/
+def measure (θ : ParamSpace n) : Measure Ω :=
   M.refMeasure.withDensity (fun ω => ENNReal.ofReal (M.density θ ω))
 
-/-- `M.measure hθ` is a probability measure. -/
+/-- `M.measure θ` is a probability measure for `θ ∈ paramDomain`. -/
 lemma isProbabilityMeasure {θ : ParamSpace n}
     (hθ : θ ∈ M.paramDomain) :
-    IsProbabilityMeasure (M.measure hθ) := by
+    IsProbabilityMeasure (M.measure θ) := by
   constructor
   show M.refMeasure.withDensity
     (fun ω => ENNReal.ofReal (M.density θ ω))
@@ -227,8 +229,16 @@ noncomputable def klDiv (θ₁ θ₂ : ParamSpace n) : ℝ :=
 /-! ### Expectation under the model -/
 
 /-- Expectation of `f` under `P_θ`.  This is notation-friendly sugar
-for `∫ ω, f ω ∂M.measure hθ`, expressed in the density form
-`∫ ω, f ω * p(θ, ω) dμ` which is often more convenient for proofs. -/
+for `∫ ω, f ω ∂M.measure θ`, expressed in the density form
+`∫ ω, f ω * p(θ, ω) dμ` which is often more convenient for proofs.
+
+Totalized: defined via the Bochner integral for every `θ` and junk-valued off integrability, same
+as `CramerRao.variance`/`covariance` built on top of it. The `_hθ` hypothesis is not needed to
+construct the value itself, but is kept as an explicit argument (rather than dropped) so that
+those downstream definitions, and every call site across `CramerRao/*` and `Score.lean`, can
+recover it from the expectation's own application; `@[nolint unusedArguments]` silences the
+resulting linter complaint. -/
+@[nolint unusedArguments]
 def expectation {θ : ParamSpace n} (_hθ : θ ∈ M.paramDomain)
     (f : Ω → ℝ) : ℝ :=
   ∫ ω, f ω * M.density θ ω ∂M.refMeasure

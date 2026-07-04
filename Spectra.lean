@@ -73,6 +73,9 @@ import Spectra.InformationGeometry.Flow.Family
 import Spectra.InformationGeometry.Flow.Generator
 import Spectra.InformationGeometry.Flow.Schrodinger
 import Spectra.InformationGeometry.Flow.FaaDiBruno
+import Spectra.InformationGeometry.Flow.MixtureSymmetry
+import Spectra.InformationGeometry.Flow.ThirdDerivative
+import Spectra.InformationGeometry.Flow.PullbackIdentities
 import Spectra.InformationGeometry.Flow.MixtureConnection
 import Spectra.InformationGeometry.Flow.CubicInvariance
 import Spectra.InformationGeometry.Dichotomy
@@ -145,6 +148,8 @@ import Spectra.Operator.UniqueSelfAdjointExtension
 import Spectra.Operator.VonNeumannFormula
 import Spectra.Operator.SymmetricExtension
 import Spectra.Operator.SymmetricExtensionClassification
+import Spectra.Operator.SymmetricExtensionSelfAdjointness
+import Spectra.Operator.SymmetricExtensionClosedness
 import Spectra.Operator.ConjugationCriterion
 import Spectra.Operator.Unitary.Basic
 import Spectra.Operator.Unitary.Bridge
@@ -171,8 +176,10 @@ import Spectra.QuantumMechanics.BellsTheorem.QuantumCHSH.Violation
 import Spectra.QuantumMechanics.BellsTheorem.PRBox
 import Spectra.QuantumMechanics.BellsTheorem.QuantumCHSH.Tsirelson
 import Spectra.QuantumMechanics.BellsTheorem.Wigner
-import Spectra.QuantumMechanics.BornRule.Joint
-import Spectra.QuantumMechanics.BornRule.JointForward
+import Spectra.QuantumMechanics.BornRule.Joint.Basic
+import Spectra.QuantumMechanics.BornRule.Joint.Defs
+import Spectra.QuantumMechanics.BornRule.Joint.Forward
+import Spectra.QuantumMechanics.BornRule.Joint.Measure
 import Spectra.QuantumMechanics.BornRule.Mixed
 import Spectra.QuantumMechanics.BornRule.Moments
 import Spectra.QuantumMechanics.BornRule.Naimark
@@ -243,7 +250,8 @@ import Spectra.QuantumMechanics.Hydrogen.Spectrum.Degeneracy
 import Spectra.QuantumMechanics.Hydrogen.Spectrum.Discrete
 import Spectra.QuantumMechanics.Hydrogen.Spectrum.Eigenvalue
 import Spectra.QuantumMechanics.Hydrogen.Spectrum.SectorReductionLocal
-import Spectra.QuantumMechanics.Hydrogen.Spectrum.RadialEigenfunction
+import Spectra.QuantumMechanics.Hydrogen.Spectrum.RadialEigenfunction.Basic
+import Spectra.QuantumMechanics.Hydrogen.Spectrum.RadialEigenfunction.Defs
 import Spectra.QuantumMechanics.Hydrogen.Spectrum.Forward
 import Spectra.QuantumMechanics.Hydrogen.Spectrum.Isolation
 import Spectra.QuantumMechanics.Hydrogen.Spectrum.Meromorphic
@@ -252,8 +260,9 @@ import Spectra.QuantumMechanics.Hydrogen.Spectrum.SeparatedEigenfunction
 import Spectra.QuantumMechanics.Hydrogen.Spectrum.Projections
 import Spectra.OneParameterUnitaryGroup.Basic
 import Spectra.QuantumMechanics.PauliMatrices
-import Spectra.QuantumMechanics.Perturbation.HardyInequality
-import Spectra.QuantumMechanics.Perturbation.HardySharp
+import Spectra.QuantumMechanics.Perturbation.Hardy.Inequality.Basic
+import Spectra.QuantumMechanics.Perturbation.Hardy.Inequality.Defs
+import Spectra.QuantumMechanics.Perturbation.Hardy.Sharp
 import Spectra.QuantumMechanics.Perturbation.CoulombBound
 import Spectra.QuantumMechanics.Perturbation.TruncatedCoulombL2
 import Spectra.QuantumMechanics.Perturbation.ResolventKernelL2
@@ -305,6 +314,7 @@ import Spectra.Resolvent.Range.NumericalRangeSurjectivity
 import Spectra.Resolvent.Range.Orthogonal
 import Spectra.Resolvent.Range.Surjectivity
 import Spectra.Resolvent.NumericalRangeSpectrum
+import Spectra.Resolvent.BoundedBelow
 import Spectra.Resolvent.Residue
 import Spectra.Resolvent.SpecialCases
 import Spectra.Resolvent.SpectralRepresentation

@@ -51,7 +51,7 @@ lemma eigenvalue_of_dilated (p : CoulombParams) {E : ℝ} {n : ℕ} (hn : 1 ≤ 
     spherical coordinates has a nonzero radial component in some `(ℓ, m)` sector.
     Immediate from injectivity of the unitary `sphericalDecomposition` plus
     componentwise extensionality of the Hilbert-sum space `lp`. -/
-lemma sphericalDecomposition_ne_zero {Φ : Decomposition.L2_R3} (hΦ : Φ ≠ 0) :
+lemma sphericalDecomposition_ne_zero {Φ : Decomposition.l2R3} (hΦ : Φ ≠ 0) :
     ∃ i : HarmonicIdx, sphericalDecomposition Φ i ≠ 0 := by
   by_contra hcon
   refine hΦ (sphericalDecomposition.injective ?_)
@@ -74,10 +74,10 @@ lemma sphericalDecomposition_ne_zero {Φ : Decomposition.L2_R3} (hΦ : Φ ≠ 0)
     `bound_state_of_radial_profile` H-computation run backward. -/
 theorem weak_eigenequation_ae (p : CoulombParams) (E : ℝ)
     (ψ : (hydrogenHamiltonian p).domain)
-    (heig : hydrogenHamiltonian p ψ = (E : ℂ) • (ψ : Spectra.Sobolev.L2_R3)) :
-    ⇑(weakLaplacian (ψ : Spectra.Sobolev.L2_R3) ψ.2) =ᵐ[volume]
+    (heig : hydrogenHamiltonian p ψ = (E : ℂ) • (ψ : Spectra.Sobolev.l2R3)) :
+    ⇑(weakLaplacian (ψ : Spectra.Sobolev.l2R3) ψ.2) =ᵐ[volume]
       fun x => (2 : ℂ) * ((E : ℂ) - (coulombMultiplier p x : ℂ))
-        * (ψ : Spectra.Sobolev.L2_R3) x := by
+        * (ψ : Spectra.Sobolev.l2R3) x := by
   obtain ⟨Ψ, hH2⟩ := ψ
   show ⇑(weakLaplacian Ψ hH2) =ᵐ[volume]
       fun x => (2 : ℂ) * ((E : ℂ) - (coulombMultiplier p x : ℂ)) * ⇑Ψ x
@@ -529,7 +529,7 @@ Fubini factorization `inner_sectorEmbedding_eq_integral_coeffFun` already proved
 spherical space.  This is how the forward proof will extract a radial weak equation from
 the Cartesian eigen-equation, by choosing `R` to range over radial test functions. -/
 theorem inner_chartRealizationSymm_sectorEmbedding (i : HarmonicIdx)
-    (ψ : Spectra.Sobolev.L2_R3) (R : RadialL2) :
+    (ψ : Spectra.Sobolev.l2R3) (R : RadialL2) :
     inner ℂ (chartRealization.symm (sectorEmbedding i R)) ψ
       = ∫ r, (starRingEnd ℂ) (R r) * coeffFun i (chartRealization ψ) r ∂radialMeasure := by
   rw [← chartRealization.inner_map_map (chartRealization.symm (sectorEmbedding i R)) ψ,
@@ -623,7 +623,7 @@ form `∫ ψ·((−½Δ + V)φ − Eφ) = 0`.  This avoids ever differentiating 
 projecting onto an angular sector (against a separated test `φ = χ ⊗ Yᵢ`). -/
 
 /-- The coercion of a finite `Lp`-sum is a.e. the pointwise sum of coercions. -/
-private lemma coeFn_finsetSum (s : Finset (Fin 3)) (f : Fin 3 → Spectra.Sobolev.L2_R3) :
+private lemma coeFn_finsetSum (s : Finset (Fin 3)) (f : Fin 3 → Spectra.Sobolev.l2R3) :
     ⇑(∑ i ∈ s, f i) =ᵐ[volume] fun x => ∑ i ∈ s, (f i) x := by
   induction s using Finset.cons_induction with
   | empty =>
@@ -637,7 +637,7 @@ private lemma coeFn_finsetSum (s : Finset (Fin 3)) (f : Fin 3 → Spectra.Sobole
 /-- **Weak-Laplacian test pairing.** For an `H²` function `ψ` and a smooth compactly supported
 test `φ`, the weak Laplacian pairs against `φ` by moving both derivatives onto `φ`:
 `∫ (weakLaplacian ψ)·φ = −∫ ψ·(∑ᵢ ∂ᵢ²φ)`.  (Recall `weakLaplacian = −Δ`.) -/
-lemma integral_weakLaplacian_mul (ψ : Spectra.Sobolev.L2_R3) (hψ : MemSobolevH2 ψ)
+lemma integral_weakLaplacian_mul (ψ : Spectra.Sobolev.l2R3) (hψ : MemSobolevH2 ψ)
     (φ : Spectra.Sobolev.R3 → ℂ) (hφ : ContDiff ℝ ∞ φ) (hφ0 : HasCompactSupport φ) :
     ∫ x, ⇑(weakLaplacian ψ hψ) x * φ x
       = -∫ x, ⇑ψ x * ∑ i : Fin 3,
@@ -698,14 +698,14 @@ Combines `integral_weakLaplacian_mul` (move derivatives onto `φ`) with `weak_ei
 (`weakLaplacian ψ = 2(E − V)ψ`). -/
 theorem cartesian_weak_eigen (p : CoulombParams) (E : ℝ)
     (ψ : (hydrogenHamiltonian p).domain)
-    (heig : hydrogenHamiltonian p ψ = (E : ℂ) • (ψ : Spectra.Sobolev.L2_R3))
+    (heig : hydrogenHamiltonian p ψ = (E : ℂ) • (ψ : Spectra.Sobolev.l2R3))
     (φ : Spectra.Sobolev.R3 → ℂ) (hφ : ContDiff ℝ ∞ φ) (hφ0 : HasCompactSupport φ) :
-    -∫ x, ⇑(ψ : Spectra.Sobolev.L2_R3) x * ∑ i : Fin 3,
+    -∫ x, ⇑(ψ : Spectra.Sobolev.l2R3) x * ∑ i : Fin 3,
         fderiv ℝ (fun y => fderiv ℝ φ y (EuclideanSpace.single i 1)) x
           (EuclideanSpace.single i 1)
-      = ∫ x, (2 : ℂ) * ((E : ℂ) - (coulombMultiplier p x : ℂ)) * ⇑(ψ : Spectra.Sobolev.L2_R3) x
+      = ∫ x, (2 : ℂ) * ((E : ℂ) - (coulombMultiplier p x : ℂ)) * ⇑(ψ : Spectra.Sobolev.l2R3) x
           * φ x := by
-  have hpair := integral_weakLaplacian_mul (ψ : Spectra.Sobolev.L2_R3) ψ.2 φ hφ hφ0
+  have hpair := integral_weakLaplacian_mul (ψ : Spectra.Sobolev.l2R3) ψ.2 φ hφ hφ0
   have hwe := weak_eigenequation_ae p E ψ heig
   rw [← hpair]
   refine integral_congr_ae ?_

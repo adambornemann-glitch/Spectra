@@ -16,8 +16,8 @@ scalar space `L²(ℝ³)`:
 
   `L²(ℝ³; ℂ⁴) ≅ L²(ℝ³) ⊕ L²(ℝ³) ⊕ L²(ℝ³) ⊕ L²(ℝ³)`.
 
-We take this `ℓ²`-sum model directly: `DiracSpinorL2 := PiLp 2 (fun _ : Fin 4 => L2_R3)`, where
-`L2_R3` is the scalar space from `Spaces.Sobolev`. This makes all of the scalar Sobolev/Fourier
+We take this `ℓ²`-sum model directly: `DiracSpinorL2 := PiLp 2 (fun _ : Fin 4 => l2R3)`, where
+`l2R3` is the scalar space from `Spaces.Sobolev`. This makes all of the scalar Sobolev/Fourier
 machinery available componentwise, which is what later files use to build the free Dirac operator.
 
 The first piece of structure beyond the space itself is the action of a **constant** `4 × 4`
@@ -28,7 +28,7 @@ to the (unbounded) kinetic part.
 
 ## Main definitions
 
-* `DiracSpinorL2` — the spinor Hilbert space `L²(ℝ³; ℂ⁴)` as `PiLp 2 (fun _ : Fin 4 => L2_R3)`.
+* `DiracSpinorL2` — the spinor Hilbert space `L²(ℝ³; ℂ⁴)` as `PiLp 2 (fun _ : Fin 4 => l2R3)`.
 * `matrixOp` — the bounded operator on `DiracSpinorL2` given by a constant `4 × 4` matrix.
 
 ## Main statements
@@ -57,8 +57,8 @@ namespace Spectra.QuantumMechanics.Dirac
 
 /-- The Dirac spinor Hilbert space `L²(ℝ³; ℂ⁴)`, modelled as the `ℓ²`-direct sum of four copies
 of the scalar space `L²(ℝ³)`. A spinor field `ψ : DiracSpinorL2` has four components
-`ψ a : L2_R3` (`a : Fin 4`). -/
-abbrev DiracSpinorL2 : Type := PiLp 2 (fun _ : Fin 4 => L2_R3)
+`ψ a : l2R3` (`a : Fin 4`). -/
+abbrev DiracSpinorL2 : Type := PiLp 2 (fun _ : Fin 4 => l2R3)
 
 /-- The inner product on `L²(ℝ³; ℂ⁴)` is the sum of the four componentwise `L²` inner products. -/
 lemma DiracSpinorL2.inner_eq (ψ φ : DiracSpinorL2) :
@@ -66,9 +66,9 @@ lemma DiracSpinorL2.inner_eq (ψ φ : DiracSpinorL2) :
   PiLp.inner_apply ψ φ
 
 /-- The continuous linear equivalence between the `ℓ²`-model and the plain product
-`Fin 4 → L2_R3`; underlyingly the identity, used to transport `ContinuousLinearMap.pi`/`proj`. -/
-noncomputable def diracSpinorCLE : DiracSpinorL2 ≃L[ℂ] (Fin 4 → L2_R3) :=
-  PiLp.continuousLinearEquiv 2 ℂ (fun _ : Fin 4 => L2_R3)
+`Fin 4 → l2R3`; underlyingly the identity, used to transport `ContinuousLinearMap.pi`/`proj`. -/
+noncomputable def diracSpinorCLE : DiracSpinorL2 ≃L[ℂ] (Fin 4 → l2R3) :=
+  PiLp.continuousLinearEquiv 2 ℂ (fun _ : Fin 4 => l2R3)
 
 /-- The action of a constant `4 × 4` complex matrix `M` on spinor fields:
 `(matrixOp M ψ)_a = Σ_b M_{ab} • ψ_b`. A bounded operator, built from the coordinate

@@ -68,9 +68,9 @@ noncomputable def spinorFourierL2 : DiracSpinorL2 ≃ₗᵢ[ℂ] DiracSpinorL2 :
 /-- Coefficientwise a.e. value of a finite `L²`-sum of scalar multiples: if each `F i` agrees a.e.
 with `g i`, then `∑ i, c i • F i` agrees a.e. with `ξ ↦ ∑ i, c i · g i ξ`. (There is no
 `Lp.coeFn_sum` in Mathlib, so this is proved by induction from `coeFn_add`/`coeFn_smul`.) -/
-lemma l2_coeFn_sum_smul {ι : Type*} (s : Finset ι) (c : ι → ℂ) (F : ι → L2_R3)
+lemma l2_coeFn_sum_smul {ι : Type*} (s : Finset ι) (c : ι → ℂ) (F : ι → l2R3)
     (g : ι → R3 → ℂ) (hg : ∀ i ∈ s, (F i : R3 → ℂ) =ᵐ[volume] g i) :
-    ((∑ i ∈ s, c i • F i : L2_R3) : R3 → ℂ) =ᵐ[volume] fun ξ => ∑ i ∈ s, c i * g i ξ := by
+    ((∑ i ∈ s, c i • F i : l2R3) : R3 → ℂ) =ᵐ[volume] fun ξ => ∑ i ∈ s, c i * g i ξ := by
   classical
   induction s using Finset.induction with
   | empty =>
@@ -87,9 +87,9 @@ lemma l2_coeFn_sum_smul {ι : Type*} (s : Finset ι) (c : ι → ℂ) (F : ι �
 
 /-- Coefficientwise a.e. value of a finite `L²`-sum (no scalars): the plain-sum companion of
 `l2_coeFn_sum_smul`, used for the outer sum in the kinetic diagonalisation. -/
-lemma l2_coeFn_sum {ι : Type*} (s : Finset ι) (F : ι → L2_R3) (g : ι → R3 → ℂ)
+lemma l2_coeFn_sum {ι : Type*} (s : Finset ι) (F : ι → l2R3) (g : ι → R3 → ℂ)
     (hg : ∀ i ∈ s, (F i : R3 → ℂ) =ᵐ[volume] g i) :
-    ((∑ i ∈ s, F i : L2_R3) : R3 → ℂ) =ᵐ[volume] fun ξ => ∑ i ∈ s, g i ξ := by
+    ((∑ i ∈ s, F i : l2R3) : R3 → ℂ) =ᵐ[volume] fun ξ => ∑ i ∈ s, g i ξ := by
   classical
   induction s using Finset.induction with
   | empty =>
@@ -179,7 +179,7 @@ lemma diracResolventSymbol_add_inverse (μ : ℝ) (hμ : μ ≠ 0) (ξ : R3) :
 
 /-- **Fourier diagonalises the weak derivative**: `𝓕(∂ₖf) = derivSymbol k · 𝓕f` a.e., where
 `derivSymbol k ξ = 2πi⟪ξ, eₖ⟫`. The first-order analogue of `fourier_weakLaplacian`. -/
-lemma fourier_weakGradient (f : L2_R3) (hf : MemSobolevH1 f) (k : Fin 3) :
+lemma fourier_weakGradient (f : l2R3) (hf : MemSobolevH1 f) (k : Fin 3) :
     (fourierL2 (weakGradient f hf k) : R3 → ℂ) =ᵐ[volume]
       fun ξ => derivSymbol k ξ * (fourierL2 f : R3 → ℂ) ξ := by
   have hg₀ : Function.HasTemperateGrowth
@@ -192,8 +192,8 @@ lemma fourier_weakGradient (f : L2_R3) (hf : MemSobolevH1 f) (k : Fin 3) :
       ← TemperedDistribution.smulLeftCLM_smul hg₀]
     congr 2
   have locInt : LocallyIntegrable
-      (fun ξ => derivSymbol k ξ * ((𝓕 f : L2_R3) : R3 → ℂ) ξ) volume := by
-    have hLI : LocallyIntegrable ((𝓕 f : L2_R3) : R3 → ℂ) volume :=
+      (fun ξ => derivSymbol k ξ * ((𝓕 f : l2R3) : R3 → ℂ) ξ) volume := by
+    have hLI : LocallyIntegrable ((𝓕 f : l2R3) : R3 → ℂ) volume :=
       (Lp.memLp (𝓕 f)).locallyIntegrable one_le_two
     rw [MeasureTheory.locallyIntegrable_iff]
     intro K hK
@@ -206,7 +206,7 @@ lemma fourier_weakGradient (f : L2_R3) (hf : MemSobolevH1 f) (k : Fin 3) :
 /-- **`H¹` from Fourier decay**: if each `derivSymbol k · 𝓕ψ ∈ L²`, then `ψ ∈ H¹(ℝ³)`. The
 first-order regularity criterion (the resolvent solution lands in `H¹`, not `H²`), built directly
 from `weakDeriv_construct`. -/
-theorem memSobolevH1_of_fourier_decay (ψ : L2_R3)
+theorem memSobolevH1_of_fourier_decay (ψ : l2R3)
     (h : ∀ k : Fin 3, MemLp (fun ξ => derivSymbol k ξ * (fourierL2 ψ : R3 → ℂ) ξ) 2 volume) :
     MemSobolevH1 ψ :=
   fun k => ⟨(weakDeriv_construct ψ k (h k)).choose,
@@ -218,8 +218,8 @@ theorem memSobolevH1_of_fourier_decay (ψ : L2_R3)
 `χ ∈ H²` with `(laplacianSymbol ξ + c)·𝓕χ = 𝓕g` a.e. Built from the bounded Fourier multiplier
 `1/(laplacianSymbol ξ + c)`. The bounds (`1/c`, `1/c + 1/(2π)²`) are elementary because the shift
 `c > 0` keeps the denominator away from `0`. -/
-lemma scalarResolventSolve (c : ℝ) (hc : 0 < c) (g : L2_R3) :
-    ∃ χ : L2_R3, MemSobolevH2 χ ∧
+lemma scalarResolventSolve (c : ℝ) (hc : 0 < c) (g : l2R3) :
+    ∃ χ : l2R3, MemSobolevH2 χ ∧
       (fun ξ => ((laplacianSymbol ξ + c : ℝ) : ℂ) * (fourierL2 χ : R3 → ℂ) ξ)
         =ᵐ[volume] (fourierL2 g : R3 → ℂ) := by
   have hpos : ∀ ξ : R3, (0 : ℝ) < laplacianSymbol ξ + c :=
@@ -260,7 +260,7 @@ lemma scalarResolventSolve (c : ℝ) (hc : 0 < c) (g : L2_R3) :
       ‖((1 + ‖ξ‖ ^ 2 : ℝ) : ℂ) * m ξ‖ ≤ 1 / c + 1 / (2 * Real.pi) ^ 2 :=
     Filter.Eventually.of_forall hwbound
   have hmem := memLp_two_boundedMul hmeas hbound' (fourierL2 g)
-  set χ₀ : L2_R3 := fourierL2.symm (hmem.toLp (fun ξ => m ξ * (fourierL2 g : R3 → ℂ) ξ)) with hχ₀
+  set χ₀ : l2R3 := fourierL2.symm (hmem.toLp (fun ξ => m ξ * (fourierL2 g : R3 → ℂ) ξ)) with hχ₀
   have hχf : (fourierL2 χ₀ : R3 → ℂ) =ᵐ[volume]
       fun ξ => m ξ * (fourierL2 g : R3 → ℂ) ξ := by
     rw [hχ₀, LinearIsometryEquiv.apply_symm_apply]; exact hmem.coeFn_toLp

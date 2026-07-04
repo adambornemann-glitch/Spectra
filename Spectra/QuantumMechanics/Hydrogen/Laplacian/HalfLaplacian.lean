@@ -25,7 +25,7 @@ open Spectra.Sobolev Spectra.Essential
 namespace Spectra.QuantumMechanics.Hydrogen
 
 /-- The textbook kinetic operator `−½Δ = (½ : ℂ) • (−Δ)`. -/
-noncomputable def halfLaplacianPMap : L2_R3 →ₗ.[ℂ] L2_R3 :=
+noncomputable def halfLaplacianPMap : l2R3 →ₗ.[ℂ] l2R3 :=
   ((1 / 2 : ℝ) : ℂ) • laplacianPMap
 
 /-- `−½Δ` is self-adjoint (real scaling of the self-adjoint `−Δ`). -/

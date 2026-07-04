@@ -335,6 +335,42 @@ theorem existsUnique_deficiency_decomposition (A : H →ₗ.[ℂ] H) (hsym : A.I
   · exact sub_eq_zero.mp (by exact_mod_cast h2)
   · exact sub_eq_zero.mp (by exact_mod_cast h3)
 
+/-- **Graph-Pythagoras for the first von Neumann decomposition**: the graph norm of
+`u = ψ + η + ξ` splits over the three graph-orthogonal summands,
+
+  `‖u‖² + ‖A*u‖² = (‖ψ‖² + ‖Aψ‖²) + 2‖η‖² + 2‖ξ‖²`
+
+(with `A*u = Aψ + iη - iξ` written out via the action formula, and `‖η‖²_graph = 2‖η‖²`
+since `A*η = iη`). The `ψ`-cross terms die against the graph-orthogonality lemmas above; the
+`η`-`ξ` cross terms cancel identically. No symmetry hypothesis is needed — only density (for
+the cross-term identities). -/
+theorem norm_sq_add_deficiency_decomposition (A : H →ₗ.[ℂ] H)
+    (hdense : Dense (A.domain : Set H))
+    (ψ : A.domain) (η : deficiencySubspacePlus A) (ξ : deficiencySubspaceMinus A) :
+    ‖(ψ : H) + (η : H) + (ξ : H)‖ ^ 2 + ‖A ψ + I • (η : H) - I • (ξ : H)‖ ^ 2
+      = ‖(ψ : H)‖ ^ 2 + ‖A ψ‖ ^ 2 + 2 * ‖(η : H)‖ ^ 2 + 2 * ‖(ξ : H)‖ ^ 2 := by
+  have h1 := graphInner_domain_deficiencySubspacePlus A hdense ψ η
+  have h2 := graphInner_domain_deficiencySubspaceMinus A hdense ψ ξ
+  have h1c := congrArg (starRingEnd ℂ) h1
+  have h2c := congrArg (starRingEnd ℂ) h2
+  simp only [map_add, map_zero, inner_conj_symm] at h1c h2c
+  have hC : ⟪(ψ : H) + (η : H) + (ξ : H), (ψ : H) + (η : H) + (ξ : H)⟫_ℂ
+      + ⟪A ψ + I • (η : H) - I • (ξ : H), A ψ + I • (η : H) - I • (ξ : H)⟫_ℂ
+      = ⟪(ψ : H), (ψ : H)⟫_ℂ + ⟪A ψ, A ψ⟫_ℂ
+        + (⟪(η : H), (η : H)⟫_ℂ + ⟪(η : H), (η : H)⟫_ℂ)
+        + (⟪(ξ : H), (ξ : H)⟫_ℂ + ⟪(ξ : H), (ξ : H)⟫_ℂ) := by
+    simp only [inner_add_left, inner_add_right, inner_sub_left, inner_sub_right,
+      inner_smul_left, inner_smul_right, map_neg, neg_neg, Complex.conj_I] at h1 h2 h1c h2c ⊢
+    linear_combination h1 + h1c + h2 + h2c
+      + (⟪(η : H), (ξ : H)⟫_ℂ + ⟪(ξ : H), (η : H)⟫_ℂ - ⟪(η : H), (η : H)⟫_ℂ
+          - ⟪(ξ : H), (ξ : H)⟫_ℂ) * Complex.I_mul_I
+  rw [inner_self_eq_norm_sq_to_K, inner_self_eq_norm_sq_to_K, inner_self_eq_norm_sq_to_K,
+    inner_self_eq_norm_sq_to_K, inner_self_eq_norm_sq_to_K, inner_self_eq_norm_sq_to_K] at hC
+  have hR : ‖(ψ : H) + (η : H) + (ξ : H)‖ ^ 2 + ‖A ψ + I • (η : H) - I • (ξ : H)‖ ^ 2
+      = ‖(ψ : H)‖ ^ 2 + ‖A ψ‖ ^ 2 + (‖(η : H)‖ ^ 2 + ‖(η : H)‖ ^ 2)
+        + (‖(ξ : H)‖ ^ 2 + ‖(ξ : H)‖ ^ 2) := by exact_mod_cast hC
+  linarith [hR]
+
 /-! ### The general (non-closed) formula -/
 
 /-- **The first von Neumann formula** (general case): for symmetric, densely-defined `A`,

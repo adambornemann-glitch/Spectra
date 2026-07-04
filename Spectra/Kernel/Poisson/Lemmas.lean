@@ -176,6 +176,12 @@ lemma poissonKernel_integral_eq_one {ε : ℝ} (hε : 0 < ε) :
     simp_rw [h_interval]; exact h_val_lim
   exact tendsto_nhds_unique h_lim h_lim2
 
+/-- `I * a * b` is purely imaginary for real `a`, `b` — the real part of the exponent in
+`cexp (I * a * b)` vanishes, which is what makes such an exponential have norm 1. -/
+lemma re_I_mul_ofReal_mul_ofReal (a b : ℝ) : (I * (a : ℂ) * (b : ℂ)).re = 0 := by
+  simp [Complex.mul_re, Complex.mul_im, Complex.I_re, Complex.I_im,
+        Complex.ofReal_re, Complex.ofReal_im]
+
 /-! ## Phase 1: Half-line exponential integral (engine for Route C) -/
 
 /-- Norm of `cexp(-(a * t))` for real `t`. -/

@@ -15,10 +15,13 @@ import Mathlib.Topology.Algebra.InfiniteSum.Basic
 
 ## Main results
 
-### From `PositiveDefinite` alone (the `.re ≥ 0` condition):
+### `IsPositiveDefinite` alone (the `.re ≥ 0` quadratic-form condition):
+* `IsPositiveDefinite`: `0 ≤ (∑ᵢⱼ conj(cᵢ)cⱼf(tᵢ-tⱼ)).re` for all finite `t`, `c`
 * `pd_at_zero_nonneg`: `0 ≤ (f 0).re`
 * `pd_two_point_add`: `0 ≤ 2 * (f 0).re + (f t + f (-t)).re`
 * `pd_two_point_sub`: `0 ≤ 2 * (f 0).re - (f t + f (-t)).re`
+* `pd_two_point_I`: `0 ≤ 2 * (f 0).re + (f t - f (-t)).im`
+* `pd_two_point_neg_I`: `0 ≤ 2 * (f 0).re + (f (-t) - f t).im`
 
 ### Hermitian symmetry:
 * `IsHermitian`: `f(-t) = conj(f(t))` — holds for all unitary correlation functions
@@ -28,11 +31,21 @@ import Mathlib.Topology.Algebra.InfiniteSum.Basic
 * `hermitian_diff_eq_two_im`: `f t - f (-t) = ↑(2 * (f t).im) * I`
 
 ### Combined PD + Hermitian (the load-bearing results for Bochner):
+* `pd_hermitian_at_zero`: `f 0 = ↑(f 0).re ∧ 0 ≤ (f 0).re`
 * `pd_hermitian_re_le`: `(f t).re ≤ (f 0).re`
 * `pd_hermitian_re_neg_le`: `-(f 0).re ≤ (f t).re`
 * `pd_hermitian_re_abs_le`: `|(f t).re| ≤ (f 0).re`
+* `pd_hermitian_im_le`: `(f t).im ≤ (f 0).re`
+* `pd_hermitian_im_neg_le`: `-(f 0).re ≤ (f t).im`
 * `pd_hermitian_im_abs_le`: `|(f t).im| ≤ (f 0).re`
 * `pd_hermitian_norm_bound`: `‖f t‖ ≤ (f 0).re` — the sharp bound
+* `pd_hermitian_norm_sq_bound`: `‖f t‖ ^ 2 ≤ (f 0).re ^ 2`
+
+### Continuity propagation (the PD "variance" `pdVariance f h = (f 0).re - (f h).re`):
+* `pdVariance_nonneg`: `0 ≤ pdVariance f h`
+* `pdVariance_zero`: `pdVariance f 0 = 0`
+* `pdVariance_le`: `pdVariance f h ≤ 2 * (f 0).re`
+* `pdVariance_tendsto_zero`: `pdVariance f → 0` at `0` when `f` is continuous at `0`
 
 ## References
 
@@ -44,32 +57,15 @@ import Mathlib.Topology.Algebra.InfiniteSum.Basic
 positive-definite, Bochner lemma, Hermitian symmetry, Fourier transform
 -/
 open Complex Filter Topology MeasureTheory
-variable {f : ℝ → ℂ}
 namespace Spectra.PositiveDefinite
+
+variable {f : ℝ → ℂ}
 
 /-- A function f : ℝ → ℂ is positive-definite if for all finite collections of points
     and coefficients, the quadratic form ∑ᵢⱼ c̄ᵢcⱼf(tᵢ - tⱼ) is non-negative. -/
 def IsPositiveDefinite (f : ℝ → ℂ) : Prop :=
   ∀ (n : ℕ) (t : Fin n → ℝ) (c : Fin n → ℂ),
     0 ≤ (∑ i, ∑ j, starRingEnd ℂ (c i) * c j * f (t i - t j)).re
-
-/-- Continuous positive-definite function: positive-definite and continuous at 0.
-    Continuity at 0 plus positive-definiteness implies continuity everywhere. -/
-def PositiveDefiniteContinuous (f : ℝ → ℂ) : Prop :=
-  IsPositiveDefinite f ∧ ContinuousAt f 0
-
-/-- right-continuity from continuity on the right.
-    Used in constructing Stieltjes functions from spectral measures. -/
-lemma tendsto_nhdsWithin_Ici_of_tendsto_nhdsWithin_Ioi {f : ℝ → ℝ} {x : ℝ}
-    (h : Tendsto f (𝓝[>] x) (𝓝 (f x))) : ContinuousWithinAt f (Set.Ici x) x := by
-  rw [ContinuousWithinAt, Metric.tendsto_nhdsWithin_nhds]
-  intro ε hε
-  rw [Metric.tendsto_nhdsWithin_nhds] at h
-  obtain ⟨δ, hδ_pos, hδ⟩ := h ε hε
-  refine ⟨δ, hδ_pos, fun t ht_Ici ht_dist => ?_⟩
-  obtain rfl | h_lt := (Set.mem_Ici.mp ht_Ici).eq_or_lt
-  · rw [dist_self]; exact hε
-  · exact hδ h_lt ht_dist
 
 /-! ## Section 1: Properties from `PositiveDefinite` alone -/
 
@@ -90,7 +86,7 @@ lemma pd_two_point_add (hf : IsPositiveDefinite f) (t : ℝ) :
   simp only [Fin.sum_univ_two, Matrix.cons_val_zero, Matrix.cons_val_one] at h
   simp only [map_one, one_mul, sub_self, sub_zero, zero_sub] at h
   have : (f 0 + f (-t) + (f t + f 0)).re = 2 * (f 0).re + (f t + f (-t)).re := by
-    simp only [add_re]; grind only
+    simp only [add_re]; ring
   linarith
 
 /-- Two-point PD with c = ![1, -1]: subtracts the correlation at lag t and -t.
@@ -100,38 +96,57 @@ lemma pd_two_point_sub (hf : IsPositiveDefinite f) (t : ℝ) :
     0 ≤ 2 * (f 0).re - (f t + f (-t)).re := by
   have h := hf 2 ![0, t] ![1, -1]
   simp only [Fin.sum_univ_two, Matrix.cons_val_zero, Matrix.cons_val_one] at h
-  simp only [map_one, map_neg, one_mul, neg_mul, sub_self, sub_zero, zero_sub] at h
+  simp only [map_one, map_neg, one_mul, neg_mul, neg_neg, sub_self, sub_zero, zero_sub] at h
   have : (f 0 + -(f (-t)) + (-(f t) + f 0)).re = 2 * (f 0).re - (f t + f (-t)).re := by
-    simp only [add_re, neg_re]; grind only
-  grind only
+    simp only [add_re, neg_re]; ring
+  linarith
 
 /-- Two-point PD with c = ![1, I]: gives the imaginary part lower bound.
 
-The sum evaluates to `2·f(0) + 2·Im(f(t))` under Hermitian symmetry,
-so the PD condition yields `Im(f(t)) ≥ -(f 0).re`. -/
+Gives: `0 ≤ 2·(f 0).re + Im(f(t) - f(-t))`, so under Hermitian symmetry
+the PD condition yields `Im(f(t)) ≥ -(f 0).re`. -/
 lemma pd_two_point_I (hf : IsPositiveDefinite f) (t : ℝ) :
-    0 ≤ (f 0 + I * f (-t) + (-(I) * f t + f 0)).re := by
-  have h := hf 2 ![0, t] ![1, I]
-  simp only [Fin.sum_univ_two, Matrix.cons_val_zero, Matrix.cons_val_one] at h
-  simp only [map_one, one_mul, sub_self, sub_zero, zero_sub] at h
-  convert h using 2
-  simp only [conj_I, neg_mul, mul_one, I_mul_I, neg_neg, one_mul]
+    0 ≤ 2 * (f 0).re + (f t - f (-t)).im := by
+  have hraw : 0 ≤ (f 0 + I * f (-t) + (-(I) * f t + f 0)).re := by
+    have h := hf 2 ![0, t] ![1, I]
+    simp only [Fin.sum_univ_two, Matrix.cons_val_zero, Matrix.cons_val_one] at h
+    simp only [map_one, one_mul, sub_self, sub_zero, zero_sub] at h
+    convert h using 2
+    simp only [conj_I, neg_mul, mul_one, I_mul_I, neg_neg, one_mul]
+  have heq : (f 0 + I * f (-t) + (-(I) * f t + f 0)).re =
+      2 * (f 0).re + (f t - f (-t)).im := by
+    simp only [Complex.add_re, Complex.neg_re, Complex.neg_im, Complex.mul_re,
+               Complex.I_re, Complex.I_im, Complex.sub_im]
+    ring
+  linarith [hraw, heq]
 
 /-- Two-point PD with c = ![1, -I]: gives the imaginary part upper bound.
 
-The sum evaluates to `2·f(0) - 2·Im(f(t))` under Hermitian symmetry,
-so the PD condition yields `Im(f(t)) ≤ (f 0).re`. -/
+Gives: `0 ≤ 2·(f 0).re + Im(f(-t) - f(t))`, so under Hermitian symmetry
+the PD condition yields `Im(f(t)) ≤ (f 0).re`. -/
 lemma pd_two_point_neg_I (hf : IsPositiveDefinite f) (t : ℝ) :
-    0 ≤ (f 0 + -(I * f (-t)) + (I * f t + f 0)).re := by
-  have h := hf 2 ![0, t] ![1, -I]
-  simp only [Fin.sum_univ_two, Matrix.cons_val_zero, Matrix.cons_val_one] at h
-  simp only [map_one, map_neg, one_mul, neg_mul, sub_self, sub_zero, zero_sub] at h
-  convert h using 2
-  simp only [conj_I, mul_one, neg_mul, neg_neg, mul_neg, I_mul_I, one_mul]
+    0 ≤ 2 * (f 0).re + (f (-t) - f t).im := by
+  have hraw : 0 ≤ (f 0 + -(I * f (-t)) + (I * f t + f 0)).re := by
+    have h := hf 2 ![0, t] ![1, -I]
+    simp only [Fin.sum_univ_two, Matrix.cons_val_zero, Matrix.cons_val_one] at h
+    simp only [map_one, map_neg, one_mul, neg_mul, sub_self, sub_zero, zero_sub] at h
+    convert h using 2
+    simp only [conj_I, mul_one, neg_mul, neg_neg, mul_neg, I_mul_I, one_mul]
+  have heq : (f 0 + -(I * f (-t)) + (I * f t + f 0)).re =
+      2 * (f 0).re + (f (-t) - f t).im := by
+    simp only [Complex.add_re, Complex.neg_re, Complex.mul_re,
+               Complex.I_re, Complex.I_im, Complex.sub_im]
+    ring
+  linarith [hraw, heq]
 
 /-! ## Section 2: Hermitian symmetry -/
 
-/-- A function f : ℝ → ℂ has **Hermitian symmetry** if f(-t) = conj(f(t)). -/
+/-- A function f : ℝ → ℂ has **Hermitian symmetry** if f(-t) = conj(f(t)).
+
+Unrelated to `Matrix.IsHermitian`; this is a scalar-function symmetry condition, not a
+matrix property. Namespaced under `Spectra.PositiveDefinite` to avoid a literal name
+clash, but the two can still collide under `open Spectra.PositiveDefinite` alongside
+matrix code. -/
 def IsHermitian (f : ℝ → ℂ) : Prop :=
   ∀ t, f (-t) = starRingEnd ℂ (f t)
 
@@ -206,11 +221,7 @@ lemma pd_hermitian_im_le (hf : IsPositiveDefinite f) (hH : IsHermitian f) (t : �
     (f t).im ≤ (f 0).re := by
   have h := pd_two_point_neg_I hf t
   rw [hH t] at h
-  have key : (f 0 + -(I * starRingEnd ℂ (f t)) + (I * f t + f 0)).re =
-      2 * (f 0).re - 2 * (f t).im := by
-    simp only [Complex.add_re, Complex.neg_re, Complex.mul_re, Complex.I_re,
-               Complex.I_im, Complex.conj_re, Complex.conj_im]
-    ring
+  simp only [Complex.sub_im, Complex.conj_im] at h
   linarith
 
 /-- **Imaginary part lower bound**: -(f(0).re) ≤ Im(f(t)). -/
@@ -218,11 +229,7 @@ lemma pd_hermitian_im_neg_le (hf : IsPositiveDefinite f) (hH : IsHermitian f) (t
     -(f 0).re ≤ (f t).im := by
   have h := pd_two_point_I hf t
   rw [hH t] at h
-  have key : (f 0 + I * starRingEnd ℂ (f t) + (-I * f t + f 0)).re =
-      2 * (f 0).re + 2 * (f t).im := by
-    simp only [Complex.add_re, Complex.neg_re, Complex.mul_re, Complex.I_re,
-               Complex.I_im, Complex.conj_re, Complex.conj_im, Complex.neg_im]
-    ring
+  simp only [Complex.sub_im, Complex.conj_im] at h
   linarith
 
 /-- **Imaginary part absolute bound**: |Im(f(t))| ≤ f(0).re. -/
@@ -232,29 +239,6 @@ lemma pd_hermitian_im_abs_le (hf : IsPositiveDefinite f) (hH : IsHermitian f) (t
                pd_hermitian_im_le hf hH t⟩
 
 /-! ## Section 4: The sharp norm bound -/
-
-/-- Auxiliary: `starRingEnd ℂ z * z` has real part `‖z‖²`.-/
-private lemma conj_mul_self_re (z : ℂ) : (starRingEnd ℂ z * z).re = ‖z‖ ^ 2 := by
-  rw [mul_comm, Complex.mul_conj, Complex.ofReal_re]
-  exact normSq_eq_norm_sq z
-
-/-- Auxiliary: `starRingEnd ℂ z * z` is real (imaginary part is zero). -/
-private lemma conj_mul_self_im (z : ℂ) : (starRingEnd ℂ z * z).im = 0 := by
-  rw [mul_comm, Complex.mul_conj, Complex.ofReal_im]
-
-/-- Auxiliary: for z ≠ 0, `starRingEnd ℂ z * z / ↑‖z‖` equals `↑‖z‖` (as ℂ).
-
-Not on the critical path — used only in alternative norm bound approaches. -/
-private lemma conj_mul_div_norm (z : ℂ) (hz : z ≠ 0) :
-    starRingEnd ℂ z * z / ↑‖z‖ = ↑‖z‖ := by
-  have h_norm_pos : (0 : ℝ) < ‖z‖ := norm_pos_iff.mpr hz
-  have h_re := conj_mul_self_re z
-  have h_im := conj_mul_self_im z
-  have h_eq : starRingEnd ℂ z * z = ↑(‖z‖ ^ 2) := by
-    apply Complex.ext
-    · exact Real.ext_cauchy (congrArg Real.cauchy h_re)
-    · exact Real.ext_cauchy (congrArg Real.cauchy h_im)
-  rw [h_eq, ← Complex.ofReal_div, sq, mul_div_cancel_left₀ _ (ne_of_gt h_norm_pos)]
 
 /-- **The sharp norm bound**: `‖f(t)‖ ≤ f(0).re` for PD + Hermitian functions. -/
 lemma pd_hermitian_norm_bound (hf : IsPositiveDefinite f) (hH : IsHermitian f) (t : ℝ) :
@@ -266,14 +250,7 @@ lemma pd_hermitian_norm_bound (hf : IsPositiveDefinite f) (hH : IsHermitian f) (
   simp only [Fin.sum_univ_two, Matrix.cons_val_zero, Matrix.cons_val_one,
              sub_self, sub_zero, zero_sub] at hpd
   rw [hH t] at hpd
-  simp only [map_neg, Complex.conj_ofReal] at hpd
-  have h_ww : (starRingEnd ℂ (f t) * f t).re = ‖f t‖ ^ 2 := conj_mul_self_re (f t)
-  have h_ww' : (f t * starRingEnd ℂ (f t)).re = ‖f t‖ ^ 2 := by
-    rw [mul_comm]; exact h_ww
-  have h_ww_im : (starRingEnd ℂ (f t) * f t).im = 0 := conj_mul_self_im (f t)
-  have h_ww_im' : (f t * starRingEnd ℂ (f t)).im = 0 := by
-    rw [mul_comm]; exact h_ww_im
-  simp only [starRingEnd_self_apply] at hpd
+  simp only [map_neg, Complex.conj_ofReal, starRingEnd_self_apply] at hpd
   simp only [Complex.add_re, Complex.mul_re, Complex.mul_im,
              Complex.neg_re, Complex.neg_im, Complex.ofReal_re, Complex.ofReal_im,
              Complex.conj_re, Complex.conj_im] at hpd
@@ -282,14 +259,14 @@ lemma pd_hermitian_norm_bound (hf : IsPositiveDefinite f) (hH : IsHermitian f) (
   simp only [mul_zero, zero_mul, sub_zero, add_zero, zero_add, neg_zero] at hpd
   have hnsq : ‖f t‖ ^ 2 = (f t).re ^ 2 + (f t).im ^ 2 := by
     rw [← normSq_eq_norm_sq, Complex.normSq_apply]; ring
-  have h_factor : ∀ (z w f₀ : ℂ) (r : ℝ),
-      (z * w * f₀ + z * -(↑r : ℂ) * w +
-      (-(↑r : ℂ) * w * z + -(↑r : ℂ) * -(↑r : ℂ) * f₀)).re =
-      ((z * w + (↑r : ℂ) * (↑r : ℂ)) * f₀ +
-       (-2 : ℂ) * (↑r : ℂ) * (z * w)).re := by
-    intro z w f₀ r; congr 1; ring
   have h_pos : (0 : ℝ) < 2 * ‖f t‖ ^ 2 := by positivity
-  nlinarith [h_factor, h_pos]
+  -- Substituting `hnsq` (‖f t‖² = (f t).re² + (f t).im²) into `hpd` twice — once scaled by
+  -- `(f 0).re`, once by `‖f t‖` — collapses it to `0 ≤ 2‖f t‖²·((f 0).re - ‖f t‖)`; dividing by
+  -- the positive `2‖f t‖²` gives the goal.
+  have hnsq' : (f 0).re * ‖f t‖ ^ 2 = (f 0).re * ((f t).re ^ 2 + (f t).im ^ 2) := by rw [hnsq]
+  have hnsq'' : ‖f t‖ * ‖f t‖ ^ 2 = ‖f t‖ * ((f t).re ^ 2 + (f t).im ^ 2) := by rw [hnsq]
+  have key : 0 ≤ 2 * ‖f t‖ ^ 2 * ((f 0).re - ‖f t‖) := by nlinarith [hpd, hnsq', hnsq'']
+  nlinarith [key, h_pos]
 
 /-- Corollary: ‖f(t)‖² ≤ (f 0).re² for PD + Hermitian functions. -/
 lemma pd_hermitian_norm_sq_bound (hf : IsPositiveDefinite f) (hH : IsHermitian f) (t : ℝ) :
@@ -309,7 +286,7 @@ lemma pdVariance_nonneg (hf : IsPositiveDefinite f) (hH : IsHermitian f) (h : �
     0 ≤ pdVariance f h :=
   sub_nonneg.mpr (pd_hermitian_re_le hf hH h)
 
-lemma pdVariance_zero (_hH : IsHermitian f) : pdVariance f 0 = 0 := by
+lemma pdVariance_zero : pdVariance f 0 = 0 := by
   simp [pdVariance]
 
 lemma pdVariance_le (hf : IsPositiveDefinite f) (hH : IsHermitian f) (h : ℝ) :
@@ -318,8 +295,7 @@ lemma pdVariance_le (hf : IsPositiveDefinite f) (hH : IsHermitian f) (h : ℝ) :
   linarith [pd_hermitian_re_neg_le hf hH h]
 
 /-- The PD variance is continuous at 0 when f is continuous at 0. -/
-lemma pdVariance_tendsto_zero (_hf : IsPositiveDefinite f) (_hH : IsHermitian f)
-    (hcont : ContinuousAt f 0) :
+lemma pdVariance_tendsto_zero (hcont : ContinuousAt f 0) :
     Filter.Tendsto (pdVariance f) (𝓝 0) (𝓝 0) := by
   have : Filter.Tendsto (fun h => (f 0).re - (f h).re) (𝓝 0) (𝓝 ((f 0).re - (f 0).re)) := by
     apply Filter.Tendsto.sub

@@ -232,7 +232,7 @@ lemma fejerCDF_continuous (ψ : H) (N : ℕ) :
 lemma fejerCDF_eq_measure (hU : Operator.Unitary U) (ψ : H) (N : ℕ) (a b : ℝ)
     (ha : 0 ≤ a) (hab : a ≤ b) (hb : b ≤ 2 * Real.pi) :
     fejerCDF U ψ N b - fejerCDF U ψ N a =
-    (fejerMeasure U hU ψ N (Set.Ioc a b)).toReal := by
+    (fejerMeasure U ψ N (Set.Ioc a b)).toReal := by
   have hpi2 : (0 : ℝ) ≤ 2 * Real.pi := by positivity
   have hb0 : 0 ≤ b := le_trans ha hab
   have ha2π : a ≤ 2 * Real.pi := le_trans hab hb
@@ -274,7 +274,7 @@ lemma fejerCDF_eq_measure (hU : Operator.Unitary U) (ψ : H) (N : ℕ) (a b : �
   have hf_int : IntegrableOn
       (fun θ => (1 / (2 * Real.pi)) * (fejerMeanDensity U ψ N θ).re)
       (Set.Ioc a b) volume := hf_int_Icc.mono_set hsub
-  have hmeasure : (fejerMeasure U hU ψ N (Set.Ioc a b)).toReal
+  have hmeasure : (fejerMeasure U ψ N (Set.Ioc a b)).toReal
       = (1 / (2 * Real.pi)) * ∫ θ in Set.Ioc a b, (fejerMeanDensity U ψ N θ).re := by
     unfold fejerMeasure
     rw [withDensity_apply (fun θ => ENNReal.ofReal ((1 / (2 * Real.pi)) *

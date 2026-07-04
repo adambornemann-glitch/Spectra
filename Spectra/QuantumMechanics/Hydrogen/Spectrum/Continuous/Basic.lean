@@ -85,7 +85,7 @@ theorem hydrogen_continuous_spectrum (p : CoulombParams) :
     case (the general long-range result is Froese–Herbst / Agmon-type, via a
     Mourre/virial argument — verify the exact citation). -/
 theorem hydrogen_no_positive_eigenvalues (p : CoulombParams) :
-    ∀ (E : ℝ) (_hE : 0 ≤ E) (ψ : Spectra.Sobolev.L2_R3)
+    ∀ (E : ℝ) (_hE : 0 ≤ E) (ψ : Spectra.Sobolev.l2R3)
       (hψ : ψ ∈ (hydrogenHamiltonian p).domain),
     hydrogenHamiltonian p ⟨ψ, hψ⟩ = (E : ℂ) • ψ → ψ = 0 := by
   intro E hE ψ hψ heig

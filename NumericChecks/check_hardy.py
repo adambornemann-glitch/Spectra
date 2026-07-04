@@ -3,10 +3,10 @@
 Lean statements under test (3D, Lebesgue measure):
   hardy_inequality        (HardyInequality.lean:1712):
       int |psi|^2/|x|^2 dx <= 4 * int |grad psi|^2 dx        on H^1(R^3)
-  hardy_constant_sharp    (HardySharp.lean:408): the 4 cannot be lowered;
+  hardy_constant_sharp    (Hardy/Sharp.lean:408): the 4 cannot be lowered;
       witnessed by the Emden-Fowler family g_n(r) = r^{-1/2} eta(log r / n)
       with derivative gN' = r^{-3/2}(eta'(log r/n)/n - eta(log r/n)/2)
-      (HardySharp.lean:234,237).
+      (Hardy/Sharp.lean:234,237).
   hardy_operator_bound    (HardyInequality.lean:1770):
       ||psi/r|| <= eps ||Lap psi|| + (1/eps) ||psi||          on H^2(R^3)
   coulomb_relatively_bounded_H2 (CoulombBound.lean:234):

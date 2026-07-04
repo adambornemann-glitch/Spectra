@@ -186,18 +186,18 @@ Density and symmetry are proved above; surjectivity of `D₀ ± iμ` is establis
 diagonalisation, and the assembly via von Neumann's criterion is complete. -/
 
 /-- Scalar `H¹(ℝ³)` is dense in `L²(ℝ³)` (it contains the dense `H²`). -/
-theorem sobolevH1_dense : Dense (SobolevH1 : Set L2_R3) :=
-  sobolevH2_dense.mono fun _ hx => sobolevH2_le_H1 hx
+theorem sobolevH1_dense : Dense (SobolevH1 : Set l2R3) :=
+  sobolevH2_dense.mono fun _ hx => sobolevH2_le_sobolevH1 hx
 
 /-- The domain `H¹(ℝ³; ℂ⁴)` is dense in `L²(ℝ³; ℂ⁴)`. Componentwise density of `H¹` in `L²`
 (`sobolevH1_dense`) gives density of the product, transported through the `diracSpinorCLE`
 homeomorphism between the `ℓ²`-model and the plain product. -/
 theorem diracKineticPMap_domain_dense :
     Dense (diracKineticPMap.domain : Set DiracSpinorL2) := by
-  have hpi : Dense (Set.univ.pi fun _ : Fin 4 => (SobolevH1 : Set L2_R3)) :=
+  have hpi : Dense (Set.univ.pi fun _ : Fin 4 => (SobolevH1 : Set l2R3)) :=
     dense_pi Set.univ fun _ _ => sobolevH1_dense
   have hset : (diracKineticPMap.domain : Set DiracSpinorL2)
-      = ⇑diracSpinorCLE.toHomeomorph ⁻¹' (Set.univ.pi fun _ : Fin 4 => (SobolevH1 : Set L2_R3)) := by
+      = ⇑diracSpinorCLE.toHomeomorph ⁻¹' (Set.univ.pi fun _ : Fin 4 => (SobolevH1 : Set l2R3)) := by
     ext ψ
     simp only [SetLike.mem_coe, Set.mem_preimage, Set.mem_pi, Set.mem_univ, true_implies]
     exact Iff.rfl

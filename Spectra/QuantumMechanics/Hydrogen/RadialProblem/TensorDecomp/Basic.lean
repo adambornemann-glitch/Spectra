@@ -25,8 +25,8 @@ centrifugal barrier with the Coulomb attraction.
 * `ReducedRadialL2` — L²(ℝ⁺, dr), the reduced radial Hilbert space.
 * `radialReduction` — the unitary R ↦ rR, `RadialL2 ≃ₗᵢ[ℂ] ReducedRadialL2`.
 * `HarmonicIdx` — the index Σ ℓ, {m // |m| ≤ ℓ} of quantum number pairs.
-* `L2_R3` — L²(ℝ³) in spherical coordinates, `Lp ℂ 2 (radialMeasure.prod sphereMeasure)`.
-* `sectorEmbedding` — the isometric embedding R ↦ R ⊗ Y_ℓ^m, `RadialL2 →ₗᵢ[ℂ] L2_R3`.
+* `l2R3` — L²(ℝ³) in spherical coordinates, `Lp ℂ 2 (radialMeasure.prod sphereMeasure)`.
+* `sectorEmbedding` — the isometric embedding R ↦ R ⊗ Y_ℓ^m, `RadialL2 →ₗᵢ[ℂ] l2R3`.
 * `sphericalDecomposition` — the unitary L²(ℝ³) ≃ₗᵢ[ℂ] lp (fun _ => RadialL2) 2,
   i.e. ⊕_ℓ RadialL2 ⊗ V_ℓ with each V_ℓ expanded in its Y_ℓ^m basis.
 
@@ -62,7 +62,7 @@ transported along the mutual absolute continuity of `radialMeasure` and `volume.
 Mathlib has no L² analogue of `withDensitySMulLI` (L¹-only, and merely ℝ-linear), so this
 construction is original infrastructure (checked against v4.31.0-rc1).
 
-`L2_R3` is L²(ℝ³) *in spherical coordinates*: `Lp ℂ 2` of the product measure
+`l2R3` is L²(ℝ³) *in spherical coordinates*: `Lp ℂ 2` of the product measure
 `radialMeasure.prod sphereMeasure`, mirroring how `L2_S2` lives on the angular coordinate
 rectangle in `Basic.lean`. The change of variables to Cartesian
 `Lp ℂ 2 (volume : Measure (EuclideanSpace ℝ (Fin 3)))` is independent infrastructure — Mathlib
@@ -287,7 +287,7 @@ lemma radialReduction_symm_coeFn (χ : ReducedRadialL2) :
 
 /-! ## Spherical coordinate decomposition
 
-**Design note.** `L2_R3` below is L²(ℝ³) *in spherical coordinates*: the
+**Design note.** `l2R3` below is L²(ℝ³) *in spherical coordinates*: the
 Lebesgue space of the product measure `radialMeasure.prod sphereMeasure` on
 `ℝ × (ℝ × ℝ)` (radius × angular chart). This matches the convention of
 `SphericalHarmonics/Basic.lean`, where `L2_S2` already lives on the angular
@@ -392,11 +392,11 @@ lemma lintegral_enorm_sq_harmonic (i : HarmonicIdx) :
 /-- L²(ℝ³) in spherical coordinates: the Lebesgue space of the product of
     the radial measure r²dr on (0,∞) and the sphere measure sinθ dθ dφ.
     (See the design note at the top of this section.) -/
-abbrev L2_R3 : Type := Lp ℂ 2 (radialMeasure.prod sphereMeasure)
+abbrev l2R3 : Type := Lp ℂ 2 (radialMeasure.prod sphereMeasure)
 
 -- Smoke tests: the Hilbert space structure flows through the `abbrev`.
-example : CompleteSpace L2_R3 := inferInstance
-noncomputable example : InnerProductSpace ℂ L2_R3 := inferInstance
+example : CompleteSpace l2R3 := inferInstance
+noncomputable example : InnerProductSpace ℂ l2R3 := inferInstance
 
 /-- The pure tensor g ⊗ Y_i as a function on (0,∞) × S². -/
 noncomputable def tensorFun (g : ℝ → ℂ) (i : HarmonicIdx) : ℝ × (ℝ × ℝ) → ℂ :=
@@ -449,7 +449,7 @@ lemma tensorFun_congr_ae {g g' : ℝ → ℂ} (h : g =ᵐ[radialMeasure] g')
 /-- **The sector embedding**: the isometric embedding R ↦ R ⊗ Y_i of the
     radial Hilbert space into L²(ℝ³) along the spherical harmonic Y_i.
     Its range is the (ℓ, m)-sector of the decomposition. -/
-noncomputable def sectorEmbedding (i : HarmonicIdx) : RadialL2 →ₗᵢ[ℂ] L2_R3 :=
+noncomputable def sectorEmbedding (i : HarmonicIdx) : RadialL2 →ₗᵢ[ℂ] l2R3 :=
   { toFun := fun R => (memLp_tensorFun (Lp.memLp R) i).toLp (tensorFun (⇑R) i)
     map_add' := by
       intro R₁ R₂
@@ -541,10 +541,10 @@ the slices, F = 0. -/
 
 /-- The angular coefficient function of F at index i:
     c_i(r) = ∫ conj(Y_i(ω)) F(r, ω) dΩ. -/
-noncomputable def coeffFun (i : HarmonicIdx) (F : L2_R3) : ℝ → ℂ :=
+noncomputable def coeffFun (i : HarmonicIdx) (F : l2R3) : ℝ → ℂ :=
   fun r => ∫ ω, (starRingEnd ℂ) (harmonic i ω) * F (r, ω) ∂sphereMeasure
 
-lemma coeffFun_aestronglyMeasurable (i : HarmonicIdx) (F : L2_R3) :
+lemma coeffFun_aestronglyMeasurable (i : HarmonicIdx) (F : l2R3) :
     AEStronglyMeasurable (coeffFun i F) radialMeasure := by
   have hsm : StronglyMeasurable fun p : ℝ × (ℝ × ℝ) =>
       (starRingEnd ℂ) (harmonic i p.2) * F p :=
@@ -555,7 +555,7 @@ lemma coeffFun_aestronglyMeasurable (i : HarmonicIdx) (F : L2_R3) :
 /-- Fiberwise Cauchy–Schwarz: |c_i(r)| ≤ ‖Y_i‖_{L²(S²)} ‖F(r,·)‖_{L²(S²)},
     with ‖Y_i‖ = 1. Stated in `ℝ≥0∞` (Hölder for `lintegral`), so it holds
     for every r with no integrability hypotheses. -/
-lemma enorm_coeffFun_le (i : HarmonicIdx) (F : L2_R3) (r : ℝ) :
+lemma enorm_coeffFun_le (i : HarmonicIdx) (F : l2R3) (r : ℝ) :
     ‖coeffFun i F r‖ₑ ≤
       (∫⁻ ω, ‖F (r, ω)‖ₑ ^ (2 : ℝ) ∂sphereMeasure) ^ (1 / 2 : ℝ) := by
   have hslice : AEMeasurable (fun ω => ‖F (r, ω)‖ₑ) sphereMeasure :=
@@ -579,7 +579,7 @@ lemma enorm_coeffFun_le (i : HarmonicIdx) (F : L2_R3) (r : ℝ) :
 
 /-- The coefficient functions are radial L² functions:
     ∫ |c_i(r)|² r²dr ≤ ‖F‖² < ∞ by Cauchy–Schwarz and Tonelli. -/
-lemma memLp_coeffFun (i : HarmonicIdx) (F : L2_R3) :
+lemma memLp_coeffFun (i : HarmonicIdx) (F : l2R3) :
     MemLp (coeffFun i F) 2 radialMeasure := by
   refine ⟨coeffFun_aestronglyMeasurable i F, ?_⟩
   rw [eLpNorm_eq_lintegral_rpow_enorm_toReal two_ne_zero ENNReal.ofNat_ne_top]
@@ -606,7 +606,7 @@ lemma memLp_coeffFun (i : HarmonicIdx) (F : L2_R3) :
 /-- **The Fubini step**: pairing F against a sector element R ⊗ Y_i reduces
     to the radial pairing of R against the coefficient function c_i. -/
 lemma inner_sectorEmbedding_eq_integral_coeffFun (i : HarmonicIdx) (R : RadialL2)
-    (F : L2_R3) :
+    (F : l2R3) :
     inner ℂ (sectorEmbedding i R) F =
       ∫ r, (starRingEnd ℂ) (R r) * coeffFun i F r ∂radialMeasure := by
   have hI : Integrable
@@ -757,11 +757,11 @@ theorem isHilbertSum_sectors :
     `sphericalDecomposition_symm_single` for the inverse direction making
     this exact. -/
 noncomputable def sphericalDecomposition :
-    L2_R3 ≃ₗᵢ[ℂ] lp (fun _ : HarmonicIdx => RadialL2) 2 :=
+    l2R3 ≃ₗᵢ[ℂ] lp (fun _ : HarmonicIdx => RadialL2) 2 :=
   isHilbertSum_sectors.linearIsometryEquiv
 
 /-- The decomposition preserves norms (unitarity). -/
-theorem sphericalDecomposition_isometry (f : L2_R3) :
+theorem sphericalDecomposition_isometry (f : l2R3) :
     ‖sphericalDecomposition f‖ = ‖f‖ :=
   sphericalDecomposition.norm_map f
 

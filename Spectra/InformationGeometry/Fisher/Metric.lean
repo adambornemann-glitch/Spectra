@@ -216,9 +216,7 @@ Under score-injectivity this map is positive definite. -/
 
 /-- The Fisher matrix as a linear map `ℝⁿ → ℝⁿ`:
   `(fisherLinearMap θ v)_j = ∑_i g_{ji}(θ) · v_i`. -/
-def fisherLinearMap {θ : ParamSpace n}
-    (_hθ : θ ∈ M.paramDomain)
-    (_hSq : M.ScoreSqIntegrableModel θ) :
+def fisherLinearMap (θ : ParamSpace n) :
     ParamSpace n →ₗ[ℝ] ParamSpace n where
   toFun v := WithLp.toLp 2 (fun j =>
     ∑ i : Fin n, M.fisherMatrix θ j i * v.ofLp i)
@@ -241,12 +239,10 @@ Euclidean inner product:
   `⟨G v, w⟩ = ⟨v, G w⟩`.
 
 This is a restatement of the symmetry `g_{ij} = g_{ji}`. -/
-lemma fisherLinearMap_symm_apply {θ : ParamSpace n}
-    (hθ : θ ∈ M.paramDomain)
-    (hSq : M.ScoreSqIntegrableModel θ)
+lemma fisherLinearMap_symm_apply (θ : ParamSpace n)
     (v w : ParamSpace n) :
-    ∑ j, M.fisherLinearMap hθ hSq v j * w j =
-      ∑ j, v j * M.fisherLinearMap hθ hSq w j := by
+    ∑ j, M.fisherLinearMap θ v j * w j =
+      ∑ j, v j * M.fisherLinearMap θ w j := by
   simp only [fisherLinearMap, LinearMap.coe_mk, AddHom.coe_mk]
   -- Expand products into double sums
   simp only [Finset.mul_sum, Finset.sum_mul] -- `simp` made no progress

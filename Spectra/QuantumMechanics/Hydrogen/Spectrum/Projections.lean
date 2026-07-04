@@ -65,7 +65,7 @@ Assembles the two inclusions from `SeparatedEigenfunction.lean`: `⊆` is `eigen
 `spectralPVM_proj_singleton_eq_self_iff` (*G1*) — the eigenspace, being the range of the spectral
 projection, is automatically a subspace, so containing the generators suffices. -/
 theorem hydrogen_eigenspace_eq_span (n : ℕ) (hn : 1 ≤ n) :
-    {ψ : Spectra.Sobolev.L2_R3 |
+    {ψ : Spectra.Sobolev.l2R3 |
         ∃ h : ψ ∈ (hydrogenHamiltonian (⟨1, one_pos⟩ : CoulombParams)).domain,
           hydrogenHamiltonian (⟨1, one_pos⟩ : CoulombParams) ⟨ψ, h⟩
             = ((hydrogenEigenvalue n hn : ℝ) : ℂ) • ψ}
@@ -76,14 +76,14 @@ theorem hydrogen_eigenspace_eq_span (n : ℕ) (hn : 1 ≤ n) :
   set E := (PVM.spectralPVM hA).proj {hydrogenEigenvalue n hn}
     (measurableSet_singleton _) with hEdef
   -- the range of the idempotent projection is its fixed-point set
-  have hfix : ∀ ψ : Spectra.Sobolev.L2_R3,
-      ψ ∈ LinearMap.range (E : Spectra.Sobolev.L2_R3 →ₗ[ℂ] Spectra.Sobolev.L2_R3) ↔ E ψ = ψ := by
+  have hfix : ∀ ψ : Spectra.Sobolev.l2R3,
+      ψ ∈ LinearMap.range (E : Spectra.Sobolev.l2R3 →ₗ[ℂ] Spectra.Sobolev.l2R3) ↔ E ψ = ψ := by
     intro ψ
     constructor
     · rintro ⟨x, rfl⟩
       have hidem := (PVM.spectralPVM hA).proj_idem {hydrogenEigenvalue n hn}
         (measurableSet_singleton _)
-      have hx := congrArg (fun T : Spectra.Sobolev.L2_R3 →L[ℂ] Spectra.Sobolev.L2_R3 => T x) hidem
+      have hx := congrArg (fun T : Spectra.Sobolev.l2R3 →L[ℂ] Spectra.Sobolev.l2R3 => T x) hidem
       simpa [ContinuousLinearMap.mul_apply, ← hEdef] using hx
     · intro h; exact ⟨ψ, h⟩
   ext ψ
@@ -98,7 +98,7 @@ theorem hydrogen_eigenspace_eq_span (n : ℕ) (hn : 1 ≤ n) :
       -- `ψ ∈ span ≤ range E`, since each generator is `E`-fixed by H1 + G1
       have hspan_le : Submodule.span ℂ
           (Set.range (fun i => chartRealization.symm (degenFamily n i)))
-          ≤ LinearMap.range (E : Spectra.Sobolev.L2_R3 →ₗ[ℂ] Spectra.Sobolev.L2_R3) := by
+          ≤ LinearMap.range (E : Spectra.Sobolev.l2R3 →ₗ[ℂ] Spectra.Sobolev.l2R3) := by
         rw [Submodule.span_le]
         rintro _ ⟨i, rfl⟩
         rw [SetLike.mem_coe, hfix]
@@ -122,7 +122,7 @@ theorem hydrogen_spectral_projection_discrete (n : ℕ) (hn : 1 ≤ n) :
     LinearMap.range
         ((PVM.spectralPVM (hydrogenHamiltonian_isSelfAdjoint (⟨1, one_pos⟩ : CoulombParams))).proj
           {hydrogenEigenvalue n hn} (measurableSet_singleton _) :
-          Spectra.Sobolev.L2_R3 →ₗ[ℂ] Spectra.Sobolev.L2_R3)
+          Spectra.Sobolev.l2R3 →ₗ[ℂ] Spectra.Sobolev.l2R3)
       = Submodule.span ℂ (Set.range (fun i => chartRealization.symm (degenFamily n i))) := by
   classical
   set hA := hydrogenHamiltonian_isSelfAdjoint (⟨1, one_pos⟩ : CoulombParams) with hAdef
@@ -136,7 +136,7 @@ theorem hydrogen_spectral_projection_discrete (n : ℕ) (hn : 1 ≤ n) :
       (measurableSet_singleton _) with hEdef
     have hidem := (PVM.spectralPVM hA).proj_idem {hydrogenEigenvalue n hn}
       (measurableSet_singleton _)
-    have hx := congrArg (fun T : Spectra.Sobolev.L2_R3 →L[ℂ] Spectra.Sobolev.L2_R3 => T x) hidem
+    have hx := congrArg (fun T : Spectra.Sobolev.l2R3 →L[ℂ] Spectra.Sobolev.l2R3 => T x) hidem
     have hfixEx : E (E x) = E x := by simpa [ContinuousLinearMap.mul_apply, ← hEdef] using hx
     exact (spectralPVM_proj_singleton_eq_self_iff hA (E x)).mp hfixEx
   · -- `H ψ = Eₙ ψ ⟹ ψ ∈ range E`
@@ -155,7 +155,7 @@ theorem hydrogen_spectral_projection_finrank (n : ℕ) (hn : 1 ≤ n) :
         (LinearMap.range
           ((PVM.spectralPVM (hydrogenHamiltonian_isSelfAdjoint (⟨1, one_pos⟩ : CoulombParams))).proj
             {hydrogenEigenvalue n hn} (measurableSet_singleton _) :
-            Spectra.Sobolev.L2_R3 →ₗ[ℂ] Spectra.Sobolev.L2_R3))
+            Spectra.Sobolev.l2R3 →ₗ[ℂ] Spectra.Sobolev.l2R3))
       = n ^ 2 := by
   -- the transported family is linearly independent (image of the orthonormal degeneracy family
   -- under the injective linear isometry `chartRealization.symm`), so the dimension of its span is

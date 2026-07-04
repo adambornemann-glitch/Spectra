@@ -9,7 +9,7 @@ import Spectra.QuantumMechanics.Hydrogen.Laplacian.Spherical
 import Spectra.QuantumMechanics.Hydrogen.Hamiltonian
 import Spectra.QuantumMechanics.Hydrogen.Spectrum.Eigenvalue
 import Spectra.QuantumMechanics.Hydrogen.Spectrum.Degeneracy
-import Spectra.QuantumMechanics.Hydrogen.Spectrum.RadialEigenfunction
+import Spectra.QuantumMechanics.Hydrogen.Spectrum.RadialEigenfunction.Basic
 import Spectra.QuantumMechanics.Hydrogen.Spectrum.SectorProjection
 
 /-!
@@ -58,14 +58,14 @@ open Spectra.QuantumMechanics.Hydrogen.Radial (laguerrePolynomial laguerre_smoot
     (`[propext, Classical.choice, Quot.sound]`).**
 
     **`←` (E = E_n ⟹ eigenpair exists): PROVED for every `Z`.** This is
-    `Spectrum.hydrogen_bound_state p n hn` (in `RadialEigenfunction.lean`): for every charge
+    `Spectrum.hydrogen_bound_state p n hn` (in `RadialEigenfunction/Basic.lean`): for every charge
     `Z = p.Z > 0` and `n ≥ 1`, `E_n = −Z²/(2n²)` is a genuine eigenvalue of `H = −½Δ − Z/r`,
     realized by the explicit nonzero `H²` bound state with radial profile `c·R_{n0}(Z·‖x‖)` (the
     `Z = 1` `s`-state dilated by `r ↦ Z r`), via the `bound_state_of_radial_profile` abstraction.
 
     **`→` (eigenpair ⟹ E = E_n): PROVED.** Assembled in
     `Spectrum.forward_eigenvalue` (`SectorProjection.lean`). The pipeline:
-    1. `chartRealization : Sobolev.L2_R3 ≃ₗᵢ[ℂ] Decomposition.L2_R3` (the 3D spherical change-of-
+    1. `chartRealization : Sobolev.l2R3 ≃ₗᵢ[ℂ] Decomposition.l2R3` (the 3D spherical change-of-
        variables unitary) carries the Cartesian eigenfunction to spherical coordinates;
        `exists_nonzero_sector` extracts a nonzero angular sector `(ℓ, m)` (using `star ψ` for the
        positive-`m` sectors, since `H` is real), giving a not-a.e.-zero radial coefficient
@@ -84,8 +84,8 @@ open Spectra.QuantumMechanics.Hydrogen.Radial (laguerrePolynomial laguerre_smoot
 theorem hydrogen_discrete_spectrum (p : CoulombParams) :
     ∀ (E : ℝ), E < 0 →
     ((∃ ψ : (hydrogenHamiltonian p).domain,
-        (ψ : Spectra.Sobolev.L2_R3) ≠ 0 ∧
-        hydrogenHamiltonian p ψ = (E : ℂ) • (ψ : Spectra.Sobolev.L2_R3)) ↔
+        (ψ : Spectra.Sobolev.l2R3) ≠ 0 ∧
+        hydrogenHamiltonian p ψ = (E : ℂ) • (ψ : Spectra.Sobolev.l2R3)) ↔
     ∃ (n : ℕ) (hn : 1 ≤ n), E = eigenvalue p n hn) := by
   intro E _hE
   constructor

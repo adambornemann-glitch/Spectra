@@ -5,7 +5,7 @@ Authors: Adam Bornemann
 -/
 import Spectra.QuantumMechanics.Hydrogen.Spectrum.Forward
 import Spectra.QuantumMechanics.Hydrogen.Spectrum.SectorReductionLocal
-import Spectra.QuantumMechanics.Hydrogen.Spectrum.RadialEigenfunction
+import Spectra.QuantumMechanics.Hydrogen.Spectrum.RadialEigenfunction.Basic
 import Spectra.QuantumMechanics.Hydrogen.RadialProblem.Equation.Regularity
 
 /-!
@@ -115,9 +115,9 @@ classical `∑ᵢ ∂ᵢ²`) gives `0`.  Works for arbitrary `φ`; the solid-har
 later when the integrand is reduced on a sector. -/
 lemma weak_eigen_combined (p : CoulombParams) (E : ℝ)
     (ψ : (hydrogenHamiltonian p).domain)
-    (heig : hydrogenHamiltonian p ψ = (E : ℂ) • (ψ : Spectra.Sobolev.L2_R3))
+    (heig : hydrogenHamiltonian p ψ = (E : ℂ) • (ψ : Spectra.Sobolev.l2R3))
     (φ : R3 → ℂ) (hφ : ContDiff ℝ ∞ φ) (hφ0 : HasCompactSupport φ) :
-    ∫ x, (ψ : Spectra.Sobolev.L2_R3) x *
+    ∫ x, (ψ : Spectra.Sobolev.l2R3) x *
       (-(1 / 2 : ℂ) * (∑ i : Fin 3,
           fderiv ℝ (fun y => fderiv ℝ φ y (EuclideanSpace.single i 1)) x (EuclideanSpace.single i 1))
         + (coulombMultiplier p x : ℂ) * φ x - (E : ℂ) * φ x) = 0 := by
@@ -131,27 +131,27 @@ lemma weak_eigen_combined (p : CoulombParams) (E : ℝ)
     refine memLp_finsetSum _ (fun i _ => ?_)
     exact memLp_partialDeriv (fun y => fderiv ℝ φ y (EuclideanSpace.single i 1)) i
       (contDiff_partialDeriv φ i hφ) (hasCompactSupport_partialDeriv φ i hφ0)
-  have hint_lap : Integrable (fun x => (ψ : Spectra.Sobolev.L2_R3) x * ∑ i : Fin 3,
+  have hint_lap : Integrable (fun x => (ψ : Spectra.Sobolev.l2R3) x * ∑ i : Fin 3,
       fderiv ℝ (fun y => fderiv ℝ φ y (EuclideanSpace.single i 1)) x (EuclideanSpace.single i 1)) :=
-    memLp_one_iff_integrable.mp (MemLp.mul' (r := 1) hlapMemLp (Lp.memLp (ψ : Spectra.Sobolev.L2_R3)))
+    memLp_one_iff_integrable.mp (MemLp.mul' (r := 1) hlapMemLp (Lp.memLp (ψ : Spectra.Sobolev.l2R3)))
   -- integrability of the RHS integrand: a.e. equal to the `L²·L²` product `(weakLaplacian ψ)·φ`
   have hwe := weak_eigenequation_ae p E ψ heig
-  have hint_wlφ : Integrable (fun x => ⇑(weakLaplacian (ψ : Spectra.Sobolev.L2_R3) ψ.2) x * φ x) :=
+  have hint_wlφ : Integrable (fun x => ⇑(weakLaplacian (ψ : Spectra.Sobolev.l2R3) ψ.2) x * φ x) :=
     memLp_one_iff_integrable.mp
-      (MemLp.mul' (r := 1) hφ2 (Lp.memLp (weakLaplacian (ψ : Spectra.Sobolev.L2_R3) ψ.2)))
+      (MemLp.mul' (r := 1) hφ2 (Lp.memLp (weakLaplacian (ψ : Spectra.Sobolev.l2R3) ψ.2)))
   have hint_rhs : Integrable (fun x => (2 : ℂ) * ((E : ℂ) - (coulombMultiplier p x : ℂ))
-      * (ψ : Spectra.Sobolev.L2_R3) x * φ x) := by
+      * (ψ : Spectra.Sobolev.l2R3) x * φ x) := by
     refine hint_wlφ.congr ?_
     filter_upwards [hwe] with x hx; rw [hx]
   -- rewrite the goal integral as `-(1/2)·(∫ ψ·∑∂²φ) + -(1/2)·(∫ 2(E−V)ψφ)`
-  have hrw : (∫ x, (ψ : Spectra.Sobolev.L2_R3) x *
+  have hrw : (∫ x, (ψ : Spectra.Sobolev.l2R3) x *
         (-(1 / 2 : ℂ) * (∑ i : Fin 3,
             fderiv ℝ (fun y => fderiv ℝ φ y (EuclideanSpace.single i 1)) x (EuclideanSpace.single i 1))
           + (coulombMultiplier p x : ℂ) * φ x - (E : ℂ) * φ x))
-      = -(1 / 2 : ℂ) * (∫ x, (ψ : Spectra.Sobolev.L2_R3) x * ∑ i : Fin 3,
+      = -(1 / 2 : ℂ) * (∫ x, (ψ : Spectra.Sobolev.l2R3) x * ∑ i : Fin 3,
             fderiv ℝ (fun y => fderiv ℝ φ y (EuclideanSpace.single i 1)) x (EuclideanSpace.single i 1))
         + -(1 / 2 : ℂ) * (∫ x, (2 : ℂ) * ((E : ℂ) - (coulombMultiplier p x : ℂ))
-            * (ψ : Spectra.Sobolev.L2_R3) x * φ x) := by
+            * (ψ : Spectra.Sobolev.l2R3) x * φ x) := by
     rw [← integral_const_mul, ← integral_const_mul,
       ← integral_add (hint_lap.const_mul _) (hint_rhs.const_mul _)]
     refine integral_congr_ae (ae_of_all _ fun x => ?_)
@@ -201,7 +201,7 @@ equation: the charge-`Z` radial Hamiltonian (minus `E`) applied to `χ(a)·a^ℓ
 angular coefficient `c_{ℓ,-m}` of `ψ`'s spherical realization, integrates to `0` over `r²dr`. -/
 theorem sector_projection_radial (p : CoulombParams) (E : ℝ)
     (ψ : (hydrogenHamiltonian p).domain)
-    (heig : hydrogenHamiltonian p ψ = (E : ℂ) • (ψ : Spectra.Sobolev.L2_R3))
+    (heig : hydrogenHamiltonian p ψ = (E : ℂ) • (ψ : Spectra.Sobolev.l2R3))
     (ℓ m : ℕ) (hm : m ≤ ℓ)
     (χ : ℝ → ℝ) (hχ : ContDiff ℝ ∞ χ) (hχ0 : ∀ᶠ s in 𝓝 (0 : ℝ), χ s = 0)
     (hχcs : HasCompactSupport χ) :
@@ -211,7 +211,7 @@ theorem sector_projection_radial (p : CoulombParams) (E : ℝ)
               * ((χ r : ℂ) * (r : ℂ) ^ ℓ)
             - (E : ℂ) * ((χ r : ℂ) * (r : ℂ) ^ ℓ))
           * coeffFun ⟨ℓ, -(m : ℤ), by rw [abs_neg]; simpa using hm⟩
-              (chartRealization (ψ : Spectra.Sobolev.L2_R3)) r
+              (chartRealization (ψ : Spectra.Sobolev.l2R3)) r
         ∂radialMeasure = 0 := by
   classical
   -- abbreviations
@@ -225,7 +225,7 @@ theorem sector_projection_radial (p : CoulombParams) (E : ℝ)
         + (((ℓ * (ℓ + 1) : ℝ) / (2 * (r : ℂ) ^ 2)) - (p.Z : ℂ) / (r : ℂ))
           * ((χ r : ℂ) * (r : ℂ) ^ ℓ)
         - (E : ℂ) * ((χ r : ℂ) * (r : ℂ) ^ ℓ) with hQfun
-  set c : ℝ → ℂ := coeffFun j (chartRealization (ψ : Spectra.Sobolev.L2_R3)) with hc
+  set c : ℝ → ℂ := coeffFun j (chartRealization (ψ : Spectra.Sobolev.l2R3)) with hc
   -- conjugation constant κ ≠ 0
   set κ : ℝ := sphericalNorm ℓ (-(m : ℤ)) * reflectionFactor ℓ (-(m : ℤ))
     / (sphericalNorm ℓ (m : ℤ) * reflectionFactor ℓ (m : ℤ)) with hκ
@@ -239,12 +239,12 @@ theorem sector_projection_radial (p : CoulombParams) (E : ℝ)
   -- Step A: the combined weak eigenequation
   have hA := weak_eigen_combined p E ψ heig φ hφsm hφcs'
   -- the volume integrand G
-  set G : R3 → ℂ := fun x => (ψ : Spectra.Sobolev.L2_R3) x *
+  set G : R3 → ℂ := fun x => (ψ : Spectra.Sobolev.l2R3) x *
       (-(1 / 2 : ℂ) * (∑ i : Fin 3,
           fderiv ℝ (fun y => fderiv ℝ φ y (EuclideanSpace.single i 1)) x (EuclideanSpace.single i 1))
         + (coulombMultiplier p x : ℂ) * φ x - (E : ℂ) * φ x) with hG
   -- the spherical integrand F
-  set F : ℝ × ℝ × ℝ → ℂ := fun q => chartRealization (ψ : Spectra.Sobolev.L2_R3) q * (Qfun q.1 * Y q.2)
+  set F : ℝ × ℝ × ℝ → ℂ := fun q => chartRealization (ψ : Spectra.Sobolev.l2R3) q * (Qfun q.1 * Y q.2)
     with hF
   -- (P1) integrability of `G`
   have hGint : Integrable G volume := by
@@ -255,15 +255,15 @@ theorem sector_projection_radial (p : CoulombParams) (E : ℝ)
       refine memLp_finsetSum _ (fun i _ => ?_)
       exact memLp_partialDeriv (fun y => fderiv ℝ φ y (EuclideanSpace.single i 1)) i
         (contDiff_partialDeriv φ i hφsm) (hasCompactSupport_partialDeriv φ i hφcs')
-    have hint_lap : Integrable (fun x => (ψ : Spectra.Sobolev.L2_R3) x * ∑ i : Fin 3,
+    have hint_lap : Integrable (fun x => (ψ : Spectra.Sobolev.l2R3) x * ∑ i : Fin 3,
         fderiv ℝ (fun y => fderiv ℝ φ y (EuclideanSpace.single i 1)) x (EuclideanSpace.single i 1)) :=
-      memLp_one_iff_integrable.mp (MemLp.mul' (r := 1) hlapMemLp (Lp.memLp (ψ : Spectra.Sobolev.L2_R3)))
+      memLp_one_iff_integrable.mp (MemLp.mul' (r := 1) hlapMemLp (Lp.memLp (ψ : Spectra.Sobolev.l2R3)))
     have hwe := weak_eigenequation_ae p E ψ heig
-    have hint_wlφ : Integrable (fun x => ⇑(weakLaplacian (ψ : Spectra.Sobolev.L2_R3) ψ.2) x * φ x) :=
+    have hint_wlφ : Integrable (fun x => ⇑(weakLaplacian (ψ : Spectra.Sobolev.l2R3) ψ.2) x * φ x) :=
       memLp_one_iff_integrable.mp
-        (MemLp.mul' (r := 1) hφ2 (Lp.memLp (weakLaplacian (ψ : Spectra.Sobolev.L2_R3) ψ.2)))
+        (MemLp.mul' (r := 1) hφ2 (Lp.memLp (weakLaplacian (ψ : Spectra.Sobolev.l2R3) ψ.2)))
     have hint_rhs : Integrable (fun x => (2 : ℂ) * ((E : ℂ) - (coulombMultiplier p x : ℂ))
-        * (ψ : Spectra.Sobolev.L2_R3) x * φ x) :=
+        * (ψ : Spectra.Sobolev.l2R3) x * φ x) :=
       hint_wlφ.congr (by filter_upwards [hwe] with x hx; rw [hx])
     refine ((hint_lap.add hint_rhs).const_mul (-(1 / 2 : ℂ))).congr (ae_of_all _ fun x => ?_)
     simp only [hG, Pi.add_apply]
@@ -279,7 +279,7 @@ theorem sector_projection_radial (p : CoulombParams) (E : ℝ)
     exact hsm
   -- (P3) a.e. on the box, identify the pushed-forward integrand `= (chartReal ψ)·Q·Y`
   have hae : (fun q => G (sphereChart q.1 q.2.1 q.2.2)) =ᵐ[radialMeasure.prod sphereMeasure] F := by
-    have hcr := chartRealization_coeFn (ψ : Spectra.Sobolev.L2_R3)
+    have hcr := chartRealization_coeFn (ψ : Spectra.Sobolev.l2R3)
     have hbox : ∀ᵐ q ∂(radialMeasure.prod sphereMeasure),
         q.1 ∈ Set.Ioi (0 : ℝ) ∧ q.2.1 ∈ Set.Ioo 0 Real.pi := by
       rw [radialMeasure_prod_sphereMeasure_eq]
@@ -318,13 +318,13 @@ theorem sector_projection_radial (p : CoulombParams) (E : ℝ)
       rw [hYconj u, ← mul_assoc, inv_mul_cancel₀ hκC, one_mul]
     calc ∫ u, F (r, u) ∂sphereMeasure
         = ∫ u, (Qfun r * (κ : ℂ)⁻¹)
-            * ((starRingEnd ℂ) (harmonic j u) * chartRealization (ψ : Spectra.Sobolev.L2_R3) (r, u))
+            * ((starRingEnd ℂ) (harmonic j u) * chartRealization (ψ : Spectra.Sobolev.l2R3) (r, u))
             ∂sphereMeasure := by
           refine integral_congr_ae (ae_of_all _ fun u => ?_)
           simp only [hF]
           rw [hYconj' u]; ring
       _ = (Qfun r * (κ : ℂ)⁻¹) * ∫ u, (starRingEnd ℂ) (harmonic j u)
-            * chartRealization (ψ : Spectra.Sobolev.L2_R3) (r, u) ∂sphereMeasure :=
+            * chartRealization (ψ : Spectra.Sobolev.l2R3) (r, u) ∂sphereMeasure :=
           integral_const_mul _ _
       _ = (Qfun r * (κ : ℂ)⁻¹) * c r := by rw [hc, coeffFun]
       _ = (κ : ℂ)⁻¹ * (Qfun r * c r) := by ring
@@ -413,7 +413,7 @@ lemma integral_radialMeasure_eq (h : ℝ → ℝ) :
 `L ∘ coeffFun`, in the `∫ ⬝ r² dr` form consumed by `forward_bridge`. -/
 lemma sector_weak_part (p : CoulombParams) (E : ℝ)
     (ψ : (hydrogenHamiltonian p).domain)
-    (heig : hydrogenHamiltonian p ψ = (E : ℂ) • (ψ : Spectra.Sobolev.L2_R3))
+    (heig : hydrogenHamiltonian p ψ = (E : ℂ) • (ψ : Spectra.Sobolev.l2R3))
     (ℓ m : ℕ) (hm : m ≤ ℓ)
     (χ : ℝ → ℝ) (hχ : ContDiff ℝ ∞ χ) (hχ0 : ∀ᶠ s in 𝓝 (0 : ℝ), χ s = 0)
     (hχcs : HasCompactSupport χ) (L : ℂ →L[ℝ] ℝ) :
@@ -421,11 +421,11 @@ lemma sector_weak_part (p : CoulombParams) (E : ℝ)
       (-(1 / 2) * deriv (deriv (fun a => χ a * a ^ ℓ)) r - (1 / r) * deriv (fun a => χ a * a ^ ℓ) r
           + ((ℓ * (ℓ + 1) : ℝ) / (2 * r ^ 2) - p.Z / r) * (χ r * r ^ ℓ) - E * (χ r * r ^ ℓ))
         * L (coeffFun ⟨ℓ, -(m : ℤ), by rw [abs_neg]; simpa using hm⟩
-            (chartRealization (ψ : Spectra.Sobolev.L2_R3)) r) * r ^ 2 = 0 := by
+            (chartRealization (ψ : Spectra.Sobolev.l2R3)) r) * r ^ 2 = 0 := by
   have h0 := sector_projection_radial p E ψ heig ℓ m hm χ hχ hχ0 hχcs
   obtain ⟨hdc1, hdc2⟩ := deriv_ofReal_radial χ hχ ℓ
   set c : ℝ → ℂ := coeffFun ⟨ℓ, -(m : ℤ), by rw [abs_neg]; simpa using hm⟩
-    (chartRealization (ψ : Spectra.Sobolev.L2_R3)) with hc
+    (chartRealization (ψ : Spectra.Sobolev.l2R3)) with hc
   have hcML : MemLp c 2 radialMeasure := memLp_coeffFun _ _
   have hrealgC : ContDiff ℝ ∞ (fun a => χ a * a ^ ℓ) := hχ.mul (by simpa using contDiff_id.pow ℓ)
   have hrealgcont : Continuous (fun a => χ a * a ^ ℓ) := hrealgC.continuous
@@ -525,7 +525,7 @@ writing `χ_fb = χ_cut · r^ℓ` with `χ_cut = χ_fb · (r^ℓ)⁻¹`.  Produc
 of `forward_bridge` for the real coefficient `R = L ∘ coeffFun`. -/
 lemma sector_hweak (p : CoulombParams) (E : ℝ)
     (ψ : (hydrogenHamiltonian p).domain)
-    (heig : hydrogenHamiltonian p ψ = (E : ℂ) • (ψ : Spectra.Sobolev.L2_R3))
+    (heig : hydrogenHamiltonian p ψ = (E : ℂ) • (ψ : Spectra.Sobolev.l2R3))
     (ℓ m : ℕ) (hm : m ≤ ℓ) (L : ℂ →L[ℝ] ℝ)
     (χfb : ℝ → ℝ) (hχfb : ContDiff ℝ ∞ χfb) (hχfbcs : HasCompactSupport χfb)
     (hχfb0 : ∀ᶠ r in 𝓝 (0 : ℝ), χfb r = 0) :
@@ -533,7 +533,7 @@ lemma sector_hweak (p : CoulombParams) (E : ℝ)
       (-(1 / 2) * deriv^[2] χfb r - (1 / r) * deriv χfb r
         + ((ℓ : ℝ) * ((ℓ : ℝ) + 1) / (2 * r ^ 2) - p.Z / r) * χfb r - E * χfb r)
       * L (coeffFun ⟨ℓ, -(m : ℤ), by rw [abs_neg]; simpa using hm⟩
-          (chartRealization (ψ : Spectra.Sobolev.L2_R3)) r) * r ^ 2 = 0 := by
+          (chartRealization (ψ : Spectra.Sobolev.l2R3)) r) * r ^ 2 = 0 := by
   set χcut : ℝ → ℝ := fun r => χfb r * (r ^ ℓ)⁻¹ with hχcut
   have hcut_eq : (fun a => χcut a * a ^ ℓ) = χfb := by
     funext a
@@ -569,16 +569,16 @@ lemma sector_hweak (p : CoulombParams) (E : ℝ)
 `Spectra.RadialRegularity.classical_of_weak_ode`. -/
 lemma sector_sweak (p : CoulombParams) (E : ℝ)
     (ψ : (hydrogenHamiltonian p).domain)
-    (heig : hydrogenHamiltonian p ψ = (E : ℂ) • (ψ : Spectra.Sobolev.L2_R3))
+    (heig : hydrogenHamiltonian p ψ = (E : ℂ) • (ψ : Spectra.Sobolev.l2R3))
     (ℓ m : ℕ) (hm : m ≤ ℓ) (L : ℂ →L[ℝ] ℝ) :
     ∀ η : ℝ → ℝ, ContDiff ℝ ∞ η → HasCompactSupport η →
       ∫ s, L (coeffFun ⟨ℓ, -(m : ℤ), by rw [abs_neg]; simpa using hm⟩
-            (chartRealization (ψ : Spectra.Sobolev.L2_R3)) (Real.exp s)) *
+            (chartRealization (ψ : Spectra.Sobolev.l2R3)) (Real.exp s)) *
         (deriv (deriv η) s - deriv η s
           - ((ℓ : ℝ) * ((ℓ : ℝ) + 1) - 2 * p.Z * Real.exp s - 2 * E * Real.exp (2 * s)) * η s) = 0 :=
   forward_bridge ℓ p.Z E
     (fun r => L (coeffFun ⟨ℓ, -(m : ℤ), by rw [abs_neg]; simpa using hm⟩
-        (chartRealization (ψ : Spectra.Sobolev.L2_R3)) r))
+        (chartRealization (ψ : Spectra.Sobolev.l2R3)) r))
     (fun χ h1 h2 h3 => sector_hweak p E ψ heig ℓ m hm L χ h1 h2 h3)
 
 /-! ## Wiring the regularity pipeline
@@ -633,11 +633,11 @@ charge-`Z` reduced radial eigen-equation, a.e. equal (via `c₀ = R(eˢ)`) to th
 pushed through the log substitution. -/
 lemma sector_radial_solution (p : CoulombParams) (E : ℝ)
     (ψ : (hydrogenHamiltonian p).domain)
-    (heig : hydrogenHamiltonian p ψ = (E : ℂ) • (ψ : Spectra.Sobolev.L2_R3))
+    (heig : hydrogenHamiltonian p ψ = (E : ℂ) • (ψ : Spectra.Sobolev.l2R3))
     (ℓ m : ℕ) (hm : m ≤ ℓ) (L : ℂ →L[ℝ] ℝ) :
     ∃ c₀ : ℝ → ℝ,
       (fun s => L (coeffFun ⟨ℓ, -(m : ℤ), by rw [abs_neg]; simpa using hm⟩
-          (chartRealization (ψ : Spectra.Sobolev.L2_R3)) (Real.exp s))) =ᵐ[volume] c₀ ∧
+          (chartRealization (ψ : Spectra.Sobolev.l2R3)) (Real.exp s))) =ᵐ[volume] c₀ ∧
       (∀ r, 0 < r → HasDerivAt (fun r => c₀ (Real.log r))
           (deriv (fun r => c₀ (Real.log r)) r) r) ∧
       (∀ r, 0 < r → HasDerivAt (deriv (fun r => c₀ (Real.log r)))
@@ -649,7 +649,7 @@ lemma sector_radial_solution (p : CoulombParams) (E : ℝ)
   obtain ⟨c₀, hae, hc1, hc2, hode⟩ :=
     Spectra.RadialRegularity.classical_of_weak_ode
       (locallyIntegrable_comp_exp (coeffFun ⟨ℓ, -(m : ℤ), by rw [abs_neg]; simpa using hm⟩
-        (chartRealization (ψ : Spectra.Sobolev.L2_R3))) (memLp_coeffFun _ _) L)
+        (chartRealization (ψ : Spectra.Sobolev.l2R3))) (memLp_coeffFun _ _) L)
       (b := fun s => (ℓ : ℝ) * ((ℓ : ℝ) + 1) - 2 * p.Z * Real.exp s - 2 * E * Real.exp (2 * s))
       (by fun_prop)
       (sector_sweak p E ψ heig ℓ m hm L)
@@ -662,7 +662,7 @@ namespace Spectra.Sobolev
 open MeasureTheory Complex
 
 /-- Weak derivative commutes with complex conjugation. -/
-lemma hasWeakDerivative_star (f : L2_R3) (i : Fin 3) (g : L2_R3)
+lemma hasWeakDerivative_star (f : l2R3) (i : Fin 3) (g : l2R3)
     (h : HasWeakDerivative f i g) :
     HasWeakDerivative (star f) i (star g) := by
   intro φ hφ hsupp
@@ -690,12 +690,12 @@ lemma hasWeakDerivative_star (f : L2_R3) (i : Fin 3) (g : L2_R3)
       = fun x => (starRingEnd ℂ) (g x) * φ x := by
     funext x; rw [map_mul, hψdef]; simp
   rw [hL, hR] at key
-  have goalL : ∫ x, (star f : L2_R3) x * fderiv ℝ φ x (EuclideanSpace.single i 1)
+  have goalL : ∫ x, (star f : l2R3) x * fderiv ℝ φ x (EuclideanSpace.single i 1)
       = ∫ x, (starRingEnd ℂ) (f x) * fderiv ℝ φ x (EuclideanSpace.single i 1) := by
     refine integral_congr_ae ?_
     filter_upwards [Lp.coeFn_star f] with x hx
     rw [hx, Pi.star_apply, starRingEnd_apply]
-  have goalR : ∫ x, (star g : L2_R3) x * φ x = ∫ x, (starRingEnd ℂ) (g x) * φ x := by
+  have goalR : ∫ x, (star g : l2R3) x * φ x = ∫ x, (starRingEnd ℂ) (g x) * φ x := by
     refine integral_congr_ae ?_
     filter_upwards [Lp.coeFn_star g] with x hx
     rw [hx, Pi.star_apply, starRingEnd_apply]
@@ -703,26 +703,26 @@ lemma hasWeakDerivative_star (f : L2_R3) (i : Fin 3) (g : L2_R3)
   exact key
 
 /-- Second weak derivative commutes with conjugation. -/
-lemma hasWeakSecondDerivative_star (f : L2_R3) (i j : Fin 3) (g : L2_R3)
+lemma hasWeakSecondDerivative_star (f : l2R3) (i j : Fin 3) (g : l2R3)
     (h : HasWeakSecondDerivative f i j g) :
     HasWeakSecondDerivative (star f) i j (star g) := by
   obtain ⟨mid, h1, h2⟩ := h
   exact ⟨star mid, hasWeakDerivative_star f i mid h1, hasWeakDerivative_star mid j g h2⟩
 
 /-- `H¹` is closed under conjugation. -/
-lemma memSobolevH1_star (f : L2_R3) (hf : MemSobolevH1 f) : MemSobolevH1 (star f) := by
+lemma memSobolevH1_star (f : l2R3) (hf : MemSobolevH1 f) : MemSobolevH1 (star f) := by
   intro i
   obtain ⟨g, hg⟩ := hf i
   exact ⟨star g, hasWeakDerivative_star f i g hg⟩
 
 /-- `H²` is closed under conjugation. -/
-lemma memSobolevH2_star (f : L2_R3) (hf : MemSobolevH2 f) : MemSobolevH2 (star f) := by
+lemma memSobolevH2_star (f : l2R3) (hf : MemSobolevH2 f) : MemSobolevH2 (star f) := by
   refine ⟨memSobolevH1_star f hf.1, fun i j => ?_⟩
   obtain ⟨g, hg⟩ := hf.2 i j
   exact ⟨star g, hasWeakSecondDerivative_star f i j g hg⟩
 
 /-- The weak Laplacian commutes with conjugation, at the level of representatives. -/
-lemma weakLaplacian_star_coeFn (f : L2_R3) (hf : MemSobolevH2 f) :
+lemma weakLaplacian_star_coeFn (f : l2R3) (hf : MemSobolevH2 f) :
     ⇑(weakLaplacian (star f) (memSobolevH2_star f hf)) =ᵐ[volume]
       fun a => starRingEnd ℂ (⇑(weakLaplacian f hf) a) := by
   have hcomp : ∀ i, ((memSobolevH2_star f hf).2 i i).choose = star ((hf.2 i i).choose) := by
@@ -827,7 +827,7 @@ lemma exists_reIm_comp_ne_zero {μ : Measure ℝ} (c : ℝ → ℂ) (hc : ¬ (c 
 
 /-- **Deliverable C (test copy).** If every angular coefficient `coeffFun i F` vanishes a.e., then
 `F = 0`. (Steps 4–6 of `sectorEmbedding_dense`, factored.) -/
-lemma eq_zero_of_coeffFun_ae_zero (F : Decomposition.L2_R3)
+lemma eq_zero_of_coeffFun_ae_zero (F : Decomposition.l2R3)
     (hc0 : ∀ i : HarmonicIdx, coeffFun i F =ᵐ[radialMeasure] 0) : F = 0 := by
   -- a.e. slices of F lie in L²(S²).
   have hslice_mem : ∀ᵐ r ∂radialMeasure,
@@ -893,7 +893,7 @@ lemma eq_zero_of_coeffFun_ae_zero (F : Decomposition.L2_R3)
   exact Lp.eq_zero_iff_ae_eq_zero.mpr hae0
 
 /-- **Deliverable C corollary.** A nonzero `F` has some sector with `coeffFun` not a.e. zero. -/
-lemma exists_coeffFun_ne_zero (F : Decomposition.L2_R3) (hF : F ≠ 0) :
+lemma exists_coeffFun_ne_zero (F : Decomposition.l2R3) (hF : F ≠ 0) :
     ∃ i : HarmonicIdx, ¬ (coeffFun i F =ᵐ[radialMeasure] 0) := by
   by_contra h
   refine hF (eq_zero_of_coeffFun_ae_zero F ?_)
@@ -905,9 +905,9 @@ lemma exists_coeffFun_ne_zero (F : Decomposition.L2_R3) (hF : F ≠ 0) :
 is its complex conjugate `star ψ`.  (The hydrogen Hamiltonian has real coefficients.) -/
 lemma hydrogenHamiltonian_star (p : CoulombParams) (E : ℝ)
     (ψ : (hydrogenHamiltonian p).domain)
-    (heig : hydrogenHamiltonian p ψ = (E : ℂ) • (ψ : Spectra.Sobolev.L2_R3)) :
-    hydrogenHamiltonian p ⟨star (ψ : Spectra.Sobolev.L2_R3), memSobolevH2_star _ ψ.2⟩
-      = (E : ℂ) • (star (ψ : Spectra.Sobolev.L2_R3)) := by
+    (heig : hydrogenHamiltonian p ψ = (E : ℂ) • (ψ : Spectra.Sobolev.l2R3)) :
+    hydrogenHamiltonian p ⟨star (ψ : Spectra.Sobolev.l2R3), memSobolevH2_star _ ψ.2⟩
+      = (E : ℂ) • (star (ψ : Spectra.Sobolev.l2R3)) := by
   obtain ⟨Ψ, hH2⟩ := ψ
   have hwe := weak_eigenequation_ae p E ⟨Ψ, hH2⟩ heig
   have ehalf : ⇑(halfLaplacianPMap ⟨star Ψ, memSobolevH2_star Ψ hH2⟩) =ᵐ[volume]
@@ -935,7 +935,7 @@ lemma hydrogenHamiltonian_star (p : CoulombParams) (E : ℝ)
   ring
 
 /-- `chartRealization` commutes with conjugation, at the level of representatives. -/
-lemma chartRealization_star (ψ : Spectra.Sobolev.L2_R3) :
+lemma chartRealization_star (ψ : Spectra.Sobolev.l2R3) :
     ⇑(chartRealization (star ψ)) =ᵐ[radialMeasure.prod sphereMeasure]
       fun p => starRingEnd ℂ (⇑(chartRealization ψ) p) := by
   have h1 := chartRealization_coeFn (star ψ)
@@ -948,7 +948,7 @@ lemma chartRealization_star (ψ : Spectra.Sobolev.L2_R3) :
 
 /-- **conj relation for sector coefficients.**  The `(ℓ,-m)` coefficient of `star ψ` is a nonzero
 real multiple of the conjugate of the `(ℓ,m)` coefficient of `ψ` (Condon–Shortley). -/
-lemma coeffFun_star (ℓ m : ℕ) (hm : m ≤ ℓ) (ψ : Spectra.Sobolev.L2_R3) :
+lemma coeffFun_star (ℓ m : ℕ) (hm : m ≤ ℓ) (ψ : Spectra.Sobolev.l2R3) :
     coeffFun ⟨ℓ, -(m : ℤ), by rw [abs_neg]; simpa using hm⟩ (chartRealization (star ψ))
       =ᵐ[radialMeasure] fun r =>
         ((sphericalNorm ℓ (-(m : ℤ)) * reflectionFactor ℓ (-(m : ℤ))
@@ -1006,13 +1006,13 @@ lemma exp_ae_ne_of_radial_ae_ne (g : ℝ → ℝ) (hg : ¬ (g =ᵐ[radialMeasure
 coefficient (using `star ψ` for positive `m`), in the log-coordinate form feeding `B`. -/
 lemma exists_nonzero_sector (p : CoulombParams) (E : ℝ)
     (ψ : (hydrogenHamiltonian p).domain)
-    (heig : hydrogenHamiltonian p ψ = (E : ℂ) • (ψ : Spectra.Sobolev.L2_R3))
-    (hψ0 : (ψ : Spectra.Sobolev.L2_R3) ≠ 0) :
+    (heig : hydrogenHamiltonian p ψ = (E : ℂ) • (ψ : Spectra.Sobolev.l2R3))
+    (hψ0 : (ψ : Spectra.Sobolev.l2R3) ≠ 0) :
     ∃ (ℓ m : ℕ) (hm : m ≤ ℓ) (L : ℂ →L[ℝ] ℝ) (ψ' : (hydrogenHamiltonian p).domain),
-      hydrogenHamiltonian p ψ' = (E : ℂ) • (ψ' : Spectra.Sobolev.L2_R3) ∧
+      hydrogenHamiltonian p ψ' = (E : ℂ) • (ψ' : Spectra.Sobolev.l2R3) ∧
       ¬ ((fun s => L (coeffFun ⟨ℓ, -(m : ℤ), by rw [abs_neg]; simpa using hm⟩
-            (chartRealization (ψ' : Spectra.Sobolev.L2_R3)) (Real.exp s))) =ᵐ[volume] 0) := by
-  have hΦ : chartRealization (ψ : Spectra.Sobolev.L2_R3) ≠ 0 := fun h =>
+            (chartRealization (ψ' : Spectra.Sobolev.l2R3)) (Real.exp s))) =ᵐ[volume] 0) := by
+  have hΦ : chartRealization (ψ : Spectra.Sobolev.l2R3) ≠ 0 := fun h =>
     hψ0 (chartRealization.injective (h.trans (map_zero chartRealization).symm))
   obtain ⟨i, hi⟩ := exists_coeffFun_ne_zero _ hΦ
   obtain ⟨ℓ, m₀, hm₀⟩ := i
@@ -1023,7 +1023,7 @@ lemma exists_nonzero_sector (p : CoulombParams) (E : ℝ)
     have hm : (-m₀).toNat ≤ ℓ := by
       have h := hm₀; rw [abs_le] at h; omega
     obtain ⟨L, _, hL⟩ := exists_reIm_comp_ne_zero
-      (coeffFun ⟨ℓ, m₀, hm₀⟩ (chartRealization (ψ : Spectra.Sobolev.L2_R3))) hi
+      (coeffFun ⟨ℓ, m₀, hm₀⟩ (chartRealization (ψ : Spectra.Sobolev.l2R3))) hi
     refine ⟨ℓ, (-m₀).toNat, hm, L, ψ, heig, ?_⟩
     simp only [hval]
     exact exp_ae_ne_of_radial_ae_ne _ hL
@@ -1035,9 +1035,9 @@ lemma exists_nonzero_sector (p : CoulombParams) (E : ℝ)
         / (sphericalNorm ℓ (m₀.toNat : ℤ) * reflectionFactor ℓ (m₀.toNat : ℤ)) : ℝ) ≠ 0 :=
       div_ne_zero (mul_ne_zero (sphericalNorm_pos _ _).ne' (reflectionFactor_ne_zero _ _))
         (mul_ne_zero (sphericalNorm_pos _ _).ne' (reflectionFactor_ne_zero _ _))
-    have hcs := coeffFun_star ℓ m₀.toNat hm (ψ : Spectra.Sobolev.L2_R3)
+    have hcs := coeffFun_star ℓ m₀.toNat hm (ψ : Spectra.Sobolev.l2R3)
     have hne : ¬ (coeffFun ⟨ℓ, -(m₀.toNat : ℤ), by rw [abs_neg, hval]; exact hm₀⟩
-        (chartRealization (star (ψ : Spectra.Sobolev.L2_R3))) =ᵐ[radialMeasure] 0) := by
+        (chartRealization (star (ψ : Spectra.Sobolev.l2R3))) =ᵐ[radialMeasure] 0) := by
       intro hz
       apply hi
       filter_upwards [hcs.symm.trans hz] with r hr
@@ -1047,7 +1047,7 @@ lemma exists_nonzero_sector (p : CoulombParams) (E : ℝ)
       · rw [starRingEnd_apply, star_eq_zero] at h
         simpa only [hval] using h
     obtain ⟨L, _, hL⟩ := exists_reIm_comp_ne_zero _ hne
-    refine ⟨ℓ, m₀.toNat, hm, L, ⟨star (ψ : Spectra.Sobolev.L2_R3), memSobolevH2_star _ ψ.2⟩,
+    refine ⟨ℓ, m₀.toNat, hm, L, ⟨star (ψ : Spectra.Sobolev.l2R3), memSobolevH2_star _ ψ.2⟩,
       hydrogenHamiltonian_star p E ψ heig, ?_⟩
     exact exp_ae_ne_of_radial_ae_ne _ hL
 end QuantumMechanics.Hydrogen.Spectrum
@@ -1220,7 +1220,7 @@ lemma radial_bc_of_logCoord (ℓ : ℕ) (Z E : ℝ) (hZ : 0 < Z) (hE : E < 0) (c
 /-- **Stage 3a.** The sector coefficient of `(coulomb·ψ)` is `(−Z/r)` times that of `ψ`
 (the Coulomb factor is radial). -/
 lemma coeffFun_coulomb (p : CoulombParams) (ℓ m : ℕ) (hm : m ≤ ℓ)
-    (ψ : Spectra.Sobolev.L2_R3) (hψ : MemSobolevH2 ψ) :
+    (ψ : Spectra.Sobolev.l2R3) (hψ : MemSobolevH2 ψ) :
     coeffFun ⟨ℓ, -(m : ℤ), by rw [abs_neg]; simpa using hm⟩
         (chartRealization ((coulomb_mul_memLp_H2 p ψ hψ).toLp
           (fun x => (coulombMultiplier p x : ℂ) * ψ x)))
@@ -1256,12 +1256,12 @@ lemma sector_coulomb_L2 (p : CoulombParams) (ψ' : (hydrogenHamiltonian p).domai
     (ℓ m : ℕ) (hm : m ≤ ℓ) (L : ℂ →L[ℝ] ℝ) :
     Integrable (fun s => Real.exp s *
       (L (coeffFun ⟨ℓ, -(m : ℤ), by rw [abs_neg]; simpa using hm⟩
-        (chartRealization (ψ' : Spectra.Sobolev.L2_R3)) (Real.exp s))) ^ 2) volume := by
+        (chartRealization (ψ' : Spectra.Sobolev.l2R3)) (Real.exp s))) ^ 2) volume := by
   set c : ℝ → ℂ := coeffFun ⟨ℓ, -(m : ℤ), by rw [abs_neg]; simpa using hm⟩
-    (chartRealization (ψ' : Spectra.Sobolev.L2_R3)) with hc
+    (chartRealization (ψ' : Spectra.Sobolev.l2R3)) with hc
   set cG : ℝ → ℂ := coeffFun ⟨ℓ, -(m : ℤ), by rw [abs_neg]; simpa using hm⟩
-    (chartRealization ((coulomb_mul_memLp_H2 p (ψ' : Spectra.Sobolev.L2_R3) ψ'.2).toLp
-      (fun x => (coulombMultiplier p x : ℂ) * (ψ' : Spectra.Sobolev.L2_R3) x))) with hcG
+    (chartRealization ((coulomb_mul_memLp_H2 p (ψ' : Spectra.Sobolev.l2R3) ψ'.2).toLp
+      (fun x => (coulombMultiplier p x : ℂ) * (ψ' : Spectra.Sobolev.l2R3) x))) with hcG
   have hrel : cG =ᵐ[radialMeasure] fun r => ((-p.Z / r : ℝ) : ℂ) * c r :=
     coeffFun_coulomb p ℓ m hm _ ψ'.2
   have hcGmem : MemLp cG 2 radialMeasure := memLp_coeffFun _ _
@@ -1301,14 +1301,14 @@ lemma sector_coulomb_L2 (p : CoulombParams) (ψ' : (hydrogenHamiltonian p).domai
 `E = eigenvalue p n hn` for some `n ≥ 1`. -/
 theorem forward_eigenvalue (p : CoulombParams) (E : ℝ) (hE : E < 0)
     (ψ : (hydrogenHamiltonian p).domain)
-    (hψ0 : (ψ : Spectra.Sobolev.L2_R3) ≠ 0)
-    (heig : hydrogenHamiltonian p ψ = (E : ℂ) • (ψ : Spectra.Sobolev.L2_R3)) :
+    (hψ0 : (ψ : Spectra.Sobolev.l2R3) ≠ 0)
+    (heig : hydrogenHamiltonian p ψ = (E : ℂ) • (ψ : Spectra.Sobolev.l2R3)) :
     ∃ (n : ℕ) (hn : 1 ≤ n), E = eigenvalue p n hn := by
   obtain ⟨ℓ, m, hm, L, ψ', heig', hne⟩ := exists_nonzero_sector p E ψ heig hψ0
   obtain ⟨c₀, hae, hc1, hc2, hode⟩ :=
     Spectra.RadialRegularity.classical_of_weak_ode
       (locallyIntegrable_comp_exp (coeffFun ⟨ℓ, -(m : ℤ), by rw [abs_neg]; simpa using hm⟩
-        (chartRealization (ψ' : Spectra.Sobolev.L2_R3))) (memLp_coeffFun _ _) L)
+        (chartRealization (ψ' : Spectra.Sobolev.l2R3))) (memLp_coeffFun _ _) L)
       (b := fun s => (ℓ : ℝ) * ((ℓ : ℝ) + 1) - 2 * p.Z * Real.exp s - 2 * E * Real.exp (2 * s))
       (by fun_prop)
       (sector_sweak p E ψ' heig' ℓ m hm L)
@@ -1333,14 +1333,14 @@ boundary condition `radial_bc_of_logCoord` (the only other place `E < 0` was use
 entirely. -/
 theorem no_positive_eigenvalue (p : CoulombParams) (E : ℝ) (hE : 0 ≤ E)
     (ψ : (hydrogenHamiltonian p).domain)
-    (heig : hydrogenHamiltonian p ψ = (E : ℂ) • (ψ : Spectra.Sobolev.L2_R3)) :
-    (ψ : Spectra.Sobolev.L2_R3) = 0 := by
+    (heig : hydrogenHamiltonian p ψ = (E : ℂ) • (ψ : Spectra.Sobolev.l2R3)) :
+    (ψ : Spectra.Sobolev.l2R3) = 0 := by
   by_contra hψ0
   obtain ⟨ℓ, m, hm, L, ψ', heig', hne⟩ := exists_nonzero_sector p E ψ heig hψ0
   obtain ⟨c₀, hae, hc1, hc2, hode⟩ :=
     Spectra.RadialRegularity.classical_of_weak_ode
       (locallyIntegrable_comp_exp (coeffFun ⟨ℓ, -(m : ℤ), by rw [abs_neg]; simpa using hm⟩
-        (chartRealization (ψ' : Spectra.Sobolev.L2_R3))) (memLp_coeffFun _ _) L)
+        (chartRealization (ψ' : Spectra.Sobolev.l2R3))) (memLp_coeffFun _ _) L)
       (b := fun s => (ℓ : ℝ) * ((ℓ : ℝ) + 1) - 2 * p.Z * Real.exp s - 2 * E * Real.exp (2 * s))
       (by fun_prop)
       (sector_sweak p E ψ' heig' ℓ m hm L)

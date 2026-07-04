@@ -2,45 +2,27 @@
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
-Filename: Bochner/GNS/PreHilbert.lean
 -/
 import Spectra.Bochner.GNS.PreHilbert.NormEst
+
 /-!
-# The GNS Pre-Hilbert Space for Positive Definite Functions
+# Cauchy-Schwarz for the GNS Pre-Inner Product
 
-Given a continuous positive definite function `f : ℝ → ℂ`, we construct a
-pre-inner-product space whose completion will carry a strongly continuous
-unitary representation of `(ℝ, +)` with a cyclic vector `ξ` satisfying
-`f(t) = ⟨ξ, U(t)ξ⟩`.
+This umbrella file re-exports the whole `PreHilbert/` chapter (`Defs.lean` through
+`NormEst.lean`, the pre-inner product, translation action, cyclic vector and norm estimate)
+and adds the one result that needs all of it together: the real Cauchy-Schwarz inequality
+`(Re⟨α, β⟩)² ≤ Re⟨α, α⟩ · Re⟨β, β⟩` for `pdInner f`. The proof needs both `IsPositiveDefinite`
+(non-negativity of the quadratic form `λ ↦ Re⟨α + λβ, α + λβ⟩`, from `pdInner_self_re_nonneg`)
+and `IsHermitian` (to fold the cross term `Re⟨α, β⟩` via `pdInner_conj_symm`).
 
-## The construction
+For the individual constructions (`pdInner`, `translate`, `cyclicVector`, the key identity
+`f(t) = ⟨ξ, U(t)ξ⟩`) and their own documentation, see `PreHilbert/Defs.lean`. The null space
+`N = {α : ⟨α, α⟩ = 0}` is handled in `Hilbert/NullSpace.lean`, and the completion to a Hilbert
+space in `Hilbert/Constructor.lean`.
 
-**Vectors.** Formal finite ℂ-linear combinations of point masses `δ_t`,
-represented as `ℝ →₀ ℂ` (finitely supported functions ℝ → ℂ). The element
-`Finsupp.single t c` represents `c · δ_t`.
+## Main statements
 
-**Pre-inner product.** For `α = Σⱼ cⱼ δ_{tⱼ}` and `β = Σₖ dₖ δ_{sₖ}`:
-
-  `⟨α, β⟩_f = Σⱼ Σₖ c̄ⱼ · dₖ · f(sₖ - tⱼ)`
-
-This is conjugate-linear in `α` and linear in `β` (Mathlib/physics convention).
-
-**Translation action.** `U(t)` sends `δ_s ↦ δ_{s+t}`, extended linearly.
-Implemented via `Finsupp.mapDomain (· + t)`.
-
-**Cyclic vector.** `ξ = δ_0 = Finsupp.single 0 1`.
-
-**Key identity.** `⟨ξ, U(t)ξ⟩_f = f(t)`.
-
-## Properties established
-
-- Conjugate symmetry: `⟨β, α⟩ = conj ⟨α, β⟩` (from `IsHermitian f`)
-- Positive semi-definiteness: `0 ≤ Re⟨α, α⟩` (from `PositiveDefinite f`)
-- Translation isometry: `⟨U(t)α, U(t)β⟩ = ⟨α, β⟩`
-- Group law: `U(s) ∘ U(t) = U(s + t)`
-
-The null space `N = {α : ⟨α, α⟩ = 0}` is handled in `Hilbert/NullSpace.lean`, and the
-completion to a Hilbert space in `Hilbert/Constructor.lean`.
+* `pdInner_cauchy_schwarz_re` — `(Re⟨α, β⟩)² ≤ Re⟨α, α⟩ · Re⟨β, β⟩`.
 
 ## References
 
@@ -53,15 +35,15 @@ completion to a Hilbert space in `Hilbert/Constructor.lean`.
 GNS construction, positive definite function, pre-Hilbert space,
 Bochner's theorem, cyclic representation
 -/
-open Complex Finsupp
+
 open Spectra.PositiveDefinite
+
 namespace Spectra.Bochner.GNS
-
-
 
 /-- Cauchy-Schwarz for the PD pre-inner product:
     `(Re⟨α, β⟩)² ≤ Re⟨α,α⟩ · Re⟨β,β⟩`.
-    Proof: the real quadratic `lambda ↦ Re⟨α + lambdaβ, α + lambdaβ⟩ ≥ 0` has non-positive discriminant. -/
+    Proof: the real quadratic `lambda ↦ Re⟨α + lambdaβ, α + lambdaβ⟩ ≥ 0` has non-positive
+    discriminant. -/
 lemma pdInner_cauchy_schwarz_re {f : ℝ → ℂ}
     (hPD : IsPositiveDefinite f) (hH : IsHermitian f) (α β : ℝ →₀ ℂ) :
     (pdInner f α β).re ^ 2 ≤ (pdInner f α α).re * (pdInner f β β).re := by
@@ -85,6 +67,9 @@ lemma pdInner_cauchy_schwarz_re {f : ℝ → ℂ}
   set B := (pdInner f α β).re
   set C := (pdInner f β β).re
   have hC_nn : 0 ≤ C := pdInner_self_re_nonneg hPD β
+  -- Geometric picture: `C = 0` degenerates the parabola `λ ↦ A + 2Bλ + Cλ²` to a line, which
+  -- non-negativity at both signs of `λ` forces flat (`B = 0`); `C > 0` evaluates the genuine
+  -- parabola at its vertex `λ = -B/C`, where non-negativity becomes the discriminant bound.
   by_cases hC0 : C = 0
   · -- C = 0: quadratic degenerates to linear, forces B = 0
     have hlin : ∀ lambda : ℝ, 0 ≤ A + 2 * B * lambda := by simpa [hC0] using hq
@@ -101,6 +86,5 @@ lemma pdInner_cauchy_schwarz_re {f : ℝ → ℂ}
       field_simp; ring
     rw [h_simp] at h
     rwa [sub_nonneg, div_le_iff₀ hC_pos] at h
-
 
 end Spectra.Bochner.GNS

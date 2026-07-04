@@ -103,7 +103,7 @@ the angular Laplacian on S²) is developed in `RadialProblem.SphericalLaplacian`
 
     The separated realization `f` is supplied as a hypothesis (`hf`, `hsep`): producing
     such a global `C²` `f` from `R` and `Y_ℓ^m` is the chart-realization step that the
-    spherical-`L²` ↔ `Sobolev.L2_R3` unitary will eventually furnish (cf. the note on
+    spherical-`L²` ↔ `Sobolev.l2R3` unitary will eventually furnish (cf. the note on
     `hydrogen_degeneracy`). No Laplacian *analysis* is missing — only that packaging. -/
 theorem laplacian_in_sector (ℓ : ℕ) (m : ℤ) (hm : |m| ≤ ℓ)
     (R : ℝ → ℂ) (hR : ContDiff ℝ 2 R)
@@ -178,7 +178,7 @@ theorem coulomb_preserves_sectors (p : CoulombParams) (ℓ : ℕ) (m : ℤ) (hm 
     The right factor is `H_ℓ R = radialHamiltonian ℓ Z R` in complex form. This is just
     `laplacian_in_sector` (the `−Δ` half) combined with `coulomb_preserves_sectors` (the
     `−Z/r` half). The reduction onto `RadialL2`/`ReducedRadialL2` as Hilbert-space operators
-    still awaits the spherical-`L²` ↔ `Sobolev.L2_R3` unitary. -/
+    still awaits the spherical-`L²` ↔ `Sobolev.l2R3` unitary. -/
 theorem hydrogen_reduces (p : CoulombParams) (ℓ : ℕ) (m : ℤ) (hm : |m| ≤ ℓ)
     (R : ℝ → ℂ) (hR : ContDiff ℝ 2 R)
     (f : Spectra.Sobolev.R3 → ℂ) (hf : ContDiff ℝ 2 f)
@@ -371,7 +371,7 @@ lemma inner_radialLp (n n' ℓ : ℕ) (hn : ℓ + 1 ≤ n) (hn' : ℓ + 1 ≤ n'
 
 /-- The full hydrogen eigenfunction ψ_{nℓm}(r, θ, φ) = R_{nℓ}(r) Y_ℓ^m(θ, φ),
     realized as the pure tensor `R_{nℓ} ⊗ Y_ℓ^m` in the spherical decomposition
-    `Decomposition.L2_R3` via `sectorEmbedding`.
+    `Decomposition.l2R3` via `sectorEmbedding`.
 
     Quantum numbers:
     - n ≥ 1: principal (energy)
@@ -381,7 +381,7 @@ lemma inner_radialLp (n n' ℓ : ℕ) (hn : ℓ + 1 ≤ n) (hn' : ℓ + 1 ≤ n'
     The number of states with energy E_n is:
       Σ_{ℓ=0}^{n-1} (2ℓ+1) = n² -/
 def hydrogenEigenfunction (n : ℕ) (ℓ : ℕ) (m : ℤ)
-    (hn : ℓ + 1 ≤ n) (hm : |m| ≤ ℓ) : L2_R3 :=
+    (hn : ℓ + 1 ≤ n) (hm : |m| ≤ ℓ) : l2R3 :=
   sectorEmbedding ⟨ℓ, ⟨m, hm⟩⟩ (radialLp n ℓ hn)
 
 /-! ## The eigenvalue equation -/

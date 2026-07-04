@@ -3,7 +3,7 @@ Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
-import Spectra.QuantumMechanics.Perturbation.HardyInequality
+import Spectra.QuantumMechanics.Perturbation.Hardy.Inequality.Basic
 import Spectra.Spaces.Sobolev.WeakDerivative
 import Spectra.Spaces.Sobolev.IntegrationByParts
 import Spectra.Spaces.Sobolev.DensityResults
@@ -165,7 +165,7 @@ lemma gradientNormSq_radial {g g' : ℝ → ℝ}
     (hsupp : HasCompactSupport (fun y : R3 => (g ‖y‖ : ℂ))) :
     gradientNormSq
         ((memLp_of_smooth_compactSupport (fun y : R3 => (g ‖y‖ : ℂ)) hsmooth hsupp).toLp _)
-        (sobolevH2_le_H1 (smooth_compactSupport_memSobolevH2 _ hsmooth hsupp
+        (sobolevH2_le_sobolevH1 (smooth_compactSupport_memSobolevH2 _ hsmooth hsupp
           (memLp_of_smooth_compactSupport _ hsmooth hsupp)))
       = radialConst * ∫ r in Set.Ioi (0 : ℝ), r ^ 2 * (g' r) ^ 2 := by
   rw [gradientNormSq_toLp hsmooth hsupp (memLp_of_smooth_compactSupport _ hsmooth hsupp)]
@@ -406,7 +406,7 @@ lemma denom_expand {n : ℝ} (hn : n ≠ 0) :
     The extremiser `|x|^{−1/2}` lies in `H¹_loc` but not `H¹`, so the infimum `4` is
     approached but never attained. -/
 theorem hardy_constant_sharp :
-    ∀ C : ℝ, (∀ (ψ : L2_R3) (hψ : MemSobolevH1 ψ),
+    ∀ C : ℝ, (∀ (ψ : l2R3) (hψ : MemSobolevH1 ψ),
       hardyIntegral ψ ≤ C * gradientNormSq ψ hψ) → 4 ≤ C := by
   intro C hC
   have hIa_pos : 0 < ∫ s, etaFn s ^ 2 := etaFn_sq_integral_pos
@@ -420,7 +420,7 @@ theorem hardy_constant_sharp :
     have hsp : HasCompactSupport (fun y : R3 => (gN n ‖y‖ : ℂ)) := phiN_hasCompactSupport hn
     have hmem := memLp_of_smooth_compactSupport (fun y : R3 => (gN n ‖y‖ : ℂ)) hsm hsp
     have hH1 : MemSobolevH1 (hmem.toLp _) :=
-      sobolevH2_le_H1 (smooth_compactSupport_memSobolevH2 _ hsm hsp hmem)
+      sobolevH2_le_sobolevH1 (smooth_compactSupport_memSobolevH2 _ hsm hsp hmem)
     have happ := hC (hmem.toLp _) hH1
     rw [hardyIntegral_radial hsm hsp,
         gradientNormSq_radial (fun r _ => gN_hasDerivAt (n := n) ‹_›) hsm hsp,

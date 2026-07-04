@@ -2,17 +2,62 @@
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
-Filename: Bochner/GNS/Representation/Lemmas.lean
 -/
 import Spectra.Bochner.GNS.Representation.UnitaryGroup
-open Complex Finsupp Filter Topology
+
+/-!
+# Descending Translation to the GNS Quotient and its Completion
+
+This file transports the translation action `translate t` on `ℝ →₀ ℂ` through the two stages of
+the GNS construction: first to the pre-Hilbert quotient `GNSQuotient hPD hH`
+(`quotientTranslate`), then to its Cauchy completion (`completionTranslate`), proving at each
+stage that the result is a group action by linear isometries (group law, identity, norm/inner
+preservation).
+
+## Main definitions
+
+* `quotientTranslate` — `translate t` descended to `GNSQuotient hPD hH` via `Submodule.mapQ`.
+* `quotientTranslateLI` — `quotientTranslate t` bundled as a linear isometry.
+* `completionTranslate` — `quotientTranslate t` extended to `UniformSpace.Completion` by density.
+
+## Main statements
+
+* `quotientTranslate_inner`, `quotientTranslate_norm` — `quotientTranslate t` preserves the
+  inner product and the norm.
+* `quotientTranslate_comp`, `quotientTranslate_zero` — the group law `U₀(s) ∘ U₀(t) = U₀(s+t)`
+  and identity `U₀(0) = id` on the quotient.
+* `completionTranslate_comp`, `completionTranslate_zero`, `completionTranslate_inner` — the same
+  trio, transported to the completion.
+* `completionTranslate_compat` — `U(t) ∘ embed = embed ∘ translate t`, i.e. the completion-level
+  action agrees with `translate` under the GNS embedding.
+
+## Implementation notes
+
+The completion-level lemmas (`completionTranslate` itself and its `_comp`/`_zero`/`_inner`
+companions) all follow the same pattern: prove the fact on the dense image of `GNSQuotient hPD hH`
+inside `UniformSpace.Completion (GNSQuotient hPD hH)` (where it reduces to the corresponding
+quotient-level lemma), then extend to the whole completion via
+`UniformSpace.Completion.induction_on(₂)`, whose side goal `isClosed_eq` discharges the
+"the equality locus is closed" obligation the density argument needs.
+
+Every lemma here needs the `NormedAddCommGroup`/`InnerProductSpace` structure on
+`GNSQuotient hPD hH` in scope; these are deliberately not global instances (see
+`Hilbert/Constructor.lean`'s docstring on `gnsQuotientNACG`/`gnsQuotientIPS` for why), so each
+statement and proof brings them into scope with `letI := gnsQuotientNACG hPD hH` /
+`letI := gnsQuotientIPS hPD hH` rather than re-deriving them from `quotientCore` by hand.
+
+## References
+
+* Reed–Simon, *Methods of Modern Mathematical Physics I*, §VIII.5 (Gelfand–Naimark–Segal
+  construction)
+-/
 open Spectra.PositiveDefinite
 namespace Spectra.Bochner.GNS
 
 /-- `translate t` as a ℂ-linear map on `ℝ →₀ ℂ`. -/
 noncomputable def translateLM (t : ℝ) : (ℝ →₀ ℂ) →ₗ[ℂ] (ℝ →₀ ℂ) where
   toFun := translate t
-  map_add' := translate_add_right t
+  map_add' := translate_add t
   map_smul' := translate_smul t
 
 /-- Translation preserves the null submodule (needed for `Submodule.mapQ`). -/
@@ -66,16 +111,15 @@ lemma quotientTranslate_zero {f : ℝ → ℂ}
   induction x using Submodule.Quotient.induction_on with | _ a =>
   simp only [quotientTranslate_mk, translate_zero]
 
-
 /-- `quotientTranslate t` preserves the norm. -/
 lemma quotientTranslate_norm {f : ℝ → ℂ}
     (hPD : IsPositiveDefinite f) (hH : IsHermitian f) (t : ℝ)
     (x : GNSQuotient hPD hH) :
-    letI := @InnerProductSpace.Core.toNormedAddCommGroup ℂ _ _ _ _ (quotientCore hPD hH)
-    letI := InnerProductSpace.ofCore (quotientCore hPD hH).toCore
+    letI := gnsQuotientNACG hPD hH
+    letI := gnsQuotientIPS hPD hH
     ‖quotientTranslate hPD hH t x‖ = ‖x‖ := by
-  letI nacgV := @InnerProductSpace.Core.toNormedAddCommGroup ℂ _ _ _ _ (quotientCore hPD hH)
-  letI ipsV := InnerProductSpace.ofCore (quotientCore hPD hH).toCore
+  letI nacgV := gnsQuotientNACG hPD hH
+  letI ipsV := gnsQuotientIPS hPD hH
   have h_inner : @inner ℂ _ ipsV.toInner
       (quotientTranslate hPD hH t x) (quotientTranslate hPD hH t x) =
       @inner ℂ _ ipsV.toInner x x := by
@@ -92,47 +136,39 @@ lemma quotientTranslate_norm {f : ℝ → ℂ}
   · linarith
   · linarith [norm_nonneg (quotientTranslate hPD hH t x), norm_nonneg x]
 
-
 /-- `quotientTranslate t` as a linear isometry on the GNS quotient. -/
 noncomputable def quotientTranslateLI {f : ℝ → ℂ}
     (hPD : IsPositiveDefinite f) (hH : IsHermitian f) (t : ℝ) :
-    letI := @InnerProductSpace.Core.toNormedAddCommGroup ℂ _ _ _ _ (quotientCore hPD hH)
-    letI := InnerProductSpace.ofCore (quotientCore hPD hH).toCore
+    letI := gnsQuotientNACG hPD hH
+    letI := gnsQuotientIPS hPD hH
     GNSQuotient hPD hH →ₗᵢ[ℂ] GNSQuotient hPD hH := by
-  letI := @InnerProductSpace.Core.toNormedAddCommGroup ℂ _ _ _ _ (quotientCore hPD hH)
-  letI := InnerProductSpace.ofCore (quotientCore hPD hH).toCore
+  letI := gnsQuotientNACG hPD hH
+  letI := gnsQuotientIPS hPD hH
   exact ⟨quotientTranslate hPD hH t, quotientTranslate_norm hPD hH t⟩
-
 
 /-- Uniform continuity of `quotientTranslate` (isometries are uniformly continuous). -/
 lemma quotientTranslate_uniformContinuous {f : ℝ → ℂ}
     (hPD : IsPositiveDefinite f) (hH : IsHermitian f) (t : ℝ) :
-    letI := @InnerProductSpace.Core.toNormedAddCommGroup ℂ _ _ _ _ (quotientCore hPD hH)
-    letI := InnerProductSpace.ofCore (quotientCore hPD hH).toCore
+    letI := gnsQuotientNACG hPD hH
+    letI := gnsQuotientIPS hPD hH
     UniformContinuous (quotientTranslate hPD hH t) := by
-  letI := @InnerProductSpace.Core.toNormedAddCommGroup ℂ _ _ _ _ (quotientCore hPD hH)
-  letI := InnerProductSpace.ofCore (quotientCore hPD hH).toCore
+  letI := gnsQuotientNACG hPD hH
+  letI := gnsQuotientIPS hPD hH
   exact (quotientTranslateLI hPD hH t).isometry.uniformContinuous
-
-
 
 /-- Translation extended to the GNS completion as a ℂ-linear map.
     Linearity proved by density: `Completion.map` preserves add/smul
     because it agrees with the linear `quotientTranslate` on the dense image. -/
 noncomputable def completionTranslate {f : ℝ → ℂ}
     (hPD : IsPositiveDefinite f) (hH : IsHermitian f) (t : ℝ) :
-    letI : NormedAddCommGroup (GNSQuotient hPD hH) :=
-      @InnerProductSpace.Core.toNormedAddCommGroup ℂ _ _ _ _ (quotientCore hPD hH)
-    letI : InnerProductSpace ℂ (GNSQuotient hPD hH) :=
-      InnerProductSpace.ofCore (quotientCore hPD hH).toCore
+    letI := gnsQuotientNACG hPD hH
+    letI := gnsQuotientIPS hPD hH
     letI : UniformContinuousConstSMul ℂ (GNSQuotient hPD hH) :=
       gnsQuotient_uniformContinuousConstSMul hPD hH
     UniformSpace.Completion (GNSQuotient hPD hH) →ₗ[ℂ]
     UniformSpace.Completion (GNSQuotient hPD hH) := by
-  letI nacgV : NormedAddCommGroup (GNSQuotient hPD hH) :=
-    @InnerProductSpace.Core.toNormedAddCommGroup ℂ _ _ _ _ (quotientCore hPD hH)
-  letI ipsV : InnerProductSpace ℂ (GNSQuotient hPD hH) :=
-    InnerProductSpace.ofCore (quotientCore hPD hH).toCore
+  letI nacgV := gnsQuotientNACG hPD hH
+  letI ipsV := gnsQuotientIPS hPD hH
   haveI : UniformContinuousConstSMul ℂ (GNSQuotient hPD hH) :=
     gnsQuotient_uniformContinuousConstSMul hPD hH
   have huc : UniformContinuous (quotientTranslate hPD hH t) :=
@@ -167,47 +203,37 @@ noncomputable def completionTranslate {f : ℝ → ℂ}
         rfl
   }
 
-
 /-- Computation rule: `completionTranslate` on a coerced quotient element. -/
 @[simp]
 lemma completionTranslate_coe {f : ℝ → ℂ}
     (hPD : IsPositiveDefinite f) (hH : IsHermitian f) (t : ℝ)
     (a : GNSQuotient hPD hH) :
-    letI : NormedAddCommGroup (GNSQuotient hPD hH) :=
-      @InnerProductSpace.Core.toNormedAddCommGroup ℂ _ _ _ _ (quotientCore hPD hH)
-    letI : InnerProductSpace ℂ (GNSQuotient hPD hH) :=
-      InnerProductSpace.ofCore (quotientCore hPD hH).toCore
+    letI := gnsQuotientNACG hPD hH
+    letI := gnsQuotientIPS hPD hH
     letI : UniformContinuousConstSMul ℂ (GNSQuotient hPD hH) :=
       gnsQuotient_uniformContinuousConstSMul hPD hH
     completionTranslate hPD hH t ↑a =
     ↑(quotientTranslate hPD hH t a) := by
-  letI : NormedAddCommGroup (GNSQuotient hPD hH) :=
-    @InnerProductSpace.Core.toNormedAddCommGroup ℂ _ _ _ _ (quotientCore hPD hH)
-  letI : InnerProductSpace ℂ (GNSQuotient hPD hH) :=
-    InnerProductSpace.ofCore (quotientCore hPD hH).toCore
+  letI := gnsQuotientNACG hPD hH
+  letI := gnsQuotientIPS hPD hH
   haveI : UniformContinuousConstSMul ℂ (GNSQuotient hPD hH) :=
     gnsQuotient_uniformContinuousConstSMul hPD hH
   show UniformSpace.Completion.map (quotientTranslate hPD hH t) ↑a = _
   exact UniformSpace.Completion.map_coe
     (quotientTranslate_uniformContinuous hPD hH t) a
 
-
 /-- Group law on the completion: U(s)(U(t)(ψ)) = U(s+t)(ψ). -/
 lemma completionTranslate_comp {f : ℝ → ℂ}
     (hPD : IsPositiveDefinite f) (hH : IsHermitian f) (s t : ℝ) :
-    letI : NormedAddCommGroup (GNSQuotient hPD hH) :=
-      @InnerProductSpace.Core.toNormedAddCommGroup ℂ _ _ _ _ (quotientCore hPD hH)
-    letI : InnerProductSpace ℂ (GNSQuotient hPD hH) :=
-      InnerProductSpace.ofCore (quotientCore hPD hH).toCore
+    letI := gnsQuotientNACG hPD hH
+    letI := gnsQuotientIPS hPD hH
     letI : UniformContinuousConstSMul ℂ (GNSQuotient hPD hH) :=
       gnsQuotient_uniformContinuousConstSMul hPD hH
     ∀ (ψ : UniformSpace.Completion (GNSQuotient hPD hH)),
     completionTranslate hPD hH s (completionTranslate hPD hH t ψ) =
     completionTranslate hPD hH (s + t) ψ := by
-  letI : NormedAddCommGroup (GNSQuotient hPD hH) :=
-    @InnerProductSpace.Core.toNormedAddCommGroup ℂ _ _ _ _ (quotientCore hPD hH)
-  letI : InnerProductSpace ℂ (GNSQuotient hPD hH) :=
-    InnerProductSpace.ofCore (quotientCore hPD hH).toCore
+  letI := gnsQuotientNACG hPD hH
+  letI := gnsQuotientIPS hPD hH
   haveI : UniformContinuousConstSMul ℂ (GNSQuotient hPD hH) :=
     gnsQuotient_uniformContinuousConstSMul hPD hH
   intro ψ
@@ -220,22 +246,17 @@ lemma completionTranslate_comp {f : ℝ → ℂ}
     congr 1
     exact quotientTranslate_comp hPD hH s t a
 
-
 /-- Identity on the completion: U(0)(ψ) = ψ. -/
-lemma completionTranslate_zero' {f : ℝ → ℂ}
+lemma completionTranslate_zero {f : ℝ → ℂ}
     (hPD : IsPositiveDefinite f) (hH : IsHermitian f) :
-    letI : NormedAddCommGroup (GNSQuotient hPD hH) :=
-      @InnerProductSpace.Core.toNormedAddCommGroup ℂ _ _ _ _ (quotientCore hPD hH)
-    letI : InnerProductSpace ℂ (GNSQuotient hPD hH) :=
-      InnerProductSpace.ofCore (quotientCore hPD hH).toCore
+    letI := gnsQuotientNACG hPD hH
+    letI := gnsQuotientIPS hPD hH
     letI : UniformContinuousConstSMul ℂ (GNSQuotient hPD hH) :=
       gnsQuotient_uniformContinuousConstSMul hPD hH
     ∀ (ψ : UniformSpace.Completion (GNSQuotient hPD hH)),
     completionTranslate hPD hH 0 ψ = ψ := by
-  letI : NormedAddCommGroup (GNSQuotient hPD hH) :=
-    @InnerProductSpace.Core.toNormedAddCommGroup ℂ _ _ _ _ (quotientCore hPD hH)
-  letI : InnerProductSpace ℂ (GNSQuotient hPD hH) :=
-    InnerProductSpace.ofCore (quotientCore hPD hH).toCore
+  letI := gnsQuotientNACG hPD hH
+  letI := gnsQuotientIPS hPD hH
   haveI : UniformContinuousConstSMul ℂ (GNSQuotient hPD hH) :=
     gnsQuotient_uniformContinuousConstSMul hPD hH
   intro ψ
@@ -247,24 +268,19 @@ lemma completionTranslate_zero' {f : ℝ → ℂ}
     rw [completionTranslate_coe]
     simp only [quotientTranslate_zero]
 
-
 /-- Isometry on the completion: ⟨U(t)ψ, U(t)φ⟩ = ⟨ψ, φ⟩. -/
 lemma completionTranslate_inner {f : ℝ → ℂ}
     (hPD : IsPositiveDefinite f) (hH : IsHermitian f) (t : ℝ) :
-    letI : NormedAddCommGroup (GNSQuotient hPD hH) :=
-      @InnerProductSpace.Core.toNormedAddCommGroup ℂ _ _ _ _ (quotientCore hPD hH)
-    letI : InnerProductSpace ℂ (GNSQuotient hPD hH) :=
-      InnerProductSpace.ofCore (quotientCore hPD hH).toCore
+    letI := gnsQuotientNACG hPD hH
+    letI := gnsQuotientIPS hPD hH
     letI : UniformContinuousConstSMul ℂ (GNSQuotient hPD hH) :=
       gnsQuotient_uniformContinuousConstSMul hPD hH
     ∀ (ψ φ : UniformSpace.Completion (GNSQuotient hPD hH)),
     @inner ℂ _ InnerProductSpace.toInner
       (completionTranslate hPD hH t ψ) (completionTranslate hPD hH t φ) =
     @inner ℂ _ InnerProductSpace.toInner ψ φ := by
-  letI : NormedAddCommGroup (GNSQuotient hPD hH) :=
-    @InnerProductSpace.Core.toNormedAddCommGroup ℂ _ _ _ _ (quotientCore hPD hH)
-  letI : InnerProductSpace ℂ (GNSQuotient hPD hH) :=
-    InnerProductSpace.ofCore (quotientCore hPD hH).toCore
+  letI := gnsQuotientNACG hPD hH
+  letI := gnsQuotientIPS hPD hH
   haveI : UniformContinuousConstSMul ℂ (GNSQuotient hPD hH) :=
     gnsQuotient_uniformContinuousConstSMul hPD hH
   intro ψ φ
@@ -287,19 +303,15 @@ lemma completionTranslate_inner {f : ℝ → ℂ}
 /-- Compatibility: U(t) ∘ embed = embed ∘ translate(t) on the completion. -/
 lemma completionTranslate_compat {f : ℝ → ℂ}
     (hPD : IsPositiveDefinite f) (hH : IsHermitian f) (t : ℝ) (α : ℝ →₀ ℂ) :
-    letI : NormedAddCommGroup (GNSQuotient hPD hH) :=
-      @InnerProductSpace.Core.toNormedAddCommGroup ℂ _ _ _ _ (quotientCore hPD hH)
-    letI : InnerProductSpace ℂ (GNSQuotient hPD hH) :=
-      InnerProductSpace.ofCore (quotientCore hPD hH).toCore
+    letI := gnsQuotientNACG hPD hH
+    letI := gnsQuotientIPS hPD hH
     letI : UniformContinuousConstSMul ℂ (GNSQuotient hPD hH) :=
       gnsQuotient_uniformContinuousConstSMul hPD hH
     let emb := (UniformSpace.Completion.toComplₗᵢ (𝕜 := ℂ)).toLinearMap.comp
                  (pdNullSubmodule hPD hH).mkQ
     completionTranslate hPD hH t (emb α) = emb (translate t α) := by
-  letI : NormedAddCommGroup (GNSQuotient hPD hH) :=
-    @InnerProductSpace.Core.toNormedAddCommGroup ℂ _ _ _ _ (quotientCore hPD hH)
-  letI : InnerProductSpace ℂ (GNSQuotient hPD hH) :=
-    InnerProductSpace.ofCore (quotientCore hPD hH).toCore
+  letI := gnsQuotientNACG hPD hH
+  letI := gnsQuotientIPS hPD hH
   haveI : UniformContinuousConstSMul ℂ (GNSQuotient hPD hH) :=
     gnsQuotient_uniformContinuousConstSMul hPD hH
   show completionTranslate hPD hH t

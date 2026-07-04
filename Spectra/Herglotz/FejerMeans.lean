@@ -7,34 +7,71 @@ import Spectra.PositiveDefinite.Unitary
 import Mathlib.MeasureTheory.Integral.IntervalIntegral.FundThmCalculus
 import Mathlib.Analysis.SpecialFunctions.ExpDeriv
 
+/-!
+# Fejér means of a unitary's autocorrelation sequence
+
+Given a unitary `U : H →L[ℂ] H`, a vector `ψ : H`, and its autocorrelation sequence
+`c(n) = unitaryCorrelation U ψ n` (see `PositiveDefinite/Unitary.lean`), this file builds the
+**Fejér mean density** `F_N(θ) = ∑_{|n|≤N} w_N(n) c(n) e^{-inθ}`, a trigonometric polynomial
+weighted by the **Fejér weights** `w_N(n) = 1 - |n|/(N+1)`, and proves the two facts the Herglotz
+construction needs: `F_N(θ) ≥ 0` for every `θ` (so `F_N(θ) dθ/2π` is a genuine positive measure on
+the circle), and `F_N` has total mass `2π · c(0) = 2π‖ψ‖²`.
+
+## Main definitions
+
+* `fejerWeight`: the Fejér weight `w_N(n) = 1 - |n|/(N+1)` for `|n| ≤ N`, else `0`.
+* `fejerMeanDensity`: the trigonometric polynomial `F_N(θ) = ∑_{|n|≤N} w_N(n) c(n) e^{-inθ}`.
+
+## Main results
+
+* `fejerMeanDensity_nonneg`: `F_N(θ) ≥ 0` for every `θ`.
+* `set_integral_cexp_neg_int`: Fourier orthogonality, `∫_{[0,2π]} e^{-inθ} dθ = 2π` if `n = 0`
+  else `0`.
+* `fejerMeanDensity_integral`: `∫_{[0,2π]} F_N(θ) dθ = 2π · c(0)`.
+
+## Implementation notes
+
+The positivity proof goes through a diagonal-reindexing identity (`exp_conj_mul`, `fiber_count`,
+`double_sum_eq_weighted`, `fejerWeight_mul_eq`, `fejer_reindex`) that rewrites `(N+1) · F_N(θ)` as
+the same double sum `unitaryCorrelation_positive_definite` already shows is `≥ 0`, for the specific
+coefficients `α_j = e^{-ijθ}`. This avoids ever constructing the classical Fejér kernel
+`K_N(θ) = ∑_{|n|≤N} w_N(n) e^{-inθ}` as a real-valued function on the circle and separately proving
+*it* is nonnegative (the usual textbook route, via `K_N(θ) = (N+1)⁻¹ (sin((N+1)θ/2)/sin(θ/2))²`) —
+the double-sum identity gets positivity directly from `U`'s unitarity, with no trigonometric
+identity or `θ = 0` case split needed.
+
+## References
+
+* L. Fejér, *Untersuchungen über Fouriersche Reihen*, Mathematische Annalen **58** (1904), 51–69 —
+  the original Fejér kernel and Cesàro-summability construction.
+* Y. Katznelson, *An Introduction to Harmonic Analysis*, 3rd ed., Cambridge University Press, 2004,
+  §I.3 — the Fejér kernel's positivity and approximate-identity properties.
+* G. Herglotz, *Über Potenzreihen mit positivem, reellen Teil im Einheitskreis*, Leipziger
+  Berichte **63** (1911), 501–511 — the theorem this file's Fejér means are ultimately built
+  towards (see `PositiveDefinite/Unitary.lean`).
+
+## Tags
+
+Fejér kernel, Fejér mean, trigonometric polynomial, Fourier orthogonality, positive-definite
+sequence
+-/
+
 open Complex MeasureTheory
 open Spectra.PositiveDefinite
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
 namespace Spectra.Herglotz
 
-/-! ### §3. The Fejér kernel and Fejér means -/
-
 section FejerMeans
 
-variable (U : H →L[ℂ] H) (hU : Operator.Unitary U)
+variable (U : H →L[ℂ] H)
 
 /-- The **Fejér weight**: `w_N(n) = 1 - |n|/(N+1)` for `|n| ≤ N`, else 0.
 This is the Fourier coefficient of the Fejér kernel. -/
 noncomputable def fejerWeight (N : ℕ) (n : ℤ) : ℝ :=
   if n.natAbs ≤ N then 1 - n.natAbs / (N + 1 : ℝ) else 0
 
-/-- `w_N(n) ≥ 0` for all `n`. (Currently unused.) -/
-theorem fejerWeight_nonneg (N : ℕ) (n : ℤ) : 0 ≤ fejerWeight N n := by
-  unfold fejerWeight
-  split
-  next h =>
-    have hN : (0 : ℝ) < N + 1 := by positivity
-    rw [sub_nonneg, div_le_one hN]
-    exact_mod_cast h.trans (Nat.le_succ N)
-  next => linarith
-
 /-- `w_N(0) = 1`. -/
-theorem fejerWeight_zero (N : ℕ) : fejerWeight N 0 = 1 := by
+lemma fejerWeight_zero (N : ℕ) : fejerWeight N 0 = 1 := by
   simp [fejerWeight]
 
 /-- The **Fejér mean density** at angle `θ`:
@@ -80,8 +117,8 @@ private lemma fiber_count (N : ℕ) (n : ℤ) (hn : n ∈ Finset.Icc (-(N : ℤ)
     · -- image lands in range
       intro ⟨j, k⟩ hp
       simp only [S, Finset.mem_filter, Finset.mem_product, Finset.mem_univ,
-                  true_and, Finset.mem_range] at hp ⊢
-      have hk := k.isLt; grind only [= Lean.Grind.toInt_fin]
+                  true_and, Finset.mem_range, Int.ofNat_eq_natCast] at hp ⊢
+      have hk := k.isLt; omega
     · -- injective: j determines k = j + m
       intro ⟨j₁, k₁⟩ h₁ ⟨j₂, k₂⟩ h₂ heq
       simp only [S, Finset.mem_filter, Finset.mem_product, Finset.mem_univ,
@@ -94,8 +131,8 @@ private lemma fiber_count (N : ℕ) (n : ℤ) (hn : n ∈ Finset.Icc (-(N : ℤ)
       rw [Finset.mem_range] at hi
       refine ⟨(⟨i, by omega⟩, ⟨i + m, by omega⟩), ?_, rfl⟩
       simp only [S, Finset.mem_filter, Finset.mem_product, Finset.mem_univ,
-                  true_and]
-      push_cast; grind only
+                  true_and, Int.ofNat_eq_natCast]
+      push_cast; omega
   | negSucc m =>
     -- n = -(m+1), fiber = {(k+m+1, k) | k+m+1 ≤ N}
     -- Projection to second coordinate bijects with range(N-m)
@@ -164,7 +201,7 @@ private lemma fejerWeight_mul_eq (N : ℕ) (n : ℤ) (hn : n.natAbs ≤ N) :
 /-- The double sum with exponential weights equals `(N+1) * F_N(θ)`.
 This is the classical identity connecting the Fejér kernel to its
 square factorization: `∑_{j,k} e^{i(j-k)θ} c(k-j) = (N+1) F_N(θ)`. -/
-private lemma fejer_reindex (U : H →L[ℂ] H) (ψ : H) (N : ℕ) (θ : ℝ) :
+private lemma fejer_reindex (ψ : H) (N : ℕ) (θ : ℝ) :
     (∑ j : Fin (N + 1), ∑ k : Fin (N + 1),
       starRingEnd ℂ (exp (-I * ↑(↑j : ℤ) * ↑θ)) *
         exp (-I * ↑(↑k : ℤ) * ↑θ) *
@@ -197,8 +234,8 @@ private lemma fejer_reindex (U : H →L[ℂ] H) (ψ : H) (N : ℕ) (θ : ℝ) :
   rw [← fejerWeight_mul_eq N n hn_abs]
   ring
 
-/-- The Fejér mean density is non-negative
-(real part ≥ 0, imaginary part = 0). -/
+/-- The real part of the Fejér mean density is non-negative: `Re F_N(θ) ≥ 0`. (Real-valuedness,
+i.e. `Im F_N(θ) = 0`, is proved separately in `Herglotz.FejerMeasure`, not here.) -/
 lemma fejerMeanDensity_nonneg (hU : Operator.Unitary U) (ψ : H) (N : ℕ) (θ : ℝ) :
     0 ≤ (fejerMeanDensity U ψ N θ).re := by
   have h_pd := unitaryCorrelation_positive_definite U hU ψ (N + 1)
@@ -206,28 +243,6 @@ lemma fejerMeanDensity_nonneg (hU : Operator.Unitary U) (ψ : H) (N : ℕ) (θ :
   rw [fejer_reindex U ψ N θ] at h_pd
   have hN : (0 : ℝ) < ↑(N + 1) := Nat.cast_pos.mpr (Nat.succ_pos N)
   exact nonneg_of_mul_nonneg_right h_pd hN
-
-/-- `exp(↑n * (2π * I)) = 1` for `n : ℕ`. -/
-private lemma exp_nat_mul_two_pi_mul_I (n : ℕ) :
-    Complex.exp (↑n * (2 * ↑Real.pi * I)) = 1 := by
-  induction n with
-  | zero => simp
-  | succ m ih =>
-    rw [Nat.cast_succ, add_mul, Complex.exp_add, ih, one_mul,
-        show (1 : ℂ) * (2 * ↑Real.pi * I) = 2 * ↑Real.pi * I by ring]
-    exact Complex.exp_two_pi_mul_I
-
-/-- `exp(↑n * (2π * I)) = 1` for `n : ℤ`. -/
-private lemma exp_int_mul_two_pi_mul_I (n : ℤ) :
-    Complex.exp (↑n * (2 * ↑Real.pi * I)) = 1 := by
-  cases n with
-  | ofNat k =>
-    simp only [Int.ofNat_eq_natCast, Int.cast_natCast]
-    exact exp_nat_mul_two_pi_mul_I k
-  | negSucc k =>
-    have h : (↑(Int.negSucc k) : ℂ) * (2 * ↑Real.pi * I) =
-             -(↑(k + 1) * (2 * ↑Real.pi * I)) := by push_cast; ring
-    rw [h, Complex.exp_neg, exp_nat_mul_two_pi_mul_I, inv_one]
 
 /-- The antiderivative of `θ ↦ exp(c · θ)` for nonzero `c : ℂ`. -/
 private lemma hasDerivAt_cexp_div {c : ℂ} (hc : c ≠ 0) (θ : ℝ) :
@@ -245,7 +260,7 @@ private lemma continuous_cexp_neg_int_mul (n : ℤ) :
 /-- **Fourier orthogonality**: `∫_{[0,2π]} exp(-inθ) dθ = 2π` if `n = 0`, else `0`. -/
 lemma set_integral_cexp_neg_int (n : ℤ) :
     ∫ θ in Set.Icc (0 : ℝ) (2 * Real.pi),
-      Complex.exp (-I * ↑n * ↑θ) =
+      exp (-I * ↑n * ↑θ) =
     if n = 0 then ↑(2 * Real.pi) else 0 := by
   split
   · -- n = 0: integrand is 1, integral = 2π
@@ -263,7 +278,8 @@ lemma set_integral_cexp_neg_int (n : ℤ) :
         simp only [hc_def, neg_mul, ne_eq, neg_eq_zero]
         exact mul_ne_zero I_ne_zero (Int.cast_ne_zero.mpr hn)
       -- Rewrite integrand to use c
-      have h_fn : (fun θ : ℝ => exp (-I * ↑n * ↑θ)) = fun (θ : ℝ) => exp (c * Complex.ofReal θ) := by
+      have h_fn : (fun θ : ℝ => exp (-I * ↑n * ↑θ)) =
+          fun (θ : ℝ) => exp (c * (↑θ : ℂ)) := by
         ext θ; congr 1
       rw [h_fn]
       -- Convert: Icc set integral → Ioc set integral → interval integral
@@ -283,7 +299,8 @@ lemma set_integral_cexp_neg_int (n : ℤ) :
         rw [this, Complex.exp_int_mul_two_pi_mul_I]
       rw [h_period, Complex.ofReal_zero, mul_zero, Complex.exp_zero, sub_self]
 
-/-- The integral of the Fejér mean density over `[0, 2π)` is `2π · c(0) = 2π‖ψ‖²`. -/
+/-- The integral of the Fejér mean density over `[0, 2π)` is `2π · c(0)` — which is `2π‖ψ‖²` after
+one more substitution via `unitaryCorrelation_zero`, not performed here. -/
 lemma fejerMeanDensity_integral (ψ : H) (N : ℕ) :
     ∫ θ in Set.Icc 0 (2 * Real.pi),
       fejerMeanDensity U ψ N θ = 2 * Real.pi * unitaryCorrelation U ψ 0 := by

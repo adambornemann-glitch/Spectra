@@ -17,13 +17,13 @@ that `exp(i·Aₙˢʸᵐ·t)` is an isometry — the unitary approximants whose 
 * `expBounded_skewAdjoint_unitary` — for `B* = -B`, both composites of `exp(tB)` with its adjoint
   are the identity.
 * `expBounded_mem_unitary` — `exp(tB) ∈ unitary` when `B` is skew-adjoint.
+* `smul_I_skewSelfAdjoint` — `I •` of a self-adjoint operator is skew-adjoint.
 * `expBounded_yosidaApproxSym_unitary` / `expBounded_yosidaApproxSym_isometry` — `exp(i·Aₙˢʸᵐ·t)`
   preserves inner products and norms.
 * `expBounded_hasDerivAt` — the derivative of the exponential.
 -/
 open Complex Filter Topology InnerProductSpace
 open Spectra.Resolvent
-open Spectra.OneParameterUnitaryGroup
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
 namespace Spectra.YosidaHille.Approximation
 
@@ -75,38 +75,16 @@ lemma expBounded_skewAdjoint_unitary (B : H →L[ℂ] H) (hB : B.adjoint = -B) (
       simp [hk]
 
 /-- For skew-adjoint `B`, `exp(tB)` lies in the unitary group. -/
-lemma expBounded_mem_unitary (B : H →L[ℂ] H) (hB : ContinuousLinearMap.adjoint B = -B) (t : ℝ) :
+lemma expBounded_mem_unitary (B : H →L[ℂ] H) (hB : B.adjoint = -B) (t : ℝ) :
     expBounded B t ∈ unitary (H →L[ℂ] H) := by
-  haveI : NormedAlgebra ℚ (H →L[ℂ] H) :=
-    NormedAlgebra.restrictScalars ℚ ℂ _
-  rw [Unitary.mem_iff]
-  have h1 : star (expBounded B t) = expBounded (-B) t := by
-    rw [ContinuousLinearMap.star_eq_adjoint, adjoint_expBounded, hB]
-  constructor
-  · -- star (exp B t) * exp B t = 1
-    rw [h1, expBounded_eq_exp, expBounded_eq_exp]
-    have h_comm : Commute ((t : ℂ) • (-B)) ((t : ℂ) • B) := by
-      unfold Commute SemiconjBy
-      simp_all only [smul_neg, coe_smul, Algebra.mul_smul_comm, neg_mul,
-        Algebra.smul_mul_assoc, mul_neg]
-    have h2 := (NormedSpace.exp_add_of_commute h_comm).symm
-    simp only [smul_neg, neg_add_cancel, NormedSpace.exp_zero] at h2
-    simp_all only [smul_neg, coe_smul, Commute.neg_left_iff, Commute.refl]
-  · -- exp B t * star (exp B t) = 1
-    rw [h1, expBounded_eq_exp, expBounded_eq_exp]
-    have h_comm : Commute ((t : ℂ) • B) ((t : ℂ) • (-B)) := by
-      unfold Commute SemiconjBy
-      simp_all only [coe_smul, smul_neg, mul_neg, Algebra.mul_smul_comm,
-        Algebra.smul_mul_assoc, neg_mul]
-    have h2 := (NormedSpace.exp_add_of_commute h_comm).symm
-    simp only [smul_neg, add_neg_cancel, NormedSpace.exp_zero] at h2
-    simp_all only [smul_neg, coe_smul]
+  rw [Unitary.mem_iff, ContinuousLinearMap.star_eq_adjoint]
+  exact ⟨(expBounded_skewAdjoint_unitary B hB t).1, (expBounded_skewAdjoint_unitary B hB t).2⟩
 
 /-! ### Unitarity for Yosida approximants -/
 
 /-- If `A` is self-adjoint then `I • A` is skew-adjoint: `(I·A)* = -(I·A)`. -/
-lemma smul_I_skewSelfAdjoint (A : H →L[ℂ] H) (hA : ContinuousLinearMap.adjoint A = A) :
-    ContinuousLinearMap.adjoint (I • A) = -(I • A) := by
+lemma smul_I_skewSelfAdjoint (A : H →L[ℂ] H) (hA : A.adjoint = A) :
+    (I • A).adjoint = -(I • A) := by
   have h := ContinuousLinearMap.adjoint.map_smulₛₗ I A
   rw [h, hA, starRingEnd_apply, star_def, conj_I]
   simp only [neg_smul]
@@ -120,7 +98,8 @@ lemma expBounded_yosidaApproxSym_unitary {A : H →ₗ.[ℂ] H}
     ⟪expBounded (I • yosidaApproxSym hsym hplus hminus n) t ψ,
      expBounded (I • yosidaApproxSym hsym hplus hminus n) t φ⟫_ℂ = ⟪ψ, φ⟫_ℂ := by
   have h_skew := I_smul_yosidaApproxSym_skewAdjoint hsym hplus hminus n
-  have h_unitary := expBounded_skewAdjoint_unitary (I • yosidaApproxSym hsym hplus hminus n) h_skew t
+  have h_unitary :=
+    expBounded_skewAdjoint_unitary (I • yosidaApproxSym hsym hplus hminus n) h_skew t
   let U := expBounded (I • yosidaApproxSym hsym hplus hminus n) t
   calc ⟪U ψ, U φ⟫_ℂ
       = ⟪ψ, U.adjoint (U φ)⟫_ℂ := (ContinuousLinearMap.adjoint_inner_right U ψ (U φ)).symm
@@ -145,23 +124,14 @@ theorem expBounded_yosidaApproxSym_isometry {A : H →ₗ.[ℂ] H}
   have h_nonneg2 : 0 ≤ ‖ψ‖ := norm_nonneg _
   nlinarith [sq_nonneg (‖U ψ‖ - ‖ψ‖), sq_nonneg (‖U ψ‖ + ‖ψ‖), h_sq, h_nonneg1, h_nonneg2]
 
-/-- Norm bound for the (non-symmetric) Yosida exponential, via `expBounded_norm_bound`. -/
-theorem expBounded_yosida_norm_le {A : H →ₗ.[ℂ] H}
-    (hsym : A.IsFormalAdjoint A)
-    (hplus : ∀ φ : H, ∃ ψ : A.domain, A ψ + I • (ψ : H) = φ)
-    (hminus : ∀ φ : H, ∃ ψ : A.domain, A ψ - I • (ψ : H) = φ)
-    (n : ℕ+) (t : ℝ) :
-    ‖expBounded (I • yosidaApprox hsym hplus hminus n) t‖ ≤
-    Real.exp (|t| * ‖I • yosidaApprox hsym hplus hminus n‖) :=
-  expBounded_norm_bound _ _
-
 /-! ### Derivatives of exponential -/
 
-/-- Key lemma: derivative of exp at 0 along the direction B. -/
+/-- The base case that `expBounded_hasDerivAt` bootstraps by translation-invariance
+(`expBounded B t = (expBounded B τ).comp (expBounded B (t - τ))`): at `τ = 0`, the derivative of
+`t ↦ exp(tB)` is `B` itself, since `NormedSpace.exp` has derivative `1` at `0`. -/
 lemma expBounded_hasDerivAt_zero (B : H →L[ℂ] H) :
     HasDerivAt (fun τ : ℝ => expBounded B τ) B 0 := by
   haveI : IsScalarTower ℝ ℂ H := RestrictScalars.isScalarTower ℝ ℂ H
-  haveI : CompleteSpace (H →L[ℂ] H) := inferInstance
   letI : NormedAlgebra ℝ (H →L[ℂ] H) := NormedAlgebra.restrictScalars ℝ ℂ _
   haveI : IsScalarTower ℝ ℂ (H →L[ℂ] H) :=
     ⟨fun r c f => ContinuousLinearMap.ext fun x => smul_assoc r c (f x)⟩

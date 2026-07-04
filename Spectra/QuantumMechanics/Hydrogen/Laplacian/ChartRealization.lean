@@ -16,7 +16,7 @@ import Mathlib.MeasureTheory.Constructions.Pi
 This file builds `chartRealization`, the unitary realizing the change of variables from
 Cartesian to spherical coordinates on `L²(ℝ³)`:
 
-  `chartRealization : Spectra.Sobolev.L2_R3 ≃ₗᵢ[ℂ] Decomposition.L2_R3`,
+  `chartRealization : Spectra.Sobolev.l2R3 ≃ₗᵢ[ℂ] Decomposition.l2R3`,
 
 i.e. `Lp ℂ 2 (volume : Measure ℝ³) ≃ₗᵢ Lp ℂ 2 (radialMeasure.prod sphereMeasure)`, given by
 precomposition with the spherical chart `(r, θ, φ) ↦ (r sinθ cosφ, r sinθ sinφ, r cosθ)`
@@ -37,7 +37,7 @@ Cartesian `EuclideanSpace ℝ (Fin 3)` by `PiLp.volume_preserving_toLp`.  This y
 
 * `measurePreserving_sphereChart` — the chart is measure-preserving (spherical → Cartesian).
 * `eLpNorm_chartRealizationFun` — the eLpNorm change-of-variables identity.
-* `chartRealization` — the unitary `Sobolev.L2_R3 ≃ₗᵢ[ℂ] Decomposition.L2_R3`.
+* `chartRealization` — the unitary `Sobolev.l2R3 ≃ₗᵢ[ℂ] Decomposition.l2R3`.
 -/
 
 open MeasureTheory Complex Filter Set Real Matrix ContinuousLinearMap
@@ -455,8 +455,8 @@ theorem eLpNorm_chartRealizationFun (g : Spectra.Sobolev.R3 → ℂ)
 
 /-- **The forward isometry** `L²(ℝ³, Cartesian) →ₗᵢ L²(ℝ³, spherical)`, `g ↦ g ∘ sphereChart`. -/
 noncomputable def chartRealizationₗᵢ :
-    Spectra.Sobolev.L2_R3 →ₗᵢ[ℂ]
-      Spectra.QuantumMechanics.Hydrogen.Decomposition.L2_R3 :=
+    Spectra.Sobolev.l2R3 →ₗᵢ[ℂ]
+      Spectra.QuantumMechanics.Hydrogen.Decomposition.l2R3 :=
   MeasureTheory.Lp.compMeasurePreservingₗᵢ (𝕜 := ℂ) (E := ℂ)
     (fun p : ℝ × ℝ × ℝ => sphereChart p.1 p.2.1 p.2.2) measurePreserving_sphereChart
 
@@ -627,8 +627,8 @@ theorem measurePreserving_sphereChartInv :
 
 /-- **The chart-realization unitary** `L²(ℝ³, Cartesian) ≃ₗᵢ L²(ℝ³, spherical)`. -/
 noncomputable def chartRealization :
-    Spectra.Sobolev.L2_R3 ≃ₗᵢ[ℂ]
-      Spectra.QuantumMechanics.Hydrogen.Decomposition.L2_R3 :=
+    Spectra.Sobolev.l2R3 ≃ₗᵢ[ℂ]
+      Spectra.QuantumMechanics.Hydrogen.Decomposition.l2R3 :=
   LinearIsometryEquiv.ofSurjective chartRealizationₗᵢ (by
     intro h
     refine ⟨MeasureTheory.Lp.compMeasurePreservingₗᵢ (𝕜 := ℂ) (E := ℂ) sphereChartInv
@@ -652,14 +652,14 @@ noncomputable def chartRealization :
     rw [h1, h3]; exact h4)
 
 /-- The forward unitary acts a.e. as precomposition with the spherical chart. -/
-lemma chartRealization_coeFn (g : Spectra.Sobolev.L2_R3) :
+lemma chartRealization_coeFn (g : Spectra.Sobolev.l2R3) :
     ⇑(chartRealization g) =ᵐ[radialMeasure.prod sphereMeasure]
       fun p : ℝ × ℝ × ℝ => g (sphereChart p.1 p.2.1 p.2.2) :=
   MeasureTheory.Lp.coeFn_compMeasurePreserving g measurePreserving_sphereChart
 
 /-- The inverse unitary acts a.e. as precomposition with the (a.e.) inverse chart. -/
 lemma chartRealization_symm_coeFn
-    (h : Spectra.QuantumMechanics.Hydrogen.Decomposition.L2_R3) :
+    (h : Spectra.QuantumMechanics.Hydrogen.Decomposition.l2R3) :
     ⇑(chartRealization.symm h) =ᵐ[volume] fun x : Spectra.Sobolev.R3 => h (sphereChartInv x) := by
   have hfwd : chartRealization (MeasureTheory.Lp.compMeasurePreservingₗᵢ (𝕜 := ℂ) (E := ℂ)
       sphereChartInv measurePreserving_sphereChartInv h) = h := by

@@ -166,7 +166,7 @@ lemma sphericalHarmonic_sphereChartInv_eq (ℓ : ℕ) (m : ℤ) (hm : |m| ≤ (�
 /-! ## Identifying the separated eigenfunction with the spherical eigenfunction
 
 `hydrogenEigenfunction n ℓ ↑m hn hm'` lives on the *spherical* `L²` side
-(`Decomposition.L2_R3`).  Transporting it back to Cartesian `L²(ℝ³)` through the chart
+(`Decomposition.l2R3`).  Transporting it back to Cartesian `L²(ℝ³)` through the chart
 unitary `chartRealization.symm` produces exactly the separated product
 `separatedEigenfunction n ℓ m hn`.  This is the bridge that turns the genuine eigenvector
 `hydrogenEigenfunction` into the concrete Cartesian witness and conversely. -/
@@ -243,18 +243,18 @@ is a genuine `H²` eigenvector of the Cartesian hydrogen Hamiltonian `H = −½�
 `Eₙ = −1/(2n²)`. -/
 theorem hydrogen_bound_state_separated (n ℓ m : ℕ) (hn : ℓ + 1 ≤ n) (hm : m ≤ ℓ) (hℓ : 1 ≤ ℓ) :
     ∃ ψ : (hydrogenHamiltonian ⟨1, one_pos⟩).domain,
-      (ψ : Spectra.Sobolev.L2_R3) ≠ 0 ∧
-      (⇑(ψ : Spectra.Sobolev.L2_R3) =ᵐ[volume] separatedEigenfunction n ℓ m hn) ∧
+      (ψ : Spectra.Sobolev.l2R3) ≠ 0 ∧
+      (⇑(ψ : Spectra.Sobolev.l2R3) =ᵐ[volume] separatedEigenfunction n ℓ m hn) ∧
       hydrogenHamiltonian ⟨1, one_pos⟩ ψ
-        = ((hydrogenEigenvalue n (by omega) : ℝ) : ℂ) • (ψ : Spectra.Sobolev.L2_R3) := by
+        = ((hydrogenEigenvalue n (by omega) : ℝ) : ℂ) • (ψ : Spectra.Sobolev.l2R3) := by
   classical
   set p : CoulombParams := ⟨1, one_pos⟩ with hp
   set E : ℝ := hydrogenEigenvalue n (by omega) with hE_def
-  set Ψ : Spectra.Sobolev.L2_R3 := (memLp_separated n ℓ m hn hm hℓ).toLp _ with hΨ_def
+  set Ψ : Spectra.Sobolev.l2R3 := (memLp_separated n ℓ m hn hm hℓ).toLp _ with hΨ_def
   have hΨ : ⇑Ψ =ᵐ[volume] separatedEigenfunction n ℓ m hn :=
     (memLp_separated n ℓ m hn hm hℓ).coeFn_toLp
   -- abbreviations for the classical second partials (the L² witnesses)
-  set d2 : Fin 3 → Fin 3 → Spectra.Sobolev.L2_R3 :=
+  set d2 : Fin 3 → Fin 3 → Spectra.Sobolev.l2R3 :=
     fun i j => (memLp_separated_second n ℓ m hn hm hℓ i j).toLp _ with hd2_def
   -- `Ψ ∈ H²` from the separated weak-derivative stack
   have hH2 : MemSobolevH2 Ψ := by
@@ -392,9 +392,9 @@ the Condon–Shortley conjugation), and so for the whole `degenFamily n`. -/
 
 /-- **Eigenpair transfer along an `L²` equality.**  If a domain element `ψ` is an eigenvector
 at `E`, then any `L²` element equal to `↑ψ` is itself in the domain and an eigenvector at `E`. -/
-lemma eigvec_transfer (p : CoulombParams) (E : ℝ) (w : Spectra.Sobolev.L2_R3)
-    (ψ : (hydrogenHamiltonian p).domain) (hw : (ψ : Spectra.Sobolev.L2_R3) = w)
-    (heig : hydrogenHamiltonian p ψ = (E : ℂ) • (ψ : Spectra.Sobolev.L2_R3)) :
+lemma eigvec_transfer (p : CoulombParams) (E : ℝ) (w : Spectra.Sobolev.l2R3)
+    (ψ : (hydrogenHamiltonian p).domain) (hw : (ψ : Spectra.Sobolev.l2R3) = w)
+    (heig : hydrogenHamiltonian p ψ = (E : ℂ) • (ψ : Spectra.Sobolev.l2R3)) :
     ∃ hmem : w ∈ (hydrogenHamiltonian p).domain,
       hydrogenHamiltonian p ⟨w, hmem⟩ = (E : ℂ) • w := by
   refine ⟨hw ▸ ψ.2, ?_⟩
@@ -457,7 +457,7 @@ lemma chartRealization_symm_sstate_eigenpair (n : ℕ) (hn : 1 ≤ n) (hm : |(0 
         ≤ |sphericalNorm 0 0| * (C₂ * Real.exp (-a * r)) := by gcongr; exact hC₂ r hr
       _ = |sphericalNorm 0 0| * C₂ * Real.exp (-a * r) := by ring
   -- the transported s-state as the explicit `Ψ`
-  set Ψ : Spectra.Sobolev.L2_R3 := chartRealization.symm (hydrogenEigenfunction n 0 0 hn0 hm)
+  set Ψ : Spectra.Sobolev.l2R3 := chartRealization.symm (hydrogenEigenfunction n 0 0 hn0 hm)
     with hΨ_def
   have hΨ : ⇑Ψ =ᵐ[volume] fun x : R3 => g ‖x‖ :=
     chartRealization_symm_eigenfunction_coeFn n hn0 hm
@@ -504,7 +504,7 @@ lemma chartRealization_symm_sstate_eigenpair (n : ℕ) (hn : 1 ≤ n) (hm : |(0 
     intro x hx
     have := heigen x hx
     simpa [hp, hE_def] using this
-  set d2 : Fin 3 → Fin 3 → Spectra.Sobolev.L2_R3 :=
+  set d2 : Fin 3 → Fin 3 → Spectra.Sobolev.l2R3 :=
     fun i j => (memLp_second_deriv g hg ha hbd1 hbd2 i j).toLp _ with hd2_def
   have hH2 : MemSobolevH2 Ψ := by
     refine ⟨fun i => ⟨(memLp_first_deriv g hg ha hbd1 i).toLp _,
@@ -584,7 +584,7 @@ lemma chartRealization_symm_eigenfunction_eigenpair_nat (n ℓ m : ℕ) (hn : �
     simpa using this
   · -- `ℓ ≥ 1`: the separated branch, transferred along the connection a.e. equality
     obtain ⟨ψ, _, hψae, hψeig⟩ := hydrogen_bound_state_separated n ℓ m hn hm hℓ1
-    have heq : (ψ : Spectra.Sobolev.L2_R3)
+    have heq : (ψ : Spectra.Sobolev.l2R3)
         = chartRealization.symm (hydrogenEigenfunction n ℓ (m : ℤ) hn hm') := by
       refine Lp.ext (hψae.trans ?_)
       exact (chartRealization_symm_eigenfunction_eq_separated n ℓ m hn hm hm').symm
@@ -636,7 +636,7 @@ lemma star_hydrogenEigenfunction (n ℓ m : ℕ) (hn : ℓ + 1 ≤ n) (_hm : m �
 
 /-- **`chartRealization.symm` commutes with conjugation.**  Transporting the conjugate of a
 spherical element back to Cartesian `L²` is the conjugate of its transport. -/
-lemma chartRealization_symm_star (v : Decomposition.L2_R3) :
+lemma chartRealization_symm_star (v : Decomposition.l2R3) :
     chartRealization.symm (star v) = star (chartRealization.symm v) := by
   refine Lp.ext ?_
   -- LHS coeFn: `(star v) ∘ sphereChartInv`, a.e.
@@ -655,17 +655,17 @@ lemma chartRealization_symm_star (v : Decomposition.L2_R3) :
 /-- **Eigenvectors are closed under the domain scalar action.**  If `χ` is an eigenvector at `E`,
 so is `c • χ` for any complex `c` (and `↑(c • χ) = c • ↑χ`). -/
 lemma eigvec_smul (p : CoulombParams) (E : ℝ) (c : ℂ) (χ : (hydrogenHamiltonian p).domain)
-    (heig : hydrogenHamiltonian p χ = (E : ℂ) • (χ : Spectra.Sobolev.L2_R3)) :
-    ∃ hmem : c • (χ : Spectra.Sobolev.L2_R3) ∈ (hydrogenHamiltonian p).domain,
-      hydrogenHamiltonian p ⟨c • (χ : Spectra.Sobolev.L2_R3), hmem⟩
-        = (E : ℂ) • (c • (χ : Spectra.Sobolev.L2_R3)) := by
+    (heig : hydrogenHamiltonian p χ = (E : ℂ) • (χ : Spectra.Sobolev.l2R3)) :
+    ∃ hmem : c • (χ : Spectra.Sobolev.l2R3) ∈ (hydrogenHamiltonian p).domain,
+      hydrogenHamiltonian p ⟨c • (χ : Spectra.Sobolev.l2R3), hmem⟩
+        = (E : ℂ) • (c • (χ : Spectra.Sobolev.l2R3)) := by
   refine ⟨(c • χ).2, ?_⟩
-  have hcoe : ((c • χ : (hydrogenHamiltonian p).domain) : Spectra.Sobolev.L2_R3)
-      = c • (χ : Spectra.Sobolev.L2_R3) := rfl
-  have hχeq : (⟨c • (χ : Spectra.Sobolev.L2_R3), (c • χ).2⟩ : (hydrogenHamiltonian p).domain)
+  have hcoe : ((c • χ : (hydrogenHamiltonian p).domain) : Spectra.Sobolev.l2R3)
+      = c • (χ : Spectra.Sobolev.l2R3) := rfl
+  have hχeq : (⟨c • (χ : Spectra.Sobolev.l2R3), (c • χ).2⟩ : (hydrogenHamiltonian p).domain)
       = c • χ := Subtype.ext hcoe.symm
   rw [hχeq, LinearPMap.map_smul, heig]
-  exact smul_comm c ((E : ℝ) : ℂ) (χ : Spectra.Sobolev.L2_R3)
+  exact smul_comm c ((E : ℝ) : ℂ) (χ : Spectra.Sobolev.l2R3)
 
 /-- **The transported named eigenfunction is a genuine eigenvector — general integer `m`.**
 For `0 ≤ ℓ < n` and any `M ∈ {−ℓ,…,ℓ}`, `chartRealization.symm (hydrogenEigenfunction n ℓ M hn hM)`
@@ -701,7 +701,7 @@ lemma chartRealization_symm_eigenfunction_eigenpair (n ℓ : ℕ) (M : ℤ) (hn 
     -- `star psiPos` is an eigenvector at the (real) eigenvalue `Eₙ`
     have hstar_eig := hydrogenHamiltonian_star ⟨1, one_pos⟩ (hydrogenEigenvalue n hn1) psiPos heigPos
     set χ : (hydrogenHamiltonian ⟨1, one_pos⟩).domain :=
-      ⟨star (psiPos : Spectra.Sobolev.L2_R3), memSobolevH2_star _ psiPos.2⟩ with hχ_def
+      ⟨star (psiPos : Spectra.Sobolev.l2R3), memSobolevH2_star _ psiPos.2⟩ with hχ_def
     -- the Condon–Shortley constant `κ ≠ 0`
     set κ : ℝ := sphericalNorm ℓ (m : ℤ) * reflectionFactor ℓ (m : ℤ)
         / (sphericalNorm ℓ (-(m : ℤ)) * reflectionFactor ℓ (-(m : ℤ))) with hκ_def
@@ -712,7 +712,7 @@ lemma chartRealization_symm_eigenfunction_eigenpair (n ℓ : ℕ) (M : ℤ) (hn 
     -- `eigfn n ℓ M = κ⁻¹ • star (eigfn n ℓ m)`, so its chart-transport is `κ⁻¹ • star ↑psiPos`
     have hconj := star_hydrogenEigenfunction n ℓ m hn hmℓ hm' hM
     have hMtransport : chartRealization.symm (hydrogenEigenfunction n ℓ (-(m : ℤ)) hn hM)
-        = (((κ⁻¹ : ℝ) : ℂ)) • (χ : Spectra.Sobolev.L2_R3) := by
+        = (((κ⁻¹ : ℝ) : ℂ)) • (χ : Spectra.Sobolev.l2R3) := by
       -- from `hconj : star (eigfn m) = κ • eigfn (−m)`: `eigfn (−m) = κ⁻¹ • star (eigfn m)`
       have hinv : hydrogenEigenfunction n ℓ (-(m : ℤ)) hn hM
           = ((κ⁻¹ : ℝ) : ℂ) • star (hydrogenEigenfunction n ℓ (m : ℤ) hn hm') := by

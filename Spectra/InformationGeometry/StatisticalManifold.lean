@@ -140,7 +140,7 @@ def dim : ℕ := n
 
 /-- A `StatisticalManifold` automatically satisfies
 `SmoothFisherModel`. -/
-def smoothFisherModel :
+lemma smoothFisherModel :
     S.model.SmoothFisherModel where
   scoreSqIntegrable := S.scoreSqIntegrable_everywhere
   scoreInjective := S.scoreInjective_everywhere
@@ -184,7 +184,13 @@ lemma fisherMetric_smooth (i j : Fin n) :
 /-! ### The Fisher inner product -/
 
 /-- The **Fisher inner product** on tangent vectors at `θ`:
-  `⟨v, w⟩_θ = g_θ(v, w) = E_θ[⟨v, s⟩ · ⟨w, s⟩]`. -/
+  `⟨v, w⟩_θ = g_θ(v, w) = E_θ[⟨v, s⟩ · ⟨w, s⟩]`.
+
+`RiemannianMetric.eval` is unconditional, so the `_hθ` hypothesis is not needed to construct the
+value itself. It is kept as an explicit argument (rather than dropped) so that `fisherNorm`,
+`fisherDist`, and every downstream lemma below can recover it from the inner product's own
+application; `@[nolint unusedArguments]` silences the resulting linter complaint. -/
+@[nolint unusedArguments]
 noncomputable def fisherInnerProduct {θ : ParamSpace n}
     (_hθ : θ ∈ S.domain)
     (v w : ParamSpace n) : ℝ :=

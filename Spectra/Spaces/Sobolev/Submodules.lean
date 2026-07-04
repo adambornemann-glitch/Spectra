@@ -2,10 +2,58 @@
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
-File: Spectra/Spaces/Sobolev/Submodule.lean
+File: Spectra/Spaces/Sobolev/Submodules.lean
 -/
 import Spectra.Spaces.Sobolev.Operations
 import Mathlib.Analysis.Calculus.FDeriv.Symmetric
+
+/-!
+# Sobolev Spaces as Submodules, and the Weak Laplacian
+
+This file upgrades the membership predicates `MemSobolevH1`/`MemSobolevH2` (from
+`WeakDerivative.lean`/`Operations.lean`) into genuine `Submodule ℂ l2R3` structures, extracts the
+weak gradient and its Dirichlet norm, and assembles the weak Laplacian `-Δ` into a bundled linear
+map on `H²(ℝ³)` — the exact operator later wired into the free-particle/hydrogen generator.
+
+## Main definitions
+
+* `MemSobolevH1`, `MemSobolevH2`: membership predicates for `H¹(ℝ³)`/`H²(ℝ³)`, asserting existence
+  of all first-order (resp. up to second-order) weak derivatives in `l2R3`.
+* `SobolevH1`, `SobolevH2`: the same, packaged as `Submodule ℂ l2R3` (closed under `0`, `+`, `•`).
+* `weakGradient`, `gradientNormSq`: the weak gradient `∇f` of an `H¹` function and its Dirichlet
+  energy `∫|∇f|² = Σᵢ‖∂ᵢf‖²`, both taken unbundled over `(f, hf : MemSobolevH1 f)`.
+* `weakGradientLM`: a bundled wrapper for `weakGradient`, taking `f : SobolevH1` directly.
+* `weakLaplacian`: the weak `-Δf = -Σᵢ∂ᵢ²f` for `f` with `hf : MemSobolevH2 f`.
+* `laplacianLinearMap`: `-Δ` bundled as a `SobolevH2 →ₗ[ℂ] l2R3`.
+
+## Main results
+
+* `sobolevH2_le_sobolevH1`: `H² ⊆ H¹` as submodules.
+* `weakLaplacian_add`, `weakLaplacian_smul`: `-Δ` is additive and homogeneous, which is exactly
+  what makes `laplacianLinearMap` well-defined as a linear map.
+* `gradientNormSq_nonneg`: the Dirichlet energy is non-negative.
+
+## Implementation notes
+
+`weakGradient` and `gradientNormSq` are kept **unbundled** — taking a raw `f : l2R3` together with
+a separate membership proof `hf : MemSobolevH1 f` — because most call sites (`IntegrationByParts.lean`,
+`Embeddings.lean`, the Hydrogen/Dirac developments) already carry `f` and `hf` as independent
+hypotheses from earlier reasoning (e.g. `f` arrives as a component of an unbundled sum, or `hf` is
+produced mid-proof by a density/limit argument), so demanding a `SobolevH1` term up front would just
+force an extra `⟨f, hf⟩` repackaging at every use. `laplacianLinearMap`, by contrast, is the
+*capstone* object — the operator handed to `LinearPMap`/`SelfAdjointOperator` machinery downstream,
+which is expressed natively in terms of `Submodule`s (`domain`, `IsSelfAdjoint` on `LinearPMap`, …) —
+so bundling it over `SobolevH2` is the natural fit there. To bridge the two styles without forcing a
+breaking change on the unbundled API, `weakGradientLM` is provided as an additive, bundled wrapper
+around `weakGradient` for callers that already hold a `SobolevH1` term.
+
+## References
+
+* [Adams, Fournier, *Sobolev Spaces*][adams2003]
+* [Reed, Simon, *Methods of Modern Mathematical Physics II*][reed1975]
+* [Lieb, Loss, *Analysis*][lieb2001], Chapter 7.
+-/
+
 open MeasureTheory
 
 namespace Spectra.Sobolev
@@ -14,17 +62,17 @@ namespace Spectra.Sobolev
 
 /-- Predicate: f ∈ H¹(ℝ³).
     All first-order weak derivatives exist and are in L². -/
-def MemSobolevH1 (f : L2_R3) : Prop :=
-  ∀ i : Fin 3, ∃ g : L2_R3, HasWeakDerivative f i g
+def MemSobolevH1 (f : l2R3) : Prop :=
+  ∀ i : Fin 3, ∃ g : l2R3, HasWeakDerivative f i g
 
 /-- Predicate: f ∈ H²(ℝ³).
     All weak derivatives up to order 2 exist and are in L². -/
-def MemSobolevH2 (f : L2_R3) : Prop :=
+def MemSobolevH2 (f : l2R3) : Prop :=
   MemSobolevH1 f ∧
-  ∀ i j : Fin 3, ∃ g : L2_R3, HasWeakSecondDerivative f i j g
+  ∀ i j : Fin 3, ∃ g : l2R3, HasWeakSecondDerivative f i j g
 
 /-- H¹(ℝ³) as a ℂ-submodule of L²(ℝ³). -/
-def SobolevH1 : Submodule ℂ L2_R3 where
+def SobolevH1 : Submodule ℂ l2R3 where
   carrier := { f | MemSobolevH1 f }
   zero_mem' := fun i => ⟨0, hasWeakDerivative_zero i⟩
   add_mem' := fun {f₁ f₂} hf₁ hf₂ i =>
@@ -34,9 +82,8 @@ def SobolevH1 : Submodule ℂ L2_R3 where
     ⟨c • (hf i).choose,
      hasWeakDerivative_smul c f i _ (hf i).choose_spec⟩
 
-
 /-- H²(ℝ³) as a ℂ-submodule of L²(ℝ³). -/
-def SobolevH2 : Submodule ℂ L2_R3 where
+def SobolevH2 : Submodule ℂ l2R3 where
   carrier := { f | MemSobolevH2 f }
   zero_mem' := by
     refine ⟨fun i => ⟨0, hasWeakDerivative_zero i⟩, fun i j => ⟨0, ?_⟩⟩
@@ -60,7 +107,7 @@ def SobolevH2 : Submodule ℂ L2_R3 where
       hasWeakDerivative_smul c mid j g hd'⟩
 
 /-- H² ⊆ H¹ as submodules. -/
-lemma sobolevH2_le_H1 : SobolevH2 ≤ SobolevH1 := by
+lemma sobolevH2_le_sobolevH1 : SobolevH2 ≤ SobolevH1 := by
   intro f hf
   exact hf.1
 
@@ -68,35 +115,41 @@ lemma sobolevH2_le_H1 : SobolevH2 ≤ SobolevH1 := by
 
 /-- Extract the weak gradient of an H¹ function.
     Returns the triple (∂₁f, ∂₂f, ∂₃f) as L² functions. -/
-noncomputable def weakGradient (f : L2_R3) (hf : MemSobolevH1 f) : Fin 3 → L2_R3 :=
+noncomputable def weakGradient (f : l2R3) (hf : MemSobolevH1 f) : Fin 3 → l2R3 :=
   fun i => (hf i).choose
 
 /-- The chosen gradient component is indeed the weak derivative. -/
-lemma weakGradient_spec (f : L2_R3) (hf : MemSobolevH1 f) (i : Fin 3) :
+lemma weakGradient_spec (f : l2R3) (hf : MemSobolevH1 f) (i : Fin 3) :
     HasWeakDerivative f i (weakGradient f hf i) :=
   (hf i).choose_spec
+
+/-- Bundled wrapper for `weakGradient`, taking a `SobolevH1` term directly instead of an
+    `l2R3` function paired with a separate `MemSobolevH1` proof. Additive alongside the unbundled
+    `weakGradient` (see the module docstring's Implementation notes for why both forms coexist). -/
+noncomputable def weakGradientLM (f : SobolevH1) : Fin 3 → l2R3 :=
+  weakGradient f.1 f.2
 
 /-- The gradient (Dirichlet) norm squared: ∫|∇ψ|² dx = Σᵢ ‖∂ᵢψ‖²_{L²}.
 
     This is the quadratic form associated to -Δ. For ψ ∈ H²:
       ⟨-Δψ, ψ⟩ = ∫|∇ψ|² dx
     which is the content of `gradient_norm_sq_eq_laplacian_inner` below. -/
-noncomputable def gradientNormSq (f : L2_R3) (hf : MemSobolevH1 f) : ℝ :=
+noncomputable def gradientNormSq (f : l2R3) (hf : MemSobolevH1 f) : ℝ :=
   ∑ i : Fin 3, ‖weakGradient f hf i‖ ^ 2
 
 /-- The gradient norm squared is non-negative. -/
-lemma gradientNormSq_nonneg (f : L2_R3) (hf : MemSobolevH1 f) :
+lemma gradientNormSq_nonneg (f : l2R3) (hf : MemSobolevH1 f) :
     0 ≤ gradientNormSq f hf := by
   simp only [gradientNormSq]
   exact Finset.sum_nonneg fun i _ => sq_nonneg _
 
-
-/-- The weak Laplacian: -Δf = -Σᵢ ∂ᵢ²f. -/
-noncomputable def weakLaplacian (f : L2_R3) (hf : MemSobolevH2 f) : L2_R3 :=
+/-- The weak Laplacian, i.e. **-Δ**: `weakLaplacian f hf = -Δf = -Σᵢ ∂ᵢ²f`. The defined object
+    already carries the sign convention — this is *negative* Δ, not Δ itself. -/
+noncomputable def weakLaplacian (f : l2R3) (hf : MemSobolevH2 f) : l2R3 :=
   -∑ i : Fin 3, (hf.2 i i).choose
 
 /-- The Laplacian is additive. -/
-lemma weakLaplacian_add (f g : L2_R3) (hf : MemSobolevH2 f) (hg : MemSobolevH2 g) :
+lemma weakLaplacian_add (f g : l2R3) (hf : MemSobolevH2 f) (hg : MemSobolevH2 g) :
     weakLaplacian (f + g) (SobolevH2.add_mem hf hg) =
     weakLaplacian f hf + weakLaplacian g hg := by
   simp only [weakLaplacian]
@@ -113,9 +166,8 @@ lemma weakLaplacian_add (f g : L2_R3) (hf : MemSobolevH2 f) (hg : MemSobolevH2 g
      hasWeakDerivative_add f g i midf midg hdf hdg,
      hasWeakDerivative_add midf midg i _ _ hdf' hdg'⟩
 
-
 /-- The Laplacian commutes with scalar multiplication. -/
-lemma weakLaplacian_smul (c : ℂ) (f : L2_R3) (hf : MemSobolevH2 f) :
+lemma weakLaplacian_smul (c : ℂ) (f : l2R3) (hf : MemSobolevH2 f) :
     weakLaplacian (c • f) (SobolevH2.smul_mem c hf) =
     c • weakLaplacian f hf := by
   simp only [weakLaplacian, smul_neg, Finset.smul_sum]
@@ -129,12 +181,12 @@ lemma weakLaplacian_smul (c : ℂ) (f : L2_R3) (hf : MemSobolevH2 f) :
      hasWeakDerivative_smul c f i mid hd_first,
      hasWeakDerivative_smul c mid i _ hd_second⟩
 
-
-/-- The Laplacian as a linear map on the H² submodule.
+/-- **-Δ** as a linear map on the H² submodule: `laplacianLinearMap ⟨f, hf⟩ = -Δf`, matching the
+    sign convention of `weakLaplacian` above.
 
     This is the operator that becomes `Generator.op` for the
     free-particle evolution exp(itΔ). -/
-noncomputable def laplacianLinearMap : SobolevH2 →ₗ[ℂ] L2_R3 where
+noncomputable def laplacianLinearMap : SobolevH2 →ₗ[ℂ] l2R3 where
   toFun := fun ⟨f, hf⟩ => weakLaplacian f hf
   map_add' := fun ⟨f, hf⟩ ⟨g, hg⟩ => weakLaplacian_add f g hf hg
   map_smul' := fun c ⟨f, hf⟩ => weakLaplacian_smul c f hf

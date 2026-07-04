@@ -2,11 +2,11 @@
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
-Filename: Bochner/GNS/Representation/ToStone.lean
 -/
-import Spectra.Bochner.GNS.Representation.StronglyEx
 import Spectra.Bochner.GNS.Representation.Cyclic
-import Spectra.YosidaHille.Basic
+import Spectra.Bochner.GNS.Representation.StronglyEx
+import Spectra.OneParameterUnitaryGroup.Basic
+
 /-!
 # The GNS Unitary Group as a `OneParameterUnitaryGroup`
 
@@ -19,10 +19,10 @@ the standard `OneParameterUnitaryGroup` structure that feeds Stone's theorem.
 
 ## Implementation notes
 
-Each `U(t) = gns.unitaryAction t` is already known to preserve the inner product
-(`gns.isometry`), so `LinearMap.isometryOfInner` turns it directly into a `LinearIsometry`, and
-`LinearIsometry.toContinuousLinearMap` supplies continuity for free — no separate norm-squared
-derivation or `mkContinuous` side-goal is needed.
+`GNSUnitaryGroup.unitaryAction` is already bundled as `H →L[ℂ] H` (built via
+`LinearMap.isometryOfInner`/`.toContinuousLinearMap` in `Representation/UnitaryConstructor.lean`
+at the point of construction), so this repackaging is a direct field-by-field forwarding — no
+re-wrap, norm-squared derivation, or `mkContinuous` side-goal is needed here.
 
 ## References
 
@@ -45,25 +45,12 @@ noncomputable def toOneParameterUnitaryGroup {f : ℝ → ℂ}
   letI := gns.instNACG
   letI := gns.instIPS
   haveI := gns.instComplete
-  -- Each U(t) is a linear isometry (from the inner-product isometry hypothesis), hence continuous.
-  set Uc : ℝ → (gns.H →L[ℂ] gns.H) :=
-    fun t => ((gns.unitaryAction t).isometryOfInner (gns.isometry t)).toContinuousLinearMap
   exact {
-    U := Uc
-    unitary := fun t ψ φ => by
-      simp only [Uc, LinearIsometry.coe_toContinuousLinearMap, LinearMap.coe_isometryOfInner]
-      exact gns.isometry t ψ φ
-    group_law := fun s t => ContinuousLinearMap.ext fun ψ => by
-      simp only [Uc, LinearIsometry.coe_toContinuousLinearMap, LinearMap.coe_isometryOfInner,
-        ContinuousLinearMap.comp_apply]
-      exact (gns.group_law s t ψ)
-    identity := ContinuousLinearMap.ext fun ψ => by
-      simp only [Uc, LinearIsometry.coe_toContinuousLinearMap, LinearMap.coe_isometryOfInner,
-        ContinuousLinearMap.id_apply]
-      exact gns.identity ψ
-    strong_continuous := fun ψ => by
-      exact (gns.strong_continuous ψ).congr fun t => by
-        simp only [Uc, LinearIsometry.coe_toContinuousLinearMap, LinearMap.coe_isometryOfInner]
+    U := gns.unitaryAction
+    unitary := gns.isometry
+    group_law := fun s t => ContinuousLinearMap.ext fun ψ => gns.group_law s t ψ
+    identity := ContinuousLinearMap.ext fun ψ => gns.identity ψ
+    strong_continuous := gns.strong_continuous
   }
 
 end Spectra.Bochner.GNS

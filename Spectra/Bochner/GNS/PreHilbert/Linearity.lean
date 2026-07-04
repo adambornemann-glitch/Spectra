@@ -2,21 +2,37 @@
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
-Filename: Bochner/GNS/PreHilbert/Linearity.lean
 -/
 import Spectra.Bochner.GNS.PreHilbert.Evolution
 
-open Complex Finsupp
+/-!
+# Linearity of the GNS Pre-Inner Product in the Second Argument
+
+Establishes that `pdInner f` is linear in its second argument, for an arbitrary
+`f : ℝ → ℂ` (no Hermitian hypothesis is needed here, matching the physics convention
+of `Defs.lean`: conjugate-linear in the first slot, linear in the second). Conjugate-linearity
+in the *first* slot is derived separately in `Conjugate.lean`, once `IsHermitian f` is
+available to relate the two slots via `pdInner_conj_symm`.
+
+## Main statements
+
+* `pdInner_add_right` — `⟨α, β₁ + β₂⟩ = ⟨α, β₁⟩ + ⟨α, β₂⟩`.
+* `pdInner_smul_right` — `⟨α, c • β⟩ = c · ⟨α, β⟩`.
+* `pdInner_sub_right` — `⟨α, β₁ - β₂⟩ = ⟨α, β₁⟩ - ⟨α, β₂⟩`.
+-/
+
+open Finsupp
+
 namespace Spectra.Bochner.GNS
 
 -- §3  Zero and linearity
 
-/-- `⟨0, β⟩ = 0`. -/
+/-- `⟨0, β⟩ = 0`: the outer `Finsupp.sum` over the zero finsupp is the empty sum. -/
 lemma pdInner_zero_left (f : ℝ → ℂ) (β : ℝ →₀ ℂ) :
     pdInner f 0 β = 0 := by
   unfold pdInner; simp [Finsupp.sum]
 
-/-- `⟨α, 0⟩ = 0`. -/
+/-- `⟨α, 0⟩ = 0`: each inner `Finsupp.sum` over the zero finsupp vanishes. -/
 lemma pdInner_zero_right (f : ℝ → ℂ) (α : ℝ →₀ ℂ) :
     pdInner f α 0 = 0 := by
   unfold pdInner; simp [Finsupp.sum_zero_index]
@@ -57,5 +73,12 @@ lemma pdInner_smul_right (f : ℝ → ℂ) (α : ℝ →₀ ℂ) (c : ℂ) (β :
   -- Step 2: rewrite under the outer binder, then factor c out of the outer sum
   simp_rw [h_inner]
   simp only [Finsupp.sum, Finset.mul_sum]
+
+/-- Linearity (subtraction) in the second argument: `⟨α, β₁ - β₂⟩ = ⟨α, β₁⟩ - ⟨α, β₂⟩`. -/
+lemma pdInner_sub_right (f : ℝ → ℂ) (α β₁ β₂ : ℝ →₀ ℂ) :
+    pdInner f α (β₁ - β₂) = pdInner f α β₁ - pdInner f α β₂ := by
+  rw [sub_eq_add_neg, pdInner_add_right, show -β₂ = (-1 : ℂ) • β₂ from by ext; simp,
+      pdInner_smul_right]
+  ring
 
 end Spectra.Bochner.GNS

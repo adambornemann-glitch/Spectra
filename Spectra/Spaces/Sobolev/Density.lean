@@ -40,7 +40,7 @@ namespace Spectra.Sobolev
 
 /-- Continuous compactly supported functions are dense in L²(ℝ³). -/
 lemma dense_continuous_compactSupport_L2 :
-    Dense {g : L2_R3 | ∃ (φ : R3 → ℂ),
+    Dense {g : l2R3 | ∃ (φ : R3 → ℂ),
       Continuous φ ∧ HasCompactSupport φ ∧
       (g : R3 → ℂ) =ᵐ[volume] φ} := by
   rw [Metric.dense_iff]
@@ -423,7 +423,7 @@ lemma smooth_approx_continuous_compactSupport
 /-- **Density**: C_c^∞(ℝ³) is dense in L²(ℝ³).
     Chain: L² ←ε/2— C_c ←ε/2— C_c^∞. -/
 lemma dense_test_functions_L2 :
-    Dense {g : L2_R3 | ∃ (φ : R3 → ℂ),
+    Dense {g : l2R3 | ∃ (φ : R3 → ℂ),
       ContDiff ℝ ∞ φ ∧ HasCompactSupport φ ∧
       (g : R3 → ℂ) =ᵐ[volume] φ} := by
   rw [Metric.dense_iff]

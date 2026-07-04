@@ -48,8 +48,11 @@ variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H]
 
 namespace Spectra
 
+/-- A one-parameter unitary group `{U(t)}_{t∈ℝ}` on a Hilbert space `H`: a group homomorphism
+from `(ℝ, +)` into the unitary operators on `H`, strongly continuous in `t`. -/
 structure OneParameterUnitaryGroup (H : Type*) [NormedAddCommGroup H]
     [InnerProductSpace ℂ H] [CompleteSpace H] where
+  /-- The unitary operator at time `t`. -/
   U : ℝ → (H →L[ℂ] H)
   unitary : ∀ (t : ℝ) (ψ φ : H), ⟪U t ψ, U t φ⟫_ℂ = ⟪ψ, φ⟫_ℂ
   group_law : ∀ s t : ℝ, U (s + t) = (U s).comp (U t)

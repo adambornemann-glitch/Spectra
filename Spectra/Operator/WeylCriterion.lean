@@ -4,46 +4,28 @@ Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
 Filename: Operator/WeylCriterion.lean
 -/
-import Spectra.SpectralTheory.Essential.Discrete
+import Spectra.Resolvent.BoundedBelow
 /-!
 # Weyl's criterion for the full spectrum
 
-`Spectra.Essential.essSpectrum` already characterizes the *essential* spectrum via singular
-(weakly-null) Weyl sequences. This file drops the weak-nullness requirement to characterize the
-*entire* spectrum: `λ ∈ spectrum A` iff there is an approximate eigensequence `ψ : ℕ → A.domain`
-with `‖ψ n‖ → 1` and `‖A ψ n − λ ψ n‖ → 0`.
+`λ ∈ spectrum A` iff there is an approximate eigensequence `ψ : ℕ → A.domain` with
+`‖ψ n‖ → 1` and `‖A ψ n − λ ψ n‖ → 0` — no weak-nullness required (that stronger, *singular*
+notion characterizes the essential spectrum, `Spectra.Essential.essSpectrum`).
 
 This is genuinely an **operator/resolvent-theory** fact — `Spectra.Resolvent.spectrum` is itself
-defined purely via bounded invertibility of `A - z` (no spectral measure), and the criterion's
-*statement* mentions nothing but `A` and vectors. It belongs here in `Operator/`, not in
-`SpectralTheory/Essential/`, even though the *proof* below currently takes a shortcut through
-spectral-measure machinery.
-
-## TODO: a PVM-free proof
-
-The backward direction (`∃` Weyl sequence `→ λ ∈ spectrum`) is already proof-theoretically pure —
-a direct resolvent/squeeze argument, no spectral measure anywhere. The forward direction, though,
-currently routes through `essSpectrum` and `SpectralTheory.Essential.Discrete`'s
-spectral-annulus construction (built from projection-valued measures) purely for reuse — that
-machinery was already sorry-free and available, not because the fact needs it. The classical proof
-of "`λ ∈ spectrum` ⟹ `∃` approximate eigensequence" only needs closed-operator theory: if
-`A - λ` is not bounded below, an approximate eigensequence falls out of the definition directly;
-if it *is* bounded below (hence injective with closed range) but not surjective, a unit vector
-orthogonal to the range is — via `(A - λ)` self-adjoint — an honest eigenvector, by the same
-weak-eigenvalue/adjoint-domain-membership technique already used in
-`Resolvent/Range/Orthogonal.lean` and `YosidaHille/Helpers.lean`'s `op_range_dense`. Reproving the
-forward direction this way would let this file drop its `SpectralTheory.Essential` dependency
-entirely.
+defined purely via bounded invertibility of `A - z` (no spectral measure), and both the statement
+and the proof below mention nothing but `A` and vectors. The proof is PVM-free: the forward
+direction case-splits on whether `A - λ` is bounded below. If not, normalizing witnesses of the
+failure at bounds `1/(n+1)` produces the Weyl sequence directly. If so, the range of `A - λ` is
+closed (`Spectra.Resolvent.range_isClosed_of_boundedBelow`) and dense
+(`Spectra.Resolvent.range_dense_of_boundedBelow_real` — an orthogonal vector is a genuine
+`λ`-eigenvector, killed by the bound), so `λ` is a resolvent point
+(`Spectra.Resolvent.mem_resolventSet_of_boundedBelow_real`), contradicting `λ ∈ spectrum A`.
+The backward direction is a direct squeeze against the bounded left inverse.
 
 ## Main results
 
-* `mem_spectrum_iff_exists_weylSequence` — the criterion. The forward direction case-splits on
-  `essSpectrum` membership: inside it, the singular Weyl sequence already built by
-  `SpectralTheory.Essential.Discrete` works verbatim (its weak-null component is simply dropped);
-  outside it, `mem_pointSpectrum_of_mem_spectrum_notMem_essSpectrum` extracts a genuine
-  eigenvector, whose normalization is a constant (hence trivially convergent) Weyl sequence. The
-  backward direction is `essSpectrum_subset_spectrum`'s own argument, which never actually used
-  weak-nullness.
+* `mem_spectrum_iff_exists_weylSequence` — the criterion.
 
 ## References
 
@@ -52,35 +34,59 @@ entirely.
 -/
 open Filter Topology
 open scoped InnerProductSpace
-open Spectra.Essential Spectra.Resolvent
 
 namespace Spectra.Operator
 
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
 
 omit [CompleteSpace H] in
-/-- A normalized eigenvector gives a constant, exactly-satisfying Weyl sequence. -/
-private lemma weylSequence_of_eigenvector {A : H →ₗ.[ℂ] H} {lam : ℝ} {ψ : A.domain}
-    (hψne : (ψ : H) ≠ 0) (heig : A ψ = (lam : ℂ) • (ψ : H)) :
-    ∃ φ : ℕ → A.domain, Tendsto (fun n => ‖(φ n : H)‖) atTop (𝓝 1) ∧
-      Tendsto (fun n => ‖A (φ n) - (lam : ℂ) • (φ n : H)‖) atTop (𝓝 0) := by
-  have hnorm_pos : (0 : ℝ) < ‖(ψ : H)‖ := norm_pos_iff.mpr hψne
-  set φ : A.domain := (‖(ψ : H)‖ : ℂ)⁻¹ • ψ with hφ
-  have hφnorm : ‖(φ : H)‖ = 1 := by
-    show ‖(‖(ψ : H)‖ : ℂ)⁻¹ • (ψ : H)‖ = 1
+/-- If `A - λ` is not bounded below, normalizing witnesses of the failure at bounds `1/(n+1)`
+yields a Weyl sequence: unit vectors with `‖A ψ n - λ ψ n‖ < 1/(n+1) → 0`. -/
+private lemma exists_weylSequence_of_not_boundedBelow {A : H →ₗ.[ℂ] H} {lam : ℝ}
+    (hbb : ¬ ∃ c : ℝ, 0 < c ∧ ∀ ψ : A.domain, c * ‖(ψ : H)‖ ≤ ‖A ψ - (lam : ℂ) • (ψ : H)‖) :
+    ∃ ψ : ℕ → A.domain, Tendsto (fun n => ‖(ψ n : H)‖) atTop (𝓝 1) ∧
+      Tendsto (fun n => ‖A (ψ n) - (lam : ℂ) • (ψ n : H)‖) atTop (𝓝 0) := by
+  push Not at hbb
+  have hseq : ∀ n : ℕ, ∃ ψ : A.domain,
+      ‖A ψ - (lam : ℂ) • (ψ : H)‖ < (1 / ((n : ℝ) + 1)) * ‖(ψ : H)‖ :=
+    fun n => hbb (1 / ((n : ℝ) + 1)) (by positivity)
+  choose ψ0 hψ0 using hseq
+  -- strictness forces the witnesses to be nonzero
+  have hne : ∀ n, (0 : ℝ) < ‖(ψ0 n : H)‖ := by
+    intro n
+    by_contra h
+    push Not at h
+    have h0 : ‖(ψ0 n : H)‖ = 0 := le_antisymm h (norm_nonneg _)
+    have hlt := hψ0 n
+    rw [h0, mul_zero] at hlt
+    exact absurd hlt (not_lt.mpr (norm_nonneg _))
+  -- normalize
+  set φn : ℕ → A.domain := fun n => (‖(ψ0 n : H)‖ : ℂ)⁻¹ • ψ0 n with hφn
+  have hφnorm : ∀ n, ‖(φn n : H)‖ = 1 := by
+    intro n
+    show ‖(‖(ψ0 n : H)‖ : ℂ)⁻¹ • (ψ0 n : H)‖ = 1
     rw [norm_smul]
-    simp [hnorm_pos.ne']
-  have hφeig : A φ - (lam : ℂ) • (φ : H) = 0 := by
-    have hAφ : A φ = (‖(ψ : H)‖ : ℂ)⁻¹ • A ψ := A.map_smul _ ψ
-    have hφval : (φ : H) = (‖(ψ : H)‖ : ℂ)⁻¹ • (ψ : H) := rfl
-    rw [hAφ, heig, hφval, smul_smul, smul_smul, mul_comm]
-    simp
-  refine ⟨fun _ => φ, ?_, ?_⟩
-  · rw [show (fun _ : ℕ => ‖(φ : H)‖) = fun _ => (1 : ℝ) from funext (fun _ => hφnorm)]
+    simp [(hne n).ne']
+  have hφeig : ∀ n, ‖A (φn n) - (lam : ℂ) • (φn n : H)‖ < 1 / ((n : ℝ) + 1) := by
+    intro n
+    have hAφ : A (φn n) = (‖(ψ0 n : H)‖ : ℂ)⁻¹ • A (ψ0 n) := A.map_smul _ (ψ0 n)
+    have hcoe : ((φn n : A.domain) : H) = (‖(ψ0 n : H)‖ : ℂ)⁻¹ • (ψ0 n : H) := rfl
+    calc ‖A (φn n) - (lam : ℂ) • (φn n : H)‖
+        = ‖(‖(ψ0 n : H)‖ : ℂ)⁻¹‖ * ‖A (ψ0 n) - (lam : ℂ) • (ψ0 n : H)‖ := by
+          rw [hAφ, hcoe, smul_comm ((lam : ℂ)) _ _, ← smul_sub, norm_smul]
+      _ = ‖(ψ0 n : H)‖⁻¹ * ‖A (ψ0 n) - (lam : ℂ) • (ψ0 n : H)‖ := by
+          congr 1
+          simp
+      _ < ‖(ψ0 n : H)‖⁻¹ * ((1 / ((n : ℝ) + 1)) * ‖(ψ0 n : H)‖) := by
+          apply mul_lt_mul_of_pos_left (hψ0 n)
+          exact inv_pos.mpr (hne n)
+      _ = 1 / ((n : ℝ) + 1) := by
+          rw [mul_comm (1 / ((n : ℝ) + 1)), ← mul_assoc, inv_mul_cancel₀ (hne n).ne', one_mul]
+  refine ⟨φn, ?_, ?_⟩
+  · rw [show (fun n => ‖(φn n : H)‖) = fun _ => (1 : ℝ) from funext hφnorm]
     exact tendsto_const_nhds
-  · rw [show (fun _ : ℕ => ‖A φ - (lam : ℂ) • (φ : H)‖) = fun _ => (0 : ℝ) from
-      funext (fun _ => by rw [hφeig, norm_zero])]
-    exact tendsto_const_nhds
+  · exact squeeze_zero (fun n => norm_nonneg _) (fun n => (hφeig n).le)
+      tendsto_one_div_add_atTop_nhds_zero_nat
 
 /-- **Weyl's criterion.** `λ ∈ spectrum A` iff there is an approximate eigensequence
 `ψ : ℕ → A.domain` with `‖ψ n‖ → 1` and `‖A ψ n − λ ψ n‖ → 0` — no weak-nullness required. -/
@@ -90,13 +96,12 @@ theorem mem_spectrum_iff_exists_weylSequence {A : H →ₗ.[ℂ] H} (hA : IsSelf
         Tendsto (fun n => ‖A (ψ n) - (lam : ℂ) • (ψ n : H)‖) atTop (𝓝 0) := by
   constructor
   · intro hspec
-    by_cases hess : lam ∈ essSpectrum hA
-    · obtain ⟨ψ, hnorm, -, heig⟩ := hess
-      exact ⟨ψ, hnorm, heig⟩
-    · obtain ⟨ψ, hψne, hψeig⟩ :=
-        Spectra.QuantumMechanics.SpectralTheory.mem_pointSpectrum_of_mem_spectrum_notMem_essSpectrum
-          hA hspec hess
-      exact weylSequence_of_eigenvector hψne hψeig
+    by_cases hbb : ∃ c : ℝ, 0 < c ∧
+        ∀ ψ : A.domain, c * ‖(ψ : H)‖ ≤ ‖A ψ - (lam : ℂ) • (ψ : H)‖
+    · obtain ⟨c, hc, hbound⟩ := hbb
+      exact absurd
+        (Spectra.Resolvent.mem_resolventSet_of_boundedBelow_real hA lam hc hbound) hspec
+    · exact exists_weylSequence_of_not_boundedBelow hbb
   · rintro ⟨ψ, hψ_norm, hψ_eig⟩
     intro hres
     obtain ⟨R, hleft, -⟩ := hres

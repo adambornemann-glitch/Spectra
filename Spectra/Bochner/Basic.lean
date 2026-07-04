@@ -2,79 +2,133 @@
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
-Filename: Bochner/Basic.lean
 -/
 import Spectra.Bochner.GNS.PosDefFun
 import Spectra.Bochner.Borel.Measure.Basic
+
 /-!
-# From GNS to Bochner: The Spectral Route
+# Bochner's Theorem
 
-This file completes the existence direction of Bochner's theorem by
-composing three deep results:
+This file assembles Bochner's theorem — a function `f : ℝ → ℂ` is continuous and positive
+definite if and only if it is the Fourier–Stieltjes transform of a unique finite positive Borel
+measure on `ℝ` — from the pieces built in the `Bochner.GNS` and `Bochner.Borel` directories.
 
-1. **GNS** (Completion.lean): A continuous positive definite function `f`
-   gives a Hilbert space H, a strongly continuous unitary group U(t),
-   and a cyclic vector ξ with `f(t) = ⟨ξ, U(t)ξ⟩`.
+The existence direction is the spectral route:
 
-2. **Stone's theorem** (UnitaryEvo/Stone.lean): The unitary group U(t)
-   has a self-adjoint generator A with `U(t) = exp(itA)`.
+1. **GNS** (`Bochner.GNS.PosDefFun`): a continuous positive definite function `f` gives a Hilbert
+   space `H`, a strongly continuous group of isometries `U(t)`, and a cyclic vector `ξ` with
+   `f(t) = ⟨ξ, U(t)ξ⟩`.
+2. **Stone's theorem** (`OneParameterUnitaryGroup.Basic`): the group `U(t)` has a self-adjoint
+   generator `A` with `U(t) = exp(itA)`.
+3. **The spectral theorem** (`Bochner.Borel.Measure.Basic`): the self-adjoint operator `A` has a
+   projection-valued measure `E`, giving `⟨U(t)ξ, ξ⟩ = ∫ e^{itλ} d⟨E(λ)ξ, ξ⟩`.
 
-3. **Spectral theorem** (SpectralTheory/Cayley.lean): The self-adjoint
-   operator A has a projection-valued measure E, giving
-   `⟨U(t)ξ, ξ⟩ = ∫ e^{itλ} d⟨E(λ)ξ, ξ⟩`.
+The representing measure is `μ(S) = ⟨E(S)ξ, ξ⟩`. In one line:
 
-The representing measure is `μ(S) = ⟨E(S)ξ, ξ⟩`.
-
-## The argument in four lines
+```
 f(t) = ⟨ξ, U(t)ξ⟩                       [GNS]
      = ⟨ξ, exp(itA)ξ⟩                   [Stone]
-     = ∫ e^{itλ} d⟨E(λ)ξ, ξ⟩            [Spectral theorem]
+     = ∫ e^{itλ} d⟨E(λ)ξ, ξ⟩            [spectral theorem]
      = ∫ e^{itλ} dμ(λ)                  [define μ := ⟨E(·)ξ, ξ⟩]
+```
 
-## Tags
+The converse direction — every Fourier–Stieltjes transform of a finite positive measure is
+continuous and positive definite — is proved directly in this file (continuity by dominated
+convergence, Hermitian symmetry by conjugating under the integral, positive definiteness by
+recognizing the double sum `∑ᵢⱼ c̄ᵢcⱼ ∫ e^{iω(tⱼ-tᵢ)} dμ` as `∫ ‖∑ⱼ cⱼe^{iωtⱼ}‖² dμ ≥ 0`).
 
-Bochner's theorem, spectral theorem, Stone's theorem, GNS construction,
-positive definite function, Fourier-Stieltjes transform
+## Main definitions
+
+* `bochnerMeasureSpectral` — the representing measure for `f`, built via GNS → Stone → the
+  spectral theorem.
+
+## Main statements
+
+* `bochner_existence` — every continuous positive definite `f` is the Fourier–Stieltjes transform
+  of some finite positive Borel measure.
+* `bochnerMeasureSpectral_total_mass` — the representing measure has total mass `(f 0).re`.
+* `bochner_theorem` — Bochner's theorem: `f` continuous and positive definite implies `f` is the
+  Fourier–Stieltjes transform of a *unique* finite positive Borel measure.
+* `bochner_theorem_iff` — the full characterization, as an `iff`.
+* `isContinuous_fourierStieltjes` — the converse direction: the Fourier–Stieltjes transform of a
+  finite positive Borel measure is continuous and positive definite.
+
+## Implementation notes
+
+The existence direction goes through the spectral theorem for self-adjoint operators rather than
+Bochner's classical compactness argument (Stone–Weierstrass / Helly selection on the space of
+positive definite functions), since Spectra already has the spectral theorem and Stone's theorem
+as reusable infrastructure; the composition is shorter than re-deriving compactness from scratch.
+
+## References
+
+* [Rudin, *Fourier Analysis on Groups*][rudin1962], §1.4.3
+* [Reed–Simon, *Methods of Modern Mathematical Physics I*][reedsimon1980], §VII
 -/
+
 open Complex MeasureTheory Filter Topology
 open Spectra.Bochner.GNS
 open Spectra.Fourier
 open Spectra.PositiveDefinite
 open Spectra.Borel
 open SpectralMeasure
+
 namespace Spectra.Bochner
+
+/-- Puts the `NormedAddCommGroup`/`InnerProductSpace`/`CompleteSpace` instances of a GNS Hilbert
+space `gns.H` into scope, given `gns : GNSUnitaryGroup f`. Collapses the three-line
+`letI`/`letI`/`haveI` boilerplate shared by every proof below that unfolds
+`gnsUnitaryConstruction`. -/
+local macro "gnsInstances " g:term : tactic =>
+  `(tactic| (letI := ($g).instNACG; letI := ($g).instIPS; haveI := ($g).instComplete))
 
 /-- **The Bochner measure via the spectral route.**
 Given `f` continuous and positive definite:
-1. GNS gives (H, U, ξ) with f(t) = ⟨ξ, U(t)ξ⟩
-2. Stone gives self-adjoint A with U(t) = exp(itA)
-3. Spectral theorem gives PVM E for A
-4. Define μ(S) = ⟨E(S)ξ, ξ⟩
-Then μ is a finite positive Borel measure with
-  f(t) = ∫ e^{itλ} dμ(λ). -/
-noncomputable def bochnerMeasureSpectral (f : ℝ → ℂ)
-    (hf : IsContinuous f) : Measure ℝ := by
+1. GNS gives `(H, U, ξ)` with `f(t) = ⟨ξ, U(t)ξ⟩`.
+2. Stone gives self-adjoint `A` with `U(t) = exp(itA)`.
+3. The spectral theorem gives a PVM `E` for `A`.
+4. Define `μ(S) = ⟨E(S)ξ, ξ⟩`.
+Then `μ` is a finite positive Borel measure with `f(t) = ∫ e^{itλ} dμ(λ)`. -/
+noncomputable def bochnerMeasureSpectral (f : ℝ → ℂ) (hf : IsContinuous f) : Measure ℝ := by
   let gns := gnsUnitaryConstruction hf
-  letI := gns.instNACG
-  letI := gns.instIPS
-  haveI := gns.instComplete
+  gnsInstances gns
   exact (spectral_scalar_measure_exists (toOneParameterUnitaryGroup gns)
-    (gns_cyclic gns.toGNSData)).choose
+    (gnsCyclic gns.toGNSData)).choose
 
-/-- The Bochner measure is finite, with total mass f(0).re. -/
-lemma bochnerMeasureSpectral_finite {f : ℝ → ℂ}
-    (hf : IsContinuous f) :
+/-- The Bochner measure is finite. -/
+lemma bochnerMeasureSpectral_finite {f : ℝ → ℂ} (hf : IsContinuous f) :
     IsFiniteMeasure (bochnerMeasureSpectral f hf) := by
   let gns := gnsUnitaryConstruction hf
-  letI := gns.instNACG
-  letI := gns.instIPS
-  haveI := gns.instComplete
+  gnsInstances gns
   exact (spectral_scalar_measure_exists (toOneParameterUnitaryGroup gns)
-    (gns_cyclic gns.toGNSData)).choose_spec.1
+    (gnsCyclic gns.toGNSData)).choose_spec.1
+
+/-- The defining Fourier representation of the Bochner measure: `f(t) = ∫ e^{itω} dμ(ω)` for
+`μ = bochnerMeasureSpectral f hf`. Recorded standalone since both `bochner_existence` and
+`bochnerMeasureSpectral_total_mass` need it. -/
+lemma bochnerMeasureSpectral_fourier {f : ℝ → ℂ} (hf : IsContinuous f) (t : ℝ) :
+    f t = ∫ ω, cexp (I * (ω : ℂ) * (t : ℂ)) ∂(bochnerMeasureSpectral f hf) := by
+  let gns := gnsUnitaryConstruction hf
+  gnsInstances gns
+  rw [← gns_representation gns t]
+  exact (spectral_scalar_measure_exists
+    (toOneParameterUnitaryGroup gns) (gnsCyclic gns.toGNSData)).choose_spec.2 t
+
+/-- **Total mass of the Bochner measure.** Evaluating `bochnerMeasureSpectral_fourier` at `t = 0`
+gives `f(0) = ∫ 1 dμ = μ(univ)`, and `μ(univ)` is real (as a finite-measure total mass), so the
+total mass is `(f 0).re`. -/
+lemma bochnerMeasureSpectral_total_mass {f : ℝ → ℂ} (hf : IsContinuous f) :
+    haveI := bochnerMeasureSpectral_finite hf
+    ((bochnerMeasureSpectral f hf) Set.univ).toReal = (f 0).re := by
+  haveI := bochnerMeasureSpectral_finite hf
+  have h := bochnerMeasureSpectral_fourier hf 0
+  simp only [Complex.ofReal_zero, mul_zero, Complex.exp_zero, integral_const] at h
+  rw [Complex.real_smul, mul_one, Measure.real_def] at h
+  rw [h, Complex.ofReal_re]
 
 variable (μ : Measure ℝ) [IsFiniteMeasure μ]
 
-/-! ## Continuity ------------------------------------------------------------------- -/
+/-! ## Continuity -/
 
 /-- The Fourier–Stieltjes transform of a finite measure is continuous
 (dominated convergence with constant bound `1`). -/
@@ -93,7 +147,7 @@ lemma fourierStieltjes_continuous :
   · filter_upwards with ω
     exact Complex.continuous_exp.comp (by fun_prop)
 
-/-! ## Hermitian symmetry ----------------------------------------------------------- -/
+/-! ## Hermitian symmetry -/
 
 omit [IsFiniteMeasure μ] in
 /-- Hermitian symmetry of the Fourier–Stieltjes transform: conjugation
@@ -105,11 +159,11 @@ lemma fourierStieltjes_conj_neg (t : ℝ) :
   refine integral_congr_ae (.of_forall fun ω => ?_)
   simp [← Complex.exp_conj]
 
-/-! ## Positive definiteness -------------------------------------------------------- -/
+/-! ## Positive definiteness -/
 
-/-- **Core positivity computation.**  For any `t : Fin n → ℝ`, `c : Fin n → ℂ`,
+/-- **Core positivity computation.** For any `t : Fin n → ℝ`, `c : Fin n → ℂ`,
 `∑ᵢⱼ c̄ᵢ cⱼ ∫ e^{iω(tⱼ-tᵢ)} dμ = ∫ ‖∑ⱼ cⱼ e^{iωtⱼ}‖² dμ ≥ 0`. -/
-theorem fourierStieltjes_double_sum_nonneg {n : ℕ} (t : Fin n → ℝ) (c : Fin n → ℂ) :
+lemma fourierStieltjes_double_sum_nonneg {n : ℕ} (t : Fin n → ℝ) (c : Fin n → ℂ) :
     0 ≤ (∑ i, ∑ j, starRingEnd ℂ (c i) * c j *
         ∫ ω, cexp (I * (ω : ℂ) * ((t j - t i : ℝ) : ℂ)) ∂μ).re := by
   classical
@@ -175,7 +229,8 @@ theorem fourierStieltjes_double_sum_nonneg {n : ℕ} (t : Fin n → ℝ) (c : Fi
   rw [key, Complex.ofReal_re]
   exact integral_nonneg fun ω => Complex.normSq_nonneg _
 
-/-! ## Glue: `IsContinuous` for the Fourier–Stieltjes transform ---------------------
+/-! ## Glue: `IsContinuous` for the Fourier–Stieltjes transform
+
 The three lemmas below are the only place the precise definitions of
 `IsPositiveDefinite` / `IsHermitian` are consumed; adjust here if the
 project's conventions differ from the assumptions in the module docstring. -/
@@ -205,32 +260,26 @@ theorem isContinuous_fourierStieltjes :
   ⟨isPositiveDefinite_fourierStieltjes μ, isHermitian_fourierStieltjes μ,
     (fourierStieltjes_continuous μ).continuousAt⟩
 
-/-! ## Bochner's theorem as a characterization -------------------------------------- -/
+/-! ## Bochner's theorem as a characterization -/
 
-/-- **Bochner's theorem (Existence)**
-Every continuous positive definite function on ℝ is the
-Fourier-Stieltjes transform of a finite positive Borel measure.
+/-- **Bochner's theorem (Existence).**
+Every continuous positive definite function on `ℝ` is the
+Fourier–Stieltjes transform of a finite positive Borel measure.
 The proof composes GNS, Stone, and the spectral theorem:
-  f(t) = ⟨ξ, U(t)ξ⟩ = ⟨ξ, e^{itA}ξ⟩ = ∫ e^{itλ} dμ(λ). -/
-lemma bochner_existence (f : ℝ → ℂ) (hf : IsContinuous f) :
+`f(t) = ⟨ξ, U(t)ξ⟩ = ⟨ξ, e^{itA}ξ⟩ = ∫ e^{itλ} dμ(λ)`. -/
+theorem bochner_existence (f : ℝ → ℂ) (hf : IsContinuous f) :
     ∃ (μ : Measure ℝ), IsFiniteMeasure μ ∧
-      ∀ t, f t = ∫ ω, exp (I * ↑ω * ↑t) ∂μ := by
-  refine ⟨bochnerMeasureSpectral f hf, bochnerMeasureSpectral_finite hf, fun t => ?_⟩
-  let gns := gnsUnitaryConstruction hf
-  letI := gns.instNACG
-  letI := gns.instIPS
-  haveI := gns.instComplete
-  rw [← gns_representation gns t]
-  exact (spectral_scalar_measure_exists
-    (toOneParameterUnitaryGroup gns) (gns_cyclic gns.toGNSData)).choose_spec.2 t
+      ∀ t, f t = ∫ ω, cexp (I * (ω : ℂ) * (t : ℂ)) ∂μ :=
+  ⟨bochnerMeasureSpectral f hf, bochnerMeasureSpectral_finite hf,
+    fun t => bochnerMeasureSpectral_fourier hf t⟩
 
 /-- **Bochner's Theorem (Complete).**
 A function `f : ℝ → ℂ` is continuous and positive definite if and only
-if it is the Fourier-Stieltjes transform of a unique finite positive
-Borel measure on ℝ.  -/
+if it is the Fourier–Stieltjes transform of a unique finite positive
+Borel measure on `ℝ`. -/
 theorem bochner_theorem (f : ℝ → ℂ) (hf : IsContinuous f) :
     ∃! (μ : Measure ℝ), IsFiniteMeasure μ ∧
-      ∀ t, f t = ∫ ω, exp (I * ↑ω * ↑t) ∂μ := by
+      ∀ t, f t = ∫ ω, cexp (I * (ω : ℂ) * (t : ℂ)) ∂μ := by
   obtain ⟨μ, hμ_fin, hμ_rep⟩ := bochner_existence f hf
   refine ⟨μ, ⟨hμ_fin, hμ_rep⟩, ?_⟩
   intro ν ⟨hν_fin, hν_rep⟩
@@ -241,12 +290,12 @@ theorem bochner_theorem (f : ℝ → ℂ) (hf : IsContinuous f) :
 
 /-- **Bochner's Theorem (iff form).**
 A function `f : ℝ → ℂ` is continuous and positive definite if and only
-if it is the Fourier-Stieltjes transform of a unique finite positive
-Borel measure on ℝ. -/
+if it is the Fourier–Stieltjes transform of a unique finite positive
+Borel measure on `ℝ`. -/
 theorem bochner_theorem_iff (f : ℝ → ℂ) :
     IsContinuous f ↔
       ∃! (μ : Measure ℝ), IsFiniteMeasure μ ∧
-        ∀ t, f t = ∫ ω, exp (I * ↑ω * ↑t) ∂μ := by
+        ∀ t, f t = ∫ ω, cexp (I * (ω : ℂ) * (t : ℂ)) ∂μ := by
   constructor
   · exact bochner_theorem f
   · rintro ⟨μ, ⟨hμ_fin, hμ_rep⟩, -⟩

@@ -4,4 +4,3 @@ open Spectra.PositiveDefinite
 #print axioms pd_hermitian_norm_bound
 #print axioms pd_hermitian_norm_sq_bound
 #print axioms pdVariance_tendsto_zero
-#print axioms tendsto_nhdsWithin_Ici_of_tendsto_nhdsWithin_Ioi

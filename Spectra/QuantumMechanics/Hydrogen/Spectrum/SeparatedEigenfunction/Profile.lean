@@ -5,7 +5,7 @@ Authors: Adam Bornemann
 -/
 import Spectra.QuantumMechanics.Hydrogen.Laplacian.SolidHarmonic
 import Spectra.QuantumMechanics.Hydrogen.Spectrum.Degeneracy
-import Spectra.QuantumMechanics.Hydrogen.Spectrum.RadialEigenfunction
+import Spectra.QuantumMechanics.Hydrogen.Spectrum.RadialEigenfunction.Basic
 import Spectra.QuantumMechanics.Hydrogen.Spectrum.SectorProjection
 import Spectra.QuantumMechanics.Hydrogen.Spectrum.SectorReductionLocal
 
@@ -60,7 +60,7 @@ lemma hydrogenRadial_eq_pow_mul_reduced (n ℓ : ℕ) (hn : ℓ + 1 ≤ n) (r : 
 The `H²`-regularity of the *separated* eigenfunction `Ψ = S(‖·‖)·Q` needs the reduced profile
 `S = R/r^ℓ` and its first two derivatives to decay exponentially (so that the `S`-radial part is
 `L²`).  These mirror the `R_{nℓ}` decay lemmas (`tendsto_*_hydrogenRadial_mul_exp` and the
-`exp_bound_of_tendsto` packaging in `RadialEigenfunction.lean`) with the `r^ℓ` prefactor pruned:
+`exp_bound_of_tendsto` packaging in `RadialEigenfunction/Basic.lean`) with the `r^ℓ` prefactor pruned:
 `S = A·e^{−r/n}·L(2r/n)` with `A = N_{nℓ}·(2/n)^ℓ` a constant, so the buffered Laguerre limits
 (`tendsto_pow_exp_laguerre_buffer` etc., with power `a = 0`) close everything. -/
 
@@ -650,7 +650,7 @@ lemma fderiv2_solidHarmonicNat_norm_le (ℓ m : ℕ) (hm : m ≤ ℓ) (hℓ : 2 
 
 /-! ## H²-Sobolev weak-derivative stack for the separated eigenfunction `Ψ = S(‖·‖)·Q`
 
-Mirrors the radial stack of `RadialEigenfunction.lean` for the genuinely non-radial witness
+Mirrors the radial stack of `RadialEigenfunction/` for the genuinely non-radial witness
 `Ψ_{nℓm} = reducedRadialProfileC n ℓ hn (‖·‖) · solidHarmonicNat ℓ m`.  We assume `ℓ ≥ 1`
 throughout (the `ℓ = 0` case is radial and is handled by `bound_state_of_radial_profile`). -/
 

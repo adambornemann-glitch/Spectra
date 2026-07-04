@@ -2,9 +2,9 @@
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
-Filename: Bochner/GNS/Hilbert/Bundler.lean
 -/
 import Spectra.Bochner.GNS.Hilbert.NullSpace
+
 /-!
 # GNS Data Bundle
 

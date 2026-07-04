@@ -2,27 +2,73 @@
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
-Filename: Bochner/GNS/Hilbert/Constructor.lean
 -/
+import Mathlib.Analysis.InnerProductSpace.Completion
 import Spectra.Bochner.GNS.Hilbert.Bundler
-open Complex Finsupp Filter Topology
+
+/-!
+# GNS Hilbert Space Construction
+
+This file builds the actual constructive payload of GNS: `gnsConstruction` takes a
+positive-definite, Hermitian-symmetric `f : ℝ → ℂ` and produces the `GNSData f` bundle — a
+Hilbert space `H`, a dense-range embedding `(ℝ →₀ ℂ) →ₗ[ℂ] H`, and the compatibility
+identity `⟪embed α, embed β⟫ = pdInner f α β`.
+
+## Main definitions
+
+* `gnsConstruction`: the GNS Hilbert space, embedding, and their compatibility identities,
+  packaged as a `GNSData f`
+
+## Implementation notes
+
+The `NormedAddCommGroup`/`InnerProductSpace` instances on the quotient `GNSQuotient hPD hH`
+cannot be found by ordinary instance synthesis: they depend on the specific witnesses `hPD`/`hH`,
+and registering them as global instances would create a diamond against any other
+`NormedAddCommGroup`/`InnerProductSpace` structure the same underlying type might already carry
+elsewhere. `gnsQuotientNACG`/`gnsQuotientIPS` package them as `@[reducible]` local `def`s instead,
+brought into scope via `letI` at each of the two use sites (`gnsQuotient_uniformContinuousConstSMul`
+and `gnsConstruction` itself); `@[reducible]` is load-bearing here, not cosmetic — without it the
+two `letI`-introduced instances are opaque enough that later defeq checks (e.g. unfolding `dist`
+back to `norm`, or matching `emb` against its `mkQ`-composed definition) fail to close.
+
+## References
+
+* Reed–Simon, *Methods of Modern Mathematical Physics I*, §VIII.5 (Gelfand–Naimark–Segal
+  construction)
+-/
 open Spectra.PositiveDefinite
 namespace Spectra.Bochner.GNS
+
+/-- The `NormedAddCommGroup` instance on the GNS quotient, built from the pre-Hilbert core.
+Kept as a `def` rather than a global `instance` — it is specific to a given `hPD`/`hH` witness
+pair, and registering it globally would create instance-search ambiguity (the diamond this whole
+file works around). Not `private`: every downstream file that needs the quotient's completion
+(`Representation/Lemmas.lean`, `Representation/StronglyCont.lean`) brings it into scope locally
+via `letI` rather than re-deriving it from `quotientCore` at each use site. -/
+@[reducible] noncomputable def gnsQuotientNACG {f : ℝ → ℂ}
+    (hPD : IsPositiveDefinite f) (hH : IsHermitian f) :
+    NormedAddCommGroup (GNSQuotient hPD hH) :=
+  @InnerProductSpace.Core.toNormedAddCommGroup ℂ _ _ _ _ (quotientCore hPD hH)
+
+/-- The `InnerProductSpace` instance on the GNS quotient, built over `gnsQuotientNACG`. Same
+local-`letI` discipline as `gnsQuotientNACG` — see its docstring. -/
+@[reducible] noncomputable def gnsQuotientIPS {f : ℝ → ℂ}
+    (hPD : IsPositiveDefinite f) (hH : IsHermitian f) :
+    letI := gnsQuotientNACG hPD hH
+    InnerProductSpace ℂ (GNSQuotient hPD hH) :=
+  letI := gnsQuotientNACG hPD hH
+  InnerProductSpace.ofCore (quotientCore hPD hH).toCore
 
 /-- Scalar multiplication on the GNS quotient is uniformly continuous.
     (Instance synthesis can't derive this due to the NormedAddCommGroup/Module diamond,
     so we build it from the Lipschitz bound directly.) -/
 lemma gnsQuotient_uniformContinuousConstSMul {f : ℝ → ℂ}
     (hPD : IsPositiveDefinite f) (hH : IsHermitian f) :
-    letI : NormedAddCommGroup (GNSQuotient hPD hH) :=
-      @InnerProductSpace.Core.toNormedAddCommGroup ℂ _ _ _ _ (quotientCore hPD hH)
-    letI : InnerProductSpace ℂ (GNSQuotient hPD hH) :=
-      InnerProductSpace.ofCore (quotientCore hPD hH).toCore
+    letI := gnsQuotientNACG hPD hH
+    letI := gnsQuotientIPS hPD hH
     UniformContinuousConstSMul ℂ (GNSQuotient hPD hH) := by
-  letI nacgV : NormedAddCommGroup (GNSQuotient hPD hH) :=
-    @InnerProductSpace.Core.toNormedAddCommGroup ℂ _ _ _ _ (quotientCore hPD hH)
-  letI ipsV : InnerProductSpace ℂ (GNSQuotient hPD hH) :=
-    InnerProductSpace.ofCore (quotientCore hPD hH).toCore
+  letI nacgV := gnsQuotientNACG hPD hH
+  letI ipsV := gnsQuotientIPS hPD hH
   constructor; intro c
   rw [Metric.uniformContinuous_iff]
   intro ε hε
@@ -58,9 +104,8 @@ noncomputable def gnsConstruction {f : ℝ → ℂ}
     GNSData f := by
   let core := quotientCore hPD hH
   let V := GNSQuotient hPD hH
-  letI nacgV : NormedAddCommGroup V :=
-    @InnerProductSpace.Core.toNormedAddCommGroup ℂ V _ _ _ core
-  letI ipsV : InnerProductSpace ℂ V := InnerProductSpace.ofCore core.toCore
+  letI nacgV := gnsQuotientNACG hPD hH
+  letI ipsV := gnsQuotientIPS hPD hH
   haveI : UniformContinuousConstSMul ℂ V :=
     gnsQuotient_uniformContinuousConstSMul hPD hH
   let H := UniformSpace.Completion V
@@ -74,6 +119,7 @@ noncomputable def gnsConstruction {f : ℝ → ℂ}
     instComplete := inferInstance
     embed := emb
     embed_inner := fun α β => by
+      -- `emb α` unfolds to `ι.toLinearMap (mkQ α)`, i.e. the completion coercion `↑(mkQ α)`
       show @inner ℂ H _ (↑(mkQ α) : H) (↑(mkQ β) : H) = pdInner f α β
       rw [@UniformSpace.Completion.inner_coe]
       rfl
@@ -86,6 +132,8 @@ noncomputable def gnsConstruction {f : ℝ → ℂ}
     embed_ker := fun α => by
       constructor
       · intro h
+        -- unfold `emb α = 0` to the completion coercion `↑(mkQ α) = 0`, then use that the
+        -- coercion is a uniform embedding (hence injective) to descend to `mkQ α = 0` in `V`
         change (↑(mkQ α) : H) = 0 at h
         rw [← UniformSpace.Completion.coe_zero] at h
         have hinj : mkQ α = 0 := by
@@ -93,6 +141,8 @@ noncomputable def gnsConstruction {f : ℝ → ℂ}
           exact this.injective h
         rwa [Submodule.mkQ_apply, Submodule.Quotient.mk_eq_zero] at hinj
       · intro h
+        -- same unfolding as above, in reverse: `mkQ α = 0` in `V` pushes forward to
+        -- `↑(mkQ α) = 0` in `H` via the coercion, which is `emb α`
         show (↑(mkQ α) : H) = 0
         have : mkQ α = 0 := (Submodule.Quotient.mk_eq_zero _).mpr h
         rw [this, UniformSpace.Completion.coe_zero]
