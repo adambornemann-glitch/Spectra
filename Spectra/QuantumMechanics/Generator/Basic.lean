@@ -15,7 +15,9 @@ With Stone's theorem complete, the infinitesimal generator of a strongly
 continuous one-parameter unitary group is *known* to be self-adjoint —
 which is precisely the single field of `SelfAdjointOperator`.  This file
 is the thin, physics-facing layer that packages that fact.  The
-construction of the generator itself lives in `Stone/`; nothing here
+generator itself is defined in `OneParameterUnitaryGroup/Basic.lean`, and
+Stone's theorem (self-adjointness, the round-trip identities with
+`genToGroup`) is proved in `Spectra/YosidaHille/Basic.lean`; nothing here
 re-proves analysis.
 
 ## Main definitions
@@ -35,17 +37,23 @@ re-proves analysis.
   the domain of its Hamiltonian.
 * `OneParameterUnitaryGroup.inner_generator_invariant` — conservation of
   energy: `⟪U_t ψ, A (U_t ψ)⟫ = ⟪ψ, A ψ⟫`.
+* `Spectra.QuantumMechanics.Observable.exists_unique_generator` — **Stone's
+  theorem** in raw `LinearPMap` form: every self-adjoint operator is the
+  generator of exactly one one-parameter unitary group.
 * `existsUnique_hamiltonian` — every quantum dynamics has exactly one
   Hamiltonian.
 
 ## Design notes
 
-The round-trip identities of `stoneEquiv` (in `Stone/Converse.lean`) do
-all the work; the only genuinely new ingredient here is a trivial helper:
-transport of a `LinearPMap` application along an equality of operators
-(a candidate for relocation to an `Operator/` helper file once this
-compiles). Extensionality for `SelfAdjointOperator` now lives directly
-in `Operator/SelfAdjoint.lean` alongside the structure.
+The round-trip identities of `stoneEquiv` (`stone_orbit_hasDerivAt`,
+`generator_genToGroup`, `group_unique`, in `Spectra/YosidaHille/Basic.lean`)
+do all the work; the genuinely new content here is the physics packaging:
+`schrodingerEquation`, `inner_generator_invariant`, and
+`evolution_mem_domain` translate those round-trip identities into the
+Schrödinger equation and energy conservation, plus a small transport
+helper (`LinearPMap.apply_congr`) for rewriting along the `generator = A`
+identity. Extensionality for `SelfAdjointOperator` lives directly in
+`Operator/SelfAdjoint.lean` alongside the structure.
 
 Sign convention: `genDiffQuot` divides by `it`, so `generator U = A`
 means `U t = exp(itA)` and the orbit derivative is `i·Aψ`.
@@ -54,27 +62,24 @@ means `U t = exp(itA)` and the orbit derivative is `i·Aψ`.
 
 Stone's theorem, generator, Hamiltonian, Schrödinger equation, unitary group
 -/
-open InnerProductSpace Complex Filter Topology
+open InnerProductSpace Complex
 open scoped ComplexConjugate
 
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
 open Spectra.Resolvent
 open Spectra.OneParameterUnitaryGroup Spectra.YosidaHille
-namespace Spectra.QuantumMechanics
-
-open Spectra.Operator SelfAdjointOperator
-
-/-! ### Helper (relocation candidate) -/
 
 omit [CompleteSpace H] in
-/-- Transport a `LinearPMap` application along an equality of operators.
-*(Move to an `Operator/` helper file.)* -/
-lemma LinearPMap.apply_congr {f g : H →ₗ.[ℂ] H} (h : f = g)
+/-- Transport a `LinearPMap` application along an equality of operators. -/
+lemma _root_.LinearPMap.apply_congr {f g : H →ₗ.[ℂ] H} (h : f = g)
     (x : H) (hx : x ∈ f.domain) :
     f ⟨x, hx⟩ = g ⟨x, h ▸ hx⟩ := by
   subst h; rfl
 
+namespace Spectra.QuantumMechanics
+
 /-! ### The generator as an observable -/
+
 end QuantumMechanics
 
 namespace OneParameterUnitaryGroup
@@ -161,7 +166,7 @@ lemma _root_.Spectra.Operator.SelfAdjointOperator.schrodingerEquation
   have hψ' : ψ ∈ (generator A.evolution).domain :=
     A.evolution_generator_domain.symm ▸ hψ
   have h := stone_orbit_hasDerivAt A.evolution ⟨ψ, hψ'⟩ t
-  rwa [Spectra.QuantumMechanics.LinearPMap.apply_congr A.generator_evolution] at h
+  rwa [(generator A.evolution).apply_congr A.generator_evolution] at h
 
 namespace QuantumMechanics.Observable
 

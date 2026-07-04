@@ -1,5 +1,5 @@
 /-
-Copyright (c) 2026 Logos Library Formalization Project. All rights reserved.
+Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
@@ -63,6 +63,13 @@ open Spectra.Sobolev Spectra.SphericalHarmonics
 open RadialEq Spectra.QuantumMechanics.Hydrogen Spectra.QuantumMechanics.Hydrogen.Decomposition
 open scoped ContDiff Topology SchwartzMap
 
+/-- The origin is a null set in `ℝ³`, so almost every point is nonzero. Shared by the many
+    cutoff/integrability arguments in this file and in `RadialEigenfunction.Basic` that only
+    need a classical (pointwise, off-origin) fact to hold almost everywhere. -/
+lemma ae_ne_zero_R3 : ∀ᵐ x : R3, x ≠ 0 := by
+  rw [ae_iff]; simp only [ne_eq, not_not, Set.setOf_eq_eq_singleton]
+  exact measure_singleton 0
+
 /-! ## The classical eigen-equation off the origin -/
 
 /-- **Classical radial eigen-identity off the origin (`Z = 1`).**
@@ -104,7 +111,7 @@ lemma classical_radial_eigen (n : ℕ) (hn : 0 + 1 ≤ n) {x : R3} (hx : x ≠ 0
 /-! ## The spherical harmonic `Y_0^0` is constant -/
 
 /-- The `ℓ = 0, m = 0` spherical harmonic is the constant `sphericalNorm 0 0`. -/
-lemma harmonic_zero_zero (hm : |(0 : ℤ)| ≤ (0 : ℤ)) (p : ℝ × ℝ) :
+private lemma harmonic_zero_zero (hm : |(0 : ℤ)| ≤ (0 : ℤ)) (p : ℝ × ℝ) :
     harmonic ⟨0, ⟨0, hm⟩⟩ p = (sphericalNorm 0 0 : ℂ) := by
   simp only [harmonic, SphericalHarmonic, associatedLegendre_0_0]
   simp [Complex.exp_zero]
@@ -209,7 +216,7 @@ lemma hasFDerivAt_radial (g : ℝ → ℂ) {g' : ℂ} {x : R3} (hx : x ≠ 0)
   hg.hasFDerivAt.comp x (hasFDerivAt_norm_ne_zero hx)
 
 /-- The `i`-th classical partial derivative of `g(‖·‖)` is `(xᵢ/‖x‖)·g′(‖x‖)`. -/
-lemma fderiv_radial_apply (g : ℝ → ℂ) {g' : ℂ} {x : R3} (hx : x ≠ 0)
+private lemma fderiv_radial_apply (g : ℝ → ℂ) {g' : ℂ} {x : R3} (hx : x ≠ 0)
     (hg : HasDerivAt g g' ‖x‖) (i : Fin 3) :
     fderiv ℝ (fun y : R3 => g ‖y‖) x (EuclideanSpace.single i 1)
       = ((x i / ‖x‖ : ℝ) : ℂ) * g' := by
@@ -222,7 +229,7 @@ lemma fderiv_radial_apply (g : ℝ → ℂ) {g' : ℂ} {x : R3} (hx : x ≠ 0)
   ring
 
 /-- A coordinate is bounded by the norm, `|xᵢ| ≤ ‖x‖`. -/
-lemma abs_coord_le_norm (x : R3) (i : Fin 3) : |x.ofLp i| ≤ ‖x‖ := by
+private lemma abs_coord_le_norm (x : R3) (i : Fin 3) : |x.ofLp i| ≤ ‖x‖ := by
   have h : ⟪x, EuclideanSpace.single i (1 : ℝ)⟫_ℝ = x.ofLp i := by
     rw [EuclideanSpace.inner_single_right]; simp
   calc |x.ofLp i| = ‖⟪x, EuclideanSpace.single i (1 : ℝ)⟫_ℝ‖ := by rw [h, Real.norm_eq_abs]
@@ -274,7 +281,7 @@ and the homogeneous-degree-`0` factor `xⱼ/‖x‖` contributes the `2/‖x‖`
 
 /-- Gradient of the inverse Euclidean norm off the origin:
     `∇(‖·‖⁻¹)(x) = −‖x‖⁻² • (‖x‖⁻¹ • innerSL x)`. -/
-lemma hasFDerivAt_inv_norm {x : R3} (hx : x ≠ 0) :
+private lemma hasFDerivAt_inv_norm {x : R3} (hx : x ≠ 0) :
     HasFDerivAt (fun y : R3 => ‖y‖⁻¹)
       ((-(‖x‖ ^ 2)⁻¹) • ((‖x‖⁻¹ : ℝ) • innerSL ℝ x)) x := by
   have hr : (0 : ℝ) < ‖x‖ := norm_pos_iff.mpr hx
@@ -282,7 +289,7 @@ lemma hasFDerivAt_inv_norm {x : R3} (hx : x ≠ 0) :
 
 /-- The cusp-direction function `y ↦ yⱼ/‖y‖` (written via `innerSL`) is differentiable off the
     origin, with gradient norm `≤ 2/‖x‖`. -/
-lemma fderiv_coord_div_norm_bound {x : R3} (hx : x ≠ 0) (j : Fin 3) :
+private lemma fderiv_coord_div_norm_bound {x : R3} (hx : x ≠ 0) (j : Fin 3) :
     DifferentiableAt ℝ
         (fun y : R3 => (innerSL ℝ (EuclideanSpace.single j (1 : ℝ))) y * ‖y‖⁻¹) x ∧
       ‖fderiv ℝ (fun y : R3 => (innerSL ℝ (EuclideanSpace.single j (1 : ℝ))) y * ‖y‖⁻¹) x‖
@@ -303,15 +310,16 @@ lemma fderiv_coord_div_norm_bound {x : R3} (hx : x ≠ 0) (j : Fin 3) :
     rw [innerSL_apply_norm, he1]
   have hpx : ‖(innerSL ℝ (EuclideanSpace.single j (1 : ℝ))) x‖ ≤ ‖x‖ := by
     rw [innerSL_apply_apply]
-    calc ‖⟪EuclideanSpace.single j (1 : ℝ), x⟫_ℝ‖ ≤ ‖(EuclideanSpace.single j (1 : ℝ) : R3)‖ * ‖x‖ :=
-          norm_inner_le_norm _ _
+    calc ‖⟪EuclideanSpace.single j (1 : ℝ), x⟫_ℝ‖
+          ≤ ‖(EuclideanSpace.single j (1 : ℝ) : R3)‖ * ‖x‖ := norm_inner_le_norm _ _
       _ = ‖x‖ := by rw [he1, one_mul]
   have hqnorm : ‖((-(‖x‖ ^ 2)⁻¹) • ((‖x‖⁻¹ : ℝ) • innerSL ℝ x))‖ = (‖x‖ ^ 2)⁻¹ := by
     rw [norm_smul, norm_smul, Real.norm_eq_abs, Real.norm_eq_abs, innerSL_apply_norm,
       abs_neg, abs_of_nonneg (by positivity), abs_of_nonneg (inv_nonneg.mpr (norm_nonneg x))]
     rw [sq, mul_inv, mul_assoc, inv_mul_cancel₀ hr.ne', mul_one]
   have hB : ‖(‖x‖⁻¹ : ℝ) • (innerSL ℝ (EuclideanSpace.single j (1 : ℝ)))‖ = ‖x‖⁻¹ := by
-    rw [norm_smul, hpnorm, mul_one, Real.norm_eq_abs, abs_of_nonneg (inv_nonneg.mpr (norm_nonneg x))]
+    rw [norm_smul, hpnorm, mul_one, Real.norm_eq_abs,
+      abs_of_nonneg (inv_nonneg.mpr (norm_nonneg x))]
   have hfin : ‖x‖ * (‖x‖ ^ 2)⁻¹ + ‖x‖⁻¹ = 2 / ‖x‖ := by field_simp; ring
   calc ‖(innerSL ℝ (EuclideanSpace.single j (1 : ℝ))) x
             • ((-(‖x‖ ^ 2)⁻¹) • ((‖x‖⁻¹ : ℝ) • innerSL ℝ x))
@@ -372,12 +380,12 @@ lemma norm_fderiv_fderiv_radial_le (g : ℝ → ℂ) (hg : ContDiff ℝ 2 g) {x 
             • fun y : R3 => deriv g ‖y‖ from rfl, hsmul.fderiv]
   calc ‖((innerSL ℝ (EuclideanSpace.single j (1 : ℝ))) x * ‖x‖⁻¹)
             • fderiv ℝ (fun y : R3 => deriv g ‖y‖) x
-          + (fderiv ℝ (fun y : R3 => (innerSL ℝ (EuclideanSpace.single j (1 : ℝ))) y * ‖y‖⁻¹) x).smulRight
-              (deriv g ‖x‖)‖
+          + (fderiv ℝ (fun y : R3 => (innerSL ℝ (EuclideanSpace.single j (1 : ℝ))) y * ‖y‖⁻¹)
+              x).smulRight (deriv g ‖x‖)‖
       ≤ ‖((innerSL ℝ (EuclideanSpace.single j (1 : ℝ))) x * ‖x‖⁻¹)
             • fderiv ℝ (fun y : R3 => deriv g ‖y‖) x‖
-          + ‖(fderiv ℝ (fun y : R3 => (innerSL ℝ (EuclideanSpace.single j (1 : ℝ))) y * ‖y‖⁻¹) x).smulRight
-              (deriv g ‖x‖)‖ := norm_add_le _ _
+          + ‖(fderiv ℝ (fun y : R3 => (innerSL ℝ (EuclideanSpace.single j (1 : ℝ))) y * ‖y‖⁻¹)
+              x).smulRight (deriv g ‖x‖)‖ := norm_add_le _ _
     _ ≤ ‖deriv (deriv g) ‖x‖‖ + 2 / ‖x‖ * ‖deriv g ‖x‖‖ := by
         gcongr ?_ + ?_
         · rw [norm_smul]
@@ -385,113 +393,6 @@ lemma norm_fderiv_fderiv_radial_le (g : ℝ → ℂ) (hg : ContDiff ℝ 2 g) {x 
         · rw [ContinuousLinearMap.norm_smulRight_apply]
           exact mul_le_mul_of_nonneg_right hu₀bd (norm_nonneg _)
     _ = ‖deriv (deriv g) ‖x‖‖ + 2 * ‖deriv g ‖x‖‖ / ‖x‖ := by ring
-
-/-- The classical second directional derivative `∂ⱼ∂ⱼ(g∘‖·‖)` is continuous away from the
-    origin (where `g∘‖·‖` is `C²`). -/
-lemma second_deriv_continuousOn (g : ℝ → ℂ) (hg : ContDiff ℝ 2 g) (j : Fin 3) :
-    ContinuousOn (fun x => fderiv ℝ (fun y => fderiv ℝ (fun z => g ‖z‖) y
-        (EuclideanSpace.single j 1)) x (EuclideanSpace.single j 1)) {(0 : R3)}ᶜ := by
-  intro x hx
-  have hx' : x ≠ 0 := hx
-  have hf2 : ContDiffAt ℝ 2 (fun z : R3 => g ‖z‖) x := contDiffAt_radial g hg hx'
-  have hdf1 : ContDiffAt ℝ 1 (fun y : R3 => fderiv ℝ (fun z => g ‖z‖) y
-      (EuclideanSpace.single j 1)) x :=
-    (hf2.fderiv_right (m := 1) (by norm_num)).clm_apply
-      (contDiffAt_const (c := (EuclideanSpace.single j (1 : ℝ))))
-  have hcaf : ContinuousAt (fderiv ℝ (fun y : R3 => fderiv ℝ (fun z => g ‖z‖) y
-      (EuclideanSpace.single j 1))) x := hdf1.continuousAt_fderiv one_ne_zero
-  have hcomp : ContinuousAt (fun x => fderiv ℝ (fun y => fderiv ℝ (fun z => g ‖z‖) y
-      (EuclideanSpace.single j 1)) x (EuclideanSpace.single j 1)) x :=
-    ((ContinuousLinearMap.apply ℝ ℂ (EuclideanSpace.single j (1 : ℝ))).continuous.continuousAt).comp
-      hcaf
-  exact hcomp.continuousWithinAt
-
-/-- **Integrability of the second-derivative term against a test function.**
-    For a radial `C²` profile `g`, `(∂ⱼ∂ⱼ(g∘‖·‖))·φ` is integrable: the `1/‖x‖` singularity at the
-    origin is `L¹_loc` in `ℝ³`, and `φ` has compact support. -/
-lemma integrable_second_deriv_mul (g : ℝ → ℂ) (hg : ContDiff ℝ 2 g) (j : Fin 3)
-    {φ : R3 → ℂ} (hφ : ContDiff ℝ ∞ φ) (hφc : HasCompactSupport φ) :
-    Integrable (fun x => fderiv ℝ (fun y => fderiv ℝ (fun z => g ‖z‖) y
-        (EuclideanSpace.single j 1)) x (EuclideanSpace.single j 1) * φ x) := by
-  obtain ⟨R, hR_pos, hR⟩ := hφc.isCompact.isBounded.exists_pos_norm_lt
-  have hdg_cont : Continuous (deriv g) := hg.continuous_deriv (by norm_num)
-  have hddg_cont : Continuous (deriv (deriv g)) :=
-    (hg.deriv' (n := 1)).continuous_deriv (by norm_num)
-  obtain ⟨a', -, hMg'max⟩ := (isCompact_Icc (a := (0 : ℝ)) (b := R)).exists_isMaxOn
-    (Set.nonempty_Icc.mpr hR_pos.le) hdg_cont.norm.continuousOn
-  obtain ⟨a'', -, hMg''max⟩ := (isCompact_Icc (a := (0 : ℝ)) (b := R)).exists_isMaxOn
-    (Set.nonempty_Icc.mpr hR_pos.le) hddg_cont.norm.continuousOn
-  obtain ⟨Mφ, hMφ⟩ := hφc.exists_bound_of_continuous hφ.continuous
-  set Mg' : ℝ := ‖deriv g a'‖ with hMg'def
-  set Mg'' : ℝ := ‖deriv (deriv g) a''‖ with hMg''def
-  have hMg' : ∀ r ∈ Set.Icc (0 : ℝ) R, ‖deriv g r‖ ≤ Mg' := isMaxOn_iff.mp hMg'max
-  have hMg'' : ∀ r ∈ Set.Icc (0 : ℝ) R, ‖deriv (deriv g) r‖ ≤ Mg'' := isMaxOn_iff.mp hMg''max
-  have hMg'0 : 0 ≤ Mg' := norm_nonneg _
-  have hMg''0 : 0 ≤ Mg'' := norm_nonneg _
-  have hMφ0 : 0 ≤ Mφ := (norm_nonneg _).trans (hMφ 0)
-  set C : ℝ := (Mg'' * R + 2 * Mg') * Mφ with hC
-  have hC0 : 0 ≤ C := by positivity
-  -- a.e. (off the origin) decay bound `‖·‖ ≤ C·‖x‖^(-1)`
-  have hae : ∀ᵐ x : R3, x ∈ ({(0 : R3)}ᶜ : Set R3) := by
-    rw [ae_iff]; simp only [Set.mem_compl_iff, Set.mem_singleton_iff, not_not,
-      Set.setOf_eq_eq_singleton]
-    exact measure_singleton 0
-  have hbound : ∀ᵐ x : R3, ‖fderiv ℝ (fun y => fderiv ℝ (fun z => g ‖z‖) y
-        (EuclideanSpace.single j 1)) x (EuclideanSpace.single j 1) * φ x‖ ≤ C * ‖x‖ ^ (-(1 : ℝ)) := by
-    filter_upwards [hae] with x hx
-    have hx' : x ≠ 0 := hx
-    rw [Real.rpow_neg_one]
-    rcases le_total ‖x‖ R with hxR | hxR
-    · have hxpos : 0 < ‖x‖ := norm_pos_iff.mpr hx'
-      have hbd : ‖fderiv ℝ (fun y => fderiv ℝ (fun z => g ‖z‖) y (EuclideanSpace.single j 1)) x
-          (EuclideanSpace.single j 1)‖ ≤ Mg'' + 2 * Mg' / ‖x‖ := by
-        have h0 : ‖fderiv ℝ (fun y => fderiv ℝ (fun z => g ‖z‖) y (EuclideanSpace.single j 1)) x
-            (EuclideanSpace.single j 1)‖
-            ≤ ‖fderiv ℝ (fun y => fderiv ℝ (fun z => g ‖z‖) y (EuclideanSpace.single j 1)) x‖ := by
-          calc ‖fderiv ℝ (fun y => fderiv ℝ (fun z => g ‖z‖) y (EuclideanSpace.single j 1)) x
-                (EuclideanSpace.single j 1)‖
-              ≤ ‖fderiv ℝ (fun y => fderiv ℝ (fun z => g ‖z‖) y (EuclideanSpace.single j 1)) x‖
-                * ‖(EuclideanSpace.single j (1 : ℝ) : R3)‖ := ContinuousLinearMap.le_opNorm _ _
-            _ = ‖fderiv ℝ (fun y => fderiv ℝ (fun z => g ‖z‖) y (EuclideanSpace.single j 1)) x‖ := by
-                rw [PiLp.norm_single, norm_one, mul_one]
-        have h1 := norm_fderiv_fderiv_radial_le g hg hx' j
-        have h2 : ‖deriv (deriv g) ‖x‖‖ ≤ Mg'' := hMg'' ‖x‖ ⟨norm_nonneg x, hxR⟩
-        have h3 : ‖deriv g ‖x‖‖ ≤ Mg' := hMg' ‖x‖ ⟨norm_nonneg x, hxR⟩
-        calc _ ≤ ‖fderiv ℝ (fun y => fderiv ℝ (fun z => g ‖z‖) y (EuclideanSpace.single j 1)) x‖ := h0
-          _ ≤ ‖deriv (deriv g) ‖x‖‖ + 2 * ‖deriv g ‖x‖‖ / ‖x‖ := h1
-          _ ≤ Mg'' + 2 * Mg' / ‖x‖ := by gcongr
-      rw [norm_mul]
-      rw [← div_eq_mul_inv, le_div_iff₀ hxpos]
-      have hphi : ‖φ x‖ ≤ Mφ := hMφ x
-      have h1 : ‖fderiv ℝ (fun y => fderiv ℝ (fun z => g ‖z‖) y (EuclideanSpace.single j 1)) x
-          (EuclideanSpace.single j 1)‖ * ‖x‖ ≤ Mg'' * ‖x‖ + 2 * Mg' := by
-        calc _ ≤ (Mg'' + 2 * Mg' / ‖x‖) * ‖x‖ := mul_le_mul_of_nonneg_right hbd (norm_nonneg x)
-          _ = Mg'' * ‖x‖ + 2 * Mg' := by field_simp
-      calc ‖fderiv ℝ (fun y => fderiv ℝ (fun z => g ‖z‖) y (EuclideanSpace.single j 1)) x
-            (EuclideanSpace.single j 1)‖ * ‖φ x‖ * ‖x‖
-          = (‖fderiv ℝ (fun y => fderiv ℝ (fun z => g ‖z‖) y (EuclideanSpace.single j 1)) x
-              (EuclideanSpace.single j 1)‖ * ‖x‖) * ‖φ x‖ := by ring
-        _ ≤ (Mg'' * ‖x‖ + 2 * Mg') * Mφ := mul_le_mul h1 hphi (norm_nonneg _) (by positivity)
-        _ ≤ (Mg'' * R + 2 * Mg') * Mφ := by gcongr
-    · have hφ0 : φ x = 0 :=
-        image_eq_zero_of_notMem_tsupport (mt (hR x) (not_lt.mpr hxR))
-      rw [hφ0, mul_zero, norm_zero]
-      positivity
-  -- AE strong measurability (continuous off the origin)
-  have hmeas : AEStronglyMeasurable (fun x => fderiv ℝ (fun y => fderiv ℝ (fun z => g ‖z‖) y
-      (EuclideanSpace.single j 1)) x (EuclideanSpace.single j 1) * φ x) volume := by
-    have hcont : ContinuousOn (fun x => fderiv ℝ (fun y => fderiv ℝ (fun z => g ‖z‖) y
-        (EuclideanSpace.single j 1)) x (EuclideanSpace.single j 1) * φ x) {(0 : R3)}ᶜ :=
-      (second_deriv_continuousOn g hg j).mul hφ.continuous.continuousOn
-    have := hcont.aestronglyMeasurable (μ := volume) (measurableSet_singleton (0 : R3)).compl
-    rwa [Measure.restrict_eq_self_of_ae_mem hae] at this
-  -- locally integrable (bounded by `C·‖x‖^(-1)`, `1 < 3`) with compact support
-  have hLI : LocallyIntegrable (fun x => fderiv ℝ (fun y => fderiv ℝ (fun z => g ‖z‖) y
-      (EuclideanSpace.single j 1)) x (EuclideanSpace.single j 1) * φ x) volume :=
-    locallyIntegrable_of_norm_le_rpow (E := R3) (by rw [finrank_euclideanSpace_fin]; norm_num)
-      (by rw [finrank_euclideanSpace_fin]; norm_num) hbound hmeas
-  exact (integrableOn_iff_integrable_of_support_subset (subset_tsupport _)).mp
-    (hLI.integrableOn_isCompact hφc.mul_left)
 
 /-! ## The 3-D radial cutoff `χ_ε`
 
@@ -505,20 +406,24 @@ vanish as `ε → 0`. -/
 /-- The 3-D radial cutoff: `0` on `ball 0 ε`, `1` outside `ball 0 (2ε)`. -/
 def chi (ε : ℝ) (x : R3) : ℝ := cutoffP (‖x‖ / ε)
 
-lemma chi_eq_zero {ε : ℝ} (hε : 0 < ε) {x : R3} (hx : ‖x‖ ≤ ε) : chi ε x = 0 := by
+/-- The cutoff vanishes on the closed ball `‖x‖ ≤ ε`. -/
+private lemma chi_eq_zero {ε : ℝ} (hε : 0 < ε) {x : R3} (hx : ‖x‖ ≤ ε) : chi ε x = 0 := by
   rw [chi]; exact cutoffP_eq_zero (by rw [div_le_one hε]; exact hx)
 
-lemma chi_eventually_zero {ε : ℝ} (hε : 0 < ε) : chi ε =ᶠ[nhds 0] (fun _ => 0) := by
+/-- The cutoff is constantly `0` in a neighbourhood of the origin. -/
+private lemma chi_eventually_zero {ε : ℝ} (hε : 0 < ε) : chi ε =ᶠ[nhds 0] (fun _ => 0) := by
   filter_upwards [Metric.ball_mem_nhds 0 hε] with x hx
   rw [Metric.mem_ball, dist_zero_right] at hx
   exact chi_eq_zero hε (le_of_lt hx)
 
-lemma hasFDerivAt_chi_zero {ε : ℝ} (hε : 0 < ε) : HasFDerivAt (chi ε) (0 : R3 →L[ℝ] ℝ) 0 := by
+/-- The cutoff has vanishing Fréchet derivative at the origin (it is constantly `0` nearby). -/
+private lemma hasFDerivAt_chi_zero {ε : ℝ} (hε : 0 < ε) :
+    HasFDerivAt (chi ε) (0 : R3 →L[ℝ] ℝ) 0 := by
   refine HasFDerivAt.congr_of_eventuallyEq ?_ (chi_eventually_zero hε)
   exact hasFDerivAt_const (0 : ℝ) (0 : R3)
 
 /-- Off the origin, the cutoff's Fréchet derivative (radial-composition form). -/
-lemma hasFDerivAt_chi {ε : ℝ} (_hε : 0 < ε) {x : R3} (hx : x ≠ 0) :
+private lemma hasFDerivAt_chi {ε : ℝ} (_hε : 0 < ε) {x : R3} (hx : x ≠ 0) :
     HasFDerivAt (chi ε)
       ((ContinuousLinearMap.smulRight (1 : ℝ →L[ℝ] ℝ) (deriv cutoffP (‖x‖ / ε) / ε)).comp
         ((‖x‖⁻¹ : ℝ) • innerSL ℝ x)) x := by
@@ -531,7 +436,9 @@ lemma hasFDerivAt_chi {ε : ℝ} (_hε : 0 < ε) {x : R3} (hx : x ≠ 0) :
     exact h3
   exact hg.hasFDerivAt.comp x (hasFDerivAt_norm_ne_zero hx)
 
-lemma differentiable_chi {ε : ℝ} (hε : 0 < ε) : Differentiable ℝ (chi ε) := by
+/-- The cutoff `χ_ε` is everywhere differentiable (constant `0` near the origin, radial
+    composition off it). -/
+private lemma differentiable_chi {ε : ℝ} (hε : 0 < ε) : Differentiable ℝ (chi ε) := by
   intro x
   rcases eq_or_ne x 0 with rfl | hx
   · exact (hasFDerivAt_chi_zero hε).differentiableAt
@@ -539,7 +446,7 @@ lemma differentiable_chi {ε : ℝ} (hε : 0 < ε) : Differentiable ℝ (chi ε)
 
 /-- The cutoff gradient is bounded by `M/ε` (`M` any global bound on the profile derivative).
     This is the bound that makes the shell terms vanish in the Green's-identity IBP. -/
-lemma norm_fderiv_chi_le {ε : ℝ} (hε : 0 < ε) (x : R3)
+private lemma norm_fderiv_chi_le {ε : ℝ} (hε : 0 < ε) (x : R3)
     {M : ℝ} (hM : ∀ t : ℝ, |deriv cutoffP t| ≤ M) :
     ‖fderiv ℝ (chi ε) x‖ ≤ M / ε := by
   rcases eq_or_ne x 0 with rfl | hx
@@ -569,7 +476,7 @@ the per-`ε` step of the master cutoff IBP; the `ε → 0` limit then yields `�
 
 /-- `↑χ_ε · v` is differentiable everywhere when `v` is differentiable off the origin
     (the cutoff is `0` near the origin, masking the cusp). -/
-lemma differentiableAt_chi_mul {ε : ℝ} (hε : 0 < ε) {v : R3 → ℂ}
+private lemma differentiableAt_chi_mul {ε : ℝ} (hε : 0 < ε) {v : R3 → ℂ}
     (hv : ∀ x : R3, x ≠ 0 → DifferentiableAt ℝ v x) (x : R3) :
     DifferentiableAt ℝ (fun y => (↑(chi ε y) : ℂ) * v y) x := by
   rcases eq_or_ne x 0 with rfl | hx
@@ -582,7 +489,7 @@ lemma differentiableAt_chi_mul {ε : ℝ} (hε : 0 < ε) {v : R3 → ℂ}
     exact h1.mul (hv x hx)
 
 /-- Off the origin, the product rule for `∂ⱼ(↑χ_ε · v)`. -/
-lemma fderiv_chi_mul_apply {ε : ℝ} (hε : 0 < ε) {v : R3 → ℂ} {x : R3}
+private lemma fderiv_chi_mul_apply {ε : ℝ} (hε : 0 < ε) {v : R3 → ℂ} {x : R3}
     (hv : HasFDerivAt v (fderiv ℝ v x) x) (j : Fin 3) :
     fderiv ℝ (fun y => (↑(chi ε y) : ℂ) * v y) x (EuclideanSpace.single j 1)
       = (↑(chi ε x) : ℂ) * (fderiv ℝ v x (EuclideanSpace.single j 1))
@@ -596,7 +503,7 @@ lemma fderiv_chi_mul_apply {ε : ℝ} (hε : 0 < ε) {v : R3 → ℂ} {x : R3}
     ContinuousLinearMap.comp_apply, Complex.ofRealCLM_apply]
 
 /-- `↑χ_ε · v` is continuous everywhere when `v` is continuous off the origin. -/
-lemma continuous_chi_mul {ε : ℝ} (hε : 0 < ε) {v : R3 → ℂ}
+private lemma continuous_chi_mul {ε : ℝ} (hε : 0 < ε) {v : R3 → ℂ}
     (hv : ContinuousOn v {(0 : R3)}ᶜ) : Continuous (fun y => (↑(chi ε y) : ℂ) * v y) := by
   rw [continuous_iff_continuousAt]
   intro x
@@ -609,7 +516,7 @@ lemma continuous_chi_mul {ε : ℝ} (hε : 0 < ε) {v : R3 → ℂ}
       (hv.continuousAt (compl_singleton_mem_nhds hx))
 
 /-- The cutoff is `C¹` everywhere. -/
-lemma contDiff_chi {ε : ℝ} (hε : 0 < ε) : ContDiff ℝ 1 (chi ε) := by
+private lemma contDiff_chi {ε : ℝ} (hε : 0 < ε) : ContDiff ℝ 1 (chi ε) := by
   rw [contDiff_iff_contDiffAt]
   intro x
   rcases eq_or_ne x 0 with rfl | hx
@@ -622,7 +529,7 @@ lemma contDiff_chi {ε : ℝ} (hε : 0 < ε) : ContDiff ℝ 1 (chi ε) := by
     exact (cutoffP_contDiff.contDiffAt.of_le (by norm_num)).comp x hn
 
 /-- `↑χ_ε · v` is `C¹` everywhere when `v` is `C¹` off the origin. -/
-lemma contDiff_chi_mul {ε : ℝ} (hε : 0 < ε) {v : R3 → ℂ}
+private lemma contDiff_chi_mul {ε : ℝ} (hε : 0 < ε) {v : R3 → ℂ}
     (hv : ContDiffOn ℝ 1 v {(0 : R3)}ᶜ) : ContDiff ℝ 1 (fun y => (↑(chi ε y) : ℂ) * v y) := by
   rw [contDiff_iff_contDiffAt]
   intro x
@@ -637,7 +544,7 @@ lemma contDiff_chi_mul {ε : ℝ} (hε : 0 < ε) {v : R3 → ℂ}
 set_option maxHeartbeats 1000000 in
 /-- **Per-`ε` integration by parts.** With the cutoff masking the cusp, `↑χ_ε·v` is globally
     `C¹`, so the classical integration by parts applies. -/
-lemma chi_ibp {ε : ℝ} (hε : 0 < ε) {v w : R3 → ℂ} (j : Fin 3)
+private lemma chi_ibp {ε : ℝ} (hε : 0 < ε) {v w : R3 → ℂ} (j : Fin 3)
     (hv : ContDiffOn ℝ 1 v {(0 : R3)}ᶜ)
     (hvw : ∀ x : R3, x ≠ 0 → fderiv ℝ v x (EuclideanSpace.single j 1) = w x)
     {φ : R3 → ℂ} (hφ : ContDiff ℝ ∞ φ) (hφc : HasCompactSupport φ) :
@@ -674,22 +581,19 @@ lemma chi_ibp {ε : ℝ} (hε : 0 < ε) {v w : R3 → ℂ} (j : Fin 3)
         = fun x => F x * fderiv ℝ φ x (EuclideanSpace.single j 1) from rfl, key]
   congr 1
   apply integral_congr_ae
-  have hae : ∀ᵐ x : R3, x ≠ 0 := by
-    rw [ae_iff]; simp only [ne_eq, not_not, Set.setOf_eq_eq_singleton]
-    exact measure_singleton 0
-  filter_upwards [hae] with x hx
+  filter_upwards [ae_ne_zero_R3] with x hx
   rw [fderiv_chi_mul_apply hε ((hv_diff x hx).hasFDerivAt) j, hvw x hx]
   ring
 
 /-! ## The `ε → 0` limit: cutoff far-field behaviour and the shell estimate -/
 
 /-- The cutoff equals `1` outside `ball 0 (2ε)`. -/
-lemma chi_eq_one {ε : ℝ} (hε : 0 < ε) {x : R3} (hx : 2 * ε ≤ ‖x‖) : chi ε x = 1 := by
+private lemma chi_eq_one {ε : ℝ} (hε : 0 < ε) {x : R3} (hx : 2 * ε ≤ ‖x‖) : chi ε x = 1 := by
   rw [chi]; apply cutoffP_eq_one
   rw [le_div_iff₀ hε]; linarith
 
 /-- The cutoff is constantly `1` near any point with `‖x‖ > 2ε`. -/
-lemma chi_eventually_one {ε : ℝ} (hε : 0 < ε) {x : R3} (hx : 2 * ε < ‖x‖) :
+private lemma chi_eventually_one {ε : ℝ} (hε : 0 < ε) {x : R3} (hx : 2 * ε < ‖x‖) :
     chi ε =ᶠ[𝓝 x] (fun _ => 1) := by
   have hopen : {y : R3 | 2 * ε < ‖y‖} ∈ 𝓝 x :=
     (isOpen_lt continuous_const continuous_norm).mem_nhds hx
@@ -697,13 +601,13 @@ lemma chi_eventually_one {ε : ℝ} (hε : 0 < ε) {x : R3} (hx : 2 * ε < ‖x�
   exact chi_eq_one hε (le_of_lt hy)
 
 /-- The cutoff gradient vanishes outside `closedBall 0 (2ε)`. -/
-lemma fderiv_chi_eq_zero_far {ε : ℝ} (hε : 0 < ε) {x : R3} (hx : 2 * ε < ‖x‖) :
+private lemma fderiv_chi_eq_zero_far {ε : ℝ} (hε : 0 < ε) {x : R3} (hx : 2 * ε < ‖x‖) :
     fderiv ℝ (chi ε) x = 0 := by
   rw [(chi_eventually_one hε hx).fderiv_eq]
   exact (hasFDerivAt_const (1 : ℝ) x).fderiv
 
 /-- For `x ≠ 0`, the cutoff at scale `1/(n+1)` tends to `1`. -/
-lemma chi_tendsto_one {x : R3} (hx : x ≠ 0) :
+private lemma chi_tendsto_one {x : R3} (hx : x ≠ 0) :
     Tendsto (fun n : ℕ => chi (1 / (n + 1)) x) atTop (𝓝 1) := by
   have hxpos : 0 < ‖x‖ := norm_pos_iff.mpr hx
   apply Tendsto.congr' _ tendsto_const_nhds
@@ -715,7 +619,7 @@ lemma chi_tendsto_one {x : R3} (hx : x ≠ 0) :
 
 /-- **Shell bound.** The cutoff-gradient term is `O(ε²)`: its integrand lives in the shell
     `ε ≤ ‖x‖ ≤ 2ε` where `‖∇χ_ε‖ ≤ M/ε`, against a ball of volume `O(ε³)`. -/
-lemma shell_bound {v : R3 → ℂ} (j : Fin 3) {Mv Md Mφ r₀ : ℝ}
+private lemma shell_bound {v : R3 → ℂ} (j : Fin 3) {Mv Md Mφ r₀ : ℝ}
     (hMv : ∀ x : R3, ‖x‖ ≤ r₀ → ‖v x‖ ≤ Mv) (hMv0 : 0 ≤ Mv)
     (hMd : ∀ t : ℝ, |deriv cutoffP t| ≤ Md) (hMd0 : 0 ≤ Md)
     {φ : R3 → ℂ} (hMφ : ∀ x : R3, ‖φ x‖ ≤ Mφ)
@@ -764,7 +668,7 @@ lemma shell_bound {v : R3 → ℂ} (j : Fin 3) {Mv Md Mφ r₀ : ℝ}
         rw [div_mul_eq_mul_div, div_mul_eq_mul_div, div_mul_eq_mul_div]
 
 /-- The cutoff-gradient (shell) term tends to `0` as `ε_n = 1/(n+1) → 0` (`O(ε²)` decay). -/
-lemma shell_tendsto_zero {v : R3 → ℂ} (j : Fin 3) {Mv r₀ : ℝ} (hr₀ : 0 < r₀)
+private lemma shell_tendsto_zero {v : R3 → ℂ} (j : Fin 3) {Mv r₀ : ℝ} (hr₀ : 0 < r₀)
     (hMv : ∀ x : R3, ‖x‖ ≤ r₀ → ‖v x‖ ≤ Mv) (hMv0 : 0 ≤ Mv)
     {φ : R3 → ℂ} (hφc : Continuous φ) (hφcs : HasCompactSupport φ) :
     Tendsto (fun n : ℕ => ∫ x, (↑(fderiv ℝ (chi (1 / (n + 1))) x (EuclideanSpace.single j 1)) : ℂ)
@@ -806,7 +710,7 @@ contribute nothing in the `ε → 0` limit. -/
 
 /-- The cutoff gradient vanishes on the open ball `ball 0 ε` (the cutoff is constantly `0`
     there).  This is the near-origin companion of `fderiv_chi_eq_zero_far`. -/
-lemma fderiv_chi_eq_zero_near {ε : ℝ} (hε : 0 < ε) {x : R3} (hx : ‖x‖ < ε) :
+private lemma fderiv_chi_eq_zero_near {ε : ℝ} (hε : 0 < ε) {x : R3} (hx : ‖x‖ < ε) :
     fderiv ℝ (chi ε) x = 0 := by
   have hmem : Metric.ball (0 : R3) ε ∈ 𝓝 x := by
     apply Metric.isOpen_ball.mem_nhds
@@ -820,7 +724,7 @@ lemma fderiv_chi_eq_zero_near {ε : ℝ} (hε : 0 < ε) {x : R3} (hx : ‖x‖ <
 
 /-- `↑(∂ⱼχ_ε) · v` is continuous everywhere when `v` is continuous off the origin
     (the cutoff gradient is `0` near the origin, masking `v`'s cusp). -/
-lemma continuous_fderiv_chi_mul {ε : ℝ} (hε : 0 < ε) {v : R3 → ℂ}
+private lemma continuous_fderiv_chi_mul {ε : ℝ} (hε : 0 < ε) {v : R3 → ℂ}
     (hv : ContinuousOn v {(0 : R3)}ᶜ) (j : Fin 3) :
     Continuous (fun x => (↑(fderiv ℝ (chi ε) x (EuclideanSpace.single j 1)) : ℂ) * v x) := by
   have hd : Continuous (fun y => fderiv ℝ (chi ε) y (EuclideanSpace.single j (1 : ℝ))) :=
@@ -834,7 +738,8 @@ lemma continuous_fderiv_chi_mul {ε : ℝ} (hε : 0 < ε) {v : R3 → ℂ}
   · apply ContinuousAt.congr (continuousAt_const (x := (0 : R3)) (y := (0 : ℂ)))
     filter_upwards [Metric.ball_mem_nhds (0 : R3) hε] with y hy
     rw [Metric.mem_ball, dist_zero_right] at hy
-    rw [fderiv_chi_eq_zero_near hε hy, ContinuousLinearMap.zero_apply, Complex.ofReal_zero, zero_mul]
+    rw [fderiv_chi_eq_zero_near hε hy, ContinuousLinearMap.zero_apply, Complex.ofReal_zero,
+      zero_mul]
   · exact hdc.continuousAt.mul (hv.continuousAt (compl_singleton_mem_nhds hx))
 
 set_option maxHeartbeats 1000000 in
@@ -852,9 +757,7 @@ lemma master_ibp {v w : R3 → ℂ} (j : Fin 3)
     ∫ x, v x * fderiv ℝ φ x (EuclideanSpace.single j 1) = - ∫ x, w x * φ x := by
   have hdφ_cont : Continuous (fun x => fderiv ℝ φ x (EuclideanSpace.single j (1 : ℝ))) :=
     (hφ.continuous_fderiv_apply (by simp)).comp (continuous_id.prodMk continuous_const)
-  have hae : ∀ᵐ x : R3, x ≠ 0 := by
-    rw [ae_iff]; simp only [ne_eq, not_not, Set.setOf_eq_eq_singleton]
-    exact measure_singleton 0
+  have hae : ∀ᵐ x : R3, x ≠ 0 := ae_ne_zero_R3
   -- DCT 1: ∫ ↑χ·v·∂ⱼφ → ∫ v·∂ⱼφ
   have hdct1 : Tendsto (fun n : ℕ => ∫ x, (↑(chi (1 / (n + 1)) x) : ℂ) * v x
       * fderiv ℝ φ x (EuclideanSpace.single j 1)) atTop
@@ -939,6 +842,5 @@ lemma master_ibp {v w : R3 → ℂ} (j : Fin 3)
       simpa using this
     exact hsum.neg.congr (fun n => (hkey n).symm)
   exact tendsto_nhds_unique hdct1 hB
-
 
 end QuantumMechanics.Hydrogen.Spectrum

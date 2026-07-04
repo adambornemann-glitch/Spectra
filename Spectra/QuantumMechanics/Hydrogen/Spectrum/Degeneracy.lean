@@ -10,45 +10,25 @@ import Spectra.QuantumMechanics.Hydrogen.Hamiltonian
 import Spectra.QuantumMechanics.Hydrogen.Spectrum.Eigenvalue
 
 /-!
-# The Spectrum of the Hydrogen Atom
+# Hydrogen Level Degeneracy: the Combinatorial Half
 
-The main theorems about the hydrogen spectrum, assembling the radial
-eigenvalue problem with the angular decomposition.
+The combinatorial content of hydrogen's `n²` degeneracy: the index set of the
+`2ℓ+1` magnetic sublevels at each `ℓ < n`, the resulting orthonormal family of
+`n²` bound states `ψ_{nℓm}`, and the dimension count for its span.
 
-## The main theorem
+## Main results
 
-For the hydrogen Hamiltonian H = −Δ − Z/r (Z = 1 in atomic units):
+* `degeneracy_sum` — `Σ_{ℓ=0}^{n-1} (2ℓ+1) = n²`.
+* `degenIndex` — the `Finset` of `(ℓ, j)` pairs indexing the `n²` sublevels at level `n`.
+* `orthonormal_degenFamily` — the family `{ψ_{nℓm}}` is orthonormal.
+* `degenFamily_span_finrank` — `dim span {ψ_{nℓm}} = n²`.
 
-  **Discrete spectrum**: σ_disc(H) = { −1/(2n²) : n = 1, 2, 3, ... }
-  **Continuous spectrum**: σ_cont(H) = [0, ∞)
-  **Degeneracy**: dim ker(H − E_n) = n²
-  **Eigenfunctions**: ψ_{nℓm}(r,θ,φ) = R_{nℓ}(r) Y_ℓ^m(θ,φ)
-
-These results reproduce, with complete mathematical rigour, the spectral
-series I computed in January 1926 in Arosa. The eigenvalues agree exactly
-with Bohr's 1913 formula — but now they are *derived*, not postulated.
-
-## Architecture
-
-```
-  RadialEquation.lean     SphericalHarmonics.lean    HydrogenHamiltonian.lean
-  ┌─────────────────┐     ┌───────────────────┐      ┌──────────────────────┐
-  │ E_n = -1/(2n²)  │     │ Y_ℓ^m eigenvalue  │      │ hydrogenGenerator    │
-  │ R_{nℓ} eigfunc  │     │ Y_ℓ^m orthonormal │      │ hydrogen_isSA        │
-  │ radial_quantiz  │     │ Y_ℓ^m complete    │      │ IsSpectralMeasureFor │
-  └────────┬────────┘     └────────┬──────────┘      └──────────┬───────────┘
-           │                       │                            │
-           └───────────┬───────────┘                            │
-                       │                                        │
-              ┌────────▼──────────┐                             │
-              │ THIS FILE         │←────────────────────────────┘
-              │                   │
-              │ hydrogen_discrete │
-              │ hydrogen_continuum│
-              │ hydrogen_degener  │
-              │ hydrogen_bohr     │
-              └───────────────────┘
-```
+This is a **lower bound** on the physical degeneracy `dim ker(H − E_n) = n²`, not
+yet the full statement: that equality additionally needs completeness within each
+angular-momentum sector and the as-yet-unbuilt unitary identifying this
+spherical-coordinate `L²(ℝ³)` with `Sobolev.l2R3` (where `hydrogenHamiltonian`
+lives). See `Spectrum/Projections.lean` for the spectral-side transport of this
+count along `chartRealization`.
 
 ## References
 
@@ -62,12 +42,7 @@ noncomputable section
 
 namespace QuantumMechanics.Hydrogen.Spectrum
 
-open MeasureTheory Complex Filter
-open scoped Topology NNReal ENNReal Laplacian
-open RadialEq Spectra.QuantumMechanics.Hydrogen Spectra.QuantumMechanics.Hydrogen.Decomposition
-open Spectra.SphericalHarmonics (SphericalHarmonic sphericalHarmonic_eigenvalue
-  laplaceBeltrami_const_mul)
-open Spectra.QuantumMechanics.Hydrogen.Radial (laguerrePolynomial laguerre_smooth)
+open Spectra.QuantumMechanics.Hydrogen Spectra.QuantumMechanics.Hydrogen.Decomposition
 
 /-! ## Degeneracy -/
 
@@ -123,7 +98,7 @@ lemma orthonormal_degenFamily (n : ℕ) : Orthonormal ℂ (degenFamily n) := by
     exact absurd ⟨rfl, rfl, rfl⟩ hc
   · rfl
 
-/-- **Degeneracy of the n-th level is n².**
+/-- **The span of the n-th level's bound states has dimension n².**
 
     The `n²` orthonormal bound states `{ψ_{nℓm} : 0 ≤ ℓ < n, |m| ≤ ℓ}` span an
     `n²`-dimensional subspace of `L²(ℝ³)`:
@@ -138,11 +113,11 @@ lemma orthonormal_degenFamily (n : ℕ) : Orthonormal ℂ (degenFamily n) := by
     *exactly* the `E_n`-eigenspace additionally needs completeness within each
     sector and the as-yet-unbuilt unitary identifying this spherical-coordinate
     `L²(ℝ³)` with `Sobolev.l2R3` (where `hydrogenHamiltonian` lives), so the full
-    `dim ker(H − E_n) = n²` is not yet available. -/
-theorem hydrogen_degeneracy (_p : CoulombParams) (n : ℕ) (_hn : 1 ≤ n) :
+    `dim ker(H − E_n) = n²` — the physical degeneracy theorem — is not yet
+    available; this lemma is the combinatorial half of it. -/
+theorem degenFamily_span_finrank (n : ℕ) :
     Module.finrank ℂ (Submodule.span ℂ (Set.range (degenFamily n))) = n ^ 2 := by
   rw [finrank_span_eq_card (orthonormal_degenFamily n).linearIndependent,
     Fintype.card_coe, card_degenIndex]
-
 
 end QuantumMechanics.Hydrogen.Spectrum

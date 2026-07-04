@@ -3,20 +3,61 @@ Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
-import Spectra.Herglotz.Stieltjes.CumulativeDistFun
+import Mathlib.MeasureTheory.Measure.Stieltjes
 import Mathlib.Data.Rat.Denumerable
+import Mathlib.Topology.Sequences
+
+/-!
+# Helly's selection theorem
+
+Helly's selection theorem: a sequence of uniformly bounded, monotone real functions
+admits a subsequence converging pointwise on a countable dense set, and the limit of
+that subsequence extends to a monotone function `G` on all of `ℝ` to which the
+subsequence converges at every continuity point of `G`. The extracted limit is then
+repackaged as a `StieltjesFunction` (and its associated Borel measure) via Mathlib's
+`Monotone.stieltjesFunction`.
+
+## Main definitions
+
+* `hellyLimitMeasure`: the Borel measure induced by a monotone Helly limit `G`, via
+  `Monotone.stieltjesFunction`.
+
+## Main results
+
+* `helly_selection`: the unanchored selection theorem — no value of the limit is fixed.
+* `helly_selection'`: the anchored variant, additionally assuming (and concluding)
+  `Fₙ 0 = 0` for all `n` (resp. `G 0 = 0`).
+* `hellyLimitMeasure_Ioc`: the measure of `Set.Ioc a b` under `hellyLimitMeasure` is
+  `G⁺(b) - G⁺(a)`, where `G⁺` is the right-continuous regularization of `G`.
+
+## Implementation notes
+
+The proof extracts a convergent subsequence on the rationals by viewing
+`(Fₙ)_{q ∈ ℚ}` as a sequence in the compact product space `∏_{q ∈ ℚ} [0, M]`
+(`isCompact_univ_pi`/`IsCompact.isSeqCompact`), then extends the rational limit `g`
+to all of `ℝ` by right-continuous regularization, `G x := sInf (g '' {q : ℚ | x ≤ q})`.
+Monotonicity of `G` and agreement with `g` on `ℚ` are immediate from this definition;
+convergence of the subsequence at continuity points of `G` follows by squeezing `F (φ k) x`
+between rational approximations from below and above.
+
+## References
+
+* P. Billingsley, *Probability and Measure*, 3rd ed., Theorem 25.9.
+* W. Rudin, *Real and Complex Analysis*, 3rd ed., §11.29 (Helly's selection principle).
+-/
 
 open Filter Topology
-variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
 namespace Spectra.Herglotz
-
-/-! ### Helly's selection lemma (via diagonal extraction) -/
 
 section HellySelection
 
 /-- **Helly selection, unanchored.** Uniformly bounded, monotone `Fₙ` admit a
 subsequence converging at every rational and at every continuity point of the
-limit. No value is fixed at the origin. -/
+limit. No value is fixed at the origin.
+
+`_hM` is logically redundant (it follows from `h_bnd 0 0`) and unused in the proof;
+it is carried explicitly only for API symmetry with `helly_selection'`, whose `hM`
+is genuinely load-bearing. -/
 lemma helly_selection
     (F : ℕ → ℝ → ℝ) (M : ℝ) (_hM : 0 ≤ M)
     (h_mono : ∀ N, Monotone (F N))
@@ -114,12 +155,11 @@ noncomputable def hellyLimitMeasure (G : ℝ → ℝ) (h_mono : Monotone G) :
     Measure ℝ :=
   (h_mono.stieltjesFunction).measure
 
-/-- The Stieltjes measure satisfies `μ(Ioc a b) = G(b) - G(a)` at
-continuity points.
+/-- The Stieltjes measure satisfies `μ(Ioc a b) = ofReal (G⁺(b) - G⁺(a))`, where
+`G⁺ = h_mono.stieltjesFunction` is the right-continuous regularization of `G`.
 
-More precisely, `Monotone.stieltjesFunction` right-regularizes `G`,
-so `μ(Ioc a b) = ofReal (G⁺(b) - G⁺(a))` where `G⁺` is the
-right-continuous version. At continuity points, `G⁺ = G`. -/
+At a continuity point `x` of `G`, `G⁺ x = G x`, so this recovers the familiar
+`μ(Ioc a b) = G(b) - G(a)` whenever `a` and `b` are both continuity points of `G`. -/
 lemma hellyLimitMeasure_Ioc (G : ℝ → ℝ) (h_mono : Monotone G)
     (a b : ℝ) :
     (hellyLimitMeasure G h_mono) (Set.Ioc a b) =

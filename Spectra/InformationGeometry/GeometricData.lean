@@ -2,7 +2,7 @@
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
-Target: Mathlib v4.31.0-rc1-/
+-/
 import Spectra.InformationGeometry.Flow.Basic
 
 /-!
@@ -34,15 +34,22 @@ cubic tensor (which vanishes, by unitary isotropy).  Abstracting over
 `(domain, g, C)` lets the classical bit and the qubit be compared
 inside one definition — which is what `Dichotomy.lean` does.
 
-The principled future version of this abstraction is Eguchi's contrast
-function formalism: carry an abstract divergence `D` and *derive* `g`
-and `C` from its 2- and 3-jets at the diagonal (KL recovers the
-classical case; `1 - F²` or `-log F²` the quantum pure-state case).
-A second natural extension adds a symplectic form `ω` — the field that
-`RLDFisherModel` already carries — so that the data becomes the full
-pre-Kähler triple `(g, C, ω)`.  Both are deliberately out of scope
-here: this file is the minimal interface that makes the dichotomy
-statable.
+**Not formalized here, and out of scope for this file** — two
+motivating directions for later work, recorded so the abstraction's
+target shape is on record:
+
+1. Eguchi's contrast function formalism: carry an abstract divergence
+   `D` and *derive* `g` and `C` from its 2- and 3-jets at the diagonal
+   (KL recovers the classical case; `1 - F²` or `-log F²` the quantum
+   pure-state case).
+2. A symplectic form `ω` — the field that `RLDFisherModel` already
+   carries — added alongside `(g, C)` so the data becomes the full
+   pre-Kähler triple `(g, C, ω)`.
+
+Everything actually defined and proved in this file is listed under
+"Main definitions" below; this file itself only assembles the bare
+`(domain, g, C)` interface and the concrete/abstract generator
+equivalence.
 
 ## Main definitions
 

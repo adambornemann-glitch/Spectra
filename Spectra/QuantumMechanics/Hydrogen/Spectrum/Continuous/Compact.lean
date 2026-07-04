@@ -15,7 +15,60 @@ open scoped Convolution Topology NNReal ENNReal
 
 namespace Spectra.QuantumMechanics.Hydrogen
 
-/-! ## STEP A — multiplication by the ball indicator as a CLM -/
+/-!
+# Compactness of the Coulomb resolvent perturbation, and `σ_ess(H) = [0, ∞)`
+
+This file proves that the Coulomb-potential perturbation of the free resolvent is a compact
+operator on `L²(ℝ³)`, and concludes that the textbook hydrogen Hamiltonian
+`H = −½Δ − Z/r` has essential spectrum `[0, ∞)`.
+
+## Main definitions
+
+* `multIndicatorBall n` — multiplication by `𝟙_{closedBall 0 (n+1)}` as a continuous linear map
+  on `L²(ℝ³)`; the tool used to truncate the Coulomb kernel to a bounded region.
+* `truncKernelGLpAt p n z hz` — the Coulomb-Green's-function kernel
+  `Kₙ(x, y) = 𝟙_{closedBall 0 (n+1)}(x) · V(x) · G_z(x - y)` truncated to the ball of radius
+  `n + 1`, viewed as an element of `L²(ℝ³ × ℝ³)`.
+
+## Main results
+
+* `coulombResolventAt_isCompact` — the Coulomb resolvent `coulombResolventAt p z hz` is a compact
+  operator on `L²(ℝ³)`, for every spectral parameter `z` off the real axis.
+* `coulombResolvent_isCompact` / `coulombResolventHalf_isCompact` — the `z = i` and textbook
+  (`z = 2i`, rescaled) instances used downstream.
+* `hydrogen_essSpectrum` — the essential spectrum of the self-adjoint hydrogen Hamiltonian is
+  `Set.Ici 0`, i.e. `[0, ∞)`.
+
+## Implementation notes
+
+Compactness is proved by the classical kernel-truncation argument: the integral operator with
+kernel `Kₙ ∈ L²(ℝ³ × ℝ³)` is compact for every `n` (Hilbert–Schmidt), and the truncated kernels
+converge to the Coulomb resolvent in operator norm as `n → ∞`, since the tail of the Coulomb
+multiplier `Z/‖x‖` outside `closedBall 0 (n+1)` is bounded by `Z/(n+1) → 0`. A limit of compact
+operators in operator norm is compact, which finishes the argument. The proof runs in five stages,
+each isolated as its own section below:
+
+1. **Kernel truncation as a bounded operator** (`multIndicatorBall`): package
+   "multiply by `𝟙_{closedBall 0 (n+1)}`" as a CLM of operator norm `≤ 1`.
+2. **Coulomb resolvent as a multiplier** (`coulombResolventAt_coeFn`): identify the Coulomb
+   resolvent pointwise a.e. as multiplication by `coulombMultiplier` composed with the free
+   resolvent.
+3. **Schwartz-level kernel agreement** (`step_B_at`): on Schwartz test functions, the truncated
+   integral operator agrees a.e. with `multIndicatorBall n ∘ coulombResolventAt`.
+4. **Density to the full operator identity** (`step_C_at`): extend the Schwartz-level agreement to
+   all of `L²(ℝ³)` by density of Schwartz functions.
+5. **Operator-norm tail bound and the limit** (`step_D_at`, `step_E_tendsto_at`): bound
+   `‖coulombResolventAt − integralOperator Kₙ‖ ≤ (Z/(n+1)) · ‖freeResolventAt‖ → 0`, then invoke
+   `isCompactOperator_of_tendsto`.
+
+## References
+
+* M. Reed, B. Simon, *Methods of Modern Mathematical Physics, Vol. IV: Analysis of Operators*,
+  Theorem XIII.16 and surrounding discussion — compactness of Coulomb-type perturbations via
+  kernel truncation, and `σ_ess(−Δ + V) = σ_ess(−Δ)` for relatively compact `V`.
+-/
+
+/-! ## Kernel truncation as a bounded operator -/
 
 /-- The underlying linear map `f ↦ (𝟙_{closedBall 0 (n+1)} · f).toLp`. -/
 noncomputable def multIndicatorBallLM (n : ℕ) : l2R3 →ₗ[ℂ] l2R3 where
@@ -59,7 +112,7 @@ lemma multIndicatorBallLM_bound (n : ℕ) (f : l2R3) :
         intro x
         exact norm_indicator_le_norm_self _ _
 
-/-- **Step A.** Multiplication by `𝟙_{closedBall 0 (n+1)}` as a CLM on `L²`. -/
+/-- Multiplication by `𝟙_{closedBall 0 (n+1)}` as a CLM on `L²`. -/
 noncomputable def multIndicatorBall (n : ℕ) : l2R3 →L[ℂ] l2R3 :=
   LinearMap.mkContinuous (multIndicatorBallLM n) 1 (multIndicatorBallLM_bound n)
 
@@ -68,7 +121,7 @@ lemma multIndicatorBall_coeFn (n : ℕ) (f : l2R3) :
       (closedBall (0 : R3) (n + 1 : ℝ)).indicator (f : R3 → ℂ) :=
   multIndicatorBallLM_coeFn n f
 
-/-! ## W coeFn -/
+/-! ## Coulomb resolvent as a multiplier -/
 
 /-- The Coulomb resolvent acts a.e. as multiplication by `coulombMultiplier` on `R_z ψ`. -/
 lemma coulombResolventAt_coeFn (p : CoulombParams) (z : ℂ) (hz : z.im ≠ 0) (ψ : l2R3) :
@@ -83,25 +136,14 @@ lemma coulombResolventAt_coeFn (p : CoulombParams) (z : ℂ) (hz : z.im ≠ 0) (
   exact MemLp.coeFn_toLp
     (coulomb_mul_memLp_H2 p (freeResolventAt z hz ψ) (freeResolventAt_mem_domain z hz ψ))
 
-/-- The `z = i` instance. -/
-lemma coulombResolvent_coeFn (p : CoulombParams) (ψ : l2R3) :
-    (coulombResolvent p ψ : R3 → ℂ) =ᵐ[volume]
-      fun x => (coulombMultiplier p x : ℂ) * (freeResolvent ψ : R3 → ℂ) x :=
-  coulombResolventAt_coeFn p Complex.I I_im_ne_zero ψ
-
-/-! ## STEP B — Schwartz-level agreement -/
+/-! ## Schwartz-level kernel agreement -/
 
 /-- The truncated kernel `Kₙ ∈ L²(ℝ³×ℝ³)` at spectral parameter `z`. -/
 noncomputable def truncKernelGLpAt (p : CoulombParams) (n : ℕ) (z : ℂ) (hz : z.im ≠ 0) :
     Lp ℂ 2 ((volume : Measure R3).prod (volume : Measure R3)) :=
   (truncKernelG_memLp p n z hz).toLp _
 
-/-- The `z = i` instance. -/
-noncomputable def truncKernelGLp (p : CoulombParams) (n : ℕ) :
-    Lp ℂ 2 ((volume : Measure R3).prod (volume : Measure R3)) :=
-  truncKernelGLpAt p n Complex.I I_im_ne_zero
-
-/-- **Step B.**  On Schwartz inputs, the integral operator `integralOperator Kₙ` agrees with
+/-- On Schwartz inputs, the integral operator `integralOperator Kₙ` agrees with
 `multIndicatorBall n ∘ coulombResolventAt p z hz`. -/
 lemma step_B_at (p : CoulombParams) (n : ℕ) (z : ℂ) (hz : z.im ≠ 0) (ψ : 𝓢(R3, ℂ)) :
     (integralOperator (truncKernelGLpAt p n z hz) (ψ.toLp 2 volume) : R3 → ℂ) =ᵐ[volume]
@@ -111,7 +153,8 @@ lemma step_B_at (p : CoulombParams) (n : ℕ) (z : ℂ) (hz : z.im ≠ 0) (ψ : 
     SchwartzMap.coeFn_toLp ψ 2 volume
   -- LHS: kernel integral
   have hLHS : (integralOperator (truncKernelGLpAt p n z hz) (ψ.toLp 2 volume) : R3 → ℂ) =ᵐ[volume]
-      fun x => ∫ y, (truncKernelGLpAt p n z hz : R3 × R3 → ℂ) (x, y) * (ψ.toLp 2 volume : R3 → ℂ) y :=
+      fun x => ∫ y, (truncKernelGLpAt p n z hz : R3 × R3 → ℂ) (x, y) *
+        (ψ.toLp 2 volume : R3 → ℂ) y :=
     integralOperator_coeFn (K := truncKernelGLpAt p n z hz) (ψ.toLp 2 volume)
   -- Kₙ representative: truncCoulombBall x * G̃_z(x-y)
   have hKae : (truncKernelGLpAt p n z hz : R3 × R3 → ℂ)
@@ -120,7 +163,8 @@ lemma step_B_at (p : CoulombParams) (n : ℕ) (z : ℂ) (hz : z.im ≠ 0) (ψ : 
         (freeGreensFunctionL2 z hz : R3 → ℂ) (q.1 - q.2) :=
     MemLp.coeFn_toLp _
   -- for a.e. x, the inner integrands agree a.e. in y
-  have hKae2 : ∀ᵐ x ∂(volume : Measure R3), (fun y => (truncKernelGLpAt p n z hz : R3 × R3 → ℂ) (x, y))
+  have hKae2 : ∀ᵐ x ∂(volume : Measure R3),
+      (fun y => (truncKernelGLpAt p n z hz : R3 × R3 → ℂ) (x, y))
       =ᵐ[volume] fun y => truncCoulombBall p n x *
         (freeGreensFunctionL2 z hz : R3 → ℂ) (x - y) :=
     Measure.ae_ae_of_ae_prod hKae
@@ -156,16 +200,9 @@ lemma step_B_at (p : CoulombParams) (n : ℕ) (z : ℂ) (hz : z.im ≠ 0) (ψ : 
   · rw [Set.indicator_of_notMem hball]
     rw [truncCoulombBall, Set.indicator_of_notMem hball, zero_mul]
 
-/-- The `z = i` instance. -/
-lemma step_B (p : CoulombParams) (n : ℕ) (ψ : 𝓢(R3, ℂ)) :
-    (integralOperator (truncKernelGLp p n) (ψ.toLp 2 volume) : R3 → ℂ) =ᵐ[volume]
-      ⇑(multIndicatorBall n (coulombResolvent p (ψ.toLp 2 volume))) :=
-  step_B_at p n Complex.I I_im_ne_zero ψ
+/-! ## Density to the full operator identity -/
 
-/-! ## STEP C — the operator identity -/
-
-/-- **Step C.**  `integralOperator Kₙ = (multIndicatorBall n) ∘ (coulombResolventAt p z hz)`
-as CLMs. -/
+/-- `integralOperator Kₙ = (multIndicatorBall n) ∘ (coulombResolventAt p z hz)` as CLMs. -/
 lemma step_C_at (p : CoulombParams) (n : ℕ) (z : ℂ) (hz : z.im ≠ 0) :
     integralOperator (truncKernelGLpAt p n z hz)
       = (multIndicatorBall n).comp (coulombResolventAt p z hz) := by
@@ -178,19 +215,13 @@ lemma step_C_at (p : CoulombParams) (n : ℕ) (z : ℂ) (hz : z.im ≠ 0) :
     Dense.mono Submodule.subset_span hdr
   refine ContinuousLinearMap.ext_on hdense ?_
   rintro _ ⟨φ, rfl⟩
-  -- on `φ.toLp 2 volume`, both sides agree via Step B
+  -- on `φ.toLp 2 volume`, both sides agree via the Schwartz-level kernel agreement
   apply Lp.ext
   have hB := step_B_at p n z hz φ
   -- toLpCLM φ = φ.toLp 2 volume
   simpa only [SchwartzMap.toLpCLM_apply, ContinuousLinearMap.comp_apply] using hB
 
-/-- The `z = i` instance. -/
-lemma step_C (p : CoulombParams) (n : ℕ) :
-    integralOperator (truncKernelGLp p n)
-      = (multIndicatorBall n).comp (coulombResolvent p) :=
-  step_C_at p n Complex.I I_im_ne_zero
-
-/-! ## STEP D — op-norm tail bound -/
+/-! ## Operator-norm tail bound -/
 
 /-- Pointwise: on the complement of `closedBall 0 (n+1)`, `|coulombMultiplier x| ≤ Z/(n+1)`. -/
 lemma coulombMultiplier_le_on_compl (p : CoulombParams) (n : ℕ) {x : R3}
@@ -205,7 +236,7 @@ lemma coulombMultiplier_le_on_compl (p : CoulombParams) (n : ℕ) {x : R3}
   rw [inverseR, if_neg hne, mul_one_div]
   exact div_le_div_of_nonneg_left (le_of_lt p.hZ) hnpos (le_of_lt hx)
 
-/-- **Step D.**  Operator-norm tail bound for the integral-operator approximants. -/
+/-- Operator-norm tail bound for the integral-operator approximants. -/
 lemma step_D_at (p : CoulombParams) (n : ℕ) (z : ℂ) (hz : z.im ≠ 0) :
     ‖coulombResolventAt p z hz - integralOperator (truncKernelGLpAt p n z hz)‖
       ≤ p.Z / (n + 1) * ‖freeResolventAt z hz‖ := by
@@ -222,7 +253,8 @@ lemma step_D_at (p : CoulombParams) (n : ℕ) (z : ℂ) (hz : z.im ≠ 0) :
   have hWcoe := coulombResolventAt_coeFn p z hz ψ
   have hMcoe := multIndicatorBall_coeFn n (coulombResolventAt p z hz ψ)
   -- eLpNorm bound
-  have hpt : (((coulombResolventAt p z hz - integralOperator (truncKernelGLpAt p n z hz)) ψ) : R3 → ℂ)
+  have hpt : (((coulombResolventAt p z hz -
+        integralOperator (truncKernelGLpAt p n z hz)) ψ) : R3 → ℂ)
       =ᵐ[volume] fun x => (closedBall (0 : R3) (n + 1 : ℝ))ᶜ.indicator
         (fun y => (coulombMultiplier p y : ℂ) * (freeResolventAt z hz ψ : R3 → ℂ) y) x := by
     rw [hCdiff]
@@ -249,7 +281,8 @@ lemma step_D_at (p : CoulombParams) (n : ℕ) (z : ℂ) (hz : z.im ≠ 0) :
       simp only [Real.norm_eq_abs, abs_of_nonneg hZnn]
       exact mul_le_mul_of_nonneg_right (coulombMultiplier_le_on_compl p n hball) (norm_nonneg _)
   calc (eLpNorm (fun x => (closedBall (0 : R3) (n + 1 : ℝ))ᶜ.indicator
-          (fun y => (coulombMultiplier p y : ℂ) * (freeResolventAt z hz ψ : R3 → ℂ) y) x) 2 volume).toReal
+          (fun y => (coulombMultiplier p y : ℂ) * (freeResolventAt z hz ψ : R3 → ℂ) y) x)
+          2 volume).toReal
       ≤ (eLpNorm ((p.Z / (n + 1) : ℝ) • (freeResolventAt z hz ψ : R3 → ℂ)) 2 volume).toReal :=
         ENNReal.toReal_mono (by
           rw [eLpNorm_const_smul]
@@ -264,13 +297,7 @@ lemma step_D_at (p : CoulombParams) (n : ℕ) (z : ℂ) (hz : z.im ≠ 0) :
         mul_le_mul_of_nonneg_left ((freeResolventAt z hz).le_opNorm ψ) hZnn
     _ = p.Z / (n + 1) * ‖freeResolventAt z hz‖ * ‖ψ‖ := by ring
 
-/-- The `z = i` instance. -/
-lemma step_D (p : CoulombParams) (n : ℕ) :
-    ‖coulombResolvent p - integralOperator (truncKernelGLp p n)‖
-      ≤ p.Z / (n + 1) * ‖freeResolvent‖ :=
-  step_D_at p n Complex.I I_im_ne_zero
-
-/-! ## STEP E — limit + compactness -/
+/-! ## Limit and compactness -/
 
 /-- The integral-operator approximants converge to `coulombResolventAt p z hz` in operator norm. -/
 lemma step_E_tendsto_at (p : CoulombParams) (z : ℂ) (hz : z.im ≠ 0) :
@@ -295,20 +322,16 @@ lemma step_E_tendsto_at (p : CoulombParams) (z : ℂ) (hz : z.im ≠ 0) :
       exact h1.const_mul p.Z
     simpa using h2
 
-/-- **Step E.**  `coulombResolventAt p z hz` is a compact operator, for any non-real `z`. -/
+/-- `coulombResolventAt p z hz` is a compact operator, for any non-real `z`. This is the
+kernel-truncation limit argument: `coulombResolventAt` is the operator-norm limit of the compact
+integral operators `integralOperator (truncKernelGLpAt p n z hz)`. -/
 lemma coulombResolventAt_isCompact (p : CoulombParams) (z : ℂ) (hz : z.im ≠ 0) :
     IsCompactOperator (⇑(coulombResolventAt p z hz)) := by
   apply isCompactOperator_of_tendsto (step_E_tendsto_at p z hz)
   exact Eventually.of_forall
     (fun n => isCompactOperator_integralOperator (truncKernelGLpAt p n z hz))
 
-/-- The `z = i` instance. -/
-lemma step_E_tendsto (p : CoulombParams) :
-    Tendsto (fun n => integralOperator (truncKernelGLp p n)) atTop
-      (𝓝 (coulombResolvent p)) :=
-  step_E_tendsto_at p Complex.I I_im_ne_zero
-
-/-- **GOAL 1.**  `coulombResolvent p` is a compact operator. -/
+/-- `coulombResolvent p` is a compact operator (the `z = i` instance). -/
 theorem coulombResolvent_isCompact (p : CoulombParams) :
     IsCompactOperator (⇑(coulombResolvent p)) :=
   coulombResolventAt_isCompact p Complex.I I_im_ne_zero
@@ -320,8 +343,7 @@ theorem coulombResolventHalf_isCompact (p : CoulombParams) :
   rw [coulombResolventHalf, ContinuousLinearMap.coe_smul']
   exact (coulombResolventAt_isCompact p (2 * Complex.I) h2I).smul (2 : ℂ)
 
-/-- **GOAL 2.**  The textbook hydrogen Hamiltonian `H = −½Δ − Z/r` has essential spectrum
-`[0, ∞)`. -/
+/-- The textbook hydrogen Hamiltonian `H = −½Δ − Z/r` has essential spectrum `[0, ∞)`. -/
 theorem hydrogen_essSpectrum (p : CoulombParams) :
     Spectra.Essential.essSpectrum (hydrogen_isSelfAdjoint p) = Set.Ici (0 : ℝ) :=
   hydrogen_essSpectrum_eq_Ici_of_compact p (coulombResolventHalf_isCompact p)

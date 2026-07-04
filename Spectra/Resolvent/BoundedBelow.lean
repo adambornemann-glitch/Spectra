@@ -2,7 +2,6 @@
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
-Filename: Resolvent/BoundedBelow.lean
 -/
 import Spectra.Resolvent.Spectrum
 
@@ -181,7 +180,8 @@ lemma sub_smul_injective_of_boundedBelow {A : H →ₗ.[ℂ] H} (z : ℂ) {c : �
   have hlb := hbound (ψ - ψ')
   rw [h0, norm_zero] at hlb
   have hnorm : ‖((ψ - ψ' : A.domain) : H)‖ = 0 := by
-    have h1 : ‖((ψ - ψ' : A.domain) : H)‖ ≤ 0 := by nlinarith [norm_nonneg ((ψ - ψ' : A.domain) : H)]
+    have h1 : ‖((ψ - ψ' : A.domain) : H)‖ ≤ 0 := by
+      nlinarith [norm_nonneg ((ψ - ψ' : A.domain) : H)]
     exact le_antisymm h1 (norm_nonneg _)
   have hzero : (ψ - ψ' : A.domain) = 0 :=
     Subtype.ext (by simpa using norm_eq_zero.mp hnorm)

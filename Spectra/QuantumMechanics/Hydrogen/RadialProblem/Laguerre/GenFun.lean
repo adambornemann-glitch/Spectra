@@ -6,10 +6,23 @@ Authors: Adam Bornemann
 import Spectra.QuantumMechanics.Hydrogen.RadialProblem.Laguerre.Orthogonality
 import Spectra.QuantumMechanics.Hydrogen.RadialProblem.Laguerre.Complete
 /-!
-# Associated Laguerre Polynomials
+# Generating Function for the Associated Laguerre Polynomials
 
-The associated Laguerre polynomials L_n^α(x), which form the radial
-eigenfunctions of the hydrogen atom after appropriate substitutions.
+The exponential generating function `Σₙ Lₙ^{(α)}(x) tⁿ = exp(-xt/(1-t))/(1-t)^{α+1}` for the
+associated Laguerre polynomials `laguerrePolynomial` (defined in `Laguerre/Orthogonality.lean`).
+
+## Main results
+
+* `laguerre_generating_function` — the headline identity, proved by regrouping the absolutely
+  summable double series `Σ_{k,m} (-1)^k xᵏ/k! · C(α+k+m,m) · t^(k+m)` over `ℕ × ℕ`: summing along
+  antidiagonals recovers the LHS (`Lₙ^{(α)}(x) tⁿ`, via `genfun_antidiagonal_coeff`), while summing
+  `m`-then-`k` recovers the RHS closed form (via `genfun_binom_hasSum` and `genfun_exp_hasSum`).
+
+## Implementation notes
+
+* `realBinom_eq_ringChoose` identifies Spectra's from-scratch `realBinom α k` with Mathlib's
+  generalized binomial coefficient `Ring.choose α k` on `ℝ`; this is what lets the inner binomial
+  series be matched against `Real.one_div_one_sub_rpow_hasFPowerSeriesOnBall_zero`.
 
 ## References
 
@@ -17,16 +30,14 @@ eigenfunctions of the hydrogen atom after appropriate substitutions.
 * [Abramowitz, Stegun, *Handbook of Mathematical Functions*][abramowitz1965], Ch. 22.
 * [Bethe, Salpeter, *Quantum Mechanics of One- and Two-Electron Atoms*][bethesalpeter1957].
 -/
-open MeasureTheory Complex Filter Real Polynomial
-open scoped Topology NNReal ENNReal Nat
 namespace Spectra.QuantumMechanics.Hydrogen.Radial
 
 /-! ## Generating function -/
 
 /-! ### Bridge: `realBinom` = Mathlib's generalized binomial `Ring.choose` -/
 
- /-- The falling factorial as a product (no division, no `Ring.choose`). -/
-lemma descPochhammer_smeval_prod (α : ℝ) (k : ℕ) :
+/-- The falling factorial as a product (no division, no `Ring.choose`). -/
+private lemma descPochhammer_smeval_prod (α : ℝ) (k : ℕ) :
     (descPochhammer ℤ k).smeval α = ∏ i ∈ Finset.range k, (α - (i : ℝ)) := by
   induction k with
   | zero => simp
@@ -36,7 +47,7 @@ lemma descPochhammer_smeval_prod (α : ℝ) (k : ℕ) :
       ring
 
 /-- Spectra's `realBinom α k = (∏ i<k, (α-i)) / k!` is exactly `Ring.choose α k` on `ℝ`. -/
-lemma realBinom_eq_ringChoose (α : ℝ) (k : ℕ) :
+private lemma realBinom_eq_ringChoose (α : ℝ) (k : ℕ) :
     realBinom α k = Ring.choose α k := by
   have hfac : (k.factorial : ℝ) ≠ 0 := by exact_mod_cast Nat.factorial_ne_zero k
   have hprod : (∏ i ∈ Finset.range k, (α - (i : ℝ))) = (k.factorial : ℝ) * Ring.choose α k := by
@@ -46,7 +57,7 @@ lemma realBinom_eq_ringChoose (α : ℝ) (k : ℕ) :
 /-! ### Diagonal coefficient (pure algebra) -/
 
 /-- Grouped by total degree, the `tⁿ` coefficient of the 2-D family is `Lₙ^{(α)}(x)`. -/
-lemma genfun_antidiagonal_coeff (α x t : ℝ) (n : ℕ) :
+private lemma genfun_antidiagonal_coeff (α x t : ℝ) (n : ℕ) :
     ∑ p ∈ Finset.antidiagonal n,
         ((-1 : ℝ) ^ p.1 * x ^ p.1 / (p.1.factorial : ℝ)
           * Ring.choose (α + (p.1 : ℝ) + (p.2 : ℝ)) p.2) * t ^ (p.1 + p.2)
@@ -61,7 +72,7 @@ lemma genfun_antidiagonal_coeff (α x t : ℝ) (n : ℕ) :
     rw [Finset.mem_antidiagonal] at hp
     rw [hp]
   rw [Finset.sum_congr rfl hstep, ← Finset.sum_mul,
-      Finset.Nat.sum_antidiagonal_eq_sum_range_succ_mk]   -- VERIFY exact name
+      Finset.Nat.sum_antidiagonal_eq_sum_range_succ_mk]
   congr 1
   rw [laguerrePolynomial]
   refine Finset.sum_congr rfl (fun k hk => ?_)
@@ -75,7 +86,7 @@ lemma genfun_antidiagonal_coeff (α x t : ℝ) (n : ℕ) :
 /-! ### Inner sum: binomial series at the shifted parameter -/
 
 /-- For `|t| < 1`, `∑ₘ C(α+k+m, m) tᵐ = (1-t)^(-(α+k+1))`. -/
-lemma genfun_binom_hasSum (α t : ℝ) (ht : |t| < 1) (k : ℕ) :
+private lemma genfun_binom_hasSum (α t : ℝ) (ht : |t| < 1) (k : ℕ) :
     HasSum (fun m : ℕ => Ring.choose (α + (k : ℝ) + (m : ℝ)) m * t ^ m)
       (1 / (1 - t) ^ (α + (k : ℝ) + 1)) := by
   have hball := Real.one_div_one_sub_rpow_hasFPowerSeriesOnBall_zero (α + (k : ℝ) + 1)
@@ -99,8 +110,9 @@ lemma genfun_binom_hasSum (α t : ℝ) (ht : |t| < 1) (k : ℕ) :
 
 /-! ### Outer sum: exponential factor -/
 
-/-- The `k`-sum reproduces the exponential. -/
-lemma genfun_exp_hasSum (x t : ℝ) (_ht1 : (1 : ℝ) - t ≠ 0) :
+/-- The `k`-sum reproduces the exponential. Holds for every real `t` (including `t = 1`,
+where `(1 - t)` is `0` and division-by-zero junk values on both sides agree). -/
+private lemma genfun_exp_hasSum (x t : ℝ) :
     HasSum (fun k : ℕ => ((-1 : ℝ) ^ k * x ^ k / (k.factorial : ℝ)) * (t / (1 - t)) ^ k)
       (Real.exp (-(x * t) / (1 - t))) := by
   -- rewrite the summand as `u^k / k!` with `u = -(x t)/(1-t) = (-x)·(t/(1-t))`
@@ -114,7 +126,7 @@ lemma genfun_exp_hasSum (x t : ℝ) (_ht1 : (1 : ℝ) - t ≠ 0) :
   exact NormedSpace.expSeries_div_hasSum_exp _
 
 /-- Absolute-value bound on the generalized binomial coefficient, via `|α|`. -/
-lemma realBinom_abs_le (α : ℝ) (k m : ℕ) :
+private lemma realBinom_abs_le (α : ℝ) (k m : ℕ) :
     |Ring.choose (α + (k : ℝ) + (m : ℝ)) m| ≤ Ring.choose (|α| + (k : ℝ) + (m : ℝ)) m := by
   rw [← realBinom_eq_ringChoose, ← realBinom_eq_ringChoose]
   simp only [realBinom]
@@ -132,7 +144,7 @@ lemma realBinom_abs_le (α : ℝ) (k m : ℕ) :
     _ = |α| + (k:ℝ) + (m:ℝ) - (i:ℝ) := by ring
 
 /-- Absolute row-sum bound for the binomial series. -/
-lemma genfun_binom_abs_tsum_le (α t : ℝ) (ht : |t| < 1) (k : ℕ) :
+private lemma genfun_binom_abs_tsum_le (α t : ℝ) (ht : |t| < 1) (k : ℕ) :
     ∑' m : ℕ, |Ring.choose (α + (k : ℝ) + (m : ℝ)) m * t ^ m|
       ≤ 1 / (1 - |t|) ^ (|α| + (k : ℝ) + 1) := by
   have hbase := genfun_binom_hasSum |α| |t| (by rwa [abs_abs]) k
@@ -152,9 +164,8 @@ theorem laguerre_generating_function (α x t : ℝ) (ht : |t| < 1) :
       (Real.exp (-(x * t) / (1 - t)) / (1 - t) ^ (α + 1)) := by
   have htlt : t < 1 := (abs_lt.mp ht).2
   have ht1 : (0 : ℝ) < 1 - t := by linarith
-  have ht1' : (1 : ℝ) - t ≠ 0 := ne_of_gt ht1
-  -- The 2-D family.  (If the `set`/unfold dance below misbehaves, inline `F` or
-  --  add `F` to the `simp only` sets.)
+  -- The 2-D family whose antidiagonal sums give the LHS and whose row/column
+  -- sums (m-then-k) give the RHS closed form.
   set F : ℕ × ℕ → ℝ := fun p =>
       ((-1 : ℝ) ^ p.1 * x ^ p.1 / (p.1.factorial : ℝ)
         * Ring.choose (α + (p.1 : ℝ) + (p.2 : ℝ)) p.2) * t ^ (p.1 + p.2) with hFdef
@@ -165,7 +176,8 @@ theorem laguerre_generating_function (α x t : ℝ) (ht : |t| < 1) :
     have h1abs : (0 : ℝ) < 1 - |t| := by linarith
     -- |F (k,m)| factors as Aₖ · |C(α+k+m,m) tᵐ|
     have hFabs : ∀ k m : ℕ, |F (k, m)|
-        = (|x| ^ k / (k.factorial : ℝ) * |t| ^ k) * |Ring.choose (α + (k:ℝ) + (m:ℝ)) m * t ^ m| := by
+        = (|x| ^ k / (k.factorial : ℝ) * |t| ^ k)
+          * |Ring.choose (α + (k:ℝ) + (m:ℝ)) m * t ^ m| := by
       intro k m
       simp only [hFdef, abs_mul, abs_pow, abs_div, abs_neg, abs_one, one_pow, Nat.abs_cast, pow_add]
       ring
@@ -242,7 +254,7 @@ theorem laguerre_generating_function (α x t : ℝ) (ht : |t| < 1) :
             ((-1 : ℝ) ^ k * x ^ k / (k.factorial : ℝ) * t ^ k)
               * (1 / (1 - t) ^ (α + (k : ℝ) + 1)))
         (Real.exp (-(x * t) / (1 - t)) / (1 - t) ^ (α + 1)) := by
-      have he := (genfun_exp_hasSum x t ht1').mul_left (1 / (1 - t) ^ (α + 1))
+      have he := (genfun_exp_hasSum x t).mul_left (1 / (1 - t) ^ (α + 1))
       have hfun :
           (fun k : ℕ => (1 / (1 - t) ^ (α + 1))
               * (((-1 : ℝ) ^ k * x ^ k / (k.factorial : ℝ)) * (t / (1 - t)) ^ k))
@@ -262,17 +274,5 @@ theorem laguerre_generating_function (α x t : ℝ) (ht : |t| < 1) :
     exact houter.tsum_eq
   rw [hRHS] at hLHS
   exact hLHS
-
-
-/-! ## Interface summary
-
-### For `RadialEquation.lean`:
-- `laguerrePolynomial` — the polynomial solutions
-- `laguerre_differential_eq` — to verify they solve the radial ODE
-- `laguerre_orthogonality` — for orthonormality of radial wavefunctions
-- `laguerre_complete` — for completeness of the discrete eigenfunctions
-- `laguerre_norm_sq` — for normalisation constants
--/
-
 
 end QuantumMechanics.Hydrogen.Radial

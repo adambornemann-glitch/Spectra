@@ -6,18 +6,25 @@ Author: Adam Bornemann
 import Spectra.Modular.KMS.Condition
 import Mathlib.Analysis.VonNeumannAlgebra.Basic
 /-!
-# Tomita-Takesaki Modular Theory and the KMS Condition
+# The Modular-KMS Interface: bundled hypotheses and time-rescaling
 
-This file contains the axiomatized statement of the fundamental connection between
-modular theory and the KMS condition:
+This file does **not** prove Takesaki's theorem. It defines the interface through which the
+theorem will eventually be stated and consumed:
 
 **Every faithful normal state on a von Neumann algebra is KMS at β = 1 with respect
 to its modular automorphism group.**
 
 **The modular flow IS thermal time evolution at temperature T = 1/k_B.**
 
-This is the mathematical foundation of the "thermal time hypothesis" in quantum
-gravity and the reason modular theory appears throughout quantum field theory.
+Here that statement is packaged as the bundle `ModularTheoryData` (`kms_at_one` is a *field*,
+not a proved theorem) — see `## Takesaki's theorem` below for exactly what is and is not
+asserted. What this file *does* prove unconditionally is the KMS time-rescaling machinery:
+given KMS at one inverse temperature, `IsKMSState.rescale` produces KMS at any other, via
+reparametrized `Dynamics` (`Dynamics.rescale`) and reparametrized KMS functions
+(`KMSFunction.rescaleGeneral`). Combined with a genuine `ModularTheoryData` construction (the
+target of `Spectra.Modular.TomitaTakesaki`), this is the mathematical foundation of the "thermal
+time hypothesis" in quantum gravity and the reason modular theory appears throughout quantum
+field theory.
 
 ## What We Bundle as Hypotheses
 
@@ -59,7 +66,12 @@ as a C*-algebra possessing a Banach-space predual (`WStarAlgebra.exists_predual`
 replaces the previous placeholder class and gives the predual assumption real content.
 -/
 
-/-- A state is faithful if ω(a*a) = 0 implies a = 0. -/
+/-- A state is faithful if ω(a*a) = 0 implies a = 0.
+
+The hypothesis is the equality `ω (star a * a) = 0` of *complex* numbers, but this is the same
+condition as the usual positive-functional formulation `(ω (star a * a)).re = 0`: `State.nonneg`
+already forces `ω (star a * a)` to lie in `{z : ℂ | 0 ≤ z}` (i.e. `0 ≤ z.re ∧ z.im = 0`), so its
+real part vanishing and the complex number itself vanishing are equivalent for a state. -/
 def State.IsFaithful (ω : State A) : Prop :=
   ∀ a : A, ω (star a * a) = 0 → a = 0
 
@@ -67,12 +79,15 @@ def State.IsFaithful (ω : State A) : Prop :=
 increasing nets of positive elements.
 
 This is the standard predual-free characterization of normality — equivalent, for a positive
-functional on a von Neumann algebra, to σ-weak continuity and to complete additivity. It needs
-only the spectral order `[PartialOrder A] [StarOrderedRing A]`, *not* a chosen predual (which
-`WStarAlgebra.exists_predual` asserts only existentially). Discharging this predicate for concrete
-states — e.g. proving vector states normal — is future work; the point of this definition is that
-normality is now an honest restriction, not the vacuous `True` it used to be. -/
-def State.IsNormal [WStarAlgebra A] [PartialOrder A] [StarOrderedRing A] (ω : State A) : Prop :=
+functional on a von Neumann algebra, to σ-weak continuity and to complete additivity. Stating it
+needs only the order `[PartialOrder A]` on `A` itself (to speak of `DirectedOn`/`IsLUB`), *not*
+a chosen predual (which `WStarAlgebra.exists_predual` asserts only existentially) nor the
+`WStarAlgebra`/`StarOrderedRing` structure — those are what make the predicate *meaningful* for a
+von Neumann algebra, and are imposed at the call sites (`FaithfulNormalState`, `ModularTheoryData`)
+rather than here. Discharging this predicate for concrete states — e.g. proving vector states
+normal — is future work; the point of this definition is that normality is now an honest
+restriction, not the vacuous `True` it used to be. -/
+def State.IsNormal [PartialOrder A] (ω : State A) : Prop :=
   ∀ (s : Set A) (a : A),
     DirectedOn (· ≤ ·) s → (∀ x ∈ s, 0 ≤ x) → IsLUB s a →
       IsLUB ((fun x => (ω x).re) '' s) (ω a).re
@@ -122,7 +137,7 @@ structure ModularTheoryData (A : Type*) [CStarAlgebra A] [WStarAlgebra A]
   /-- ω satisfies KMS at β = 1 with respect to σ^ω. -/
   kms_at_one : IsKMSState ω.toState dynamics 1
 
--- Notation: σ[hmod] extracts the dynamics from the bundle
+/-- `σ[hmod]` extracts the modular automorphism group `Dynamics A` bundled in `hmod`. -/
 notation:max "σ[" hmod "]" => ModularTheoryData.dynamics hmod
 
 /-! ## Properties of the Modular Automorphism Group

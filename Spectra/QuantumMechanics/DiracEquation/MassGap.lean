@@ -13,10 +13,30 @@ the operator lower bound `‖H_D ψ‖ ≥ |mc²|·‖ψ‖`.  By the spectral-g
 mass in the open gap `(−|mc²|, |mc²|)`** — the relativistic mass gap of width `2mc²`.
 
 This is the "`σ ⊆ (−∞,−mc²]∪[mc²,∞)`" half of the spectrum characterisation.
+
+## Main results
+
+* `diracFullSymbol_mulVec_dotProduct_self`, `diracFullSymbol_mulVec_normSq` : the pointwise
+  dispersion identity `‖Ĥ(ξ)v‖² = E(ξ)²·‖v‖²`, from `Ĥᴴ = Ĥ` and `Ĥ² = E²·I`.
+* `diracSpinorL2_normSq_integral` : Plancherel for `DiracSpinorL2`, summed over spinor components.
+* `diracHamiltonian_normSq_ge`, `diracHamiltonian_norm_ge` : the operator lower bound
+  `‖H_D ψ‖ ≥ |mc²|·‖ψ‖`, from integrating the pointwise identity against the dispersion bound
+  `E(ξ)² ≥ mc²`.
+* `diracHamiltonian_mass_gap` : the headline result — the free Dirac unitary group's spectral
+  projection onto `(−|mc²|, |mc²|)` vanishes.
+
+## Implementation notes
+
+The argument is Plancherel plus a generic spectral-gap engine, not a bespoke spectral calculation:
+`diracFullSymbol_mulVec_normSq` establishes the pointwise identity on Fourier space, which is
+integrated (via `diracSpinorL2_normSq_integral`) into the operator bound
+`diracHamiltonian_norm_ge`. That bound is then handed to the abstract
+`spectralProjection_Ioo_eq_zero_of_norm_ge` engine (shared with other operators in this library),
+which converts a norm lower bound on the generator's domain into vanishing of the spectral
+projection on the corresponding gap.
 -/
 
 open Complex MeasureTheory Matrix
-open scoped InnerProductSpace
 open Spectra.Sobolev
 open Spectra.QuantumMechanics.Hydrogen
 open Spectra.OneParameterUnitaryGroup
@@ -27,23 +47,19 @@ namespace Spectra.QuantumMechanics.Dirac
 
 /-! ## The pointwise dispersion norm identity `‖Ĥ(ξ)v‖² = E(ξ)²‖v‖²` -/
 
-/-- Finite-dimensional adjoint transfer: `⟪u, Aᴴ w⟫ = ⟪Au, w⟫` for the dot product. -/
+/-- **Finite-dimensional adjoint transfer**: `⟪u, Aᴴ w⟫ = ⟪Au, w⟫` for the dot product. -/
 lemma star_mulVec_dotProduct (A : Matrix (Fin 4) (Fin 4) ℂ) (u w : Fin 4 → ℂ) :
     star u ⬝ᵥ A.conjTranspose *ᵥ w = star (A *ᵥ u) ⬝ᵥ w := by
-  simp only [dotProduct, Matrix.mulVec, Matrix.conjTranspose_apply, Pi.star_apply,
-    RCLike.star_def, map_sum, map_mul]
-  simp_rw [Finset.mul_sum, Finset.sum_mul]
-  rw [Finset.sum_comm]
-  congr 1; ext j; congr 1; ext i; ring
+  rw [Matrix.star_mulVec, Matrix.dotProduct_mulVec]
 
-/-- `(v†v).re = Σ ‖vₐ‖²`. -/
+/-- **`(v†v).re = Σ ‖vₐ‖²`.** -/
 lemma star_dotProduct_self_re (w : Fin 4 → ℂ) : (star w ⬝ᵥ w).re = ∑ a, ‖w a‖ ^ 2 := by
   rw [dotProduct, Complex.re_sum]
   refine Finset.sum_congr rfl fun a _ => ?_
   rw [Pi.star_apply, ← starRingEnd_apply, mul_comm, Complex.mul_conj, Complex.ofReal_re,
     Complex.normSq_eq_norm_sq]
 
-/-- The ℂ-valued dispersion identity `(Ĥv)†(Ĥv) = E² · (v†v)`, from `Ĥᴴ = Ĥ` and `Ĥ² = E²·I`. -/
+/-- **The ℂ-valued dispersion identity** `(Ĥv)†(Ĥv) = E² · (v†v)`, from `Ĥᴴ = Ĥ` and `Ĥ² = E²·I`. -/
 lemma diracFullSymbol_mulVec_dotProduct_self (mc2 : ℝ) (ξ : R3) (v : Fin 4 → ℂ) :
     star (diracFullSymbol mc2 ξ *ᵥ v) ⬝ᵥ (diracFullSymbol mc2 ξ *ᵥ v)
       = ((diracEnergy mc2 ξ ^ 2 : ℝ) : ℂ) * (star v ⬝ᵥ v) := by
@@ -67,7 +83,7 @@ lemma diracFullSymbol_mulVec_normSq (mc2 : ℝ) (ξ : R3) (v : Fin 4 → ℂ) :
 
 /-! ## The operator lower bound `‖H_D ψ‖ ≥ |mc²|·‖ψ‖` -/
 
-/-- `‖x‖² = ∫ Σₐ ‖𝓕(x)ₐ(ξ)‖²` (Plancherel, summed over spinor components). -/
+/-- **Plancherel for `DiracSpinorL2`**: `‖x‖² = ∫ Σₐ ‖𝓕(x)ₐ(ξ)‖²`, summed over spinor components. -/
 lemma diracSpinorL2_normSq_integral (x : DiracSpinorL2) :
     ‖x‖ ^ 2 = ∫ ξ, ∑ a, ‖(fourierL2 (x a) : R3 → ℂ) ξ‖ ^ 2 ∂volume := by
   have hint : ∀ a : Fin 4,
@@ -79,7 +95,7 @@ lemma diracSpinorL2_normSq_integral (x : DiracSpinorL2) :
   refine Finset.sum_congr rfl fun a _ => ?_
   rw [← L2_normSq_integral (fourierL2 (x a)), LinearIsometryEquiv.norm_map]
 
-/-- Each `ξ ↦ Σₐ ‖𝓕(x)ₐ(ξ)‖²` is integrable. -/
+/-- **Integrability of the Plancherel integrand**: `ξ ↦ Σₐ ‖𝓕(x)ₐ(ξ)‖²` is integrable. -/
 lemma integrable_spinor_normSq (x : DiracSpinorL2) :
     Integrable (fun ξ => ∑ a, ‖(fourierL2 (x a) : R3 → ℂ) ξ‖ ^ 2) volume :=
   integrable_finsetSum _ fun a _ => by

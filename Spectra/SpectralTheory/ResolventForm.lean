@@ -36,19 +36,15 @@ axis and all `ξ`,
   Note the rival's `proj_univ` and `proj_inter` are never consumed — the
   characterization is as robust as the structure allows.
 
-## The one unverified seam
+## The resolvent-diagonal input
 
-`inner_resolvent_diag_eq_integral` is the single declaration whose full
-signature did not appear in the catalogue; it is assumed here to read
+`inner_resolvent_diag_eq_integral` is declared, with this exact signature, in
+`Resolvent/SpectralRepresentation.lean`:
 
   `(U_grp) (z : ℂ) (hz : z.im ≠ 0) (ξ : H) :
     ⟪ξ, resolvent z hz (generator_isFormalAdjoint U_grp)
       (range_plus_i_eq_top U_grp) (range_minus_i_eq_top U_grp) ξ⟫_ℂ
-    = ∫ s, ((s : ℂ) - z)⁻¹ ∂(borelMeasure U_grp ξ)`,
-
-as reconstructed from its use in `StoneFormula/Basic.lean`.  If the integrand
-is phrased through `resolventIntegrand`, adjust `spectralPVM_resolvent_formula`
-(and the keystone's RHS) accordingly — the architecture is unaffected.
+    = ∫ s, ((s : ℂ) - z)⁻¹ ∂(borelMeasure U_grp ξ)`.
 -/
 
 open InnerProductSpace Complex MeasureTheory Filter Topology

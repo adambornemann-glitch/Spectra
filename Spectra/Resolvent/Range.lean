@@ -44,17 +44,21 @@ variable {A : H →ₗ.[ℂ] H} (z : ℂ) (hz : z.im ≠ 0) (hsym : A.IsFormalAd
   (hplus : ∀ φ : H, ∃ ψ : A.domain, A ψ + I • (ψ : H) = φ)
   (hminus : ∀ φ : H, ∃ ψ : A.domain, A ψ - I • (ψ : H) = φ)
 
-/-- The vector `ψ ∈ dom(A)` solving `(A - z)ψ = φ`, for self-adjoint `A`, `Im z ≠ 0`. -/
-private noncomputable def resolventSolution (φ : H) : H :=
+/-- The vector `ψ ∈ dom(A)` solving `(A - z)ψ = φ`, for symmetric `A` with deficiency indices
+`(0, 0)` (witnessed by `hplus`/`hminus`) and `Im z ≠ 0`. Exposed as public API (rather than kept
+`private`) so downstream files needing the same "solve `(A - z)ψ = φ` and extract `ψ`" pattern —
+e.g. `Identities.lean`'s `resolvent_identity`/`resolvent_adjoint` — can reuse this trio instead of
+re-deriving it from `self_adjoint_range_all_z`'s `Classical.choose`/`choose_spec` each time. -/
+noncomputable def resolventSolution (φ : H) : H :=
   ((Classical.choose (self_adjoint_range_all_z hsym hplus hminus z hz φ).exists : A.domain) : H)
 
 /-- `resolventSolution z hz hsym hplus hminus φ` lies in the domain of `A`. -/
-private lemma resolventSolution_mem (φ : H) :
+lemma resolventSolution_mem (φ : H) :
     resolventSolution z hz hsym hplus hminus φ ∈ A.domain :=
   (Classical.choose (self_adjoint_range_all_z hsym hplus hminus z hz φ).exists : A.domain).property
 
 /-- `resolventSolution` solves the resolvent equation: `(A - z)ψ = φ`. -/
-private lemma resolventSolution_eq (φ : H) :
+lemma resolventSolution_eq (φ : H) :
     A ⟨resolventSolution z hz hsym hplus hminus φ,
         resolventSolution_mem z hz hsym hplus hminus φ⟩
       - z • resolventSolution z hz hsym hplus hminus φ = φ :=
@@ -131,7 +135,7 @@ theorem resolvent_bound :
     (resolventSolution_norm_le z hz hsym hplus hminus)
 
 /-- `R(z) φ` lies in `dom A` — the resolvent is a *right* inverse landing in the domain.
-(Public restatement of the private `resolventSolution_mem`, since `R(z) φ` is defeq to it.) -/
+(Restatement of `resolventSolution_mem`, since `R(z) φ` is defeq to it.) -/
 theorem resolvent_apply_mem_domain (φ : H) :
     resolvent z hz hsym hplus hminus φ ∈ A.domain :=
   resolventSolution_mem z hz hsym hplus hminus φ

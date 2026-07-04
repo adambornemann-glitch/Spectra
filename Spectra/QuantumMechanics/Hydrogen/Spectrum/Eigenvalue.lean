@@ -9,45 +9,34 @@ import Spectra.QuantumMechanics.Hydrogen.Laplacian.Spherical
 import Spectra.QuantumMechanics.Hydrogen.Hamiltonian
 
 /-!
-# The Spectrum of the Hydrogen Atom
+# The Hydrogen Eigenvalue Equation
 
-The main theorems about the hydrogen spectrum, assembling the radial
-eigenvalue problem with the angular decomposition.
+Assembles the pointwise sector-reduction of the hydrogen Hamiltonian with the
+Hilbert-space lift of the radial wavefunction, to prove the eigenvalue equation
+`H ψ_{nℓm} = E_n ψ_{nℓm}` and the orthonormality of the eigenfunctions
+`ψ_{nℓm}(r,θ,φ) = R_{nℓ}(r) Y_ℓ^m(θ,φ)`.
 
-## The main theorem
+## Main definitions
 
-For the hydrogen Hamiltonian H = −Δ − Z/r (Z = 1 in atomic units):
+* `radialLp`, `reducedLp` — the radial wavefunction `R_{nℓ}` and the reduced
+  wavefunction `χ_{nℓ} = r·R_{nℓ}` as genuine elements of the radial Hilbert spaces
+  `RadialL2 = L²((0,∞), r²dr)` and `ReducedRadialL2 = L²((0,∞), dr)`.
+* `hydrogenEigenfunction` — the full eigenfunction `ψ_{nℓm}`, realized as the pure
+  tensor `R_{nℓ} ⊗ Y_ℓ^m` in the spherical decomposition `l2R3`.
+* `eigenvalue` — the hydrogen eigenvalues `E_n = −Z²/(2n²)` for general `Z`.
 
-  **Discrete spectrum**: σ_disc(H) = { −1/(2n²) : n = 1, 2, 3, ... }
-  **Continuous spectrum**: σ_cont(H) = [0, ∞)
-  **Degeneracy**: dim ker(H − E_n) = n²
-  **Eigenfunctions**: ψ_{nℓm}(r,θ,φ) = R_{nℓ}(r) Y_ℓ^m(θ,φ)
+## Main theorems
+
+* `hydrogen_reduces`, `hydrogen_reduces_half` — the hydrogen Hamiltonian (full- and
+  half-Laplacian kinetic conventions) acts on a separated realization as the radial
+  operator dressed with the centrifugal term, sector by sector.
+* `hydrogen_eigenfunction_eq` — **H ψ_{nℓm} = E_n ψ_{nℓm}** (pointwise, on the
+  separated chart realization), for the textbook `Z = 1` Hamiltonian.
+* `hydrogen_eigenfunction_orthonormal` — `⟨ψ_{nℓm}, ψ_{n'ℓ'm'}⟩ = δ_{nn'} δ_{ℓℓ'} δ_{mm'}`.
 
 These results reproduce, with complete mathematical rigour, the spectral
 series I computed in January 1926 in Arosa. The eigenvalues agree exactly
 with Bohr's 1913 formula — but now they are *derived*, not postulated.
-
-## Architecture
-
-```
-  RadialEquation.lean     SphericalHarmonics.lean    HydrogenHamiltonian.lean
-  ┌─────────────────┐     ┌───────────────────┐      ┌──────────────────────┐
-  │ E_n = -1/(2n²)  │     │ Y_ℓ^m eigenvalue  │      │ hydrogenGenerator    │
-  │ R_{nℓ} eigfunc  │     │ Y_ℓ^m orthonormal │      │ hydrogen_isSA        │
-  │ radial_quantiz  │     │ Y_ℓ^m complete    │      │ IsSpectralMeasureFor │
-  └────────┬────────┘     └────────┬──────────┘      └──────────┬───────────┘
-           │                       │                            │
-           └───────────┬───────────┘                            │
-                       │                                        │
-              ┌────────▼──────────┐                             │
-              │ THIS FILE         │←────────────────────────────┘
-              │                   │
-              │ hydrogen_discrete │
-              │ hydrogen_continuum│
-              │ hydrogen_degener  │
-              │ hydrogen_bohr     │
-              └───────────────────┘
-```
 
 ## References
 
@@ -61,8 +50,8 @@ noncomputable section
 
 namespace QuantumMechanics.Hydrogen.Spectrum
 
-open MeasureTheory Complex Filter
-open scoped Topology NNReal ENNReal Laplacian
+open MeasureTheory Complex
+open scoped Topology Laplacian
 open RadialEq Spectra.QuantumMechanics.Hydrogen Spectra.QuantumMechanics.Hydrogen.Decomposition
 open Spectra.SphericalHarmonics (SphericalHarmonic sphericalHarmonic_eigenvalue
   laplaceBeltrami_const_mul)
@@ -104,7 +93,7 @@ the angular Laplacian on S²) is developed in `RadialProblem.SphericalLaplacian`
     The separated realization `f` is supplied as a hypothesis (`hf`, `hsep`): producing
     such a global `C²` `f` from `R` and `Y_ℓ^m` is the chart-realization step that the
     spherical-`L²` ↔ `Sobolev.l2R3` unitary will eventually furnish (cf. the note on
-    `hydrogen_degeneracy`). No Laplacian *analysis* is missing — only that packaging. -/
+    `degenFamily_span_finrank`). No Laplacian *analysis* is missing — only that packaging. -/
 theorem laplacian_in_sector (ℓ : ℕ) (m : ℤ) (hm : |m| ≤ ℓ)
     (R : ℝ → ℂ) (hR : ContDiff ℝ 2 R)
     (f : Spectra.Sobolev.R3 → ℂ) (hf : ContDiff ℝ 2 f)
@@ -175,7 +164,7 @@ theorem coulomb_preserves_sectors (p : CoulombParams) (ℓ : ℕ) (m : ℤ) (hm 
 
       `(−Δ f − (Z/r)·f) = (−R″ − (2/r)R′ + (ℓ(ℓ+1)/r² − Z/r)·R) · Y_ℓ^m`.
 
-    The right factor is `H_ℓ R = radialHamiltonian ℓ Z R` in complex form. This is just
+    The right factor is `H_ℓ R = radialHamiltonianGen ℓ Z R` in complex form. This is just
     `laplacian_in_sector` (the `−Δ` half) combined with `coulomb_preserves_sectors` (the
     `−Z/r` half). The reduction onto `RadialL2`/`ReducedRadialL2` as Hilbert-space operators
     still awaits the spherical-`L²` ↔ `Sobolev.l2R3` unitary. -/
@@ -224,10 +213,13 @@ theorem hydrogen_reduces_half (p : CoulombParams) (ℓ : ℕ) (m : ℤ) (hm : |m
 
 /-! ## The radial Hamiltonian -/
 
-/-- The radial hydrogen Hamiltonian in sector ℓ (on RadialL2).
+/-- The radial hydrogen Hamiltonian in sector `ℓ`, for a general charge `Z` (on `RadialL2`).
+    Distinct from `RadialEq.radialHamiltonian` (which is the *half*-Laplacian, fixed-`Z = 1`
+    textbook convention): this is the full-Laplacian operator with `Z` left free, matching
+    `hydrogen_reduces` (as opposed to `hydrogen_reduces_half`).
 
     H_ℓ R = −R'' − (2/r)R' + ℓ(ℓ+1)/r² R − Z/r R -/
-def radialHamiltonian (ℓ : ℕ) (Z : ℝ) : (ℝ → ℝ) → ℝ → ℝ :=
+def radialHamiltonianGen (ℓ : ℕ) (Z : ℝ) : (ℝ → ℝ) → ℝ → ℝ :=
   fun R r => -(deriv (deriv R) r) - (2 / r) * deriv R r
     + ((ℓ : ℝ) * (ℓ + 1) / r ^ 2 - Z / r) * R r
 
@@ -247,7 +239,7 @@ def reducedRadialOp (ℓ : ℕ) (Z : ℝ) : (ℝ → ℝ) → ℝ → ℝ :=
     `(rR)'' = rR'' + 2R'`. -/
 theorem radial_unitary_equivalence (ℓ : ℕ) (Z : ℝ) (R : ℝ → ℝ)
     (hR : ContDiff ℝ 2 R) {r : ℝ} (hr : 0 < r) :
-    reducedRadialOp ℓ Z (fun s => s * R s) r = r * radialHamiltonian ℓ Z R r := by
+    reducedRadialOp ℓ Z (fun s => s * R s) r = r * radialHamiltonianGen ℓ Z R r := by
   have hR1 : Differentiable ℝ R := hR.differentiable (by norm_num)
   have hR2 : Differentiable ℝ (deriv R) := hR.differentiable_deriv_two
   -- `(rR)' = R + rR'`
@@ -264,7 +256,7 @@ theorem radial_unitary_equivalence (ℓ : ℕ) (Z : ℝ) (R : ℝ → ℝ)
     have e2 : deriv (fun s => s * deriv R s) r = deriv R r + r * deriv (deriv R) r := by
       rw [deriv_fun_mul differentiableAt_fun_id (hR2 r), deriv_id'']; simp
     rw [hχ', e1, e2]; ring
-  simp only [reducedRadialOp, radialHamiltonian]
+  simp only [reducedRadialOp, radialHamiltonianGen]
   rw [hχ'']
   field_simp
   ring
@@ -279,7 +271,13 @@ theorem radial_unitary_equivalence (ℓ : ℕ) (Z : ℝ) (R : ℝ → ℝ)
     n = 2: E₂ = −1/8  = −3.4 eV
     n = 3: E₃ = −1/18 = −1.5 eV
     ...
-    n → ∞: E_n → 0                  (ionisation threshold) -/
+    n → ∞: E_n → 0                  (ionisation threshold)
+
+    The hypothesis `_hn : 1 ≤ n` is unused in the formula (matching
+    `hydrogenEigenvalue`'s own pre-existing signature) but kept for API parity: every
+    consumer (`eigenvalue_Z1`, `hydrogen_discrete_spectrum`, `forward_eigenvalue`, ...)
+    already carries a principal-quantum-number witness at the call site, so it costs
+    nothing to demand it here and it documents that `n = 0` is not a physical state. -/
 def eigenvalue (p : CoulombParams) (n : ℕ) (_hn : 1 ≤ n) : ℝ :=
   -(p.Z ^ 2) / (2 * (n : ℝ) ^ 2)
 
@@ -429,7 +427,7 @@ lemma contDiff_Rc (n ℓ : ℕ) (hn : ℓ + 1 ≤ n) : ContDiff ℝ 2 (Rc n ℓ 
     eigenvalue:
       `H ψ_{nℓm} = E_n·ψ_{nℓm}`,  with `E_n = hydrogenEigenvalue n = −1/(2n²)`. -/
 theorem hydrogen_eigenfunction_eq (p : CoulombParams)
-    (n : ℕ) (ℓ : ℕ) (m : ℤ) (hn : ℓ + 1 ≤ n) (hm : |m| ≤ ℓ)
+    (n : ℕ) (ℓ : ℕ) (m : ℤ) (hn : ℓ + 1 ≤ n) (hn1 : 1 ≤ n) (hm : |m| ≤ ℓ)
     (hZ : p.Z = 1)
     (f : Spectra.Sobolev.R3 → ℂ) (hf : ContDiff ℝ 2 f)
     (hsep : ∀ a b c, f (sphereChart a b c)
@@ -437,7 +435,7 @@ theorem hydrogen_eigenfunction_eq (p : CoulombParams)
     {r θ φ : ℝ} (hr : 0 < r) (hθ : θ ∈ Set.Ioo 0 Real.pi) :
     ((-(1/2 : ℂ)) * Δ f (sphereChart r θ φ))
         + (coulombMultiplier p (sphereChart r θ φ) : ℂ) * f (sphereChart r θ φ)
-      = ((hydrogenEigenvalue n (by omega) : ℝ) : ℂ) * f (sphereChart r θ φ) := by
+      = ((hydrogenEigenvalue n hn1 : ℝ) : ℂ) * f (sphereChart r θ φ) := by
   rw [hydrogen_reduces_half p ℓ m hm (Rc n ℓ hn) (contDiff_Rc n ℓ hn) f hf hsep hr hθ]
   rw [hsep r θ φ]
   rw [deriv2_Rc n ℓ hn, deriv_Rc n ℓ hn, hZ]
@@ -448,7 +446,7 @@ theorem hydrogen_eigenfunction_eq (p : CoulombParams)
   have heig' : -(1/2 : ℝ) * deriv (deriv (hydrogenRadialWavefunction n ℓ hn)) r
       - (1 / r) * deriv (hydrogenRadialWavefunction n ℓ hn) r
       + ((ℓ * (ℓ + 1) : ℝ) / (2 * r ^ 2) - 1 / r) * hydrogenRadialWavefunction n ℓ hn r
-      = hydrogenEigenvalue n (by omega) * hydrogenRadialWavefunction n ℓ hn r := by
+      = hydrogenEigenvalue n hn1 * hydrogenRadialWavefunction n ℓ hn r := by
     have h2 : deriv^[2] (hydrogenRadialWavefunction n ℓ hn) r
         = deriv (deriv (hydrogenRadialWavefunction n ℓ hn)) r := by
       simp [Function.iterate_succ]

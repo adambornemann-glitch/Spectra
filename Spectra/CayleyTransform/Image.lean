@@ -12,6 +12,8 @@ import Spectra.CayleyTransform.Mobius
 
 * `cayleyImage`: the image of a set of reals under the Möbius map `μ ↦ (μ - i)/(μ + i)`.
 * `inverseCayleyImage`: the preimage of a set of complex numbers under the same map.
+* `cayleyImage_inverseCayleyImage`: `cayleyImage` really does recover `S` from
+  `inverseCayleyImage S`, for any `S` contained in the unit circle minus `{1}`.
 
 ## Implementation notes
 
@@ -38,8 +40,26 @@ def cayleyImage (B : Set ℝ) : Set ℂ :=
   (fun μ : ℝ => (↑μ - I) * (↑μ + I)⁻¹) '' B
 
 /-- The preimage of a set of complex numbers under the Möbius map `μ ↦ (μ - i)/(μ + i)`;
-recovers `B` (up to the map's injectivity on `B`) from `cayleyImage B`. -/
+recovers `S` (via `cayleyImage_inverseCayleyImage` below) from `cayleyImage (inverseCayleyImage S)`
+whenever `S` lies in the unit circle minus `{1}`. -/
 def inverseCayleyImage (S : Set ℂ) : Set ℝ :=
   (fun μ : ℝ => (↑μ - I) * (↑μ + I)⁻¹) ⁻¹' S
+
+/-- `cayleyImage` and `inverseCayleyImage` are inverses on the unit circle minus `{1}`: every
+`S` contained there is recovered as the Cayley image of its own inverse-Cayley image. -/
+lemma cayleyImage_inverseCayleyImage (S : Set ℂ) (hS : S ⊆ {w | ‖w‖ = 1 ∧ w ≠ 1}) :
+    cayleyImage (inverseCayleyImage S) = S := by
+  ext w
+  refine ⟨fun ⟨μ, hμ, hμw⟩ => hμw ▸ hμ, fun hw => ?_⟩
+  obtain ⟨hw_norm, hw_ne⟩ := hS hw
+  have him : (inverseMobius w).im = 0 := inverseMobius_real w hw_norm hw_ne
+  have hμ_eq : (↑(inverseMobius w).re : ℂ) = inverseMobius w :=
+    (eq_coe_re_of_im_eq_zero him).symm
+  have h_mobius_eq : (↑(inverseMobius w).re - I) * (↑(inverseMobius w).re + I)⁻¹ = w := by
+    rw [hμ_eq, mobius_inverseMobius w hw_ne]
+  refine ⟨(inverseMobius w).re, ?_, h_mobius_eq⟩
+  show (↑(inverseMobius w).re - I) * (↑(inverseMobius w).re + I)⁻¹ ∈ S
+  rw [h_mobius_eq]
+  exact hw
 
 end Spectra.Cayley

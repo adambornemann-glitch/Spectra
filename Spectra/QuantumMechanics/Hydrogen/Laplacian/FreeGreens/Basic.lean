@@ -6,10 +6,8 @@ Authors: Adam Bornemann
 import Spectra.QuantumMechanics.Hydrogen.Laplacian.Basic
 import Spectra.SpectralTheory.Essential.Weyl
 
-open MeasureTheory Complex Filter InnerProductSpace
+open MeasureTheory Complex
 open Spectra.Sobolev
-open Spectra.OneParameterUnitaryGroup
-open Spectra.YosidaHille
 open Spectra.Resolvent
 open Spectra.Essential
 open Spectra.Operator
@@ -22,9 +20,15 @@ namespace Spectra.QuantumMechanics.Hydrogen
 
 For explicit spectral computations we record the free Green's function
 `G_z(x) = e^{−√(−z)|x|} / (4π|x|)`, with the principal branch of the square root
-(so `Re √(−z) > 0` whenever `Im z ≠ 0`). Tying it to `selfAdjointResolvent`, and
-the exponential decay, both require the radial Fourier computation, so the two
-identities below are left open. -/
+(so `Re √(−z) > 0` whenever `Im z ≠ 0`). This file proves, fully and without `sorry`:
+the exponential decay of `G_z` (`freeGreensFunction_decay`), the Fourier-multiplier
+form of the resolvent `(−Δ − z)⁻¹` (`fourierL2_selfAdjointResolvent`), and a
+Laplace-type integral identity (`integral_exp_neg_mul_sin`) feeding the radial
+Fourier computation. What remains future work (not attempted here) is tying the
+*explicit* kernel `G_z` itself to the resolvent via convolution, i.e. showing
+`R_z f =ᵐ G_z ⋆ f`; the Track-A route to the essential spectrum of the hydrogen
+Laplacian bypasses that identity entirely (see `SpectralTheory.Essential.Weyl`),
+so it is banked here but not needed downstream. -/
 
 /-- **A Laplace-type integral** `∫₀^∞ e^{−w r} sin(a r) dr = a / (w² + a²)` for `Re w > 0`.
 
@@ -81,7 +85,7 @@ noncomputable def freeGreensFunction (z : ℂ) : R3 → ℂ := fun x =>
 
 Direct from the explicit formula: the witness is `c = Re((−z)^{1/2}) > 0`, since
 `−z ∉ [0, ∞)` when `Im z ≠ 0` and the principal branch maps `ℂ ∖ [0, ∞)` into the
-open right half-plane. Left open (elementary but `cpow`-fiddly). -/
+open right half-plane. -/
 theorem freeGreensFunction_decay (z : ℂ) (hz : z.im ≠ 0) :
     ∃ c : ℝ, 0 < c ∧ ∀ x : R3, x ≠ 0 →
       ‖freeGreensFunction z x‖ ≤
@@ -116,18 +120,19 @@ theorem freeGreensFunction_decay (z : ℂ) (hz : z.im ≠ 0) :
     rw [hval, norm_div, Complex.norm_exp, Complex.norm_real, Real.norm_eq_abs,
       abs_of_pos hdenom_pos, hre]
 
-
 /-- **The free resolvent acts as the Fourier multiplier `(laplacianSymbol ξ − z)⁻¹`.**
 
-In momentum space `(−Δ − z)⁻¹` is division by `laplacianSymbol ξ − z = (2π)²‖ξ‖² − z`, which
-never vanishes because `z.im ≠ 0` forces `Im(laplacianSymbol ξ − z) = −z.im ≠ 0`.
+In momentum space `(−Δ − z)⁻¹` is division by `laplacianSymbol ξ − z = (2π)²‖ξ‖² − z`,
+which never vanishes because `z.im ≠ 0` forces `Im(laplacianSymbol ξ − z) = −z.im ≠ 0`.
 
-This is the operator-theoretic half of `freeGreensFunction_is_resolvent_kernel`: it expresses the
-resolvent as multiplication on the Fourier side, with **no Green's-function analytics**. The proof
-applies the (linear, isometric) Fourier transform to the resolvent equation
-`(−Δ − z)(R_z f) = f` (`selfAdjointResolvent_solves`) and diagonalises `−Δ` with
-`fourier_weakLaplacian`. The remaining content of the kernel identity is then purely the Fourier
-transform of `G_z` (see the roadmap on `freeGreensFunction_is_resolvent_kernel`). -/
+This expresses the resolvent as multiplication on the Fourier side, with **no
+Green's-function analytics**. The proof applies the (linear, isometric) Fourier
+transform to the resolvent equation `(−Δ − z)(R_z f) = f`
+(`selfAdjointResolvent_solves`) and diagonalises `−Δ` with `fourier_weakLaplacian`.
+Connecting this to the *explicit* kernel `G_z` (i.e. `R_z f =ᵐ G_z ⋆ f`) would need
+the Fourier transform of `G_z` itself, which is future work (see the module
+docstring above); it is not needed for the current Track-A route to the essential
+spectrum. -/
 theorem fourierL2_selfAdjointResolvent (z : ℂ) (hz : z.im ≠ 0) (f : l2R3) :
     (fourierL2 (selfAdjointResolvent laplacian_isSelfAdjoint z hz f) : R3 → ℂ)
       =ᵐ[volume] fun ξ => ((laplacianSymbol ξ : ℂ) - z)⁻¹ * (fourierL2 f : R3 → ℂ) ξ := by

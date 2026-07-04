@@ -67,6 +67,125 @@ assert_no_sorry Spectra.Resolvent.resolvent_bound
 assert_no_sorry Spectra.Resolvent.resolvent_apply_mem_domain
 assert_no_sorry Spectra.Resolvent.resolvent_sub_smul_apply
 
+/-! ## Resolvent module tree — headline results not yet individually gated above
+(house-cleaning pass, 2026-07-03/04: `Spectra/Resolvent/**`). -/
+
+-- `Defs.lean`: the Neumann series `Σ (zA)ⁿ` for the resolvent inverse.
+assert_no_sorry Spectra.Resolvent.opNorm_pow_le
+assert_no_sorry Spectra.Resolvent.opNorm_pow_tendsto_zero
+assert_no_sorry Spectra.Resolvent.isUnit_one_sub
+assert_no_sorry Spectra.Resolvent.neumannSeries_summable
+assert_no_sorry Spectra.Resolvent.neumannSeries_hasSum
+assert_no_sorry Spectra.Resolvent.tsum_eq_neumannSeries
+assert_no_sorry Spectra.Resolvent.neumannSeries_mul_left
+assert_no_sorry Spectra.Resolvent.neumannSeries_mul_right
+assert_no_sorry Spectra.Resolvent.im_ne_zero_of_near
+-- `Integral/GroupIntegration.lean`: the resolvent as a Laplace-type integral of the unitary group.
+assert_no_sorry Spectra.Resolvent.continuous_unitary_apply
+assert_no_sorry Spectra.Resolvent.integrable_exp_neg_unitary
+assert_no_sorry Spectra.Resolvent.norm_integral_exp_neg_unitary_le
+assert_no_sorry Spectra.Resolvent.resolventIntegralPlus
+assert_no_sorry Spectra.Resolvent.resolventIntegralMinus
+assert_no_sorry Spectra.Resolvent.norm_resolventIntegralPlus_le
+assert_no_sorry Spectra.Resolvent.norm_resolventIntegralMinus_le
+-- `Integral/Limits.lean`: elementary Laplace-transform tail limits feeding the group-integral route.
+assert_no_sorry Spectra.Resolvent.tendsto_exp_sub_one_div
+assert_no_sorry Spectra.Resolvent.integrableOn_Ici_of_Ici_zero
+assert_no_sorry Spectra.Resolvent.integral_Ici_split_of
+-- `LowerBound.lean` / `NormExpansion.lean`: the symmetric-operator norm estimates
+-- `‖(A - (λ ± i)I)φ‖ ≥ ‖φ‖` underlying deficiency-index and resolvent-bound arguments.
+assert_no_sorry Spectra.Resolvent.lower_bound_estimate
+assert_no_sorry Spectra.Resolvent.inner_self_im_eq_zero_of_symmetric
+assert_no_sorry Spectra.Resolvent.cross_term_re_eq_zero_of_symmetric
+assert_no_sorry Spectra.Resolvent.norm_sq_sub_smul_of_symmetric
+assert_no_sorry Spectra.Resolvent.norm_sq_sub_I_smul
+assert_no_sorry Spectra.Resolvent.norm_sq_add_I_smul
+assert_no_sorry Spectra.Resolvent.norm_le_norm_sub_I_smul
+assert_no_sorry Spectra.Resolvent.norm_le_norm_add_I_smul
+-- `SpecialCases.lean`: the resolvent specialized to `z = ±i` (existence/uniqueness/bound/right-inverse).
+assert_no_sorry Spectra.Resolvent.resolventAtImaginary_unique
+assert_no_sorry Spectra.Resolvent.resolventAtImaginary_bound
+assert_no_sorry Spectra.Resolvent.resolventAtImaginary_left_inverse
+assert_no_sorry Spectra.Resolvent.resolventAtI
+assert_no_sorry Spectra.Resolvent.resolventAtNegI
+assert_no_sorry Spectra.Resolvent.resolvent_at_i_unique
+assert_no_sorry Spectra.Resolvent.resolvent_at_neg_i_unique
+assert_no_sorry Spectra.Resolvent.resolvent_at_i_bound
+assert_no_sorry Spectra.Resolvent.resolvent_at_neg_i_bound
+assert_no_sorry Spectra.Resolvent.resolvent_at_i_left_inverse
+assert_no_sorry Spectra.Resolvent.resolvent_at_neg_i_left_inverse
+-- `Range/Orthogonal.lean` / `Range/ClosedRange.lean`: `ran(A ∓ iI)` orthogonality and closedness.
+assert_no_sorry Spectra.Resolvent.weak_eigenvalue_of_orthogonal_to_range
+assert_no_sorry Spectra.Resolvent.orthogonal_range_eq_zero
+assert_no_sorry Spectra.Resolvent.preimage_cauchySeq
+assert_no_sorry Spectra.Resolvent.range_sub_smul_closed
+-- `Range/Surjectivity.lean`: symmetric with deficiency indices (0,0) ⟹ `ran(A - zI) = H` for all `z`.
+assert_no_sorry Spectra.Resolvent.self_adjoint_range_all_z
+assert_no_sorry Spectra.Resolvent.rangeSubmodule
+assert_no_sorry Spectra.Resolvent.range_sub_smul_dense
+assert_no_sorry Spectra.Resolvent.resolvent_unique
+assert_no_sorry Spectra.Resolvent.solution_unique
+-- `Range.lean` / `Identities.lean`: the resolvent as a function, its defining/uniqueness identities,
+-- commutation, adjoint symmetry, and analytic continuity in `z`.
+assert_no_sorry Spectra.Resolvent.resolventSolution
+assert_no_sorry Spectra.Resolvent.resolventSolution_mem
+assert_no_sorry Spectra.Resolvent.resolventSolution_eq
+assert_no_sorry Spectra.Resolvent.resolventFun
+assert_no_sorry Spectra.Resolvent.resolvent_identity
+assert_no_sorry Spectra.Resolvent.resolvent_tendsto
+assert_no_sorry Spectra.Resolvent.resolvent_commute
+assert_no_sorry Spectra.Resolvent.resolvent_adjoint
+assert_no_sorry Spectra.Resolvent.resolvent_inner_diag_conj
+-- `Spectrum.lean` / `Analytic.lean`: the resolvent set via `im z ≠ 0`, and the `HasSum` form of the
+-- Neumann-series resolvent expansion.
+assert_no_sorry Spectra.Resolvent.mem_resolventSet_of_im_ne_zero
+assert_no_sorry Spectra.Resolvent.mem_resolventSet_of_isFormalAdjoint_of_surjective
+assert_no_sorry Spectra.Resolvent.resolventFun_hasSum
+-- `Range/NumericalRangeSurjectivity.lean` / `NumericalRangeSpectrum.lean`: the numerical-range
+-- analogue of the resolvent-existence/uniqueness/bound package above.
+assert_no_sorry Spectra.Resolvent.numericalRange_solution_unique
+assert_no_sorry Spectra.Resolvent.numResolvent_bound
+assert_no_sorry Spectra.Resolvent.numResolvent_apply_mem_domain
+assert_no_sorry Spectra.Resolvent.numResolvent_sub_smul_apply
+-- `BoundedBelow.lean`: the existence/uniqueness backbone of the PVM-free Weyl-criterion gluing.
+assert_no_sorry Spectra.Resolvent.existsUnique_sub_smul_eq_of_boundedBelow
+-- `Diagonal/IntegralZ/{Defs,Tendsto,Shift,Bulk,DiffQuotient,GeneratorLim,Basic}.lean`: the
+-- generator-recovery-by-Laplace-integral construction `resolventIntegralZ`, its unitary-shift and
+-- bulk/boundary difference-quotient limits, and its identification with the abstract resolvent.
+assert_no_sorry Spectra.Resolvent.resolventIntegralZ
+assert_no_sorry Spectra.Resolvent.expZ_orbit_continuous
+assert_no_sorry Spectra.Resolvent.integrable_expZ_unitary
+assert_no_sorry Spectra.Resolvent.unitary_apply_expZ_integral
+assert_no_sorry Spectra.Resolvent.tendsto_cexp_mul_sub_one_div
+assert_no_sorry Spectra.Resolvent.tendsto_integral_Ici_expZ_unitary
+assert_no_sorry Spectra.Resolvent.tendsto_average_integral_expZ_unitary
+assert_no_sorry Spectra.Resolvent.tendsto_average_integral_expZ_unitary_neg
+assert_no_sorry Spectra.Resolvent.unitary_shift_resolventIntegralZ
+assert_no_sorry Spectra.Resolvent.unitary_shift_resolventIntegralZ_neg
+assert_no_sorry Spectra.Resolvent.genZ_target_eq
+assert_no_sorry Spectra.Resolvent.genZ_scalar
+assert_no_sorry Spectra.Resolvent.genZ_bulk_pos
+assert_no_sorry Spectra.Resolvent.genZ_bulk_neg
+assert_no_sorry Spectra.Resolvent.genZ_diffQuotient_pos
+assert_no_sorry Spectra.Resolvent.genZ_diffQuotient_neg
+assert_no_sorry Spectra.Resolvent.generator_limit_resolventIntegralZ
+assert_no_sorry Spectra.Resolvent.resolventIntegralZ_eq_resolvent
+-- `SpectralRepresentation.lean` / `Diagonal/Basic.lean`: the resolvent as the Cauchy transform of
+-- the spectral measure, its diagonal matrix element, and the Herglotz/Laplace representation.
+assert_no_sorry Spectra.Resolvent.resolvent_eq_spectralCalculus
+assert_no_sorry Spectra.Resolvent.inner_resolvent_diag_eq_integral
+assert_no_sorry Spectra.Resolvent.im_inner_resolvent_diag
+assert_no_sorry Spectra.Resolvent.resolvent_diag_laplace
+assert_no_sorry Spectra.Resolvent.im_resolvent_diag
+assert_no_sorry Spectra.Resolvent.laplace_exp
+assert_no_sorry Spectra.Resolvent.cauchy_kernel_laplace_neg_im
+assert_no_sorry Spectra.Resolvent.resolvent_continuous_at_height
+assert_no_sorry Spectra.Resolvent.resolvent_diag_lower_laplace
+assert_no_sorry Spectra.Resolvent.resolvent_diag_upper_eq_conj
+-- `Residue.lean`: the bridge identifying `selfAdjointResolvent` with the totalized `resolventOf`,
+-- feeding the already-gated `selfAdjointResolvent_residue_proj_singleton` below.
+assert_no_sorry Spectra.QuantumMechanics.SpectralTheory.selfAdjointResolvent_eq_resolventOf
+
 /-! ## Numerical range · spectrum ⊆ closure(numerical range) -/
 
 assert_no_sorry Spectra.Operator.numericalRange_range_isClosed
@@ -365,10 +484,10 @@ assert_no_sorry Spectra.QuantumMechanics.Hydrogen.essSpectrum_laplacian
 -- assert_no_sorry Spectra.QuantumMechanics.Hydrogen.coulomb_hVW
 -- assert_no_sorry Spectra.QuantumMechanics.Hydrogen.truncCoulombBall_memLp
 -- assert_no_sorry Spectra.QuantumMechanics.Hydrogen.truncKernelG_memLp
--- assert_no_sorry Spectra.QuantumMechanics.Hydrogen.hydrogen_essSpectrum_of_compact
--- assert_no_sorry Spectra.QuantumMechanics.Hydrogen.hydrogen_essSpectrum_eq_Ici_of_compact
--- assert_no_sorry Spectra.QuantumMechanics.Hydrogen.coulombResolvent_isCompact
--- assert_no_sorry Spectra.QuantumMechanics.Hydrogen.hydrogen_essSpectrum
+assert_no_sorry Spectra.QuantumMechanics.Hydrogen.hydrogen_essSpectrum_of_compact
+assert_no_sorry Spectra.QuantumMechanics.Hydrogen.hydrogen_essSpectrum_eq_Ici_of_compact
+assert_no_sorry Spectra.QuantumMechanics.Hydrogen.coulombResolvent_isCompact
+assert_no_sorry Spectra.QuantumMechanics.Hydrogen.hydrogen_essSpectrum
 
 /-! ### Radial × angular tensor decomposition L²(ℝ³) ≅ ⊕_ℓ RadialL2 ⊗ V_ℓ -/
 
@@ -376,6 +495,18 @@ assert_no_sorry Spectra.QuantumMechanics.Hydrogen.essSpectrum_laplacian
 -- expansion of L²(ℝ³) into angular-momentum sectors.
 assert_no_sorry Spectra.QuantumMechanics.Hydrogen.Decomposition.radialReduction
 assert_no_sorry Spectra.QuantumMechanics.Hydrogen.Decomposition.sphericalDecomposition
+
+/-! ### The 3D spherical change-of-variables unitary (Cartesian ↔ spherical `L²(ℝ³)`) -/
+
+-- `chartRealization : Sobolev.l2R3 ≃ₗᵢ[ℂ] Decomposition.l2R3`, precomposition with the spherical
+-- chart `(r, θ, φ) ↦ (r sinθ cosφ, r sinθ sinφ, r cosθ)`; the chart is measure-preserving, its
+-- eLpNorm change-of-variables identity, and the a.e. pointwise action of the unitary and its
+-- inverse (used in later hydrogen intertwining arguments).
+assert_no_sorry Spectra.QuantumMechanics.Hydrogen.Decomposition.measurePreserving_sphereChart
+assert_no_sorry Spectra.QuantumMechanics.Hydrogen.Decomposition.eLpNorm_chartRealizationFun
+assert_no_sorry Spectra.QuantumMechanics.Hydrogen.Decomposition.chartRealization
+assert_no_sorry Spectra.QuantumMechanics.Hydrogen.Decomposition.chartRealization_coeFn
+assert_no_sorry Spectra.QuantumMechanics.Hydrogen.Decomposition.chartRealization_symm_coeFn
 
 /-! ### Classical radial equation · quantization, explicit eigenfunctions, uniqueness -/
 
@@ -476,6 +607,14 @@ assert_no_sorry Spectra.QuantumMechanics.Hydrogen.hardy_inequality
 assert_no_sorry Spectra.QuantumMechanics.Hydrogen.hardy_constant_sharp
 assert_no_sorry Spectra.QuantumMechanics.Hydrogen.hydrogen_isSelfAdjoint
 assert_no_sorry Spectra.QuantumMechanics.Hydrogen.coulomb_kato_rellich
+
+/-! ### Born rule for a single observable (probability measure, expectation, variance, support) -/
+
+assert_no_sorry Spectra.QuantumMechanics.BornRule.Observable.born_rule
+assert_no_sorry Spectra.QuantumMechanics.BornRule.Observable.isProbabilityMeasure_bornMeasure
+assert_no_sorry Spectra.QuantumMechanics.BornRule.Observable.bornExpectation_eq_inner
+assert_no_sorry Spectra.QuantumMechanics.BornRule.Observable.bornVariance_eq_central_moment
+assert_no_sorry Spectra.QuantumMechanics.BornRule.Observable.bornMeasure_support_subset_spectrum
 
 /-! ### Joint spectral measures · strong commutativity (Born rule, relational layer)
 
@@ -649,6 +788,10 @@ assert_no_sorry Spectra.QuantumMechanics.SpectralTheory.pmapOfPVM_sub_I_surjecti
 assert_no_sorry Spectra.QuantumMechanics.SpectralTheory.pmapOfPVM_isSelfAdjoint_of_real
 assert_no_sorry Spectra.QuantumMechanics.SpectralTheory.spectralProjection_band_mem_pmapDomain
 assert_no_sorry Spectra.QuantumMechanics.SpectralTheory.pmapOfPVM_domain_dense_of_support_Ioi
+assert_no_sorry Spectra.QuantumMechanics.SpectralTheory.norm_sq_spectralProjection
+assert_no_sorry Spectra.QuantumMechanics.SpectralTheory.generator_has_arbitrarily_negative_energy
+assert_no_sorry Spectra.QuantumMechanics.SpectralTheory.generator_has_arbitrarily_positive_energy
+assert_no_sorry Spectra.QuantumMechanics.SpectralTheory.spectralProjection_Ioo_eq_zero_of_norm_ge
 assert_no_sorry Spectra.TomitaTakesaki.modularOpInv
 assert_no_sorry Spectra.TomitaTakesaki.modularSqrtInv
 assert_no_sorry Spectra.TomitaTakesaki.modularOpInv_isSelfAdjoint_of_dense

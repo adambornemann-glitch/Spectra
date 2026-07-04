@@ -14,7 +14,8 @@ integral construction in Stone's theorem.
 
 ## Main results
 
-* `integrableOn_exp_neg`: `e^{-t}` is integrable on `[0, ∞)`
+* `integral_exp_neg_Ioc`: `∫₀^n e^{-x} dx = 1 - e^{-n}` on the finite interval `[0, n]`
+* `integrableOn_exp_neg` / `integrableOn_exp_neg_Ioi`: `e^{-t}` is integrable on `[0, ∞)` / `(0, ∞)`
 * `integral_exp_neg_eq_one`: `∫₀^∞ e^{-t} dt = 1`
 * `integrable_exp_decay_continuous`: `e^{-t} • f(t)` is integrable if `f` is bounded
 * `norm_integral_exp_decay_le`: `‖∫₀^∞ e^{-t} • f(t) dt‖ ≤ C` if `‖f(t)‖ ≤ C`
@@ -34,12 +35,12 @@ namespace MeasureTheory.Integral
 
 open Filter Topology
 
-variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
-
 section BasicBochner
 
 variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℂ E] [CompleteSpace E]
 
+/-- The finite-interval antiderivative fact `∫₀^n e^{-x} dx = 1 - e^{-n}`, obtained from
+`HasDerivAt (fun t => -e^{-t}) (e^{-x})` via the fundamental theorem of calculus. -/
 lemma integral_exp_neg_Ioc (n : ℕ) : ∫ x in (0 : ℝ)..n, Real.exp (-x) = 1 - Real.exp (-n) := by
   by_cases hn : (n : ℝ) ≤ 0
   · have hn' : n = 0 := Nat.cast_eq_zero.mp (le_antisymm hn (Nat.cast_nonneg n))
@@ -57,30 +58,33 @@ lemma integral_exp_neg_Ioc (n : ℕ) : ∫ x in (0 : ℝ)..n, Real.exp (-x) = 1 
             ((Real.continuous_exp.comp continuous_neg).intervalIntegrable 0 n) using 1
     simp [Real.exp_zero]; ring
 
-
+/-- `e^{-t}` is integrable on `[0, ∞)` (as a function of `t : ℝ`). -/
 lemma integrableOn_exp_neg : IntegrableOn (fun t => Real.exp (-t)) (Set.Ici 0) volume := by
   rw [integrableOn_Ici_iff_integrableOn_Ioi]
   exact integrableOn_exp_neg_Ioi 0
 
+/-- The total mass of `e^{-t}` on `[0, ∞)` is `1`, i.e. `∫₀^∞ e^{-t} dt = 1`. -/
 lemma integral_exp_neg_eq_one : ∫ t in Set.Ici (0 : ℝ), Real.exp (-t) = 1 := by
   rw [integral_Ici_eq_integral_Ioi]
   exact integral_exp_neg_Ioi_zero
 
-
+/-- `e^{-t}` is integrable on the open ray `(0, ∞)`. -/
 lemma integrableOn_exp_neg_Ioi : IntegrableOn (fun t => Real.exp (-t)) (Set.Ioi 0) volume :=
   integrableOn_exp_neg.mono_set Set.Ioi_subset_Ici_self
 
-variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℂ E]
+variable {V : Type*} [NormedAddCommGroup V] [NormedSpace ℂ V]
 
+/-- A continuous `V`-valued function bounded by `C` on `[0, ∞)` becomes Bochner-integrable
+once weighted by `e^{-t}`, by domination against `(max |C| 1) · e^{-t}`. -/
 lemma integrable_exp_decay_continuous
-    (f : ℝ → E) (hf_cont : Continuous f)
+    (f : ℝ → V) (hf_cont : Continuous f)
     (C : ℝ) (hC : ∀ t ≥ 0, ‖f t‖ ≤ C) :
     IntegrableOn (fun t => Real.exp (-t) • f t) (Set.Ici 0) volume := by
   set M := max |C| 1 with hM_def
   have hM_pos : 0 < M := lt_max_of_lt_right one_pos
   have hM_ge : |C| ≤ M := le_max_left _ _
   have h_exp_int : IntegrableOn (fun t => Real.exp (-t)) (Set.Ici 0) volume :=
-  integrableOn_exp_neg
+    integrableOn_exp_neg
   have h_bound_int : IntegrableOn (fun t => M * Real.exp (-t)) (Set.Ici 0) volume :=
     h_exp_int.const_mul M
   have h_meas : AEStronglyMeasurable (fun t => Real.exp (-t) • f t)
@@ -101,10 +105,12 @@ lemma integrable_exp_decay_continuous
       _ = M * Real.exp (-t) := mul_comm _ _
   exact Integrable.mono' h_bound_int h_meas h_bound
 
-
+/-- `‖∫₀^∞ e^{-t} • f(t) dt‖ ≤ C` whenever `f` is continuous and bounded by `C` on `[0, ∞)`.
+The hypothesis `0 ≤ C` is not assumed: it is already forced by `hC 0 (le_refl 0)` together with
+`‖f 0‖ ≥ 0`. -/
 lemma norm_integral_exp_decay_le
-    (f : ℝ → E) (hf_cont : Continuous f)
-    (C : ℝ) (hC : ∀ t ≥ 0, ‖f t‖ ≤ C) (_ : 0 ≤ C) :
+    (f : ℝ → V) (hf_cont : Continuous f)
+    (C : ℝ) (hC : ∀ t ≥ 0, ‖f t‖ ≤ C) :
     ‖∫ t in Set.Ici 0, Real.exp (-t) • f t‖ ≤ C := by
   have h_integrand_int : IntegrableOn (fun t => Real.exp (-t) • f t) (Set.Ici 0) volume :=
     integrable_exp_decay_continuous f hf_cont C hC
@@ -119,13 +125,16 @@ lemma norm_integral_exp_decay_le
         calc Real.exp (-t) * ‖f t‖
             ≤ Real.exp (-t) * C := mul_le_mul_of_nonneg_left (hC t ht) (Real.exp_pos _).le
           _ = C * Real.exp (-t) := mul_comm _ _
-    _ = C * ∫ t in Set.Ici 0, Real.exp (-t) := by exact MeasureTheory.integral_const_mul C fun a => Real.exp (-a)
+    _ = C * ∫ t in Set.Ici 0, Real.exp (-t) := MeasureTheory.integral_const_mul C fun a => Real.exp (-a)
     _ = C * 1 := by rw [integral_exp_neg_eq_one]
     _ = C := mul_one C
 
-
+/-- Differentiation under the integral sign for the exponentially-weighted integral: if
+`f τ s` is continuous, differentiable in `τ` with derivative continuous in `s`, and both `f`
+and its `τ`-derivative are bounded by `C` on `s ≥ 0`, then
+`τ ↦ ∫₀^∞ e^{-s} • f τ s` is differentiable at `t` with derivative `∫₀^∞ e^{-s} • ∂_τ f t s`. -/
 lemma hasDerivAt_integral_of_exp_decay
-    (f : ℝ → ℝ → E)
+    (f : ℝ → ℝ → V)
     (hf_cont : Continuous (Function.uncurry f))
     (hf_deriv : ∀ t s, HasDerivAt (f · s) (deriv (f · s) t) t)
     (hf'_cont : ∀ t, Continuous (fun s => deriv (f · s) t))
@@ -177,28 +186,5 @@ lemma hasDerivAt_integral_of_exp_decay
     exact (hf_deriv τ s).const_smul (Real.exp (-s))
 
 end BasicBochner
-
-section Appendix
-
-variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℂ E]
-
-lemma fubini_Ioc (f : ℝ → ℝ → E) (a b c d : ℝ)
-    (hf : Integrable (Function.uncurry f) ((volume.restrict (Set.Ioc a b)).prod
-                                           (volume.restrict (Set.Ioc c d)))) :
-    ∫ x in Set.Ioc a b, ∫ y in Set.Ioc c d, f x y =
-    ∫ y in Set.Ioc c d, ∫ x in Set.Ioc a b, f x y := by
-  exact MeasureTheory.integral_integral_swap hf
-
-lemma tendsto_integral_of_dominated_convergence
-    (f : ℕ → ℝ → E) (g : ℝ → E) (bound : ℝ → ℝ)
-    (S : Set ℝ)
-    (hf_meas : ∀ n, AEStronglyMeasurable (f n) (volume.restrict S))
-    (hbound : ∀ n, ∀ᵐ x ∂(volume.restrict S), ‖f n x‖ ≤ bound x)
-    (hbound_int : Integrable bound (volume.restrict S))
-    (hf_tendsto : ∀ᵐ x ∂(volume.restrict S), Tendsto (fun n => f n x) atTop (𝓝 (g x))) :
-    Tendsto (fun n => ∫ x in S, f n x) atTop (𝓝 (∫ x in S, g x)) := by
-  exact MeasureTheory.tendsto_integral_of_dominated_convergence bound hf_meas hbound_int hbound hf_tendsto
-
-end Appendix
 
 end MeasureTheory.Integral

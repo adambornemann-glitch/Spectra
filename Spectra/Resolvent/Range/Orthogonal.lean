@@ -18,8 +18,6 @@ contradicting `Im(z) ≠ 0` unless `χ = 0`.
 ## Main statements
 
 * `weak_eigenvalue_of_orthogonal_to_range`: Orthogonality implies weak eigenvalue equation
-* `relation_from_plus_i`: Algebraic identity from the `+i` resolvent
-* `relation_from_minus_i`: Algebraic identity from the `-i` resolvent
 * `orthogonal_range_eq_zero`: The orthogonal complement is trivial
 
 ## References
@@ -46,19 +44,49 @@ lemma weak_eigenvalue_of_orthogonal_to_range {A : H →ₗ.[ℂ] H} (z : ℂ) (�
     _ = 0 + ⟪z • ψ, χ⟫_ℂ := by rw [h]
     _ = (starRingEnd ℂ) z * ⟪ψ, χ⟫_ℂ := by rw [inner_smul_left]; ring
 
-/-- Key algebraic relation from the +i resolvent. -/
-lemma relation_from_plus_i {A : H →ₗ.[ℂ] H} (z : ℂ) (χ : H)
+/-- If `Aη - Iη = c • χ` (a resolvent-image equation) then `Aη = c • χ + Iη`: the shared
+rearrangement underlying both `relation_from_plus_i`'s `h_Aη` step and the analogous step inside
+`orthogonal_range_eq_zero`. -/
+private lemma A_apply_of_sub_I_smul_eq {A : H →ₗ.[ℂ] H} {η χ : H} {c : ℂ} (hdom : η ∈ A.domain)
+    (heq : A ⟨η, hdom⟩ - I • η = c • χ) :
+    A ⟨η, hdom⟩ = c • χ + I • η := by
+  calc A ⟨η, hdom⟩
+      = (A ⟨η, hdom⟩ - I • η) + I • η := by simp
+    _ = c • χ + I • η := by rw [heq]
+
+/-- If `Aξ + Iξ = c • χ` (a resolvent-image equation) then `Aξ = c • χ - Iξ`: the shared
+rearrangement underlying both `relation_from_minus_i`'s `h_Aξ` step and the analogous step inside
+`orthogonal_range_eq_zero`. -/
+private lemma A_apply_of_add_I_smul_eq {A : H →ₗ.[ℂ] H} {ξ χ : H} {c : ℂ} (hdom : ξ ∈ A.domain)
+    (heq : A ⟨ξ, hdom⟩ + I • ξ = c • χ) :
+    A ⟨ξ, hdom⟩ = c • χ - I • ξ := by
+  calc A ⟨ξ, hdom⟩
+      = (A ⟨ξ, hdom⟩ + I • ξ) - I • ξ := by simp
+    _ = c • χ - I • ξ := by rw [heq]
+
+/-- `conj (conj z - I) = z + I`: the conjugate identity shared by `relation_from_plus_i` and the
+matching step inside `orthogonal_range_eq_zero`. -/
+private lemma conj_conj_sub_I_add_I (z : ℂ) : (starRingEnd ℂ) ((starRingEnd ℂ) z - I) = z + I := by
+  simp only [map_sub, conj_I, sub_neg_eq_add, add_left_inj]
+  exact RCLike.conj_conj z
+
+/-- `conj (conj z + I) = z - I`: the conjugate identity shared by `relation_from_minus_i` and the
+symmetric route through `conj_conj_sub_I_add_I`. -/
+private lemma conj_conj_add_I_sub_I (z : ℂ) : (starRingEnd ℂ) ((starRingEnd ℂ) z + I) = z - I := by
+  simp only [map_add, conj_I]
+  rw [RCLike.conj_conj]
+  ring
+
+/-- From orthogonality's weak eigenvalue equation and an `i`-resolvent-image vector `η` with
+`Aη - iη = (z̄ - i) • χ`, derives `(z̄ + i) * ⟪η, χ⟫ = (z + i) * ‖χ‖²`. -/
+private lemma relation_from_plus_i {A : H →ₗ.[ℂ] H} (z : ℂ) (χ : H)
     (h_eigen : ∀ (ψ : H) (hψ : ψ ∈ A.domain),
-      ⟪A ⟨ψ, hψ⟩, χ⟫_ℂ = (starRingEnd ℂ) z * ⟪ψ, χ⟫_ℂ) :
-    let z_bar := (starRingEnd ℂ) z
-    ∀ (η : H) (hη_dom : η ∈ A.domain),
-      A ⟨η, hη_dom⟩ - I • η = (z_bar - I) • χ →
-      (z_bar + I) * ⟪η, χ⟫_ℂ = (z + I) * ‖χ‖^2 := by
-  intro z_bar η hη_dom hη_eq
-  have h_Aη : A ⟨η, hη_dom⟩ = (z_bar - I) • χ + I • η := by
-    calc A ⟨η, hη_dom⟩
-        = (A ⟨η, hη_dom⟩ - I • η) + I • η := by simp
-      _ = (z_bar - I) • χ + I • η := by rw [hη_eq]
+      ⟪A ⟨ψ, hψ⟩, χ⟫_ℂ = (starRingEnd ℂ) z * ⟪ψ, χ⟫_ℂ)
+    (η : H) (hη_dom : η ∈ A.domain)
+    (hη_eq : A ⟨η, hη_dom⟩ - I • η = ((starRingEnd ℂ) z - I) • χ) :
+    ((starRingEnd ℂ) z + I) * ⟪η, χ⟫_ℂ = (z + I) * ‖χ‖^2 := by
+  set z_bar := (starRingEnd ℂ) z
+  have h_Aη : A ⟨η, hη_dom⟩ = (z_bar - I) • χ + I • η := A_apply_of_sub_I_smul_eq hη_dom hη_eq
   have h_eigen_η : ⟪A ⟨η, hη_dom⟩, χ⟫_ℂ = z_bar * ⟪η, χ⟫_ℂ := h_eigen η hη_dom
   have h_inner_Aη : ⟪A ⟨η, hη_dom⟩, χ⟫_ℂ =
       (starRingEnd ℂ) (z_bar - I) * ‖χ‖^2 + (starRingEnd ℂ) I * ⟪η, χ⟫_ℂ := by
@@ -69,9 +97,7 @@ lemma relation_from_plus_i {A : H →ₗ.[ℂ] H} (z : ℂ) (χ : H)
           rw [inner_smul_left, inner_smul_left]
       _ = (starRingEnd ℂ) (z_bar - I) * ‖χ‖^2 + (starRingEnd ℂ) I * ⟪η, χ⟫_ℂ := by
           rw [inner_self_eq_norm_sq_to_K]; simp
-  have h_conj_zbar_minus_I : (starRingEnd ℂ) (z_bar - I) = z + I := by
-    simp only [map_sub, conj_I, sub_neg_eq_add, add_left_inj]
-    exact RCLike.conj_conj z
+  have h_conj_zbar_minus_I : (starRingEnd ℂ) (z_bar - I) = z + I := conj_conj_sub_I_add_I z
   have h_conj_I : (starRingEnd ℂ) I = -I := Complex.conj_I
   rw [h_conj_zbar_minus_I, h_conj_I] at h_inner_Aη
   calc (z_bar + I) * ⟪η, χ⟫_ℂ
@@ -80,20 +106,16 @@ lemma relation_from_plus_i {A : H →ₗ.[ℂ] H} (z : ℂ) (χ : H)
     _ = ((z + I) * ‖χ‖^2 + (-I) * ⟪η, χ⟫_ℂ) + I * ⟪η, χ⟫_ℂ := by rw [h_inner_Aη]
     _ = (z + I) * ‖χ‖^2 := by ring
 
-/-- Key algebraic relation from the -i resolvent. -/
-lemma relation_from_minus_i {A : H →ₗ.[ℂ] H}
-    (z : ℂ) (χ : H)
+/-- From orthogonality's weak eigenvalue equation and a `-i`-resolvent-image vector `ξ` with
+`Aξ + iξ = (z̄ + i) • χ`, derives `(z̄ - i) * ⟪ξ, χ⟫ = (z - i) * ‖χ‖²`. -/
+private lemma relation_from_minus_i {A : H →ₗ.[ℂ] H} (z : ℂ) (χ : H)
     (h_eigen : ∀ (ψ : H) (hψ : ψ ∈ A.domain),
-      ⟪A ⟨ψ, hψ⟩, χ⟫_ℂ = (starRingEnd ℂ) z * ⟪ψ, χ⟫_ℂ) :
-    let z_bar := (starRingEnd ℂ) z
-    ∀ (ξ : H) (hξ_dom : ξ ∈ A.domain),
-      A ⟨ξ, hξ_dom⟩ + I • ξ = (z_bar + I) • χ →
-      (z_bar - I) * ⟪ξ, χ⟫_ℂ = (z - I) * ‖χ‖^2 := by
-  intro z_bar ξ hξ_dom hξ_eq
-  have h_Aξ : A ⟨ξ, hξ_dom⟩ = (z_bar + I) • χ - I • ξ := by
-    calc A ⟨ξ, hξ_dom⟩
-        = (A ⟨ξ, hξ_dom⟩ + I • ξ) - I • ξ := by simp
-      _ = (z_bar + I) • χ - I • ξ := by rw [hξ_eq]
+      ⟪A ⟨ψ, hψ⟩, χ⟫_ℂ = (starRingEnd ℂ) z * ⟪ψ, χ⟫_ℂ)
+    (ξ : H) (hξ_dom : ξ ∈ A.domain)
+    (hξ_eq : A ⟨ξ, hξ_dom⟩ + I • ξ = ((starRingEnd ℂ) z + I) • χ) :
+    ((starRingEnd ℂ) z - I) * ⟪ξ, χ⟫_ℂ = (z - I) * ‖χ‖^2 := by
+  set z_bar := (starRingEnd ℂ) z
+  have h_Aξ : A ⟨ξ, hξ_dom⟩ = (z_bar + I) • χ - I • ξ := A_apply_of_add_I_smul_eq hξ_dom hξ_eq
   have h_eigen_ξ : ⟪A ⟨ξ, hξ_dom⟩, χ⟫_ℂ = z_bar * ⟪ξ, χ⟫_ℂ := h_eigen ξ hξ_dom
   have h_inner_Aξ : ⟪A ⟨ξ, hξ_dom⟩, χ⟫_ℂ =
       (starRingEnd ℂ) (z_bar + I) * ‖χ‖^2 - (starRingEnd ℂ) I * ⟪ξ, χ⟫_ℂ := by
@@ -104,8 +126,7 @@ lemma relation_from_minus_i {A : H →ₗ.[ℂ] H}
           rw [inner_smul_left, inner_smul_left]
       _ = (starRingEnd ℂ) (z_bar + I) * ‖χ‖^2 - (starRingEnd ℂ) I * ⟪ξ, χ⟫_ℂ := by
           rw [inner_self_eq_norm_sq_to_K]; simp
-  have h_conj_zbar_plus_I : (starRingEnd ℂ) (z_bar + I) = z - I := by
-    simp only [map_add, conj_I]; rw [@conj_conj]; rfl
+  have h_conj_zbar_plus_I : (starRingEnd ℂ) (z_bar + I) = z - I := conj_conj_add_I_sub_I z
   have h_conj_I : (starRingEnd ℂ) I = -I := Complex.conj_I
   rw [h_conj_zbar_plus_I, h_conj_I] at h_inner_Aξ
   calc (z_bar - I) * ⟪ξ, χ⟫_ℂ
@@ -134,16 +155,9 @@ lemma orthogonal_range_eq_zero {A : H →ₗ.[ℂ] H} (hsym : A.IsFormalAdjoint 
   have h_relation_ξ := relation_from_minus_i z χ h_eigen ξ hξ_dom hξ_eq
   have h_sym : ⟪A ⟨η, hη_dom⟩, ξ⟫_ℂ = ⟪η, A ⟨ξ, hξ_dom⟩⟫_ℂ :=
     hsym ⟨η, hη_dom⟩ ⟨ξ, hξ_dom⟩
-  have h_Aη : A ⟨η, hη_dom⟩ = (z_bar - I) • χ + I • η := by
-    calc A ⟨η, hη_dom⟩
-        = (A ⟨η, hη_dom⟩ - I • η) + I • η := by simp
-      _ = (z_bar - I) • χ + I • η := by rw [hη_eq]
-  have h_Aξ : A ⟨ξ, hξ_dom⟩ = (z_bar + I) • χ - I • ξ := by
-    calc A ⟨ξ, hξ_dom⟩
-        = (A ⟨ξ, hξ_dom⟩ + I • ξ) - I • ξ := by simp
-      _ = (z_bar + I) • χ - I • ξ := by rw [hξ_eq]
-  have h_conj_zbar_minus_I : (starRingEnd ℂ) (z_bar - I) = z + I := by
-    simp only [map_sub, conj_I, sub_neg_eq_add, add_left_inj]; exact RCLike.conj_conj z
+  have h_Aη : A ⟨η, hη_dom⟩ = (z_bar - I) • χ + I • η := A_apply_of_sub_I_smul_eq hη_dom hη_eq
+  have h_Aξ : A ⟨ξ, hξ_dom⟩ = (z_bar + I) • χ - I • ξ := A_apply_of_add_I_smul_eq hξ_dom hξ_eq
+  have h_conj_zbar_minus_I : (starRingEnd ℂ) (z_bar - I) = z + I := conj_conj_sub_I_add_I z
   have h_conj_I : (starRingEnd ℂ) I = -I := Complex.conj_I
   have h_LHS : ⟪A ⟨η, hη_dom⟩, ξ⟫_ℂ = (z + I) * ⟪χ, ξ⟫_ℂ - I * ⟪η, ξ⟫_ℂ := by
     calc ⟪A ⟨η, hη_dom⟩, ξ⟫_ℂ

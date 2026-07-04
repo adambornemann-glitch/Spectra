@@ -5,52 +5,38 @@ Authors: Adam Bornemann
 Filename: QuantumMechanics/Ehrenfest.lean
 -/
 import Spectra.QuantumMechanics.SchrodingerEquation
-import Mathlib.Analysis.InnerProductSpace.Continuous
+import Mathlib.Analysis.InnerProductSpace.Calculus
 
-open InnerProductSpace Complex Filter Topology
+/-!
+# Ehrenfest's Theorem
+
+Ehrenfest's theorem: the time-derivative of the expectation value of a bounded observable
+`B` in the state `ψ(t) = U(t)ψ₀` evolving under a one-parameter unitary group `U_grp` with
+generator `A`, for `ψ₀ ∈ dom(A)`.
+
+## Main results
+
+* `ehrenfest_theorem`: `d/dt ⟪ψ(t), Bψ(t)⟫ = ⟪iAψ(t), Bψ(t)⟫ + ⟪ψ(t), B(iAψ(t))⟫`.
+
+## Implementation notes
+
+`B` is required to be a bounded (continuous) operator so that `ψ ↦ Bψ` is differentiable
+in `t` for free via `ContinuousLinearMap.hasFDerivAt`, composed with the Schrödinger equation
+for `ψ(t)`. The dynamics enters only through `schrodingerEquation`; the product rule for the
+`ℂ`-inner product is mathlib's `HasDerivAt.inner`. When `B` additionally preserves `dom(A)`,
+the right-hand side collapses to the more familiar commutator form `i⟪ψ(t), [A,B]ψ(t)⟫`, but
+that specialization is not needed to state or prove the result below.
+
+## References
+* Ehrenfest, "Bemerkung über die angenäherte Gültigkeit der klassischen Mechanik innerhalb der
+  Quantenmechanik" (1927)
+-/
+
+open InnerProductSpace Complex
 open Spectra.OneParameterUnitaryGroup
-open Spectra.YosidaHille
 open Spectra.QuantumMechanics.Schrodinger
 
 namespace Spectra.QuantumMechanics.Ehrenfest
-
-/-- The ℂ-inner product is bounded ℝ-bilinear.
-Conjugate-linearity over ℂ restricts to genuine ℝ-linearity since
-`conj(r) = r` for real scalars. Cauchy-Schwarz gives the bound. -/
-private lemma inner_isBoundedBilinearMap_real {H : Type*}
-  [NormedAddCommGroup H] [InnerProductSpace ℂ H] [IsScalarTower ℝ ℂ H] :
-    IsBoundedBilinearMap ℝ (fun p : H × H => ⟪p.1, p.2⟫_ℂ) where
-  add_left x₁ x₂ y := inner_add_left x₁ x₂ y
-  smul_left c x y := by
-    rw [← algebraMap_smul ℂ c x, inner_smul_left,
-        RCLike.conj_ofReal, ← Algebra.smul_def]
-  add_right x y₁ y₂ := inner_add_right x y₁ y₂
-  smul_right c x y := by
-    rw [← algebraMap_smul ℂ c y, inner_smul_right,
-        ← Algebra.smul_def]
-  bound := ⟨1, one_pos, fun x y => by rw [one_mul]; exact norm_inner_le_norm x y⟩
-
-/-- **Product rule for the ℂ-inner product under ℝ-differentiation.**
-`d/dt ⟨f(t), g(t)⟩_ℂ = ⟨f'(t), g(t)⟩_ℂ + ⟨f(t), g'(t)⟩_ℂ`.
-
-The ℂ-inner product is bounded ℝ-bilinear (Cauchy-Schwarz gives the bound,
-conjugate-linearity restricts to ℝ-linearity), so the standard product rule
-for bounded bilinear maps applies: `inner_isBoundedBilinearMap_real` supplies
-the Fréchet derivative, which we compose with the paired `HasDerivAt` maps
-(`hf.prodMk hg`) and reconcile with the stated derivative via `congr_deriv`. -/
-private lemma hasDerivAt_inner_cplx  {H : Type*}
-  [NormedAddCommGroup H] [InnerProductSpace ℂ H]
-  [CompleteSpace H] [IsScalarTower ℝ ℂ H]
-    {f g : ℝ → H} {f' g' : H} {x : ℝ}
-    (hf : HasDerivAt f f' x) (hg : HasDerivAt g g' x) :
-    HasDerivAt (fun t => ⟪f t, g t⟫_ℂ)
-               (⟪f', g x⟫_ℂ + ⟪f x, g'⟫_ℂ) x := by
-  have hb := @inner_isBoundedBilinearMap_real H _ _ _
-  have h := (hb.hasFDerivAt (f x, g x)).comp_hasDerivAt x (hf.prodMk hg)
-  exact h.congr_deriv
-    (by simp [IsBoundedBilinearMap.deriv]
-        rw [AddCommMagma.add_comm ⟪f x, g'⟫_ℂ ⟪f', g x⟫_ℂ])
-
 
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
 
@@ -59,8 +45,7 @@ variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteS
 
   `d/dt ⟪ψ(t), B ψ(t)⟫ = ⟪i A ψ(t), B ψ(t)⟫ + ⟪ψ(t), B (i A ψ(t))⟫`,
 
-which equals `i⟪ψ(t), [A,B]ψ(t)⟫` when `B` preserves `dom(A)`. The dynamics enters only
-through `schrodingerEquation`; the product rule is `HasDerivAt.inner`. -/
+which equals `i⟪ψ(t), [A,B]ψ(t)⟫` when `B` preserves `dom(A)`. -/
 theorem ehrenfest_theorem (U_grp : OneParameterUnitaryGroup (H := H))
     (B : H →L[ℂ] H) (ψ₀ : H) (hψ₀ : ψ₀ ∈ (generator U_grp).domain) (t₀ : ℝ) :
     let ψ_t  := U_grp.U t₀ ψ₀
@@ -76,7 +61,9 @@ theorem ehrenfest_theorem (U_grp : OneParameterUnitaryGroup (H := H))
     simp only [map_smul]
     simp only [ContinuousLinearMap.coe_restrictScalars', generator_domain, map_smul] at h
     exact HasDerivAt.congr_deriv h rfl
-  -- product rule for the ℂ-inner product
-  exact hasDerivAt_inner_cplx hf hg
+  -- product rule for the ℂ-inner product (mathlib's `HasDerivAt.inner`, reordered to match)
+  have h := hf.inner ℂ hg
+  rw [add_comm] at h
+  exact h
 
 end Spectra.QuantumMechanics.Ehrenfest

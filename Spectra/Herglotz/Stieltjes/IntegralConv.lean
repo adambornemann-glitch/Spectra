@@ -5,6 +5,10 @@ Authors: Adam Bornemann
 -/
 import Spectra.Herglotz.Stieltjes.Hellys
 import Mathlib.Topology.Algebra.Module.Cardinality
+import Mathlib.Analysis.SpecialFunctions.Trigonometric.Basic
+import Mathlib.Analysis.InnerProductSpace.Basic
+import Mathlib.MeasureTheory.Integral.Bochner.Set
+import Mathlib.Tactic.IntervalCases
 
 open Complex MeasureTheory Filter Topology
 open scoped NNReal ENNReal InnerProductSpace

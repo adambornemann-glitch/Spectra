@@ -5,34 +5,32 @@ Author: Adam Bornemann
 -/
 import Spectra.Modular.TomitaTakesaki.Closable
 /-!
-# Toward the modular operator `Δ = S⋆ S` (H3)
+# The Tomita closure `S`: closedness, density, and the modular quadratic form
 
 The modular operator is `Δ = S⋆ S`, where `S` is the closed Tomita operator `tomitaClosure M Ω`
-(H2). This file records the facts that put us at the doorstep of `Δ`:
+(H2). This file is the **form layer**: it records the closedness and density of `S`, and the
+non-negativity of the quadratic form `q(x) = ⟪S x, S x⟫ = ‖S x‖²` that `Δ` represents.
 
 * `tomitaClosure_isClosed` — `S` is a **closed** operator;
 * `tomitaClosure_domain_dense` — `S` is **densely defined**;
 * `modularForm_nonneg` — the quadratic form `q(x) = ⟪S x, S x⟫ = ‖S x‖²` is **non-negative**
-  (this is the form `Δ` represents, so `Δ ≥ 0`).
+  (this is the form `Δ` represents, so `Δ ≥ 0`);
+* `modularForm_eq_norm_sq` — that quadratic form is literally `‖S x‖²`.
 
-## What remains: von Neumann's `T⋆T` theorem
+## Downstream: von Neumann's `T⋆T` theorem
 
 Constructing `Δ` as a self-adjoint operator from `S` is **von Neumann's theorem**: for a closed,
-densely-defined `T`, the operator `T⋆ T` is self-adjoint and non-negative. Two obstacles, both
-genuine and both absent from Mathlib:
+densely-defined `T`, the operator `T⋆ T` is self-adjoint and non-negative. This is carried out in
+`VonNeumannTstarT.lean`, which imports this file and:
 
-1. **Forming `Δ` as a `LinearPMap`.** `LinearPMap.comp` cannot build `S⋆ ∘ S` directly — its
-   hypothesis `∀ x ∈ D(S), S x ∈ D(S⋆)` is false (the domain of `T⋆T` is the *proper* subspace
-   `{x ∈ D(S) : S x ∈ D(S⋆)}`). One must restrict `S` to that subspace first.
-2. **Self-adjointness.** `Δ` is manifestly *symmetric* (`⟪Δx,y⟫ = ⟪Sx,Sy⟫ = ⟪x,Δy⟫`) and `≥ 0`,
-   but upgrading symmetric `+ ≥ 0` to *self-adjoint* requires `(1 + Δ)` surjective — the heart of
-   von Neumann's theorem, proved classically via the orthogonal decomposition
-   `H ⊕ \overline{H} = Γ(S) ⊕ J Γ(S⋆)` of the closed graph. This is a substantial standalone
-   development.
+1. builds `Δ` as a `LinearPMap` by restricting `S` to the proper domain
+   `{x ∈ D(S) : S x ∈ D(S⋆)}` and post-composing with `S⋆` (`modularOp`);
+2. proves `Δ` symmetric and `≥ 0` (`modularOp_isSymmetric`, `modularOp_nonneg`), then upgrades to
+   self-adjoint via von Neumann's graph argument (`one_add_modularOp_surjective`,
+   `modularOp_isSelfAdjoint`), discharging ROADMAP milestone H3.
 
-So the construction chain `M0 → R1 → H1 → E1 → H2` has reduced the existence of the modular operator
-to exactly this one classical theorem. Downstream (`Δ^{½}`, the polar decomposition `S = J Δ^{½}`,
-and discharging `ModularData`) is gated on it. See `ROADMAP.md` (H3, R2–R4).
+Downstream of that (`Δ^{½}`, the polar decomposition `S = J Δ^{½}`, and discharging
+`ModularData`) lives in `Spectra/Modular/Cocycle/`. See `ROADMAP.md` (H3, R2–R4).
 -/
 
 open scoped InnerProductSpace
@@ -56,13 +54,17 @@ theorem tomitaClosure_domain_dense {M : VonNeumannAlgebra H} {Ω : H}
     (SetLike.coe_subset_coe.mpr (LinearPMap.le_closure (tomitaOp M Ω)).1)
 
 /-- **The modular form is non-negative.** `q(x) = ⟪S x, S x⟫ = ‖S x‖² ≥ 0` — the quadratic form
-represented by the (not-yet-constructed) modular operator `Δ = S⋆ S`, witnessing `Δ ≥ 0`. -/
+represented by the modular operator `Δ = S⋆ S` (`VonNeumannTstarT.modularOp`), witnessing `Δ ≥ 0`.
+This is the form-level shadow of `modularOp_nonneg` in `VonNeumannTstarT.lean`, which computes
+`Re ⟪Δ x, x⟫ = ‖S x‖²` via the formal-adjoint identity and reduces to this fact. -/
 theorem modularForm_nonneg {M : VonNeumannAlgebra H} {Ω : H}
     (x : (tomitaClosure M Ω).domain) :
     0 ≤ RCLike.re ⟪tomitaClosure M Ω x, tomitaClosure M Ω x⟫_ℂ :=
   inner_self_nonneg
 
-/-- The modular form is the squared norm of `S x`: `⟪S x, S x⟫ = ‖S x‖²`. -/
+/-- The modular form is the squared norm of `S x`: `⟪S x, S x⟫ = ‖S x‖²`. Used in
+`Spectra/Modular/Cocycle/ModularSqrt.lean` to relate the modular-operator form to `‖·‖²` when
+building `Δ^{½}`. -/
 theorem modularForm_eq_norm_sq {M : VonNeumannAlgebra H} {Ω : H}
     (x : (tomitaClosure M Ω).domain) :
     ⟪tomitaClosure M Ω x, tomitaClosure M Ω x⟫_ℂ

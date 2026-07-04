@@ -5,6 +5,7 @@ Authors: Adam Bornemann
 -/
 import Spectra.Resolvent.Defs
 import Mathlib.Analysis.InnerProductSpace.LinearPMap
+
 /-!
 # Norm Expansion for Symmetric Operators
 
@@ -14,17 +15,22 @@ in `‖Aψ - λψ‖²` vanishes, giving `‖Aψ - λψ‖² = ‖Aψ‖² + |λ
 
 ## Main statements
 
-* `inner_self_im_eq_zero_of_symmetric`: `⟪Aψ, ψ⟫` is real for symmetric `A`
-* `cross_term_re_eq_zero_of_symmetric`: The cross term `⟪Aψ, λψ⟫` has zero real part for imaginary `λ`
-* `norm_sq_sub_smul_of_symmetric`: `‖Aψ - λψ‖² = ‖Aψ‖² + |λ|²‖ψ‖²`
-* `norm_sq_sub_I_smul`: Special case for `λ = I`
-* `norm_sq_add_I_smul`: Special case for `λ = -I` (written as `Aψ + Iψ`)
+* `inner_self_im_eq_zero_of_symmetric`: `⟪Aψ, ψ⟫` is real for symmetric `A`.
+* `cross_term_re_eq_zero_of_symmetric`: the cross term `⟪Aψ, λψ⟫` has zero real part for
+  imaginary `λ`.
+* `norm_sq_sub_smul_of_symmetric`: `‖Aψ - λψ‖² = ‖Aψ‖² + |λ|²‖ψ‖²`.
+* `norm_sq_sub_I_smul`: special case for `λ = I`.
+* `norm_sq_add_I_smul`: special case for `λ = -I` (written as `Aψ + Iψ`).
+* `norm_le_norm_sub_I_smul` / `norm_le_norm_add_I_smul`: `‖ψ‖ ≤ ‖Aψ ∓ Iψ‖`.
 
 ## Implementation notes
 
-These lemmas eliminate ~100 lines of repeated calculation in the resolvent
-construction. The key insight is that symmetric operators have real expectation
-values, and purely imaginary scalars rotate these to purely imaginary cross terms.
+These lemmas eliminate the repeated `Aψ ± Iψ` norm calculation that would otherwise be redone at
+every `s = ±I` specialization in the resolvent construction: `Resolvent/SpecialCases.lean` calls
+`norm_le_norm_sub_I_smul`/`norm_le_norm_add_I_smul` from five call sites (as the generic contraction
+hypothesis fed to `resolventAtImaginary` at `s = I` and `s = -I`) that would each need this argument
+inline. The key insight is that symmetric operators have real expectation values, and purely
+imaginary scalars rotate these to purely imaginary cross terms.
 -/
 open InnerProductSpace Complex
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H]
@@ -64,24 +70,8 @@ lemma cross_term_re_eq_zero_of_symmetric
 lemma norm_sq_sub_smul_of_symmetric
     {A : H →ₗ.[ℂ] H} (hsym : A.IsFormalAdjoint A) (ψ : A.domain) (s : ℂ) (hs : s.re = 0) :
     ‖A ψ - s • (ψ : H)‖^2 = ‖A ψ‖^2 + ‖s‖^2 * ‖(ψ : H)‖^2 := by
-  have hre : ∀ x : H, (⟪x, x⟫_ℂ).re = ‖x‖^2 := fun x => by
-    rw [inner_self_eq_norm_sq_to_K (𝕜 := ℂ) x]; norm_cast
-  have h_expand : ‖A ψ - s • (ψ : H)‖^2 =
-      ‖A ψ‖^2 + ‖s • (ψ : H)‖^2 - 2 * (⟪A ψ, s • (ψ : H)⟫_ℂ).re := by
-    rw [← hre (A ψ - s • (ψ : H)), inner_sub_left, inner_sub_right, inner_sub_right]
-    simp only [Complex.sub_re]
-    rw [hre (A ψ), hre (s • (ψ : H))]
-    have h_cross : (⟪A ψ, s • (ψ : H)⟫_ℂ).re + (⟪s • (ψ : H), A ψ⟫_ℂ).re =
-        2 * (⟪A ψ, s • (ψ : H)⟫_ℂ).re := by
-      have h_eq : (⟪s • (ψ : H), A ψ⟫_ℂ).re = (⟪A ψ, s • (ψ : H)⟫_ℂ).re := by
-        calc (⟪s • (ψ : H), A ψ⟫_ℂ).re
-            = ((starRingEnd ℂ) ⟪A ψ, s • (ψ : H)⟫_ℂ).re := by rw [inner_conj_symm]
-          _ = (⟪A ψ, s • (ψ : H)⟫_ℂ).re := by simp only [Complex.conj_re]
-      rw [h_eq]; ring
-    rw [← h_cross]; ring
-  have h_norm_smul : ‖s • (ψ : H)‖ = ‖s‖ * ‖(ψ : H)‖ := norm_smul s (ψ : H)
-  have h_cross_zero := cross_term_re_eq_zero_of_symmetric hsym ψ s hs
-  rw [h_expand, h_norm_smul, h_cross_zero]
+  rw [norm_sub_sq (𝕜 := ℂ)]
+  simp only [RCLike.re_to_complex, cross_term_re_eq_zero_of_symmetric hsym ψ s hs, norm_smul]
   ring
 
 /-- **Corollary**: For `λ = I`, we have `‖Aψ - Iψ‖² = ‖Aψ‖² + ‖ψ‖²`. -/
@@ -99,30 +89,25 @@ lemma norm_sq_add_I_smul
   simp only [neg_smul, sub_neg_eq_add, norm_neg, Complex.norm_I, one_pow, one_mul] at h
   exact h
 
+omit [InnerProductSpace ℂ H] in
+/-- Private helper shared by `norm_le_norm_sub_I_smul` and `norm_le_norm_add_I_smul`: given the
+`‖v‖² = ‖x‖² + ‖w‖²` norm-expansion identity for vectors `v`, `x`, `w`, conclude `‖w‖ ≤ ‖v‖`. -/
+private lemma norm_le_of_norm_sq_eq_add {x v w : H}
+    (h_sq : ‖v‖^2 = ‖x‖^2 + ‖w‖^2) :
+    ‖w‖ ≤ ‖v‖ := by
+  have : ‖w‖^2 ≤ ‖v‖^2 := by nlinarith [sq_nonneg ‖x‖]
+  exact le_of_sq_le_sq this (norm_nonneg _)
+
 /-- From the norm expansion, `‖ψ‖ ≤ ‖Aψ - Iψ‖`. -/
 lemma norm_le_norm_sub_I_smul
     {A : H →ₗ.[ℂ] H} (hsym : A.IsFormalAdjoint A) (ψ : A.domain) :
-    ‖(ψ : H)‖ ≤ ‖A ψ - I • (ψ : H)‖ := by
-  have h_sq := norm_sq_sub_I_smul hsym ψ
-  have h_le : ‖(ψ : H)‖^2 ≤ ‖A ψ - I • (ψ : H)‖^2 := by
-    rw [h_sq]
-    have : 0 ≤ ‖A ψ‖^2 := sq_nonneg _
-    linarith
-  have h1 : 0 ≤ ‖(ψ : H)‖ := norm_nonneg _
-  have h2 : 0 ≤ ‖A ψ - I • (ψ : H)‖ := norm_nonneg _
-  nlinarith [sq_nonneg (‖(ψ : H)‖ - ‖A ψ - I • (ψ : H)‖)]
+    ‖(ψ : H)‖ ≤ ‖A ψ - I • (ψ : H)‖ :=
+  norm_le_of_norm_sq_eq_add (norm_sq_sub_I_smul hsym ψ)
 
 /-- From the norm expansion, `‖ψ‖ ≤ ‖Aψ + Iψ‖`. -/
 lemma norm_le_norm_add_I_smul
     {A : H →ₗ.[ℂ] H} (hsym : A.IsFormalAdjoint A) (ψ : A.domain) :
-    ‖(ψ : H)‖ ≤ ‖A ψ + I • (ψ : H)‖ := by
-  have h_sq := norm_sq_add_I_smul hsym ψ
-  have h_le : ‖(ψ : H)‖^2 ≤ ‖A ψ + I • (ψ : H)‖^2 := by
-    rw [h_sq]
-    have : 0 ≤ ‖A ψ‖^2 := sq_nonneg _
-    linarith
-  have h1 : 0 ≤ ‖(ψ : H)‖ := norm_nonneg _
-  have h2 : 0 ≤ ‖A ψ + I • (ψ : H)‖ := norm_nonneg _
-  nlinarith [sq_nonneg (‖(ψ : H)‖ - ‖A ψ + I • (ψ : H)‖)]
+    ‖(ψ : H)‖ ≤ ‖A ψ + I • (ψ : H)‖ :=
+  norm_le_of_norm_sq_eq_add (norm_sq_add_I_smul hsym ψ)
 
 end Spectra.Resolvent

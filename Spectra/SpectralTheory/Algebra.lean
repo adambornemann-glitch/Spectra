@@ -1,43 +1,46 @@
 /-
-Spectra: Operators.lean
+Spectra: SpectralTheory/Algebra.lean
 Dirac Operator and Hamiltonian, rebuilt on the constructed spectral calculus.
-
-Filename: SpectralTheory/Algebra.lean
 -/
 
 import Mathlib.Analysis.InnerProductSpace.PiL2
 import Spectra.SpectralTheory.Measure.GeneratorLink
 
 /-!
-# Dirac Operator and Hamiltonian
+# Spectral-projection algebra and energy bounds
 
-This file rebuilds the Dirac Hamiltonian on the constructed spectral machinery.  The old
-version of this file took a projection-valued measure as a *hypothesis*
-(`IsSpectralMeasure E`, `IsSpectralMeasureFor E gen`) and stored a self-adjoint generator
-as a *field*.  Every one of those inputs is now a theorem:
+This file rebuilds the spectral-projection algebra and the generator energy-bound machinery
+purely from the already-constructed spectral calculus in `Spectra.SpectralTheory.Measure`
+(`spectralCalculus`, `generator`, `borelMeasure`) — no `IsSpectralMeasure` hypothesis is taken,
+and no self-adjoint generator is stored as a field.  Everything below is a theorem:
 
-| old (hypothesis/field)                  | new (theorem)                                   |
-| --------------------------------------- | ----------------------------------------------- |
-| `E : Set ℝ → H →L[ℂ] H`, `hE.univ/empty/mul` | `spectralProjection` + `_univ`, `_empty`, `_inter` |
-| `spectral_scalar_measure E φ`            | `borelMeasure U_grp φ` (a genuine `Measure`)    |
-| `spectral_scalar_measure_eq_norm_sq`     | `norm_sq_spectralProjection`                    |
-| `gen : Generator U_grp` (field)          | `generator U_grp` (constructed `LinearPMap`)    |
-| `gen_selfAdjoint` (field)                | `generator_isFormalAdjoint` (symmetry, proved); full self-adjointness is the deficiency-index project in `SelfAdjoint.lean` |
-| `dirac_generates_unitary` (axiom→field)  | trivial by construction                         |
-| `id_domain_subset_generator_domain` route | `spectralProjection_mem_generatorDomain` (bounded calculus + DCT only) |
-| `generator_inner_eq_integral_diagonal`   | `generator_spectralProjection` + absorption     |
-| `functional_calculus_comm`               | `spectralCalculus_comm` (already compiled)      |
+* the projection algebra: `spectralProjection_univ`/`_empty`/`_inter`/`_comm`/`_compl`/`_union`
+  (the classical PVM axioms, all proved from the calculus at indicator functions);
+* the scalar-measure bridge `norm_sq_spectralProjection` (`‖E(B)φ‖² = μ_φ(B)`) and its
+  zero-measure corollaries;
+* finite-mass approximation (`spectralProjection_finite_approx_below/above`) and truncation
+  limits (`tendsto_spectralProjection_Icc_Ici/Iic`), using only `measure_iUnion_null` /
+  dominated convergence on the *scalar* measure — PVM σ-additivity is never needed;
+* energy bounds on spectrally supported vectors
+  (`spectralProjection_energy_upper_bound`/`_lower_bound`,
+  `generator_sub_smul_norm_le_Icc`) and their truncation-limit lift to genuine domain
+  vectors (`energy_lower_bound_of_spectralProjection_Iic_eq_zero`,
+  `energy_upper_bound_of_spectralProjection_Ici_eq_zero`);
+* the two-way energy/spectral-mass bridge
+  (`spectralProjection_Iic_ne_zero_of_energy_lt`, `spectralProjection_Ici_ne_zero_of_energy_gt`)
+  and the resulting **spectrum-unbounded ⟹ numerical-range-unbounded** headline theorems
+  `generator_has_arbitrarily_negative_energy`/`generator_has_arbitrarily_positive_energy`;
+* a **spectral gap from a uniform norm lower bound**
+  (`spectralProjection_Ioo_eq_zero_of_norm_ge`): if `c·‖ψ‖ ≤ ‖Aψ‖` on the whole domain, then
+  `E((−c,c)) = 0`.
 
-The headline theorems (`dirac_unbounded_below/above`, `dirac_not_semibounded`) keep their
-statements, with the *only* surviving hypotheses being the genuinely physical ones,
-`h_spectrum_below/above` — discharging those requires the concrete Dirac operator on
-`L²(ℝ³; ℂ⁴)` (Fourier multiplier `α·p + βmc²`), a separate project.
-
-PVM σ-additivity is never needed: the finite-approximation lemmas use
-`measure_iUnion_null` on the *scalar* measure, and `borelMeasure` is a genuine `Measure`.
-
-Dropped relative to the old file: `domain_dense'` (density follows from self-adjointness,
-which awaits `SelfAdjoint.lean`), and the `∫s²`-integrability domain route (subsumed).
+This module is generic in `H` and `U_grp : OneParameterUnitaryGroup`; it is consumed by
+`Spectra.QuantumMechanics.DiracEquation.Operators`, whose own headline theorems
+(`dirac_unbounded_below/above`, `dirac_not_semibounded`) specialize
+`generator_has_arbitrarily_negative_energy`/`_positive_energy` to the Dirac Hamiltonian, with
+the only surviving hypotheses being the genuinely physical `h_spectrum_below/above` — full
+self-adjointness of the generator is the separate deficiency-index project in
+`Spectra.Operator.SelfAdjoint` and friends.
 -/
 
 open Complex MeasureTheory Filter Topology
@@ -221,14 +224,14 @@ theorem borelMeasure_spectralProjection_supported (B : Set ℝ) (hB : Measurable
 /-! ## Finite approximation (σ-additivity of the *scalar* measure suffices) -/
 
 /-- `Iic N = ⋃ n, Icc (-↑n) N`: every `s ≤ N` is eventually in `[-n, N]`. -/
-lemma iic_eq_iUnion_icc (N : ℝ) :
+lemma Iic_eq_iUnion_Icc (N : ℝ) :
     Set.Iic N = ⋃ n : ℕ, Set.Icc (-(↑n : ℝ)) N := by
   ext s; simp only [Set.mem_Iic, Set.mem_iUnion, Set.mem_Icc]
   exact ⟨fun hs => by obtain ⟨n, hn⟩ := exists_nat_gt (-s); exact ⟨n, by linarith, hs⟩,
          fun ⟨_, _, h⟩ => h⟩
 
 /-- `Ici N = ⋃ n, Icc N ↑n`. -/
-lemma ici_eq_iUnion_icc (N : ℝ) :
+lemma Ici_eq_iUnion_Icc (N : ℝ) :
     Set.Ici N = ⋃ n : ℕ, Set.Icc N (↑n : ℝ) := by
   ext s; simp only [Set.mem_Ici, Set.mem_iUnion, Set.mem_Icc]
   exact ⟨fun hs => by obtain ⟨n, hn⟩ := exists_nat_gt s; exact ⟨n, hs, by linarith⟩,
@@ -246,7 +249,7 @@ theorem spectralProjection_finite_approx_below (N : ℝ) (φ : H)
   have h_zero : ∀ n : ℕ, borelMeasure U_grp φ (Set.Icc (-(↑n : ℝ)) N) = 0 := fun n =>
     (spectralProjection_eq_zero_iff_measure_zero U_grp _ measurableSet_Icc φ).mp (hall n)
   have h_null : borelMeasure U_grp φ (Set.Iic N) = 0 := by
-    rw [iic_eq_iUnion_icc N]
+    rw [Iic_eq_iUnion_Icc N]
     exact measure_iUnion_null h_zero
   exact (spectralProjection_eq_zero_iff_measure_zero U_grp _ measurableSet_Iic φ).mpr h_null
 
@@ -260,7 +263,7 @@ theorem spectralProjection_finite_approx_above (N : ℝ) (φ : H)
   have h_zero : ∀ n : ℕ, borelMeasure U_grp φ (Set.Icc N (↑n : ℝ)) = 0 := fun n =>
     (spectralProjection_eq_zero_iff_measure_zero U_grp _ measurableSet_Icc φ).mp (hall n)
   have h_null : borelMeasure U_grp φ (Set.Ici N) = 0 := by
-    rw [ici_eq_iUnion_icc N]
+    rw [Ici_eq_iUnion_Icc N]
     exact measure_iUnion_null h_zero
   exact (spectralProjection_eq_zero_iff_measure_zero U_grp _ measurableSet_Ici φ).mpr h_null
 
@@ -850,7 +853,7 @@ has no spectral mass in the open interval `(−c, c)`: every bounded spectral ch
 vanish; the open interval is the increasing union of such chunks. -/
 
 /-- `(−c, c) = ⋃ₙ [−c+1/(n+1), c−1/(n+1)]`. -/
-lemma ioo_eq_iUnion_icc_symm (c : ℝ) :
+lemma Ioo_eq_iUnion_Icc_symm (c : ℝ) :
     Set.Ioo (-c) c = ⋃ n : ℕ, Set.Icc (-c + 1 / ((n : ℝ) + 1)) (c - 1 / ((n : ℝ) + 1)) := by
   ext x
   simp only [Set.mem_Ioo, Set.mem_iUnion, Set.mem_Icc]
@@ -877,7 +880,7 @@ theorem spectralProjection_Ioo_eq_zero_of_norm_ge (c : ℝ)
   ext φ
   simp only [ContinuousLinearMap.zero_apply]
   rw [spectralProjection_eq_zero_iff_measure_zero U_grp (Set.Ioo (-c) c) measurableSet_Ioo,
-    ioo_eq_iUnion_icc_symm]
+    Ioo_eq_iUnion_Icc_symm]
   refine measure_iUnion_null fun n => ?_
   set a := -c + 1 / ((n : ℝ) + 1) with ha
   set b := c - 1 / ((n : ℝ) + 1) with hb

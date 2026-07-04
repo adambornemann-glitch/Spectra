@@ -37,9 +37,11 @@ existence and uniqueness in `numericalRange_range_all_z`, with `1 / Metric.infDi
 * [Reed, Simon, *Methods of Modern Mathematical Physics I*][reed1980], Section VIII.3, Problem 8.
 * [Kato, *Perturbation Theory for Linear Operators*][kato1995], Section V.3.
 -/
-open Complex
+
 open Spectra.Operator
+
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
+
 namespace Spectra.Resolvent
 
 variable {A : H →ₗ.[ℂ] H} (hA : IsSelfAdjoint A) (hne : (numericalRange A).Nonempty)

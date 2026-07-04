@@ -3,24 +3,9 @@ Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
-import Mathlib.Analysis.Calculus.BumpFunction.SmoothApprox
-import Mathlib.Analysis.Calculus.FDeriv.Symmetric
 import Mathlib.Analysis.Calculus.ContDiff.Basic
-import Mathlib.Analysis.Calculus.ContDiff.Convolution
 import Mathlib.Analysis.SpecialFunctions.Gamma.Basic
-import Mathlib.Analysis.SpecialFunctions.Gaussian.GaussianIntegral
-import Mathlib.MeasureTheory.Function.ContinuousMapDense
-import Mathlib.MeasureTheory.Function.L2Space
 import Mathlib.MeasureTheory.Measure.Lebesgue.Basic
-import Mathlib.Algebra.BigOperators.Intervals
-import Mathlib.Analysis.Analytic.Binomial
-import Mathlib.Topology.Algebra.InfiniteSum.ENNReal
--- For laguerre_complete
-import Mathlib.MeasureTheory.Measure.CharacteristicFunction.Basic
-import Mathlib.Analysis.Calculus.ParametricIntegral
-import Mathlib.Analysis.Analytic.Uniqueness
-import Mathlib.Analysis.Complex.CauchyIntegral
-import Mathlib.MeasureTheory.Function.AEEqOfLIntegral
 
 /-!
 # Associated Laguerre Polynomials
@@ -39,13 +24,34 @@ eigenfunctions of the hydrogen atom after appropriate substitutions.
 * `laguerre_differential_eq` — the Laguerre ODE.
 * `laguerre_orthogonality` — orthogonality with weight x^α e^{-x}.
 
+## Implementation notes
+
+* `realBinom α k` is a from-scratch generalized binomial coefficient
+  `(∏ i<k, (α - i)) / k!`; it agrees with Mathlib's `Ring.choose α k` on `ℝ`
+  (see `realBinom_eq_ringChoose` in `Laguerre/GenFun.lean`, which is proved once
+  the generating-function machinery is available), so no reimplementation is
+  needed here — this file keeps the elementary definition to stay independent
+  of that later import.
+* `laguerreWeight α x` is `x^α * e^{-x}` for `x > 0` and `0` otherwise (a
+  junk-value split, rather than a subtype of `(0,∞)`) because every downstream
+  consumer integrates over `Set.Ioi 0` or `Set.Ici 0`, where the two agree; the
+  global junk value lets the weight participate in ordinary `ℝ → ℝ` calculus
+  lemmas (`ContinuousOn`, `Tendsto`, `deriv`) without subtype bookkeeping.
+* `laguerre_orthogonality` is proved by a genuine Sturm–Liouville argument:
+  `laguerre_self_adjoint` rewrites the ODE as `d/dx (x^{α+1}e^{-x} L_n') =
+  -n·x^α e^{-x} L_n`, then integration by parts (`integral_Ioi_mul_deriv_eq_deriv_mul`)
+  applied with `n` and `m` swapped gives two expressions for the same kinetic
+  integral, `-n·I` and `-m·I`; since `n ≠ m` forces `I = 0`. The boundary terms
+  vanish at `0` (continuity, `0^{α+1} = 0`) and at `∞` (exponential decay beats
+  every power, `rpow_mul_exp_neg_tendsto_atTop`).
+
 ## References
 
 * [Szegő, *Orthogonal Polynomials*][szego1975]
 * [Abramowitz, Stegun, *Handbook of Mathematical Functions*][abramowitz1965], Ch. 22.
 * [Bethe, Salpeter, *Quantum Mechanics of One- and Two-Electron Atoms*][bethesalpeter1957].
 -/
-open MeasureTheory Complex Filter Real Polynomial
+open MeasureTheory Filter Real
 open scoped Topology NNReal ENNReal Nat
 namespace Spectra.QuantumMechanics.Hydrogen.Radial
 /-! ## Definition -/
@@ -182,16 +188,22 @@ theorem laguerre_recurrence (n : ℕ) (α : ℝ) (hn : 1 ≤ n) (x : ℝ) :
   -- because they shatter the polynomial into too many pieces!
   unfold laguerrePolynomial
   -- 2. Isolate the `x * Sum` term explicitly
-  have h_split : (2 * n + α + 1 - x) * (∑ k ∈ Finset.range (n + 1), (-1 : ℝ) ^ k * realBinom (n + α) (n - k) * (x ^ k / (k.factorial : ℝ))) =
-      (2 * n + α + 1) * (∑ k ∈ Finset.range (n + 1), (-1 : ℝ) ^ k * realBinom (n + α) (n - k) * (x ^ k / (k.factorial : ℝ))) -
-      x * (∑ k ∈ Finset.range (n + 1), (-1 : ℝ) ^ k * realBinom (n + α) (n - k) * (x ^ k / (k.factorial : ℝ))) := by ring
+  have h_split : (2 * n + α + 1 - x) *
+        (∑ k ∈ Finset.range (n + 1),
+          (-1 : ℝ) ^ k * realBinom (n + α) (n - k) * (x ^ k / (k.factorial : ℝ))) =
+      (2 * n + α + 1) * (∑ k ∈ Finset.range (n + 1),
+          (-1 : ℝ) ^ k * realBinom (n + α) (n - k) * (x ^ k / (k.factorial : ℝ))) -
+      x * (∑ k ∈ Finset.range (n + 1),
+          (-1 : ℝ) ^ k * realBinom (n + α) (n - k) * (x ^ k / (k.factorial : ℝ))) := by ring
   rw [h_split]
   -- 3. Push the outer constants (including x) INTO their respective sums
   simp_rw [Finset.mul_sum]
   -- 4. Shift the power of x in the target sum
   -- Now sum_congr works perfectly because `x *` is already inside both sides!
-  have h_x_shift : ∑ k ∈ Finset.range (n + 1), x * ((-1 : ℝ) ^ k * realBinom (n + α) (n - k) * (x ^ k / (k.factorial : ℝ))) =
-      ∑ k ∈ Finset.range (n + 1), (-1 : ℝ) ^ k * realBinom (n + α) (n - k) * (x ^ (k + 1) / (k.factorial : ℝ)) := by
+  have h_x_shift : ∑ k ∈ Finset.range (n + 1),
+        x * ((-1 : ℝ) ^ k * realBinom (n + α) (n - k) * (x ^ k / (k.factorial : ℝ))) =
+      ∑ k ∈ Finset.range (n + 1),
+        (-1 : ℝ) ^ k * realBinom (n + α) (n - k) * (x ^ (k + 1) / (k.factorial : ℝ)) := by
     apply Finset.sum_congr rfl
     intro k _
     ring
@@ -204,7 +216,7 @@ theorem laguerre_recurrence (n : ℕ) (α : ℝ) (hn : 1 ≤ n) (x : ℝ) :
     -- 1. Focus the rewrite exclusively on the right-hand side
     conv_rhs => rw [Finset.sum_range_succ']
     -- 2. The RHS 0th term is now exposed. Since it starts with `-(0:ℝ)`, it vanishes.
-    simp only [Nat.cast_zero, neg_zero, zero_mul, add_zero] -- unused: zero_add
+    simp only [Nat.cast_zero, neg_zero, zero_mul, add_zero]
     -- 3. Now both sides are perfectly aligned on `Finset.range (n + 1)`
     apply Finset.sum_congr rfl
     intro i _
@@ -233,7 +245,9 @@ theorem laguerre_recurrence (n : ℕ) (α : ℝ) (hn : 1 ≤ n) (x : ℝ) :
       * realBinom (n + α) (n - i) * (x ^ i / (i.factorial : ℝ))) -
       ∑ i ∈ Finset.range n, - (i : ℝ) * (-1 : ℝ) ^ i
       * realBinom (n + α) (n + 1 - i) * (x ^ i / (i.factorial : ℝ)) -
-      ∑ i ∈ Finset.range n, (n + α) * ((-1 : ℝ) ^ i * realBinom (n - 1 + α) (n - 1 - i) * (x ^ i / (i.factorial : ℝ))) := by
+      ∑ i ∈ Finset.range n,
+        (n + α) * ((-1 : ℝ) ^ i * realBinom (n - 1 + α) (n - 1 - i)
+          * (x ^ i / (i.factorial : ℝ))) := by
     rw [← Finset.sum_sub_distrib, ← Finset.sum_sub_distrib]
     apply Finset.sum_congr rfl
     intro i hi
@@ -242,12 +256,18 @@ theorem laguerre_recurrence (n : ℕ) (α : ℝ) (hn : 1 ≤ n) (x : ℝ) :
     have h_idx : n + 1 - i = n - i + 1 := by omega
     have h_lem := laguerre_coeff_recurrence n i α hn hk
     calc
-      (n + 1 : ℝ) * ((-1 : ℝ) ^ i * realBinom (n + 1 + α) (n + 1 - i) * (x ^ i / (i.factorial : ℝ)))
-        = ((n + 1 : ℝ) * realBinom (n + 1 + α) (n + 1 - i)) * ((-1 : ℝ) ^ i * (x ^ i / (i.factorial : ℝ))) := by ring
-      _ = ((2 * n + α + 1) * realBinom (n + α) (n - i) + i * realBinom (n + α) (n - i + 1) - (n + α) * realBinom (n - 1 + α) (n - 1 - i)) * ((-1 : ℝ) ^ i * (x ^ i / (i.factorial : ℝ))) := by rw [h_lem]
-      _ = (2 * n + α + 1) * ((-1 : ℝ) ^ i * realBinom (n + α) (n - i) * (x ^ i / (i.factorial : ℝ))) -
+      (n + 1 : ℝ) *
+          ((-1 : ℝ) ^ i * realBinom (n + 1 + α) (n + 1 - i) * (x ^ i / (i.factorial : ℝ)))
+        = ((n + 1 : ℝ) * realBinom (n + 1 + α) (n + 1 - i))
+            * ((-1 : ℝ) ^ i * (x ^ i / (i.factorial : ℝ))) := by ring
+      _ = ((2 * n + α + 1) * realBinom (n + α) (n - i) + i * realBinom (n + α) (n - i + 1)
+              - (n + α) * realBinom (n - 1 + α) (n - 1 - i))
+            * ((-1 : ℝ) ^ i * (x ^ i / (i.factorial : ℝ))) := by rw [h_lem]
+      _ = (2 * n + α + 1)
+            * ((-1 : ℝ) ^ i * realBinom (n + α) (n - i) * (x ^ i / (i.factorial : ℝ))) -
           -(i : ℝ) * (-1 : ℝ) ^ i * realBinom (n + α) (n + 1 - i) * (x ^ i / (i.factorial : ℝ)) -
-          (n + α) * ((-1 : ℝ) ^ i * realBinom (n - 1 + α) (n - 1 - i) * (x ^ i / (i.factorial : ℝ))) := by rw [h_idx]; ring
+          (n + α) * ((-1 : ℝ) ^ i * realBinom (n - 1 + α) (n - 1 - i)
+            * (x ^ i / (i.factorial : ℝ))) := by rw [h_idx]; ring
   -- Substitute the combined sums, leaving only the peeled terms
   -- 7.5 Normalize the natural number coercions in the goal to strictly match `h_sums`
   -- This transforms ↑(n + 1) into ↑n + 1 and ↑(n - 1) into ↑n - 1.
@@ -275,8 +295,10 @@ lemma deriv_laguerrePolynomial (n : ℕ) (α : ℝ) (x : ℝ) :
       (-1 : ℝ)^k * realBinom (n + α) (n - k) * ((k : ℝ) * x^(k - 1) / (k.factorial : ℝ)) := by
   unfold laguerrePolynomial
   -- 1. Convert the lambda of a sum into a sum of functions (lambdas)
-  have h_sum : (fun (y : ℝ) => ∑ k ∈ Finset.range (n + 1), (-1 : ℝ) ^ k * realBinom (n + α) (n - k) * (y ^ k / (k.factorial : ℝ))) =
-      ∑ k ∈ Finset.range (n + 1), fun (y : ℝ) => (-1 : ℝ) ^ k * realBinom (n + α) (n - k) * (y ^ k / (k.factorial : ℝ)) := by
+  have h_sum : (fun (y : ℝ) => ∑ k ∈ Finset.range (n + 1),
+        (-1 : ℝ) ^ k * realBinom (n + α) (n - k) * (y ^ k / (k.factorial : ℝ))) =
+      ∑ k ∈ Finset.range (n + 1),
+        fun (y : ℝ) => (-1 : ℝ) ^ k * realBinom (n + α) (n - k) * (y ^ k / (k.factorial : ℝ)) := by
     ext y
     simp only [Finset.sum_apply]
   rw [h_sum]
@@ -285,7 +307,8 @@ lemma deriv_laguerrePolynomial (n : ℕ) (α : ℝ) (x : ℝ) :
   · apply Finset.sum_congr rfl
     intro k _
     -- Rearrange the function to clearly isolate y^k for deriv_const_mul
-    have h_rearrange : (fun (y : ℝ) => (-1 : ℝ) ^ k * realBinom (n + α) (n - k) * (y ^ k / (k.factorial : ℝ))) =
+    have h_rearrange : (fun (y : ℝ) =>
+          (-1 : ℝ) ^ k * realBinom (n + α) (n - k) * (y ^ k / (k.factorial : ℝ))) =
         fun (y : ℝ) => ((-1 : ℝ) ^ k * realBinom (n + α) (n - k) / (k.factorial : ℝ)) * y ^ k := by
       ext y
       ring
@@ -308,15 +331,18 @@ lemma deriv_laguerrePolynomial (n : ℕ) (α : ℝ) (x : ℝ) :
 lemma deriv2_laguerrePolynomial (n : ℕ) (α : ℝ) (x : ℝ) :
     deriv^[2] (laguerrePolynomial n α) x =
     ∑ k ∈ Finset.range (n + 1),
-      (-1 : ℝ)^k * realBinom (n + α) (n - k) * ((k : ℝ) * (k - 1 : ℝ) * x^(k - 2) / (k.factorial : ℝ)) := by
+      (-1 : ℝ)^k * realBinom (n + α) (n - k)
+        * ((k : ℝ) * (k - 1 : ℝ) * x^(k - 2) / (k.factorial : ℝ)) := by
   -- Unfold the iterated derivative to expose the inner function.
   -- The `= _` tells Lean to leave the right-hand side of the equation alone.
   change deriv (fun y => deriv (laguerrePolynomial n α) y) x = _
   -- Rewrite the inner derivative using the previous lemma.
   simp_rw [deriv_laguerrePolynomial]
   -- 1. Convert the lambda of a sum into a sum of functions (lambdas)
-  have h_sum : (fun (y : ℝ) => ∑ k ∈ Finset.range (n + 1), (-1 : ℝ) ^ k * realBinom (n + α) (n - k) * ((k : ℝ) * y ^ (k - 1) / (k.factorial : ℝ))) =
-      ∑ k ∈ Finset.range (n + 1), fun (y : ℝ) => (-1 : ℝ) ^ k * realBinom (n + α) (n - k) * ((k : ℝ) * y ^ (k - 1) / (k.factorial : ℝ)) := by
+  have h_sum : (fun (y : ℝ) => ∑ k ∈ Finset.range (n + 1),
+        (-1 : ℝ) ^ k * realBinom (n + α) (n - k) * ((k : ℝ) * y ^ (k - 1) / (k.factorial : ℝ))) =
+      ∑ k ∈ Finset.range (n + 1), fun (y : ℝ) =>
+        (-1 : ℝ) ^ k * realBinom (n + α) (n - k) * ((k : ℝ) * y ^ (k - 1) / (k.factorial : ℝ)) := by
     ext y
     simp only [Finset.sum_apply]
   rw [h_sum]
@@ -325,8 +351,11 @@ lemma deriv2_laguerrePolynomial (n : ℕ) (α : ℝ) (x : ℝ) :
   · apply Finset.sum_congr rfl
     intro k _
     -- Rearrange the function to clearly isolate y^(k-1) for deriv_const_mul
-    have h_rearrange : (fun (y : ℝ) => (-1 : ℝ) ^ k * realBinom (n + α) (n - k) * ((k : ℝ) * y ^ (k - 1) / (k.factorial : ℝ))) =
-        fun (y : ℝ) => ((-1 : ℝ) ^ k * realBinom (n + α) (n - k) * (k : ℝ) / (k.factorial : ℝ)) * y ^ (k - 1) := by
+    have h_rearrange : (fun (y : ℝ) =>
+          (-1 : ℝ) ^ k * realBinom (n + α) (n - k) * ((k : ℝ) * y ^ (k - 1) / (k.factorial : ℝ))) =
+        fun (y : ℝ) =>
+          ((-1 : ℝ) ^ k * realBinom (n + α) (n - k) * (k : ℝ) / (k.factorial : ℝ))
+            * y ^ (k - 1) := by
       ext y
       ring
     rw [h_rearrange]
@@ -346,10 +375,14 @@ lemma deriv2_laguerrePolynomial (n : ℕ) (α : ℝ) (x : ℝ) :
         · push_cast; ring
       -- Group the k and (k-1) terms together, apply the cast fix, and finish
       calc
-        (-1 : ℝ) ^ k * realBinom (n + α) (n - k) * (k : ℝ) / (k.factorial : ℝ) * (↑(k - 1) * x ^ (k - 2))
-          = ((-1 : ℝ) ^ k * realBinom (n + α) (n - k) / (k.factorial : ℝ)) * ((k : ℝ) * ↑(k - 1)) * x ^ (k - 2) := by ring
-        _ = ((-1 : ℝ) ^ k * realBinom (n + α) (n - k) / (k.factorial : ℝ)) * ((k : ℝ) * (k - 1 : ℝ)) * x ^ (k - 2) := by rw [h_cast]
-        _ = (-1 : ℝ) ^ k * realBinom (n + α) (n - k) * ((k : ℝ) * (k - 1 : ℝ) * x ^ (k - 2) / (k.factorial : ℝ)) := by ring
+        (-1 : ℝ) ^ k * realBinom (n + α) (n - k) * (k : ℝ) / (k.factorial : ℝ)
+              * (↑(k - 1) * x ^ (k - 2))
+          = ((-1 : ℝ) ^ k * realBinom (n + α) (n - k) / (k.factorial : ℝ))
+              * ((k : ℝ) * ↑(k - 1)) * x ^ (k - 2) := by ring
+        _ = ((-1 : ℝ) ^ k * realBinom (n + α) (n - k) / (k.factorial : ℝ))
+              * ((k : ℝ) * (k - 1 : ℝ)) * x ^ (k - 2) := by rw [h_cast]
+        _ = (-1 : ℝ) ^ k * realBinom (n + α) (n - k)
+              * ((k : ℝ) * (k - 1 : ℝ) * x ^ (k - 2) / (k.factorial : ℝ)) := by ring
     exact differentiableAt_pow (k - 1)
   · -- Prove differentiability of each term in the sum to satisfy the deriv_sum hypothesis
     intro k _
@@ -398,7 +431,8 @@ theorem laguerre_differential_eq (n : ℕ) (α : ℝ) (x : ℝ) :
         = (α + 1) * ∑ k ∈ Finset.range (n + 1),
             (-1 : ℝ) ^ k * realBinom (n + α) (n - k) * ((k : ℝ) * x ^ (k - 1) / (k.factorial : ℝ))
           - x * ∑ k ∈ Finset.range (n + 1),
-            (-1 : ℝ) ^ k * realBinom (n + α) (n - k) * ((k : ℝ) * x ^ (k - 1) / (k.factorial : ℝ)) := by
+            (-1 : ℝ) ^ k * realBinom (n + α) (n - k)
+              * ((k : ℝ) * x ^ (k - 1) / (k.factorial : ℝ)) := by
     ring
   rw [h_split]
   simp_rw [Finset.mul_sum]
@@ -446,7 +480,8 @@ theorem laguerre_differential_eq (n : ℕ) (α : ℝ) (x : ℝ) :
               ((k : ℝ) * x ^ (k - 1) / (k.factorial : ℝ)))))
       = ∑ i ∈ Finset.range n,
           ((-1 : ℝ) ^ (i + 1) * realBinom (n + α) (n - (i + 1)) *
-              (((i + 1 : ℕ) : ℝ) * ((i + 1 : ℕ) - 1 : ℝ) * x ^ ((i + 1) - 1) / ((i + 1).factorial : ℝ))
+              (((i + 1 : ℕ) : ℝ) * ((i + 1 : ℕ) - 1 : ℝ) * x ^ ((i + 1) - 1)
+                / ((i + 1).factorial : ℝ))
             + (α + 1) * ((-1 : ℝ) ^ (i + 1) * realBinom (n + α) (n - (i + 1)) *
                 (((i + 1 : ℕ) : ℝ) * x ^ ((i + 1) - 1) / ((i + 1).factorial : ℝ)))) := by
     rw [Finset.sum_range_succ']
@@ -458,7 +493,8 @@ theorem laguerre_differential_eq (n : ℕ) (α : ℝ) (x : ℝ) :
           - (-1 : ℝ) ^ k * realBinom (n + α) (n - k) * ((k : ℝ) * x ^ k / (k.factorial : ℝ))))
       = ∑ k ∈ Finset.range n,
           ((n : ℝ) * ((-1 : ℝ) ^ k * realBinom (n + α) (n - k) * (x ^ k / (k.factorial : ℝ)))
-            - (-1 : ℝ) ^ k * realBinom (n + α) (n - k) * ((k : ℝ) * x ^ k / (k.factorial : ℝ))) := by
+            - (-1 : ℝ) ^ k * realBinom (n + α) (n - k)
+              * ((k : ℝ) * x ^ k / (k.factorial : ℝ))) := by
     rw [Finset.sum_range_succ]
     ring
   rw [h_reP, h_peelR, ← Finset.sum_add_distrib]
@@ -723,8 +759,13 @@ lemma laguerre_mul_weight_mul_laguerre_deriv_tendsto_atTop
       * ((-1 : ℝ) ^ j * realBinom (m + α) (m - j) * (j : ℝ) / (j.factorial : ℝ)))
   rwa [mul_zero] at h
 
-/-- **Orthogonality.**
-    ∫₀^∞ x^α e^{-x} L_n^α(x) L_m^α(x) dx = Γ(n+α+1)/n! · δ_{nm}-/
+/-- **Orthogonality (off-diagonal vanishing).**
+    For `n ≠ m`, `∫₀^∞ x^α e^{-x} L_n^α(x) L_m^α(x) dx = 0`.
+
+    This is the `n ≠ m` half of the full orthogonality relation
+    `∫₀^∞ x^α e^{-x} L_n^α(x) L_m^α(x) dx = Γ(n+α+1)/n! · δ_{nm}`; the `n = m`
+    normalization constant is proved separately as `laguerre_norm_sq` in
+    `Laguerre/Complete.lean`. -/
 theorem laguerre_orthogonality (n m : ℕ) (α : ℝ) (hα : -1 < α) (hnm : n ≠ m) :
     ∫ x in Set.Ioi 0,
       laguerreWeight α x * laguerrePolynomial n α x * laguerrePolynomial m α x = 0 := by

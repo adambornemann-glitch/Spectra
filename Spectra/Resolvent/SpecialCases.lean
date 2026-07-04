@@ -33,12 +33,19 @@ scope, not attempted here.
 
 ## Main definitions
 
+* `resolventAtImaginary`: the shared internal building block — `(A - sI)⁻¹` for an abstract purely
+  imaginary `s`, generic in an existence hypothesis and a contraction bound; `resolventAtI` and
+  `resolventAtNegI` below are its only two instantiations so far, at `s = I` and `s = -I`, but any
+  future purely-imaginary unit can reuse it directly.
 * `resolventAtI`: The resolvent `R(i) = (A - iI)⁻¹`
 * `resolventAtNegI`: The resolvent `R(-i) = (A + iI)⁻¹`
 * `Rminus`, `Rplus`: the underlying bare-vector solutions `R(i)φ`, `R(-i)φ`
 
 ## Main statements
 
+* `resolventAtImaginary_unique`, `resolventAtImaginary_bound`, `resolventAtImaginary_left_inverse`:
+  the generic uniqueness/contraction/left-inverse facts for `resolventAtImaginary`, from which the
+  `i`/`-i` statements below are one-line specializations
 * `resolvent_at_i_unique`, `resolvent_at_neg_i_unique`: solutions to `(A ∓ iI)ψ = φ` are unique
 * `resolvent_at_i_bound`, `resolvent_at_neg_i_bound`: both resolvents are contractions,
   `‖R(±i)‖ ≤ 1`

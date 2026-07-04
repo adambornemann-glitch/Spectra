@@ -35,9 +35,10 @@ The RLD Cauchy–Schwarz condition
 
 is equivalent to the complex Hermitian matrix `G^RLD` being positive
 semidefinite.  In the quantum case this follows from the Gram matrix
-structure `G^RLD_{ij} = Tr(ρ R_i† R_j)`.  We carry it as an axiom
-(field of `RLDFisherModel`) to be discharged from quantum data in
-the bridge file.
+structure `G^RLD_{ij} = Tr(ρ R_i† R_j)`.  We carry it as a structure
+field of `RLDFisherModel`; it is discharged from quantum data by
+`Spectra.QuantumMechanics.FisherModel.quantumRLDFisherModel` (see
+"Design notes" below).
 
 The Pythagorean decomposition `|G^RLD(v,w)|² = g(v,w)² + ω(v,w)²`
 is the geometric reason the two terms in Schrödinger's bound are
@@ -63,21 +64,41 @@ complex inner product.
 * `schrodinger_fisher_bound` — `g_{ii} · g_{jj} ≥ g_{ij}² + ω_{ij}²`.
 * `robertson_fisher_bound` — `g_{ii} · g_{jj} ≥ ω_{ij}²`
   (Robertson as a corollary of Schrödinger).
-* `sld_cauchy_schwarz` — `g(v,v) · g(w,w) ≥ g(v,w)²`
+* `robertson_bilin_bound` — `g(v,v) · g(w,w) ≥ ω(v,w)²`
+  (bilinear form version of Robertson).
+* `sld_cauchy_schwarz` / `sld_cauchy_schwarz_matrix` — `g(v,v) · g(w,w) ≥ g(v,w)²`
   (standard Cauchy–Schwarz as a corollary).
+* `rldBilin_normSq_le` — `‖G^RLD(v,w)‖² ≤ g(v,v) · g(w,w)`
+  (Schrödinger bound restated via the Pythagorean decomposition).
+* `sldBilin_single` / `symplecticBilin_single` — the bilinear forms recover the
+  matrix entries on standard basis vectors.
+* `schrodinger_det_form` — the Schrödinger bound as nonnegativity of a `2 × 2`
+  RLD principal minor.
+* `sldBilin_eq_fisherBilin` — `sldBilin` agrees with
+  `RegularStatisticalModel.fisherBilin` (given score-square integrability).
 
 ## Design notes
 
-The RLD Cauchy–Schwarz condition is axiomatised rather than derived,
-because its proof requires the Gram matrix structure of the RLD —
-which is quantum-mechanical content.  The bridge file
-`QuantumMechanics.SchrodingerCR` will discharge it from Hilbert-space
-Cauchy–Schwarz applied to the shifted observables `Ãψ` and `B̃ψ`.
+The RLD Cauchy–Schwarz condition is axiomatised here (as a structure field of
+`RLDFisherModel`) rather than derived, because its proof requires the Gram
+matrix structure of the RLD — which is quantum-mechanical content. It **is**
+discharged from quantum data in `Spectra.QuantumMechanics.FisherModel`: the
+definition `quantumRLDFisherModel` builds an `RLDFisherModel` from
+`QuantumRLDData` by proving `rld_cauchy_schwarz` via Hilbert-space
+Cauchy–Schwarz applied to the shifted observables `Ãψ` and `B̃ψ`
+(`quantum_schrodinger_bilinear`), and `toRLDFisherModel` extends this to a
+total functor `QuantumRLDData → RLDFisherModel` with no assumed Fisher
+hypothesis, by realizing the quantum covariance matrix as the Fisher matrix
+of a Gaussian shift model. So every `RLDFisherModel` obligation created by
+this file is, in fact, a theorem about quantum mechanics, not merely an
+assumption awaiting one.
 
 The `sldBilin` definition duplicates the Fisher bilinear form in matrix
-notation.  This is intentional: it keeps the RLD file self-contained
-at the matrix level, without depending on the integral representation
-in `FisherInformation.lean`.
+notation rather than reusing `RegularStatisticalModel.fisherBilin`
+directly.  This is intentional: it keeps the RLD file self-contained at
+the matrix level, without depending on the integral representation in
+`Fisher/Information.lean`.  The two agree provably, not just by
+analogy — see `sldBilin_eq_fisherBilin`.
 
 ## References
 
@@ -416,8 +437,26 @@ lemma rldBilin_normSq_le {θ : ParamSpace n}
 /-! ### Relationship between sldBilin and fisherBilin
 
 The `sldBilin` is defined as a matrix-level sum for self-containedness.
-It agrees with the Fisher bilinear form from `FisherInformation.lean`
-when the latter is expanded via `fisherBilin_eq_sum_fisherMatrix`. -/
+It agrees with the Fisher bilinear form from `Fisher/Information.lean`
+when the latter is expanded via `fisherBilin_eq_sum_fisherMatrix`; this
+is recorded as a theorem in `sldBilin_eq_fisherBilin` below rather than
+left as prose. -/
+
+/-- **`sldBilin` agrees with `fisherBilin`.**
+
+The matrix-level `sldBilin` defined in this file and the
+integral-level `RegularStatisticalModel.fisherBilin` from
+`Fisher/Information.lean` compute the same real number, given the
+integrability hypothesis needed to exchange `∫` and `∑`. This makes
+precise the design-note claim that `sldBilin` "duplicates" the Fisher
+bilinear form: they are provably equal, not merely analogous. -/
+theorem sldBilin_eq_fisherBilin {θ : ParamSpace n}
+    (hθ : θ ∈ R.paramDomain)
+    (hSq : R.toRegularStatisticalModel.ScoreSqIntegrableModel θ)
+    (v w : ParamSpace n) :
+    R.sldBilin θ v w = R.toRegularStatisticalModel.fisherBilin θ v w := by
+  rw [R.toRegularStatisticalModel.fisherBilin_eq_sum_fisherMatrix hθ hSq]
+  rfl
 
 /-- `sldBilin` on a standard basis vector pair yields the Fisher
 matrix entry. -/
@@ -478,13 +517,17 @@ i.e., `Var(A) Var(B) ≥ Cov(A,B)² + ¼ |⟨[A,B]⟩|²`,
 
 which is the Schrödinger uncertainty relation.
 
-The `rld_cauchy_schwarz` axiom is discharged from the Hilbert space
+The `rld_cauchy_schwarz` field is discharged from the Hilbert space
 Cauchy–Schwarz inequality:
 
   `|⟨Ãψ, B̃ψ⟩|² ≤ ‖Ãψ‖² · ‖B̃ψ‖²`
 
 via the decomposition `⟨Ãψ, B̃ψ⟩ = Cov(A,B) + ½ i · Im⟨[A,B]⟩`
-(Schrödinger's key identity, proved in `Schrodinger.lean`).
+(Schrödinger's key identity, `schrodinger_uncertainty` in
+`Spectra.QuantumMechanics.Uncertainty.SchrodingerRobertson`). The full weld
+from `QuantumRLDData` to a concrete `RLDFisherModel` — with this scale-factor
+table realized on the nose — is `Spectra.QuantumMechanics.FisherModel.quantumRLDFisherModel`
+(and its total, hypothesis-free version `toRLDFisherModel`).
 -/
 
 end RLDFisherModel

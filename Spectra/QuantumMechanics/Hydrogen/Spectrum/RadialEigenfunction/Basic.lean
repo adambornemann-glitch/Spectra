@@ -15,10 +15,6 @@ machinery of `RadialEigenfunction.Defs` (`chi`, `master_ibp`).
 
 ## Main statements
 
-* `radial_green_identity_dir`/`radial_green_identity_sum` — applying `master_ibp` twice
-  assembles the per-direction, then summed, Green's identity for a radial `C²` profile.
-* `laplacian_toTD_apply` — the distributional Laplacian of the witness, tested against
-  Schwartz functions.
 * `memLp_two_of_le_exp`/`memLp_two_of_le_exp_add_div` — `L²`-membership criteria for radial
   profiles bounded by an exponentially decaying envelope, upgrading the classical derivative
   bounds (`memLp_first_deriv`, `memLp_second_deriv`) to genuine `MemLp` facts.
@@ -46,7 +42,7 @@ Applying `master_ibp` twice (to `f = g∘‖·‖` then to `∂ⱼf`) gives the 
 `∫ f·∂ⱼ∂ⱼφ = ∫ ∂ⱼ∂ⱼf·φ`, the building block of the full Laplacian Green's identity. -/
 
 /-- `g∘‖·‖` is `C¹` (in fact `C²`) away from the origin. -/
-lemma radial_contDiffOn (g : ℝ → ℂ) (hg : ContDiff ℝ 2 g) :
+private lemma radial_contDiffOn (g : ℝ → ℂ) (hg : ContDiff ℝ 2 g) :
     ContDiffOn ℝ 1 (fun y : R3 => g ‖y‖) {(0 : R3)}ᶜ :=
   fun x hx => ((contDiffAt_radial g hg hx).of_le (by norm_num)).contDiffWithinAt
 
@@ -64,7 +60,7 @@ lemma first_deriv_contDiffOn (g : ℝ → ℂ) (hg : ContDiff ℝ 2 g) (j : Fin 
 /-- **Integrability of the first-derivative term against `∂ⱼφ`.**
     `(∂ⱼ(g∘‖·‖))·(∂ⱼφ)` is integrable: `∂ⱼ(g∘‖·‖)` is bounded near the origin and `∂ⱼφ` has
     compact support. -/
-lemma integrable_first_deriv_mul (g : ℝ → ℂ) (hg : ContDiff ℝ 2 g) (j : Fin 3)
+private lemma integrable_first_deriv_mul (g : ℝ → ℂ) (hg : ContDiff ℝ 2 g) (j : Fin 3)
     {φ : R3 → ℂ} (hφ : ContDiff ℝ ∞ φ) (hφc : HasCompactSupport φ) :
     Integrable (fun x => fderiv ℝ (fun z => g ‖z‖) x (EuclideanSpace.single j 1)
       * fderiv ℝ φ x (EuclideanSpace.single j 1)) := by
@@ -81,10 +77,7 @@ lemma integrable_first_deriv_mul (g : ℝ → ℂ) (hg : ContDiff ℝ 2 g) (j : 
   have hMg' : ∀ r ∈ Set.Icc (0 : ℝ) R, ‖deriv g r‖ ≤ Mg' := isMaxOn_iff.mp hMg'max
   have hMφ0 : 0 ≤ Mφ := (norm_nonneg _).trans (hMφ 0)
   set C : ℝ := Mg' * Mφ with hC
-  have hae : ∀ᵐ x : R3, x ∈ ({(0 : R3)}ᶜ : Set R3) := by
-    rw [ae_iff]; simp only [Set.mem_compl_iff, Set.mem_singleton_iff, not_not,
-      Set.setOf_eq_eq_singleton]
-    exact measure_singleton 0
+  have hae : ∀ᵐ x : R3, x ∈ ({(0 : R3)}ᶜ : Set R3) := ae_ne_zero_R3
   have hbound : ∀ᵐ x : R3, ‖fderiv ℝ (fun z => g ‖z‖) x (EuclideanSpace.single j 1)
       * fderiv ℝ φ x (EuclideanSpace.single j 1)‖ ≤ C * ‖x‖ ^ (-(0 : ℝ)) := by
     filter_upwards [hae] with x hx
@@ -101,7 +94,8 @@ lemma integrable_first_deriv_mul (g : ℝ → ℂ) (hg : ContDiff ℝ 2 g) (j : 
           (mt (hR x) (not_lt.mpr hxR))
       rw [hφ0, norm_zero, mul_zero]
       positivity
-  have hmeas : AEStronglyMeasurable (fun x => fderiv ℝ (fun z => g ‖z‖) x (EuclideanSpace.single j 1)
+  have hmeas : AEStronglyMeasurable (fun x =>
+      fderiv ℝ (fun z => g ‖z‖) x (EuclideanSpace.single j 1)
       * fderiv ℝ φ x (EuclideanSpace.single j 1)) volume := by
     have hcont : ContinuousOn (fun x => fderiv ℝ (fun z => g ‖z‖) x (EuclideanSpace.single j 1)
         * fderiv ℝ φ x (EuclideanSpace.single j 1)) {(0 : R3)}ᶜ :=
@@ -116,13 +110,108 @@ lemma integrable_first_deriv_mul (g : ℝ → ℂ) (hg : ContDiff ℝ 2 g) (j : 
     (hLI.integrableOn_isCompact (hdφ_cs.mul_left (f := fun x =>
       fderiv ℝ (fun z => g ‖z‖) x (EuclideanSpace.single j 1))))
 
+/-- The mixed classical second derivative `∂ⱼ∂ᵢ(g∘‖·‖)` is continuous away from the origin. -/
+private lemma second_deriv_continuousOn' (g : ℝ → ℂ) (hg : ContDiff ℝ 2 g) (i j : Fin 3) :
+    ContinuousOn (fun x => fderiv ℝ (fun y => fderiv ℝ (fun z => g ‖z‖) y
+        (EuclideanSpace.single i 1)) x (EuclideanSpace.single j 1)) {(0 : R3)}ᶜ := by
+  intro x hx
+  have hx' : x ≠ 0 := hx
+  have hf2 : ContDiffAt ℝ 2 (fun z : R3 => g ‖z‖) x := contDiffAt_radial g hg hx'
+  have hdf1 : ContDiffAt ℝ 1 (fun y : R3 => fderiv ℝ (fun z => g ‖z‖) y
+      (EuclideanSpace.single i 1)) x :=
+    (hf2.fderiv_right (m := 1) (by norm_num)).clm_apply
+      (contDiffAt_const (c := (EuclideanSpace.single i (1 : ℝ))))
+  have hcaf : ContinuousAt (fderiv ℝ (fun y : R3 => fderiv ℝ (fun z => g ‖z‖) y
+      (EuclideanSpace.single i 1))) x := hdf1.continuousAt_fderiv one_ne_zero
+  have hcomp : ContinuousAt (fun x => fderiv ℝ (fun y => fderiv ℝ (fun z => g ‖z‖) y
+      (EuclideanSpace.single i 1)) x (EuclideanSpace.single j 1)) x :=
+    ((ContinuousLinearMap.apply ℝ ℂ (EuclideanSpace.single j (1 : ℝ))).continuous.continuousAt).comp
+      hcaf
+  exact hcomp.continuousWithinAt
 
-
-
+/-- **Mixed** second-derivative integrability: `(∂ⱼ∂ᵢ(g∘‖·‖))·φ` is integrable for compactly
+    supported `φ` (the `1/‖x‖` singularity at the origin is `L¹_loc` in `ℝ³`). -/
+private lemma integrable_second_deriv_mul' (g : ℝ → ℂ) (hg : ContDiff ℝ 2 g) (i j : Fin 3)
+    {φ : R3 → ℂ} (hφ : ContDiff ℝ ∞ φ) (hφc : HasCompactSupport φ) :
+    Integrable (fun x => fderiv ℝ (fun y => fderiv ℝ (fun z => g ‖z‖) y
+        (EuclideanSpace.single i 1)) x (EuclideanSpace.single j 1) * φ x) := by
+  obtain ⟨R, hR_pos, hR⟩ := hφc.isCompact.isBounded.exists_pos_norm_lt
+  have hdg_cont : Continuous (deriv g) := hg.continuous_deriv (by norm_num)
+  have hddg_cont : Continuous (deriv (deriv g)) :=
+    (hg.deriv' (n := 1)).continuous_deriv (by norm_num)
+  obtain ⟨a', -, hMg'max⟩ := (isCompact_Icc (a := (0 : ℝ)) (b := R)).exists_isMaxOn
+    (Set.nonempty_Icc.mpr hR_pos.le) hdg_cont.norm.continuousOn
+  obtain ⟨a'', -, hMg''max⟩ := (isCompact_Icc (a := (0 : ℝ)) (b := R)).exists_isMaxOn
+    (Set.nonempty_Icc.mpr hR_pos.le) hddg_cont.norm.continuousOn
+  obtain ⟨Mφ, hMφ⟩ := hφc.exists_bound_of_continuous hφ.continuous
+  set Mg' : ℝ := ‖deriv g a'‖ with hMg'def
+  set Mg'' : ℝ := ‖deriv (deriv g) a''‖ with hMg''def
+  have hMg' : ∀ r ∈ Set.Icc (0 : ℝ) R, ‖deriv g r‖ ≤ Mg' := isMaxOn_iff.mp hMg'max
+  have hMg'' : ∀ r ∈ Set.Icc (0 : ℝ) R, ‖deriv (deriv g) r‖ ≤ Mg'' := isMaxOn_iff.mp hMg''max
+  have hMg'0 : 0 ≤ Mg' := norm_nonneg _
+  have hMg''0 : 0 ≤ Mg'' := norm_nonneg _
+  have hMφ0 : 0 ≤ Mφ := (norm_nonneg _).trans (hMφ 0)
+  set C : ℝ := (Mg'' * R + 2 * Mg') * Mφ with hC
+  have hae : ∀ᵐ x : R3, x ∈ ({(0 : R3)}ᶜ : Set R3) := ae_ne_zero_R3
+  have hbound : ∀ᵐ x : R3, ‖fderiv ℝ (fun y => fderiv ℝ (fun z => g ‖z‖) y
+        (EuclideanSpace.single i 1)) x (EuclideanSpace.single j 1) * φ x‖
+      ≤ C * ‖x‖ ^ (-(1 : ℝ)) := by
+    filter_upwards [hae] with x hx
+    have hx' : x ≠ 0 := hx
+    rw [Real.rpow_neg_one]
+    rcases le_total ‖x‖ R with hxR | hxR
+    · have hxpos : 0 < ‖x‖ := norm_pos_iff.mpr hx'
+      have hbd : ‖fderiv ℝ (fun y => fderiv ℝ (fun z => g ‖z‖) y (EuclideanSpace.single i 1)) x
+          (EuclideanSpace.single j 1)‖ ≤ Mg'' + 2 * Mg' / ‖x‖ := by
+        have h0 : ‖fderiv ℝ (fun y => fderiv ℝ (fun z => g ‖z‖) y (EuclideanSpace.single i 1)) x
+            (EuclideanSpace.single j 1)‖
+            ≤ ‖fderiv ℝ (fun y => fderiv ℝ (fun z => g ‖z‖) y (EuclideanSpace.single i 1)) x‖ := by
+          calc ‖fderiv ℝ (fun y => fderiv ℝ (fun z => g ‖z‖) y (EuclideanSpace.single i 1)) x
+                (EuclideanSpace.single j 1)‖
+              ≤ ‖fderiv ℝ (fun y => fderiv ℝ (fun z => g ‖z‖) y (EuclideanSpace.single i 1)) x‖
+                * ‖(EuclideanSpace.single j (1 : ℝ) : R3)‖ := ContinuousLinearMap.le_opNorm _ _
+            _ = ‖fderiv ℝ (fun y => fderiv ℝ (fun z => g ‖z‖) y (EuclideanSpace.single i 1)) x‖ :=
+                by rw [PiLp.norm_single, norm_one, mul_one]
+        have h1 := norm_fderiv_fderiv_radial_le g hg hx' i
+        have h2 : ‖deriv (deriv g) ‖x‖‖ ≤ Mg'' := hMg'' ‖x‖ ⟨norm_nonneg x, hxR⟩
+        have h3 : ‖deriv g ‖x‖‖ ≤ Mg' := hMg' ‖x‖ ⟨norm_nonneg x, hxR⟩
+        calc _ ≤ ‖fderiv ℝ (fun y => fderiv ℝ (fun z => g ‖z‖) y (EuclideanSpace.single i 1)) x‖ :=
+              h0
+          _ ≤ ‖deriv (deriv g) ‖x‖‖ + 2 * ‖deriv g ‖x‖‖ / ‖x‖ := h1
+          _ ≤ Mg'' + 2 * Mg' / ‖x‖ := by gcongr
+      rw [norm_mul, ← div_eq_mul_inv, le_div_iff₀ hxpos]
+      have hphi : ‖φ x‖ ≤ Mφ := hMφ x
+      have h1 : ‖fderiv ℝ (fun y => fderiv ℝ (fun z => g ‖z‖) y (EuclideanSpace.single i 1)) x
+          (EuclideanSpace.single j 1)‖ * ‖x‖ ≤ Mg'' * ‖x‖ + 2 * Mg' := by
+        calc _ ≤ (Mg'' + 2 * Mg' / ‖x‖) * ‖x‖ := mul_le_mul_of_nonneg_right hbd (norm_nonneg x)
+          _ = Mg'' * ‖x‖ + 2 * Mg' := by field_simp
+      calc ‖fderiv ℝ (fun y => fderiv ℝ (fun z => g ‖z‖) y (EuclideanSpace.single i 1)) x
+            (EuclideanSpace.single j 1)‖ * ‖φ x‖ * ‖x‖
+          = (‖fderiv ℝ (fun y => fderiv ℝ (fun z => g ‖z‖) y (EuclideanSpace.single i 1)) x
+              (EuclideanSpace.single j 1)‖ * ‖x‖) * ‖φ x‖ := by ring
+        _ ≤ (Mg'' * ‖x‖ + 2 * Mg') * Mφ := mul_le_mul h1 hphi (norm_nonneg _) (by positivity)
+        _ ≤ (Mg'' * R + 2 * Mg') * Mφ := by gcongr
+    · have hφ0 : φ x = 0 :=
+        image_eq_zero_of_notMem_tsupport (mt (hR x) (not_lt.mpr hxR))
+      rw [hφ0, mul_zero, norm_zero]
+      positivity
+  have hmeas : AEStronglyMeasurable (fun x => fderiv ℝ (fun y => fderiv ℝ (fun z => g ‖z‖) y
+      (EuclideanSpace.single i 1)) x (EuclideanSpace.single j 1) * φ x) volume := by
+    have hcont : ContinuousOn (fun x => fderiv ℝ (fun y => fderiv ℝ (fun z => g ‖z‖) y
+        (EuclideanSpace.single i 1)) x (EuclideanSpace.single j 1) * φ x) {(0 : R3)}ᶜ :=
+      (second_deriv_continuousOn' g hg i j).mul hφ.continuous.continuousOn
+    have := hcont.aestronglyMeasurable (μ := volume) (measurableSet_singleton (0 : R3)).compl
+    rwa [Measure.restrict_eq_self_of_ae_mem hae] at this
+  have hLI : LocallyIntegrable (fun x => fderiv ℝ (fun y => fderiv ℝ (fun z => g ‖z‖) y
+      (EuclideanSpace.single i 1)) x (EuclideanSpace.single j 1) * φ x) volume :=
+    locallyIntegrable_of_norm_le_rpow (E := R3) (by rw [finrank_euclideanSpace_fin]; norm_num)
+      (by rw [finrank_euclideanSpace_fin]; norm_num) hbound hmeas
+  exact (integrableOn_iff_integrable_of_support_subset (subset_tsupport _)).mp
+    (hLI.integrableOn_isCompact hφc.mul_left)
 
 /-- **Per-direction Green's identity for a radial `C²` function.**
     `∫ (g∘‖·‖)·∂ⱼ∂ⱼφ = ∫ (∂ⱼ∂ⱼ(g∘‖·‖))·φ`, via two cutoff integrations by parts. -/
-lemma radial_green_identity_dir (g : ℝ → ℂ) (hg : ContDiff ℝ 2 g) (j : Fin 3)
+private lemma radial_green_identity_dir (g : ℝ → ℂ) (hg : ContDiff ℝ 2 g) (j : Fin 3)
     {φ : R3 → ℂ} (hφ : ContDiff ℝ ∞ φ) (hφc : HasCompactSupport φ) :
     ∫ x, g ‖x‖ * fderiv ℝ (fun y => fderiv ℝ φ y (EuclideanSpace.single j 1)) x
         (EuclideanSpace.single j 1)
@@ -173,7 +262,7 @@ lemma radial_green_identity_dir (g : ℝ → ℂ) (hg : ContDiff ℝ 2 g) (j : F
           (EuclideanSpace.single j 1) * φ x :=
     master_ibp j (first_deriv_contDiffOn g hg j).continuousOn (first_deriv_contDiffOn g hg j)
       (fun x _ => rfl) one_pos hMv_df (le_trans (norm_nonneg _) (le_max_right _ _)) hφ hφc
-      (integrable_first_deriv_mul g hg j hφ hφc) (integrable_second_deriv_mul g hg j hφ hφc)
+      (integrable_first_deriv_mul g hg j hφ hφc) (integrable_second_deriv_mul' g hg j j hφ hφc)
   rw [firstIBP, secondIBP, neg_neg]
 
 /-! ## The full radial Laplacian and the summed Green's identity
@@ -182,7 +271,7 @@ Summing the per-direction identity over the three axes, and identifying `∑ⱼ 
 classical radial Laplacian `g″ + (2/r)g′` (Mathlib `Δ` via `laplacian_comp_norm`). -/
 
 /-- Chain-rule bridge: `∂ᵥ(∂ᵥf) = (D²f)(v,v)` when `fderiv f` is differentiable at `x`. -/
-lemma fderiv_fderiv_apply_eq (f : R3 → ℂ) (v : R3) {x : R3}
+private lemma fderiv_fderiv_apply_eq (f : R3 → ℂ) (v : R3) {x : R3}
     (hf : DifferentiableAt ℝ (fderiv ℝ f) x) :
     fderiv ℝ (fun y => fderiv ℝ f y v) x v = fderiv ℝ (fderiv ℝ f) x v v := by
   have h : HasFDerivAt (fun y => fderiv ℝ f y v)
@@ -194,7 +283,7 @@ lemma fderiv_fderiv_apply_eq (f : R3 → ℂ) (v : R3) {x : R3}
 
 /-- **Classical radial Laplacian as a sum of second partials.**  For a `C²` profile `g`, off the
     origin `∑ⱼ ∂ⱼ∂ⱼ(g∘‖·‖) = g″(‖x‖) + (2/‖x‖)·g′(‖x‖)` (the radial Laplacian). -/
-lemma radial_laplacian_sum (g : ℝ → ℂ) (hg : ContDiff ℝ 2 g) {x : R3} (hx : x ≠ 0) :
+private lemma radial_laplacian_sum (g : ℝ → ℂ) (hg : ContDiff ℝ 2 g) {x : R3} (hx : x ≠ 0) :
     ∑ j : Fin 3, fderiv ℝ (fun y => fderiv ℝ (fun z => g ‖z‖) y (EuclideanSpace.single j 1)) x
         (EuclideanSpace.single j 1)
       = iteratedDeriv 2 g ‖x‖ + (2 / (‖x‖ : ℂ)) * deriv g ‖x‖ := by
@@ -212,13 +301,9 @@ lemma radial_laplacian_sum (g : ℝ → ℂ) (hg : ContDiff ℝ 2 g) {x : R3} (h
   simp only [Matrix.cons_val_zero, Matrix.cons_val_one]
   exact fderiv_fderiv_apply_eq (fun z => g ‖z‖) (EuclideanSpace.single j 1) hfd
 
-
-
-
-
 /-- **Summed Green's identity.**  `∑ⱼ ∫ f·∂ⱼ∂ⱼφ = ∫ (∑ⱼ ∂ⱼ∂ⱼf)·φ` — sums the per-direction
     identity, ready to be paired with the distributional Laplacian. -/
-lemma radial_green_identity_sum (g : ℝ → ℂ) (hg : ContDiff ℝ 2 g)
+private lemma radial_green_identity_sum (g : ℝ → ℂ) (hg : ContDiff ℝ 2 g)
     {φ : R3 → ℂ} (hφ : ContDiff ℝ ∞ φ) (hφc : HasCompactSupport φ) :
     (∑ j : Fin 3, ∫ x, g ‖x‖ * fderiv ℝ (fun y => fderiv ℝ φ y (EuclideanSpace.single j 1)) x
         (EuclideanSpace.single j 1))
@@ -226,7 +311,7 @@ lemma radial_green_identity_sum (g : ℝ → ℂ) (hg : ContDiff ℝ 2 g)
           (EuclideanSpace.single j 1)) x (EuclideanSpace.single j 1)) * φ x := by
   rw [Finset.sum_congr rfl
     (fun j (_ : j ∈ Finset.univ) => radial_green_identity_dir g hg j hφ hφc),
-    ← integral_finsetSum Finset.univ (fun j _ => integrable_second_deriv_mul g hg j hφ hφc)]
+    ← integral_finsetSum Finset.univ (fun j _ => integrable_second_deriv_mul' g hg j j hφ hφc)]
   refine integral_congr_ae (Filter.Eventually.of_forall (fun x => ?_))
   simp only [Finset.sum_mul]
 
@@ -252,7 +337,7 @@ lemma laplacian_eq_sum_fderiv (h : R3 → ℂ) {x : R3} (hh : DifferentiableAt �
 
 /-- **The distributional Laplacian of `toTD Ψ`, tested against `φ`.**
     `Δ(toTD Ψ) φ = ∫ (∑ⱼ ∂ⱼ∂ⱼφ)·Ψ`.  Pairs with the classical summed Green's identity. -/
-lemma laplacian_toTD_apply (Ψ : Spectra.Sobolev.l2R3) (φ : 𝓢(R3, ℂ)) :
+private lemma laplacian_toTD_apply (Ψ : Spectra.Sobolev.l2R3) (φ : 𝓢(R3, ℂ)) :
     Laplacian.laplacian (Lp.toTemperedDistribution Ψ) φ
       = ∫ x, (∑ j : Fin 3, fderiv ℝ (fun y => fderiv ℝ (φ : R3 → ℂ) y (EuclideanSpace.single j 1)) x
           (EuclideanSpace.single j 1)) * Ψ x := by
@@ -271,14 +356,13 @@ The Coulomb term `(g∘‖·‖)/r` and hence the classical Laplacian `Δf = −
 /-- **A radial `L²` profile divided by `r` is `L²`.**  If `g` is continuous and `g∘‖·‖ ∈ L²(ℝ³)`,
     then `(g∘‖·‖)/‖·‖ ∈ L²`: the `1/r` singularity at the origin is `L²` in `ℝ³` (`2 < 3`), and
     away from the origin `‖(g∘‖·‖)/r‖ ≤ ‖g∘‖·‖‖`. -/
-lemma memLp_radial_div_norm (g : ℝ → ℂ) (hg : Continuous g)
+private lemma memLp_radial_div_norm (g : ℝ → ℂ) (hg : Continuous g)
     (hL2 : MemLp (fun x : R3 => g ‖x‖) 2 volume) :
     MemLp (fun x : R3 => g ‖x‖ / (‖x‖ : ℂ)) 2 volume := by
   have hh_cont : Continuous (fun x : R3 => g ‖x‖) := hg.comp continuous_norm
   have hq_meas' : Measurable (fun x : R3 => g ‖x‖ / (‖x‖ : ℂ)) :=
     hh_cont.measurable.div ((Complex.continuous_ofReal.comp continuous_norm).measurable)
-  have hae : ∀ᵐ x : R3, x ≠ 0 := by
-    rw [ae_iff]; simp only [ne_eq, not_not, Set.setOf_eq_eq_singleton]; exact measure_singleton 0
+  have hae : ∀ᵐ x : R3, x ≠ 0 := ae_ne_zero_R3
   rw [memLp_two_iff_integrable_sq_norm hq_meas'.aestronglyMeasurable]
   have hsq_h : Integrable (fun x : R3 => ‖g ‖x‖‖ ^ 2) volume :=
     (memLp_two_iff_integrable_sq_norm hL2.aestronglyMeasurable).mp hL2
@@ -304,7 +388,8 @@ lemma memLp_radial_div_norm (g : ℝ → ℂ) (hg : Continuous g)
   · -- away from the origin: dominated by `‖g∘‖·‖‖²`
     refine (hsq_h.integrableOn (s := (Metric.ball (0 : R3) 1)ᶜ)).mono'
       ((hq_meas'.norm.pow_const 2).aestronglyMeasurable.restrict)
-      ((ae_restrict_iff' measurableSet_ball.compl).mpr (Filter.Eventually.of_forall (fun x hx => ?_)))
+      ((ae_restrict_iff' measurableSet_ball.compl).mpr
+        (Filter.Eventually.of_forall (fun x hx => ?_)))
     rw [Real.norm_eq_abs, abs_of_nonneg (by positivity), hnorm]
     rw [Set.mem_compl_iff, Metric.mem_ball, dist_zero_right, not_lt] at hx
     have hxpos : (0 : ℝ) < ‖x‖ := lt_of_lt_of_le one_pos hx
@@ -341,12 +426,8 @@ lemma sum_second_deriv_eigen (n : ℕ) (hn : 0 + 1 ≤ n) {x : R3} (hx : x ≠ 0
   field_simp at heig ⊢
   linear_combination (-c) * heig
 
-
-
-
-
 /-- **The classical Laplacian `Δf = −2(E+1/r)f` of the `s`-state witness is `L²`.** -/
-lemma memLp_classical_laplacian (n : ℕ) (hn : 0 + 1 ≤ n) (hm : |(0 : ℤ)| ≤ 0) :
+private lemma memLp_classical_laplacian (n : ℕ) (hn : 0 + 1 ≤ n) (hm : |(0 : ℤ)| ≤ 0) :
     MemLp (fun x : R3 => (-2 : ℂ) * ((hydrogenEigenvalue n (by omega) : ℂ) + (‖x‖ : ℂ)⁻¹)
         * ((sphericalNorm 0 0 : ℂ) * Rc n 0 hn ‖x‖)) 2 volume := by
   set c : ℂ := (sphericalNorm 0 0 : ℂ) with hc
@@ -391,10 +472,11 @@ lemma exp_bound_of_tendsto {h : ℝ → ℝ} (hcont : Continuous h) {a : ℝ}
 /-! ## Exp-decay bounds give `L²` membership
 
 The reusable tool for the regularity packaging: a function bounded by `C·exp(−a‖·‖)` is `L²`.
-(`exp(−a‖·‖) ∈ L²` via the radial reduction `integrable_fun_norm_addHaar` + `integrableOn_rpow_mul_exp_neg_mul_rpow`.) -/
+(`exp(−a‖·‖) ∈ L²` via the radial reduction `integrable_fun_norm_addHaar` +
+`integrableOn_rpow_mul_exp_neg_mul_rpow`.) -/
 
 /-- `exp(−a‖·‖) ∈ L²(ℝ³)` for `a > 0`. -/
-lemma memLp_exp_neg_norm {a : ℝ} (ha : 0 < a) :
+private lemma memLp_exp_neg_norm {a : ℝ} (ha : 0 < a) :
     MemLp (fun x : R3 => Real.exp (-a * ‖x‖)) 2 volume := by
   rw [memLp_two_iff_integrable_sq_norm (by fun_prop)]
   have hsq : (fun x : R3 => ‖Real.exp (-a * ‖x‖)‖ ^ 2)
@@ -450,44 +532,19 @@ lemma memLp_two_of_le_exp_add_div {h : R3 → ℂ} (hmeas : AEStronglyMeasurable
   exact hB.mono' hmeas (Filter.Eventually.of_forall hbd)
 
 /-- `∂ᵢ(g∘‖·‖)` is a.e.-strongly-measurable (continuous off the null set `{0}`). -/
-lemma aestronglyMeasurable_first_deriv (g : ℝ → ℂ) (hg : ContDiff ℝ 2 g) (i : Fin 3) :
+private lemma aestronglyMeasurable_first_deriv (g : ℝ → ℂ) (hg : ContDiff ℝ 2 g) (i : Fin 3) :
     AEStronglyMeasurable
       (fun x : R3 => fderiv ℝ (fun y => g ‖y‖) x (EuclideanSpace.single i 1)) volume := by
-  have hae : ∀ᵐ x : R3, x ∈ ({(0 : R3)}ᶜ : Set R3) := by
-    rw [ae_iff]; simp only [Set.mem_compl_iff, Set.mem_singleton_iff, not_not,
-      Set.setOf_eq_eq_singleton]
-    exact measure_singleton 0
+  have hae : ∀ᵐ x : R3, x ∈ ({(0 : R3)}ᶜ : Set R3) := ae_ne_zero_R3
   have := (first_deriv_contDiffOn g hg i).continuousOn.aestronglyMeasurable (μ := volume)
     (measurableSet_singleton (0 : R3)).compl
   rwa [Measure.restrict_eq_self_of_ae_mem hae] at this
 
-/-- The mixed classical second derivative `∂ⱼ∂ᵢ(g∘‖·‖)` is continuous away from the origin. -/
-lemma second_deriv_continuousOn' (g : ℝ → ℂ) (hg : ContDiff ℝ 2 g) (i j : Fin 3) :
-    ContinuousOn (fun x => fderiv ℝ (fun y => fderiv ℝ (fun z => g ‖z‖) y
-        (EuclideanSpace.single i 1)) x (EuclideanSpace.single j 1)) {(0 : R3)}ᶜ := by
-  intro x hx
-  have hx' : x ≠ 0 := hx
-  have hf2 : ContDiffAt ℝ 2 (fun z : R3 => g ‖z‖) x := contDiffAt_radial g hg hx'
-  have hdf1 : ContDiffAt ℝ 1 (fun y : R3 => fderiv ℝ (fun z => g ‖z‖) y
-      (EuclideanSpace.single i 1)) x :=
-    (hf2.fderiv_right (m := 1) (by norm_num)).clm_apply
-      (contDiffAt_const (c := (EuclideanSpace.single i (1 : ℝ))))
-  have hcaf : ContinuousAt (fderiv ℝ (fun y : R3 => fderiv ℝ (fun z => g ‖z‖) y
-      (EuclideanSpace.single i 1))) x := hdf1.continuousAt_fderiv one_ne_zero
-  have hcomp : ContinuousAt (fun x => fderiv ℝ (fun y => fderiv ℝ (fun z => g ‖z‖) y
-      (EuclideanSpace.single i 1)) x (EuclideanSpace.single j 1)) x :=
-    ((ContinuousLinearMap.apply ℝ ℂ (EuclideanSpace.single j (1 : ℝ))).continuous.continuousAt).comp
-      hcaf
-  exact hcomp.continuousWithinAt
-
 /-- `∂ⱼ∂ᵢ(g∘‖·‖)` is a.e.-strongly-measurable. -/
-lemma aestronglyMeasurable_second_deriv (g : ℝ → ℂ) (hg : ContDiff ℝ 2 g) (i j : Fin 3) :
+private lemma aestronglyMeasurable_second_deriv (g : ℝ → ℂ) (hg : ContDiff ℝ 2 g) (i j : Fin 3) :
     AEStronglyMeasurable (fun x : R3 => fderiv ℝ (fun y => fderiv ℝ (fun z => g ‖z‖) y
         (EuclideanSpace.single i 1)) x (EuclideanSpace.single j 1)) volume := by
-  have hae : ∀ᵐ x : R3, x ∈ ({(0 : R3)}ᶜ : Set R3) := by
-    rw [ae_iff]; simp only [Set.mem_compl_iff, Set.mem_singleton_iff, not_not,
-      Set.setOf_eq_eq_singleton]
-    exact measure_singleton 0
+  have hae : ∀ᵐ x : R3, x ∈ ({(0 : R3)}ᶜ : Set R3) := ae_ne_zero_R3
   have := (second_deriv_continuousOn' g hg i j).aestronglyMeasurable (μ := volume)
     (measurableSet_singleton (0 : R3)).compl
   rwa [Measure.restrict_eq_self_of_ae_mem hae] at this
@@ -546,7 +603,7 @@ lemma memLp_second_deriv (g : ℝ → ℂ) (hg : ContDiff ℝ 2 g) {C₁ C₂ a 
 
 /-- `(∂ᵢ(g∘‖·‖))·ψ` is integrable for any continuous compactly-supported test `ψ`
     (`∂ᵢ(g∘‖·‖)` is bounded near the origin). -/
-lemma integrable_first_deriv_mul_test (g : ℝ → ℂ) (hg : ContDiff ℝ 2 g) (i : Fin 3)
+private lemma integrable_first_deriv_mul_test (g : ℝ → ℂ) (hg : ContDiff ℝ 2 g) (i : Fin 3)
     {ψ : R3 → ℂ} (hψ : Continuous ψ) (hψc : HasCompactSupport ψ) :
     Integrable (fun x => fderiv ℝ (fun y => g ‖y‖) x (EuclideanSpace.single i 1) * ψ x) := by
   obtain ⟨R, hR_pos, hR⟩ := hψc.isCompact.isBounded.exists_pos_norm_lt
@@ -558,10 +615,7 @@ lemma integrable_first_deriv_mul_test (g : ℝ → ℂ) (hg : ContDiff ℝ 2 g) 
   have hMg' : ∀ r ∈ Set.Icc (0 : ℝ) R, ‖deriv g r‖ ≤ Mg' := isMaxOn_iff.mp hMg'max
   have hMψ0 : 0 ≤ Mψ := (norm_nonneg _).trans (hMψ 0)
   set C : ℝ := Mg' * Mψ with hC
-  have hae : ∀ᵐ x : R3, x ∈ ({(0 : R3)}ᶜ : Set R3) := by
-    rw [ae_iff]; simp only [Set.mem_compl_iff, Set.mem_singleton_iff, not_not,
-      Set.setOf_eq_eq_singleton]
-    exact measure_singleton 0
+  have hae : ∀ᵐ x : R3, x ∈ ({(0 : R3)}ᶜ : Set R3) := ae_ne_zero_R3
   have hbound : ∀ᵐ x : R3, ‖fderiv ℝ (fun y => g ‖y‖) x (EuclideanSpace.single i 1) * ψ x‖
       ≤ C * ‖x‖ ^ (-(0 : ℝ)) := by
     filter_upwards [hae] with x hx
@@ -588,87 +642,6 @@ lemma integrable_first_deriv_mul_test (g : ℝ → ℂ) (hg : ContDiff ℝ 2 g) 
       (by rw [finrank_euclideanSpace_fin]; norm_num) hbound hmeas
   exact (integrableOn_iff_integrable_of_support_subset (subset_tsupport _)).mp
     (hLI.integrableOn_isCompact (hψc.mul_left))
-
-/-- **Mixed** second-derivative integrability: `(∂ⱼ∂ᵢ(g∘‖·‖))·φ` is integrable for compactly
-    supported `φ` (the `1/‖x‖` singularity at the origin is `L¹_loc` in `ℝ³`). -/
-lemma integrable_second_deriv_mul' (g : ℝ → ℂ) (hg : ContDiff ℝ 2 g) (i j : Fin 3)
-    {φ : R3 → ℂ} (hφ : ContDiff ℝ ∞ φ) (hφc : HasCompactSupport φ) :
-    Integrable (fun x => fderiv ℝ (fun y => fderiv ℝ (fun z => g ‖z‖) y
-        (EuclideanSpace.single i 1)) x (EuclideanSpace.single j 1) * φ x) := by
-  obtain ⟨R, hR_pos, hR⟩ := hφc.isCompact.isBounded.exists_pos_norm_lt
-  have hdg_cont : Continuous (deriv g) := hg.continuous_deriv (by norm_num)
-  have hddg_cont : Continuous (deriv (deriv g)) :=
-    (hg.deriv' (n := 1)).continuous_deriv (by norm_num)
-  obtain ⟨a', -, hMg'max⟩ := (isCompact_Icc (a := (0 : ℝ)) (b := R)).exists_isMaxOn
-    (Set.nonempty_Icc.mpr hR_pos.le) hdg_cont.norm.continuousOn
-  obtain ⟨a'', -, hMg''max⟩ := (isCompact_Icc (a := (0 : ℝ)) (b := R)).exists_isMaxOn
-    (Set.nonempty_Icc.mpr hR_pos.le) hddg_cont.norm.continuousOn
-  obtain ⟨Mφ, hMφ⟩ := hφc.exists_bound_of_continuous hφ.continuous
-  set Mg' : ℝ := ‖deriv g a'‖ with hMg'def
-  set Mg'' : ℝ := ‖deriv (deriv g) a''‖ with hMg''def
-  have hMg' : ∀ r ∈ Set.Icc (0 : ℝ) R, ‖deriv g r‖ ≤ Mg' := isMaxOn_iff.mp hMg'max
-  have hMg'' : ∀ r ∈ Set.Icc (0 : ℝ) R, ‖deriv (deriv g) r‖ ≤ Mg'' := isMaxOn_iff.mp hMg''max
-  have hMg'0 : 0 ≤ Mg' := norm_nonneg _
-  have hMg''0 : 0 ≤ Mg'' := norm_nonneg _
-  have hMφ0 : 0 ≤ Mφ := (norm_nonneg _).trans (hMφ 0)
-  set C : ℝ := (Mg'' * R + 2 * Mg') * Mφ with hC
-  have hae : ∀ᵐ x : R3, x ∈ ({(0 : R3)}ᶜ : Set R3) := by
-    rw [ae_iff]; simp only [Set.mem_compl_iff, Set.mem_singleton_iff, not_not,
-      Set.setOf_eq_eq_singleton]
-    exact measure_singleton 0
-  have hbound : ∀ᵐ x : R3, ‖fderiv ℝ (fun y => fderiv ℝ (fun z => g ‖z‖) y
-        (EuclideanSpace.single i 1)) x (EuclideanSpace.single j 1) * φ x‖ ≤ C * ‖x‖ ^ (-(1 : ℝ)) := by
-    filter_upwards [hae] with x hx
-    have hx' : x ≠ 0 := hx
-    rw [Real.rpow_neg_one]
-    rcases le_total ‖x‖ R with hxR | hxR
-    · have hxpos : 0 < ‖x‖ := norm_pos_iff.mpr hx'
-      have hbd : ‖fderiv ℝ (fun y => fderiv ℝ (fun z => g ‖z‖) y (EuclideanSpace.single i 1)) x
-          (EuclideanSpace.single j 1)‖ ≤ Mg'' + 2 * Mg' / ‖x‖ := by
-        have h0 : ‖fderiv ℝ (fun y => fderiv ℝ (fun z => g ‖z‖) y (EuclideanSpace.single i 1)) x
-            (EuclideanSpace.single j 1)‖
-            ≤ ‖fderiv ℝ (fun y => fderiv ℝ (fun z => g ‖z‖) y (EuclideanSpace.single i 1)) x‖ := by
-          calc ‖fderiv ℝ (fun y => fderiv ℝ (fun z => g ‖z‖) y (EuclideanSpace.single i 1)) x
-                (EuclideanSpace.single j 1)‖
-              ≤ ‖fderiv ℝ (fun y => fderiv ℝ (fun z => g ‖z‖) y (EuclideanSpace.single i 1)) x‖
-                * ‖(EuclideanSpace.single j (1 : ℝ) : R3)‖ := ContinuousLinearMap.le_opNorm _ _
-            _ = ‖fderiv ℝ (fun y => fderiv ℝ (fun z => g ‖z‖) y (EuclideanSpace.single i 1)) x‖ := by
-                rw [PiLp.norm_single, norm_one, mul_one]
-        have h1 := norm_fderiv_fderiv_radial_le g hg hx' i
-        have h2 : ‖deriv (deriv g) ‖x‖‖ ≤ Mg'' := hMg'' ‖x‖ ⟨norm_nonneg x, hxR⟩
-        have h3 : ‖deriv g ‖x‖‖ ≤ Mg' := hMg' ‖x‖ ⟨norm_nonneg x, hxR⟩
-        calc _ ≤ ‖fderiv ℝ (fun y => fderiv ℝ (fun z => g ‖z‖) y (EuclideanSpace.single i 1)) x‖ := h0
-          _ ≤ ‖deriv (deriv g) ‖x‖‖ + 2 * ‖deriv g ‖x‖‖ / ‖x‖ := h1
-          _ ≤ Mg'' + 2 * Mg' / ‖x‖ := by gcongr
-      rw [norm_mul, ← div_eq_mul_inv, le_div_iff₀ hxpos]
-      have hphi : ‖φ x‖ ≤ Mφ := hMφ x
-      have h1 : ‖fderiv ℝ (fun y => fderiv ℝ (fun z => g ‖z‖) y (EuclideanSpace.single i 1)) x
-          (EuclideanSpace.single j 1)‖ * ‖x‖ ≤ Mg'' * ‖x‖ + 2 * Mg' := by
-        calc _ ≤ (Mg'' + 2 * Mg' / ‖x‖) * ‖x‖ := mul_le_mul_of_nonneg_right hbd (norm_nonneg x)
-          _ = Mg'' * ‖x‖ + 2 * Mg' := by field_simp
-      calc ‖fderiv ℝ (fun y => fderiv ℝ (fun z => g ‖z‖) y (EuclideanSpace.single i 1)) x
-            (EuclideanSpace.single j 1)‖ * ‖φ x‖ * ‖x‖
-          = (‖fderiv ℝ (fun y => fderiv ℝ (fun z => g ‖z‖) y (EuclideanSpace.single i 1)) x
-              (EuclideanSpace.single j 1)‖ * ‖x‖) * ‖φ x‖ := by ring
-        _ ≤ (Mg'' * ‖x‖ + 2 * Mg') * Mφ := mul_le_mul h1 hphi (norm_nonneg _) (by positivity)
-        _ ≤ (Mg'' * R + 2 * Mg') * Mφ := by gcongr
-    · have hφ0 : φ x = 0 :=
-        image_eq_zero_of_notMem_tsupport (mt (hR x) (not_lt.mpr hxR))
-      rw [hφ0, mul_zero, norm_zero]
-      positivity
-  have hmeas : AEStronglyMeasurable (fun x => fderiv ℝ (fun y => fderiv ℝ (fun z => g ‖z‖) y
-      (EuclideanSpace.single i 1)) x (EuclideanSpace.single j 1) * φ x) volume := by
-    have hcont : ContinuousOn (fun x => fderiv ℝ (fun y => fderiv ℝ (fun z => g ‖z‖) y
-        (EuclideanSpace.single i 1)) x (EuclideanSpace.single j 1) * φ x) {(0 : R3)}ᶜ :=
-      (second_deriv_continuousOn' g hg i j).mul hφ.continuous.continuousOn
-    have := hcont.aestronglyMeasurable (μ := volume) (measurableSet_singleton (0 : R3)).compl
-    rwa [Measure.restrict_eq_self_of_ae_mem hae] at this
-  have hLI : LocallyIntegrable (fun x => fderiv ℝ (fun y => fderiv ℝ (fun z => g ‖z‖) y
-      (EuclideanSpace.single i 1)) x (EuclideanSpace.single j 1) * φ x) volume :=
-    locallyIntegrable_of_norm_le_rpow (E := R3) (by rw [finrank_euclideanSpace_fin]; norm_num)
-      (by rw [finrank_euclideanSpace_fin]; norm_num) hbound hmeas
-  exact (integrableOn_iff_integrable_of_support_subset (subset_tsupport _)).mp
-    (hLI.integrableOn_isCompact hφc.mul_left)
 
 /-! ## Abstract radial bound state (profile-parameterized; powers general `Z`) -/
 
@@ -759,7 +732,8 @@ theorem bound_state_of_radial_profile (p : CoulombParams) (E : ℝ)
           (EuclideanSpace.single j 1)
         = (-2 : ℂ) * ((E : ℂ) + (p.Z : ℂ) * (‖x‖ : ℂ)⁻¹) * g ‖x‖) :
     ∃ ψ : (hydrogenHamiltonian p).domain,
-      (ψ : Spectra.Sobolev.l2R3) ≠ 0 ∧ hydrogenHamiltonian p ψ = ((E : ℝ) : ℂ) • (ψ : Spectra.Sobolev.l2R3) := by
+      (ψ : Spectra.Sobolev.l2R3) ≠ 0 ∧
+        hydrogenHamiltonian p ψ = ((E : ℝ) : ℂ) • (ψ : Spectra.Sobolev.l2R3) := by
   set d2 : Fin 3 → Fin 3 → Spectra.Sobolev.l2R3 :=
     fun i j => (memLp_second_deriv g hg ha hbd1 hbd2 i j).toLp _ with hd2_def
   have hH2 : MemSobolevH2 Ψ := by
@@ -790,8 +764,7 @@ theorem bound_state_of_radial_profile (p : CoulombParams) (E : ℝ)
       hc 0, hc 1, hc 2] with x hneg hadd2 hadd1 h0 h1 h2
     simp only [Fin.sum_univ_three, hneg, Pi.neg_apply, hadd2, hadd1, Pi.add_apply, h0, h1, h2]
   refine Lp.ext ?_
-  have hae0 : ∀ᵐ x : R3, x ≠ 0 := by
-    rw [ae_iff]; simp only [ne_eq, not_not, Set.setOf_eq_eq_singleton]; exact measure_singleton 0
+  have hae0 : ∀ᵐ x : R3, x ≠ 0 := ae_ne_zero_R3
   have ehalf : ⇑(halfLaplacianPMap ⟨Ψ, hH2⟩) =ᵐ[volume]
       ((1 / 2 : ℝ) : ℂ) • ⇑(weakLaplacian Ψ hH2) := by
     rw [show halfLaplacianPMap ⟨Ψ, hH2⟩ = ((1 / 2 : ℝ) : ℂ) • weakLaplacian Ψ hH2 from by
@@ -818,7 +791,6 @@ theorem bound_state_of_radial_profile (p : CoulombParams) (E : ℝ)
   ring
 
 /-! ## The hydrogen bound state at `Z = 1` (reverse direction of the discrete spectrum) -/
-
 
 /-- **Reverse direction of the hydrogen discrete spectrum at general charge `Z`** (`ℓ = 0`):
     every `E_n = −Z²/(2n²)` is an eigenvalue of `H = −½Δ − Z/r`, via the dilated `s`-state. -/
@@ -849,7 +821,8 @@ theorem hydrogen_bound_state (p : CoulombParams) (n : ℕ) (hn : 1 ≤ n) :
   have hgd2 : ∀ s, deriv (deriv g) s
       = (sphericalNorm 0 0 : ℂ) * ((Z : ℂ) * ((Z : ℂ) * deriv (deriv (Rc n 0 hn')) (Z * s))) := by
     intro s
-    have hderiv_g : deriv g = fun t => ((sphericalNorm 0 0 : ℂ) * (Z : ℂ)) * deriv (Rc n 0 hn') (Z * t) := by
+    have hderiv_g : deriv g
+        = fun t => ((sphericalNorm 0 0 : ℂ) * (Z : ℂ)) * deriv (Rc n 0 hn') (Z * t) := by
       funext t; rw [hgd t]; ring
     rw [hderiv_g]
     have hsc : HasDerivAt (fun t => deriv (Rc n 0 hn') (Z * t))
@@ -860,7 +833,8 @@ theorem hydrogen_bound_state (p : CoulombParams) (n : ℕ) (hn : 1 ≤ n) :
   set ε : ℝ := 1 / (2 * (n : ℝ)) with hε_def
   have hε0 : 0 < ε := by rw [hε_def]; positivity
   have hε : ε < 1 / (n : ℝ) := by rw [hε_def, div_lt_div_iff₀ (by positivity) hnR]; nlinarith
-  have htop : Tendsto (fun s : ℝ => Z * s) atTop atTop := Filter.Tendsto.const_mul_atTop hZ tendsto_id
+  have htop : Tendsto (fun s : ℝ => Z * s) atTop atTop :=
+    Filter.Tendsto.const_mul_atTop hZ tendsto_id
   have hdecay : ∀ (h : ℝ → ℝ), Continuous h →
       Tendsto (fun s => h s * Real.exp (ε * s)) atTop (nhds 0) →
       ∃ C : ℝ, 0 ≤ C ∧ ∀ s, 0 ≤ s → |h (Z * s)| ≤ C * Real.exp (-(ε * Z) * s) := by
@@ -893,11 +867,13 @@ theorem hydrogen_bound_state (p : CoulombParams) (n : ℕ) (hn : 1 ≤ n) :
       ‖deriv (deriv g) s‖ ≤ (|sphericalNorm 0 0| * (Z * (Z * Cdd))) * Real.exp (-(ε * Z) * s) := by
     intro s hs
     have hns : ‖deriv (deriv g) s‖
-        = |sphericalNorm 0 0| * (Z * (Z * |deriv (deriv (hydrogenRadialWavefunction n 0 hn')) (Z * s)|)) := by
+        = |sphericalNorm 0 0|
+          * (Z * (Z * |deriv (deriv (hydrogenRadialWavefunction n 0 hn')) (Z * s)|)) := by
       rw [hgd2 s, deriv2_Rc]
       simp only [norm_mul, Complex.norm_real, Real.norm_eq_abs, abs_of_pos hZ]
     rw [hns]
-    calc |sphericalNorm 0 0| * (Z * (Z * |deriv (deriv (hydrogenRadialWavefunction n 0 hn')) (Z * s)|))
+    calc |sphericalNorm 0 0|
+          * (Z * (Z * |deriv (deriv (hydrogenRadialWavefunction n 0 hn')) (Z * s)|))
         ≤ |sphericalNorm 0 0| * (Z * (Z * (Cdd * Real.exp (-(ε * Z) * s)))) := by
           gcongr; exact hCdd s hs
       _ = |sphericalNorm 0 0| * (Z * (Z * Cdd)) * Real.exp (-(ε * Z) * s) := by ring
@@ -974,7 +950,8 @@ theorem hydrogen_bound_state (p : CoulombParams) (n : ℕ) (hn : 1 ≤ n) :
     have hR''ℂ : ((deriv (deriv (hydrogenRadialWavefunction n 0 hn')) (Z * ‖x‖) : ℝ) : ℂ)
         = -(2 * ((hydrogenEigenvalue n (by omega) : ℝ) : ℂ))
             * ((hydrogenRadialWavefunction n 0 hn' (Z * ‖x‖) : ℝ) : ℂ)
-          - 2 / ((Z : ℂ) * (‖x‖ : ℂ)) * ((deriv (hydrogenRadialWavefunction n 0 hn') (Z * ‖x‖) : ℝ) : ℂ)
+          - 2 / ((Z : ℂ) * (‖x‖ : ℂ))
+            * ((deriv (hydrogenRadialWavefunction n 0 hn') (Z * ‖x‖) : ℝ) : ℂ)
           - 2 / ((Z : ℂ) * (‖x‖ : ℂ))
             * ((hydrogenRadialWavefunction n 0 hn' (Z * ‖x‖) : ℝ) : ℂ) := by
       rw [hR'']; push_cast; ring

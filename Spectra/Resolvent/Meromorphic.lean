@@ -36,8 +36,21 @@ This file builds that general object and proves it is analytic on the (open) res
 * `isResolvent_mul_neumann` / `mem_resolventSet_of_norm_mul_lt` / `resolventOf_eq_mul_inverse` —
   the Neumann perturbation: `A − z` stays invertible near a resolvent point, with the explicit
   inverse `R₀ · (1 − (z − z₀) R₀)⁻¹`.
+* `resolventOf_eq_of_rightInverse` — identifies `resolventOf A z` with an explicitly-built
+  operator by checking only the right-inverse equation, used downstream at
+  `SpectralTheory/SimplePole.lean`.
 * `isOpen_resolventSet` — the resolvent set is open.
 * `resolventOf_analyticOnNhd` — `AnalyticOnNhd ℂ (resolventOf A) (resolventSet A)`.
+
+## Implementation notes
+
+This file's Neumann-perturbation argument (`isResolvent_mul_neumann`, via `Ring.inverse` on the
+unit `1 − (z − z₀) R₀`) is a different, more general construction than the earlier one in
+`Resolvent/Analytic.lean` (`resolventFun_hasSum`, via `HasSum`/`neumannSeries` directly). They are
+not redundant: `Analytic.lean` only ever considers `Im z ≠ 0` and produces a convergent power
+series, feeding `YosidaHille/Approximation/Helpers.lean`; this file works on the *whole* resolvent
+set — including real points in spectral gaps — and only needs analyticity, not an explicit series,
+so it goes through `Ring.inverse`/`DifferentiableAt.comp` instead.
 
 ## References
 
@@ -64,8 +77,9 @@ lemma mem_resolventSet_iff {A : H →ₗ.[ℂ] H} {z : ℂ} :
     z ∈ resolventSet A ↔ ∃ R : H →L[ℂ] H, IsResolvent A z R := Iff.rfl
 
 omit [CompleteSpace H] in
-/-- **Operator-level uniqueness**: any two two-sided inverses of `A − z` are equal.  If `R` is a left
-inverse and `R'` a right inverse landing in the domain, then `R φ = R ((A − z)(R' φ)) = R' φ`. -/
+/-- **Operator-level uniqueness**: any two two-sided inverses of `A − z` are equal.  If `R` is a
+left inverse and `R'` a right inverse landing in the domain, then `R φ = R ((A − z)(R' φ)) = R' φ`.
+-/
 lemma IsResolvent.unique {A : H →ₗ.[ℂ] H} {z : ℂ} {R R' : H →L[ℂ] H}
     (h : IsResolvent A z R) (h' : IsResolvent A z R') : R = R' := by
   ext φ
@@ -303,7 +317,9 @@ theorem resolventOf_analyticOnNhd (A : H →ₗ.[ℂ] H) :
     AnalyticOnNhd ℂ (resolventOf A) (resolventSet A) :=
   (resolventOf_differentiableOn A).analyticOnNhd (isOpen_resolventSet A)
 
-/-- The resolvent is analytic at each individual resolvent point. -/
+/-- The resolvent is analytic at each individual resolvent point: the standard
+`AnalyticOnNhd → AnalyticAt` specialization of `resolventOf_analyticOnNhd` at `z`, with no
+additional content beyond evaluating the `AnalyticOnNhd` predicate at a single membership proof. -/
 theorem resolventOf_analyticAt {A : H →ₗ.[ℂ] H} {z : ℂ} (hz : z ∈ resolventSet A) :
     AnalyticAt ℂ (resolventOf A) z :=
   resolventOf_analyticOnNhd A z hz

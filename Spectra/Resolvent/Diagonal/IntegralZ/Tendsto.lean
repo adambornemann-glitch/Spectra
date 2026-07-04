@@ -4,14 +4,34 @@ Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Spectra.Resolvent.Diagonal.IntegralZ.Defs
-open Complex MeasureTheory Filter Topology
+import Spectra.Resolvent.Integral.Limits
 
+/-!
+# Continuity and limit lemmas for the general-`z` resolvent integral
+
+This file collects the continuity/limit facts feeding the generator-recovery argument for the
+Laplace-transform resolvent `resolventIntegralZ`: continuity of the resolvent integral in its
+lower endpoint, and the one-sided average-to-initial-vector limits that identify the derivative
+of the resolvent integral at `h = 0` with `φ` itself. Together with `Shift.lean`'s shift lemmas,
+these feed `GeneratorLim.lean`'s generator-recovery theorem.
+
+## Main statements
+
+* `tendsto_cexp_mul_sub_one_div` — the scalar bulk derivative `(e^{izh} - 1)/h → iz`.
+* `tendsto_integral_Ici_expZ_unitary` — continuity of `h ↦ ∫_{Ici h} e^{-izt}U(t)φ dt` at `h = 0`.
+* `tendsto_average_integral_expZ_unitary` / `_neg` — the right/left average of the resolvent
+  kernel over `Set.Ioc 0 h` / `Set.Ioc h 0` tends to `φ` as `h → 0`, from either side.
+-/
+
+open Complex MeasureTheory Filter Topology
 open Spectra.OneParameterUnitaryGroup
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
+
 namespace Spectra.Resolvent
+
 variable (U_grp : OneParameterUnitaryGroup (H := H))
 
-/-- Bulk derivative: `(e^{izh} - 1)/h → iz` as `h → 0`. The `z`-generalization of
+/-- The **bulk derivative**: `(e^{izh} - 1)/h → iz` as `h → 0`. The `z`-generalization of
 `tendsto_exp_sub_one_div` (the `z = -i` case gives `iz = 1`). -/
 lemma tendsto_cexp_mul_sub_one_div {z : ℂ} :
     Tendsto (fun h : ℝ => (cexp (I * z * (h : ℂ)) - 1) / (h : ℂ)) (𝓝[≠] 0) (𝓝 (I * z)) := by
@@ -28,15 +48,14 @@ lemma tendsto_cexp_mul_sub_one_div {z : ℂ} :
   simp only [slope_def_module, sub_zero, Complex.ofReal_zero, mul_zero, Complex.exp_zero]
   rw [← Complex.coe_smul, smul_eq_mul, ofReal_inv, div_eq_inv_mul]
 
-/-- Continuity in the lower endpoint: `∫_{Ici h} e^{-izt}U(t)φ dt → ∫_{Ici 0} e^{-izt}U(t)φ dt`
-as `h → 0`, for `Im z < 0`. -/
+/-- **Continuity in the lower endpoint**: `∫_{Ici h} e^{-izt}U(t)φ dt → ∫_{Ici 0} e^{-izt}U(t)φ dt`
+as `h → 0`, for `Im z < 0`. Feeds `Shift.lean`'s `integral_Ici_orbit_split_Z` and, transitively,
+the generator-recovery argument in `GeneratorLim.lean`. -/
 lemma tendsto_integral_Ici_expZ_unitary {z : ℂ} (hz : z.im < 0) (φ : H) :
     Tendsto (fun h : ℝ => ∫ t in Set.Ici h, cexp (-(I * z * (t : ℂ))) • U_grp.U t φ)
             (𝓝 0)
             (𝓝 (∫ t in Set.Ici (0 : ℝ), cexp (-(I * z * (t : ℂ))) • U_grp.U t φ)) := by
-  have h_cont : Continuous (fun t : ℝ => cexp (-(I * z * (t : ℂ))) • U_grp.U t φ) :=
-    (Complex.continuous_exp.comp ((Complex.continuous_ofReal.const_mul (I * z)).neg)).smul
-      (U_grp.strong_continuous φ)
+  have h_cont := expZ_orbit_continuous U_grp (z := z) φ
   have h_int := integrable_expZ_unitary U_grp hz φ
   have h_prim_cont : Continuous
       (fun h => ∫ t in (0 : ℝ)..h, cexp (-(I * z * (t : ℂ))) • U_grp.U t φ) :=
@@ -51,85 +70,33 @@ lemma tendsto_integral_Ici_expZ_unitary {z : ℂ} (hz : z.im < 0) (φ : H) :
   convert tendsto_const_nhds.sub h_prim_tendsto using 1
   · ext h
     by_cases hh : h ≥ 0
-    · have h_ae_eq : ∫ t in Set.Ici (0 : ℝ), cexp (-(I * z * (t : ℂ))) • U_grp.U t φ =
-                     ∫ t in Set.Ioi (0 : ℝ), cexp (-(I * z * (t : ℂ))) • U_grp.U t φ :=
-        setIntegral_congr_set Ioi_ae_eq_Ici.symm
-      have h_union : Set.Ioi (0 : ℝ) = Set.Ioc 0 h ∪ Set.Ioi h := by
-        ext x
-        simp only [Set.mem_Ioi, Set.mem_union, Set.mem_Ioc]
-        constructor
-        · intro hx
-          by_cases hxh : x ≤ h
-          · left; exact ⟨hx, hxh⟩
-          · right; exact lt_of_not_ge hxh
-        · intro hx
-          cases hx with
-          | inl hx => exact hx.1
-          | inr hx => linarith [hh, hx]
-      have h_disj : Disjoint (Set.Ioc 0 h) (Set.Ioi h) := Set.Ioc_disjoint_Ioi le_rfl
-      have h_ae_eq2 : ∫ t in Set.Ici h, cexp (-(I * z * (t : ℂ))) • U_grp.U t φ =
-                      ∫ t in Set.Ioi h, cexp (-(I * z * (t : ℂ))) • U_grp.U t φ :=
-        setIntegral_congr_set Ioi_ae_eq_Ici.symm
-      have h_eq1 : ∫ t in Set.Ioi (0 : ℝ), cexp (-(I * z * (t : ℂ))) • U_grp.U t φ =
-                   (∫ t in Set.Ioc 0 h, cexp (-(I * z * (t : ℂ))) • U_grp.U t φ) +
-                   ∫ t in Set.Ioi h, cexp (-(I * z * (t : ℂ))) • U_grp.U t φ := by
-        rw [h_union, setIntegral_union h_disj measurableSet_Ioi
-            (h_int.mono_set (Set.Ioc_subset_Icc_self.trans Set.Icc_subset_Ici_self))
-            (h_int.mono_set (Set.Ioi_subset_Ici hh))]
+    · have h_split := integral_Ici_split_of h_cont h_int hh
       have h_eq2 : ∫ t in Set.Ioc 0 h, cexp (-(I * z * (t : ℂ))) • U_grp.U t φ =
-                   ∫ t in (0 : ℝ)..h, cexp (-(I * z * (t : ℂ))) • U_grp.U t φ := by
-        rw [intervalIntegral.integral_of_le hh]
-      have h_eq3 : ∫ t in Set.Ioi h, cexp (-(I * z * (t : ℂ))) • U_grp.U t φ =
-                   (∫ t in Set.Ioi (0 : ℝ), cexp (-(I * z * (t : ℂ))) • U_grp.U t φ) -
-                   ∫ t in Set.Ioc 0 h, cexp (-(I * z * (t : ℂ))) • U_grp.U t φ := by
-        exact Eq.symm (sub_eq_of_eq_add' h_eq1)
-      rw [h_ae_eq2, h_eq3, h_ae_eq.symm, h_eq2]
+                   ∫ t in (0 : ℝ)..h, cexp (-(I * z * (t : ℂ))) • U_grp.U t φ :=
+        (intervalIntegral.integral_of_le hh).symm
+      rw [h_eq2] at h_split
+      exact (sub_eq_of_eq_add' h_split).symm
     · push Not at hh
-      have h_union : Set.Ici h = Set.Ico h 0 ∪ Set.Ici (0 : ℝ) := by
-        ext x
-        simp only [Set.mem_Ici, Set.mem_union, Set.mem_Ico]
-        constructor
-        · intro hx
-          by_cases hx0 : x < 0
-          · left; exact ⟨hx, hx0⟩
-          · right; linarith
-        · intro hx
-          cases hx with
-          | inl hx => exact hx.1
-          | inr hx => linarith [hh, hx]
-      have h_disj : Disjoint (Set.Ico h 0) (Set.Ici (0 : ℝ)) := by
-        grind only [= Set.disjoint_left, = Set.mem_Ico, = Set.mem_Ici]
-      have h_eq1 : ∫ t in Set.Ici h, cexp (-(I * z * (t : ℂ))) • U_grp.U t φ =
-                   (∫ t in Set.Ico h 0, cexp (-(I * z * (t : ℂ))) • U_grp.U t φ) +
-                   ∫ t in Set.Ici (0 : ℝ), cexp (-(I * z * (t : ℂ))) • U_grp.U t φ := by
-        rw [h_union, setIntegral_union h_disj measurableSet_Ici
-            (h_cont.integrableOn_Icc.mono_set Set.Ico_subset_Icc_self)
-            h_int]
-      have h_eq2 : ∫ t in Set.Ico h 0, cexp (-(I * z * (t : ℂ))) • U_grp.U t φ =
+      have h_split := integral_Ici_split_of h_cont h_int (le_of_lt hh)
+      have h_eq2 : ∫ t in Set.Ioc h 0, cexp (-(I * z * (t : ℂ))) • U_grp.U t φ =
                    -(∫ t in (0 : ℝ)..h, cexp (-(I * z * (t : ℂ))) • U_grp.U t φ) := by
-        rw [← intervalIntegral.integral_symm]
-        rw [intervalIntegral.integral_of_le (le_of_lt hh)]
-        rw [@restrict_Ico_eq_restrict_Ioc]
-      rw [h_eq1, h_eq2]; abel
+        rw [← intervalIntegral.integral_symm, intervalIntegral.integral_of_le (le_of_lt hh)]
+      rw [h_eq2] at h_split
+      rw [h_split]; abel
   · simp only [sub_zero]
 
-/-- Right-hand average tends to the initial vector: `h⁻¹ ∫_{Ioc 0 h} e^{-izt}U(t)φ dt → φ`
-as `h → 0⁺`. -/
-lemma tendsto_average_integral_expZ_unitary {z : ℂ} (φ : H) :
-    Tendsto (fun h : ℝ => (h⁻¹ : ℂ) • ∫ t in Set.Ioc 0 h, cexp (-(I * z * (t : ℂ))) • U_grp.U t φ)
-            (𝓝[>] 0)
-            (𝓝 φ) := by
-  have h_cont : Continuous (fun t : ℝ => cexp (-(I * z * (t : ℂ))) • U_grp.U t φ) :=
-    (Complex.continuous_exp.comp ((Complex.continuous_ofReal.const_mul (I * z)).neg)).smul
-      (U_grp.strong_continuous φ)
+/-- The **two-sided average limit** shared by both one-sided results below:
+`h⁻¹ • ∫_{(0)..h} e^{-izt}U(t)φ dt → φ` as `h → 0` along the punctured neighborhood `𝓝[≠] 0`.
+`tendsto_average_integral_expZ_unitary` and `_neg` restrict this to `𝓝[>] 0` / `𝓝[<] 0` and
+rewrite the interval integral as a `Set.Ioc` integral on each side. -/
+private lemma tendsto_average_integral_expZ_unitary_core {z : ℂ} (φ : H) :
+    Tendsto (fun h : ℝ => h⁻¹ • ∫ t in (0 : ℝ)..h, cexp (-(I * z * (t : ℂ))) • U_grp.U t φ)
+            (𝓝[≠] 0) (𝓝 φ) := by
+  have h_cont := expZ_orbit_continuous U_grp (z := z) φ
   have h_f0 : cexp (-(I * z * ((0 : ℝ) : ℂ))) • U_grp.U 0 φ = φ := by
     simp only [Complex.ofReal_zero, mul_zero, neg_zero, Complex.exp_zero, one_smul]
     rw [U_grp.identity]
     simp only [ContinuousLinearMap.id_apply]
-  have h_eq : ∀ h > (0 : ℝ), ∫ t in Set.Ioc 0 h, cexp (-(I * z * (t : ℂ))) • U_grp.U t φ =
-                       ∫ t in (0 : ℝ)..h, cexp (-(I * z * (t : ℂ))) • U_grp.U t φ := by
-    intro h hh
-    rw [intervalIntegral.integral_of_le (le_of_lt hh)]
   have h_deriv : HasDerivAt (fun h => ∫ t in (0 : ℝ)..h, cexp (-(I * z * (t : ℂ))) • U_grp.U t φ)
                             (cexp (-(I * z * ((0 : ℝ) : ℂ))) • U_grp.U 0 φ) 0 := by
     apply intervalIntegral.integral_hasDerivAt_right
@@ -139,36 +106,39 @@ lemma tendsto_average_integral_expZ_unitary {z : ℂ} (φ : H) :
   rw [h_f0] at h_deriv
   have h_F0 : ∫ t in (0 : ℝ)..0, cexp (-(I * z * (t : ℂ))) • U_grp.U t φ = 0 :=
     intervalIntegral.integral_same
-  have h_tendsto_real :
-      Tendsto (fun h : ℝ => h⁻¹ • ∫ t in (0 : ℝ)..h, cexp (-(I * z * (t : ℂ))) • U_grp.U t φ)
-              (𝓝[≠] 0) (𝓝 φ) := by
-    have := h_deriv.hasDerivWithinAt (s := Set.univ \ {0})
-    rw [hasDerivWithinAt_iff_tendsto_slope] at this
-    simp only [Set.diff_diff, Set.union_self] at this
-    convert this using 1
-    ext h
+  have := h_deriv.hasDerivWithinAt (s := Set.univ \ {0})
+  rw [hasDerivWithinAt_iff_tendsto_slope] at this
+  simp only [Set.diff_diff, Set.union_self] at this
+  convert this using 1
+  · ext h
     unfold slope
     simp only [sub_zero, h_F0, vsub_eq_sub]
-    · congr 1
-      exact Set.compl_eq_univ_diff {(0 : ℝ)}
-  have h_restrict := h_tendsto_real.mono_left (nhdsWithin_mono 0 (fun x hx => ne_of_gt hx))
+  · congr 1
+    exact Set.compl_eq_univ_diff {(0 : ℝ)}
+
+/-- **Right-hand average** tends to the initial vector: `h⁻¹ ∫_{Ioc 0 h} e^{-izt}U(t)φ dt → φ`
+as `h → 0⁺`. -/
+lemma tendsto_average_integral_expZ_unitary {z : ℂ} (φ : H) :
+    Tendsto (fun h : ℝ => (h⁻¹ : ℂ) • ∫ t in Set.Ioc 0 h, cexp (-(I * z * (t : ℂ))) • U_grp.U t φ)
+            (𝓝[>] 0)
+            (𝓝 φ) := by
+  have h_eq : ∀ h > (0 : ℝ), ∫ t in Set.Ioc 0 h, cexp (-(I * z * (t : ℂ))) • U_grp.U t φ =
+                       ∫ t in (0 : ℝ)..h, cexp (-(I * z * (t : ℂ))) • U_grp.U t φ := by
+    intro h hh
+    rw [intervalIntegral.integral_of_le (le_of_lt hh)]
+  have h_restrict := (tendsto_average_integral_expZ_unitary_core U_grp (z := z) φ).mono_left
+    (nhdsWithin_mono 0 (fun x hx => ne_of_gt hx))
   apply Tendsto.congr' _ h_restrict
   filter_upwards [self_mem_nhdsWithin] with h hh
   rw [h_eq h hh, ← ofReal_inv, @Complex.coe_smul]
 
-/-- Left-hand average tends to the initial vector: `(-h)⁻¹ ∫_{Ioc h 0} e^{-izt}U(t)φ dt → φ`
+/-- **Left-hand average** tends to the initial vector: `(-h)⁻¹ ∫_{Ioc h 0} e^{-izt}U(t)φ dt → φ`
 as `h → 0⁻`. -/
 lemma tendsto_average_integral_expZ_unitary_neg {z : ℂ} (φ : H) :
-    Tendsto (fun h : ℝ => ((-h)⁻¹ : ℂ) • ∫ t in Set.Ioc h 0, cexp (-(I * z * (t : ℂ))) • U_grp.U t φ)
+    Tendsto (fun h : ℝ =>
+        ((-h)⁻¹ : ℂ) • ∫ t in Set.Ioc h 0, cexp (-(I * z * (t : ℂ))) • U_grp.U t φ)
             (𝓝[<] 0)
             (𝓝 φ) := by
-  have h_cont : Continuous (fun t : ℝ => cexp (-(I * z * (t : ℂ))) • U_grp.U t φ) :=
-    (Complex.continuous_exp.comp ((Complex.continuous_ofReal.const_mul (I * z)).neg)).smul
-      (U_grp.strong_continuous φ)
-  have h_f0 : cexp (-(I * z * ((0 : ℝ) : ℂ))) • U_grp.U 0 φ = φ := by
-    simp only [Complex.ofReal_zero, mul_zero, neg_zero, Complex.exp_zero, one_smul]
-    rw [U_grp.identity]
-    simp only [ContinuousLinearMap.id_apply]
   have h_eq : ∀ h < (0 : ℝ), ∫ t in Set.Ioc h 0, cexp (-(I * z * (t : ℂ))) • U_grp.U t φ =
                        ∫ t in h..0, cexp (-(I * z * (t : ℂ))) • U_grp.U t φ := by
     intro h hh
@@ -177,28 +147,8 @@ lemma tendsto_average_integral_expZ_unitary_neg {z : ℂ} (φ : H) :
                         -∫ t in 0..h, cexp (-(I * z * (t : ℂ))) • U_grp.U t φ := by
     intro h _
     rw [intervalIntegral.integral_symm]
-  have h_deriv : HasDerivAt (fun h => ∫ t in (0 : ℝ)..h, cexp (-(I * z * (t : ℂ))) • U_grp.U t φ)
-                            (cexp (-(I * z * ((0 : ℝ) : ℂ))) • U_grp.U 0 φ) 0 := by
-    apply intervalIntegral.integral_hasDerivAt_right
-    · exact h_cont.intervalIntegrable 0 0
-    · exact Continuous.stronglyMeasurableAtFilter h_cont volume (𝓝 0)
-    · exact h_cont.continuousAt
-  rw [h_f0] at h_deriv
-  have h_F0 : ∫ t in (0 : ℝ)..0, cexp (-(I * z * (t : ℂ))) • U_grp.U t φ = 0 :=
-    intervalIntegral.integral_same
-  have h_tendsto_real :
-      Tendsto (fun h : ℝ => h⁻¹ • ∫ t in (0 : ℝ)..h, cexp (-(I * z * (t : ℂ))) • U_grp.U t φ)
-              (𝓝[≠] 0) (𝓝 φ) := by
-    have := h_deriv.hasDerivWithinAt (s := Set.univ \ {0})
-    rw [hasDerivWithinAt_iff_tendsto_slope] at this
-    simp only [Set.diff_diff, Set.union_self] at this
-    convert this using 1
-    · ext h
-      unfold slope
-      simp only [sub_zero, h_F0, vsub_eq_sub]
-    · congr 1
-      exact Set.compl_eq_univ_diff {(0 : ℝ)}
-  have h_restrict := h_tendsto_real.mono_left (nhdsWithin_mono 0 (fun x hx => ne_of_lt hx))
+  have h_restrict := (tendsto_average_integral_expZ_unitary_core U_grp (z := z) φ).mono_left
+    (nhdsWithin_mono 0 (fun x hx => ne_of_lt hx))
   apply Tendsto.congr' _ h_restrict
   filter_upwards [self_mem_nhdsWithin] with h hh
   rw [h_eq h hh, h_eq' h hh]
@@ -207,6 +157,6 @@ lemma tendsto_average_integral_expZ_unitary_neg {z : ℂ} (φ : H) :
   rw [(Complex.coe_smul h⁻¹ _).symm, ofReal_inv]
   congr 1
   rw [@neg_inv]
-  simp_all only [intervalIntegral.integral_same, neg_neg]
+  simp_all only [neg_neg]
 
 end Spectra.Resolvent

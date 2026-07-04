@@ -4,26 +4,23 @@ Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Spectra.QuantumMechanics.Perturbation.CoulombBound
-import Spectra.SpectralTheory.ResolventForm
-import Spectra.OneParameterUnitaryGroup.Basic
-import Spectra.YosidaHille.Basic
 /-!
 # The Hydrogen Hamiltonian
 
-Assembly of `H = −Δ − Z/r` as a self-adjoint operator on `H²(ℝ³)`, and its
+Assembly of `H = −½Δ − Z/r` as a self-adjoint operator on `H²(ℝ³)`, and its
 connection to the spectral pipeline (Stone's theorem, the resolvent).
 
 This is the **interface file**: the analytic content lives upstream
 (`Hardy/Inequality/`, `CoulombBound`), and here we package it into the abstract
 objects the spectral machinery consumes. In the current architecture the central
-object is `perturbedOp laplacianPMap (coulombPotential p)`, shown self-adjoint by
+object is `perturbedOp halfLaplacianPMap (coulombPotential p)`, shown self-adjoint by
 `hydrogen_isSelfAdjoint` (Kato–Rellich) in `CoulombBound`; this file re-exports it
 under hydrogen-specific names and bundles it as a `SelfAdjointOperator` and a
 `OneParameterUnitaryGroup`.
 
 ## Main definitions
 
-* `hydrogenHamiltonian` — `H = −Δ − Z/r` as a partial linear map.
+* `hydrogenHamiltonian` — `H = −½Δ − Z/r` as a partial linear map.
 * `hydrogenObservable` — `H` bundled as a `SelfAdjointOperator`.
 * `hydrogenUnitaryGroup` — the evolution `e^{itH}` (Stone's theorem).
 * `HydrogenData` — bundled hydrogen-atom data.
@@ -32,21 +29,30 @@ under hydrogen-specific names and bundles it as a `SelfAdjointOperator` and a
 
 * `hydrogenHamiltonian_isSelfAdjoint` — `H` is self-adjoint on `H²(ℝ³)`.
 * `hydrogenHamiltonian_domain` — `Dom(H) = H²(ℝ³)`.
-* `hydrogenHamiltonian_apply` — `Hψ = −Δψ − (Z/r)ψ`.
-* `laplacian_spectrum_nonneg` — eigenvalues of `−Δ` are `≥ 0`.
-* `laplacian_resolvent_bound` — `‖(−Δ − z)⁻¹‖ ≤ 1/|Im z|`.
+* `hydrogenHamiltonian_apply` — `Hψ = −½Δψ − (Z/r)ψ`.
+* `generator_hydrogenUnitaryGroup` — the generator of `e^{itH}` is `H`.
+
+## Implementation notes
+
+`HydrogenData` bundles a `CoulombParams` together with projection lemmas
+(`.hamiltonian`, `.observable`, `.unitaryGroup`, `.isSelfAdjoint`) so that
+downstream files can carry "a hydrogen atom" as a single piece of data instead
+of threading a bare `CoulombParams` through every statement. The bare
+`hydrogenHamiltonian p`/`hydrogenObservable p`/`hydrogenUnitaryGroup p` API
+remains the one actually used by the spectrum files in this directory; the
+`HydrogenData` wrapper is kept as the user-facing convenience surface for
+external callers who want to fix "the hydrogen atom" or "the He⁺ ion" as a
+single named object (see `hydrogenAtom`, `heliumIon` below) without exposing
+`CoulombParams` directly.
 
 ## References
 
 * [Kato, *Perturbation Theory for Linear Operators*][kato1995], §V.5.
 * [Reed, Simon, *Methods of Modern Mathematical Physics IV*][reed1978], §XIII.3.
 -/
-open MeasureTheory Complex Filter InnerProductSpace
 open Spectra.Sobolev
-open Spectra.OneParameterUnitaryGroup Spectra.YosidaHille Spectra.Resolvent
-open Spectra.QuantumMechanics.SpectralTheory
+open Spectra.OneParameterUnitaryGroup Spectra.YosidaHille
 open Spectra.Operator
-open scoped Topology NNReal ENNReal
 noncomputable section
 namespace Spectra.QuantumMechanics.Hydrogen
 
@@ -101,7 +107,7 @@ structure HydrogenData where
 
 namespace HydrogenData
 
-/-- The Hamiltonian `H = −Δ − Z/r`. -/
+/-- The Hamiltonian `H = −½Δ − Z/r`. -/
 def hamiltonian (d : HydrogenData) : l2R3 →ₗ.[ℂ] l2R3 :=
   hydrogenHamiltonian d.params
 
@@ -123,11 +129,16 @@ end HydrogenData
 def HydrogenData.ofCharge (Z : ℝ) (hZ : 0 < Z) : HydrogenData :=
   ⟨⟨Z, hZ⟩⟩
 
-/-- The standard hydrogen atom (`Z = 1`). -/
+/-- The standard hydrogen atom (`Z = 1`). Kept here rather than in a separate
+constants module: `CoulombParams`/`HydrogenData` are one-field wrappers around
+`Z`, so a named instance is a two-line convenience, not a physical-constants
+table (there is no separate module for such tables in this library — cf.
+[reed1978] §XIII.3, which treats `Z = 1, 2` as running examples of the same
+abstract Kato–Rellich result rather than as tabulated data). -/
 def hydrogenAtom : HydrogenData :=
   HydrogenData.ofCharge 1 one_pos
 
-/-- The helium ion `He⁺` (`Z = 2`). -/
+/-- The helium ion `He⁺` (`Z = 2`); see `hydrogenAtom` for why it lives here. -/
 def heliumIon : HydrogenData :=
   HydrogenData.ofCharge 2 two_pos
 

@@ -5,6 +5,7 @@ Authors: Adam Bornemann
 -/
 import Spectra.OneParameterUnitaryGroup.Basic
 import Spectra.Mathlib.MeasureTheory.Integral.Basic
+
 /-!
 # Resolvent Integrals for Unitary Groups
 
@@ -22,9 +23,23 @@ surjectivity of `A ± iI` and hence self-adjointness of the generator.
 
 ## Main statements
 
-* `integrable_exp_neg_unitary`: `e^{-t} • U(t)φ` is integrable on `[0, ∞)`
-* `norm_resolventIntegralPlus_le`: `‖R₊(φ)‖ ≤ ‖φ‖`
-* `norm_resolventIntegralMinus_le`: `‖R₋(φ)‖ ≤ ‖φ‖`
+* `continuous_unitary_apply`: `t ↦ U(t)φ` is continuous.
+* `integrable_exp_neg_unitary`: `e^{-t} • U(t)φ` is integrable on `[0, ∞)`.
+* `norm_integral_exp_neg_unitary_le`: the exponential-decay integral is bounded by `‖φ‖`.
+* `norm_resolventIntegralPlus_le`: `‖R₊(φ)‖ ≤ ‖φ‖`.
+* `norm_resolventIntegralMinus_le`: `‖R₋(φ)‖ ≤ ‖φ‖`.
+
+## Implementation notes
+
+`resolventIntegralMinus`'s contraction bound (`norm_resolventIntegralMinus_le`) is obtained by
+applying `norm_integral_exp_neg_unitary_le` to the time-reversed group `reversedGroup U_grp`
+(`OneParameterUnitaryGroup/Basic.lean`), whose defining property `(reversedGroup U).U t = U.U (-t)`
+(`reversedGroup_apply`) turns `U(-t)` into the reversed group's own forward evolution. This lets the
+`R₋` contraction proof mirror the `R₊` one exactly instead of re-deriving the bound from scratch.
+
+## References
+
+* [Stone, *On one-parameter unitary groups in Hilbert space*][stone1932], Ann. of Math. 33 (1932).
 
 ## Tags
 
@@ -46,7 +61,6 @@ lemma continuous_unitary_apply (φ : H) :
     Continuous (fun t => U_grp.U t φ) :=
   U_grp.strong_continuous φ
 
-
 /-- `e^{-t} • U(t)φ` is integrable on `[0, ∞)`. -/
 lemma integrable_exp_neg_unitary (φ : H) :
     IntegrableOn (fun t => Real.exp (-t) • U_grp.U t φ) (Set.Ici 0) volume := by
@@ -64,9 +78,8 @@ lemma norm_integral_exp_neg_unitary_le (φ : H) :
     (fun t => U_grp.U t φ)
     (U_grp.strong_continuous φ)
     ‖φ‖
-  · intro t _ht
-    exact le_of_eq (norm_preserving U_grp t φ)
-  · exact norm_nonneg φ
+  intro t _ht
+  exact le_of_eq (norm_preserving U_grp t φ)
 
 end UnitaryGroupIntegration
 
@@ -89,29 +102,17 @@ lemma norm_resolventIntegralPlus_le (φ : H) :
     ‖resolventIntegralPlus U_grp φ‖ ≤ ‖φ‖ := by
   unfold resolventIntegralPlus
   calc ‖(-I) • ∫ t in Set.Ici 0, Real.exp (-t) • U_grp.U t φ‖
-      = ‖-I‖ * ‖∫ t in Set.Ici 0, Real.exp (-t) • U_grp.U t φ‖ := norm_smul (-I) _
-    _ = 1 * ‖∫ t in Set.Ici 0, Real.exp (-t) • U_grp.U t φ‖ := by simp only [norm_neg, norm_I]
-    _ = ‖∫ t in Set.Ici 0, Real.exp (-t) • U_grp.U t φ‖ := one_mul _
+      = ‖∫ t in Set.Ici 0, Real.exp (-t) • U_grp.U t φ‖ := by simp [norm_smul]
     _ ≤ ‖φ‖ := norm_integral_exp_neg_unitary_le U_grp φ
 
 /-- `R₋` is a contraction: `‖resolventIntegralMinus φ‖ ≤ ‖φ‖`. -/
 lemma norm_resolventIntegralMinus_le (φ : H) :
     ‖resolventIntegralMinus U_grp φ‖ ≤ ‖φ‖ := by
   unfold resolventIntegralMinus
-  have h_bound : ‖∫ t in Set.Ici 0, Real.exp (-t) • U_grp.U (-t) φ‖ ≤ ‖φ‖ := by
-    apply norm_integral_exp_decay_le
-      (fun t => U_grp.U (-t) φ)
-      ((U_grp.strong_continuous φ).comp continuous_neg)
-      ‖φ‖
-    · intro t _ht
-      exact le_of_eq (norm_preserving U_grp (-t) φ)
-    · exact norm_nonneg φ
   calc ‖I • ∫ t in Set.Ici 0, Real.exp (-t) • U_grp.U (-t) φ‖
-      = ‖I‖ * ‖∫ t in Set.Ici 0, Real.exp (-t) • U_grp.U (-t) φ‖ := norm_smul I _
-    _ = 1 * ‖∫ t in Set.Ici 0, Real.exp (-t) • U_grp.U (-t) φ‖ := by simp only [norm_I, one_mul]
-    _ = ‖∫ t in Set.Ici 0, Real.exp (-t) • U_grp.U (-t) φ‖ := one_mul _
-    _ ≤ ‖φ‖ := h_bound
+      = ‖∫ t in Set.Ici 0, Real.exp (-t) • U_grp.U (-t) φ‖ := by simp [norm_smul]
+    _ = ‖∫ t in Set.Ici 0, Real.exp (-t) • (reversedGroup U_grp).U t φ‖ := by
+        simp [reversedGroup_apply]
+    _ ≤ ‖φ‖ := norm_integral_exp_neg_unitary_le (reversedGroup U_grp) φ
 
 end ResolventIntegrals
-
-namespace Spectra.Resolvent

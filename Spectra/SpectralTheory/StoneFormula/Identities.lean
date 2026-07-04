@@ -6,6 +6,7 @@ Filename: SpectralTheory/StoneFormula/Identities.lean
 -/
 import Spectra.Resolvent.SpectralRepresentation
 import Spectra.Kernel.Lorentzian
+import Spectra.Kernel.Resolvent
 import Spectra.QuantumMechanics.DiracEquation.Operators
 import Mathlib.Analysis.SpecificLimits.Normed
 /-!
@@ -305,7 +306,7 @@ lemma resolvent_norm_blowup_at_spectrum (lambda₀ : ℝ)
       (Filter.Eventually.of_forall fun s => ?_)
     rw [Real.norm_of_nonneg (by positivity), Real.norm_of_nonneg (by positivity)]
     have hb : ‖((s : ℂ) - (⟨lambda₀, ε⟩ : ℂ))⁻¹‖ ≤ 1 / ε := by
-      have h := norm_kernel_le (⟨lambda₀, ε⟩ : ℂ) hε_pos.ne' s
+      have h := Spectra.Kernels.resolvent_integrand_bound (⟨lambda₀, ε⟩ : ℂ) hε_pos.ne' s
       rwa [show ((⟨lambda₀, ε⟩ : ℂ)).im = ε from rfl, abs_of_pos hε_pos] at h
     exact pow_le_pow_left₀ (norm_nonneg _) hb 2
   -- Integrate the pointwise bound.

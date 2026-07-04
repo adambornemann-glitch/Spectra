@@ -79,7 +79,7 @@ unitary comes from `IsHilbertSum.mk` applied to the isometric sector embeddings 
 
 This file constructs the two unitaries only. The radial Hamiltonian, the reduced radial operator,
 the Laplacian separation, and the Coulomb-sector reduction this decomposition feeds into live
-downstream: `radialHamiltonian`, `reducedRadialOp`, `coulomb_preserves_sectors`, and
+downstream: `radialHamiltonianGen`, `reducedRadialOp`, `coulomb_preserves_sectors`, and
 `hydrogen_reduces` in `Spectrum/Eigenvalue.lean`, and `laplacian_separates` in
 `Laplacian/Spherical.lean`.
 

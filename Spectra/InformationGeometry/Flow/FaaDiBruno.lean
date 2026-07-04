@@ -233,6 +233,8 @@ private lemma klDiv_fderiv_differentiableAt
       smul_eq_mul, mul_assoc]⟩
   exact (h_comp j).smul_const _
 
+end TwiceDifferentiableModel
+
 namespace ThriceDifferentiableModel
 variable (M : ThriceDifferentiableModel n Ω)
 namespace DivergencePreservingFamily
@@ -266,21 +268,6 @@ lemma fderiv_klDiv_phi_apply_live
     Spectra.InformationGeometry.TwiceDifferentiableModel.DivergencePreservingFamily.fderiv_klDiv_phi_apply_live
       (M := M.toTwiceDifferentiableModel) F hθ t a hV
 
-end DivergencePreservingFamily
-end ThriceDifferentiableModel
-end TwiceDifferentiableModel
-end Spectra.InformationGeometry
-
-open MeasureTheory Finset Filter Topology TopologicalSpace
-namespace Spectra.InformationGeometry
-variable {n : ℕ} {Ω : Type*} [MeasurableSpace Ω]
-namespace ThriceDifferentiableModel
-variable (M : ThriceDifferentiableModel n Ω)
-namespace DivergencePreservingFamily
-variable {M : ThriceDifferentiableModel n Ω}
-variable (F : M.toTwiceDifferentiableModel.DivergencePreservingFamily)
-open TwiceDifferentiableModel ThriceDifferentiableModel
-
 /-- **Faà di Bruno at critical point.** Since fderiv(klDiv α)(α) = 0,
 the third derivative of θ₂ ↦ D(α, φ_t(θ₂)) at θ₂ = θ is:
 
@@ -288,7 +275,26 @@ the third derivative of θ₂ ↦ D(α, φ_t(θ₂)) at θ₂ = θ is:
   + g(α)(d²φ_{ab}, dφ_c) + g(α)(d²φ_{ac}, dφ_b) + g(α)(dφ_a, d²φ_{bc})
 
 The f'·d³φ term vanishes because f'(α) = 0.  The f'' = g identification
-is the Hessian theorem (`klDiv_hessian_eq_fisher`). -/
+is the Hessian theorem (`klDiv_hessian_eq_fisher`).
+
+**Term dictionary** for the four summands on the right of the equation below
+(`α := φ_t θ`, `dφ_a := fderiv ℝ (F.φ t) θ (single a 1)`, and similarly for
+`b`, `c`):
+
+* Summand 1 — the *tensorial* term: the third Fréchet derivative of
+  `klDiv α` itself, evaluated at `α` and pushed forward along `dφ` in all
+  three slots (`D'''(α)(dφ_a, dφ_b, dφ_c)`).  This is the only summand that
+  does not involve `secondDerivPhi`.
+* Summands 2–4 — the three *Hessian × second-derivative* correction terms,
+  one for each way of freezing a single pushed-forward direction against a
+  second derivative of `φ_t` in the other two slots:
+  `g(α)(d²φ_{ab}, dφ_c) + g(α)(d²φ_{ac}, dφ_b) + g(α)(dφ_a, d²φ_{bc})`,
+  where `g(α)` is `fisherBilin α` (the Fisher metric, identified with the
+  KL Hessian by `klDiv_hessian_eq_fisher`) and `d²φ_{xy} := F.secondDerivPhi t θ x y`.
+
+The fourth, first-derivative × `d³φ` term of the general (non-critical-point)
+Faà di Bruno expansion is absent because `fderiv (klDiv α) α = 0` at the
+critical point `α`. -/
 lemma kl_faa_di_bruno
     {θ : ParamSpace n} (hθ : θ ∈ M.paramDomain) (t : ℝ)
     (a b c : Fin n) :
@@ -630,7 +636,8 @@ lemma kl_faa_di_bruno
       (f := F.φ t)
       θ h_helper' (hF_diff θ)
   have h2 : DifferentiableAt ℝ (fun θ₂ => fderiv ℝ (F.φ t) θ₂) θ :=
-    ((hφ_smooth.fderiv_right (m := (⊤ : ℕ∞)) (by exact_mod_cast le_top)).differentiable (by simp)).differentiableAt
+    ((hφ_smooth.fderiv_right (m := (⊤ : ℕ∞)) (by exact_mod_cast le_top)).differentiable
+      (by simp)).differentiableAt
   have h_RHS_diff : DifferentiableAt ℝ
       (fun θ₂ => (fderiv ℝ (fun θ' => fderiv ℝ (M.klDiv α) θ') (F.φ t θ₂)).comp
         (fderiv ℝ (F.φ t) θ₂)) θ :=
@@ -731,9 +738,10 @@ lemma kl_faa_di_bruno
               (EuclideanSpace.single c 1)) θ₁ (EuclideanSpace.single b 1)) θ := by
           have hg : ContDiff ℝ (⊤ : ℕ∞)
               (fun θ₂ => fderiv ℝ (F.φ t) θ₂ (EuclideanSpace.single c 1)) :=
-            (hφ_smooth.fderiv_right (m := (⊤ : ℕ∞)) (by exact_mod_cast le_top)).clm_apply contDiff_const
-          exact ((hg.fderiv_right (m := (⊤ : ℕ∞)) (by exact_mod_cast le_top)).differentiable (by simp)
-            ).differentiableAt.clm_apply (differentiableAt_const _)
+            (hφ_smooth.fderiv_right (m := (⊤ : ℕ∞))
+              (by exact_mod_cast le_top)).clm_apply contDiff_const
+          exact ((hg.fderiv_right (m := (⊤ : ℕ∞)) (by exact_mod_cast le_top)).differentiable
+            (by simp)).differentiableAt.clm_apply (differentiableAt_const _)
         rw [hα_def]
         exact
           Spectra.InformationGeometry.TwiceDifferentiableModel.DivergencePreservingFamily.fderiv_klDiv_phi_apply_live
@@ -781,8 +789,8 @@ lemma kl_faa_di_bruno
         have hφtθ : F.φ t θ = α := hα_def.symm
         have hv_b : DifferentiableAt ℝ
             (fun θ₁ => fderiv ℝ (F.φ t) θ₁ (EuclideanSpace.single b 1)) θ :=
-          ((hφ_smooth.fderiv_right (m := (⊤ : ℕ∞)) (by exact_mod_cast le_top)).differentiable (by simp)
-            ).differentiableAt.clm_apply (differentiableAt_const _)
+          ((hφ_smooth.fderiv_right (m := (⊤ : ℕ∞)) (by exact_mod_cast le_top)).differentiable
+            (by simp)).differentiableAt.clm_apply (differentiableAt_const _)
         -- ── Rule 1: split fderiv(P)(θ)(eₐ) = M(θ)(w'(eₐ)) + (dM(eₐ))(w(θ)). ──
         have h_pr := hN_diff.hasFDerivAt.clm_apply hv_diff.hasFDerivAt
         rw [DFunLike.congr_fun h_pr.fderiv (EuclideanSpace.single a 1),

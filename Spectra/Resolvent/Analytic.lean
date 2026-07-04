@@ -5,22 +5,51 @@ Authors: Adam Bornemann
 -/
 import Spectra.Resolvent.Identities
 
+/-!
+# Analyticity of the Resolvent
+
+This file proves the textbook fact that the resolvent `R(z) = (A - zI)⁻¹` is an analytic
+operator-valued function off the real axis: near any `z₀` with `Im z₀ ≠ 0`, `R(z)` has the
+convergent Neumann-type power-series expansion
+`R(z) = ∑ₙ (z - z₀)ⁿ • R(z₀)ⁿ⁺¹` for `‖z - z₀‖ < |Im z₀|`.
+
+## Main statements
+
+* `resolventFun_hasSum` : the Neumann-series expansion of `R(z)` around `z₀`.
+
+## Implementation notes
+
+The proof composes the resolvent identity with the abstract Neumann series
+(`neumannSeries`/`neumannSeries_hasSum` from `Defs.lean`): writing `R₀ = R(z₀)` and
+`T = (z - z₀) • R₀`, the resolvent identity shows `R(z) = R₀ ∘ (1 - T)⁻¹`, and `(1 - T)⁻¹` is
+exactly `neumannSeries T hT`, convergent because `‖T‖ < 1` follows from the standard resolvent
+bound `‖R₀‖ ≤ 1 / |Im z₀|`. Composing `R₀` with the Neumann series term-by-term and matching
+powers gives the stated `HasSum`.
+
+This is an off-axis-only construction (it needs `‖z - z₀‖ < |Im z₀|` to make `T` small). The
+later, general analyticity result on the whole resolvent set — including approach to the real
+axis away from the spectrum — is proved independently in `Meromorphic.lean` via
+`isResolvent_mul_neumann`/`Ring.inverse`, which does not go through this file.
+
+## References
+
+* [Kato, *Perturbation Theory for Linear Operators*][kato1995], Section IV.1
+* [Reed, Simon, *Methods of Modern Mathematical Physics I*][reed1980], Section VIII
+-/
 open Complex
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
 namespace Spectra.Resolvent
 
-/-- The resolvent has a convergent power series expansion near any point
-    `z₀` with `Im(z₀) ≠ 0`. -/
+/-- The **resolvent has a convergent power series expansion** near any point `z₀` with
+`Im z₀ ≠ 0`: for `z` within `|Im z₀|` of `z₀`, `R(z) = ∑ₙ (z - z₀)ⁿ • R(z₀)ⁿ⁺¹`. -/
 lemma resolventFun_hasSum {A : H →ₗ.[ℂ] H}
     (hsym : A.IsFormalAdjoint A)
     (hplus : ∀ φ : H, ∃ ψ : A.domain, A ψ + I • (ψ : H) = φ)
     (hminus : ∀ φ : H, ∃ ψ : A.domain, A ψ - I • (ψ : H) = φ)
     (z₀ : OffRealAxis) (z : ℂ) (hz : ‖z - z₀.val‖ < |z₀.val.im|) :
-    ∃ (hz' : z.im ≠ 0),
     HasSum (fun n => (z - z₀.val)^n • (resolventFun hsym hplus hminus z₀)^(n+1))
-           (resolvent z hz' hsym hplus hminus) := by
+           (resolvent z (im_ne_zero_of_near hz) hsym hplus hminus) := by
   have hz' : z.im ≠ 0 := im_ne_zero_of_near hz
-  use hz'
   set R₀ := resolventFun hsym hplus hminus z₀ with hR₀_def
   set T := (z - z₀.val) • R₀ with hT_def
   have hT_norm : ‖T‖ < 1 := by
@@ -38,30 +67,11 @@ lemma resolventFun_hasSum {A : H →ₗ.[ℂ] H}
           apply div_lt_div_of_pos_right hz (abs_pos.mpr z₀.property)
       _ = 1 := div_self (ne_of_gt (abs_pos.mpr z₀.property))
   have h_neumann := neumannSeries_hasSum T hT_norm
-  -- Show that resolvents commute
+  -- Resolvents at `z` and `z₀` commute, so `R₀` and `R(z)` can be freely reordered below.
   have h_comm : R₀.comp (resolvent z hz' hsym hplus hminus) =
-              (resolvent z hz' hsym hplus hminus).comp R₀ := by
-    have hR₀_eq : R₀ = resolvent z₀.val z₀.property hsym hplus hminus := rfl
-    have h1 := resolvent_identity hsym hplus hminus z z₀.val hz' z₀.property
-    have h2 := resolvent_identity hsym hplus hminus z₀.val z z₀.property hz'
-    set Rz := resolvent z hz' hsym hplus hminus with hRz_def
-    set Rz₀ := resolvent z₀.val z₀.property hsym hplus hminus with hRz₀_def
-    have h_add : (Rz - Rz₀) + (Rz₀ - Rz) = 0 := by
-      simp only [sub_add_sub_cancel, sub_self]
-    rw [h1, h2] at h_add
-    have h_factor : (z - z₀.val) • (Rz.comp Rz₀ - Rz₀.comp Rz) = 0 := by
-      have h_neg : z₀.val - z = -(z - z₀.val) := by ring
-      rw [h_neg, neg_smul] at h_add
-      rw [← sub_eq_add_neg, ← smul_sub] at h_add
-      exact h_add
-    by_cases hzeq : z = z₀.val
-    · simp only [hRz_def, hzeq]; rfl
-    · have hz_sub_ne : z - z₀.val ≠ 0 := sub_ne_zero.mpr hzeq
-      rw [smul_eq_zero] at h_factor
-      cases h_factor with
-      | inl h => exact absurd h hz_sub_ne
-      | inr h => exact (eq_of_sub_eq_zero h).symm
-  -- Express R(z) in terms of R(z₀) and Neumann series
+              (resolvent z hz' hsym hplus hminus).comp R₀ :=
+    resolvent_commute hsym hplus hminus z₀.val z z₀.property hz'
+  -- Express R(z) in terms of R(z₀) and the Neumann series.
   have h_resolvent_eq : resolvent z hz' hsym hplus hminus =
     R₀.comp (neumannSeries T hT_norm) := by
     set Rz := resolvent z hz' hsym hplus hminus with hRz_def
@@ -91,13 +101,12 @@ lemma resolventFun_hasSum {A : H →ₗ.[ℂ] H}
       _ = (Rz.comp (ContinuousLinearMap.id ℂ H - T)).comp (neumannSeries T hT_norm) := by
           rw [ContinuousLinearMap.comp_assoc]
       _ = R₀.comp (neumannSeries T hT_norm) := by rw [h3]
-  -- Show that each term matches
+  -- Show that each term matches.
   have h_term_eq : ∀ n, R₀.comp (T^n) = (z - z₀.val)^n • R₀^(n+1) := by
     intro n
     induction n with
     | zero =>
-      simp only [pow_zero, one_smul]
-      simp_all only [ne_eq, zero_add, pow_one, R₀, T]
+      simp only [pow_zero, one_smul, zero_add, pow_one]
       rfl
     | succ n ih =>
       calc R₀.comp (T^(n+1))
@@ -109,10 +118,12 @@ lemma resolventFun_hasSum {A : H →ₗ.[ℂ] H}
         _ = (z - z₀.val)^n • ((z - z₀.val) • (R₀^(n+1)).comp R₀) := by
             rw [ContinuousLinearMap.comp_smul]
         _ = (z - z₀.val)^n • ((z - z₀.val) • R₀^(n+2)) := by
-            congr 2
+            have : (R₀^(n+1)).comp R₀ = R₀^(n+2) := by
+              show R₀^(n+1) * R₀ = R₀^(n+2)
+              rw [← pow_succ]
+            rw [this]
         _ = (z - z₀.val)^(n+1) • R₀^(n+2) := by
-            rw [smul_smul]
-            congr 1
+            rw [smul_smul, ← pow_succ]
   rw [h_resolvent_eq]
   have h_comp_hasSum : HasSum (fun n => R₀.comp (T^n)) (R₀.comp (neumannSeries T hT_norm)) :=
     ((ContinuousLinearMap.compL ℂ H H H) R₀).hasSum h_neumann

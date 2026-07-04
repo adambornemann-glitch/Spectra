@@ -28,6 +28,10 @@ For a self-adjoint `A`, `A - z` is bijective with bounded inverse for **every** 
 ## Main statements
 
 * `mem_resolventSet_of_im_ne_zero` : off the real axis lies in the resolvent set (self-adjoint `A`).
+* `mem_resolventSet_of_isFormalAdjoint_of_surjective` : the same fact from raw formal-adjoint and
+  `±i`-surjectivity hypotheses, without assuming the packaged `IsSelfAdjoint` predicate — this is
+  where the analytic work (via `resolvent`, `Resolvent.Range`) actually happens, and
+  `mem_resolventSet_of_im_ne_zero` is a one-line specialization of it.
 
 ## References
 
@@ -35,7 +39,6 @@ For a self-adjoint `A`, `A - z` is bijective with bounded inverse for **every** 
 -/
 open Complex
 open Spectra.YosidaHille
-open scoped InnerProductSpace
 namespace Spectra.Resolvent
 
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
@@ -56,8 +59,10 @@ def spectrum (A : H →ₗ.[ℂ] H) : Set ℝ := { lam : ℝ | (lam : ℂ) ∉ r
 /-- For a formally self-adjoint `A` with `±i` deficiency-surjectivity, every `z` off the real
 axis is in the resolvent set — witnessed by the resolvent `R(z)`, which is a genuine two-sided
 inverse (`resolvent_sub_smul_apply` for the right inverse, uniqueness from
-`self_adjoint_range_all_z` for the left). -/
-theorem mem_resolventSet_of_im_ne_zero' {A : H →ₗ.[ℂ] H}
+`self_adjoint_range_all_z` for the left). Takes the raw formal-adjoint and surjectivity
+hypotheses directly, rather than the packaged `IsSelfAdjoint A`; see
+`mem_resolventSet_of_im_ne_zero` for the convenience form built from that predicate. -/
+theorem mem_resolventSet_of_isFormalAdjoint_of_surjective {A : H →ₗ.[ℂ] H}
     (hsym : A.IsFormalAdjoint A)
     (hplus : ∀ φ : H, ∃ ψ : A.domain, A ψ + I • (ψ : H) = φ)
     (hminus : ∀ φ : H, ∃ ψ : A.domain, A ψ - I • (ψ : H) = φ)
@@ -79,7 +84,7 @@ theorem mem_resolventSet_of_im_ne_zero {A : H →ₗ.[ℂ] H} (hA : IsSelfAdjoin
   have hsym : A.IsFormalAdjoint A := by
     have h := A.adjoint_isFormalAdjoint hA.dense_domain
     rwa [LinearPMap.isSelfAdjoint_def.mp hA] at h
-  exact mem_resolventSet_of_im_ne_zero' hsym (isSelfAdjoint_to_surjective hA).1
+  exact mem_resolventSet_of_isFormalAdjoint_of_surjective hsym (isSelfAdjoint_to_surjective hA).1
     (isSelfAdjoint_to_surjective hA).2 hz
 
 end Spectra.Resolvent

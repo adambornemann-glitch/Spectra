@@ -11,6 +11,19 @@ import Spectra.Resolvent.Diagonal.IntegralZ.GeneratorLim
 This file constructs the generator of a strongly continuous one-parameter unitary
 group and proves it is self-adjoint.
 
+## Main definitions
+
+* `averagedVector U_grp h φ` — the time-averaged orbit vector `h⁻¹ ∫₀ʰ U(t)φ dt`, used to
+  witness density of the generator's domain.
+
+## Main statements
+
+* `range_plus_i_eq_top` — `ran(A + iI) = H`, witnessed by `resolventIntegralPlus`.
+* `range_minus_i_eq_top` — `ran(A - iI) = H`, witnessed by `resolventIntegralMinus`.
+* `generatorDomain_dense_via_average` — the generator's domain is dense in `H`.
+* `generator_isSelfAdjoint` — the generator of a strongly continuous one-parameter unitary
+  group is self-adjoint: Stone's theorem's self-adjointness half.
+
 ## Implementation notes
 
 Self-adjointness is proved using the criterion: `A` is self-adjoint iff `A` is
@@ -19,6 +32,20 @@ unbounded operator directly.
 
 Domain density uses averaged vectors: `h⁻¹ ∫₀ʰ U(t)φ dt → φ` as `h → 0`,
 and these averaged vectors lie in the domain.
+
+The averaged-vector argument (`averagedVector` through `generatorDomain_dense_via_average`)
+runs in two independent stages. First, `averagedVector_tendsto` shows `h⁻¹ ∫₀ʰ U(t)φ dt → φ`
+as `h → 0⁺` by recognizing the integral as a primitive of the continuous map `t ↦ U(t)φ` and
+invoking the fundamental theorem of calculus at `0`, where the derivative is `U(0)φ = φ`.
+Second, `averagedVector_in_domain` shows every averaged vector already lies in the generator's
+domain, by exhibiting the difference-quotient limit directly: `averagedVector_orbit_shift_integral`
+rewrites `U(s)` applied to the orbit integral as a shifted integral over `[s, s+h]`, and
+`integral_orbit_shift_arith` rearranges the resulting telescoping sum so that the generator's
+difference quotient at an averaged vector reduces to a combination of the two one-sided FTC
+limits `averagedVector_quotient_tendsto_zero` and `averagedVector_quotient_tendsto_at` (the same
+primitive, evaluated at `0` and at `h`). Combining both stages via `Metric.dense_iff` gives
+`generatorDomain_dense_via_average`: every ball around every `φ` contains an averaged vector,
+and every averaged vector is in the domain, so the domain is dense.
 
 ## References
 

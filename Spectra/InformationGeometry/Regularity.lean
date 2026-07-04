@@ -39,6 +39,25 @@ namespace Spectra.InformationGeometry
 
 variable {n : ℕ} {Ω : Type*} [MeasurableSpace Ω]
 
+/-- **Locally dominated parameter derivative under the integral.**
+
+Shared quantifier shape for the Leibniz-rule domination hypotheses of this
+file: near `θ₀` there is a radius `ε` and an integrable dominating function
+`bound` such that, for a.e. `ω`, the integrand family `F ω` is Fréchet
+differentiable at every `θ' ∈ Metric.ball θ₀ ε` with derivative `F' ω θ'`,
+and that derivative's norm is controlled by `bound ω` uniformly in `θ'`.
+
+This is the common pattern behind `crossEntropy_fderiv_bound`,
+`score_fderiv_bound`, and `scorePartial_fderiv_bound` (which instantiate `F`
+and `F'` with the cross-entropy, score, and `scorePartial` integrands
+respectively) and, at third order, `scorePartial_fderiv_bound` on
+`ThriceDifferentiableModel`. -/
+def LocallyDominatedFDeriv (μ : Measure Ω) (θ₀ : ParamSpace n)
+    (F : Ω → ParamSpace n → ℝ) (F' : Ω → ParamSpace n → ParamSpace n →L[ℝ] ℝ) : Prop :=
+  ∃ ε > 0, ∃ bound : Ω → ℝ, Integrable bound μ ∧
+    (∀ᵐ ω ∂μ, ∀ θ' ∈ Metric.ball θ₀ ε,
+      HasFDerivAt (F ω) (F' ω θ') θ' ∧ ‖F' ω θ'‖ ≤ bound ω)
+
 -- ============================================================================
 -- TwiceDifferentiableModel
 -- ============================================================================
@@ -78,25 +97,17 @@ structure TwiceDifferentiableModel (n : ℕ) (Ω : Type*) [MeasurableSpace Ω]
   collapse to zero faster than an integrable rate. This is needed for
   the Leibniz rule on log-density. -/
   crossEntropy_fderiv_bound : ∀ θ ∈ paramDomain, ∀ θ₀ ∈ paramDomain,
-    ∃ ε > 0, ∃ bound : Ω → ℝ, Integrable bound refMeasure ∧
-      (∀ᵐ ω ∂refMeasure, ∀ θ' ∈ Metric.ball θ₀ ε,
-        HasFDerivAt (fun θ'' => density θ ω * Real.log (density θ'' ω))
-          (density θ ω • fderiv ℝ (fun θ'' => Real.log (density θ'' ω)) θ') θ' ∧
-        ‖density θ ω • fderiv ℝ (fun θ'' => Real.log (density θ'' ω)) θ'‖ ≤ bound ω)
+    LocallyDominatedFDeriv refMeasure θ₀
+      (fun ω θ'' => density θ ω * Real.log (density θ'' ω))
+      (fun ω θ' => density θ ω • fderiv ℝ (fun θ'' => Real.log (density θ'' ω)) θ')
   /-- Domination for the derivative of the score, needed for the second
   Leibniz application (Hessian theorem). Same quantifier structure as
   crossEntropy_fderiv_bound. -/
   score_fderiv_bound : ∀ θ ∈ paramDomain, ∀ θ₀ ∈ paramDomain, ∀ j : Fin n,
-    ∃ ε > 0, ∃ bound : Ω → ℝ, Integrable bound refMeasure ∧
-      (∀ᵐ ω ∂refMeasure, ∀ θ' ∈ Metric.ball θ₀ ε,
-        HasFDerivAt (fun θ'' => density θ ω *
-          toRegularStatisticalModel.score θ'' j ω)
-          (density θ ω •
-            fderiv ℝ (fun θ'' => toRegularStatisticalModel.score θ'' j ω) θ')
-          θ' ∧
-        ‖density θ ω •
-          fderiv ℝ (fun θ'' => toRegularStatisticalModel.score θ'' j ω) θ'‖ ≤
-          bound ω)
+    LocallyDominatedFDeriv refMeasure θ₀
+      (fun ω θ'' => density θ ω * toRegularStatisticalModel.score θ'' j ω)
+      (fun ω θ' => density θ ω •
+        fderiv ℝ (fun θ'' => toRegularStatisticalModel.score θ'' j ω) θ')
   /-- The Fisher information is finite: score functions are square-integrable
   with respect to the model measure. This is needed for the Fisher metric
   to be a well-defined bilinear form, and follows from the existence of
@@ -108,11 +119,15 @@ namespace TwiceDifferentiableModel
 variable (M : TwiceDifferentiableModel n Ω)
 
 /-- The a-th partial derivative of the score sᵦ at θ:
-  (∂/∂θ'ᵃ) sᵦ(θ', ω)|_{θ'=θ}
+  `scorePartial θ a b ω = (∂/∂θ'ᵃ) sᵦ(θ', ω)|_{θ'=θ}`.
 
-This is the "Hessian of the log-likelihood" in the (a,b) direction,
-evaluated at parameter θ and sample point ω. Defined here because
-`ThriceDifferentiableModel`'s field types reference it. -/
+**Argument-order convention**: `a` is the *differentiation direction*
+(the coordinate the derivative is taken along) and `b` is the *score
+component* being differentiated — i.e. `a` names ∂ₐ, `b` names sᵦ, matching
+the field name order `scorePartial θ a b` ↔ `∂ₐsᵦ`. This is the "Hessian
+of the log-likelihood" in the (a,b) direction, evaluated at parameter θ
+and sample point ω. Defined here because `ThriceDifferentiableModel`'s
+field types reference it. -/
 noncomputable def scorePartial
     (θ : ParamSpace n) (a b : Fin n) (ω : Ω) : ℝ :=
   fderiv ℝ (fun θ' => M.toRegularStatisticalModel.score θ' b ω) θ
@@ -147,18 +162,10 @@ structure ThriceDifferentiableModel (n : ℕ) (Ω : Type*) [MeasurableSpace Ω]
   /-- Domination for the scorePartial derivative (third Leibniz). -/
   scorePartial_fderiv_bound : ∀ θ ∈ paramDomain, ∀ θ₀ ∈ paramDomain,
     ∀ j k : Fin n,
-    ∃ ε > 0, ∃ bound : Ω → ℝ, Integrable bound refMeasure ∧
-      (∀ᵐ ω ∂refMeasure, ∀ θ' ∈ Metric.ball θ₀ ε,
-        HasFDerivAt
-          (fun θ'' => density θ ω *
-            toTwiceDifferentiableModel.scorePartial θ'' j k ω)
-          (density θ ω •
-            fderiv ℝ (fun θ'' =>
-              toTwiceDifferentiableModel.scorePartial θ'' j k ω) θ') θ' ∧
-        ‖density θ ω •
-          fderiv ℝ (fun θ'' =>
-            toTwiceDifferentiableModel.scorePartial θ'' j k ω) θ'‖ ≤
-          bound ω)
+    LocallyDominatedFDeriv refMeasure θ₀
+      (fun ω θ'' => density θ ω * toTwiceDifferentiableModel.scorePartial θ'' j k ω)
+      (fun ω θ' => density θ ω •
+        fderiv ℝ (fun θ'' => toTwiceDifferentiableModel.scorePartial θ'' j k ω) θ')
   /-- Score × scorePartial integrability. -/
   score_scorePartial_integrable : ∀ θ ∈ paramDomain,
     ∀ x y z : Fin n,
@@ -204,6 +211,10 @@ structure ThriceDifferentiableModel (n : ℕ) (Ω : Type*) [MeasurableSpace Ω]
       (fun ω => density θ ω *
         toTwiceDifferentiableModel.scorePartial θ' j k ω)
       refMeasure
+  /-- The density-weighted `scorePartial` integrand `p(θ,·)·∂ⱼsₖ(θ,·)` is
+      integrable. This is the standalone second-order integrability
+      hypothesis feeding `bartlett2_integrable` and the Leibniz interchange
+      fields below, as opposed to a derivative of that integrand. -/
   scorePartial_density_integrable :
     ∀ θ ∈ paramDomain, ∀ j k : Fin n,
     Integrable (fun ω => density θ ω *

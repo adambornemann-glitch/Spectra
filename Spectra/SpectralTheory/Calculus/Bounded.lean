@@ -35,6 +35,7 @@ for every bounded measurable symbol `g : ℝ → ℂ`, and proves the calculus i
 * `spectralCalculus` — the operator `Φ(g)`, with `inner_spectralCalculus` its defining identity.
 * `spectralCalculus_char` — `Φ(e^{it·}) = U(t)`; `spectralCalculus_one` — `Φ(1) = 1`.
 * `spectralCalculus_add`, `spectralCalculus_smul` — linearity in the symbol.
+* `spectralCalculus_one_add_smul` — `Φ(1 + c·g) = 1 + c • Φ(g)` in one call.
 * `spectralCalculus_adjoint` — `Φ(g)† = Φ(conj g)`.
 * `spectralForm_calculus_right` — **the weighted-measure theorem**
   `"dμ_{ξ, Φ(g)η} = g · dμ_{ξ,η}"`, i.e. `spectralForm ξ (Φ(g)η) h = spectralForm ξ η (h·g)`.
@@ -157,6 +158,22 @@ theorem spectralCalculus_smul (c : ℂ) (g : ℝ → ℂ)
   rw [inner_spectralCalculus U_grp _ hcm hcb ξ η, spectralForm_smul_fun,
     ContinuousLinearMap.smul_apply, inner_smul_right,
     inner_spectralCalculus U_grp g hm hb ξ η]
+
+/-- **`Φ(1 + c·g) = 1 + c • Φ(g)`**: the calculus applied to a symbol of the shape
+`s ↦ 1 + c · g(s)`, packaged in one call. Collapses the `spectralCalculus_one` /
+`spectralCalculus_add` / `spectralCalculus_smul` eta-expansion bookkeeping that a bare
+`1 + c·g` split otherwise needs, since `spectralCalculus_add` expects its two summands as
+literal `fun l => g₁ l + g₂ l`, not the constant function `1` and `c • g` directly. -/
+theorem spectralCalculus_one_add_smul (c : ℂ) (g : ℝ → ℂ)
+    (hm : Measurable g) (hb : ∃ C, ∀ ω, ‖g ω‖ ≤ C)
+    (hcm : Measurable fun l => c * g l) (hcb : ∃ C, ∀ ω, ‖c * g ω‖ ≤ C)
+    (hsm : Measurable fun l => (1 : ℂ) + c * g l)
+    (hsb : ∃ C, ∀ ω, ‖(1 : ℂ) + c * g ω‖ ≤ C) :
+    spectralCalculus U_grp (fun l => (1 : ℂ) + c * g l) hsm hsb
+      = ContinuousLinearMap.id ℂ H + c • spectralCalculus U_grp g hm hb := by
+  rw [spectralCalculus_add U_grp (fun _ => (1 : ℂ)) (fun l => c * g l)
+      measurable_const ⟨1, fun _ => norm_one.le⟩ hcm hcb hsm hsb,
+    spectralCalculus_one, spectralCalculus_smul U_grp c g hm hb hcm hcb]
 
 /-- **The calculus is a `*`-map**: `Φ(g)† = Φ(conj ∘ g)`.  Bookkeeping on
 `spectralForm_conj_symm`. -/

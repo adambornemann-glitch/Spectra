@@ -5,18 +5,32 @@ Authors: Adam Bornemann
 -/
 import Spectra.Resolvent.Defs
 import Mathlib.Analysis.InnerProductSpace.LinearPMap
-/-!
-# Lower Bound Estimate for Self-Adjoint Generators
 
-This file proves the fundamental estimate for self-adjoint operators:
-for `A` self-adjoint, `‖(A - zI)ψ‖ ≥ |Im(z)| · ‖ψ‖` (most useful when `Im(z) ≠ 0`).
+/-!
+# Lower Bound Estimate for Symmetric Operators
+
+This file proves the fundamental estimate for symmetric operators:
+for `A` symmetric, `‖(A - zI)ψ‖ ≥ |Im(z)| · ‖ψ‖` (most useful when `Im(z) ≠ 0`).
 
 This estimate is the key to proving that the resolvent is bounded and that
 `(A - zI)` has closed range.
 
 ## Main statements
 
-* `lower_bound_estimate`: `‖(A - zI)ψ‖ ≥ |Im(z)| · ‖ψ‖` for self-adjoint `A`
+* `lower_bound_estimate`: `‖(A - zI)ψ‖ ≥ |Im(z)| · ‖ψ‖` for symmetric `A`, i.e.
+  `A.IsFormalAdjoint A`. Full self-adjointness (domain equality with the adjoint) is not needed.
+
+## Implementation notes
+
+The proof is a Pythagorean decomposition `(A - zI)ψ = (A - x•1)ψ - (y·I)ψ` where `z = x + yi`.
+Symmetry of `A` makes `⟪(A - x•1)ψ, ψ⟫` real, which in turn makes the cross term
+`⟪(A - x•1)ψ, (y·I)ψ⟫` purely imaginary and hence its real part — the only part the norm expansion
+sees — vanish. What remains is `‖(A - x•1)ψ‖² + |y|²‖ψ‖² ≥ |y|²‖ψ‖²`, giving the bound.
+
+## References
+
+* [Reed–Simon, *Methods of Modern Mathematical Physics I*][reedsimon1980], Theorem VIII.3
+* [Kato, *Perturbation Theory for Linear Operators*][kato1995], Section V.3
 
 ## Physics interpretation
 
@@ -47,9 +61,8 @@ lemma lower_bound_estimate {A : H →ₗ.[ℂ] H} (hsym : A.IsFormalAdjoint A)
                 2 * (⟪A ⟨ψ, hψ⟩ - x • ψ, -((y * I) • ψ)⟫_ℂ).re := by
     rw [norm_sub_sq (𝕜 := ℂ)]
     rw [inner_neg_right, Complex.neg_re]
-    ring_nf; exact
-      sub_add_eq_add_sub (‖A ⟨ψ, hψ⟩ - x • ψ‖ ^ 2)
-        (RCLike.re ⟪A ⟨ψ, hψ⟩ - x • ψ, (↑y * I) • ψ⟫_ℂ * 2) (‖(↑y * I) • ψ‖ ^ 2)
+    simp only [RCLike.re_to_complex]
+    ring
   have h_norm_scale : ‖(y * I) • ψ‖ = |y| * ‖ψ‖ := by
     calc ‖(y * I) • ψ‖
         = ‖(y * I : ℂ)‖ * ‖ψ‖ := norm_smul _ _
@@ -88,18 +101,11 @@ lemma lower_bound_estimate {A : H →ₗ.[ℂ] H} (hsym : A.IsFormalAdjoint A)
               Complex.ofReal_re, Complex.ofReal_im]
     ring_nf
     simp only [I_re, mul_zero, zero_mul, neg_zero]
-  have h_sq : ‖(A ⟨ψ, hψ⟩ - x • ψ) - (y * I) • ψ‖^2 ≥ (|y| * ‖ψ‖)^2 := by
+  have h_sq : (|y| * ‖ψ‖)^2 ≤ ‖(A ⟨ψ, hψ⟩ - x • ψ) - (y * I) • ψ‖^2 := by
     rw [h_expand, h_norm_scale, h_cross_zero]
     simp only [mul_zero, add_zero]
     have : 0 ≤ ‖A ⟨ψ, hψ⟩ - x • ψ‖^2 := sq_nonneg _
     linarith
-  by_contra h_not
-  push Not at h_not
-  have h1 : 0 ≤ ‖(A ⟨ψ, hψ⟩ - x • ψ) - (y * I) • ψ‖ := norm_nonneg _
-  have h2 : 0 ≤ |y| * ‖ψ‖ := by
-    apply mul_nonneg
-    · exact abs_nonneg _
-    · exact norm_nonneg _
-  nlinarith [sq_nonneg (|y| * ‖ψ‖ - ‖(A ⟨ψ, hψ⟩ - x • ψ) - (y * I) • ψ‖), h_sq, h_not, h1, h2]
+  exact le_of_sq_le_sq h_sq (norm_nonneg _)
 
 end Spectra.Resolvent

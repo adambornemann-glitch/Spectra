@@ -24,9 +24,11 @@ from gluing `numericalRange_range_isClosed` and `numericalRange_range_dense` int
 
 * [Reed, Simon, *Methods of Modern Mathematical Physics I*][reed1980], Section VIII.3.
 -/
-open Complex
+
 open Spectra.Operator
+
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
+
 namespace Spectra.Resolvent
 
 omit [CompleteSpace H] in

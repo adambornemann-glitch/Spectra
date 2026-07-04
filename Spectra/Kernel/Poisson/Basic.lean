@@ -7,21 +7,32 @@ import Spectra.Kernel.Poisson.Lemmas
 import Mathlib.Analysis.Fourier.FourierTransform
 import Mathlib.Analysis.Fourier.Inversion
 /-!
-# Fourier Uniqueness for Finite Measures
+# Fourier Transform of the Poisson Kernel
 
-A finite positive Borel measure on ℝ is uniquely determined by its
-characteristic function (Fourier–Stieltjes transform).
+The Poisson kernel `P_ε(x) = (1/π) · ε/(x² + ε²)` and the two-sided exponential
+`t ↦ e^{-ε|t|}` are a Fourier-transform pair: `∫ P_ε(x) e^{ixt} dx = e^{-ε|t|}`.
+This identity is what makes the Poisson kernel a canonical approximate identity /
+characteristic function for the Cauchy distribution.
 
+## Main results
+
+* `poissonKernel_fourier`: the Fourier transform identity above.
+
+## Implementation notes
+
+Mathlib's `Real.fourier_eq'`/`Real.fourierInv_eq'` use the `x ↦ e^{2πi⟨x,w⟩}` convention,
+so the proof works with the auxiliary function `f t = e^{-ε|t|}`, computes `𝓕 f` in that
+convention (a rescaled Poisson kernel in the frequency variable `w`), applies Fourier
+inversion, and then undoes the `x = 2πw` rescaling via `Measure.integral_comp_mul_left` to
+land back on the kernel's own convention `e^{ixt}`.
 
 ## References
 
-* Lévy, P. "Calcul des Probabilités" (1925), §24 (inversion formula)
-* Rudin, *Real and Complex Analysis*, 3rd ed., §9.5
-* Connects to `lorentzian` already defined in `Routes.lean`
+* Rudin, *Real and Complex Analysis*, 3rd ed., §9.5 (Fourier transform of the Poisson kernel)
 
 ## Tags
 
-Fourier uniqueness, characteristic function, Lévy inversion, Poisson kernel
+Fourier transform, characteristic function, Poisson kernel, Cauchy distribution
 -/
 namespace Spectra.Fourier
 
@@ -31,8 +42,7 @@ open Complex MeasureTheory Filter Topology Set Fourier FourierTransform
 
 This is the key identity connecting the Poisson kernel to characteristic functions.
 It asserts that the two-sided exponential `t ↦ e^{-ε|t|}` is the Fourier transform
-of the Poisson kernel `P_ε(x) = (1/π) · ε/(x² + ε²)`.
-(Currently unused.) -/
+of the Poisson kernel `P_ε(x) = (1/π) · ε/(x² + ε²)`. -/
 theorem poissonKernel_fourier {ε : ℝ} (hε : 0 < ε) (t : ℝ) :
     ∫ x, (poissonKernel ε x : ℂ) * exp (I * ↑x * ↑t) = exp (-(↑ε * ↑|t|) : ℂ) := by
   set f : ℝ → ℂ := fun s => cexp (-(↑ε * ↑|s|)) with hf_def
@@ -43,7 +53,8 @@ theorem poissonKernel_fourier {ε : ℝ} (hε : 0 < ε) (t : ℝ) :
   have hf_cont : Continuous f :=
     Complex.continuous_exp.comp
       ((continuous_const.mul (Complex.continuous_ofReal.comp continuous_abs)).neg)
-  -- (1) closed form for the transform, in the new convention
+  -- (1) `𝓕 f` is itself a (rescaled) Poisson kernel: the classical computation
+  -- `∫ e^{-ε|v|} e^{-2πivw} dv = 2ε/((2πw)² + ε²)` in mathlib's `2πi⟨·,·⟩` convention
   have h_Ff : ∀ w : ℝ, 𝓕 f w =
       (((2 * ε) / ((2 * Real.pi * w) ^ 2 + ε ^ 2) : ℝ) : ℂ) := by
     intro w
@@ -52,7 +63,16 @@ theorem poissonKernel_fourier {ε : ℝ} (hε : 0 < ε) (t : ℝ) :
     rw [neg_sq] at key; rw [← key]
     refine integral_congr_ae (.of_forall fun v => ?_)
     simp only [Real.inner_apply, smul_eq_mul, hf_def]
-    rw [mul_comm]; norm_num; ring_nf   -- ↑(-2π(v*w))·I  =  I·↑(-(2πw))·↑v
+    -- both sides are `cexp` of the same exponent, up to `↑(-2π(v*w))·I = I·↑(-(2πw))·↑v`
+    rw [mul_comm]
+    congr 2
+    push_cast
+    ring
+  -- the rescaled-Poisson shape produced by `h_Ff`, in the real-valued form used both to
+  -- prove integrability below and to identify it with `poissonKernel` in `hStepA`
+  have h_rescaled : ∀ w : ℝ,
+      2 * ε / ((2 * Real.pi * w) ^ 2 + ε ^ 2) = 2 * Real.pi * poissonKernel ε (2 * Real.pi * w) :=
+    fun w => by unfold poissonKernel; field_simp
   -- (2) 𝓕 f is integrable: it is a rescaled Poisson kernel
   have h_Ff_int : Integrable (𝓕 f) volume := by
     have hεne : ε ≠ 0 := ne_of_gt hε
@@ -67,29 +87,28 @@ theorem poissonKernel_fourier {ε : ℝ} (hε : 0 < ε) (t : ℝ) :
     rw [show (𝓕 f) = fun w => ((2 * ε / ((2 * Real.pi * w) ^ 2 + ε ^ 2) : ℝ) : ℂ)
           from funext h_Ff]
     exact hg.ofReal
-  -- (3) inversion + change of variables x = 2πw
+  -- (3) Fourier inversion recovers `f`; rescaling the inversion integral by `x = 2πw`
+  -- turns mathlib's `2πi⟨·,·⟩` convention back into the kernel's own `e^{ixt}` convention
   have h_inv : 𝓕⁻ (𝓕 f) t = f t :=
     hf_int.fourierInv_fourier_eq h_Ff_int hf_cont.continuousAt
-  have hpi : Real.pi ≠ 0 := Real.pi_ne_zero
   set g : ℝ → ℂ := fun x => (poissonKernel ε x : ℂ) * Complex.exp (I * ↑x * ↑t) with hg_def
   show (∫ x, g x) = f t
   rw [← h_inv, Real.fourierInv_eq']
   simp_rw [h_Ff, Real.inner_apply, smul_eq_mul]
-  -- RHS integrand = ↑(2π) · g(2πv)
+  -- after substituting `v = w`, the inversion integrand is the `x = 2πv` rescaling of
+  -- `g x = P_ε(x)·e^{ixt}` times the Jacobian factor `2π` from that change of variables
   have hStepA :
       (∫ v, Complex.exp (↑(2 * Real.pi * (v * t)) * I)
               * ((2 * ε / ((2 * Real.pi * v) ^ 2 + ε ^ 2) : ℝ) : ℂ))
       = (↑(2 * Real.pi) : ℂ) * ∫ v, g (2 * Real.pi * v) := by
     rw [← integral_const_mul]
     refine integral_congr_ae (.of_forall fun v => ?_)
-    have hden : ((2 * Real.pi * v) ^ 2 + ε ^ 2 : ℝ) ≠ 0 := by positivity
     have hexp : Complex.exp (↑(2 * Real.pi * (v * t)) * I)
               = Complex.exp (I * ↑(2 * Real.pi * v) * ↑t) := by
       congr 1; push_cast; ring
     have hcoef : ((2 * ε / ((2 * Real.pi * v) ^ 2 + ε ^ 2) : ℝ) : ℂ)
                = ↑(2 * Real.pi) * (↑(poissonKernel ε (2 * Real.pi * v)) : ℂ) := by
-      rw [← Complex.ofReal_mul]; congr 1
-      unfold poissonKernel; field_simp
+      rw [← Complex.ofReal_mul, h_rescaled]
     simp only [hg_def]
     rw [hexp, hcoef]; ring
   rw [hStepA]

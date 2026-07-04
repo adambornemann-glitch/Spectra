@@ -16,31 +16,35 @@ import Mathlib.Analysis.SpecialFunctions.Complex.Log
 import Mathlib.Analysis.Complex.CauchyIntegral
 import Mathlib.Analysis.Complex.RemovableSingularity
 /-!
-# Periodic Extension of Holomorphic Functions on Strips
+# Periodic Extension of Holomorphic Functions on Strips: Definitions
 
-This file proves that a holomorphic function on a horizontal strip with
-matching boundary values extends to a bounded entire function.
+This file lays out the basic *objects* used to state and prove the periodic-extension /
+Hadamard-three-lines circle of results for horizontal strips in `ℂ`: the open and closed
+strips, their integer shifts, the boundary embeddings of `ℝ` into the lower/upper edge, the
+strip index (`⌊Im z / β⌋`), the translation of a point down to the fundamental strip, and the
+periodic extension of a function itself. No holomorphy, continuity, or boundedness properties
+are established here — those are proved in `Spectra.Modular.KMS.PeriodicStrip.Basic` and the
+sibling files (`IndexProps`, `ExtensionProps`, `Hadamard`, `LineRemove`, `Painleve`), which
+import this file and build the actual extension/entirety/Hadamard theorems on top of these
+definitions.
 
-## Main statements
+## Main definitions
 
-- `periodicExtension`: Given F holomorphic on Strip β with F(t) = F(t + iβ),
-  construct the periodic extension to all of ℂ
-- `periodicExtension_continuous`: The extension is continuous
-- `periodicExtension_bounded`: The extension is bounded
-- `periodicExtension_entire`: The extension is entire (holomorphic on ℂ)
-- `periodic_strip_extension`: The main theorem combining all of the above
-
-## The Mathematical Content
-
-The key insight is that the boundary condition F(t) = F(t + iβ) allows us to
-"tile" the complex plane with copies of F. The extension is:
-- Continuous by the boundary condition
-- Holomorphic on each open strip (obvious)
-- Holomorphic across the boundaries (by Morera's theorem)
-- Bounded (since F is bounded on the closed strip and we're just repeating it)
-
-Combining with Liouville's theorem (bounded entire ⟹ constant), we get that
-functions with periodic boundary values must be constant on the strip.
+- `Strip`, `ClosedStrip`, `ClosedStrip.shift`: the open strip `{0 < Im z < β}`, its closure, and
+  the shift of the closed strip to the `n`-th copy `{n·β ≤ Im z ≤ (n+1)·β}`.
+- `realToLower`, `realToUpper`: the embeddings of `ℝ` into the lower boundary (`Im = 0`) and
+  upper boundary (`Im = β`) of the strip.
+- `stripIndex`: `⌊Im z / β⌋`, the index of the shifted strip containing `z`.
+- `toFundamentalStrip`: translates `z` down by `stripIndex β z` copies of `β·I`, landing in the
+  fundamental strip `ClosedStrip β`. **Seam convention**: a point on the upper boundary
+  `Im z = n·β` (for `n : ℤ`) has `stripIndex β z = n` (since `⌊n⌋ = n`), so it is sent to
+  `Im = 0`, the *lower* edge of the fundamental strip — not the upper edge `Im = β`. Equivalently,
+  `toFundamentalStrip` treats each shifted strip as half-open on top, `[n·β, (n+1)·β)`, even
+  though `ClosedStrip.shift` itself is stated as the closed interval `[n·β, (n+1)·β]`. This is
+  the convention downstream continuity lemmas (e.g. in `IndexProps`) rely on when matching the
+  extension's value at a boundary point to `F` evaluated at `realToLower`, not `realToUpper`.
+- `periodicExtension`: given `F` on `ClosedStrip β`, the extension `G(z) = F(z - n·β·I)` where
+  `n = stripIndex β z`, i.e. `F` "tiled" periodically across all shifted copies of the strip.
 
 ## References
 
@@ -52,31 +56,47 @@ namespace Spectra.PeriodicHolomorphic
 
 open Complex Set Filter Topology Int MeasureTheory ProbabilityTheory
 
-variable {β : ℝ} (hβ : 0 < β)
-
 /-! ## Definitions -/
 
 /-- The open horizontal strip {z : 0 < Im(z) < β} -/
 def Strip (β : ℝ) : Set ℂ :=
   {z : ℂ | 0 < z.im ∧ z.im < β}
 
+@[simp] lemma mem_Strip {β : ℝ} {z : ℂ} : z ∈ Strip β ↔ 0 < z.im ∧ z.im < β := Iff.rfl
+
 /-- The closed horizontal strip {z : 0 ≤ Im(z) ≤ β} -/
 def ClosedStrip (β : ℝ) : Set ℂ :=
   {z : ℂ | 0 ≤ z.im ∧ z.im ≤ β}
+
+@[simp] lemma mem_ClosedStrip {β : ℝ} {z : ℂ} : z ∈ ClosedStrip β ↔ 0 ≤ z.im ∧ z.im ≤ β := Iff.rfl
 
 /-- The shifted closed strip {z : n*β ≤ Im(z) ≤ (n+1)*β} -/
 def ClosedStrip.shift (β : ℝ) (n : ℤ) : Set ℂ :=
   {z : ℂ | n * β ≤ z.im ∧ z.im ≤ (n + 1) * β}
 
-/-- The boundary lines at heights n*β for n ∈ ℤ (Currently unused.) -/
-def BoundaryLines (β : ℝ) : Set ℂ :=
+@[simp] lemma mem_ClosedStrip_shift {β : ℝ} {n : ℤ} {z : ℂ} :
+    z ∈ ClosedStrip.shift β n ↔ n * β ≤ z.im ∧ z.im ≤ (n + 1) * β := Iff.rfl
+
+/-- The boundary lines at heights `n·β` for `n ∈ ℤ`, i.e. the seams between consecutive
+shifted strips `ClosedStrip.shift β n`. Not referenced elsewhere in the library: the
+downstream files (`IndexProps`, `LineRemove`) work directly with the explicit range
+`Im z = n * β` rather than through this set, so this is kept private scaffolding. -/
+private def BoundaryLines (β : ℝ) : Set ℂ :=
   {z : ℂ | ∃ n : ℤ, z.im = n * β}
 
 /-- Embedding real numbers into the lower boundary -/
 def realToLower (t : ℝ) : ℂ := t
 
+@[simp] lemma realToLower_re (t : ℝ) : (realToLower t).re = t := rfl
+
+@[simp] lemma realToLower_im (t : ℝ) : (realToLower t).im = 0 := by simp [realToLower]
+
 /-- Embedding real numbers into the upper boundary at height β -/
 def realToUpper (β : ℝ) (t : ℝ) : ℂ := t + β * I
+
+@[simp] lemma realToUpper_re (β t : ℝ) : (realToUpper β t).re = t := by simp [realToUpper]
+
+@[simp] lemma realToUpper_im (β t : ℝ) : (realToUpper β t).im = β := by simp [realToUpper]
 
 /-! ## The Periodic Extension -/
 
@@ -96,5 +116,8 @@ This maps any z to the fundamental strip and evaluates F there.
 -/
 noncomputable def periodicExtension (F : ℂ → ℂ) (β : ℝ) : ℂ → ℂ := fun z =>
   F (toFundamentalStrip β z)
+
+@[simp] lemma periodicExtension_apply (F : ℂ → ℂ) (β : ℝ) (z : ℂ) :
+    periodicExtension F β z = F (toFundamentalStrip β z) := rfl
 
 end Spectra.PeriodicHolomorphic

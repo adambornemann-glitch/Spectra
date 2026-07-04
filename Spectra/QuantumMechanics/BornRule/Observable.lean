@@ -7,14 +7,42 @@ import Spectra.QuantumMechanics.BornRule.PVM
 import Spectra.QuantumMechanics.BornRule.Moments
 import Spectra.Operator.SelfAdjoint
 import Spectra.ProjValMeasure.Basic
-import Spectra.SpectralTheory.Measure.Polarized
-import Spectra.SpectralTheory.Measure.PVM
 import Spectra.SpectralTheory.Weak
 import Spectra.SpectralTheory.Spectrum
 import Spectra.Resolvent.SpectralRepresentation
 import Mathlib.MeasureTheory.Measure.Support
-import Spectra.QuantumMechanics.Unitarity.Basic
+/-!
+# §3 The observable layer
 
+Everything here is the *physics* object: a `SelfAdjointOperator` and its outcome law, as
+opposed to the abstract PVM-level statements in `BornRule.PVM`/`BornRule.Moments` that this
+file specializes.
+
+## Main definitions
+
+* `Spectra.Operator.SelfAdjointOperator.spectralPVM` — the projection-valued measure of a
+  self-adjoint operator, built via Stone's theorem (`YosidaHille.genToGroup`) and `toPVM`.
+* `Spectra.Operator.SelfAdjointOperator.bornMeasure` — the Born measure of a state `ψ` for
+  a given observable `A`, i.e. `BornRule.PVM.bornMeasure A.spectralPVM ψ`.
+
+## Main results
+
+* `born_rule` : the Born measure of a Borel set is the squared norm of the spectral
+  projection, `((A.bornMeasure ψ) B).toReal = ‖A.spectralPVM.proj B hB ψ‖ ^ 2`.
+* `isProbabilityMeasure_bornMeasure` : the outcome law is a probability measure for unit `ψ`.
+* `bornExpectation_eq_inner` : the first-moment identity `∫ λ dμ_ψ = ⟪ψ, Aψ⟫`, supplied by
+  the weak spectral theorem `SpectralTheory.spectralPVM_integral_id`.
+* `bornVariance_eq_central_moment` : the second central moment equals `‖(A − ⟨A⟩)ψ‖²`, the
+  exact quantity the Robertson inequality bounds.
+* `bornMeasure_support_subset_spectrum` : no measurement outcome occurs outside
+  `spectrum A.toLinearPMap`.
+
+All five results are fully discharged (no `sorry`); this file closes §3 of the Born-rule arc.
+
+## References
+
+See `PVM.lean`'s module docstring for the Born-rule references this section's arc builds on.
+-/
 open MeasureTheory Complex
 open scoped InnerProductSpace Topology
 open Spectra Spectra.ProjValMeasure
@@ -23,19 +51,12 @@ variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteS
 
 namespace Spectra.QuantumMechanics
 open SpectralTheory PVM
-/-! ## §3  The observable layer
-
-Everything here is the *physics* object: a `SelfAdjointOperator` and its outcome law.
-The keystone observable→PVM bridge `spectralPVM` is now built (via Stone's theorem), so the
-kinematic statements below — `bornMeasure`, `born_rule`, `isProbabilityMeasure_bornMeasure` —
-are discharged.  What remains open are the two *moment* identities, which tie the spectral
-measure back to the operator and still need the weak spectral theorem
-`∫ λ dμ_ψ = ⟪ψ, Aψ⟫` (the first/second-moment representation). -/
 
 /-- `[done]` **The keystone construction.**  The projection-valued measure of a self-adjoint
 operator, i.e. the existence half of `∃! P, (resolvent formula against P.diag)`.
 
-Defined as `SpectralTheory.spectralPVM A.selfAdjoint = (YosidaHille.genToGroup A.selfAdjoint).toPVM`:
+Defined as
+`SpectralTheory.spectralPVM A.selfAdjoint = (YosidaHille.genToGroup A.selfAdjoint).toPVM`:
 the self-adjoint generator is exponentiated to a strongly continuous one-parameter unitary
 group by Stone's theorem, and that group's `toPVM` bundles the resolution of the identity.
 All five `ProjValMeasure` fields are genuinely discharged through the Stone / Cayley / Herglotz
@@ -116,4 +137,5 @@ theorem bornMeasure_support_subset_spectrum (A : SelfAdjointOperator H) (ψ : H)
   exact (Measure.notMem_support_iff_exists.mpr
     ⟨Set.Ioo (lam - ε) (lam + ε), hnhds, hmass⟩) hlam
 
-end Spectra.QuantumMechanics.BornRule.Observable
+end BornRule.Observable
+end Spectra.QuantumMechanics

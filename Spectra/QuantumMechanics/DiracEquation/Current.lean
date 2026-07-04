@@ -4,7 +4,7 @@ Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
 Filename: QuantumMechanics/DiracEquation/Current.lean
 -/
-import Spectra.QuantumMechanics.DiracEquation.GammaTrace
+import Spectra.QuantumMechanics.DiracEquation.CliffordAlgebra
 import Mathlib.MeasureTheory.Integral.Bochner.Basic
 import Mathlib.MeasureTheory.Measure.Lebesgue.Basic
 /-!
@@ -16,8 +16,11 @@ making it a valid probability density.
 
 ## Main definitions
 
+* `GammaMatrices`: representation-independent axiomatization of the Clifford algebra
+  gamma matrices needed for the current construction
+* `standardGammaMatrices`: the standard (Dirac-Pauli) representation, witnessing that
+  `GammaMatrices` is non-vacuous
 * `SpinorField`: A spinor field assigns a 4-component spinor to each spacetime point
-* `SpinorField'`: A spinor field with integrability conditions
 * `diracAdjoint`: The Dirac adjoint ψ̄ = ψ†γ⁰
 * `diracCurrent`: The 4-current jᵘ = ψ̄γᵘψ
 * `probabilityDensity`: ρ = j⁰ = ψ†ψ (as a real number)
@@ -25,7 +28,11 @@ making it a valid probability density.
 
 ## Main results
 
+* `gamma_conjTranspose_mul_gamma0`, `gamma0_gamma_selfadjoint`: γ⁰γᵘ is self-adjoint,
+  the reason jᵘ = ψ†(γ⁰γᵘ)ψ is real-valued at all
 * `gamma0_sq`: (γ⁰)² = I (needed for current calculation)
+* `diracCurrent_eq_diracAdjoint_dotProduct`: jᵘ = ψ̄γᵘψ, connecting `diracCurrent` to
+  the Dirac adjoint `diracAdjoint` as claimed above
 * `current_zero_eq_norm_sq`: j⁰ = Σₐ|ψₐ|² (fundamental identity)
 * `current_zero_nonneg`: j⁰ ≥ 0 (probability is non-negative)
 * `current_zero_eq_zero_iff`: j⁰ = 0 ↔ ψ = 0 (only zero spinor has zero density)
@@ -102,26 +109,34 @@ def standardGammaMatrices : GammaMatrices where
     | 3 => gamma3
   clifford_minkowski := by
     intro μ ν
-    fin_cases μ <;> fin_cases ν
-    · simp only [Fin.zero_eta, Fin.isValue, ↓reduceIte, one_smul]; exact clifford_00
-    · simp only [Fin.zero_eta, Fin.isValue, Fin.mk_one, zero_ne_one, ↓reduceIte, nsmul_zero]; exact clifford_01
-    · simp only [Fin.zero_eta, Fin.isValue, Fin.reduceFinMk, Fin.reduceEq, ↓reduceIte, nsmul_zero]; exact clifford_02
-    · simp only [Fin.zero_eta, Fin.isValue, Fin.reduceFinMk, Fin.reduceEq, ↓reduceIte, nsmul_zero]; exact clifford_03
-    · simp only [Fin.mk_one, Fin.isValue, Fin.zero_eta, one_ne_zero, ↓reduceIte, nsmul_zero]; exact clifford_10
-    · simp only [Fin.mk_one, Fin.isValue, ↓reduceIte, one_ne_zero, Int.reduceNeg, neg_smul,
-        one_smul, nsmul_eq_mul, Nat.cast_ofNat,mul_neg, mul_one]; rw [neg_two_eq_smul]; exact clifford_11
-    · simp only [Fin.mk_one, Fin.isValue, Fin.reduceFinMk, Fin.reduceEq, ↓reduceIte, nsmul_zero]; exact clifford_12
-    · simp only [Fin.mk_one, Fin.isValue, Fin.reduceFinMk, Fin.reduceEq, ↓reduceIte, nsmul_zero]; exact clifford_13
-    · simp only [Fin.reduceFinMk, Fin.zero_eta, Fin.isValue, Fin.reduceEq, ↓reduceIte, nsmul_zero]; exact clifford_20
-    · simp only [Fin.reduceFinMk, Fin.mk_one, Fin.isValue, Fin.reduceEq, ↓reduceIte, nsmul_zero]; exact clifford_21
-    · simp only [Fin.reduceFinMk, ↓reduceIte, Fin.isValue, Fin.reduceEq, Int.reduceNeg, neg_smul,
-        one_smul, nsmul_eq_mul, Nat.cast_ofNat, mul_neg, mul_one] ;rw [neg_two_eq_smul]; exact clifford_22
-    · simp only [Fin.reduceFinMk, Fin.reduceEq, ↓reduceIte, nsmul_zero]; exact clifford_23
-    · simp only [Fin.reduceFinMk, Fin.zero_eta, Fin.isValue, Fin.reduceEq, ↓reduceIte, nsmul_zero]; exact clifford_30
-    · simp only [Fin.reduceFinMk, Fin.mk_one, Fin.isValue, Fin.reduceEq, ↓reduceIte, nsmul_zero]; exact clifford_31
-    · simp only [Fin.reduceFinMk, Fin.reduceEq, ↓reduceIte, nsmul_zero]; exact clifford_32
-    · simp only [Fin.reduceFinMk, ↓reduceIte, Fin.isValue, Fin.reduceEq, Int.reduceNeg, neg_smul,
-        one_smul, nsmul_eq_mul, Nat.cast_ofNat, mul_neg, mul_one]; rw [neg_two_eq_smul]; exact clifford_33
+    -- The Clifford relation's ±2 diagonal / 0 off-diagonal shape is symmetric in `(μ, ν)`;
+    -- this shared prefix reduces the `if`s uniformly for all 16 cases, leaving only the
+    -- three diagonal `-2 • 1` branches (μ = ν ≠ 0) needing an extra sign-normalizing step.
+    fin_cases μ <;> fin_cases ν <;>
+      simp only [Fin.isValue, Fin.zero_eta, Fin.mk_one, Fin.reduceFinMk, Fin.reduceEq,
+        zero_ne_one, one_ne_zero, ↓reduceIte, nsmul_zero, one_smul]
+    · exact clifford_00
+    · exact clifford_01
+    · exact clifford_02
+    · exact clifford_03
+    · exact clifford_10
+    · simp only [Int.reduceNeg, neg_smul, one_smul, nsmul_eq_mul, Nat.cast_ofNat, mul_neg,
+        mul_one]
+      rw [neg_two_eq_smul]; exact clifford_11
+    · exact clifford_12
+    · exact clifford_13
+    · exact clifford_20
+    · exact clifford_21
+    · simp only [Int.reduceNeg, neg_smul, one_smul, nsmul_eq_mul, Nat.cast_ofNat, mul_neg,
+        mul_one]
+      rw [neg_two_eq_smul]; exact clifford_22
+    · exact clifford_23
+    · exact clifford_30
+    · exact clifford_31
+    · exact clifford_32
+    · simp only [Int.reduceNeg, neg_smul, one_smul, nsmul_eq_mul, Nat.cast_ofNat, mul_neg,
+        mul_one]
+      rw [neg_two_eq_smul]; exact clifford_33
   gamma0_hermitian := gamma0_hermitian_proof
   gammaI_antihermitian := by
     intro i
@@ -141,15 +156,6 @@ for each x ∈ ℝ⁴. The four components encode spin-up/down and particle/anti
 structure SpinorField where
   /-- The spinor value at each spacetime point. -/
   ψ : Spacetime → (Fin 4 → ℂ)
-
-/-- A spinor field with integrability condition.
-For probability to be well-defined, we need ∫|ψ|²d³x < ∞ on each time slice. -/
-structure SpinorField' where
-  /-- The four-component spinor at each spacetime point: x^μ ↦ ψ_a(x). -/
-  ψ : (Fin 4 → ℝ) → (Fin 4 → ℂ)
-  /-- Square-integrable on each spatial slice: ∫|ψ(t,x)|² d³x < ∞ for all t. -/
-  integrable : ∀ t : ℝ, Integrable (fun x : Fin 3 → ℝ =>
-    ‖ψ (Fin.cons t x)‖^2) volume
 
 /-! ## The Dirac Adjoint and Current -/
 
@@ -174,6 +180,21 @@ The current satisfies the continuity equation ∂ᵤjᵘ = 0 when ψ solves
 the Dirac equation. -/
 noncomputable def diracCurrent (Γ : GammaMatrices) (ψ : Fin 4 → ℂ) : Fin 4 → ℂ :=
   fun μ => ∑ a : Fin 4, ∑ b : Fin 4, star (ψ a) * (Γ.gamma 0 * Γ.gamma μ) a b * ψ b
+
+/-- **jᵘ = ψ̄γᵘψ**: `diracCurrent` really is the Dirac adjoint contracted with `γᵘ`,
+matching the identity claimed in the module docstring. This is the kernel-checked
+statement that `diracAdjoint` is not merely decorative prose: the current is literally
+the dot product of the adjoint spinor with `(γᵘψ)`. -/
+theorem diracCurrent_eq_diracAdjoint_dotProduct (Γ : GammaMatrices) (ψ : Fin 4 → ℂ)
+    (μ : Fin 4) :
+    diracCurrent Γ ψ μ = diracAdjoint Γ ψ ⬝ᵥ (Γ.gamma μ).mulVec ψ := by
+  have hadj : diracAdjoint Γ ψ = Matrix.vecMul (star ψ) (Γ.gamma 0) := by
+    funext a
+    simp only [diracAdjoint, Matrix.vecMul, dotProduct, Pi.star_apply]
+  rw [hadj, Matrix.dotProduct_mulVec, Matrix.vecMul_vecMul]
+  simp only [diracCurrent, dotProduct, Matrix.vecMul, Pi.star_apply, RCLike.star_def,
+    Finset.sum_mul]
+  rw [Finset.sum_comm]
 
 /-! ## Key Lemma: γ⁰ is an Involution -/
 

@@ -3,8 +3,9 @@ Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
-import Spectra.SpectralTheory.Measure.GeneratorLink
+import Spectra.Kernel.Resolvent
 import Spectra.Resolvent.Diagonal.IntegralZ.Basic
+import Spectra.SpectralTheory.Measure.GeneratorLink
 /-!
 # Resolvent Spectral Representation (rebuilt on the constructed calculus)
 
@@ -35,10 +36,10 @@ i.e. `(A − z)(Φ(f_z)φ) = φ`, and `solution_unique` identifies `Φ(f_z)φ` w
 
 ## Downstream (Stone's formula)
 
-`im_inner_resolvent_diag` is the Poisson-kernel input: with `S_ε` the arctan-averaged
-symbol (`Spectra.Kernels`), one scalar Fubini on `[a,b] × μ_ξ` gives
-`⟪ξ, Φ(S_ε)ξ⟫ = (1/π)∫_a^b Im⟪ξ, R(λ+iε)ξ⟫ dλ`, and
-`tendsto_spectralCalculus_apply` along `𝓝[>] 0` closes the limit.
+`im_inner_resolvent_diag` is the Poisson-kernel input consumed by Stone's formula: with
+`Kernel.Lorentzian`/`Kernel.Arctan` (`Spectra.Kernels`) providing the arctan-averaged symbol,
+one scalar Fubini on `[a,b] × μ_ξ` turns this pointwise identity into the averaged spectral
+measure of `[a,b]`, and `tendsto_spectralCalculus_apply` along `𝓝[>] 0` closes the limit.
 
 ## References
 
@@ -71,21 +72,11 @@ lemma kernel_measurable (z : ℂ) (hz : z.im ≠ 0) :
   ((Complex.continuous_ofReal.sub continuous_const).inv₀
     (fun s => sub_ne_zero_of_im_ne_zero z hz s)).measurable
 
-/-- The pointwise bound `‖(s − z)⁻¹‖ ≤ 1/|Im z|`.
-(If `Spectra.Kernels.resolvent_integrand_bound` is in scope, this duplicates it; kept
-self-contained so this file depends only on the spectral and resolvent stacks.) -/
-lemma norm_kernel_le (z : ℂ) (hz : z.im ≠ 0) (s : ℝ) :
-    ‖((s : ℂ) - z)⁻¹‖ ≤ 1 / |z.im| := by
-  have hle : |z.im| ≤ ‖(s : ℂ) - z‖ := by
-    calc |z.im| = |((s : ℂ) - z).im| := by simp
-      _ ≤ ‖(s : ℂ) - z‖ := Complex.abs_im_le_norm _
-  rw [norm_inv, ← one_div]
-  exact div_le_div_of_nonneg_left zero_le_one (abs_pos.mpr hz) hle
-
-/-- Canonical boundedness package for the resolvent symbol. -/
+/-- Canonical boundedness package for the resolvent symbol, from the shared kernel bound
+`Spectra.Kernels.resolvent_integrand_bound`. -/
 lemma kernel_bdd (z : ℂ) (hz : z.im ≠ 0) :
     ∃ C, ∀ s : ℝ, ‖((s : ℂ) - z)⁻¹‖ ≤ C :=
-  ⟨1 / |z.im|, norm_kernel_le z hz⟩
+  ⟨1 / |z.im|, Spectra.Kernels.resolvent_integrand_bound z hz⟩
 
 /-- Pointwise decomposition: `s · (s − z)⁻¹ = 1 + z · (s − z)⁻¹`. -/
 lemma id_mul_kernel_decomp (z : ℂ) (hz : z.im ≠ 0) (s : ℝ) :
@@ -110,7 +101,7 @@ lemma id_mul_kernel_bdd (z : ℂ) (hz : z.im ≠ 0) :
       Complex.norm_mul, norm_inv];
     _ ≤ 1 + ‖z‖ * (1 / |z.im|) := by
         gcongr
-        exact norm_kernel_le z hz s
+        exact Spectra.Kernels.resolvent_integrand_bound z hz s
     _ = 1 + ‖z‖ / |z.im| := by ring
 
 /-! ## The bridge -/
@@ -144,12 +135,12 @@ theorem resolvent_eq_spectralCalculus (z : ℂ) (hz : z.im ≠ 0) :
     measurable_const.mul (kernel_measurable z hz)
   have hzb : ∃ C, ∀ s : ℝ, ‖z * ((s : ℂ) - z)⁻¹‖ ≤ C :=
     bounded_mul (g₁ := fun _ => z) ⟨‖z‖, fun _ => le_rfl⟩ (kernel_bdd z hz)
-  have hsm : Measurable fun s : ℝ => (fun _ : ℝ => (1 : ℂ)) s + z * ((s : ℂ) - z)⁻¹ :=
+  have hsm : Measurable fun s : ℝ => (1 : ℂ) + z * ((s : ℂ) - z)⁻¹ :=
     measurable_const.add hzm
-  have hsb : ∃ C, ∀ s : ℝ, ‖(fun _ : ℝ => (1 : ℂ)) s + z * ((s : ℂ) - z)⁻¹‖ ≤ C :=
+  have hsb : ∃ C, ∀ s : ℝ, ‖(1 : ℂ) + z * ((s : ℂ) - z)⁻¹‖ ≤ C :=
     bounded_add ⟨1, fun _ => norm_one.le⟩ hzb
   have hfun : (fun s : ℝ => (s : ℂ) * ((s : ℂ) - z)⁻¹)
-      = fun s : ℝ => (fun _ : ℝ => (1 : ℂ)) s + z * ((s : ℂ) - z)⁻¹ :=
+      = fun s : ℝ => (1 : ℂ) + z * ((s : ℂ) - z)⁻¹ :=
     funext fun s => id_mul_kernel_decomp z hz s
   -- `Φ(s·f_z) = 1 + z • Φ(f_z)`.
   have hsplit : spectralCalculus U_grp (fun s : ℝ => (s : ℂ) * ((s : ℂ) - z)⁻¹)
@@ -159,10 +150,8 @@ theorem resolvent_eq_spectralCalculus (z : ℂ) (hz : z.im ≠ 0) :
             (kernel_measurable z hz) (kernel_bdd z hz) := by
     rw [spectralCalculus_congr U_grp hfun (id_mul_kernel_measurable z hz)
         (id_mul_kernel_bdd z hz) hsm hsb,
-      spectralCalculus_add U_grp _ _ measurable_const ⟨1, fun _ => norm_one.le⟩
-        hzm hzb hsm hsb,
-      spectralCalculus_smul U_grp z _ (kernel_measurable z hz) (kernel_bdd z hz) hzm hzb,
-      spectralCalculus_one]
+      spectralCalculus_one_add_smul U_grp z _ (kernel_measurable z hz) (kernel_bdd z hz)
+        hzm hzb hsm hsb]
   -- Hence `(A − z) J = φ`.
   have hAJ : generator U_grp ⟨J, hmem⟩ - z • J = φ := by
     have happ := congrArg (fun T : H →L[ℂ] H => T φ) hsplit

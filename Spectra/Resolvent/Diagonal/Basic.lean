@@ -5,18 +5,55 @@ Authors: Adam Bornemann
 -/
 import Spectra.Resolvent.Diagonal.IntegralZ.Basic
 
+/-!
+# The Resolvent Diagonal: Laplace Representation and Nevanlinna Identity
+
+This file develops the Herglotz/Nevanlinna machinery for the resolvent diagonal
+`⟪ξ, R(z)ξ⟫`: its representation as a one-sided Laplace transform of the group
+`t ↦ ⟪ξ, U(t)ξ⟫`, the Nevanlinna sign identity `Im ⟪ξ, R(z)ξ⟫ = (Im z)·‖R(z)ξ‖²` that makes
+`z ↦ ⟪ξ, R(z)ξ⟫` a Herglotz (Nevanlinna) function, continuity of the resolvent along a
+horizontal strip, and the conjugate-symmetry pair relating `R(λ+iε)` to `R(λ-iε)`.
+
+## Main statements
+
+* `resolvent_diag_laplace` — `⟪ξ, R(z)ξ⟫ = (-i) ∫₀^∞ e^{-izt} ⟪ξ, U(t)ξ⟫ dt` for `Im z < 0`.
+* `im_resolvent_diag` — the **Nevanlinna identity** `Im ⟪ξ, R(z)ξ⟫ = (Im z)·‖R(z)ξ‖²`.
+* `laplace_exp`, `cauchy_kernel_laplace_neg_im` — the scalar Laplace transform of a character
+  and its Cauchy-kernel corollary, the model case behind `resolvent_diag_laplace`.
+* `resolvent_continuous_at_height` — `λ ↦ R(λ+iε)ξ` is continuous on a horizontal strip.
+* `resolvent_diag_lower_laplace`, `resolvent_diag_upper_eq_conj` — the lower-half-plane Laplace
+  form and the conjugate-symmetry identity `⟪ξ, R(λ+iε)ξ⟫ = conj ⟪ξ, R(λ-iε)ξ⟫`.
+
+## Implementation notes
+
+`resolvent_diag_laplace` and `resolvent_diag_lower_laplace` are stated for `Im z < 0` (resp.
+`Im z = -ε < 0`) because the Laplace integral `∫₀^∞ e^{-izt} f(t) dt` only converges for `z` in
+the lower half-plane (the integrand decays as `e^{(Im z)t}`). `im_resolvent_diag` and
+`resolvent_continuous_at_height`, by contrast, hold for the general `hz : z.im ≠ 0` split
+carried by `resolvent` itself, so they take the full `hsym`/`hplus`/`hminus` hypothesis triple
+rather than the group-based `U_grp` package. The upper-half-plane case is recovered from the
+lower one via `resolvent_diag_upper_eq_conj`'s conjugate symmetry rather than a second Laplace
+computation.
+
+## References
+
+* [Reed, Simon, *Methods of Modern Mathematical Physics I*][reed1980], Section VIII.4
+* [Kato, *Perturbation Theory for Linear Operators*][kato1995], Section V.3
+-/
+
 open scoped InnerProductSpace
 open Complex MeasureTheory
 open Spectra.OneParameterUnitaryGroup
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
 namespace Spectra.Resolvent
 variable (U_grp : OneParameterUnitaryGroup (H := H))
+variable {A : H →ₗ.[ℂ] H} (hsym : A.IsFormalAdjoint A)
+  (hplus  : ∀ φ : H, ∃ ψ : A.domain, A ψ + I • (ψ : H) = φ)
+  (hminus : ∀ φ : H, ∃ ψ : A.domain, A ψ - I • (ψ : H) = φ)
 
-/-- The resolvent diagonal `⟪ξ, R(z)ξ⟫` is `(-i)` times the Laplace transform of
-`t ↦ ⟪ξ, U(t)ξ⟫` on `[0,∞)`, valid for `Im z < 0`. -/
-lemma resolvent_diag_laplace
-    {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
-    (U_grp : OneParameterUnitaryGroup (H := H)) (ξ : H) {z : ℂ} (hz : z.im < 0) :
+/-- The **resolvent diagonal Laplace representation**: `⟪ξ, R(z)ξ⟫` is `(-i)` times the
+Laplace transform of `t ↦ ⟪ξ, U(t)ξ⟫` on `[0,∞)`, valid for `Im z < 0`. -/
+lemma resolvent_diag_laplace (ξ : H) {z : ℂ} (hz : z.im < 0) :
     ⟪ξ, resolvent z (ne_of_lt hz)
           (generator_isFormalAdjoint U_grp)
           (range_plus_i_eq_top U_grp) (range_minus_i_eq_top U_grp) ξ⟫_ℂ
@@ -28,14 +65,9 @@ lemma resolvent_diag_laplace
   refine setIntegral_congr_fun measurableSet_Ici (fun t _ => ?_)
   simp [innerSL_apply_apply]
 
-
-/-- Nevanlinna identity for the resolvent diagonal: `Im ⟪ξ, R(z) ξ⟫ = (Im z) · ‖R(z) ξ‖²`. -/
-lemma im_resolvent_diag
-    {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
-    {A : H →ₗ.[ℂ] H} (hsym : A.IsFormalAdjoint A)
-    (hplus  : ∀ φ : H, ∃ ψ : A.domain, A ψ + I • (ψ : H) = φ)
-    (hminus : ∀ φ : H, ∃ ψ : A.domain, A ψ - I • (ψ : H) = φ)
-    (z : ℂ) (hz : z.im ≠ 0) (ξ : H) :
+/-- The **Nevanlinna identity** for the resolvent diagonal:
+`Im ⟪ξ, R(z) ξ⟫ = (Im z) · ‖R(z) ξ‖²`. -/
+lemma im_resolvent_diag (z : ℂ) (hz : z.im ≠ 0) (ξ : H) :
     (⟪ξ, resolvent z hz hsym hplus hminus ξ⟫_ℂ).im
       = z.im * ‖resolvent z hz hsym hplus hminus ξ‖ ^ 2 := by
   let ψ_sub : A.domain :=
@@ -54,9 +86,9 @@ lemma im_resolvent_diag
              h1, h2im, h2re]
   ring
 
-/-- The one-sided Laplace transform of a character:
-`∫₀^∞ e^{-izt} e^{ilambdat} dt = i/(lambda - z)`, valid when
-`Im(lambda - z) > 0` so the integrand decays. -/
+/-- The **one-sided Laplace transform of a character**:
+`∫₀^∞ e^{-izt} e^{iλt} dt = i/(λ - z)`, valid when
+`Im(λ - z) > 0` so the integrand decays. -/
 lemma laplace_exp {z lambda : ℂ} (h : (lambda - z).im > 0) :
     ∫ t in Set.Ici (0 : ℝ), cexp (-(I * z * t)) *
     cexp (I * lambda * t) = I / (lambda - z) := by
@@ -77,24 +109,20 @@ lemma laplace_exp {z lambda : ℂ} (h : (lambda - z).im > 0) :
   simp only [Complex.ofReal_zero, mul_zero, Complex.exp_zero, neg_div,
     one_div, mul_inv, Complex.inv_I, neg_neg, ← div_eq_mul_inv]
 
-/-- For `w` in the lower half-plane, the Cauchy kernel admits the Laplace
-representation `(λ - w)⁻¹ = -i ∫₀^∞ e^{-iwt} e^{iλt} dt`. Direct corollary
-of `laplace_exp`. -/
-lemma cauchy_kernel_laplace_neg_im {w : ℂ} (hw : w.im < 0) (lam : ℝ) :
-    ((lam : ℂ) - w)⁻¹
+/-- For `w` in the lower half-plane, the **Cauchy kernel's Laplace representation**
+`(λ - w)⁻¹ = -i ∫₀^∞ e^{-iwt} e^{iλt} dt`. Direct corollary of `laplace_exp`. -/
+lemma cauchy_kernel_laplace_neg_im {w : ℂ} (hw : w.im < 0) (lambda : ℝ) :
+    ((lambda : ℂ) - w)⁻¹
       = -I * ∫ t in Set.Ici (0 : ℝ),
-          Complex.exp (-(I * w * (t : ℂ))) * Complex.exp (I * (lam : ℂ) * (t : ℂ)) := by
-  have hpos : ((lam : ℂ) - w).im > 0 := by
+          Complex.exp (-(I * w * (t : ℂ))) * Complex.exp (I * (lambda : ℂ) * (t : ℂ)) := by
+  have hpos : ((lambda : ℂ) - w).im > 0 := by
     simp only [Complex.sub_im, Complex.ofReal_im]; linarith
   rw [laplace_exp hpos, ← mul_div_assoc, neg_mul, Complex.I_mul_I, neg_neg, one_div]
 
-/-- On the strip `Im z = ε > 0`, `λ ↦ R(⟨λ,ε⟩)ξ`
-is Lipschitz (constant `‖ξ‖/ε²`), hence continuous. -/
-lemma resolvent_continuous_at_height
-    {A : H →ₗ.[ℂ] H} (hsym : A.IsFormalAdjoint A)
-    (hplus  : ∀ φ : H, ∃ ψ : A.domain, A ψ + I • (ψ : H) = φ)
-    (hminus : ∀ φ : H, ∃ ψ : A.domain, A ψ - I • (ψ : H) = φ)
-    {ε : ℝ} (hε : 0 < ε) (ξ : H) :
+/-- On the strip `Im z = ε > 0`, `λ ↦ R(⟨λ,ε⟩)ξ` is **continuous** — the proof bounds
+`‖R(λ+iε)ξ - R(λ₀+iε)ξ‖` by `|λ - λ₀| · (‖ξ‖/ε² + 1)` via the resolvent identity, which is
+slightly weaker than a genuine `LipschitzWith (‖ξ‖/ε²)` bound. -/
+lemma resolvent_continuous_at_height {ε : ℝ} (hε : 0 < ε) (ξ : H) :
     Continuous (fun lambda : ℝ =>
       resolvent (⟨lambda, ε⟩ : ℂ) hε.ne' hsym hplus hminus ξ) := by
   rw [Metric.continuous_iff]
@@ -151,11 +179,9 @@ lemma resolvent_continuous_at_height
           exact mul_lt_mul_of_pos_right hlambda hK_pos
     _ = δ                                   := by field_simp
 
-/-- Laplace representation of the resolvent diagonal in the lower half-plane:
-    `⟨ξ, R(λ - iε)ξ⟩ = -i ∫₀^∞ e^{-iλt} e^{-εt} f(t) dt`. -/
-lemma resolvent_diag_lower_laplace
-    (U_grp : OneParameterUnitaryGroup (H := H)) (ξ : H)
-    {ε : ℝ} (hε : 0 < ε) (lambda : ℝ) :
+/-- The **lower-half-plane Laplace representation** of the resolvent diagonal:
+`⟨ξ, R(λ - iε)ξ⟩ = -i ∫₀^∞ e^{-iλt} e^{-εt} f(t) dt`. -/
+lemma resolvent_diag_lower_laplace (ξ : H) {ε : ℝ} (hε : 0 < ε) (lambda : ℝ) :
     ⟪ξ, resolvent (⟨lambda, -ε⟩ : ℂ)
             (by show (-ε : ℝ) ≠ 0; exact neg_ne_zero.mpr hε.ne')
             (generator_isFormalAdjoint U_grp)
@@ -196,10 +222,9 @@ lemma resolvent_diag_lower_laplace
     simp only [ofReal_mul, ofReal_neg]
   rw [h_split]
 
-/-- `⟨ξ, R(λ+iε)ξ⟩ = conj ⟨ξ, R(λ-iε)ξ⟩` -/
-lemma resolvent_diag_upper_eq_conj
-    (U_grp : OneParameterUnitaryGroup (H := H)) (ξ : H)
-    {ε : ℝ} (hε : 0 < ε) (lambda : ℝ) :
+/-- The **upper/lower conjugate symmetry** of the resolvent diagonal:
+`⟨ξ, R(λ+iε)ξ⟩ = conj ⟨ξ, R(λ-iε)ξ⟩`. -/
+lemma resolvent_diag_upper_eq_conj (ξ : H) {ε : ℝ} (hε : 0 < ε) (lambda : ℝ) :
     ⟪ξ, resolvent (⟨lambda, ε⟩ : ℂ) hε.ne'
             (generator_isFormalAdjoint U_grp)
             (range_plus_i_eq_top U_grp)
@@ -215,16 +240,16 @@ lemma resolvent_diag_upper_eq_conj
         (range_plus_i_eq_top U_grp)
         (range_minus_i_eq_top U_grp)
         (⟨lambda, -ε⟩ : ℂ) hz_neg_ne
-  conv_lhs =>
-    rw [show resolvent (⟨lambda, ε⟩ : ℂ) hε.ne'
-              (generator_isFormalAdjoint U_grp)
-              (range_plus_i_eq_top U_grp)
-              (range_minus_i_eq_top U_grp)
-            = (resolvent (⟨lambda, -ε⟩ : ℂ) hz_neg_ne
-                (generator_isFormalAdjoint U_grp)
-                (range_plus_i_eq_top U_grp)
-                (range_minus_i_eq_top U_grp)).adjoint from by
-          rw [h_adj]; congr 1; apply Complex.ext <;> simp]
+  have h_eq : resolvent (⟨lambda, ε⟩ : ℂ) hε.ne'
+        (generator_isFormalAdjoint U_grp)
+        (range_plus_i_eq_top U_grp)
+        (range_minus_i_eq_top U_grp)
+      = (resolvent (⟨lambda, -ε⟩ : ℂ) hz_neg_ne
+          (generator_isFormalAdjoint U_grp)
+          (range_plus_i_eq_top U_grp)
+          (range_minus_i_eq_top U_grp)).adjoint := by
+    rw [h_adj]; congr 1; apply Complex.ext <;> simp
+  conv_lhs => rw [h_eq]
   rw [ContinuousLinearMap.adjoint_inner_right, inner_conj_symm]
 
 end Spectra.Resolvent

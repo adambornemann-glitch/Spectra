@@ -5,6 +5,8 @@ Authors: Adam Bornemann
 -/
 import Spectra.Herglotz.Stieltjes.IntegralConv
 import Spectra.Herglotz.Stieltjes.Hellys
+import Spectra.Herglotz.FejerMeasure
+import Mathlib.MeasureTheory.Measure.Lebesgue.Basic
 /-!
 # Herglotz's Lemma (Stieltjes Version)
 

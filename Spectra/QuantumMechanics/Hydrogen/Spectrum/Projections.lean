@@ -28,7 +28,7 @@ the `ℂ`-span of the `n²` degeneracy eigenfunctions `ψ_{nℓm}`.
   eigenspace characterization `spectralPVM_proj_singleton_eq_self_iff` (*G1*) and the
   fact that the range of the (idempotent) projection is its fixed-point set.
 * `hydrogen_spectral_projection_finrank` — `dim range E({Eₙ}) = n²`, the spectral form of
-  the degeneracy theorem (`hydrogen_degeneracy`), transported along the unitary
+  the degeneracy count (`degenFamily_span_finrank`), transported along the unitary
   `chartRealization`.
 
 These results identify the discrete spectral subspaces of hydrogen and pin their
@@ -146,7 +146,7 @@ theorem hydrogen_spectral_projection_discrete (n : ℕ) (hn : 1 ≤ n) :
 
 /-- **Degeneracy of the `n`-th spectral subspace.**  `dim range E({Eₙ}) = n²`.
 
-The spectral form of `hydrogen_degeneracy`: the dimension of the range of `E({Eₙ})` equals `n²`.
+The spectral form of `degenFamily_span_finrank`: the dimension of the range of `E({Eₙ})` equals `n²`.
 Transported from the spherical-side degeneracy count along the unitary `chartRealization` (which
 maps `span (degenFamily n)` isometrically onto `span (chartRealization.symm ∘ degenFamily n)`,
 preserving dimension). -/
@@ -159,7 +159,7 @@ theorem hydrogen_spectral_projection_finrank (n : ℕ) (hn : 1 ≤ n) :
       = n ^ 2 := by
   -- the transported family is linearly independent (image of the orthonormal degeneracy family
   -- under the injective linear isometry `chartRealization.symm`), so the dimension of its span is
-  -- its cardinality `n²` — mirroring `hydrogen_degeneracy`.
+  -- its cardinality `n²` — mirroring `degenFamily_span_finrank`.
   have hLI : LinearIndependent ℂ (fun i => chartRealization.symm (degenFamily n i)) :=
     (orthonormal_degenFamily n).linearIndependent.map'
       chartRealization.symm.toLinearEquiv.toLinearMap
