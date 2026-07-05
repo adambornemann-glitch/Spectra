@@ -11,7 +11,7 @@ import Spectra.QuantumMechanics.Hydrogen.RadialProblem.Laguerre.Complete
 The exponential generating function `Σₙ Lₙ^{(α)}(x) tⁿ = exp(-xt/(1-t))/(1-t)^{α+1}` for the
 associated Laguerre polynomials `laguerrePolynomial` (defined in `Laguerre/Orthogonality.lean`).
 
-## Main results
+## Main statements
 
 * `laguerre_generating_function` — the headline identity, proved by regrouping the absolutely
   summable double series `Σ_{k,m} (-1)^k xᵏ/k! · C(α+k+m,m) · t^(k+m)` over `ℕ × ℕ`: summing along

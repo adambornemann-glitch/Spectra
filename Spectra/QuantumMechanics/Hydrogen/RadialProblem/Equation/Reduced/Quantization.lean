@@ -18,7 +18,10 @@ classical radial quantization theorem.
 ## Main statements
 
 * `reduced_ode` — the radial equation transformed to the reduced Schrödinger form.
+* `kummerRadial_solves` — the regular Kummer solution `φ` solves the reduced radial equation.
 * `reduced_radial_L2_quantized` — negative-energy reduced `L²` solutions are quantized.
+* `reduced_eigenfunction_solves` — the known eigenfunction `r·R_{mℓ}` satisfies the reduced
+  equation (consistency witness for the analytic core).
 * `radial_quantization` — classical radial bound states occur exactly at `E_n`.
 
 ## References
@@ -161,9 +164,9 @@ The reduced equation is solved by separating the boundary behaviour: a regular
 solution has the form `χ = r^{ℓ+1} e^{-κr} w` with `w` analytic. The lemmas below
 prove (purely mechanically) that this ansatz solves the reduced radial equation
 *iff* `w` solves the confluent (Laguerre/Kummer) ODE. This is the substitution at
-the heart of the quantization argument; what remains open is the *asymptotics* of
-the Kummer solution `w` (termination ⇔ `L²`), isolated in
-`reduced_radial_L2_quantized`. -/
+the heart of the quantization argument; the remaining ingredient — the *asymptotics*
+of the Kummer solution `w` (termination ⇔ `L²`) — is supplied downstream and
+assembled into the (sorry-free) `reduced_radial_L2_quantized`. -/
 
 /-- First derivative of the ansatz `χ = r^{ℓ+1} e^{-κr} w`. -/
 private lemma deriv_ansatz (ℓ : ℕ) (κ : ℝ) (w : ℝ → ℝ) {r : ℝ}
@@ -257,7 +260,8 @@ lemma laguerre_ansatz_residual (ℓ : ℕ) (κ : ℝ) (w : ℝ → ℝ)
     radial equation `χ'' = (ℓ(ℓ+1)/r² − 2/r + κ²)·χ` at `r > 0` *iff* `w` solves
     the confluent (Laguerre) ODE there, written in the variable `r`:
     `r·w'' + (2ℓ+2 − 2κr)·w' + (2 − 2(ℓ+1)κ)·w = 0`. This is the exact substitution
-    underlying `reduced_radial_L2_quantized`; only the *asymptotics* of `w` remain. -/
+    underlying `reduced_radial_L2_quantized`; the *asymptotics* of `w` are then handled
+    downstream (both are proved sorry-free). -/
 lemma laguerre_ansatz_reduced_iff (ℓ : ℕ) (κ : ℝ) (w : ℝ → ℝ)
     (hw1 : ∀ s, 0 < s → HasDerivAt w (deriv w s) s)
     (hw2 : ∀ s, 0 < s → HasDerivAt (deriv w) (deriv^[2] w s) s)
@@ -312,6 +316,7 @@ noncomputable def kummerRadial (ℓ : ℕ) (κ : ℝ) : ℝ → ℝ :=
 
 /-! ### Chain-rule derivatives of `w(s) = M(a,b,2κs)` -/
 
+/-- Chain rule for `w(s) = M(a,b,2κs)`: `w' r = 2κ · M'(a,b,2κr)`. -/
 private lemma kummerComp_hasDerivAt (a b κ : ℝ) (hb : 0 < b) (r : ℝ) :
     HasDerivAt (fun s => kummerM a b (2 * κ * s)) (2 * κ * deriv (kummerM a b) (2 * κ * r)) r := by
   have h1 : HasDerivAt (kummerM a b) (deriv (kummerM a b) (2 * κ * r)) (2 * κ * r) :=
@@ -323,10 +328,13 @@ private lemma kummerComp_hasDerivAt (a b κ : ℝ) (hb : 0 < b) (r : ℝ) :
   convert hc using 1
   ring
 
+/-- Closed form of `deriv (w)` for `w(s) = M(a,b,2κs)`. -/
 private lemma kummerComp_deriv (a b κ : ℝ) (hb : 0 < b) (r : ℝ) :
     deriv (fun s => kummerM a b (2 * κ * s)) r = 2 * κ * deriv (kummerM a b) (2 * κ * r) :=
   (kummerComp_hasDerivAt a b κ hb r).deriv
 
+/-- Second-derivative chain rule for `w(s) = M(a,b,2κs)`:
+`(w)'' r = 4κ² · M''(a,b,2κr)`. -/
 private lemma kummerComp_hasDerivAt2 (a b κ : ℝ) (hb : 0 < b) (r : ℝ) :
     HasDerivAt (deriv (fun s => kummerM a b (2 * κ * s)))
       (4 * κ ^ 2 * deriv (deriv (kummerM a b)) (2 * κ * r)) r := by
@@ -344,6 +352,7 @@ private lemma kummerComp_hasDerivAt2 (a b κ : ℝ) (hb : 0 < b) (r : ℝ) :
   convert hc using 1
   ring
 
+/-- Closed form of `deriv^[2] (w)` for `w(s) = M(a,b,2κs)`. -/
 private lemma kummerComp_deriv2 (a b κ : ℝ) (hb : 0 < b) (r : ℝ) :
     deriv^[2] (fun s => kummerM a b (2 * κ * s)) r
       = 4 * κ ^ 2 * deriv (deriv (kummerM a b)) (2 * κ * r) := by
@@ -352,6 +361,10 @@ private lemma kummerComp_deriv2 (a b κ : ℝ) (hb : 0 < b) (r : ℝ) :
 
 /-! ### Part A: `φ` solves the reduced radial ODE -/
 
+/-- **The regular Kummer solution solves the reduced radial equation.** For `κ > 0` and `r > 0`,
+    `φ = kummerRadial ℓ κ` satisfies `φ''(r) = (ℓ(ℓ+1)/r² − 2/r + κ²)·φ(r)`. Proved by feeding the
+    Kummer ODE (`Spectra.Kummer.kummerM_ode`) through the ansatz bridge
+    `laguerre_ansatz_reduced_iff`. -/
 theorem kummerRadial_solves (ℓ : ℕ) (κ : ℝ) (hκ : 0 < κ) {r : ℝ} (hr : 0 < r) :
     deriv^[2] (kummerRadial ℓ κ) r
       = ((ℓ : ℝ) * ((ℓ : ℝ) + 1) / r ^ 2 - 2 / r + κ ^ 2) * kummerRadial ℓ κ r := by
@@ -380,25 +393,31 @@ theorem kummerRadial_solves (ℓ : ℕ) (κ : ℝ) (hκ : 0 < κ) {r : ℝ} (hr 
 
 /-! ### Differentiability / continuity of `M` and `φ` -/
 
+/-- `M(a,b,·)` is differentiable (for `b > 0`). -/
 private lemma kummerM_differentiable (a b : ℝ) (hb : 0 < b) : Differentiable ℝ (kummerM a b) :=
   fun z => (kummerM_hasDerivAt a b hb z).differentiableAt
 
+/-- `M'(a,b,·)` is differentiable (for `b > 0`). -/
 private lemma kummerM_deriv_differentiable (a b : ℝ) (hb : 0 < b) :
     Differentiable ℝ (deriv (kummerM a b)) :=
   fun z => (kummerM_hasDerivAt2 a b hb z).differentiableAt
 
+/-- `M(a,b,·)` is continuous (for `b > 0`). -/
 private lemma kummerM_continuous (a b : ℝ) (hb : 0 < b) : Continuous (kummerM a b) :=
   (kummerM_differentiable a b hb).continuous
 
+/-- Definitional unfolding of `kummerRadial ℓ κ`. -/
 private lemma kummerRadial_eq (ℓ : ℕ) (κ : ℝ) :
     kummerRadial ℓ κ = fun r => r ^ (ℓ + 1) * Real.exp (-κ * r) *
       kummerM ((ℓ : ℝ) + 1 - 1 / κ) (2 * (ℓ : ℝ) + 2) (2 * κ * r) := rfl
 
+/-- `φ(r)` written as `r^{ℓ+1}` times the `e^{−κr} · M(…)` factor. -/
 private lemma kummerRadial_factor (ℓ : ℕ) (κ : ℝ) (r : ℝ) :
     kummerRadial ℓ κ r = r ^ (ℓ + 1) *
       (Real.exp (-κ * r) * kummerM ((ℓ : ℝ) + 1 - 1 / κ) (2 * (ℓ : ℝ) + 2) (2 * κ * r)) := by
   rw [kummerRadial]; ring
 
+/-- `φ = kummerRadial ℓ κ` is differentiable on `ℝ`. -/
 private lemma kummerRadial_differentiable (ℓ : ℕ) (κ : ℝ) :
     Differentiable ℝ (kummerRadial ℓ κ) := by
   set a := (ℓ : ℝ) + 1 - 1 / κ
@@ -409,6 +428,7 @@ private lemma kummerRadial_differentiable (ℓ : ℕ) (κ : ℝ) :
     (kummerM_differentiable a b hb).comp (by fun_prop)
   exact (((differentiable_id.pow (ℓ + 1)).mul (Real.differentiable_exp.comp (by fun_prop))).mul hM)
 
+/-- `φ = kummerRadial ℓ κ` is continuous on `ℝ`. -/
 private lemma kummerRadial_continuous (ℓ : ℕ) (κ : ℝ) : Continuous (kummerRadial ℓ κ) :=
   (kummerRadial_differentiable ℓ κ).continuous
 
@@ -440,6 +460,7 @@ private lemma kummerRadial_deriv_eq (ℓ : ℕ) (κ : ℝ) :
   simp only [Pi.mul_apply]
   ring
 
+/-- `deriv φ` is itself differentiable on `ℝ` (so `φ` is `C²`). -/
 private lemma kummerRadial_deriv_differentiable (ℓ : ℕ) (κ : ℝ) :
     Differentiable ℝ (deriv (kummerRadial ℓ κ)) := by
   set a := (ℓ : ℝ) + 1 - 1 / κ
@@ -454,9 +475,11 @@ private lemma kummerRadial_deriv_differentiable (ℓ : ℕ) (κ : ℝ) :
 
 /-! ### Part B: behaviour of `φ` near `0` and at `∞` -/
 
+/-- `φ(0) = 0` (the regular solution vanishes at the origin). -/
 private lemma kummerRadial_zero (ℓ : ℕ) (κ : ℝ) : kummerRadial ℓ κ 0 = 0 := by
   rw [kummerRadial]; simp
 
+/-- `φ(r) → 0` as `r → 0⁺` (regularity of `φ` at the origin). -/
 private lemma kummerRadial_tendsto_zero (ℓ : ℕ) (κ : ℝ) :
     Filter.Tendsto (kummerRadial ℓ κ) (nhdsWithin 0 (Set.Ioi 0)) (nhds 0) := by
   have h := ((kummerRadial_continuous ℓ κ).tendsto 0)

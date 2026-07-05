@@ -11,17 +11,35 @@ import Mathlib.Analysis.Fourier.Convolution
 # The `L²` convolution theorem and the resolvent-kernel identity for `G̃_z`
 
 Mathlib has no `L²`-level convolution–Fourier theorem (only Schwartz–Schwartz and
-integrable+continuous). This file builds the case we need — `L² ⋆ Schwartz` — by **density on the
+integrable+continuous). This file builds the case needed — `L² ⋆ Schwartz` — by **density on the
 `L²` factor**, leaning on the already-proved Young inequality
 `Spectra.CompactOperator.young_L1_conv_L2`, and uses it to identify the Fourier-defined free
 Green's function `G̃_z` (`freeGreensFunctionL2`) as the integral kernel of the free resolvent — with
 **no sphere integral**.
 
+## Main statements
+
 * **S1** `fourier_conv_schwartz_L2` — `𝓕(φ ⋆ χ) =ᵐ 𝓕φ · 𝓕χ` for `φ, χ` Schwartz, bridged to the
   `L²`-Fourier transform `fourierL2` via `SchwartzMap.toLp_fourier_eq`.
+* **S2** `fourier_conv_L2_schwartz` — the `L²`-level convolution–Fourier identity: for `g ∈ L²`
+  and `χ` Schwartz, `fourierL2 (g ⋆ χ) =ᵐ (fourierL2 g) · 𝓕χ`, proved by density on the `L²`
+  factor.
+* **S3** `freeGreens_resolvent_kernel_schwartz` — the resolvent-kernel identity: on Schwartz data
+  the free resolvent `R_z` acts as convolution by the Fourier-defined Green's function `G̃_z`
+  (`freeGreensFunctionL2`), with **no sphere integral**.
+
+Supporting layers:
+* `young_R3` — Young's `L¹ ⋆ L² → L²` inequality over `R3`'s default `volume`, obtained from the
+  banked `young_L1_conv_L2` by bridging the two `MeasurableSpace` instances on `R3` (`hms`,
+  `memLp_borel_invariant`, `ms_default_eq_withLp`, and companions).
+* `memLp_conv_L2_schwartz` — `g ∈ L²`, `χ` Schwartz `⟹ g ⋆ χ ∈ L²`; `conv_comm_mul` — convolution
+  against the multiplication form commutes.
 * density helpers — `memLp_bdd_mul` (multiplication by an `L^∞` symbol is bounded on `L²`),
   `conv_sub_left` (convolution is subtractive in the left slot), `exists_schwartz_seq_tendsto`
-  (`L²`-density of Schwartz functions).
+  (`L²`-density of Schwartz functions), and the two convergences `conv_seqA_tendsto` /
+  `fourier_conv_seqB_tendsto` powering the density argument for S2.
+* Fourier-of-Schwartz helpers — `fourier_schwartz_coe`, `fourier_chi_bound`, `fourier_chi_meas`
+  (`𝓕χ` is the coercion of a Schwartz function, hence uniformly bounded and measurable).
 -/
 
 open MeasureTheory Spectra.Sobolev Spectra.CompactOperator
@@ -33,6 +51,8 @@ namespace Spectra.QuantumMechanics.Hydrogen
 
 /-! ## S1: Schwartz × Schwartz convolution–Fourier identity -/
 
+/-- Pointwise Schwartz × Schwartz convolution–Fourier identity: `𝓕(φ ⋆ χ) x = 𝓕φ x · 𝓕χ x`
+for `φ, χ` Schwartz, in terms of the classical Fourier transform `𝓕`. -/
 theorem fourier_conv_schwartz_pointwise (φ χ : 𝓢(R3, ℂ)) (x : R3) :
     𝓕 ((φ : R3 → ℂ) ⋆[ContinuousLinearMap.mul ℂ ℂ, volume] (χ : R3 → ℂ)) x
       = 𝓕 (φ : R3 → ℂ) x * 𝓕 (χ : R3 → ℂ) x := by
@@ -40,6 +60,7 @@ theorem fourier_conv_schwartz_pointwise (φ χ : 𝓢(R3, ℂ)) (x : R3) :
   rw [SchwartzMap.fourier_convolution, SchwartzMap.pairing_apply_apply] at h1
   rw [← h1, ContinuousLinearMap.mul_apply', SchwartzMap.fourier_coe, SchwartzMap.fourier_coe]
 
+/-- The convolution `φ ⋆ χ` of two Schwartz functions is in `L²`. -/
 theorem memLp_schwartz_conv (φ χ : 𝓢(R3, ℂ)) :
     MemLp ((φ : R3 → ℂ) ⋆[ContinuousLinearMap.mul ℂ ℂ, volume] (χ : R3 → ℂ)) 2 volume := by
   have heq : ((φ : R3 → ℂ) ⋆[ContinuousLinearMap.mul ℂ ℂ, volume] (χ : R3 → ℂ))
@@ -255,7 +276,8 @@ theorem fourierL2_toLp_ae (φ : 𝓢(R3, ℂ)) :
 /-! ## The two convergences powering the density argument -/
 set_option maxHeartbeats 270000 in
 /-- Per-index estimate for `Fₙ → B`: the `L²` distance between `fourierL2 (φ ⋆ χ).toLp` and the
-`L²` symbol `(fourierL2 g · 𝓕χ).toLp` is bounded by `‖𝓕χ‖_∞ · ‖fourierL2 (φ.toLp) − fourierL2 g‖`. -/
+`L²` symbol `(fourierL2 g · 𝓕χ).toLp` is bounded by
+`‖𝓕χ‖_∞ · ‖fourierL2 (φ.toLp) − fourierL2 g‖`. -/
 theorem fourier_conv_seqB_bound (g : l2R3) (χ : 𝓢(R3, ℂ)) (φ : 𝓢(R3, ℂ))
     (memB : MemLp (fun ξ => (fourierL2 g : R3 → ℂ) ξ * 𝓕 (χ : R3 → ℂ) ξ) 2 volume) :
     eLpNorm (⇑(fourierL2 ((memLp_schwartz_conv φ χ).toLp _)) - ⇑(memB.toLp _)) 2 volume

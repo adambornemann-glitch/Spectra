@@ -34,11 +34,20 @@ integrated (via `diracSpinorL2_normSq_integral`) into the operator bound
 `spectralProjection_Ioo_eq_zero_of_norm_ge` engine (shared with other operators in this library),
 which converts a norm lower bound on the generator's domain into vanishing of the spectral
 projection on the corresponding gap.
+
+## References
+
+* [Thaller, *The Dirac Equation*][thaller1992], Section 1.4
+* [Bjorken, Drell, *Relativistic Quantum Mechanics*][bjorkendrell1964], Chapter 3
+
+## Tags
+
+mass gap, Dirac operator, spectral gap, dispersion relation, Plancherel, free Dirac equation,
+relativistic spectrum
 -/
 
 open Complex MeasureTheory Matrix
 open Spectra.Sobolev
-open Spectra.QuantumMechanics.Hydrogen
 open Spectra.OneParameterUnitaryGroup
 open Spectra.QuantumMechanics.SpectralTheory
 

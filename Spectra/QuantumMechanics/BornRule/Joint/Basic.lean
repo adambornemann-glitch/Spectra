@@ -17,18 +17,50 @@ measurable-rectangle semiring of `ℝ × ℝ`, and the rectangle-level foundatio
 G2.1 — the rectangle effect `E_A(S)·E_B(T)` is an orthogonal projection, with the content bridge
 and marginal-defect estimates that drive the tightness argument in `Joint.Measure`.
 
+## Main definitions
+
+* `Spectra.AxisGrid.signAtom` — the Boolean sign-atom of a finite indexed family of measurable
+  sets, the refinement primitive for the joint-measure grid additivity.
+* `jointRectangles` — the measurable rectangles of `ℝ × ℝ`, the semiring underlying the
+  Carathéodory extension in `Joint.Measure`.
+
 ## Main statements
 
 * `Spectra.ProjValMeasure.proj_biUnion`, `tendsto_proj_biUnion` — finite/countable additivity of a
   `ProjValMeasure`'s projections, reusable outside this development.
-* `Spectra.AxisGrid.signAtom`, `proj_eq_sum_signAtom` — the Boolean sign-atom refinement of a finite
-  family of measurable sets, turning a product `E_A(S)·E_B(T)` into a double sum over a common grid.
-* `jointRectangles`, `isSetSemiring_jointRectangles` — the measurable rectangles of `ℝ × ℝ` form a
-  set semiring, the base for the Carathéodory extension in `Joint.Measure`.
+* `Spectra.AxisGrid.proj_eq_sum_signAtom` — the sign-atom refinement, turning a spectral projection
+  of `S j` into a finite sum of projections of atoms (hence a product `E_A(S)·E_B(T)` into a double
+  sum over a common grid).
+* `isSetSemiring_jointRectangles` — the measurable rectangles of `ℝ × ℝ` form a set semiring, the
+  base for the Carathéodory extension in `Joint.Measure`.
 * `jointRect_isStarProjection`, `jointRect_mul` — G2.1: the rectangle effect is an orthogonal
   projection and composes like the spectral projections.
+* `jointRect_orthogonal`, `jointContent_hasSum`, `jointContent_hasSum_diag` — the orthogonality of
+  the `T`-slot rectangle vectors and the resulting one-variable σ-additivity of the rectangle
+  content, in norm² and bimeasure form.
 * `jointRect_diff_defect_le` — the marginal-defect estimate feeding the compact-inner-regularity
   (Alexandrov) discharge of `jointContentRing_tendsto_empty` in `Joint.Measure`.
+
+## Implementation notes
+
+The results before the `Spectra.QuantumMechanics.BornRule` namespace (`Spectra.ProjValMeasure.*`,
+`Spectra.AxisGrid.*`, `jointRectangles`) are generic and reusable; only the `jointRect_*` /
+`jointContent_*` theorems mention the commuting operator pair.  The forward construction that
+consumes them is complete and `sorry`-free: the joint Carathéodory extension lives in
+`Joint.Measure` (`jointScalarMeasure`) and the operator-field polarization in `Joint.Forward`
+(`jointEffect`, `stronglyCommute_iff_jointPVM`).
+
+## References
+
+* [Reed, Simon, *Methods of Modern Mathematical Physics I: Functional Analysis*][reedsimon1980],
+  §§VII–VIII (the spectral theorem, its projection-valued measure, and §VIII.5 the joint spectral
+  measure of commuting self-adjoint operators).
+* [Hall, *Quantum Theory for Mathematicians*][hall2013], Chapters 7, 10 (joint measurability).
+
+## Tags
+
+joint spectral measure, projection-valued measure, strong commutativity, bimeasure, sign atom,
+set semiring, rectangle, Carathéodory extension
 -/
 
 open MeasureTheory Complex Spectra Filter Topology
@@ -172,8 +204,8 @@ end Spectra.ProjValMeasure
 
 /-! ## Axis grids — the Boolean sign-atoms of a finite family of measurable sets
 
-A reusable refinement primitive for the joint-measure grid additivity.  The **sign atom** of a finite
-indexed family `S : ι → Set ℝ` for a sign vector `c : ι → Bool` is the cell
+A reusable refinement primitive for the joint-measure grid additivity.  The **sign atom** of a
+finite indexed family `S : ι → Set ℝ` for a sign vector `c : ι → Bool` is the cell
 `⋂ i, (S i  or  (S i)ᶜ)` lying in `S i` exactly where `c i = true`.  The sign atoms are pairwise
 disjoint and measurable, and each `S j` is the disjoint union of the atoms with `c j = true` — so a
 spectral projection of `S j` is a finite sum of projections of atoms (`proj_eq_sum_signAtom`).  This
@@ -227,13 +259,15 @@ lemma signAtom_biUnion_eq {S : ι → Set ℝ} (j : ι) :
     simp [decide_eq_true_eq]
 
 /-- **The projection refinement.**  A spectral projection of `S j` is the finite sum of the
-projections of the sign atoms with positive `j`-coordinate (`proj_biUnion` over the disjoint atoms). -/
+projections of the sign atoms with positive `j`-coordinate (`proj_biUnion` over the disjoint
+atoms). -/
 lemma proj_eq_sum_signAtom (P : Spectra.ProjValMeasure H) {S : ι → Set ℝ}
     (hS : ∀ i, MeasurableSet (S i)) (j : ι) (hSj : MeasurableSet (S j)) :
     P.proj (S j) hSj = ∑ c ∈ Finset.univ.filter (fun c : ι → Bool => c j = true),
       P.proj (signAtom S c) (signAtom_measurableSet hS c) := by
   classical
-  have hU : MeasurableSet (⋃ c ∈ Finset.univ.filter (fun c : ι → Bool => c j = true), signAtom S c) :=
+  have hU : MeasurableSet
+      (⋃ c ∈ Finset.univ.filter (fun c : ι → Bool => c j = true), signAtom S c) :=
     Finset.measurableSet_biUnion _ fun c _ => signAtom_measurableSet hS c
   rw [← P.proj_congr (signAtom_biUnion_eq j) hU hSj,
     P.proj_biUnion (fun c => signAtom_measurableSet hS c) _
@@ -313,8 +347,10 @@ product of marginals, which `exists_coupling_always` shows is vacuous), extends 
 
 The load-bearing reduction below makes the bimeasure's countable additivity free: for a *fixed*
 `T`, the rectangle value `S ↦ ⟪ξ, E_A(S)·E_B(T) ξ⟫` is *literally* the already-constructed 1-D
-spectral measure of `A` at the vector `E_B(T) ξ`.  (And symmetrically in `S`.)  These are
-`sorry`-free; only the joint Carathéodory extension and the operator-field polarization remain. -/
+spectral measure of `A` at the vector `E_B(T) ξ`.  (And symmetrically in `S`.)  These reductions
+are `sorry`-free, and so is the rest of the forward construction they feed: the joint Carathéodory
+extension is discharged in `Joint.Measure` (`jointScalarMeasure`) and the operator-field
+polarization in `Joint.Forward` (`jointEffect`, `stronglyCommute_iff_jointPVM`). -/
 
 /-- **The rectangle value is a 1-D spectral measure (A-slot).**  For strongly-commuting `A, B`,
 `⟪ξ, E_A(S)·E_B(T) ξ⟫ = μ^A_{E_B(T)ξ}(S)`, where `μ^A_v = A.spectralPVM.diag v` is the existing
@@ -392,7 +428,8 @@ countably additive.  Proof: finite Pythagoras (`norm_sum_sq_orthogonal` via `joi
 + finite additivity (`proj_biUnion`) collapse the partial sums to `E_A(S)·E_B(⋃_{i<N} Tᵢ)ξ`, which
 converge (`tendsto_proj_biUnion`, measure continuity-from-above); `hasSum_iff_tendsto_nat_of_nonneg`
 closes it.  This is the measure-theoretic heart that feeds the `AddContent` extension. -/
-theorem jointContent_hasSum (A B : Spectra.Operator.SelfAdjointOperator H) (hSC : StronglyCommute A B)
+theorem jointContent_hasSum (A B : Spectra.Operator.SelfAdjointOperator H)
+    (hSC : StronglyCommute A B)
     {S : Set ℝ} (hS : MeasurableSet S) {T : ℕ → Set ℝ} (hT : ∀ n, MeasurableSet (T n))
     (hd : Pairwise (fun i j => Disjoint (T i) (T j))) (ξ : H) :
     HasSum (fun n => ‖(A.spectralPVM.proj S hS * B.spectralPVM.proj (T n) (hT n)) ξ‖ ^ 2)
@@ -433,9 +470,10 @@ the rectangle case of `IsProjective`).  The payoff is the **content bridge**
 off directly as σ-additivity of the bimeasure (`jointContent_hasSum_diag`) — the form the
 `AddContent` extension (G2.2) consumes.
 
-Scope: the σ-additivity delivered here is *one-variable* (the `T`-slot, for a fixed `S`, in `.toReal`
-form).  The `ℝ≥0∞` lift and the finite additivity over *arbitrary* disjoint rectangle partitions
-(the `AddContent.sUnion'` obligation, via grid/atom refinement) are the remaining G2.2 nut. -/
+Scope: the σ-additivity delivered here is *one-variable* (the `T`-slot, for a fixed `S`, in
+`.toReal` form).  The `ℝ≥0∞` lift and the finite additivity over *arbitrary* disjoint rectangle
+partitions (the `AddContent.sUnion'` obligation, via grid/atom refinement) are carried out in
+`Joint.Measure`, which assembles these pieces into the finite measure `jointScalarMeasure`. -/
 
 /-- **G2.1 — the rectangle effect is an orthogonal projection.**  For strongly-commuting `A, B`, the
 operator `E_A(S)·E_B(T)` is self-adjoint and idempotent (`IsStarProjection`): the product of the two
@@ -451,8 +489,8 @@ theorem jointRect_isStarProjection (A B : Spectra.Operator.SelfAdjointOperator H
 
 /-- **G2.1 — rectangle multiplicativity.**  The rectangle effects compose like the spectral
 projections: `(E_A(S₁)E_B(T₁))·(E_A(S₂)E_B(T₂)) = E_A(S₁∩S₂)·E_B(T₁∩T₂)`.  Strong commutativity is
-exactly what lets the inner `E_B(T₁)` and `E_A(S₂)` swap; `proj_inter` closes each slot.  This is the
-`proj_inter` of the joint PVM on rectangles — the rectangle case of `IsProjective` (G2.4). -/
+exactly what lets the inner `E_B(T₁)` and `E_A(S₂)` swap; `proj_inter` closes each slot.  This is
+the `proj_inter` of the joint PVM on rectangles — the rectangle case of `IsProjective` (G2.4). -/
 theorem jointRect_mul (A B : Spectra.Operator.SelfAdjointOperator H) (hSC : StronglyCommute A B)
     {S₁ S₂ T₁ T₂ : Set ℝ} (hS₁ : MeasurableSet S₁) (hS₂ : MeasurableSet S₂)
     (hT₁ : MeasurableSet T₁) (hT₂ : MeasurableSet T₂) :
@@ -476,11 +514,12 @@ theorem jointRect_mul (A B : Spectra.Operator.SelfAdjointOperator H) (hSC : Stro
 
 /-- **G2.1 — the content bridge.**  Because the rectangle effect `E_A(S)·E_B(T)` is an orthogonal
 projection (`jointRect_isStarProjection`), its squared norm equals its diagonal:
-`‖E_A(S)E_B(T)ξ‖² = ⟪ξ, E_A(S)E_B(T)ξ⟫.re = μ^A_{E_B(T)ξ}(S)`.  This reconciles the norm² form of the
-σ-additivity crux (`jointContent_hasSum`) with the bimeasure (`jointRect_inner_eq_diag_left`) — the
-nonnegative content the `AddContent` extension (G2.2) actually sums. -/
+`‖E_A(S)E_B(T)ξ‖² = ⟪ξ, E_A(S)E_B(T)ξ⟫.re = μ^A_{E_B(T)ξ}(S)`.  This reconciles the norm² form of
+the σ-additivity crux (`jointContent_hasSum`) with the bimeasure (`jointRect_inner_eq_diag_left`) —
+the nonnegative content the `AddContent` extension (G2.2) actually sums. -/
 theorem jointRect_norm_sq_eq_diag (A B : Spectra.Operator.SelfAdjointOperator H)
-    (hSC : StronglyCommute A B) {S T : Set ℝ} (hS : MeasurableSet S) (hT : MeasurableSet T) (ξ : H) :
+    (hSC : StronglyCommute A B) {S T : Set ℝ} (hS : MeasurableSet S) (hT : MeasurableSet T)
+    (ξ : H) :
     ‖(A.spectralPVM.proj S hS * B.spectralPVM.proj T hT) ξ‖ ^ 2
       = ((A.spectralPVM.diag (B.spectralPVM.proj T hT ξ)) S).toReal := by
   rw [norm_sq_apply_of_isStarProjection (jointRect_isStarProjection A B hSC hS hT) ξ,
@@ -499,7 +538,8 @@ behind the compact-inner-regularity (Alexandrov) discharge of `jointContentRing_
 factors so `E_A(S)E_B(T)ξ = E_B(T)(E_A(S)ξ)`, then `E_B(T)` is a contraction (`norm_proj_apply_le`)
 and `‖E_A(S)ξ‖² = μ^A_ξ(S)` (`norm_sq_proj_apply`).  Uses `StronglyCommute`. -/
 theorem jointRect_norm_sq_le_diag_left (A B : Spectra.Operator.SelfAdjointOperator H)
-    (hSC : StronglyCommute A B) {S T : Set ℝ} (hS : MeasurableSet S) (hT : MeasurableSet T) (ξ : H) :
+    (hSC : StronglyCommute A B) {S T : Set ℝ} (hS : MeasurableSet S) (hT : MeasurableSet T)
+    (ξ : H) :
     ‖(A.spectralPVM.proj S hS * B.spectralPVM.proj T hT) ξ‖ ^ 2
       ≤ ((A.spectralPVM.diag ξ) S).toReal := by
   have hcomm : A.spectralPVM.proj S hS * B.spectralPVM.proj T hT
@@ -508,9 +548,9 @@ theorem jointRect_norm_sq_le_diag_left (A B : Spectra.Operator.SelfAdjointOperat
   gcongr
   exact B.spectralPVM.norm_proj_apply_le T hT _
 
-/-- **B-marginal domination of the rectangle content.**  `‖E_A(S)E_B(T)ξ‖² ≤ μ^B_ξ(T)`.  `E_A(S)` is a
-contraction (`norm_proj_apply_le`) and `‖E_B(T)ξ‖² = μ^B_ξ(T)` (`norm_sq_proj_apply`).  No commutation
-needed. -/
+/-- **B-marginal domination of the rectangle content.**  `‖E_A(S)E_B(T)ξ‖² ≤ μ^B_ξ(T)`.  `E_A(S)`
+is a contraction (`norm_proj_apply_le`) and `‖E_B(T)ξ‖² = μ^B_ξ(T)` (`norm_sq_proj_apply`).  No
+commutation needed. -/
 theorem jointRect_norm_sq_le_diag_right (A B : Spectra.Operator.SelfAdjointOperator H)
     {S T : Set ℝ} (hS : MeasurableSet S) (hT : MeasurableSet T) (ξ : H) :
     ‖(A.spectralPVM.proj S hS * B.spectralPVM.proj T hT) ξ‖ ^ 2
@@ -520,8 +560,8 @@ theorem jointRect_norm_sq_le_diag_right (A B : Spectra.Operator.SelfAdjointOpera
   exact A.spectralPVM.norm_proj_apply_le S hS _
 
 /-- **The marginal-defect estimate — the key tightness input.**  The two rectangle pieces of the
-semiring difference `(S×T) ∖ (S'×T') = (S∖S')×T ⊔ (S∩S')×(T∖T')` have total content bounded by the two
-marginal defects:
+semiring difference `(S×T) ∖ (S'×T') = (S∖S')×T ⊔ (S∩S')×(T∖T')` have total content bounded by the
+two marginal defects:
 `‖E_A(S∖S')E_B(T)ξ‖² + ‖E_A(S∩S')E_B(T∖T')ξ‖² ≤ μ^A_ξ(S∖S') + μ^B_ξ(T∖T')`.
 First piece bounded via `jointRect_norm_sq_le_diag_left` (A-marginal), second via
 `jointRect_norm_sq_le_diag_right` (B-marginal).  When `S'⊆S, T'⊆T` the LHS is exactly

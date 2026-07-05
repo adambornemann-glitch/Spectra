@@ -18,8 +18,8 @@ Cartesian to spherical coordinates on `L²(ℝ³)`:
 
   `chartRealization : Spectra.Sobolev.l2R3 ≃ₗᵢ[ℂ] Decomposition.l2R3`,
 
-i.e. `Lp ℂ 2 (volume : Measure ℝ³) ≃ₗᵢ Lp ℂ 2 (radialMeasure.prod sphereMeasure)`, given by
-precomposition with the spherical chart `(r, θ, φ) ↦ (r sinθ cosφ, r sinθ sinφ, r cosθ)`
+i.e. `Lp ℂ 2 (volume : Measure ℝ³) ≃ₗᵢ Lp ℂ 2 (radialMeasure.prod sphereMeasure)`, given
+by precomposition with the spherical chart `(r, θ, φ) ↦ (r sinθ cosφ, r sinθ sinφ, r cosθ)`
 (Jacobian `r² sinθ`).  Mathlib stops at the 2D `polarCoord`; this is the 3D analogue.
 
 ## Strategy
@@ -33,10 +33,13 @@ Cartesian `EuclideanSpace ℝ (Fin 3)` by `PiLp.volume_preserving_toLp`.  This y
 `measurePreserving_sphereChart`, from which the unitary is assembled via
 `Lp.compMeasurePreservingₗᵢ`; surjectivity is supplied by the explicit a.e. inverse chart.
 
-## Main results
+## Main statements
 
 * `measurePreserving_sphereChart` — the chart is measure-preserving (spherical → Cartesian).
+* `measurePreserving_sphereChartInv` — the (a.e.) inverse chart is measure-preserving
+  (Cartesian → spherical).
 * `eLpNorm_chartRealizationFun` — the eLpNorm change-of-variables identity.
+* `chartRealizationₗᵢ` — the forward isometry `Sobolev.l2R3 →ₗᵢ[ℂ] Decomposition.l2R3`.
 * `chartRealization` — the unitary `Sobolev.l2R3 ≃ₗᵢ[ℂ] Decomposition.l2R3`.
 * `chartRealization_coeFn` / `chartRealization_symm_coeFn` — the unitary and its inverse act,
   almost everywhere, as precomposition with the spherical chart / its (a.e.) inverse chart; this
@@ -206,8 +209,8 @@ theorem injOn_sphereCoordSymmF : Set.InjOn sphereCoordSymmF chartBox := by
 
 /-- Core construction shared by `sphereCoordSymmF_surj_of_ne` and `sphereCoordSymmInvF_spec`:
     given `y` with `y 1 ≠ 0`, the triple `(r, arccos(y 2 / r), φ)` — with
-    `r = ‖(y 0, y 1, y 2)‖` and `φ` the (shifted, if needed) argument of `⟨y 0, y 1⟩` — lies in
-    `chartBox` and reconstructs `y` under `sphereCoordSymmF`. -/
+    `r = ‖(y 0, y 1, y 2)‖` and `φ` the (shifted, if needed) argument of `⟨y 0, y 1⟩` —
+    lies in `chartBox` and reconstructs `y` under `sphereCoordSymmF`. -/
 private theorem sphereCoordSymmInv_spec_aux (y : Fin 3 → ℝ) (hy : y 1 ≠ 0) :
     (![Real.sqrt ((y 0) ^ 2 + (y 1) ^ 2 + (y 2) ^ 2),
         Real.arccos (y 2 / Real.sqrt ((y 0) ^ 2 + (y 1) ^ 2 + (y 2) ^ 2)),
@@ -477,7 +480,8 @@ theorem eLpNorm_chartRealizationFun (g : Spectra.Sobolev.R3 → ℂ)
       = eLpNorm g 2 (volume : Measure Spectra.Sobolev.R3) :=
   eLpNorm_comp_measurePreserving hg measurePreserving_sphereChart
 
-/-- **The forward isometry** `L²(ℝ³, Cartesian) →ₗᵢ L²(ℝ³, spherical)`, `g ↦ g ∘ sphereChart`. -/
+/-- **The forward isometry** `L²(ℝ³, Cartesian) →ₗᵢ L²(ℝ³, spherical)`,
+    `g ↦ g ∘ sphereChart`. -/
 noncomputable def chartRealizationₗᵢ :
     Spectra.Sobolev.l2R3 →ₗᵢ[ℂ]
       Spectra.QuantumMechanics.Hydrogen.Decomposition.l2R3 :=

@@ -23,6 +23,44 @@ All `sorry`-free and axiom-clean.
   integral with the operator product `Φ_A(x·1_N)Φ_B(y·1_N)` (Step A, `joint_product_form`),
   collapse it to `E_A([-N,N])E_B([-N,N])(A(Bξ))` (Step C, `joint_truncated_vector`), and pass to the
   limit.  The bridge to Bell/CHSH.
+
+## Main statements
+
+* `stronglyCommute_iff_jointPVM` — the corrected equivalence between strong commutativity of a pair
+  of self-adjoint operators and the existence of a projective joint POVM with the right cylinder
+  marginals (the multivariate spectral theorem, headline result).
+* `jointEffect`, `jointPOVM` — the operator field and its packaging as a `POVM H (ℝ × ℝ)`.
+* `jointPOVM_isProjective`, `jointPOVM_isJointOf` — the joint POVM is a genuine PVM (G2.4) with the
+  correct cylinder marginals `M(S × ℝ) = E_A(S)`, `M(ℝ × T) = E_B(T)` (G2.5).
+* `jointBornMeasure_correlation` — the cross-moment identity `∫ xy dμ_ξ = ⟪ξ, A(Bξ)⟫.re`.
+
+## Implementation notes
+
+The per-state joint measure `μ_ξ` (built in `Joint.Measure`) is obtained by **Carathéodory
+extension** of the bimeasure rectangle content `μ_ξ(S × T) = ⟪ξ, E_A(S)E_B(T)ξ⟫` along the rectangle
+semiring, with ∅-continuity discharged by an Alexandrov compact-inner-regularity (Route T /
+tightness) argument rather than the more standard product-measure construction — `μ_ξ` is genuinely
+**not** a product measure, which is why Fubini is unavailable in the correlation proof and is
+replaced by the operator product `Φ_A(f)Φ_B(g)`.
+
+The operator field `jointEffect E` is recovered by **polarizing** the real quadratic form
+`ξ ↦ μ_ξ(E)`: each sesquilinearity/multiplicativity identity is proved by Dynkin (π–λ) induction
+over the rectangle π-system, working at the **sesquilinear-form** level (`crossMeasureForm`) where
+σ-additivity is the clean scalar `crossMeasureForm_iUnion` and no operator-topology σ-additivity is
+ever needed.  Riesz packaging (`continuousLinearMapOfBilin`, then adjoint) turns the bounded form
+into the operator.
+
+## References
+
+* [Reed, Simon, *Methods of Modern Mathematical Physics I: Functional Analysis*][reedsimon1980],
+  §VIII.3 (the spectral theorem and its multivariate/joint form for commuting families).
+* [Halmos, *Introduction to Hilbert Space and the Theory of Spectral Multiplicity*][halmos1951]
+  (product spectral measures for commuting normal operators).
+
+## Tags
+
+joint spectral measure, projection-valued measure, PVM, POVM, strong commutativity, multivariate
+spectral theorem, Carathéodory extension, correlation, Bell, CHSH
 -/
 
 open MeasureTheory Complex Spectra Filter Topology
@@ -173,8 +211,9 @@ theorem jointScalarMeasure_compl_toReal (A B : Spectra.Operator.SelfAdjointOpera
     ENNReal.toReal_sub_of_le hle (measure_ne_top _ _), hmass]
 
 /-- **Diagonal of the rectangle effect.**  `μ_ξ(S ×ˢ T) = ⟪ξ, E_A(S)E_B(T) ξ⟫`: the diagonal mass is
-the diagonal of the (self-adjoint, idempotent) rectangle projection (`norm_sq_apply_of_isStarProjection`
-for the real part; idempotence + self-adjointness for vanishing imaginary part). -/
+the diagonal of the (self-adjoint, idempotent) rectangle projection
+(`norm_sq_apply_of_isStarProjection` for the real part; idempotence + self-adjointness for vanishing
+imaginary part). -/
 theorem jointRect_diag_complex (A B : Spectra.Operator.SelfAdjointOperator H) (hSC : StronglyCommute A B)
     {S T : Set ℝ} (hS : MeasurableSet S) (hT : MeasurableSet T) (ξ : H) :
     ((jointScalarMeasure A B hSC ξ (S ×ˢ T)).toReal : ℂ)
@@ -502,9 +541,9 @@ noncomputable def crossMeasureFormBilin (A B : Spectra.Operator.SelfAdjointOpera
     (hSC : StronglyCommute A B) {E : Set (ℝ × ℝ)} (hE : MeasurableSet E) (ψ φ : H) :
     crossMeasureFormBilin A B hSC hE ψ φ = crossMeasureForm A B hSC E ψ φ := rfl
 
-/-- **The joint effect** `jointEffect E`: the operator whose sesquilinear form is `crossMeasureForm E`
-(`continuousLinearMapOfBilin`, adjointed to put the operator in the second inner-product slot, as in
-`spectralCalculus`). -/
+/-- **The joint effect** `jointEffect E`: the operator whose sesquilinear form is
+`crossMeasureForm E` (`continuousLinearMapOfBilin`, adjointed to put the operator in the second
+inner-product slot, as in `spectralCalculus`). -/
 noncomputable def jointEffect (A B : Spectra.Operator.SelfAdjointOperator H) (hSC : StronglyCommute A B)
     {E : Set (ℝ × ℝ)} (hE : MeasurableSet E) : H →L[ℂ] H :=
   ContinuousLinearMap.adjoint
@@ -550,9 +589,9 @@ theorem jointEffect_univ (A B : Spectra.Operator.SelfAdjointOperator H) (hSC : S
 `jointEffect` assembles into a `POVM H (ℝ × ℝ)`: the weld `inner_effect` is `jointEffect_diag`, the
 normalization is `jointEffect_univ`, and the diagonal data is the joint scalar measure `μ_ξ`.  Its
 `IsJointOf A B` is then immediate from rectangle agreement (`jointEffect_rect`) — `M(S × ℝ) =
-E_A(S)·E_B(ℝ) = E_A(S)·1 = E_A(S)`.  (`IsProjective` — operator multiplicativity on *all* sets, G2.4 —
-remains; on rectangles it is `jointRect_mul`, but the extension to the full product σ-algebra needs
-the operator-level σ-additivity of the multivariate spectral theorem.) -/
+E_A(S)·E_B(ℝ) = E_A(S)·1 = E_A(S)`.  `IsProjective` — operator multiplicativity on *all* sets (G2.4)
+— is proved separately as `jointPOVM_isProjective` (at the sesquilinear-form level, no
+operator-topology σ-additivity needed). -/
 
 /-- **The joint POVM** of a strongly-commuting pair: the operator-valued measure on `ℝ²` whose
 effects are `jointEffect` and whose diagonal data is the joint scalar measure `μ_ξ`. -/
@@ -581,8 +620,9 @@ theorem jointPOVM_isJointOf (A B : Spectra.Operator.SelfAdjointOperator H) (hSC 
 
 `jointEffect (B₁ ∩ B₂) = jointEffect B₁ · jointEffect B₂` for *all* measurable `B₁, B₂` — operator
 multiplicativity, the field that upgrades the POVM to a genuine PVM.  Proof: two nested Dynkin
-inductions (`induction_on_inter`) at the **sesquilinear-form** level, where σ-additivity is the clean
-`crossMeasureForm_iUnion` and no operator-topology σ-additivity is ever needed.  The right factor is
+inductions (`induction_on_inter`) at the **sesquilinear-form** level, where σ-additivity is the
+clean `crossMeasureForm_iUnion` and no operator-topology σ-additivity is ever needed.  The right
+factor is
 reduced to a rectangle first (`crossMeasureForm_inter_rect`, induct over `B₁`), then the left factor
 to an arbitrary set (`crossMeasureForm_inter`, induct over `B₂`), using self-adjointness of
 `jointEffect B₁` to keep the inner-product vectors fixed across the second induction. -/
@@ -714,16 +754,17 @@ theorem jointPOVM_isProjective (A B : Spectra.Operator.SelfAdjointOperator H) (h
     (jointPOVM A B hSC).IsProjective :=
   fun _ _ h₁ h₂ => (jointEffect_inter A B hSC h₁ h₂).symm
 
-/-- `[needs spectralPVM + 2D Bochner]` **Commutativity ⟺ a joint spectral measure.**
+/-- **Commutativity ⟺ a joint spectral measure.**
 
 * **Forward** (`StronglyCommute ⟹ joint PVM`): the multivariate spectral theorem — the commuting
   PVMs generate a joint PVM on `ℝ²` with the right cylinder marginals.  This is the genuine new
-  construction (still a `sorry`); it is the two-dimensional analogue of the in-house Herglotz/Stone
-  build (or the product of the two commuting `spectralPVM`s).
+  construction, **proved** here (`jointPOVM`, `jointPOVM_isProjective`, `jointPOVM_isJointOf`); it
+  is the two-dimensional analogue of the in-house Herglotz/Stone build (or the product of the two
+  commuting `spectralPVM`s).
 * **Backward** (`joint PVM ⟹ StronglyCommute`): **proved**, `stronglyCommute_of_jointPVM`.
 
-This replaces the naive `commute_iff_joint_law`: the witness is an operator-valued PVM (`IsJointOf`),
-not a per-state coupling, which is why the equivalence has content. -/
+This replaces the naive `commute_iff_joint_law`: the witness is an operator-valued PVM
+(`IsJointOf`), not a per-state coupling, which is why the equivalence has content. -/
 theorem stronglyCommute_iff_jointPVM (A B : SelfAdjointOperator H) :
     StronglyCommute A B ↔ ∃ M : POVM H (ℝ × ℝ), M.IsProjective ∧ M.IsJointOf A B :=
   ⟨fun hSC => ⟨jointPOVM A B hSC, jointPOVM_isProjective A B hSC, jointPOVM_isJointOf A B hSC⟩,
@@ -733,12 +774,12 @@ theorem stronglyCommute_iff_jointPVM (A B : SelfAdjointOperator H) :
 
 The marginals of `μ_ξ = jointScalarMeasure A B hSC ξ` are `A`'s and `B`'s Born measures
 (`jointBornMeasure_fst/_snd` via `jointPOVM_isJointOf`), so the coordinate second moments are the
-1-D second moments `‖Aξ‖²`, `‖Bξ‖²` (`spectralPVM_integral_sq`).  Cauchy–Schwarz (`MemLp.integrable_mul`,
-`2·2 → 1`) then gives `xy ∈ L¹(μ_ξ)`. -/
+1-D second moments `‖Aξ‖²`, `‖Bξ‖²` (`spectralPVM_integral_sq`).  Cauchy–Schwarz
+(`MemLp.integrable_mul`, `2·2 → 1`) then gives `xy ∈ L¹(μ_ξ)`. -/
 
-/-- **A-coordinate second moment.**  `∫ p.1² dμ_ξ = ‖Aξ‖²` (needs `ξ ∈ D(A)`): push the integral to the
-first marginal `μ_ξ.fst = A.spectralPVM.diag ξ` (`jointBornMeasure_fst`, `integral_map`) and apply the
-1-D second moment `spectralPVM_integral_sq`. -/
+/-- **A-coordinate second moment.**  `∫ p.1² dμ_ξ = ‖Aξ‖²` (needs `ξ ∈ D(A)`): push the integral to
+the first marginal `μ_ξ.fst = A.spectralPVM.diag ξ` (`jointBornMeasure_fst`, `integral_map`) and
+apply the 1-D second moment `spectralPVM_integral_sq`. -/
 theorem jointScalarMeasure_integral_fst_sq (A B : Spectra.Operator.SelfAdjointOperator H)
     (hSC : StronglyCommute A B) {ξ : H} (hξA : ξ ∈ A.domain) :
     ∫ p : ℝ × ℝ, p.1 ^ 2 ∂(jointScalarMeasure A B hSC ξ) = ‖A.toLinearPMap ⟨ξ, hξA⟩‖ ^ 2 := by
@@ -786,8 +827,9 @@ theorem jointScalarMeasure_integrable_snd_sq (A B : Spectra.Operator.SelfAdjoint
     measurable_snd.aemeasurable).mp h2
 
 /-- **The symbol `xy` is integrable** for `ξ ∈ D(A) ∩ D(B)`: both coordinates are in `L²(μ_ξ)`
-(`memLp_two_iff_integrable_sq` + the second moments), so their product is in `L¹` (`MemLp.integrable_mul`,
-Hölder `2·2 → 1`).  The L¹ membership that makes `∫ xy dμ_ξ` an honest absolutely-convergent integral. -/
+(`memLp_two_iff_integrable_sq` + the second moments), so their product is in `L¹`
+(`MemLp.integrable_mul`, Hölder `2·2 → 1`).  The L¹ membership that makes `∫ xy dμ_ξ` an honest
+absolutely-convergent integral. -/
 theorem jointScalarMeasure_integrable_mul (A B : Spectra.Operator.SelfAdjointOperator H)
     (hSC : StronglyCommute A B) {ξ : H} (hξA : ξ ∈ A.domain) (hξB : ξ ∈ B.domain) :
     Integrable (fun p : ℝ × ℝ => p.1 * p.2) (jointScalarMeasure A B hSC ξ) := by
@@ -1080,10 +1122,10 @@ private lemma joint_product_form (A B : Spectra.Operator.SelfAdjointOperator H)
 
 /-- **Step C — the truncated vector identity.**  The operator product applied to `ξ` collapses to
 nested truncated projections of `A(Bξ)`:
-`Φ_A(x·1_N) Φ_B(y·1_N) ξ = E_A([-N,N]) E_B([-N,N]) (A(Bξ))`.  Inside out: `Φ_B(y·1_N)ξ = E_B([-N,N])(Bξ)`
-(`generator_spectralProjection`), then `E_B([-N,N])` preserves `D(A)` and commutes with `A`
-(`generator_commute` + `commute_groupA_projB`), so `Φ_A(x·1_N)` acting on it is `E_A([-N,N])` applied
-to `E_B([-N,N])(A(Bξ))`. -/
+`Φ_A(x·1_N) Φ_B(y·1_N) ξ = E_A([-N,N]) E_B([-N,N]) (A(Bξ))`.  Inside out:
+`Φ_B(y·1_N)ξ = E_B([-N,N])(Bξ)` (`generator_spectralProjection`), then `E_B([-N,N])` preserves
+`D(A)` and commutes with `A` (`generator_commute` + `commute_groupA_projB`), so `Φ_A(x·1_N)` acting
+on it is `E_A([-N,N])` applied to `E_B([-N,N])(A(Bξ))`. -/
 private lemma joint_truncated_vector (A B : Spectra.Operator.SelfAdjointOperator H)
     (hSC : StronglyCommute A B) {ξ : H} (hξ : ξ ∈ B.domain)
     (hξ' : B.toLinearPMap ⟨ξ, hξ⟩ ∈ A.domain) (N : ℕ) :
@@ -1159,17 +1201,18 @@ private lemma joint_truncated_tendsto (A B : Spectra.Operator.SelfAdjointOperato
 
 Stated for the **canonical projective joint PVM** `M = jointPOVM A B hSC` (so
 `jointBornMeasure = jointScalarMeasure = μ_ξ`).  This specialization is essential, **not** cosmetic:
-for a *generic* `M` with only `M.IsJointOf A B`, the cross-moment `∫ xy dμ_ξ` is **under-determined** —
-`IsJointOf` fixes only the cylinder marginals (`jointBornMeasure_fst/_snd`), leaving the rectangle
-coupling free (`POVM.ext_of_diag`), so the identity would be false.  Projectivity forces the rectangle
-values `μ_ξ(S×T) = ⟪ξ, E_A(S)E_B(T)ξ⟫`, which is what carries the correlation.
+for a *generic* `M` with only `M.IsJointOf A B`, the cross-moment `∫ xy dμ_ξ` is
+**under-determined** — `IsJointOf` fixes only the cylinder marginals (`jointBornMeasure_fst/_snd`),
+leaving the rectangle coupling free (`POVM.ext_of_diag`), so the identity would be false.
+Projectivity forces the rectangle values `μ_ξ(S×T) = ⟪ξ, E_A(S)E_B(T)ξ⟫`, which is what carries the
+correlation.
 
 The domain hypotheses are `ξ ∈ D(A) ∩ D(B)` and `Bξ ∈ D(A)`: `ξ ∈ D(B)` and `Bξ ∈ D(A)` make the RHS
 `⟪ξ, A(Bξ)⟫` meaningful, and `ξ ∈ D(A)` is needed for integrability of the symbol `xy` on the LHS
 (`∫ x² dμ_ξ = ‖Aξ‖² < ∞` via the first marginal, then Cauchy–Schwarz with `∫ y² = ‖Bξ‖²`).
 
-Proof (planned): the 2-D analogue of `weak_first_moment` — truncate `xy` to the box `[-N,N]²`, identify
-the truncated integral via the commuting bounded calculi `Φ_A(x·1_N)Φ_B(y·1_N)`, then dominated
+Proof: the 2-D analogue of `weak_first_moment` — truncate `xy` to the box `[-N,N]²`, identify the
+truncated integral via the commuting bounded calculi `Φ_A(x·1_N)Φ_B(y·1_N)`, then dominated
 convergence (left) and the domain-commutation engine `generator_spectralProjection_comm` (right) as
 `N → ∞`.  See the Vault plan `Plan - G3 Correlation.md`. -/
 theorem jointBornMeasure_correlation {A B : Spectra.Operator.SelfAdjointOperator H}

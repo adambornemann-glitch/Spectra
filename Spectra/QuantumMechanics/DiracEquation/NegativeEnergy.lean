@@ -25,12 +25,38 @@ enough out makes `−E₀ < N`.
 
 This file is built bottom-up: this first section is the **matrix/vector layer** (symbol, energy,
 the eigenvector, its nonvanishing component, continuity).
+
+## Main definitions
+
+* `diracFullSymbol` — the full Dirac Fourier symbol `Ĥ(ξ) = 2π(α·ξ) + mc²β`.
+* `diracEnergy` — the on-shell energy `E(ξ) = √((2π‖ξ‖)² + (mc²)²)`.
+* `negEnergyVec` — the fibre eigenvector `w(ξ) = (Ĥ(ξ) − E(ξ)·I) v`.
+* `momBall`, `bumpFn` — the receding high-momentum ball `B(R)` and its L² indicator bump.
+* `wpSpinor` — the negative-energy wavepacket `ψ = 𝓕⁻¹ ψ̂` on `L²(ℝ³; ℂ⁴)`.
+
+## Main results
+
+* `diracFullSymbol_mulVec_negEnergyVec` — the eigen-equation `Ĥ(ξ) w(ξ) = −E(ξ) w(ξ)`.
+* `wpSpinor_ne_zero` — the wavepacket is nonzero (its `0`-component is supported on `B(R)`).
+* `wpSpinor_energy_le` — the energy form is bounded above by `−2π(R−1)·‖ψ‖²`.
+* `dirac_energy_witness` — for every `N` a state with `Re⟪H_D ψ, ψ⟫ < N·‖ψ‖²`.
+* `diracHamiltonian_unbounded_below_unconditional`,
+  `diracHamiltonian_not_semibounded_unconditional` — the unconditional Dirac-sea prediction.
+
+## References
+
+* [Thaller, *The Dirac Equation*][thaller1992], Section 1.4 and Chapter 10 (the negative-energy
+  plane-wave / Dirac-sea construction formalized here)
+
+## Tags
+
+Dirac operator, negative energy, Dirac sea, unbounded below, semiboundedness, wavepacket,
+mass shell, Fourier symbol
 -/
 
 open Complex MeasureTheory Matrix
 open scoped InnerProductSpace
 open Spectra.Sobolev
-open Spectra.QuantumMechanics.Hydrogen
 open Spectra.OneParameterUnitaryGroup
 
 noncomputable section
@@ -215,7 +241,8 @@ lemma momBall_norm_ge (R : ℝ) (hR : 0 ≤ R) (ξ : R3) (hξ : ξ ∈ momBall R
 def bumpFn (R : ℝ) : R3 → ℂ := Set.indicator (momBall R) (fun _ => 1)
 
 /-- **Bounded continuous multiplier × bump is L²**: for `m` continuous, `ξ ↦ m ξ · 1_{B(R)}(ξ)`
-is in `L²`, since `m` is bounded on the compact ball `B(R)` and the bump has finite-measure support. -/
+is in `L²`, since `m` is bounded on the compact ball `B(R)` and the bump has finite-measure
+support. -/
 lemma memLp_mul_bump (R : ℝ) (m : R3 → ℂ) (hm : Continuous m) :
     MemLp (fun ξ => m ξ * bumpFn R ξ) 2 volume := by
   obtain ⟨C, hC⟩ := (isCompact_closedBall (momCenter R) 1).exists_bound_of_continuousOn
@@ -350,18 +377,20 @@ lemma L2_normSq_integral (f : l2R3) : ‖f‖ ^ 2 = ∫ ξ, ‖(f : R3 → ℂ) 
     ← integral_re (MeasureTheory.L2.integrable_inner f f)]
   exact integral_congr_ae (Filter.Eventually.of_forall fun ξ => inner_self_eq_norm_sq _)
 
+/-- The scalar inner-product identity `⟪c·y, y⟫ = ↑(c·‖y‖²)` for real `c` (top-level form). -/
+private lemma inner_ofReal_mul_self (c : ℝ) (y : ℂ) :
+    (⟪(c : ℂ) * y, y⟫_ℂ : ℂ) = ((c * ‖y‖ ^ 2 : ℝ) : ℂ) := by
+  have h : (⟪y, y⟫_ℂ : ℂ) = ((‖y‖ ^ 2 : ℝ) : ℂ) := by
+    rw [inner_self_eq_norm_sq_to_K]; norm_cast
+  rw [show (c : ℂ) * y = (c : ℂ) • y from (smul_eq_mul _ _).symm, inner_smul_left,
+    Complex.conj_ofReal, h, ← Complex.ofReal_mul]
+
 /-- **Per-component energy form**: `Re⟪(H_D ψ)_a, ψ_a⟫ = ∫ −E(ξ)·‖𝓕(ψ)_a(ξ)‖²`, from the eigen
 identity (the `H_D`-image is `−E·ψ̂` componentwise) and Plancherel. -/
 lemma wpSpinor_energy_eq (mc2 R : ℝ) (a : Fin 4) :
     (⟪diracHamiltonian mc2 ⟨wpSpinor mc2 R, wpSpinor_memH1 mc2 R⟩ a, (wpSpinor mc2 R) a⟫_ℂ).re
       = ∫ ξ, -(diracEnergy mc2 ξ)
           * ‖(fourierL2 ((wpSpinor mc2 R) a) : R3 → ℂ) ξ‖ ^ 2 ∂volume := by
-  have hpt : ∀ (c : ℝ) (y : ℂ), (⟪(c : ℂ) * y, y⟫_ℂ : ℂ) = ((c * ‖y‖ ^ 2 : ℝ) : ℂ) := by
-    intro c y
-    have h : (⟪y, y⟫_ℂ : ℂ) = ((‖y‖ ^ 2 : ℝ) : ℂ) := by
-      rw [inner_self_eq_norm_sq_to_K]; norm_cast
-    rw [show (c : ℂ) * y = (c : ℂ) • y from (smul_eq_mul _ _).symm, inner_smul_left,
-      Complex.conj_ofReal, h, ← Complex.ofReal_mul]
   have hceq : (⟪diracHamiltonian mc2 ⟨wpSpinor mc2 R, wpSpinor_memH1 mc2 R⟩ a,
         (wpSpinor mc2 R) a⟫_ℂ)
       = ∫ ξ, ((-(diracEnergy mc2 ξ)
@@ -371,16 +400,8 @@ lemma wpSpinor_energy_eq (mc2 R : ℝ) (a : Fin 4) :
       MeasureTheory.L2.inner_def]
     refine integral_congr_ae ?_
     filter_upwards [wpSpinor_fourier_eigen mc2 R a] with ξ heig
-    rw [heig, ← Complex.ofReal_neg, hpt]
+    rw [heig, ← Complex.ofReal_neg, inner_ofReal_mul_self]
   rw [hceq, integral_complex_ofReal, Complex.ofReal_re]
-
-/-- The scalar inner-product identity `⟪c·y, y⟫ = ↑(c·‖y‖²)` for real `c` (top-level form). -/
-private lemma inner_ofReal_mul_self (c : ℝ) (y : ℂ) :
-    (⟪(c : ℂ) * y, y⟫_ℂ : ℂ) = ((c * ‖y‖ ^ 2 : ℝ) : ℂ) := by
-  have h : (⟪y, y⟫_ℂ : ℂ) = ((‖y‖ ^ 2 : ℝ) : ℂ) := by
-    rw [inner_self_eq_norm_sq_to_K]; norm_cast
-  rw [show (c : ℂ) * y = (c : ℂ) • y from (smul_eq_mul _ _).symm, inner_smul_left,
-    Complex.conj_ofReal, h, ← Complex.ofReal_mul]
 
 /-- **Per-component energy bound**: `Re⟪(H_D ψ)_a, ψ_a⟫ ≤ −2π(R−1)·‖ψ_a‖²`, since `E(ξ) ≥ 2π(R−1)`
 on the high-momentum ball that supports `ψ̂`. -/
@@ -475,7 +496,12 @@ theorem dirac_energy_witness (mc2 : ℝ) (N : ℝ) :
 
 /-! ## Unconditional concrete theorems (Step (b) complete) -/
 
-/-- **The free Dirac operator is unbounded below — unconditional.** -/
+/-- **The free Dirac operator is unbounded below — unconditional.**
+
+The parameter `κ : DiracConstants` is unused filler required only by the abstract-bundle API of
+`diracHamiltonian_unbounded_below`: no field of `κ` appears in the statement or the proof (the
+witness `dirac_energy_witness mc2` does not take `κ` at all). The result is universally true over
+`κ` — it does not depend on the rest mass, `ℏ`, or `c`. -/
 theorem diracHamiltonian_unbounded_below_unconditional (mc2 : ℝ) (κ : DiracConstants) :
     ∀ bound : ℝ, ∃ ψ : (generator (diracUnitaryGroup mc2)).domain,
       (⟪generator (diracUnitaryGroup mc2) ψ, (ψ : DiracSpinorL2)⟫_ℂ).re
@@ -483,7 +509,12 @@ theorem diracHamiltonian_unbounded_below_unconditional (mc2 : ℝ) (κ : DiracCo
   diracHamiltonian_unbounded_below mc2 κ (dirac_energy_witness mc2)
 
 /-- **The free Dirac operator is NOT semibounded — unconditional**: the Dirac-sea / antimatter
-prediction, for the honest operator on `L²(ℝ³; ℂ⁴)`. -/
+prediction, for the honest operator on `L²(ℝ³; ℂ⁴)`.
+
+As in `diracHamiltonian_unbounded_below_unconditional`, the parameter `κ : DiracConstants` is
+unused filler demanded by the abstract-bundle API: no field of `κ` is inspected, the witness
+`dirac_energy_witness mc2` does not take `κ`, and the result holds universally over `κ` —
+independently of the rest mass, `ℏ`, or `c`. -/
 theorem diracHamiltonian_not_semibounded_unconditional (mc2 : ℝ) (κ : DiracConstants) :
     ¬∃ bound : ℝ, ∀ ψ : (generator (diracUnitaryGroup mc2)).domain,
       bound * ‖(ψ : DiracSpinorL2)‖ ^ 2

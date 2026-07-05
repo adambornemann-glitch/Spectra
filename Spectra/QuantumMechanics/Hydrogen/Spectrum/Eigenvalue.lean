@@ -34,9 +34,9 @@ Hilbert-space lift of the radial wavefunction, to prove the eigenvalue equation
   separated chart realization), for the textbook `Z = 1` Hamiltonian.
 * `hydrogen_eigenfunction_orthonormal` — `⟨ψ_{nℓm}, ψ_{n'ℓ'm'}⟩ = δ_{nn'} δ_{ℓℓ'} δ_{mm'}`.
 
-These results reproduce, with complete mathematical rigour, the spectral
-series I computed in January 1926 in Arosa. The eigenvalues agree exactly
-with Bohr's 1913 formula — but now they are *derived*, not postulated.
+These results reproduce, with complete mathematical rigour, Schrödinger's 1926
+spectral series. The eigenvalues agree exactly with Bohr's 1913 formula — but
+here they are *derived*, not postulated.
 
 ## References
 
@@ -60,17 +60,15 @@ open Spectra.QuantumMechanics.Hydrogen.Radial (laguerrePolynomial laguerre_smoot
 /-! ## Separation of the Laplacian
 
 The pointwise separation `−Δ = −(1/r²)∂_r(r²∂_r) + L̂²/r²` (with `L̂² = laplaceBeltrami`
-the angular Laplacian on S²) is developed in `RadialProblem.SphericalLaplacian`:
+the angular Laplacian on S²) is developed in `Laplacian.Spherical`, all sorry-free:
 
-* `sphereChart`, `norm_sphereChart` — the spherical chart `(r,θ,φ) ↦ ℝ³` (proved);
+* `sphereChart`, `norm_sphereChart` — the spherical chart `(r,θ,φ) ↦ ℝ³`;
 * `radialPart_eq` — the radial operator in divergence form equals the expanded form,
-  `(1/r²)∂_r(r²∂_r R) = R″ + (2/r)R′` (proved); this is the radial half at the operator
-  level, matching `RadialEq.radialHamiltonian`;
+  `(1/r²)∂_r(r²∂_r R) = R″ + (2/r)R′`; this is the radial half at the operator level,
+  matching `RadialEq.radialHamiltonian`;
 * `laplacian_comp_norm` — `Δ(g∘‖·‖) = g″ + (2/r)g′` (radial Laplacian of a radial
   function), and `laplacian_separates` — the full pointwise separation on the chart,
-  both stated honestly and left as documented *pure-calculus* gaps (the chain rule
-  through the chart; no missing analytic infrastructure, unlike the
-  confluent-hypergeometric gaps in `RadialEquation.lean`).
+  proved via the per-direction chain rule through the chart curves.
 -/
 
 /-- **The Laplacian within a fixed angular sector `ℓ` (pointwise on the chart).**
@@ -318,6 +316,8 @@ lemma memLp_reducedLp (n ℓ : ℕ) (hn : ℓ + 1 ≤ n) :
 noncomputable def reducedLp (n ℓ : ℕ) (hn : ℓ + 1 ≤ n) : ReducedRadialL2 :=
   (memLp_reducedLp n ℓ hn).toLp _
 
+/-- The `L²` element `reducedLp n ℓ hn` agrees almost everywhere with the pointwise
+    reduced wavefunction `χ_{nℓ}(r) = r·R_{nℓ}(r)` (as a `ℂ`-valued function). -/
 lemma reducedLp_coeFn (n ℓ : ℕ) (hn : ℓ + 1 ≤ n) :
     ⇑(reducedLp n ℓ hn) =ᵐ[(volume : Measure ℝ).restrict (Set.Ioi 0)]
       fun r => ((hydrogenReducedWavefunction n ℓ hn r : ℝ) : ℂ) :=

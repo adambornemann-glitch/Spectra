@@ -11,18 +11,35 @@ import Spectra.QuantumMechanics.Hydrogen.Laplacian.ChartRealization
 /-!
 # Forward direction of the hydrogen discrete spectrum — Phase A plumbing
 
-Foundational, zero-to-moderate-risk lemmas for the **forward direction**
-(`eigenpair ⟹ E = E_n`) of `hydrogen_discrete_spectrum`.  These derisk the two
-endpoints of the proof and confirm the interface to `RadialEq.radial_quantization`:
+Foundational lemmas for the **forward direction** (`eigenpair ⟹ E = E_n`) of
+`hydrogen_discrete_spectrum`.  They derisk the two endpoints of the proof and
+confirm the interface to `RadialEq.radial_quantization`.
 
+## Main statements
+
+* `radial_quantization_Z` — a nonzero classical `L²` solution of the charge-`Z`
+  reduced radial eigen-equation at energy `E < 0` forces `E = eigenvalue p n hn`
+  for some `n ≥ ℓ + 1` (via the `Z`-dilation to the `Z = 1` quantization theorem).
+* `radial_continuum_Z` — the `E ≥ 0` analogue: every square-integrable classical
+  solution of the charge-`Z` reduced radial eigen-equation vanishes identically.
+* `radial_classical_of_logCoord` — the log-coordinate back-transform, turning a
+  classical solution of the log-coordinate ODE into one of the radial equation in `r`.
+* `forward_bridge` — the forward log-coordinate change of variables, converting the
+  weak radial equation in `r` into the weak `s`-form consumed by the regularity bootstrap.
+* `weak_eigenequation_ae` — **Step 1.** For an `H²` eigenfunction of `H = −½Δ − Z/r`
+  at energy `E`, the weak Laplacian satisfies the a.e. identity
+  `weakLaplacian ψ = 2(E − V)ψ` (recall `weakLaplacian = −Δ` and `V = coulombMultiplier = −Z/r`).
+* `cartesian_weak_eigen` — the Cartesian weak eigen-equation with both Laplacian
+  derivatives moved onto a smooth compactly supported test function.
+* `radialHamiltonian_formallySymm` — formal symmetry of the radial Hamiltonian on
+  smooth compactly supported radial test functions w.r.t. the `r² dr` measure.
+* `inner_chartRealizationSymm_sectorEmbedding` — the projection bridge: pairing a
+  Cartesian `L²` function against a back-transported sector element equals the radial
+  pairing against the angular coefficient function.
 * `eigenvalue_of_dilated` — **Step 6 (assembly glue).** If the dilated energy `E/Z²`
   equals the `Z = 1` eigenvalue `hydrogenEigenvalue n`, then `E = eigenvalue p n hn`.
 * `sphericalDecomposition_ne_zero` — **Step 3 (nonzero transfer).** A nonzero element
   of `L²(ℝ³)` (spherical coordinates) has a nonzero radial component in some sector.
-* `weak_eigenequation_ae` — **Step 1 (unfold the weak eigenequation).** For an `H²`
-  eigenfunction of `H = −½Δ − Z/r` at energy `E`, the weak Laplacian satisfies the
-  a.e. identity `weakLaplacian ψ = 2(E − V)ψ` (recall `weakLaplacian = −Δ` and
-  `V = coulombMultiplier = −Z/r`).
 
 See the discharge plan in `Spectrum/Discrete.lean` for how these compose.
 -/
@@ -105,7 +122,7 @@ theorem weak_eigenequation_ae (p : CoulombParams) (E : ℝ)
 /-! ## Step 0 + Step 5 — the Z-dilation bridge to quantization
 
 Rather than dilate the abstract 3-D `H²` eigenfunction (which needs weak-derivative-
-under-scaling machinery), we observe that the sector reduction `hydrogen_reduces_half`
+under-scaling machinery), the sector reduction `hydrogen_reduces_half`
 already produces the **general-`Z`** radial equation, while `RadialEq.radial_quantization`
 is stated at `Z = 1`.  The two are bridged by the **one-dimensional** classical dilation
 `φ(r) := ψ(r / Z)`, which carries a classical `C²` solution of the charge-`Z` radial ODE
@@ -386,6 +403,13 @@ terms so that the recovered coefficient is `b` and the reduced variable is the u
 `s ↦ R(eˢ)` — matching `radial_classical_of_logCoord`.  Pure analysis; `R : ℝ → ℝ` (the `ℂ`-valued
 `coeffFun` is handled at the application site by taking real and imaginary parts). -/
 open Set in
+/-- **Forward log-coordinate bridge.** Given the weak charge-`Z` radial equation in `r`
+    (pairing the radial Hamiltonian against radial test functions `χ` with the `r² dr` measure),
+    every smooth compactly supported `η` satisfies the weak log-coordinate `s`-form
+    `∫ R(eˢ)·(η″ − η′ − b η) ds = 0` with `b(s) = ℓ(ℓ+1) − 2Z eˢ − 2E e^{2s}`.
+    Obtained by feeding the weak hypothesis the test `χ(r) = η(log r)/r` and changing
+    variables `r = eˢ`; the output is the input of
+    `Spectra.RadialRegularity.classical_of_weak_ode`. -/
 theorem forward_bridge (ℓ : ℕ) (Z E : ℝ) (R : ℝ → ℝ)
     (hweak : ∀ χ : ℝ → ℝ, ContDiff ℝ ∞ χ → HasCompactSupport χ → (∀ᶠ r in 𝓝 (0 : ℝ), χ r = 0) →
         ∫ r in Set.Ioi 0,
@@ -528,6 +552,10 @@ realization.  Combines the unitarity of `chartRealization` (`inner_map_map`) wit
 Fubini factorization `inner_sectorEmbedding_eq_integral_coeffFun` already proved for the
 spherical space.  This is how the forward proof will extract a radial weak equation from
 the Cartesian eigen-equation, by choosing `R` to range over radial test functions. -/
+/-- **Projection bridge (Cartesian pairing ↔ radial coefficient).** Pairing a Cartesian
+    `L²` function `ψ` against the back-transported sector element `chartRealization⁻¹ (R ⊗ Yᵢ)`
+    equals the radial pairing of `R` against the angular coefficient function
+    `coeffFun i (chartRealization ψ)` of `ψ`'s spherical realization, in the radial measure. -/
 theorem inner_chartRealizationSymm_sectorEmbedding (i : HarmonicIdx)
     (ψ : Spectra.Sobolev.l2R3) (R : RadialL2) :
     inner ℂ (chartRealization.symm (sectorEmbedding i R)) ψ
@@ -545,6 +573,11 @@ combination `(H_ℓ u · v − u · H_ℓ v)·r²` is the exact derivative of
 `g = −½ r² (u′v − uv′)`, whose integral over `(0,∞)` vanishes (compact support,
 `g(0) = 0`).  This formal symmetry underpins the weak formulation of the radial
 eigenvalue problem produced by the sector reduction. -/
+/-- **Formal symmetry of the radial Hamiltonian.** For smooth compactly supported `u`, `v`,
+    the radial Hamiltonian `RadialEq.radialHamiltonian ℓ` (at `Z = 1`) is symmetric with
+    respect to the `r² dr` measure:
+    `∫₀^∞ (H_ℓ u)·v·r² = ∫₀^∞ u·(H_ℓ v)·r²`.  The antisymmetric combination is an exact
+    derivative of `g = −½ r² (u′v − uv′)`, whose integral over `(0,∞)` vanishes. -/
 theorem radialHamiltonian_formallySymm (ℓ : ℕ) (u v : ℝ → ℝ)
     (hu : ContDiff ℝ ∞ u) (hv : ContDiff ℝ ∞ v)
     (hu0 : HasCompactSupport u) (hv0 : HasCompactSupport v) :
@@ -616,7 +649,7 @@ theorem radialHamiltonian_formallySymm (ℓ : ℕ) (u v : ℝ → ℝ)
 
 /-! ## Phase C, brick 1 — the Cartesian weak eigen-equation
 
-The first foundational brick of the sector-reduction assembly.  We move both Laplacian derivatives
+The first foundational brick of the sector-reduction assembly.  Both Laplacian derivatives are moved
 off the (only `L²`) eigenfunction `ψ` and onto a smooth compactly supported test function `φ`, via
 the weak-derivative integration-by-parts identity, turning `H ψ = E ψ` into the **classical** weak
 form `∫ ψ·((−½Δ + V)φ − Eφ) = 0`.  This avoids ever differentiating `ψ` and is the entry point for

@@ -433,18 +433,18 @@ assert_no_sorry Spectra.QuantumMechanics.Hydrogen.essSpectrum_laplacian
 
 /-! ### Free resolvent as a Fourier multiplier -/
 
--- assert_no_sorry Spectra.QuantumMechanics.Hydrogen.fourierL2_selfAdjointResolvent
--- assert_no_sorry Spectra.QuantumMechanics.Hydrogen.integral_exp_neg_mul_sin
+assert_no_sorry Spectra.QuantumMechanics.Hydrogen.fourierL2_selfAdjointResolvent
+assert_no_sorry Spectra.QuantumMechanics.Hydrogen.integral_exp_neg_mul_sin
 
 /-! ### Radial disintegration (sphere integration infrastructure) -/
 
--- assert_no_sorry Spectra.SphereIntegral.integral_eq_integral_prod_toSphere
--- assert_no_sorry Spectra.SphereIntegral.integral_eq_integral_toSphere
--- assert_no_sorry Spectra.SphereIntegral.exists_linearIsometryEquiv_apply_eq
+assert_no_sorry Spectra.SphereIntegral.integral_eq_integral_prod_toSphere
+assert_no_sorry Spectra.SphereIntegral.integral_eq_integral_toSphere
+assert_no_sorry Spectra.SphereIntegral.exists_linearIsometryEquiv_apply_eq
 
 /-! ### Coulomb relative compactness (Track A toward σ_ess(H) = [0,∞)) -/
 
--- assert_no_sorry Spectra.QuantumMechanics.Hydrogen.memLp_inv_laplacianSymbol_sub
+assert_no_sorry Spectra.QuantumMechanics.Hydrogen.memLp_inv_laplacianSymbol_sub
 -- assert_no_sorry Spectra.CompactOperator.isCompactOperator_smulRight
 -- assert_no_sorry Spectra.CompactOperator.isCompactOperator_sum_smulRight
 -- assert_no_sorry Spectra.CompactOperator.memLp_section_ae
@@ -466,24 +466,24 @@ assert_no_sorry Spectra.QuantumMechanics.Hydrogen.essSpectrum_laplacian
 -- assert_no_sorry Spectra.CompactOperator.isCompactOperator_integralOperator
 -- assert_no_sorry Spectra.CompactOperator.memLp_kernel_mul_sub
 -- assert_no_sorry Spectra.CompactOperator.eLpNorm_kernel_mul_sub
--- assert_no_sorry Spectra.QuantumMechanics.Hydrogen.memL1_freeGreensFunction
--- assert_no_sorry Spectra.QuantumMechanics.Hydrogen.memL2_freeGreensFunction
--- assert_no_sorry Spectra.QuantumMechanics.Hydrogen.freeGreensL2
+assert_no_sorry Spectra.QuantumMechanics.Hydrogen.memL1_freeGreensFunction
+assert_no_sorry Spectra.QuantumMechanics.Hydrogen.memL2_freeGreensFunction
+assert_no_sorry Spectra.QuantumMechanics.Hydrogen.freeGreensL2
 -- assert_no_sorry Spectra.QuantumMechanics.Hydrogen.truncCoulomb_memLp
 -- assert_no_sorry Spectra.QuantumMechanics.Hydrogen.truncKernel_memLp
 -- assert_no_sorry Spectra.QuantumMechanics.Hydrogen.eLpNorm_truncKernel
 -- assert_no_sorry Spectra.CompactOperator.young_L1_conv_L2
--- assert_no_sorry Spectra.QuantumMechanics.Hydrogen.freeGreensFunctionL2
--- assert_no_sorry Spectra.QuantumMechanics.Hydrogen.fourierL2_freeGreensFunctionL2
--- assert_no_sorry Spectra.QuantumMechanics.Hydrogen.integrable_conv_integrand
--- assert_no_sorry Spectra.QuantumMechanics.Hydrogen.young_R3
--- assert_no_sorry Spectra.QuantumMechanics.Hydrogen.memLp_conv_L2_schwartz
--- assert_no_sorry Spectra.QuantumMechanics.Hydrogen.fourier_conv_L2_schwartz
--- assert_no_sorry Spectra.QuantumMechanics.Hydrogen.freeGreens_resolvent_kernel_schwartz
--- assert_no_sorry Spectra.QuantumMechanics.Hydrogen.coulombResolvent
--- assert_no_sorry Spectra.QuantumMechanics.Hydrogen.coulomb_hVW
--- assert_no_sorry Spectra.QuantumMechanics.Hydrogen.truncCoulombBall_memLp
--- assert_no_sorry Spectra.QuantumMechanics.Hydrogen.truncKernelG_memLp
+assert_no_sorry Spectra.QuantumMechanics.Hydrogen.freeGreensFunctionL2
+assert_no_sorry Spectra.QuantumMechanics.Hydrogen.fourierL2_freeGreensFunctionL2
+assert_no_sorry Spectra.QuantumMechanics.Hydrogen.integrable_conv_integrand
+assert_no_sorry Spectra.QuantumMechanics.Hydrogen.young_R3
+assert_no_sorry Spectra.QuantumMechanics.Hydrogen.memLp_conv_L2_schwartz
+assert_no_sorry Spectra.QuantumMechanics.Hydrogen.fourier_conv_L2_schwartz
+assert_no_sorry Spectra.QuantumMechanics.Hydrogen.freeGreens_resolvent_kernel_schwartz
+assert_no_sorry Spectra.QuantumMechanics.Hydrogen.coulombResolvent
+assert_no_sorry Spectra.QuantumMechanics.Hydrogen.coulomb_hVW
+assert_no_sorry Spectra.QuantumMechanics.Hydrogen.truncCoulombBall_memLp
+assert_no_sorry Spectra.QuantumMechanics.Hydrogen.truncKernelG_memLp
 assert_no_sorry Spectra.QuantumMechanics.Hydrogen.hydrogen_essSpectrum_of_compact
 assert_no_sorry Spectra.QuantumMechanics.Hydrogen.hydrogen_essSpectrum_eq_Ici_of_compact
 assert_no_sorry Spectra.QuantumMechanics.Hydrogen.coulombResolvent_isCompact
@@ -528,12 +528,9 @@ assert_no_sorry QuantumMechanics.Hydrogen.Spectrum.hydrogen_eigenfunction_eq
 assert_no_sorry QuantumMechanics.Hydrogen.Spectrum.hydrogen_continuous_spectrum
 assert_no_sorry QuantumMechanics.Hydrogen.Spectrum.hydrogen_no_positive_eigenvalues
 
--- `hydrogen_discrete_spectrum` (in `Spectrum.Discrete`, kept out of the root `Spectra`
--- import) still carries a documented `sorry`: the remaining leaves are the
--- `chartRealization` intertwining and `reduced_radial_L2_quantized` analytic gap. Uncomment
--- the import and the gate below once that proof lands — it will then enforce sorry-freeness.
--- import Spectra.QuantumMechanics.Hydrogen.Spectrum.Discrete
--- assert_no_sorry QuantumMechanics.Hydrogen.Spectrum.hydrogen_discrete_spectrum
+-- `hydrogen_discrete_spectrum` (in `Spectrum.Discrete`) — the E<0 characterization
+-- `E ∈ σ_p(H) ↔ E = Eₙ`. Now fully proved sorry-free and axiom-clean; gate restored.
+assert_no_sorry QuantumMechanics.Hydrogen.Spectrum.hydrogen_discrete_spectrum
 
 /-! ### Hydrogen discrete eigenspaces · degeneracy states are eigenvectors, span = eigenspace,
 and the spectral projection `E({Eₙ})` onto the `n²`-dimensional bound-state subspace -/
@@ -602,6 +599,9 @@ assert_no_sorry Spectra.QuantumMechanics.Pauli.pauliYZ_commutator
 assert_no_sorry Spectra.QuantumMechanics.Pauli.pauliZX_commutator
 assert_no_sorry Spectra.QuantumMechanics.Dirac.diracHamiltonian_isSelfAdjoint
 assert_no_sorry Spectra.QuantumMechanics.Dirac.diracHamiltonian_mass_gap
+assert_no_sorry Spectra.QuantumMechanics.Dirac.dirac_energy_witness
+assert_no_sorry Spectra.QuantumMechanics.Dirac.diracHamiltonian_unbounded_below_unconditional
+assert_no_sorry Spectra.QuantumMechanics.Dirac.diracHamiltonian_not_semibounded_unconditional
 assert_no_sorry Spectra.Operator.kato_rellich
 assert_no_sorry Spectra.QuantumMechanics.Hydrogen.hardy_inequality
 assert_no_sorry Spectra.QuantumMechanics.Hydrogen.hardy_constant_sharp
@@ -615,6 +615,15 @@ assert_no_sorry Spectra.QuantumMechanics.BornRule.Observable.isProbabilityMeasur
 assert_no_sorry Spectra.QuantumMechanics.BornRule.Observable.bornExpectation_eq_inner
 assert_no_sorry Spectra.QuantumMechanics.BornRule.Observable.bornVariance_eq_central_moment
 assert_no_sorry Spectra.QuantumMechanics.BornRule.Observable.bornMeasure_support_subset_spectrum
+
+/-! ### Generalized measurement · POVMs and Naimark dilation (effect-valued Born rule) -/
+
+assert_no_sorry Spectra.POVM.ofEffects
+assert_no_sorry Spectra.QuantumMechanics.BornRule.bornMeasurePOVM_apply
+assert_no_sorry Spectra.QuantumMechanics.BornRule.toState_effect_eq
+assert_no_sorry Spectra.QuantumMechanics.BornRule.binaryPOVM
+assert_no_sorry Spectra.QuantumMechanics.BornRule.binaryPOVM_bornPure_true
+assert_no_sorry Spectra.QuantumMechanics.BornRule.naimark_dilation
 
 /-! ### Joint spectral measures · strong commutativity (Born rule, relational layer)
 
@@ -774,6 +783,24 @@ assert_no_sorry Spectra.QuantumMechanics.SpectralTheory.sq_pushforward_injective
 assert_no_sorry Spectra.QuantumMechanics.SpectralTheory.spectralPVM_determines
 assert_no_sorry Spectra.QuantumMechanics.SpectralTheory.posSqrt_unique
 
+/-! ## The spectral-flow generator engine and the modular Hamiltonian `generator(Δ^{it}) = log Δ`
+
+The general Stone-type theorem for the spectral exponential flow of a real symbol: the group
+`V.U t = Φ_U(exp(i t φ))` has generator `pmapOfPVM U φ` (`generator_eq_pmapOfPVM_of_flowSymbol`),
+via the real-symbol resolvent bridge `(A_φ − z)⁻¹ = Φ_U(1/(φ − z))`
+(`selfAdjointResolvent_pmapOfPVM_real_eq`) and the `φ`-pushforward of the flow's spectral measure
+(`borelMeasure_flowSymbol_eq_map`).  Its Tomita–Takesaki corollary
+`generator_modularFlow_eq_logModularOp` identifies the modular Hamiltonian `generator(Δ^{it})` with
+the honest unbounded calculus `log Δ = ∫ log s dE_Δ(s)` (`logModularOp`, self-adjoint) — the theorem
+the abstract KMS layer states only by naming convention. -/
+assert_no_sorry Spectra.QuantumMechanics.SpectralTheory.resolvent_real_identity
+assert_no_sorry Spectra.QuantumMechanics.SpectralTheory.selfAdjointResolvent_pmapOfPVM_real_eq
+assert_no_sorry Spectra.QuantumMechanics.SpectralTheory.borelMeasure_flowSymbol_eq_map
+assert_no_sorry Spectra.QuantumMechanics.SpectralTheory.generator_eq_pmapOfPVM_of_flowSymbol
+assert_no_sorry Spectra.TomitaTakesaki.logModularOp
+assert_no_sorry Spectra.TomitaTakesaki.logModularOp_isSelfAdjoint
+assert_no_sorry Spectra.TomitaTakesaki.generator_modularFlow_eq_logModularOp
+
 /-! ## Field-3 Stage 0 — the reciprocal modular calculus `Δ⁻¹`, `Δ^{-½}` (COMPLETE)
 
 The generic J-free real-symbol self-adjointness engine (surjectivity of `A_f ± i` is unconditional for
@@ -838,6 +865,44 @@ assert_no_sorry Spectra.TomitaTakesaki.conjModularSqrt_isSelfAdjoint
 assert_no_sorry Spectra.TomitaTakesaki.conjModularSqrt_borelMeasure_Iio_zero
 assert_no_sorry Spectra.Operator.mem_compPMap_adjoint_domain_iff
 assert_no_sorry Spectra.Operator.compPMap_adjoint_apply
+
+/-! ## M4 — the `2 × 2` matrix amplification `M₂(M)` (block operators + `*`-subalgebra)
+
+Block operators on the `L²` direct sum `H2 H = WithLp 2 (H × H)`, the carrier of the balanced-state
+amplification for the Connes cocycle.  The block algebra is a ring under matrix multiplication
+(`blockOp_comp`), entrywise-linear (`blockOp_add`/`_smul`), and `*`-closed via the conjugate transpose
+(`blockOp_star`), from which the matrix-unit relations `eᵢⱼ eₖₗ = δⱼₖ eᵢₗ`, `e₁₁ + e₂₂ = 1`, and the
+`*`-subalgebra `M2subalg M` of block operators with all entries in `M` all follow. -/
+assert_no_sorry Spectra.TomitaTakesaki.blockOp_comp
+assert_no_sorry Spectra.TomitaTakesaki.blockOp_add
+assert_no_sorry Spectra.TomitaTakesaki.blockOp_smul
+assert_no_sorry Spectra.TomitaTakesaki.blockOp_zero
+assert_no_sorry Spectra.TomitaTakesaki.blockOp_one
+assert_no_sorry Spectra.TomitaTakesaki.blockOp_star
+assert_no_sorry Spectra.TomitaTakesaki.e₁₂_mul_e₂₁
+assert_no_sorry Spectra.TomitaTakesaki.e₂₁_mul_e₁₂
+assert_no_sorry Spectra.TomitaTakesaki.e₁₁_add_e₂₂
+assert_no_sorry Spectra.TomitaTakesaki.star_e₁₂
+assert_no_sorry Spectra.TomitaTakesaki.M2subalg
+assert_no_sorry Spectra.TomitaTakesaki.e₁₁_mem_M2subalg
+assert_no_sorry Spectra.TomitaTakesaki.e₂₁_mem_M2subalg
+assert_no_sorry Spectra.TomitaTakesaki.eq_blockOp
+assert_no_sorry Spectra.TomitaTakesaki.centralizer_M2set
+assert_no_sorry Spectra.TomitaTakesaki.centralizer_scalarBlockSet
+assert_no_sorry Spectra.TomitaTakesaki.M2
+
+/-! ## M4/E2 — the spatial modular automorphism `σ_t = Ad(U t)`
+
+The carrier-agnostic `*`-automorphism builder: for any one-parameter unitary group `U` (e.g. the
+modular flow `Δ^{it}`), `modularAut U t : (H →L[ℂ] H) ≃⋆ₐ[ℂ] (H →L[ℂ] H)` is spatial conjugation
+`x ↦ U t · x · U(-t)`, built on Mathlib's `Unitary.conjStarAlgAut`.  A one-parameter group of
+automorphisms (`modularAut_zero`/`_add`); Tomita invariance enters only as a hypothesis
+(`modularAut_mapsTo_of_invariance`), keeping this off the research gates. -/
+assert_no_sorry Spectra.TomitaTakesaki.modularAut
+assert_no_sorry Spectra.TomitaTakesaki.modularAut_apply
+assert_no_sorry Spectra.TomitaTakesaki.modularAut_zero
+assert_no_sorry Spectra.TomitaTakesaki.modularAut_add
+assert_no_sorry Spectra.TomitaTakesaki.modularAut_mapsTo_of_invariance
 
 /-! ## Inner-product `ℓ²`-pairing estimates (shared, trace-class-free)
 
@@ -950,6 +1015,44 @@ assert_no_sorry Spectra.QuantumMechanics.Channels.isTraceClass_sub
 assert_no_sorry Spectra.QuantumMechanics.Channels.tendsto_re_inner_absOp_of_tendsto
 assert_no_sorry Spectra.QuantumMechanics.Channels.isTraceClass_and_traceNorm_le_of_tendsto
 assert_no_sorry Spectra.QuantumMechanics.Channels.TraceClass.instCompleteSpace
+-- Trace-class hard-core Stage G (Hilbert–Schmidt × Hilbert–Schmidt is trace class): the qualitative
+-- Schatten–Hölder membership `X, Y` HS ⟹ `X∘Y` trace-class, proved by the diagonal estimate
+-- `⟪eᵢ,|XY|eᵢ⟫ = ⟪X⋆ U eᵢ, Y eᵢ⟫ ≤ ‖X⋆ U eᵢ‖² + ‖Y eᵢ‖²` (the polar factor `U⋆(XY)=|XY|`, avoiding the
+-- sup-over-bases characterization), and the resulting trace-class two-sided ideal `B∘T`, `T∘B`.
+assert_no_sorry Spectra.QuantumMechanics.Channels.IsHilbertSchmidt.isTraceClass_comp
+assert_no_sorry Spectra.QuantumMechanics.Channels.IsTraceClass.comp_left
+assert_no_sorry Spectra.QuantumMechanics.Channels.IsTraceClass.comp_right
+assert_no_sorry Spectra.QuantumMechanics.Channels.isTraceClass_sqrtOp_absOp_comp
+-- Trace-class hard-core Stage H (the Hilbert–Schmidt norm + sharp Schatten–Hölder): the norm
+-- `‖A‖₂ = (∑ᵢ ‖A eᵢ‖²)^{1/2}` with adjoint-invariance and the operator-ideal bound, and the sharp
+-- `‖X∘Y‖₁ ≤ ‖X‖₂ ‖Y‖₂` via the diagonal ℓ²-Cauchy–Schwarz `∑ᵢ re⟪X⋆Ueᵢ,Yeᵢ⟫ ≤ ‖X⋆U‖₂‖Y‖₂ ≤ ‖X‖₂‖Y‖₂`.
+assert_no_sorry Spectra.QuantumMechanics.Channels.hsNorm
+assert_no_sorry Spectra.QuantumMechanics.Channels.hsNorm_adjoint
+assert_no_sorry Spectra.QuantumMechanics.Channels.hsNorm_comp_le
+assert_no_sorry Spectra.QuantumMechanics.Channels.hsNorm_comp_le'
+assert_no_sorry Spectra.QuantumMechanics.Channels.traceNorm_comp_le
+-- Trace-class hard-core Stage I (the Uhlmann fidelity `F(ρ,σ)=‖√ρ√σ‖₁`): `‖√ρ‖₂=√(tr ρ)`,
+-- `F(ρ,ρ)=tr ρ`, and the Schatten–Hölder / Cauchy–Schwarz bound `F(ρ,σ) ≤ √(tr ρ · tr σ)` ⟹ `≤ 1`
+-- for normalized states — the elementary information-geometric fidelity (I1).
+assert_no_sorry Spectra.QuantumMechanics.Channels.hsNorm_sqrtOp_of_nonneg
+assert_no_sorry Spectra.QuantumMechanics.Channels.fidelity_self
+assert_no_sorry Spectra.QuantumMechanics.Channels.fidelity_le_sqrt_mul
+assert_no_sorry Spectra.QuantumMechanics.Channels.fidelity_le_one
+-- The trace norm is adjoint-invariant `‖A⋆‖₁ = ‖A‖₁` (`traceNorm_adjoint`, via the polar identity
+-- `|A⋆| = U|A|U⋆` + cyclicity, with `A⋆` trace-class iff `A` is by the ideal) — gives fidelity symmetry.
+assert_no_sorry Spectra.QuantumMechanics.Channels.isTraceClass_adjoint
+assert_no_sorry Spectra.QuantumMechanics.Channels.traceNorm_adjoint
+assert_no_sorry Spectra.QuantumMechanics.Channels.fidelity_comm
+-- Trace-class hard-core Stage J (the predual embedding `B(H) ↪ (T(H))*`): the trace pairing
+-- `traceFunctional B = (T ↦ tr(BT))` is bounded (`≤‖B‖`), injective (rank-one separation), and — via
+-- the unit rank-one witnesses `‖|u⟩⟨v|‖₁=1` — an isometry `‖traceFunctional B‖=‖B‖`, packaged as the
+-- linear isometric embedding `traceDualₗᵢ`.  (Surjectivity is the deferred research-grade half.)
+assert_no_sorry Spectra.QuantumMechanics.Channels.traceFunctional
+assert_no_sorry Spectra.QuantumMechanics.Channels.norm_traceFunctional_le
+assert_no_sorry Spectra.QuantumMechanics.Channels.traceFunctional_injective
+assert_no_sorry Spectra.QuantumMechanics.Channels.traceNorm_rankOne_of_unit
+assert_no_sorry Spectra.QuantumMechanics.Channels.norm_traceFunctional
+assert_no_sorry Spectra.QuantumMechanics.Channels.traceDualₗᵢ
 
 -- Quantum channels (Schrödinger picture): complete positivity via the block-quadratic-form
 -- criterion on finite arrays of trace-class operators (`IsPositiveMatrix`/`IsCompletelyPositive`),
@@ -1125,6 +1228,16 @@ and `Quot.sound` should appear — anything else (especially `sorryAx`) is a red
 #print axioms Spectra.QuantumMechanics.Channels.TraceClass.norm_toOp_le
 #print axioms Spectra.QuantumMechanics.Channels.isTraceClass_and_traceNorm_le_of_tendsto
 #print axioms Spectra.QuantumMechanics.Channels.TraceClass.instCompleteSpace
+#print axioms Spectra.QuantumMechanics.Channels.IsHilbertSchmidt.isTraceClass_comp
+#print axioms Spectra.QuantumMechanics.Channels.IsTraceClass.comp_left
+#print axioms Spectra.QuantumMechanics.Channels.IsTraceClass.comp_right
+#print axioms Spectra.QuantumMechanics.Channels.isTraceClass_sqrtOp_absOp_comp
+#print axioms Spectra.QuantumMechanics.Channels.traceNorm_comp_le
+#print axioms Spectra.QuantumMechanics.Channels.fidelity_le_sqrt_mul
+#print axioms Spectra.QuantumMechanics.Channels.traceNorm_adjoint
+#print axioms Spectra.QuantumMechanics.Channels.fidelity_comm
+#print axioms Spectra.QuantumMechanics.Channels.norm_traceFunctional
+#print axioms Spectra.QuantumMechanics.Channels.traceDualₗᵢ
 #print axioms Spectra.QuantumMechanics.Channels.isPositiveMatrix_one_iff
 #print axioms Spectra.QuantumMechanics.Channels.IsCompletelyPositive.isPositive
 #print axioms Spectra.QuantumMechanics.Channels.QuantumChannel.id_toFun_apply
@@ -1166,7 +1279,16 @@ and `Quot.sound` should appear — anything else (especially `sorryAx`) is a red
 #print axioms Spectra.TomitaTakesaki.tomita_eq_modularConjugation_modularSqrt_full
 #print axioms Spectra.TomitaTakesaki.conjModularSqrt_isSelfAdjoint
 #print axioms Spectra.TomitaTakesaki.conjModularSqrt_borelMeasure_Iio_zero
+#print axioms Spectra.QuantumMechanics.SpectralTheory.generator_eq_pmapOfPVM_of_flowSymbol
+#print axioms Spectra.TomitaTakesaki.generator_modularFlow_eq_logModularOp
 #print axioms Spectra.Operator.compPMap_adjoint_apply
+#print axioms Spectra.TomitaTakesaki.blockOp_comp
+#print axioms Spectra.TomitaTakesaki.blockOp_star
+#print axioms Spectra.TomitaTakesaki.M2subalg
+#print axioms Spectra.TomitaTakesaki.eq_blockOp
+#print axioms Spectra.TomitaTakesaki.M2
+#print axioms Spectra.TomitaTakesaki.modularAut
+#print axioms Spectra.TomitaTakesaki.modularAut_add
 #print axioms Spectra.HilbertTensor.dense_span_tmul
 #print axioms Spectra.HilbertTensor.inner_tmul_tmul
 #print axioms Spectra.HilbertTensor.norm_mapL

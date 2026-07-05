@@ -79,6 +79,9 @@ import Spectra.InformationGeometry.Flow.PullbackIdentities
 import Spectra.InformationGeometry.Flow.MixtureConnection
 import Spectra.InformationGeometry.Flow.CubicInvariance
 import Spectra.InformationGeometry.Dichotomy
+import Spectra.InformationGeometry.Quantum.State
+import Spectra.InformationGeometry.Quantum.Manifold
+import Spectra.InformationGeometry.Quantum.Score
 import Spectra.Kernel.Defs
 import Spectra.Kernel.Arctan
 import Spectra.Kernel.Resolvent
@@ -122,9 +125,13 @@ import Spectra.Modular.Cocycle.ModularSqrtSquare
 import Spectra.SpectralTheory.Calculus.SquarePushforward
 import Spectra.SpectralTheory.Calculus.SquareSpectralMap
 import Spectra.SpectralTheory.Calculus.PMapRealSelfAdjoint
+import Spectra.SpectralTheory.Calculus.FlowGenerator
 import Spectra.Modular.Cocycle.ModularReciprocal
 import Spectra.Modular.Cocycle.ModularPolarExtension
 import Spectra.Modular.Cocycle.ModularPolarUniqueness
+import Spectra.Modular.Cocycle.ModularHamiltonian
+import Spectra.Modular.Cocycle.MatrixAmplification
+import Spectra.Modular.Cocycle.SpatialAutomorphism
 import Spectra.Operator.Symmetric
 import Spectra.Operator.SelfAdjoint
 import Spectra.Operator.Bounded
@@ -198,6 +205,13 @@ import Spectra.QuantumMechanics.Channels.TraceClass.Cyclic
 import Spectra.QuantumMechanics.Channels.TraceClass.Triangle
 import Spectra.QuantumMechanics.Channels.TraceClass.Complete
 import Spectra.QuantumMechanics.Channels.Defs
+import Spectra.QuantumMechanics.Channels.TraceClass.RankOne
+import Spectra.QuantumMechanics.Channels.TraceClass.Product
+import Spectra.QuantumMechanics.Channels.TraceClass.HilbertSchmidtNorm
+import Spectra.QuantumMechanics.Channels.TraceClass.Fidelity
+import Spectra.QuantumMechanics.Channels.TraceClass.Predual
+import Spectra.QuantumMechanics.Petz.RecoveryMap
+import Spectra.QuantumMechanics.Petz.Dual
 import Spectra.QuantumMechanics.DiracEquation.Chirality
 import Spectra.QuantumMechanics.DiracEquation.CliffordAlgebra
 import Spectra.QuantumMechanics.DiracEquation.CliffordOperators
@@ -323,6 +337,7 @@ import Spectra.Spaces.Sobolev.Density
 import Spectra.Spaces.Sobolev.DensityResults
 import Spectra.Spaces.Sobolev.DuBoisReymond
 import Spectra.Spaces.Sobolev.Embeddings
+import Spectra.Spaces.Sobolev.FourierDecay
 import Spectra.Spaces.Sobolev.IntegrationByParts
 import Spectra.Spaces.Sobolev.MeyersCommon
 import Spectra.Spaces.Sobolev.MeyersMulti

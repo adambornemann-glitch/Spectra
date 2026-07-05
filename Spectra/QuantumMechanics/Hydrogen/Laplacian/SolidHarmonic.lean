@@ -13,19 +13,22 @@ The **regular solid harmonic** of degree `ℓ` and order `m ≥ 0` is the Cartes
 
 `Sℓᵐ(x) = Nℓᵐ · (−1)^m/(2^ℓ ℓ!) · (x₀ + i x₁)^m · ‖x‖^{ℓ−m} · Q(x₂/‖x‖)`,
 
-where `Q = d^{ℓ+m}/dt^{ℓ+m}(t² − 1)^ℓ` is the Rodrigues polynomial.  Unlike the surface harmonic
-`Yℓᵐ` (which is singular on the `z`-axis as a function of the Cartesian point, through the `e^{imφ}`
-factor), the solid harmonic is **smooth away from the origin**: the `(sin θ)^m` factor inside `Yℓᵐ`
-combines with `e^{imφ}` into the polynomial `(x₀ + i x₁)^m`, and the leftover radial powers are smooth
-on `ℝ³ ∖ {0}`.
+where `Q = d^{ℓ+m}/dt^{ℓ+m}(t² − 1)^ℓ` is the Rodrigues polynomial.  Unlike the surface
+harmonic `Yℓᵐ` (which is singular on the `z`-axis as a function of the Cartesian point, through
+the `e^{imφ}` factor), the solid harmonic is **smooth away from the origin**: the `(sin θ)^m`
+factor inside `Yℓᵐ` combines with `e^{imφ}` into the polynomial `(x₀ + i x₁)^m`, and the
+leftover radial powers are smooth on `ℝ³ ∖ {0}`.
 
 This is the missing ingredient for the **forward direction** of the hydrogen discrete-spectrum
-theorem: it supplies a *smooth, separated* test function `χ(‖x‖) · Sℓᵐ(x)` against which the weak
-eigen-equation can be projected onto angular sector `(ℓ, m)` (the surface harmonic `Yℓᵐ` itself is
-not smooth enough to serve as such a test function).
+theorem: it supplies a *smooth, separated* test function `χ(‖x‖) · Sℓᵐ(x)` against which
+the weak eigen-equation can be projected onto angular sector `(ℓ, m)` (the surface harmonic
+`Yℓᵐ` itself is not smooth enough to serve as such a test function).
+
+## Main statements
 
 * `solidHarmonicNat` — the Cartesian definition (order `m : ℕ`).
-* `solidHarmonicNat_sphereChart` — the chart identity `Sℓᵐ(sphereChart r θ φ) = r^ℓ Yℓᵐ(θ, φ)`.
+* `solidHarmonicNat_sphereChart` — the chart identity
+  `Sℓᵐ(sphereChart r θ φ) = r^ℓ Yℓᵐ(θ, φ)`.
 * `solidHarmonicNat_contDiffOn` — smoothness on `ℝ³ ∖ {0}`.
 -/
 
@@ -38,7 +41,12 @@ open Spectra.QuantumMechanics.Hydrogen (sphereChart norm_sphereChart)
 
 /-- **Regular solid harmonic** (Cartesian, non-negative order `m`):
 `Sℓᵐ(x) = Nℓᵐ · (−1)^m/(2^ℓ ℓ!) · (x₀+i x₁)^m · ‖x‖^{ℓ−m} · Q(x₂/‖x‖)`, where
-`Q = d^{ℓ+m}/dt^{ℓ+m}(t²−1)^ℓ`.  Equals `r^ℓ Yℓᵐ` on the chart and is smooth away from the origin. -/
+`Q = d^{ℓ+m}/dt^{ℓ+m}(t²−1)^ℓ`.  Equals `r^ℓ Yℓᵐ` on the chart and is smooth away
+from the origin.
+
+The exponent `ℓ − m` is truncated `ℕ` subtraction, so for the unphysical range `m > ℓ` it
+clamps to `0` (the radial factor becomes `‖x‖^0 = 1`); on the physical range `m ≤ ℓ` nothing
+is clamped. -/
 noncomputable def solidHarmonicNat (ℓ m : ℕ) (x : Spectra.Sobolev.R3) : ℂ :=
   (sphericalNorm ℓ m : ℂ) * ((-1 : ℂ) ^ m / (2 ^ ℓ * ℓ.factorial : ℂ))
     * (↑(x 0) + I * ↑(x 1)) ^ m * (↑‖x‖ : ℂ) ^ (ℓ - m)
@@ -81,7 +89,8 @@ lemma solidHarmonicNat_sphereChart (ℓ m : ℕ) (hm : m ≤ ℓ) {r θ φ : ℝ
   ring
 
 /-- **Smoothness.** The solid harmonic is `C^∞` away from the origin: it is a polynomial in
-`(x₀, x₁)`, times a power of `‖x‖`, times a polynomial in `x₂/‖x‖`, each smooth on `ℝ³ ∖ {0}`. -/
+`(x₀, x₁)`, times a power of `‖x‖`, times a polynomial in `x₂/‖x‖`, each smooth on
+`ℝ³ ∖ {0}`. -/
 lemma solidHarmonicNat_contDiffOn (ℓ m : ℕ) :
     ContDiffOn ℝ ∞ (solidHarmonicNat ℓ m) {(0 : Spectra.Sobolev.R3)}ᶜ := by
   have hQ : ContDiff ℝ ∞ (fun t : ℝ => (rodriguesDeriv ℓ (ℓ + m)).eval t) := by

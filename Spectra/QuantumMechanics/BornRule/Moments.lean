@@ -19,7 +19,7 @@ computed some other way — the direct definitions Mathlib's `MeasureTheory.inte
 how to manipulate. Like any Bochner integral, each is a **junk value of `0`** when the integrand is
 not integrable, which happens exactly when `ψ` is outside the domain of the operator whose PVM is
 `P`; see `bornExpectation_eq_inner` and `bornVariance_eq_central_moment`
-(`Observable.lean:80,89`) for the precise domain hypothesis and the operator-level identities
+(both in `Observable.lean`) for the precise domain hypothesis and the operator-level identities
 (`⟪ψ, A ψ⟫`, `‖(A − ⟨A⟩)ψ‖²`) these functionals turn out to equal.
 
 `bornVariance` is defined as the raw second *central* moment

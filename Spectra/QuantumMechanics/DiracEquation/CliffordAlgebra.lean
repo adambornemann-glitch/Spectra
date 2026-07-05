@@ -10,11 +10,12 @@ import Mathlib.Analysis.InnerProductSpace.LinearPMap
 # The Dirac Equation and Relativistic Quantum Mechanics
 
 This file fixes the standard (Dirac–Pauli) representation of the velocity matrices
-`α = (α₁, α₂, α₃)`, the mass matrix `β`, and the gamma matrices `γ⁰ = β`, `γⁱ = βαⁱ`, and proves
-their Clifford-algebra relations by brute-force entrywise computation (`dirac_compute`). It is the
-matrix foundation of the directory; the physics those relations *imply* is formalized in the other
-files and is **not** proved here (see "Where the physics is actually proved" below). The "Physical
-interpretation" notes that follow are motivation only.
+`α = (α₁, α₂, α₃)`, the mass matrix `β`, and the gamma matrices `γ⁰ = β`, `γⁱ = βαⁱ`,
+and proves their Clifford-algebra relations by brute-force entrywise computation
+(`dirac_compute`). It is the matrix foundation of the directory; the physics those
+relations *imply* is formalized in the other files and is **not** proved here (see "Where
+the physics is actually proved" below). The "Physical interpretation" notes that follow are
+motivation only.
 
 ## Overview
 
@@ -59,13 +60,35 @@ mathematical formalism to quantum mechanical measurement.
 This file is pure matrix algebra. The downstream physics lives elsewhere in the directory:
 `Dispersion.lean` (`D² = (|p|²+m²)I`), `FreeHamiltonian.lean` (the concrete self-adjoint `H_D` on
 `L²(ℝ³;ℂ⁴)`), `Chirality.lean` / `Spin.lean` (projectors, spin algebra), `Current.lean` /
-`Conservation.lean` (`j⁰ ≥ 0`, local `∂ᵤjᵘ = 0`). The spectrum `σ(H_D) = (-∞,-mc²]∪[mc²,∞)` and
-the mass gap are so far only abstract (`Operators.lean`), not established for the concrete operator.
+`Conservation.lean` (`j⁰ ≥ 0`, local `∂ᵤjᵘ = 0`). The spectrum
+`σ(H_D) = (-∞,-mc²]∪[mc²,∞)` and the mass gap are so far only abstract (`Operators.lean`),
+not established for the concrete operator.
+
+## Main definitions
+
+* `diracAlpha1`, `diracAlpha2`, `diracAlpha3` — the velocity matrices `α₁, α₂, α₃` in the
+  standard (Dirac–Pauli) representation.
+* `diracBeta` — the mass matrix `β = diag(1, 1, -1, -1)`.
+* `gamma0`, `gamma1`, `gamma2`, `gamma3` — the gamma matrices `γ⁰ = β`, `γⁱ = βαⁱ`.
+
+## Main results
+
+* `diracAlpha1_sq`, `diracAlpha2_sq`, `diracAlpha3_sq`, `diracBeta_sq` — each of
+  `α₁, α₂, α₃, β` is an involution (`M² = I`).
+* `diracAlpha12_anticommute`, `diracAlpha13_anticommute`, `diracAlpha23_anticommute` — distinct
+  `αᵢ` anticommute; `diracAlpha1_beta_anticommute`, `diracAlpha2_beta_anticommute`,
+  `diracAlpha3_beta_anticommute` — each `αᵢ` anticommutes with `β`.
+* `diracAlpha1_hermitian`, `diracAlpha2_hermitian`, `diracAlpha3_hermitian`,
+  `diracBeta_hermitian` — each `αᵢ` and `β` is Hermitian.
+* `clifford_μν` (the sixteen lemmas `clifford_00` … `clifford_33`) — the Minkowski–Clifford
+  table `{γᵘ, γᵛ} = 2ηᵘᵛ I`.
+* `gamma0_hermitian_proof`, `gamma1_antihermitian`, `gamma2_antihermitian`,
+  `gamma3_antihermitian` — `γ⁰` is Hermitian and the spacelike `γⁱ` are anti-Hermitian.
 
 ## References
 
 * [Dirac, *The Principles of Quantum Mechanics*][dirac1930], Chapter XI
-* [Thaller, *The Dirac Equation*][thaller1992]
+* [Thaller, *The Dirac Equation*][thaller1992], Chapter 2
 * [Peskin, Schroeder, *An Introduction to Quantum Field Theory*][peskin1995], Chapter 3
 * [Reed, Simon, *Methods of Modern Mathematical Physics*][reed1975], Vol. II §X.4
 
@@ -75,7 +98,6 @@ Dirac equation, Clifford algebra, gamma matrices, spinor, relativistic quantum m
 spectral gap, probability conservation, Born rule, chirality
 -/
 open Complex
-variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
 namespace Spectra.QuantumMechanics.Dirac
 
 /-- α₁ in standard representation (4×4) -/
@@ -221,8 +243,8 @@ lemma diracAlpha1_hermitian : diracAlpha1.conjTranspose = diracAlpha1 := by
 
 Despite having imaginary entries (±I), α₂ is still Hermitian. The key is that
 I appears in antisymmetric positions: (α₂)ᵢⱼ = -I implies (α₂)ⱼᵢ = +I.
-Transposing swaps positions, conjugating flips signs: I* = -I.
-The two operations cancel: (α₂)†ᵢⱼ = conj((α₂)ⱼᵢ) = conj(±I) = ∓I = (α₂)ᵢⱼ. -/
+Transposing swaps positions, conjugating flips signs: I* = -I. The two operations cancel:
+(α₂)†ᵢⱼ = conj((α₂)ⱼᵢ) = conj(±I) = ∓I = (α₂)ᵢⱼ. -/
 lemma diracAlpha2_hermitian : diracAlpha2.conjTranspose = diracAlpha2 := by
   dirac_compute diracAlpha2
 
@@ -289,8 +311,8 @@ lemma clifford_03 : gamma0 * gamma3 + gamma3 * gamma0 =
 
 Same as `clifford_01` with reversed order; anticommutators are symmetric. -/
 lemma clifford_10 : gamma1 * gamma0 + gamma0 * gamma1 =
-    (0 : Matrix (Fin 4) (Fin 4) ℂ) := by
-  dirac_compute gamma1, gamma0
+    (0 : Matrix (Fin 4) (Fin 4) ℂ) :=
+  (add_comm _ _).trans clifford_01
 
 /-- Minkowski-Clifford relation for γ¹: {γ¹, γ¹} = 2η¹¹ I = -2I.
 
@@ -319,15 +341,15 @@ lemma clifford_13 : gamma1 * gamma3 + gamma3 * gamma1 =
 
 Same as `clifford_02` with reversed order. -/
 lemma clifford_20 : gamma2 * gamma0 + gamma0 * gamma2 =
-    (0 : Matrix (Fin 4) (Fin 4) ℂ) := by
-  dirac_compute gamma2, gamma0
+    (0 : Matrix (Fin 4) (Fin 4) ℂ) :=
+  (add_comm _ _).trans clifford_02
 
 /-- Minkowski-Clifford relation: {γ², γ¹} = 0.
 
 Same as `clifford_12` with reversed order. -/
 lemma clifford_21 : gamma2 * gamma1 + gamma1 * gamma2 =
-    (0 : Matrix (Fin 4) (Fin 4) ℂ) := by
-  dirac_compute gamma2, gamma1
+    (0 : Matrix (Fin 4) (Fin 4) ℂ) :=
+  (add_comm _ _).trans clifford_12
 
 /-- Minkowski-Clifford relation for γ²: {γ², γ²} = 2η²² I = -2I.
 
@@ -348,22 +370,22 @@ lemma clifford_23 : gamma2 * gamma3 + gamma3 * gamma2 =
 
 Same as `clifford_03` with reversed order. -/
 lemma clifford_30 : gamma3 * gamma0 + gamma0 * gamma3 =
-    (0 : Matrix (Fin 4) (Fin 4) ℂ) := by
-  dirac_compute gamma3, gamma0
+    (0 : Matrix (Fin 4) (Fin 4) ℂ) :=
+  (add_comm _ _).trans clifford_03
 
 /-- Minkowski-Clifford relation: {γ³, γ¹} = 0.
 
 Same as `clifford_13` with reversed order. -/
 lemma clifford_31 : gamma3 * gamma1 + gamma1 * gamma3 =
-    (0 : Matrix (Fin 4) (Fin 4) ℂ) := by
-  dirac_compute gamma3, gamma1
+    (0 : Matrix (Fin 4) (Fin 4) ℂ) :=
+  (add_comm _ _).trans clifford_13
 
 /-- Minkowski-Clifford relation: {γ³, γ²} = 0.
 
 Same as `clifford_23` with reversed order. -/
 lemma clifford_32 : gamma3 * gamma2 + gamma2 * gamma3 =
-    (0 : Matrix (Fin 4) (Fin 4) ℂ) := by
-  dirac_compute gamma3, gamma2
+    (0 : Matrix (Fin 4) (Fin 4) ℂ) :=
+  (add_comm _ _).trans clifford_23
 
 /-- Minkowski-Clifford relation for γ³: {γ³, γ³} = 2η³³ I = -2I.
 
@@ -375,7 +397,8 @@ lemma clifford_33 : gamma3 * gamma3 + gamma3 * gamma3 =
 
 
 /-- Helper: -2 as scalar matrix equals -2 • 1 -/
-lemma neg_two_eq_smul : (-2 : Matrix (Fin 4) (Fin 4) ℂ) = (-2 : ℂ) • (1 : Matrix (Fin 4) (Fin 4) ℂ) := by
+lemma neg_two_eq_smul :
+    (-2 : Matrix (Fin 4) (Fin 4) ℂ) = (-2 : ℂ) • (1 : Matrix (Fin 4) (Fin 4) ℂ) := by
   rw [← Algebra.algebraMap_eq_smul_one]
   simp only [map_neg, neg_inj]
   rfl

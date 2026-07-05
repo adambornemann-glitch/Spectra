@@ -12,8 +12,8 @@ import Spectra.QuantumMechanics.DiracEquation.FreeHamiltonian
 (`dirac_unbounded_below/above`, `dirac_not_semibounded`) for an *abstract*
 `DiracHamiltonian`, leaving as the only physical input the spectral-reach hypotheses
 `h_spectrum_below/above`.  `FreeHamiltonian.lean` builds the *concrete* self-adjoint free Dirac
-operator `H_D = -iα·∇ + βmc²` on `L²(ℝ³; ℂ⁴)`, with `generator (diracUnitaryGroup mc2) =
-diracHamiltonian mc2`.
+operator `H_D = -iα·∇ + βmc²` on `L²(ℝ³; ℂ⁴)`, with
+`generator (diracUnitaryGroup mc2) = diracHamiltonian mc2`.
 
 This file connects the two layers (TODO task **(b)**):
 
@@ -27,18 +27,36 @@ This file connects the two layers (TODO task **(b)**):
    mass below `N`), the still-undischarged `h_spectrum_below/above` are *reduced* to a clean,
    self-contained energy-expectation criterion on `H_D`:
 
-   > for every `N`, some `ψ ∈ H¹(ℝ³; ℂ⁴)` has `Re⟪H_D ψ, ψ⟫ < N·‖ψ‖²` (resp. `> N·‖ψ‖²`).
+   > for every `N`, some `ψ ∈ H¹(ℝ³; ℂ⁴)` has `Re⟪H_D ψ, ψ⟫ < N·‖ψ‖²`
+   > (resp. `> N·‖ψ‖²`).
 
    The conditional theorems `diracHamiltonian_unbounded_below/above`,
    `diracHamiltonian_not_semibounded` package this.
 
-What remains for a fully unconditional result is exactly the construction of those negative- and
-positive-energy wavepackets (TODO **Step 3**): a high-momentum `H¹` bump on the negative/positive
-mass shell, where the Fourier symbol `Ĥ(ξ) = 2π(α·ξ) + mc²β` has eigenvalue `∓E(ξ)` with
-`E(ξ) = √((2π‖ξ‖)² + (mc²)²)`.  This file makes that the *only* missing piece.
+The **negative-energy** direction is now fully discharged: `NegativeEnergy.lean` constructs, for
+every `N`, a high-momentum `H¹` bump on the negative mass shell (where the Fourier symbol
+`Ĥ(ξ) = 2π(α·ξ) + mc²β` has eigenvalue `−E(ξ)`, `E(ξ) = √((2π‖ξ‖)² + (mc²)²)`), yielding the
+*unconditional* theorems `diracHamiltonian_unbounded_below_unconditional` and
+`diracHamiltonian_not_semibounded_unconditional`.  The **only** remaining open piece is the
+mirror-image positive-energy wavepacket (Step 3, the `above` direction): the same construction on
+the positive mass shell, which would make `diracHamiltonian_unbounded_above` unconditional too.
+This file makes those wavepackets the sole missing input.
+
+## References
+
+* [Thaller, *The Dirac Equation*][thaller1992], Section 1.4 (spectrum of the free Dirac operator,
+  `σ(H_D) = (-∞, -mc²] ∪ [mc², ∞)`)
+* [Bjorken, Drell, *Relativistic Quantum Mechanics*][bjorken1964], Section 3.2 (negative-energy
+  solutions and the Dirac sea)
+* [Sakurai, Napolitano, *Modern Quantum Mechanics*][sakurai2020], Section 8.3 (relativistic
+  quantum mechanics, negative-energy states)
+
+## Tags
+
+Dirac operator, free Dirac Hamiltonian, unbounded below, not semibounded, Dirac sea, antimatter,
+spectral reach, energy expectation
 -/
 
-open Complex MeasureTheory Filter Topology
 open scoped InnerProductSpace
 open Spectra.OneParameterUnitaryGroup
 open Spectra.QuantumMechanics.SpectralTheory
@@ -51,13 +69,20 @@ namespace Spectra.QuantumMechanics.Dirac
 /-- The concrete free Dirac Hamiltonian, packaged as an abstract `DiracHamiltonian`: its unitary
 group is the real Stone evolution `diracUnitaryGroup mc2 = e^{-itH_D}`.  The opaque `matrices`
 carrier is `Unit` (the Clifford witness already lives at the matrix layer, `CliffordAlgebra.lean`).
-After this definition the `Operators.lean` spectral theorems are statements about `H_D`. -/
+After this definition the `Operators.lean` spectral theorems are statements about `H_D`.
+
+The stored `κ : DiracConstants` is **inert bookkeeping**: it is placed in the `constants` field
+but nothing ties `κ.restEnergy = κ.m * κ.c ^ 2` to the `mc2` used to build `diracUnitaryGroup mc2`.
+The two are independent arguments and may be passed inconsistently (e.g. `κ.restEnergy ≠ mc2`) with
+no contradiction — no theorem in this file constrains or consumes `κ`. -/
 def diracHamiltonianAbstract (mc2 : ℝ) (κ : DiracConstants) :
     DiracHamiltonian DiracSpinorL2 DiracConstants Unit where
   U_grp := diracUnitaryGroup mc2
   constants := κ
   matrices := ()
 
+/-- The abstract Hamiltonian's unitary group unfolds to the concrete Stone evolution
+`diracUnitaryGroup mc2`; a `simp` lemma so downstream rewriting sees the honest evolution. -/
 @[simp] theorem diracHamiltonianAbstract_U_grp (mc2 : ℝ) (κ : DiracConstants) :
     (diracHamiltonianAbstract mc2 κ).U_grp = diracUnitaryGroup mc2 := rfl
 

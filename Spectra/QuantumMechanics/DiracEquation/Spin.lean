@@ -3,6 +3,7 @@ Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
+import Mathlib.LinearAlgebra.Matrix.Hermitian
 import Spectra.QuantumMechanics.DiracEquation.GammaTrace
 /-!
 # Spin and Total Angular Momentum
@@ -33,8 +34,11 @@ non-conservation of `L` against that of `S`.
 ## Main statements
 
 * `spinSigma{1,2,3}_hermitian` — each `Σⁱ` is Hermitian, hence an observable.
+* `spinSigma{1,2,3}_isSelfAdjoint` — each `Σⁱ` is self-adjoint (`IsSelfAdjoint`), the same fact in
+  Mathlib's operator-theoretic vocabulary.
 * `spinSigma{1,2,3}_sq` — `(Σⁱ)² = I`: spin measurements yield `±1` (`±ℏ/2`).
 * `spinSigma_su2_{12,23,31}` — `Σ¹Σ² = iΣ³` and cyclic: the `su(2)` spin algebra.
+* `spinSigma_anticomm_{12,23,31}` — `{Σⁱ, Σʲ} = 0` for `i ≠ j`: distinct spin matrices anticommute.
 * `spinSigma_comm_{12,23,31}` — `[Σⁱ, Σʲ] = 2i εⁱʲᵏ Σᵏ`.
 * `spinSigma{1,2,3}_comm_beta` — `[Σⁱ, β] = 0`: spin commutes with the mass term.
 * `diracAlpha_eq_gamma5_mul_spin{1,2,3}` — `αⁱ = γ⁵ Σⁱ`.
@@ -100,17 +104,33 @@ def spinAt (i : Fin 3) : Matrix (Fin 4) (Fin 4) ℂ :=
 
 Each `Σⁱ` is Hermitian, so spin along any axis is an observable. -/
 
-/-- `Σ¹` is Hermitian: `(Σ¹)† = Σ¹`. -/
+/-- `Σ¹` is Hermitian: `(Σ¹)† = Σ¹`, so spin along `x` is an observable with real
+    eigenvalues (`±ℏ/2`). -/
 lemma spinSigma1_hermitian : spinSigma1.conjTranspose = spinSigma1 := by
   dirac_compute spinSigma1
 
-/-- `Σ²` is Hermitian: `(Σ²)† = Σ²`. The `±i` entries sit in conjugate positions. -/
+/-- `Σ²` is Hermitian: `(Σ²)† = Σ²`; the `±i` entries sit in conjugate positions, so spin along
+    `y` is an observable with real eigenvalues (`±ℏ/2`). -/
 lemma spinSigma2_hermitian : spinSigma2.conjTranspose = spinSigma2 := by
   dirac_compute spinSigma2
 
-/-- `Σ³` is Hermitian: `(Σ³)† = Σ³` (real diagonal). -/
+/-- `Σ³` is Hermitian: `(Σ³)† = Σ³` (real diagonal), so spin along `z` is an observable with real
+    eigenvalues (`±ℏ/2`). -/
 lemma spinSigma3_hermitian : spinSigma3.conjTranspose = spinSigma3 := by
   dirac_compute spinSigma3
+
+/-- `Σ¹` is self-adjoint as an operator, the physical-observable property in Mathlib's
+    self-adjointness vocabulary. -/
+lemma spinSigma1_isSelfAdjoint : IsSelfAdjoint spinSigma1 :=
+  Matrix.IsHermitian.isSelfAdjoint spinSigma1_hermitian
+
+/-- `Σ²` is self-adjoint as an operator. -/
+lemma spinSigma2_isSelfAdjoint : IsSelfAdjoint spinSigma2 :=
+  Matrix.IsHermitian.isSelfAdjoint spinSigma2_hermitian
+
+/-- `Σ³` is self-adjoint as an operator. -/
+lemma spinSigma3_isSelfAdjoint : IsSelfAdjoint spinSigma3 :=
+  Matrix.IsHermitian.isSelfAdjoint spinSigma3_hermitian
 
 /-! ## Spin one-half: `(Σⁱ)² = I`
 

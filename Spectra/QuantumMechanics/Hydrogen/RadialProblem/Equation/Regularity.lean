@@ -11,19 +11,32 @@ import Mathlib.MeasureTheory.Integral.IntervalIntegral.LebesgueDifferentiationTh
 import Mathlib.Analysis.Calculus.BumpFunction.Normed
 
 /-!
-# Weak-derivative regularity, step 1: du Bois-Reymond
+# Weak-derivative regularity for the radial ODE
 
-The first analytic brick of the radial elliptic-regularity step (Step 4) of the forward
-direction of `hydrogen_discrete_spectrum`.
+The one-dimensional elliptic-regularity bootstrap of the forward direction of
+`hydrogen_discrete_spectrum`: it upgrades a weak (distributional) solution of the log-coordinate
+radial ODE `c'' + c' − b c = 0` to a genuine pointwise `C²` solution. The headline result
+`classical_of_weak_ode` is imported and invoked directly by the `Hydrogen/Spectrum/` files
+(`SectorProjection`, `Forward`, `Discrete`, `SeparatedEigenfunction/Span`).
+
+## Main statements
 
 * `exists_contDiff_hasCompactSupport_deriv_eq` — a smooth compactly supported function with
-  zero integral is the derivative of a smooth compactly supported function (the primitive).
+  zero integral is the derivative of a smooth compactly supported function (its primitive).
 * `ae_eq_const_of_integral_deriv_mul_eq_zero` — **du Bois-Reymond's lemma**: a locally
   integrable `f` whose distributional derivative vanishes (tested against all smooth compactly
   supported `g` via `∫ g' · f = 0`) is almost everywhere constant.
+* `ae_eq_affine_of_integral_deriv2_mul_eq_zero` — **second-order du Bois-Reymond**: a locally
+  integrable `f` whose distributional second derivative vanishes is almost everywhere affine.
+* `integral_primitive_mul_deriv` — integration by parts against a primitive `x ↦ ∫_{x₀}^x h`:
+  `∫ (∫_{x₀}^· h) · ψ' = -∫ h · ψ` for smooth compactly supported `ψ`, with no boundary term.
+* `classical_of_weak_ode` — **weak ODE ⟹ classical `C²`**: a locally integrable weak solution of
+  `c'' + c' − b c = 0` agrees almost everywhere with a twice-differentiable function solving the
+  ODE pointwise. This is the file's headline elliptic-regularity result.
+* `ae_eq_continuous_of_weak_ode` — the continuity-only corollary of `classical_of_weak_ode`.
 
-These are general one-dimensional facts; the radial bootstrap (weak ODE ⟹ classical `C²`)
-is assembled on top of them.
+The du Bois-Reymond lemmas are general one-dimensional facts; the radial bootstrap
+(`classical_of_weak_ode`) is assembled on top of them via `integral_primitive_mul_deriv`.
 -/
 
 open MeasureTheory Set

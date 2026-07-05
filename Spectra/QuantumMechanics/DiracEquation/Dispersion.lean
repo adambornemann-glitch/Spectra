@@ -27,16 +27,22 @@ algebraic reason a spin-1/2 relativistic particle has the spectrum
 
 * `diracMomentumOp` — the momentum-space symbol `D(p, m) = α·p + βm`.
 * `energyMomentumSq` — the scalar `|p|² + m²`.
+* `energyMomentum` — the on-shell energy `E(p, m) = √(|p|² + m²)`.
 
 ## Main statements
 
 * `diracMomentumOp_sq` — `D(p, m)² = (|p|² + m²) I`, the relativistic dispersion relation.
 * `diracMomentumOp_hermitian` — `D(p, m)` is Hermitian for real `p, m`, so it is an observable.
+* `energyMomentumSq_nonneg`, `energyMomentum_nonneg` — the scalar `|p|² + m²` and its root are
+  nonnegative.
+* `diracMomentumOp_factor` — the mass-shell factorisation `(D + E)(D − E) = 0`, exhibiting the
+  eigenvalues `±E` that seed the negative-energy branch.
 
 ## References
 
 * [Thaller, *The Dirac Equation*][thaller1992], Chapter 1
 * [Bjorken, Drell, *Relativistic Quantum Mechanics*][bjorkendrell1964], Chapter 1
+* [Peskin, Schroeder, *An Introduction to Quantum Field Theory*][peskin1995], Section 3.3
 
 ## Tags
 
@@ -49,7 +55,7 @@ namespace Spectra.QuantumMechanics.Dirac
     combinations (via `Complex.ofReal`) of the momentum components and the mass. Like
     `dirac_compute`, but reduces `I² = -1` after `ring_nf` and closes with `ring`, so the
     squared-operator identity with real-coerced coefficients goes through. -/
-macro "disp_compute" : tactic =>
+macro "dispCompute" : tactic =>
   `(tactic|
     (ext a b
      fin_cases a <;> fin_cases b <;>
@@ -65,7 +71,8 @@ def energyMomentumSq (p : Fin 3 → ℝ) (m : ℝ) : ℝ :=
 /-- The momentum-space symbol of the Dirac Hamiltonian,
 `D(p, m) = p₁α₁ + p₂α₂ + p₃α₃ + mβ`. -/
 noncomputable def diracMomentumOp (p : Fin 3 → ℝ) (m : ℝ) : Matrix (Fin 4) (Fin 4) ℂ :=
-  (p 0 : ℂ) • diracAlpha1 + (p 1 : ℂ) • diracAlpha2 + (p 2 : ℂ) • diracAlpha3 + (m : ℂ) • diracBeta
+  (p 0 : ℂ) • diracAlpha1 + (p 1 : ℂ) • diracAlpha2 + (p 2 : ℂ) • diracAlpha3 +
+    (m : ℂ) • diracBeta
 
 /-- **The relativistic dispersion relation**: `D(p, m)² = (|p|² + m²) I`.
 
@@ -75,7 +82,7 @@ times the identity — the matrix content of `E² = |p|²c² + m²c⁴`. -/
 theorem diracMomentumOp_sq (p : Fin 3 → ℝ) (m : ℝ) :
     diracMomentumOp p m * diracMomentumOp p m = ((energyMomentumSq p m : ℝ) : ℂ) • 1 := by
   unfold diracMomentumOp energyMomentumSq
-  disp_compute
+  dispCompute
 
 /-- The Dirac symbol is Hermitian for real `p, m`: `D(p, m)† = D(p, m)`.
 
@@ -98,13 +105,16 @@ negative-energy fibre is `ran(D − E·I)`, on which `D` acts as `−E`. -/
 noncomputable def energyMomentum (p : Fin 3 → ℝ) (m : ℝ) : ℝ :=
   Real.sqrt (energyMomentumSq p m)
 
+/-- The energy squared `|p|² + m²` is nonnegative, so it has a real square root. -/
 theorem energyMomentumSq_nonneg (p : Fin 3 → ℝ) (m : ℝ) : 0 ≤ energyMomentumSq p m := by
   unfold energyMomentumSq; positivity
 
+/-- The on-shell energy squares back to `|p|² + m²`: `E(p, m)² = |p|² + m²`. -/
 @[simp] theorem energyMomentum_sq (p : Fin 3 → ℝ) (m : ℝ) :
     energyMomentum p m ^ 2 = energyMomentumSq p m :=
   Real.sq_sqrt (energyMomentumSq_nonneg p m)
 
+/-- The on-shell energy `E(p, m) = √(|p|² + m²)` is nonnegative — the positive mass-shell root. -/
 theorem energyMomentum_nonneg (p : Fin 3 → ℝ) (m : ℝ) : 0 ≤ energyMomentum p m :=
   Real.sqrt_nonneg _
 

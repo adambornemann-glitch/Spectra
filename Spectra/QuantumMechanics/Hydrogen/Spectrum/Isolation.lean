@@ -8,14 +8,16 @@ import Spectra.Resolvent.Spectrum
 /-!
 # Isolation of the hydrogen eigenvalues in the spectrum (Tier C: C2)
 
-Each negative hydrogen eigenvalue `Eₙ = −1/(2n²)` is an **isolated** point of the spectrum: there is
-a punctured disk around `Eₙ` (in `ℂ`) entirely inside the resolvent set.  This is the geometric
+Each negative hydrogen eigenvalue `Eₙ = −1/(2n²)` is an **isolated** point of the spectrum: there
+is a punctured disk around `Eₙ` (in `ℂ`) entirely inside the resolvent set.  This is the geometric
 input to the simple-pole statement (C3): on such a punctured disk the resolvent `resolventOf H` is
 analytic, so `(z − Eₙ)ⁿ · resolventOf H z` is differentiable off `Eₙ`.
 
+## Main statements
+
 The proof is real-analysis bookkeeping on the eigenvalue sequence (strictly increasing to `0`):
-* `hydrogenEigenvalue_gap` — `Eₙ` is bounded away from every other eigenvalue by a fixed `g > 0`
-  (the gap to the nearest neighbour `E_{n±1}`).
+* `hydrogenEigenvalue_gap` — `Eₙ` is bounded away from every other eigenvalue by a fixed
+  `g > 0` (the gap to the nearest neighbour `E_{n±1}`).
 * `hydrogen_punctured_disk_subset_resolventSet` — combine the gap with `Eₙ < 0` (to stay below the
   essential spectrum `[0,∞)`), `mem_eigenvalues_of_mem_spectrum_neg` (nothing below `0` except the
   `Eₙ`), and `mem_resolventSet_of_im_ne_zero` (non-real points are always resolvent points).
@@ -30,8 +32,8 @@ open Spectra.QuantumMechanics.Hydrogen
 
 namespace QuantumMechanics.Hydrogen.Spectrum
 
-/-- **Spectral gap at `Eₙ`.** Every other eigenvalue is at distance `≥ g` from `Eₙ`, for a fixed
-`g > 0` (the gap to the nearest neighbour). -/
+/-- **Spectral gap at `Eₙ`.** Every other eigenvalue is at distance `≥ g` from `Eₙ`, for a
+fixed `g > 0` (the gap to the nearest neighbour). -/
 lemma hydrogenEigenvalue_gap (n : ℕ) (hn : 1 ≤ n) :
     ∃ g : ℝ, 0 < g ∧ ∀ (m : ℕ) (hm : 1 ≤ m), m ≠ n →
       g ≤ |hydrogenEigenvalue m hm - hydrogenEigenvalue n hn| := by

@@ -24,7 +24,27 @@ The associated Laguerre polynomials L_n^α(x), which form the radial
 eigenfunctions of the hydrogen atom after appropriate substitutions.
 
 ## Main statements
-* `laguerre_complete` — completeness in L²(ℝ⁺, x^α e^{-x} dx).
+* `laguerre_complete` — completeness of `{Lₙ^{(α)}}` in `L²(ℝ⁺, xᵅ e⁻ˣ dx)`: any
+  `L²(μ_α)` function orthogonal to every `Lₙ^{(α)}` is a.e. zero.
+* `laguerre_norm_sq` — the squared norm
+  `∫₀^∞ xᵅ e⁻ˣ (Lₙ^{(α)})² dx = Γ(n+α+1) / n!`.
+* `laguerre_x_norm_sq` — the first moment `∫₀^∞ x · xᵅ e⁻ˣ (Lₙ^{(α)})² dx
+  = (2n+α+1) · Γ(n+α+1) / n!`.
+
+## Implementation notes
+
+Completeness is proved as a moment problem. Given `f ∈ L²(μ_α)` orthogonal to every
+`Lₙ^{(α)}`, orthogonality to the polynomials upgrades to orthogonality to every monomial `xᵏ`
+(`laguerre_ortho_monomial`), so all weighted moments of `g := w · f` vanish (`g_moments_zero`).
+The two-sided Laplace transform `laplaceTr α f z = ∫ w·f·e^{zx}` is holomorphic on the strip
+`{Re z < 1/2}` (`laplaceTr_differentiableOn`, via a dominated parametric-integral argument with an
+exponential tilt) and vanishes near `0` because its Taylor coefficients are the moments
+(`laplaceTr_eventuallyEq_zero`); the identity theorem then kills it on the whole strip
+(`laplaceTr_eqOn_zero`). Restricting to the imaginary axis gives a vanishing Fourier transform of
+the integrable function `g`, whence `g = 0` a.e. by characteristic-function uniqueness on the
+positive/negative parts (`ae_zero_of_fourier_zero`), and finally `f = 0` a.e. `[μ_α]` since
+`w > 0` on `(0,∞)` (`ae_zero_laguerreMeasure_of_g_ae_zero`). The norm and first-moment formulas
+are proved separately from the three-term recurrence and orthogonality.
 
 ## References
 
@@ -265,12 +285,14 @@ noncomputable def laguerreMeasure (α : ℝ) : Measure ℝ :=
 `laguerreWeight_nonneg` carries a redundant `0 ≤ α` hypothesis; the facts below are
 restated without it, since `laguerre_complete` only assumes `-1 < α`. -/
 
+/-- The weight `laguerreWeight α` is nonnegative everywhere (no `0 ≤ α` hypothesis needed). -/
 lemma laguerreWeight_nonneg' (α : ℝ) (x : ℝ) : 0 ≤ laguerreWeight α x := by
   simp only [laguerreWeight]
   split_ifs with h
   · exact mul_nonneg (Real.rpow_nonneg h.le _) (Real.exp_nonneg _)
   · exact le_refl 0
 
+/-- The weight `laguerreWeight α` is measurable. -/
 lemma measurable_laguerreWeight (α : ℝ) : Measurable (laguerreWeight α) := by
   unfold laguerreWeight
   -- `x ↦ x^α * exp (-x)` is measurable; the `if 0 < x` guard is on a measurable set
@@ -279,6 +301,8 @@ lemma measurable_laguerreWeight (α : ℝ) : Measurable (laguerreWeight α) := b
 
 /-! ### Finiteness of `laguerreMeasure α` and integration against the Lebesgue weight `w` -/
 
+/-- For `α > -1` the weighting measure `μ_α = xᵅ e⁻ˣ 𝟙_{(0,∞)} dx` is finite
+(total mass `Γ(α+1) < ∞`). -/
 lemma isFiniteMeasure_laguerreMeasure (α : ℝ) (hα : -1 < α) :
     IsFiniteMeasure (laguerreMeasure α) := by
   rw [laguerreMeasure]
@@ -307,6 +331,8 @@ lemma integral_laguerreMeasure_eq (α : ℝ) (h : ℝ → ℝ) :
 
 /-! ### Monomials lie in `L²(μ_α)` (so that `f · xᵏ ∈ L¹`) -/
 
+/-- Every monomial `x ↦ xᵏ` lies in `L²(μ_α)` for `α > -1`
+(so that `f · xᵏ ∈ L¹(μ_α)` whenever `f ∈ L²(μ_α)`). -/
 lemma memLp_two_pow (α : ℝ) (hα : -1 < α) (k : ℕ) :
     MemLp (fun x => x ^ k) 2 (laguerreMeasure α) := by
   -- MemLp (x^k) 2 μ_α  ⟺  Integrable |x^k|² = x^{2k} wrt μ_α
@@ -339,6 +365,9 @@ lemma memLp_two_pow (α : ℝ) (hα : -1 < α) (k : ℕ) :
 
 /-! ### From orthogonality to every `Lₙ` to orthogonality to every monomial -/
 
+/-- If `f ∈ L²(μ_α)` is orthogonal to every associated Laguerre polynomial `Lₙ^{(α)}`,
+then it is orthogonal to every monomial `xᵏ` (by strong induction on `k`, since `Lₖ^{(α)}` has a
+nonzero leading coefficient). -/
 lemma laguerre_ortho_monomial (α : ℝ) (hα : -1 < α) (f : ℝ → ℝ)
     (hf : MemLp f 2 (laguerreMeasure α))
     (hortho : ∀ n : ℕ, ∫ x, f x * laguerrePolynomial n α x ∂(laguerreMeasure α) = 0) :
@@ -386,6 +415,8 @@ These are stated as plain Lebesgue integrals. -/
 /-- `g = w · f`, supported on `(0,∞)`. -/
 local notation "g[" α ", " f "]" => fun x : ℝ => laguerreWeight α x * f x
 
+/-- If `f ∈ L²(μ_α)` is orthogonal to every `Lₙ^{(α)}`, then every Lebesgue moment of the weighted
+function `g = w · f` vanishes: `∫ (w·f)·xᵏ = 0` for all `k`. -/
 lemma g_moments_zero (α : ℝ) (hα : -1 < α) (f : ℝ → ℝ)
     (hf : MemLp f 2 (laguerreMeasure α))
     (hortho : ∀ n : ℕ, ∫ x, f x * laguerrePolynomial n α x ∂(laguerreMeasure α) = 0) :
@@ -400,6 +431,8 @@ lemma g_moments_zero (α : ℝ) (hα : -1 < α) (f : ℝ → ℝ)
 
 The key fact is `e^{c·} ∈ L²(μ_α)`, since `∫ e^{2cx} dμ_α = ∫_{Ioi 0} xᵃ e^{(2c-1)x} < ∞`. -/
 
+/-- For `c < 1/2` the exponential `x ↦ e^{cx}` lies in `L²(μ_α)`, because
+`∫ e^{2cx} dμ_α = ∫_{Ioi 0} xᵅ e^{-(1-2c)x} dx < ∞` (a scaled Γ-integrand with positive rate). -/
 lemma memLp_two_exp (α : ℝ) (hα : -1 < α) {c : ℝ} (hc : c < 1 / 2) :
     MemLp (fun x => Real.exp (c * x)) 2 (laguerreMeasure α) := by
   -- MemLp (e^{cx}) 2 μ_α  ⟺  Integrable |e^{cx}|² = e^{2cx} wrt μ_α
@@ -459,6 +492,8 @@ lemma g_tilt_integrable (α : ℝ) (hα : -1 < α) (f : ℝ → ℝ)
   simp only [smul_eq_mul, ENNReal.toReal_ofReal (laguerreWeight_nonneg' α x)]
   ring
 
+/-- The weighted function `w · f` is Lebesgue-integrable whenever `f ∈ L²(μ_α)`
+(the `c = 0` case of `g_tilt_integrable`). -/
 lemma g_integrable (α : ℝ) (hα : -1 < α) (f : ℝ → ℝ)
     (hf : MemLp f 2 (laguerreMeasure α)) :
     Integrable (fun x => laguerreWeight α x * f x) := by
@@ -470,11 +505,14 @@ lemma g_integrable (α : ℝ) (hα : -1 < α) (f : ℝ → ℝ)
 /-- The open strip `{Re z < 1/2}`; convex hence preconnected, open, contains `0`. -/
 def strip : Set ℂ := {z : ℂ | z.re < 1 / 2}
 
+/-- The strip `{Re z < 1/2}` is open. -/
 lemma isOpen_strip : IsOpen strip := isOpen_lt Complex.continuous_re continuous_const
 
+/-- The strip `{Re z < 1/2}` is convex (an open half-space for the linear map `Re`). -/
 lemma convex_strip : Convex ℝ strip :=
   -- `strip = {z | z.re < 1/2}` is a half-space for the ℝ-linear map `Complex.re`.
   convex_halfSpace_lt Complex.reLm.isLinear (1 / 2)
+/-- `0` lies in the strip `{Re z < 1/2}`. -/
 lemma zero_mem_strip : (0 : ℂ) ∈ strip := by simp [strip]
 
 /-- The two-sided Laplace transform `∫ w(x) · f(x) · e^{z x} dx` of the weighted
@@ -722,13 +760,15 @@ lemma laplaceTr_eqOn_zero (α : ℝ) (hα : -1 < α) (f : ℝ → ℝ)
 
 Proved via characteristic-function extensionality on the positive and negative parts `g⁺, g⁻`. -/
 
+/-- An integrable real function whose Fourier transform vanishes identically is a.e. zero.
+Proved by characteristic-function extensionality applied to the positive and negative parts. -/
 lemma ae_zero_of_fourier_zero (g : ℝ → ℝ) (hg : Integrable g)
     (h : ∀ t : ℝ, ∫ x : ℝ, (g x : ℂ) * Complex.exp (Complex.I * (t : ℂ) * (x : ℂ)) = 0) :
     g =ᵐ[volume] 0 := by
   -- Split g = g⁺ - g⁻, build finite measures μ± = volume.withDensity (ofReal ∘ g±).
   set gp : ℝ → ℝ := fun x => max (g x) 0
   set gn : ℝ → ℝ := fun x => max (-g x) 0
-  have hgp : Integrable gp := hg.pos_part          -- name check: pos/neg part of an Integrable fn
+  have hgp : Integrable gp := hg.pos_part
   have hgn : Integrable gn := hg.neg.pos_part
   set μp : Measure ℝ := volume.withDensity (fun x => ENNReal.ofReal (gp x))
   set μn : Measure ℝ := volume.withDensity (fun x => ENNReal.ofReal (gn x))
@@ -809,6 +849,8 @@ lemma ae_zero_of_fourier_zero (g : ℝ → ℝ) (hg : Integrable g)
 
 This uses that `w > 0` on `(0, ∞)`. -/
 
+/-- If the weighted function `w · f` vanishes a.e. `[volume]`, then `f` vanishes a.e. `[μ_α]`,
+since `w > 0` on the support `(0,∞)` of `μ_α`. -/
 lemma ae_zero_laguerreMeasure_of_g_ae_zero (α : ℝ) (f : ℝ → ℝ)
     (hg : (fun x => laguerreWeight α x * f x) =ᵐ[volume] 0) :
     f =ᵐ[laguerreMeasure α] 0 := by
@@ -818,13 +860,19 @@ lemma ae_zero_laguerreMeasure_of_g_ae_zero (α : ℝ) (f : ℝ → ℝ)
   filter_upwards [hg] with x hx hwpos
   -- ofReal (w x) ≠ 0 ⟹ w x > 0 ⟹ (on supp) w x * f x = 0 forces f x = 0
   have hw : 0 < laguerreWeight α x := by
-    rw [ENNReal.ofReal_ne_zero_iff] at hwpos  -- name check (`ofReal_ne_zero` / `pos_iff`)
+    rw [ENNReal.ofReal_ne_zero_iff] at hwpos
     exact hwpos
   have : laguerreWeight α x * f x = 0 := hx
   exact (mul_eq_zero.1 this).resolve_left hw.ne'
 
 /-! ### Completeness: assembling the main theorem -/
 
+/-- **Completeness of the associated Laguerre polynomials in `L²(μ_α)`.**
+For `α > -1`, any `f ∈ L²(ℝ⁺, xᵅ e⁻ˣ dx)` orthogonal to every `Lₙ^{(α)}` is a.e. zero;
+equivalently, `{Lₙ^{(α)}}ₙ` is a complete orthogonal system. Proved via the moment problem:
+vanishing moments make the two-sided Laplace transform of `w · f` vanish on the strip
+`{Re z < 1/2}`, hence its Fourier transform vanishes on the imaginary axis, forcing `w · f = 0`
+a.e. and thus `f = 0` a.e. `[μ_α]`. -/
 theorem laguerre_complete (α : ℝ) (hα : -1 < α) (f : ℝ → ℝ)
     (hf : MemLp f 2 (laguerreMeasure α))
     (hortho : ∀ n : ℕ, ∫ x, f x * laguerrePolynomial n α x ∂(laguerreMeasure α) = 0) :

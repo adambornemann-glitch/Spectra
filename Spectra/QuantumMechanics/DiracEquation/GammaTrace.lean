@@ -4,21 +4,23 @@ Released under MIT license as described in the file LICENSE.
 Authors: Adam Bornemann
 Filename: QuantumMechanics/DiracEquation/GammaTrace.lean
 -/
+import Mathlib.Tactic.NoncommRing
 import Spectra.QuantumMechanics.DiracEquation.CliffordAlgebra
-import Mathlib.Analysis.Complex.Basic
-import Mathlib.MeasureTheory.Integral.Bochner.ContinuousLinearMap
 /-!
 # Gamma Matrix Trace Identities
 
 This file develops the lower-order trace identities for products of gamma matrices — the single,
 two-, and three-gamma traces that are the building blocks of the trace technology used to compute
-Feynman diagrams. The higher identities (four-gamma traces, `γ⁵` traces, contraction formulas) are
-not developed here.
+Feynman diagrams — together with the full chirality-matrix (`γ⁵`) algebra needed to prove them:
+`γ⁵` is a Hermitian involution that anticommutes with every `γ^μ`, is traceless, and equals
+`iγ⁰γ¹γ²γ³`. The higher identities not yet developed here are the four-gamma traces and the
+contraction formulas `γ_μ γ^μ = 4`.
 
 ## Main definitions
 
 * `gammaAt`: Helper to access gamma matrices by index μ ∈ {0,1,2,3}
 * `minkowskiMetric`: The Minkowski metric tensor η^μν = diag(1,-1,-1,-1)
+* `gamma5`: The chirality matrix γ⁵ = iγ⁰γ¹γ²γ³
 
 ## Main results
 
@@ -37,6 +39,14 @@ not developed here.
 * `gamma2_sq_eq_neg_one`: (γ²)² = -I
 * `gamma3_sq_eq_neg_one`: (γ³)² = -I
 
+### Chirality matrix identities
+* `gamma5_sq`: (γ⁵)² = I (involution)
+* `gamma5_hermitian`: (γ⁵)† = γ⁵ (Hermitian)
+* `gamma5_anticommutes`: γ⁵ γ^μ = -γ^μ γ⁵ for all μ
+* `gamma5_trace_zero`: Tr(γ⁵) = 0
+* `gamma5_gamma_trace_zero`: Tr(γ⁵ γ^μ) = 0
+* `gamma5_eq_product`: γ⁵ = iγ⁰γ¹γ²γ³
+
 ## Implementation notes
 
 The two-gamma trace formula Tr(γ^μ γ^ν) = 4η^μν is proved by case analysis on
@@ -50,10 +60,12 @@ anticommutation to move γ⁵ through, and observe that Tr(A) = -Tr(A) implies T
 
 * [Peskin, Schroeder, *An Introduction to Quantum Field Theory*][peskin1995], Appendix A
 * [Srednicki, *Quantum Field Theory*][srednicki2007], Chapter 36
+* [Bjorken, Drell, *Relativistic Quantum Mechanics*][bjorkendrell1964], Appendix A
+* [Thaller, *The Dirac Equation*][thaller1992], Appendix
 
 ## Tags
 
-gamma matrices, trace identities, Feynman diagrams, QED, Clifford algebra
+gamma matrices, trace identities, Feynman diagrams, QED, Clifford algebra, chirality, gamma5
 -/
 open Complex Matrix
 namespace Spectra.QuantumMechanics.Dirac
@@ -69,7 +81,13 @@ def minkowskiMetric (μ ν : Fin 4) : ℂ :=
     if μ = 0 then 1 else -1
   else 0
 
-/-- The chirality matrix γ⁵ = iγ⁰γ¹γ²γ³-/
+/-- The chirality matrix γ⁵ = iγ⁰γ¹γ²γ³.
+
+Given here directly in the Dirac–Pauli representation as an off-diagonal block matrix; the
+equivalence with the product form `iγ⁰γ¹γ²γ³` is `gamma5_eq_product`. It is a Hermitian
+involution (`gamma5_hermitian`, `gamma5_sq`) that anticommutes with every `γ^μ`
+(`gamma5_anticommutes`), and it splits spinor space into left- and right-handed chirality
+eigenspaces (eigenvalues ±1). -/
 def gamma5 : Matrix (Fin 4) (Fin 4) ℂ :=
   !![0, 0, 1, 0;
      0, 0, 0, 1;
@@ -158,8 +176,20 @@ lemma gamma2_sq_eq_neg_one : gamma2 * gamma2 = -1 := by
 lemma gamma3_sq_eq_neg_one : gamma3 * gamma3 = -1 := by
   dirac_compute gamma3
 
-
 /-! ## Trace Helper Lemmas -/
+
+/-- A complex number equal to its own negation is zero: `z = -z ⟹ z = 0`.
+
+Shared tail of the "trace equals minus itself" arguments in `trace_zero_of_anticommute` and
+`gamma_trace_three`. -/
+private lemma eq_zero_of_eq_neg_self {z : ℂ} (h : z = -z) : z = 0 := by
+  have h_double : z + z = 0 := by
+    rw [h]
+    exact neg_add_eq_zero.mpr h
+  have h_two : (2 : ℂ) * z = 0 := by
+    rw [two_mul]
+    exact h_double
+  exact (mul_eq_zero.mp h_two).resolve_left two_ne_zero
 
 /-- Tr(I₄) = 4: The trace of the 4×4 identity matrix. -/
 lemma trace_one_fin4 : Matrix.trace (1 : Matrix (Fin 4) (Fin 4) ℂ) = 4 := by
@@ -197,14 +227,7 @@ lemma trace_zero_of_anticommute (A B : Matrix (Fin 4) (Fin 4) ℂ)
         = Matrix.trace (-(B * A)) := by rw [hab]
       _ = -Matrix.trace (B * A) := Matrix.trace_neg (B * A)
       _ = -Matrix.trace (A * B) := by rw [trace_mul_comm B A]
-  have h_double : Matrix.trace (A * B) + Matrix.trace (A * B) = 0 := by
-    rw [h_neg_self]
-    exact neg_add_eq_zero.mpr h_neg_self
-  have h_two : (2 : ℂ) * Matrix.trace (A * B) = 0 := by
-    rw [two_mul]
-    exact h_double
-  exact (mul_eq_zero.mp h_two).resolve_left two_ne_zero
-
+  exact eq_zero_of_eq_neg_self h_neg_self
 
 /-! ## Two-Gamma Trace: Tr(γ^μ γ^ν) = 4η^μν
 
@@ -351,25 +374,17 @@ Each anticommutation γ⁵ γ^α = -γ^α γ⁵ contributes a factor of -1. -/
 lemma gamma5_move_through_three (μ ν ρ : Fin 4) :
     gamma5 * gammaAt μ * gammaAt ν * gammaAt ρ =
     -(gammaAt μ * gammaAt ν * gammaAt ρ * gamma5) := by
-  have step1 : gamma5 * gammaAt μ = -(gammaAt μ * gamma5) := by
-    rw [gamma5_anticommutes μ]
-    exact Matrix.neg_mul (gammaAt μ) gamma5
-  have step2 : gamma5 * gammaAt ν = -(gammaAt ν * gamma5) := by
-    rw [gamma5_anticommutes ν]
-    exact Matrix.neg_mul (gammaAt ν) gamma5
-  have step3 : gamma5 * gammaAt ρ = -(gammaAt ρ * gamma5) := by
-    rw [gamma5_anticommutes ρ]
-    exact Matrix.neg_mul (gammaAt ρ) gamma5
+  have step1 : gamma5 * gammaAt μ = -(gammaAt μ * gamma5) :=
+    (gamma5_anticommutes μ).trans (Matrix.neg_mul _ _)
+  have step2 : gamma5 * gammaAt ν = -(gammaAt ν * gamma5) :=
+    (gamma5_anticommutes ν).trans (Matrix.neg_mul _ _)
+  have step3 : gamma5 * gammaAt ρ = -(gammaAt ρ * gamma5) :=
+    (gamma5_anticommutes ρ).trans (Matrix.neg_mul _ _)
   calc gamma5 * gammaAt μ * gammaAt ν * gammaAt ρ
       = (gamma5 * gammaAt μ) * gammaAt ν * gammaAt ρ := by noncomm_ring
-    _ = (-(gammaAt μ * gamma5)) * gammaAt ν * gammaAt ρ := by rw [step1]
-    _ = -(gammaAt μ * gamma5 * gammaAt ν * gammaAt ρ) := by noncomm_ring
-    _ = -(gammaAt μ * (gamma5 * gammaAt ν) * gammaAt ρ) := by noncomm_ring
-    _ = -(gammaAt μ * (-(gammaAt ν * gamma5)) * gammaAt ρ) := by rw [step2]
-    _ = gammaAt μ * gammaAt ν * gamma5 * gammaAt ρ := by noncomm_ring
-    _ = gammaAt μ * gammaAt ν * (gamma5 * gammaAt ρ) := by noncomm_ring
-    _ = gammaAt μ * gammaAt ν * (-(gammaAt ρ * gamma5)) := by rw [step3]
-    _ = -(gammaAt μ * gammaAt ν * gammaAt ρ * gamma5) := by noncomm_ring
+    _ = -(gammaAt μ * (gamma5 * gammaAt ν) * gammaAt ρ) := by rw [step1]; noncomm_ring
+    _ = gammaAt μ * gammaAt ν * (gamma5 * gammaAt ρ) := by rw [step2]; noncomm_ring
+    _ = -(gammaAt μ * gammaAt ν * gammaAt ρ * gamma5) := by rw [step3]; noncomm_ring
 
 /-- Tr(γ^μ γ^ν γ^ρ) = 0: The trace of an odd number of gamma matrices vanishes.
 
@@ -380,8 +395,6 @@ lemma gamma5_move_through_three (μ ν ρ : Fin 4) :
 4. T = -T, so T = 0 -/
 lemma gamma_trace_three (μ ν ρ : Fin 4) :
     Matrix.trace (gammaAt μ * gammaAt ν * gammaAt ρ) = 0 := by
-  set T := Matrix.trace (gammaAt μ * gammaAt ν * gammaAt ρ) with hT_def
-
   have h_insert : gammaAt μ * gammaAt ν * gammaAt ρ =
                   gamma5 * gamma5 * gammaAt μ * gammaAt ν * gammaAt ρ := by
     rw [gamma5_sq]
@@ -401,23 +414,14 @@ lemma gamma_trace_three (μ ν ρ : Fin 4) :
     rw [h_assoc, gamma5_sq]
     noncomm_ring
 
-  have h_neg_self : T = -T := by
-    calc T
-        = Matrix.trace (gammaAt μ * gammaAt ν * gammaAt ρ) := rfl
-      _ = Matrix.trace (gamma5 * gamma5 * gammaAt μ * gammaAt ν * gammaAt ρ) := by rw [h_insert]
+  have h_neg_self : Matrix.trace (gammaAt μ * gammaAt ν * gammaAt ρ) =
+      -Matrix.trace (gammaAt μ * gammaAt ν * gammaAt ρ) := by
+    calc Matrix.trace (gammaAt μ * gammaAt ν * gammaAt ρ)
+        = Matrix.trace (gamma5 * gamma5 * gammaAt μ * gammaAt ν * gammaAt ρ) := by rw [h_insert]
       _ = Matrix.trace (gamma5 * gammaAt μ * gammaAt ν * gammaAt ρ * gamma5) := h_cyclic
       _ = Matrix.trace (-(gammaAt μ * gammaAt ν * gammaAt ρ)) := by rw [h_anticomm]
       _ = -Matrix.trace (gammaAt μ * gammaAt ν * gammaAt ρ) := Matrix.trace_neg _
-      _ = -T := rfl
-
-  have h_double : T + T = 0 := by
-    rw [h_neg_self]
-    exact neg_add_eq_zero.mpr h_neg_self
-  have h_two : (2 : ℂ) * T = 0 := by
-    rw [two_mul]
-    exact h_double
-  exact (mul_eq_zero.mp h_two).resolve_left two_ne_zero
-
+  exact eq_zero_of_eq_neg_self h_neg_self
 
 /-! ## Additional Gamma5 Trace Identities -/
 

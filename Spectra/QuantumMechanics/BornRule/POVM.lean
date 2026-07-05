@@ -76,7 +76,8 @@ namespace Spectra
 Exactly `ProjValMeasure` with the outcome space generalized and the multiplicativity axiom
 `proj_inter` removed.  The diagonal scalar measures `diag ξ` are carried as data and welded to the
 effects by `inner_effect`; countable additivity therefore lives inside `Measure ι` and is never
-restated, and positivity/self-adjointness/the effect bound are theorems (§1 below). -/
+restated, and positivity/self-adjointness/the effect bound are theorems (proved below in this
+section). -/
 structure POVM (H : Type*) [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
     (ι : Type*) [MeasurableSpace ι] where
   /-- The effect assigned to each measurable set. -/
@@ -225,9 +226,8 @@ private lemma re_nonneg_of_isPositive {E : H →L[ℂ] H} (hE : E.IsPositive) (�
   rw [← inner_conj_symm (E ξ) ξ, Complex.conj_re] at h
   exact h
 
-variable {κ : Type*} [Countable κ] [MeasurableSpace κ]
+variable {κ : Type*}
 
-set_option linter.unusedSectionVars false in
 /-- From `∑' k, E k = 1`, the family `E` is summable.  (If it were not, the tsum would be `0`,
 forcing the identity to vanish, hence `H` trivial — in which case every operator is `0`, so `E` is
 summable after all.) -/
@@ -243,7 +243,6 @@ lemma summable_ofEffects {E : κ → (H →L[ℂ] H)} (hsum : ∑' k, E k = 1) :
     rw [hE0]
     exact summable_zero
 
-set_option linter.unusedSectionVars false in
 /-- Push `ξ` through the operator-valued tsum and the inner product through the scalar tsum:
 `⟪ξ, (∑' k, B.indicator E k) ξ⟫ = ∑' k, B.indicator (k ↦ ⟪ξ, Eₖ ξ⟫) k`. -/
 private lemma inner_effect_tsum {E : κ → (H →L[ℂ] H)} (hSE : Summable E) (B : Set κ) (ξ : H) :
@@ -265,11 +264,12 @@ private lemma inner_effect_tsum {E : κ → (H →L[ℂ] H)} (hSE : Summable E) 
   · rw [Set.indicator_of_notMem hk, Set.indicator_of_notMem hk,
       ContinuousLinearMap.zero_apply, inner_zero_right]
 
+variable [MeasurableSpace κ]
+
 /-- The discrete diagonal measure `diag ξ = ∑' k, ⟪ξ, Eₖ ξ⟫.re • δ_k`. -/
 noncomputable def diagOfEffects (E : κ → (H →L[ℂ] H)) (ξ : H) : Measure κ :=
   Measure.sum (fun k => ENNReal.ofReal ((⟪ξ, E k ξ⟫_ℂ).re) • Measure.dirac k)
 
-set_option linter.unusedSectionVars false in
 private lemma diagOfEffects_apply {E : κ → (H →L[ℂ] H)} (ξ : H) {B : Set κ}
     (hB : MeasurableSet B) :
     (diagOfEffects E ξ) B
@@ -289,7 +289,8 @@ private lemma inner_effect_eq_diag {E : κ → (H →L[ℂ] H)} (hSE : Summable 
   have hterm : ∀ k, Set.indicator B (fun k => ⟪ξ, E k ξ⟫_ℂ) k
       = ((Set.indicator B (fun k => ((⟪ξ, E k ξ⟫_ℂ).re : ℝ)) k : ℝ) : ℂ) := fun k => by
     by_cases hk : k ∈ B
-    · rw [Set.indicator_of_mem hk, Set.indicator_of_mem hk]; exact inner_eq_re_of_isPositive (hpos k) ξ
+    · rw [Set.indicator_of_mem hk, Set.indicator_of_mem hk]
+      exact inner_eq_re_of_isPositive (hpos k) ξ
     · rw [Set.indicator_of_notMem hk, Set.indicator_of_notMem hk, Complex.ofReal_zero]
   rw [tsum_congr hterm, ← Complex.ofReal_tsum]
   congr 1
@@ -388,7 +389,7 @@ the projective case.  `(bornMeasurePOVMPure M ψ) B = ⟪ψ, M(B) ψ⟫` by `inn
 noncomputable def bornMeasurePOVMPure (M : POVM H ι) (ψ : H) : Measure ι :=
   M.diag ψ
 
-/-- `[done]` For a unit vector this is a probability measure (mass `‖ψ‖² = 1`, `diag_univ_toReal`). -/
+/-- For a unit vector this is a probability measure (mass `‖ψ‖² = 1`, by `diag_univ_toReal`). -/
 theorem isProbabilityMeasure_bornMeasurePOVMPure (M : POVM H ι) {ψ : H} (hψ : ‖ψ‖ = 1) :
     IsProbabilityMeasure (bornMeasurePOVMPure M ψ) := by
   refine ⟨(ENNReal.toReal_eq_one_iff _).mp ?_⟩
@@ -478,7 +479,8 @@ effect, its complement `1 - E` the "no" effect.  `binaryPOVM` builds it on `Bool
 three strands of the file together:
 
 * the **effect calculus** of §1 — `1 - E` is again an effect *exactly because* `E ≤ 1` in the
-  Loewner order (`ContinuousLinearMap.le_def`, which makes `E ≤ 1` definitionally `(1 - E).IsPositive`);
+  Loewner order (`ContinuousLinearMap.le_def`, which makes `E ≤ 1` definitionally
+  `(1 - E).IsPositive`);
 * the **constructor** `ofEffects` of §2, applied to the two-element family `{E, 1 - E}` whose sum
   is the identity;
 * the **Born rule** of §4 — the outcome probabilities are `⟪ψ, E ψ⟫` and `⟪ψ, (1 - E) ψ⟫`, which
@@ -487,32 +489,36 @@ three strands of the file together:
 So an effect is *literally* a yes-probability operator: `binaryPOVM_bornPure_true` reads
 `P(yes) = ⟪ψ, E ψ⟫`. -/
 
+/-- The two-element effect family of a binary measurement: `true` ("yes") carries `E`, `false`
+("no") its complement `1 - E`.  Shared by `binaryPOVM` and its `@[simp]` effect lemmas. -/
+private abbrev binaryEffect (E : H →L[ℂ] H) : Bool → (H →L[ℂ] H) := fun b => bif b then E else 1 - E
+
 /-- The **two-outcome POVM** of an effect `0 ≤ E ≤ 1`: outcome `true` ("yes") carries the effect
 `E`, outcome `false` ("no") its complement `1 - E`. -/
 noncomputable def binaryPOVM (E : H →L[ℂ] H) (hE : E.IsPositive) (hE1 : E ≤ 1) :
     POVM H Bool :=
-  POVM.ofEffects (fun b => bif b then E else 1 - E)
+  POVM.ofEffects (binaryEffect E)
     (fun b => by cases b with
       | true => exact hE
       | false => exact (ContinuousLinearMap.le_def E 1).mp hE1)
     (by
-      rw [(hasSum_fintype (fun b : Bool => bif b then E else (1 - E))).tsum_eq, Fintype.sum_bool]
+      rw [(hasSum_fintype (binaryEffect E)).tsum_eq, Fintype.sum_bool]
       simp)
 
 /-- The "yes" effect of `binaryPOVM` is `E` itself. -/
 @[simp] lemma binaryPOVM_effect_true (E : H →L[ℂ] H) (hE : E.IsPositive) (hE1 : E ≤ 1) :
     (binaryPOVM E hE hE1).effect {true} (measurableSet_singleton true) = E := by
   rw [binaryPOVM, POVM.ofEffects_effect,
-    (hasSum_fintype (fun b : Bool =>
-      Set.indicator {true} (fun b => bif b then E else (1 - E)) b)).tsum_eq, Fintype.sum_bool]
+    (hasSum_fintype (fun b : Bool => Set.indicator {true} (binaryEffect E) b)).tsum_eq,
+    Fintype.sum_bool]
   simp
 
 /-- The "no" effect of `binaryPOVM` is the complement `1 - E`. -/
 @[simp] lemma binaryPOVM_effect_false (E : H →L[ℂ] H) (hE : E.IsPositive) (hE1 : E ≤ 1) :
     (binaryPOVM E hE hE1).effect {false} (measurableSet_singleton false) = 1 - E := by
   rw [binaryPOVM, POVM.ofEffects_effect,
-    (hasSum_fintype (fun b : Bool =>
-      Set.indicator {false} (fun b => bif b then E else (1 - E)) b)).tsum_eq, Fintype.sum_bool]
+    (hasSum_fintype (fun b : Bool => Set.indicator {false} (binaryEffect E) b)).tsum_eq,
+    Fintype.sum_bool]
   simp
 
 /-- **The yes-probability is `⟪ψ, E ψ⟫`.**  The Born probability that `binaryPOVM E` returns `true`

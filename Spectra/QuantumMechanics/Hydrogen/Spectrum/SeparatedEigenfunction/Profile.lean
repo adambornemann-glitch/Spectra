@@ -12,8 +12,29 @@ import Spectra.QuantumMechanics.Hydrogen.Spectrum.SectorReductionLocal
 /-!
 # Separated hydrogen eigenfunctions: profile and Sobolev regularity
 
-This file contains the reduced radial profile, the separated product, its local chart
-classical eigen-equation, and the `H²` regularity stack needed for weak derivatives.
+This file builds the non-radial (`ℓ ≥ 1`) separated eigenfunction
+`Ψ_{nℓm} = S_{nℓ}(‖·‖)·solidHarmonicNat ℓ m` from its reduced radial profile
+`S_{nℓ} = R_{nℓ}/r^ℓ`, establishes the classical eigen-equation it satisfies off the origin (via
+a localizing smooth cutoff avoiding the origin singularity), and assembles the `H²`
+weak-derivative stack placing `Ψ` in the domain of the hydrogen Hamiltonian.  The `ℓ = 0`
+(spherically symmetric) case is radial and is handled by `bound_state_of_radial_profile` in
+`RadialEigenfunction/Basic.lean`.
+
+## Main statements
+
+* `reducedRadialProfile`/`separatedEigenfunction` — the smooth reduced radial profile
+  `S_{nℓ} = R_{nℓ}/r^ℓ` and the Cartesian separated eigenfunction
+  `Ψ_{nℓm} = S_{nℓ}(‖·‖)·Y_ℓ^m`.
+* `separated_eigen_chart` — `Ψ` solves the Cartesian sum-of-second-derivatives eigen-equation
+  `Σⱼ ∂ⱼ² Ψ = −2·(Eₙ + 1/‖x‖)·Ψ` at every interior chart point (`r > 0`, `θ ∈ (0, π)`).
+* `memLp_separated`/`memLp_separated_first`/`memLp_separated_second` — `Ψ`, its first partials
+  `∂ᵢΨ`, and its mixed second partials `∂ⱼ∂ᵢΨ` are all `L²` (the `1/‖x‖` Hessian singularity is
+  `L²` in `ℝ³`).
+* `hasWeakDerivative_separated_first`/`_second` — the classical partials are the weak
+  first/second derivatives of the `L²` element representing `Ψ`, via `master_ibp`.
+* `fderiv_smul_of_homogeneous`/`fderiv_norm_le_of_homogeneous`/`fderiv_norm_mul_le_of_homogeneous`
+  — the general positive-homogeneity machine yielding the solid-harmonic gradient/Hessian growth
+  bounds `‖∂^k Sℓᵐ(x)‖ ≤ C·‖x‖^{ℓ−k}`.
 -/
 
 noncomputable section
@@ -60,9 +81,9 @@ lemma hydrogenRadial_eq_pow_mul_reduced (n ℓ : ℕ) (hn : ℓ + 1 ≤ n) (r : 
 The `H²`-regularity of the *separated* eigenfunction `Ψ = S(‖·‖)·Q` needs the reduced profile
 `S = R/r^ℓ` and its first two derivatives to decay exponentially (so that the `S`-radial part is
 `L²`).  These mirror the `R_{nℓ}` decay lemmas (`tendsto_*_hydrogenRadial_mul_exp` and the
-`exp_bound_of_tendsto` packaging in `RadialEigenfunction/Basic.lean`) with the `r^ℓ` prefactor pruned:
-`S = A·e^{−r/n}·L(2r/n)` with `A = N_{nℓ}·(2/n)^ℓ` a constant, so the buffered Laguerre limits
-(`tendsto_pow_exp_laguerre_buffer` etc., with power `a = 0`) close everything. -/
+`exp_bound_of_tendsto` packaging in `RadialEigenfunction/Basic.lean`) with the `r^ℓ` prefactor
+pruned: `S = A·e^{−r/n}·L(2r/n)` with `A = N_{nℓ}·(2/n)^ℓ` a constant, so the buffered Laguerre
+limits (`tendsto_pow_exp_laguerre_buffer` etc., with power `a = 0`) close everything. -/
 
 /-- First derivative of the reduced profile (closed form, valid everywhere). -/
 private lemma deriv_reducedRadialProfile (n ℓ : ℕ) (hn : ℓ + 1 ≤ n) :
@@ -651,8 +672,8 @@ lemma fderiv2_solidHarmonicNat_norm_le (ℓ m : ℕ) (hm : m ≤ ℓ) (hℓ : 2 
 /-! ## H²-Sobolev weak-derivative stack for the separated eigenfunction `Ψ = S(‖·‖)·Q`
 
 Mirrors the radial stack of `RadialEigenfunction/` for the genuinely non-radial witness
-`Ψ_{nℓm} = reducedRadialProfileC n ℓ hn (‖·‖) · solidHarmonicNat ℓ m`.  We assume `ℓ ≥ 1`
-throughout (the `ℓ = 0` case is radial and is handled by `bound_state_of_radial_profile`). -/
+`Ψ_{nℓm} = reducedRadialProfileC n ℓ hn (‖·‖) · solidHarmonicNat ℓ m`.  Throughout, `ℓ ≥ 1` is
+assumed (the `ℓ = 0` case is radial and is handled by `bound_state_of_radial_profile`). -/
 
 /-! ### Polynomial × exponential absorption -/
 
@@ -787,8 +808,8 @@ lemma fderiv_separated_apply (n ℓ m : ℕ) (hn : ℓ + 1 ≤ n)
 
 `‖Ψ‖`, `‖∂ᵢΨ‖` decay like `e^{−a‖x‖}`; `‖∂ⱼ∂ᵢΨ‖` decays like `e^{−a‖x‖} + e^{−a‖x‖}/‖x‖`.
 The radial part contributes exponential decay (`reducedRadialProfile_decay` etc.), the solid
-harmonic the polynomial growth `‖x‖^{ℓ−k}` (absorbed by `pow_mul_exp_le_exp`).  We fix the decay
-rate `a = 1/(2n)` (from `S`-decay) and absorb the polynomials into `a' = 1/(4n)`. -/
+harmonic the polynomial growth `‖x‖^{ℓ−k}` (absorbed by `pow_mul_exp_le_exp`).  The decay rate
+is fixed at `a = 1/(2n)` (from `S`-decay), with the polynomials absorbed into `a' = 1/(4n)`. -/
 
 /-- **`‖Ψ x‖ ≤ C·e^{−‖x‖/(4n)}`** for `x ≠ 0` (`ℓ ≥ 1`). -/
 lemma norm_separated_le_exp (n ℓ m : ℕ) (hn : ℓ + 1 ≤ n) (hm : m ≤ ℓ) :
@@ -902,7 +923,8 @@ lemma norm_fderiv_separated_le_exp (n ℓ m : ℕ) (hn : ℓ + 1 ≤ n) (hm : m 
 
 The classical second partial `∂ⱼ∂ᵢΨ` is bounded by `C·e^{−a‖x‖} + C'·e^{−a‖x‖}/‖x‖`: the worst
 singularity is exactly `1/‖x‖` (for all `ℓ ≥ 1`), coming from the radial Hessian and from the
-gradient of `∂ᵢQ`.  We differentiate the product expression for `∂ᵢΨ` (valid `=ᶠ` near `x`). -/
+gradient of `∂ᵢQ`.  The bound comes from differentiating the product expression for `∂ᵢΨ`
+(valid `=ᶠ` near `x`). -/
 
 /-- The op-norm of the gradient of `∂ᵢQ = fderiv Q · (single i 1)` is bounded by the Hessian
 op-norm of `Q`: `‖D(∂ᵢQ)(x)‖ ≤ ‖D²Q(x)‖`. -/

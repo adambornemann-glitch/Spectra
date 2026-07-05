@@ -16,6 +16,7 @@ along it. Conventions follow [PhysLean / PhysLib](https://physlib.io) and Mathli
 | **License** | MIT — see [`LICENSE`](LICENSE) |
 | **Size** | ~370 source files, ~107,000 lines |
 | **Build status** | `sorry`-free default build, enforced by the [`AxiomCheck`](AxiomCheck.lean) gate (CI runs `lake build`) |
+| **Two trust gates** | *proofs*: the [`AxiomCheck`](AxiomCheck.lean) axiom/`sorry` gate; *statements*: [341 numeric checks](NumericChecks/README.md) that the formalized constants, signs and normalizations match the intended physics |
 
 ---
 
@@ -207,8 +208,32 @@ confirm it holds:
   quantum-logic development. These are honest works-in-progress, not placeholders — nothing
   downstream assumes them.
 
-A CI workflow ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) runs the build+gate and a
-`scripts/check_lengths.py` length ratchet on every push and pull request.
+A CI workflow ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) runs the build+gate, the
+statement-level [`NumericChecks`](NumericChecks/README.md) suite, and a `scripts/check_lengths.py`
+length ratchet on every push and pull request.
+
+### Statement-level checks — the second gate
+
+`AxiomCheck` proves the *proofs* are honest, but a machine cannot tell whether a **statement**
+encodes the intended mathematics: a dropped factor of 2, a flipped sign, or a wrong normalization
+is proved just as rigorously as the correct claim, and passes the axiom gate. The
+[`NumericChecks/`](NumericChecks/README.md) suite closes that gap. It is pure-stdlib Python (no
+numpy) that transcribes the library's definitions *literally* — each check cites the Lean
+`file:line` it validates — and compares them against high-precision numerics computed by an
+**independent route**, on finite models where the two sides take genuinely different values (so an
+expression-identity bug cannot fake a pass). A failure points at a statement-level bug in a named
+declaration.
+
+The 341 checks span the whole tower: hydrogen (Laguerre normalization/orthogonality, `Eₙ`,
+Bohr/Balmer against the H-α line), the Hardy constant and its sharpness, Cramér–Rao and the
+quantum Fisher metric, CHSH/Tsirelson, and — validating the newest operator-algebra layers on
+concrete matrix models — **Tomita–Takesaki** (`Δ = S⋆S` built from the abstract antilinear Tomita
+graph *equals* the closed form `ρ(·)ρ⁻¹`; `S = JΔ^½`, `J M J = M′`, `log Δ = [log ρ, ·]`), the
+**KMS** `β`-convention boundary condition, the `M₂(M)` commutant identity, the **Cayley/resolvent/
+Weyl/Stone** conventions, and **Schrödinger–Robertson** uncertainty. The suite is mutation-tested
+(deliberately injected sign/factor bugs are caught) and its scope, conventions, and known
+limitations are documented in [`NumericChecks/README.md`](NumericChecks/README.md). Run it with
+`python3 NumericChecks/run_all.py` (~11 s).
 
 ---
 

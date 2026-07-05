@@ -10,8 +10,9 @@ import Spectra.QuantumMechanics.Hydrogen.Laplacian.FreeGreens.ResolventL2
 # The Fourier-defined free Green's function (Option B)
 
 This file builds the free Green's function **directly as an `L²` element** as the inverse
-`L²`-Fourier transform of the resolvent symbol `m_z(ξ) = (laplacianSymbol ξ − z)⁻¹`, sidestepping
-the explicit Yukawa formula `e^{−√(−z)|x|}/(4π|x|)` and the `S²` sphere integral entirely.
+`L²`-Fourier transform of the resolvent symbol `m_z(ξ) = (laplacianSymbol ξ − z)⁻¹`,
+sidestepping the explicit Yukawa formula `e^{−√(−z)|x|}/(4π|x|)` and the `S²` sphere integral
+entirely.
 
 * `freeGreensFunctionL2 z hz : l2R3` — the inverse `L²`-Fourier transform of `(m_z).toLp`.
 * `fourierL2_freeGreensFunctionL2` — `𝓕 (G̃_z) =ᵐ m_z`, immediate from `apply_symm_apply`.
@@ -19,8 +20,8 @@ the explicit Yukawa formula `e^{−√(−z)|x|}/(4π|x|)` and the `S²` sphere 
   integrand `y ↦ G̃_z(x − y) · ψ(y)` is integrable for every `x`, so the convolution
   `(G̃_z ⋆ ψ)(x)` is well-defined a.e.
 
-The resolvent-kernel identity for `G̃_z` (that `R_z` acts as convolution by `G̃_z`) is built on top
-of this in `FreeGreensConvolution.lean`, via the `L²×Schwartz` convolution theorem; this file holds
+The resolvent-kernel identity for `G̃_z` (that `R_z` acts as convolution by `G̃_z`) is built on
+top of this in `Convolution.lean`, via the `L²×Schwartz` convolution theorem; this file holds
 only the parts that need no convolution theorem.
 -/
 
@@ -44,8 +45,8 @@ theorem fourierL2_freeGreensFunctionL2 (z : ℂ) (hz : z.im ≠ 0) :
   rw [LinearIsometryEquiv.apply_symm_apply fourierL2 _]
   exact MemLp.coeFn_toLp _
 
-/-- For `g, ψ ∈ L²` and any `x`, the integrand `y ↦ g(x−y)·ψ(y)` is integrable: `g(x−·)` is in
-`L²` (translation invariance of `volume`) and `L² · L² ⊆ L¹` by Cauchy–Schwarz.  Hence the
+/-- For `g, ψ ∈ L²` and any `x`, the integrand `y ↦ g(x−y)·ψ(y)` is integrable: `g(x−·)` is
+in `L²` (translation invariance of `volume`) and `L² · L² ⊆ L¹` by Cauchy–Schwarz.  Hence the
 convolution `(g ⋆ ψ)(x) = ∫ y, g(x−y)·ψ(y)` is well-defined. -/
 theorem integrable_conv_integrand (g ψ : l2R3) (x : R3) :
     Integrable (fun y => (g : R3 → ℂ) (x - y) * (ψ : R3 → ℂ) y) volume := by

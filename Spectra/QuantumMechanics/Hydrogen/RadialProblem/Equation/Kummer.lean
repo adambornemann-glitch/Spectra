@@ -25,11 +25,11 @@ This is the regular-at-`0` solution of **Kummer's equation**
 
 It is the analytic input needed for the hydrogen radial quantization argument: writing the
 reduced radial wavefunction as `χ = r^{ℓ+1} e^{−κr} w`, the factor `w` is `M(ℓ+1−1/κ, 2ℓ+2, 2κr)`
-(see `QuantumMechanics.Hydrogen.RadialProblem.Equation.Basic`), and termination of this series
-(`a = ℓ+1−1/κ` a non-positive integer ⟺ `κ = 1/m`, `m ≥ ℓ+1`) is exactly the quantization
-condition.
+(see `QuantumMechanics.Hydrogen.RadialProblem.Equation.Reduced.Quantization`), and termination of
+this series (`a = ℓ+1−1/κ` a non-positive integer ⟺ `κ = 1/m`, `m ≥ ℓ+1`) is exactly the
+quantization condition.
 
-## Main definitions / results
+## Main definitions / statements
 
 * `kummerCoeff a b` — the coefficient sequence `cₖ`.
 * `kummerM a b z` — the function `∑' k, cₖ zᵏ`.
@@ -48,14 +48,14 @@ because `b > 0` keeps every denominator `(b + k) > 0`. The ODE collapses, via th
 `z·(∑ dₖ zᵏ) = ∑ dₖ z^{k+1}` (whose `k = 0` term vanishes through the surviving `k` factor),
 to the termwise recurrence `(k+1)(b+k) c_{k+1} = (a+k) c_k` (`kummerCoeff_rec`).
 
-## Roadmap (next steps toward hydrogen quantization)
+## Downstream use (hydrogen quantization)
 
 The full growth analysis of the non-terminating series is complete here — both the coefficient
 bound (`abs_kummerCoeff_geom_lower`) and the **function-level exponential lower bound**
-(`kummerM_abs_exp_lower`). The remaining infrastructure connects this to the radial problem:
-* connecting `M(ℓ+1−1/κ, 2ℓ+2, 2κr)` to the reduced radial solution `w` via
-  `laguerre_ansatz_reduced_iff` (in `Equation.Basic`) and ODE-uniqueness identification of the
-  regular-at-`0` solution;
+(`kummerM_abs_exp_lower`). Both `kummerM_ode` and `kummerM_abs_exp_lower` are consumed by
+`QuantumMechanics.Hydrogen.RadialProblem.Equation.Reduced.Quantization`, where:
+* `M(ℓ+1−1/κ, 2ℓ+2, 2κr)` is connected to the reduced radial solution `w` via
+  `laguerre_ansatz_reduced_iff` and ODE-uniqueness identification of the regular-at-`0` solution;
 * the resulting non-`L²`-ness unless the series terminates: with `z = 2κr`, the bound gives
   `|w(r)| ≳ e^{κr}`, so `χ ∼ r^{ℓ+1} e^{+κr}` and `∫ r^{2ℓ+2} = ∞` — the final crux of
   `reduced_radial_L2_quantized`, which then forces `a = ℓ+1−1/κ ∈ ℤ≤0`, i.e. `κ = 1/m`.
@@ -72,8 +72,10 @@ noncomputable def kummerCoeff (a b : ℝ) : ℕ → ℝ
   | 0 => 1
   | (k + 1) => kummerCoeff a b k * (a + k) / ((b + k) * (k + 1))
 
+/-- The recurrence at `k = 0`: `c₀ = 1`. -/
 @[simp] lemma kummerCoeff_zero (a b : ℝ) : kummerCoeff a b 0 = 1 := rfl
 
+/-- The recurrence at `k + 1`: `c_{k+1} = c_k · (a + k) / ((b + k)(k + 1))`. -/
 lemma kummerCoeff_succ (a b : ℝ) (k : ℕ) :
     kummerCoeff a b (k + 1) = kummerCoeff a b k * (a + k) / ((b + k) * ((k : ℝ) + 1)) := rfl
 

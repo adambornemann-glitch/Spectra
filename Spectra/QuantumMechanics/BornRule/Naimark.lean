@@ -52,6 +52,15 @@ an operator-valued-measure topology the library deliberately avoids, and remains
 The dilating PVM is a `Spectra.ProjValMeasure'` (the projection-valued measure of
 `ProjValMeasure/General.lean`, over an arbitrary Hilbert space and measurable outcome space).
 
+## Implementation notes
+
+The isometry ships as two declarations.  `naimarkV` is the bundled `LinearIsometry`
+(`H →ₗᵢ[ℂ] NaimarkSpace H κ`), where the norm-preservation obligation is naturally discharged;
+`naimarkVclm` is its `ContinuousLinearMap` coercion.  The `→L[ℂ]` bundle is the one the compression
+statements need, because `naimark_effect_eq`/`inner_compression_eq` use the `.adjoint` API (`V⋆`),
+which is available on continuous linear maps but not on the linear-isometry bundle.  The split is
+therefore deliberate, not redundant.
+
 ## References
 
 * M. Naimark, *On a representation of additive operator set functions* (1943).
@@ -65,15 +74,18 @@ open Spectra
 
 namespace Spectra.QuantumMechanics.BornRule
 
-variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
-variable {κ : Type*} [Countable κ]
+universe u v
+
+variable {H : Type u} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
+variable {κ : Type v} [Countable κ]
 
 /-- The Naimark dilation carrier: the ℓ²-direct-sum of `κ`-many copies of `H`. -/
 abbrev NaimarkSpace (H : Type*) [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
     (κ : Type*) := lp (fun _ : κ => H) 2
 
-/-- Restriction of an `lp` element to the coordinates in `B`, as a linear map. -/
-noncomputable def lpRestrictₗ (B : Set κ) : NaimarkSpace H κ →ₗ[ℂ] NaimarkSpace H κ where
+/-- Restriction of an `lp` element to the coordinates in `B`, as a linear map.  File-local
+scaffolding for the continuous `lpRestrict`. -/
+private noncomputable def lpRestrictₗ (B : Set κ) : NaimarkSpace H κ →ₗ[ℂ] NaimarkSpace H κ where
   toFun η := ⟨Set.indicator B (⇑η),
     (lp.memℓp η).mono' (f := Set.indicator B (⇑η)) (fun k => by
       classical
@@ -94,7 +106,7 @@ noncomputable def lpRestrictₗ (B : Set κ) : NaimarkSpace H κ →ₗ[ℂ] Nai
     split_ifs <;> simp
 
 omit [Countable κ] in
-@[simp] lemma lpRestrictₗ_coeFn (B : Set κ) (η : NaimarkSpace H κ) :
+@[simp] private lemma lpRestrictₗ_coeFn (B : Set κ) (η : NaimarkSpace H κ) :
     ⇑(lpRestrictₗ B η) = Set.indicator B (⇑η) := rfl
 
 /-! ## §1  The coordinate-restriction projection -/
@@ -200,7 +212,7 @@ noncomputable def naimarkPVM : ProjValMeasure' (NaimarkSpace H κ) κ where
 
 omit [CompleteSpace H] [Countable κ] [MeasurableSpace κ] in
 /-- `hpos k ⟹ 0 ≤ E k`. -/
-private lemma sqrt_le_of_isPositive {E : κ → (H →L[ℂ] H)} (hpos : ∀ k, (E k).IsPositive)
+private lemma nonneg_of_isPositive {E : κ → (H →L[ℂ] H)} (hpos : ∀ k, (E k).IsPositive)
     (k : κ) : (0 : H →L[ℂ] H) ≤ E k :=
   (ContinuousLinearMap.nonneg_iff_isPositive (E k)).mpr (hpos k)
 
@@ -212,7 +224,7 @@ private lemma inner_sqrt_self {E : κ → (H →L[ℂ] H)} (hpos : ∀ k, (E k).
   have hsa : IsSelfAdjoint (CFC.sqrt (E k)) :=
     IsSelfAdjoint.of_nonneg (CFC.sqrt_nonneg (E k))
   rw [← ContinuousLinearMap.adjoint_inner_right, hsa.adjoint_eq,
-    ← ContinuousLinearMap.mul_apply, CFC.sqrt_mul_sqrt_self (E k) (sqrt_le_of_isPositive hpos k)]
+    ← ContinuousLinearMap.mul_apply, CFC.sqrt_mul_sqrt_self (E k) (nonneg_of_isPositive hpos k)]
 
 omit [Countable κ] [MeasurableSpace κ] in
 /-- `‖√Eₖ ψ‖² = re ⟪ψ, Eₖ ψ⟫`. -/
@@ -222,7 +234,7 @@ private lemma norm_sq_sqrt {E : κ → (H →L[ℂ] H)} (hpos : ∀ k, (E k).IsP
   rw [norm_sq_eq_re_inner (𝕜 := ℂ), inner_sqrt_self hpos k ψ, RCLike.re_eq_complex_re]
 
 /-- The real series `k ↦ re ⟪ψ, Eₖ ψ⟫` is summable. -/
-private lemma summable_re_quadForm' {E : κ → (H →L[ℂ] H)} (hsum : ∑' k, E k = 1) (ψ : H) :
+private lemma summable_re_quadForm {E : κ → (H →L[ℂ] H)} (hsum : ∑' k, E k = 1) (ψ : H) :
     Summable (fun k => (⟪ψ, E k ψ⟫_ℂ).re) := by
   have hSE : Summable E := POVM.summable_ofEffects hsum
   have h1 : Summable (fun k => (E k) ψ) := hSE.mapL (ContinuousLinearMap.apply ℂ H ψ)
@@ -239,7 +251,7 @@ private lemma memℓp_sqrt {E : κ → (H →L[ℂ] H)} (hpos : ∀ k, (E k).IsP
     funext k
     rw [show (2 : ℝ≥0∞).toReal = 2 by norm_num, Real.rpow_two, norm_sq_sqrt hpos k ψ]
   rw [hconv]
-  exact summable_re_quadForm' hsum ψ
+  exact summable_re_quadForm hsum ψ
 
 omit [CompleteSpace H] [Countable κ] [MeasurableSpace κ] in
 /-- Pushing `ψ` and the inner product through the operator tsum:
@@ -367,7 +379,7 @@ effects on `H` is the compression `V⋆ P(·) V` of a projection-valued measure 
 Hilbert space `NaimarkSpace H κ`, along an isometry `V`. -/
 theorem naimark_dilation (E : κ → (H →L[ℂ] H)) (hpos : ∀ k, (E k).IsPositive)
     (hsum : ∑' k, E k = 1) :
-    ∃ (K : Type (max u_1 u_2)) (_ : NormedAddCommGroup K) (_ : InnerProductSpace ℂ K)
+    ∃ (K : Type (max u v)) (_ : NormedAddCommGroup K) (_ : InnerProductSpace ℂ K)
       (_ : CompleteSpace K) (V : H →L[ℂ] K) (P : ProjValMeasure' K κ),
       Isometry V ∧ ∀ (B : Set κ) (hB : MeasurableSet B),
         (POVM.ofEffects E hpos hsum).effect B hB = V.adjoint.comp ((P.proj B hB).comp V) :=

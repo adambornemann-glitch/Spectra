@@ -19,15 +19,28 @@ boundary conditions, square-integrability, and fixed-eigenvalue Wronskian unique
 ## Main definitions
 
 * `hydrogenEigenvalue` — the bound-state energies `E_n = -1/(2n^2)`.
+* `radialNormalization` — the normalisation constant `N_{nℓ}`.
 * `hydrogenRadialWavefunction` — the radial eigenfunction `R_{nℓ}`.
+* `hydrogenReducedWavefunction` — the reduced radial eigenfunction `χ_{nℓ} = r · R_{nℓ}`.
 * `radialHamiltonian` — the radial Hamiltonian acting on classical radial functions.
 * `RadialL2` — square-integrability for the radial measure `r^2 dr`.
 
 ## Main statements
 
-* `radial_eigenvalue_eq` — `R_{nℓ}` solves the radial eigenvalue equation.
-* `radial_wavefunction_orthonormal` — fixed-`ℓ` radial wavefunctions are orthogonal.
-* `radial_eigenfunction_unique` — Abel/Wronskian uniqueness at a fixed eigenvalue.
+* `radial_eigenvalue_eq` — `R_{nℓ}` solves the radial eigenvalue equation for `r > 0`.
+* `continuous_hydrogenRadialWavefunction` / `differentiable_hydrogenRadial` — `R_{nℓ}` is
+  continuous and differentiable on all of `ℝ`.
+* `tendsto_hydrogenRadial_mul_exp`, `tendsto_deriv_hydrogenRadial_mul_exp`,
+  `tendsto_deriv2_hydrogenRadial_mul_exp` — `R_{nℓ}` and its first two derivatives decay
+  exponentially: `· e^{εr} → 0` for `ε < 1/n`.
+* `radial_boundary_r_zero` / `radial_boundary_r_infty` — boundary behaviour of the reduced
+  wavefunction: `χ_{nℓ}(r) ~ r^{ℓ+1}` as `r → 0` and `χ_{nℓ}(r) → 0` as `r → ∞`.
+* `radial_wavefunction_L2` — `R_{nℓ} ∈ L²(ℝ⁺, r² dr)`.
+* `radial_wavefunction_norm` — unit norm: `∫₀^∞ |R_{nℓ}|² r² dr = 1`.
+* `radial_wavefunction_orthonormal` — fixed-`ℓ` radial wavefunctions with distinct `n` are
+  orthogonal.
+* `radial_eigenfunction_unique` — Abel/Wronskian uniqueness (no degeneracy) at a fixed
+  eigenvalue.
 
 ## References
 
@@ -108,10 +121,8 @@ noncomputable def radialNormalization (n : ℕ) (ℓ : ℕ) (_hn : ℓ + 1 ≤ n
 
     This is the radial part of the full wavefunction ψ_{nℓm} = R_{nℓ} Y_ℓ^m.
 
-    **Relation to my original paper:**
-    I used the Laplace method (complex contour integrals) to derive these.
-    Modern textbooks use the Frobenius method. Both arrive at the same
-    Laguerre polynomials. -/
+    Both the Laplace method (complex contour integrals) and the Frobenius
+    method used in modern textbooks arrive at the same Laguerre polynomials. -/
 noncomputable def hydrogenRadialWavefunction (n : ℕ) (ℓ : ℕ) (hn : ℓ + 1 ≤ n) : ℝ → ℝ :=
   fun r =>
     radialNormalization n ℓ hn *
@@ -429,7 +440,8 @@ For the `H²`-regularity of the Cartesian eigenfunction `f(x) = c·R_{nℓ}(‖x
 radial profile *and its first two derivatives* to be `L²` against `r²dr`.  The clean way to get
 this is an **exponential decay with a buffer**: since `R_{nℓ}` and its derivatives are
 `(polynomial)·e^{−r/n}`, multiplying by `e^{εr}` for any `0 < ε < 1/n` still tends to `0` at
-`+∞`.  A bound `|R'(r)| ≤ C·e^{−εr}` then drops straight into the generic `exp ⟹ L²` pipeline.
+`+∞`.  A bound `|R'(r)| ≤ C·e^{−εr}` then drops straight into the generic
+`exp ⟹ L²` pipeline.
 
 The proofs reduce, term by term, to the single-monomial decay `r^a·e^{−b r} → 0` (`b > 0`). -/
 
@@ -518,7 +530,8 @@ lemma tendsto_pow_exp_deriv_laguerre_buffer (n p a : ℕ) (β : ℝ) {ε : ℝ} 
       rw [← Real.exp_add]; congr 1; ring]
   ring
 
-/-- Buffered Laguerre-second-derivative decay: `r^a · e^{−r/n} · (L_p^β)''(2r/n) · e^{εr} → 0`. -/
+/-- Buffered Laguerre-second-derivative decay:
+    `r^a · e^{−r/n} · (L_p^β)''(2r/n) · e^{εr} → 0`. -/
 lemma tendsto_pow_exp_deriv2_laguerre_buffer (n p a : ℕ) (β : ℝ) {ε : ℝ} (_hn : 0 < n)
     (hε : ε < 1 / (n : ℝ)) :
     Filter.Tendsto (fun r : ℝ => r ^ a * Real.exp (-r / n) *
@@ -531,7 +544,8 @@ lemma tendsto_pow_exp_deriv2_laguerre_buffer (n p a : ℕ) (β : ℝ) {ε : ℝ}
       rw [← Real.exp_add]; congr 1; ring]
   ring
 
-/-- **The radial wavefunction decays exponentially**: `R_{nℓ}(r) · e^{εr} → 0` for `ε < 1/n`. -/
+/-- **The radial wavefunction decays exponentially**:
+    `R_{nℓ}(r) · e^{εr} → 0` for `ε < 1/n`. -/
 theorem tendsto_hydrogenRadial_mul_exp (n ℓ : ℕ) (hn : ℓ + 1 ≤ n) {ε : ℝ}
     (hε : ε < 1 / (n : ℝ)) :
     Filter.Tendsto (fun r : ℝ => hydrogenRadialWavefunction n ℓ hn r * Real.exp (ε * r))

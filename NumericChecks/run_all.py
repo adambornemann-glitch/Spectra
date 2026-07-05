@@ -14,6 +14,11 @@ SUITES = [
     "check_hardy.py",
     "check_infogeom.py",
     "check_misc.py",
+    "check_modular.py",
+    "check_kms.py",
+    "check_cocycle.py",
+    "check_spectral.py",
+    "check_uncertainty.py",
 ]
 
 

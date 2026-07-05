@@ -12,11 +12,20 @@ import Spectra.QuantumMechanics.Hydrogen.Laplacian.Basic
 `essSpectrum_laplacian : Spectra.Essential.essSpectrum laplacian_isSelfAdjoint = Set.Ici 0`.
 
 The proof builds singular (Weyl) sequences directly in momentum space, using the Fourier
-diagonalization `fourier_weakLaplacian` (`𝓕(−Δψ) =ᵐ (2π)²‖ξ‖²·𝓕ψ`).  For `λ ≥ 0` the sequence is
-`ψₙ := 𝓕⁻¹(normalized indicator of the shrinking shell `{ξ : |(2π)²‖ξ‖² − λ| ≤ 1/(n+1)}`)`; it is
+diagonalization `fourier_weakLaplacian` (`𝓕(−Δψ) =ᵐ (2π)²‖ξ‖²·𝓕ψ`).  For `λ ≥ 0` the
+sequence is `ψₙ := 𝓕⁻¹(normalized indicator of the shrinking shell
+`{ξ : |(2π)²‖ξ‖² − λ| ≤ 1/(n+1)}`)`; it is
 normalized (Plancherel), weakly null (the shells shrink to a measure-zero sphere), and an
 approximate eigenvector (`|symbol − λ| ≤ 1/(n+1)` on the shell).  The reverse inclusion
 `σ_ess ⊆ [0,∞)` is positivity of `−Δ`.
+
+## Main statements
+
+* `mem_essSpectrum_laplacian` — the forward inclusion `[0,∞) ⊆ σ_ess(−Δ)`: every `λ ≥ 0`
+  belongs to the essential spectrum, witnessed by the momentum-space Weyl sequence.
+* `essSpectrum_laplacian_subset_Ici` — the reverse inclusion `σ_ess(−Δ) ⊆ [0,∞)`, from
+  positivity of `−Δ`.
+* `essSpectrum_laplacian` — the headline identity `σ_ess(−Δ) = [0,∞)`.
 -/
 
 open MeasureTheory Complex Filter Topology Spectra.Sobolev
@@ -27,9 +36,11 @@ namespace Spectra.QuantumMechanics.Hydrogen
 /-- The momentum-space **energy shell** `{ξ : |(2π)²‖ξ‖² − λ| ≤ ε}`. -/
 def laplacianShell (lam ε : ℝ) : Set R3 := {ξ | |laplacianSymbol ξ - lam| ≤ ε}
 
+/-- The momentum-space symbol `ξ ↦ (2π)²‖ξ‖²` of `−Δ` is continuous. -/
 lemma continuous_laplacianSymbol : Continuous laplacianSymbol := by
   unfold laplacianSymbol; fun_prop
 
+/-- Each energy shell `{ξ : |symbol ξ − λ| ≤ ε}` is a measurable set. -/
 lemma measurableSet_laplacianShell (lam ε : ℝ) : MeasurableSet (laplacianShell lam ε) :=
   (isClosed_le (continuous_abs.comp (continuous_laplacianSymbol.sub continuous_const))
     continuous_const).measurableSet
@@ -52,6 +63,7 @@ lemma laplacianShell_subset_closedBall {lam ε : ℝ} (_hlam : 0 ≤ lam) (_hε 
     _ = Real.sqrt (lam + ε) / (2 * Real.pi) := by
         rw [Real.sqrt_div' _ (by positivity), Real.sqrt_sq (by positivity)]
 
+/-- The energy shell has finite volume (for `λ, ε ≥ 0`): it sits inside a ball. -/
 lemma volume_laplacianShell_lt_top {lam ε : ℝ} (hlam : 0 ≤ lam) (hε : 0 ≤ ε) :
     volume (laplacianShell lam ε) < ∞ :=
   lt_of_le_of_lt (measure_mono (laplacianShell_subset_closedBall hlam hε))
@@ -65,6 +77,8 @@ lemma laplacianSymbol_energyPoint {lam : ℝ} (hlam : 0 ≤ lam) :
     Real.sq_sqrt hlam]
   field_simp
 
+/-- The energy shell has positive volume (for `λ ≥ 0`, `ε > 0`): it contains a nonempty open set
+around a point of the energy sphere. -/
 lemma volume_laplacianShell_pos {lam ε : ℝ} (hlam : 0 ≤ lam) (hε : 0 < ε) :
     0 < volume (laplacianShell lam ε) := by
   have hopen : IsOpen {ξ : R3 | |laplacianSymbol ξ - lam| < ε} :=
@@ -94,6 +108,8 @@ lemma iInter_laplacianShell (lam : ℝ) :
   · intro h n
     rw [h, sub_self, abs_zero]; positivity
 
+/-- The energy sphere `{ξ : symbol ξ = λ}` (for `λ ≥ 0`) has Lebesgue measure zero: it is the
+sphere of radius `√λ/(2π)`, and spheres are Haar-null. -/
 lemma volume_laplacianSymbol_eq_zero {lam : ℝ} (hlam : 0 ≤ lam) :
     volume {ξ : R3 | laplacianSymbol ξ = lam} = 0 := by
   have hset : {ξ : R3 | laplacianSymbol ξ = lam}
@@ -122,6 +138,7 @@ noncomputable def shellFun (n : ℕ) : l2R3 :=
     (volume_laplacianShell_lt_top hlam (by positivity)).ne
     (((Real.sqrt (volume (laplacianShell lam (1 / (n + 1)))).toReal)⁻¹ : ℝ) : ℂ)
 
+/-- The shell indicator `gₙ` is L²-normalized: `‖gₙ‖ = 1`. -/
 lemma norm_shellFun (n : ℕ) : ‖shellFun lam hlam n‖ = 1 := by
   have hVpos : 0 < (volume (laplacianShell lam (1 / (n + 1)))).toReal :=
     ENNReal.toReal_pos (volume_laplacianShell_pos hlam (by positivity)).ne'
@@ -136,9 +153,11 @@ lemma norm_shellFun (n : ℕ) : ‖shellFun lam hlam n‖ = 1 := by
 /-- The candidate Weyl sequence for `−Δ` at `λ`: `ψₙ := 𝓕⁻¹(gₙ)`. -/
 noncomputable def weylSeq (n : ℕ) : l2R3 := fourierL2.symm (shellFun lam hlam n)
 
+/-- The Weyl vector `ψₙ = 𝓕⁻¹(gₙ)` is L²-normalized: `‖ψₙ‖ = 1` (Plancherel). -/
 lemma norm_weylSeq (n : ℕ) : ‖weylSeq lam hlam n‖ = 1 := by
   rw [weylSeq, LinearIsometryEquiv.norm_map, norm_shellFun]
 
+/-- The Fourier transform of the Weyl vector is the shell indicator: `𝓕ψₙ = gₙ`. -/
 @[simp] lemma fourierL2_weylSeq (n : ℕ) : fourierL2 (weylSeq lam hlam n) = shellFun lam hlam n := by
   rw [weylSeq, LinearIsometryEquiv.apply_symm_apply]
 

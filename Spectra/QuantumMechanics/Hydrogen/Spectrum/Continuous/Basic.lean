@@ -14,12 +14,24 @@ import Spectra.QuantumMechanics.Hydrogen.Spectrum.SectorProjection
 /-!
 # The Spectrum of the Hydrogen Atom
 
-The main theorems about the hydrogen spectrum, assembling the radial
-eigenvalue problem with the angular decomposition.
+This file records the results about the *upper* part of the hydrogen
+spectrum for the Hamiltonian `H = −½Δ − Z/r` (with `0 < Z`): the essential
+spectrum equals `[0, ∞)` and there are no `L²` eigenfunctions at energies
+`E ≥ 0`. Both are thin wrappers around the substantive proofs in
+`Continuous/Compact.lean` and `SectorProjection.lean`.
 
-## The main theorem
+## Main statements
 
-For the hydrogen Hamiltonian H = −Δ − Z/r (Z = 1 in atomic units):
+* `hydrogen_continuous_spectrum` — the essential spectrum of the hydrogen
+  Hamiltonian equals `[0, ∞)` (i.e. `essSpectrum H = Set.Ici 0`).
+* `hydrogen_no_positive_eigenvalues` — `H` has no nonzero `L²` eigenfunction
+  at any energy `E ≥ 0` (absence of embedded eigenvalues, including the
+  threshold `E = 0`).
+
+## The full spectrum (across the cone)
+
+For the hydrogen Hamiltonian `H = −½Δ − Z/r` (Z = 1 in atomic units), the
+complete spectral picture assembled across the `Hydrogen/Spectrum` cone is:
 
   **Discrete spectrum**: σ_disc(H) = { −1/(2n²) : n = 1, 2, 3, ... }
   **Continuous spectrum**: σ_cont(H) = [0, ∞)
@@ -41,10 +53,10 @@ For the hydrogen Hamiltonian H = −Δ − Z/r (Z = 1 in atomic units):
               ┌────────▼──────────┐                             │
               │ THIS FILE         │←────────────────────────────┘
               │                   │
-              │ hydrogen_discrete │
-              │ hydrogen_continuum│
-              │ hydrogen_degener  │
-              │ hydrogen_bohr     │
+              │ hydrogen_cont_spec│
+              │ no_positive_eigval│
+              │                   │
+              │                   │
               └───────────────────┘
 ```
 
@@ -67,10 +79,12 @@ open Spectra.QuantumMechanics.Hydrogen.Radial (laguerrePolynomial laguerre_smoot
 
 /-! ## Continuous spectrum -/
 
-/-- **The continuous spectrum of hydrogen is [0, ∞).**
+/-- **The essential spectrum of hydrogen is `[0, ∞)`.**
 
-    For E ≥ 0, the hydrogen Hamiltonian has no eigenvalues but E is
-    in the spectrum (approximate eigenvalues exist).-/
+    `essSpectrum H = Set.Ici 0`. For `E ≥ 0` the hydrogen Hamiltonian has no
+    `L²` eigenfunctions, yet `E` lies in the spectrum via approximate
+    eigenvalues (Weyl / singular sequences); this is the physical continuous
+    spectrum of the atom. -/
 theorem hydrogen_continuous_spectrum (p : CoulombParams) :
     Spectra.Essential.essSpectrum
         (Spectra.QuantumMechanics.Hydrogen.hydrogen_isSelfAdjoint p) = Set.Ici (0 : ℝ) :=
@@ -82,8 +96,8 @@ theorem hydrogen_continuous_spectrum (p : CoulombParams) :
 
     NB: Coulomb decays exactly like 1/r, so |x|·V(x) → −Z ≠ 0; it does NOT
     satisfy Kato's 1959 o(1/r) hypothesis. Coulomb is the borderline long-range
-    case (the general long-range result is Froese–Herbst / Agmon-type, via a
-    Mourre/virial argument — verify the exact citation). -/
+    case; the corresponding general long-range statement is of Froese–Herbst /
+    Agmon type, proved by a Mourre/virial argument. -/
 theorem hydrogen_no_positive_eigenvalues (p : CoulombParams) :
     ∀ (E : ℝ) (_hE : 0 ≤ E) (ψ : Spectra.Sobolev.l2R3)
       (hψ : ψ ∈ (hydrogenHamiltonian p).domain),

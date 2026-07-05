@@ -8,13 +8,13 @@ import Mathlib.Analysis.Calculus.IteratedDeriv.FaaDiBruno
 import Spectra.Spaces.Sobolev.WeakDerivative
 import Spectra.SphericalHarmonics.Basic
 /-!
-# Separation of the Laplacian in spherical coordinates (scaffolding)
+# Separation of the Laplacian in spherical coordinates
 
 The spherical-coordinate chart and the pointwise separation of the 3D Laplacian
 `−Δ = −(1/r²)∂_r(r²∂_r) + L̂²/r²`, where `L̂² = laplaceBeltrami` is the angular
-Laplacian from `SphericalHarmonics/Basic.lean`.
+Laplacian from `SphericalHarmonics/Basic.lean`. Everything here is proved sorry-free.
 
-## What is proved here
+## Main statements
 
 * `sphereChart` — the chart `(r, θ, φ) ↦ (r sinθ cosφ, r sinθ sinφ, r cosθ) : ℝ³`.
 * `norm_sphereChart` — `‖sphereChart r θ φ‖ = |r|`.
@@ -25,14 +25,16 @@ Laplacian from `SphericalHarmonics/Basic.lean`.
   on `ℝ³`, for globally `C²` `g`. This is the genuine analytic core (the orthonormal-basis
   Laplacian sum, the per-direction 1D chain rule, and Parseval), done without any
   norm-Hessian — by parametrizing the radial profile through the globally smooth `‖·‖²`.
-
-## Documented gaps
-
-* `laplacian_comp_norm` — the `‖·‖` form `Δ(g∘‖·‖) = g″ + (2/r)g′` on `ℝ³ \ {0}`. The
-  analytic content is `laplacian_comp_normSq` with `g∘√`; only the localization of `√`'s
-  singularity at the origin (a `C²` extension + locality of `Δ`) is deferred.
-* `laplacian_separates` — the full pointwise separation on the chart (radial half via
-  `radialPart_eq` ∘ `laplacian_comp_norm`, angular half via `laplaceBeltrami`).
+* `laplacian_comp_norm` — the `‖·‖` form `Δ(g∘‖·‖) = g″ + (2/r)g′` on `ℝ³ \ {0}`, obtained
+  from `laplacian_comp_normSq` with `g∘√` after localizing `√`'s origin singularity by a
+  `C²` (`Real.smoothTransition`) modification and using locality of `Δ`.
+* `sphereFrame_orthonormal`, `sphereFrameONB`, `laplacian_sphereFrame_sum` — the spherical
+  orthonormal frame `(ê_r, ê_θ, ê_φ)` and the basis-independent decomposition of `Δf` into
+  its three diagonal Hessian contractions in that frame.
+* `laplacian_separates` — the full pointwise separation on the chart,
+  `Δf = (1/r²)∂_r(r²∂_r f) − (1/r²)L̂²f`, assembled from the frame decomposition and the
+  `SphereSep` chart-curve lemmas (radial half via `radialPart_eq`, angular half via
+  `laplaceBeltrami`; the gradient cross-terms cancel).
 
 ## References
 
@@ -204,15 +206,12 @@ theorem laplacian_comp_normSq (g : ℝ → ℂ) (hg : ContDiff ℝ 2 g) (x : R3)
 /-- `Δ(g ∘ ‖·‖) = g″ + (2/r)·g′` on `ℝ³ \ {0}`: the Laplacian of a radially symmetric
     function is its radial part.
 
-    **The analytic core is done** — `laplacian_comp_normSq` proves the same identity in
-    the `‖·‖²` variable (`Δ(h∘‖·‖²) = 4‖x‖²h″ + 6h′`), and setting `h = g∘√` (so
-    `g‖y‖ = h(‖y‖²)`) gives exactly `g″(‖x‖) + (2/‖x‖)g′(‖x‖)` after the `√` chain rule.
-
-    **[Remaining gap — localization across the origin.]** The reduction needs `h = g∘√`
-    to be globally `C²` to feed `laplacian_comp_normSq`, but `√` is singular at `0`. Away
-    from `x ≠ 0` one replaces `√` by a global `C²` function agreeing with it near `‖x‖²`
-    and uses locality of `Δ`; building that extension (a `C²` mollification of `√`) is the
-    only deferred step. No norm-Hessian or missing-infrastructure obstruction remains. -/
+    Reduced to `laplacian_comp_normSq`, which proves the same identity in the `‖·‖²`
+    variable (`Δ(h∘‖·‖²) = 4‖x‖²h″ + 6h′`): setting `h = g∘√` (so `g‖y‖ = h(‖y‖²)`) gives
+    exactly `g″(‖x‖) + (2/‖x‖)g′(‖x‖)` after the `√` chain rule. The reduction needs `h`
+    to be globally `C²`, but `√` is singular at `0`; the proof handles this by replacing
+    `√` with a global `C²` function (a `Real.smoothTransition` modification, positive
+    everywhere and equal to `√` near `‖x‖²`) and invoking locality of `Δ`. -/
 theorem laplacian_comp_norm (g : ℝ → ℂ) (hg : ContDiff ℝ 2 g) {x : R3} (hx : x ≠ 0) :
     Δ (fun y : R3 => g ‖y‖) x = iteratedDeriv 2 g ‖x‖ + (2 / (‖x‖ : ℂ)) * deriv g ‖x‖ := by
   have hr : 0 < ‖x‖ := norm_pos_iff.mpr hx
@@ -400,16 +399,24 @@ namespace SphereSep
 attribute [local simp] PiLp.smul_apply PiLp.add_apply PiLp.toLp_apply
   Matrix.cons_val_zero Matrix.cons_val_one Matrix.head_cons Matrix.cons_val_two Matrix.tail_cons
 
+/-- The horizontal radial direction `v_ρ = (cos φ, sin φ, 0)` at azimuth `φ`; it appears as
+    the azimuthal acceleration and decomposes as `sin θ ê_r + cos θ ê_θ` (see `vρ_eq`). -/
 def vρ (φ : ℝ) : R3 := !₂[cos φ, sin φ, 0]
+
+/-- The standard basis vector `ê₁ = (1, 0, 0)` of `ℝ³`. -/
 def e1 : R3 := !₂[1, 0, 0]
+
+/-- The standard basis vector `ê₂ = (0, 1, 0)` of `ℝ³`. -/
 def e2 : R3 := !₂[0, 1, 0]
+
+/-- The standard basis vector `ê₃ = (0, 0, 1)` of `ℝ³`. -/
 def e3 : R3 := !₂[0, 0, 1]
 
-attribute [local simp] PiLp.smul_apply PiLp.add_apply PiLp.toLp_apply
-  Matrix.cons_val_zero Matrix.cons_val_one Matrix.head_cons Matrix.cons_val_two Matrix.tail_cons
-
+/-- The constant `Fin 2`-tuple `fun _ => w` equals the pair `![w, w]`. -/
 lemma const_fin2 (w : R3) : (fun _ : Fin 2 => w) = ![w, w] := by funext i; fin_cases i <;> rfl
 
+/-- Homogeneity of the diagonal second derivative in a scaled direction:
+    `iteratedFDeriv 2 f x ![c•v, c•v] = c² • iteratedFDeriv 2 f x ![v, v]`. -/
 lemma iFD2_smul_diag (f : R3 → ℂ) (x : R3) (c : ℝ) (v : R3) :
     iteratedFDeriv ℝ 2 f x ![c • v, c • v] = (c ^ 2 : ℝ) • iteratedFDeriv ℝ 2 f x ![v, v] := by
   have h : (![c • v, c • v] : Fin 2 → R3) = fun i => c • (![v, v] : Fin 2 → R3) i := by
@@ -417,6 +424,8 @@ lemma iFD2_smul_diag (f : R3 → ℂ) (x : R3) (c : ℝ) (v : R3) :
   rw [h, ContinuousMultilinearMap.map_smul_univ]; congr 1
   rw [Finset.prod_const, Finset.card_univ, Fintype.card_fin]
 
+/-- Second-order chain rule along a curve: the 1D second derivative of `f ∘ γ` splits into the
+    Hessian term `D²f[γ′, γ′]` plus the gradient acting on the curve's acceleration `γ″`. -/
 lemma curve_jet (f : R3 → ℂ) (hf : ContDiff ℝ 2 f) {γ : ℝ → R3} {t₀ : ℝ}
     (hγ : ContDiffAt ℝ 2 γ t₀) :
     iteratedDeriv 2 (fun u => f (γ u)) t₀
@@ -425,24 +434,29 @@ lemma curve_jet (f : R3 → ℂ) (hf : ContDiff ℝ 2 f) {γ : ℝ → R3} {t₀
   show iteratedDeriv 2 (f ∘ γ) t₀ = _
   rw [iteratedDeriv_vcomp_two hf.contDiffAt hγ, const_fin2]
 
+/-- First-order chain rule along a curve: `(f ∘ γ)′ = Df[γ′]`. -/
 lemma curve_deriv (f : R3 → ℂ) (hf : ContDiff ℝ 2 f) {γ : ℝ → R3} {t₀ : ℝ}
     (hγ : ContDiffAt ℝ 2 γ t₀) :
     deriv (fun u => f (γ u)) t₀ = fderiv ℝ f (γ t₀) (deriv γ t₀) :=
   (((hf.differentiable (by norm_num) (γ t₀)).hasFDerivAt).comp_hasDerivAt t₀
     ((hγ.differentiableAt (by norm_num)).hasDerivAt)).deriv
 
+/-- The second iterated derivative is the second-order derivative: `iteratedDeriv 2 g = (g′)′`. -/
 lemma id2_dd (g : ℝ → ℂ) (t : ℝ) : iteratedDeriv 2 g t = deriv (deriv g) t := by
   rw [iteratedDeriv_succ, iteratedDeriv_one]
 
+/-- The radial chart curve `u ↦ sphereChart u θ φ` is the straight line `u ↦ u • ê_r`. -/
 lemma chart_radial_eq (θ φ : ℝ) :
     (fun u => sphereChart u θ φ) = fun u => u • sphereFrameR θ φ := by
   funext u; refine PiLp.ext (fun i => ?_)
   fin_cases i <;> simp [sphereChart, sphereFrameR] <;> ring
 
+/-- The radial chart curve is `C²` at every point. -/
 lemma chart_radial_contDiffAt (θ φ t₀ : ℝ) :
     ContDiffAt ℝ 2 (fun u => sphereChart u θ φ) t₀ := by
   rw [chart_radial_eq]; exact (contDiff_id.smul contDiff_const).contDiffAt
 
+/-- Velocity of the radial chart curve: `∂_r (sphereChart r θ φ) = ê_r`. -/
 lemma chart_radial_deriv (θ φ t₀ : ℝ) :
     deriv (fun u => sphereChart u θ φ) t₀ = sphereFrameR θ φ := by
   rw [chart_radial_eq]
@@ -450,6 +464,8 @@ lemma chart_radial_deriv (θ φ t₀ : ℝ) :
     simpa using (hasDerivAt_id t₀).smul_const (sphereFrameR θ φ)
   exact this.deriv
 
+/-- Acceleration of the radial chart curve vanishes: `∂²_r (sphereChart r θ φ) = 0`
+    (the radial curve is a straight line). -/
 lemma chart_radial_iteratedDeriv (θ φ t₀ : ℝ) :
     iteratedDeriv 2 (fun u => sphereChart u θ φ) t₀ = 0 := by
   rw [chart_radial_eq, iteratedDeriv_succ, iteratedDeriv_one]
@@ -457,19 +473,23 @@ lemma chart_radial_iteratedDeriv (θ φ t₀ : ℝ) :
     funext fun u => by simpa using ((hasDerivAt_id u).smul_const (sphereFrameR θ φ)).deriv
   rw [hd]; simp
 
+/-- The polar chart curve `u ↦ sphereChart r u φ` as `u ↦ (r sin u) v_ρ + (r cos u) ê₃`. -/
 lemma chart_polar_eq (r φ : ℝ) :
     (fun u => sphereChart r u φ) = fun u => (r * sin u) • vρ φ + (r * cos u) • e3 := by
   funext u; refine PiLp.ext (fun i => ?_); fin_cases i <;> simp [sphereChart, vρ, e3]
 
+/-- The radial chart curve is globally `C²`. -/
 lemma chart_radial_contDiff (θ φ : ℝ) : ContDiff ℝ 2 (fun u => sphereChart u θ φ) := by
   rw [chart_radial_eq]; exact contDiff_id.smul contDiff_const
 
+/-- The polar chart curve is `C²` at every angle. -/
 lemma chart_polar_contDiffAt (r θ φ : ℝ) :
     ContDiffAt ℝ 2 (fun u => sphereChart r u φ) θ := by
   rw [chart_polar_eq]
   exact (((contDiff_const.mul Real.contDiff_sin).smul contDiff_const).add
     ((contDiff_const.mul Real.contDiff_cos).smul contDiff_const)).contDiffAt
 
+/-- Velocity of the polar chart curve: `∂_θ (sphereChart r θ φ) = r ê_θ`. -/
 lemma chart_polar_deriv (r θ φ : ℝ) :
     deriv (fun u => sphereChart r u φ) θ = r • sphereFrameθ θ φ := by
   rw [chart_polar_eq]
@@ -480,6 +500,7 @@ lemma chart_polar_deriv (r θ φ : ℝ) :
   rw [hv.deriv]
   refine PiLp.ext (fun i => ?_); fin_cases i <;> simp [vρ, e3, sphereFrameθ] <;> ring
 
+/-- Acceleration of the polar chart curve: `∂²_θ (sphereChart r θ φ) = -r ê_r`. -/
 lemma chart_polar_iteratedDeriv (r θ φ : ℝ) :
     iteratedDeriv 2 (fun u => sphereChart r u φ) θ = (-r) • sphereFrameR θ φ := by
   rw [chart_polar_eq, iteratedDeriv_succ, iteratedDeriv_one]
@@ -496,17 +517,21 @@ lemma chart_polar_iteratedDeriv (r θ φ : ℝ) :
   rw [ha.deriv]
   refine PiLp.ext (fun i => ?_); fin_cases i <;> simp [vρ, e3, sphereFrameR] <;> ring
 
+/-- The azimuthal chart curve `u ↦ sphereChart r θ u` in standard-basis form
+    `u ↦ (r sinθ cos u) ê₁ + (r sinθ sin u) ê₂ + (r cosθ) ê₃`. -/
 lemma chart_azim_eq (r θ : ℝ) :
     (fun u => sphereChart r θ u)
       = fun u => ((r * sin θ) * cos u) • e1 + ((r * sin θ) * sin u) • e2 + (r * cos θ) • e3 := by
   funext u; refine PiLp.ext (fun i => ?_); fin_cases i <;> simp [sphereChart, e1, e2, e3]
 
+/-- The azimuthal chart curve is `C²` at every angle. -/
 lemma chart_azim_contDiffAt (r θ φ : ℝ) :
     ContDiffAt ℝ 2 (fun u => sphereChart r θ u) φ := by
   rw [chart_azim_eq]
   exact ((((contDiff_const.mul Real.contDiff_cos).smul contDiff_const).add
     ((contDiff_const.mul Real.contDiff_sin).smul contDiff_const)).add contDiff_const).contDiffAt
 
+/-- Velocity of the azimuthal chart curve: `∂_φ (sphereChart r θ φ) = (r sinθ) ê_φ`. -/
 lemma chart_azim_deriv (r θ φ : ℝ) :
     deriv (fun u => sphereChart r θ u) φ = (r * sin θ) • sphereFrameφ φ := by
   rw [chart_azim_eq]
@@ -519,6 +544,7 @@ lemma chart_azim_deriv (r θ φ : ℝ) :
   rw [hv.deriv]
   refine PiLp.ext (fun i => ?_); fin_cases i <;> simp [e1, e2, sphereFrameφ]
 
+/-- Acceleration of the azimuthal chart curve: `∂²_φ (sphereChart r θ φ) = -(r sinθ) v_ρ`. -/
 lemma chart_azim_iteratedDeriv (r θ φ : ℝ) :
     iteratedDeriv 2 (fun u => sphereChart r θ u) φ = (-(r * sin θ)) • vρ φ := by
   rw [chart_azim_eq, iteratedDeriv_succ, iteratedDeriv_one]
@@ -539,37 +565,47 @@ lemma chart_azim_iteratedDeriv (r θ φ : ℝ) :
   rw [ha.deriv]
   refine PiLp.ext (fun i => ?_); fin_cases i <;> simp [e1, e2, vρ]
 
+/-- Decomposition of the horizontal radial direction in the spherical frame:
+    `v_ρ = sin θ ê_r + cos θ ê_θ`. -/
 lemma vρ_eq (θ φ : ℝ) : vρ φ = sin θ • sphereFrameR θ φ + cos θ • sphereFrameθ θ φ := by
   refine PiLp.ext (fun i => ?_); fin_cases i <;> simp [vρ, sphereFrameR, sphereFrameθ]
   · linear_combination (-cos φ) * sin_sq_add_cos_sq θ
   · linear_combination (-sin φ) * sin_sq_add_cos_sq θ
   · ring
 
+/-- Radial second jet: since the radial curve has zero acceleration, its 1D second derivative
+    is the pure Hessian contraction `D²f[ê_r, ê_r]`. -/
 lemma jet_radial (f : R3 → ℂ) (hf : ContDiff ℝ 2 f) (r θ φ : ℝ) :
     iteratedDeriv 2 (fun u => f (sphereChart u θ φ)) r
       = iteratedFDeriv ℝ 2 f (sphereChart r θ φ) ![sphereFrameR θ φ, sphereFrameR θ φ] := by
   rw [curve_jet f hf (chart_radial_contDiffAt θ φ r), chart_radial_deriv,
     chart_radial_iteratedDeriv]; simp
 
+/-- Radial first jet: `∂_r (f ∘ chart) = Df[ê_r]`. -/
 lemma fst_radial (f : R3 → ℂ) (hf : ContDiff ℝ 2 f) (r θ φ : ℝ) :
     deriv (fun u => f (sphereChart u θ φ)) r = fderiv ℝ f (sphereChart r θ φ) (sphereFrameR θ φ) := by
   rw [curve_deriv f hf (chart_radial_contDiffAt θ φ r), chart_radial_deriv]
 
+/-- Polar first jet: `∂_θ (f ∘ chart) = r · Df[ê_θ]`. -/
 lemma fst_polar (f : R3 → ℂ) (hf : ContDiff ℝ 2 f) (r θ φ : ℝ) :
     deriv (fun u => f (sphereChart r u φ)) θ
       = r • fderiv ℝ f (sphereChart r θ φ) (sphereFrameθ θ φ) := by
   rw [curve_deriv f hf (chart_polar_contDiffAt r θ φ), chart_polar_deriv, map_smul]
 
+/-- The polar chart curve is globally `C²`. -/
 lemma chart_polar_contDiff (r φ : ℝ) : ContDiff ℝ 2 (fun u => sphereChart r u φ) := by
   rw [chart_polar_eq]
   exact ((contDiff_const.mul Real.contDiff_sin).smul contDiff_const).add
     ((contDiff_const.mul Real.contDiff_cos).smul contDiff_const)
 
+/-- The azimuthal chart curve is globally `C²`. -/
 lemma chart_azim_contDiff (r θ : ℝ) : ContDiff ℝ 2 (fun u => sphereChart r θ u) := by
   rw [chart_azim_eq]
   exact (((contDiff_const.mul Real.contDiff_cos).smul contDiff_const).add
     ((contDiff_const.mul Real.contDiff_sin).smul contDiff_const)).add contDiff_const
 
+/-- The angular Laplacian `laplaceBeltrami` of `f` pulled back to the chart, written through the
+    1D polar and azimuthal derivatives of `f ∘ chart`. -/
 lemma lapBeltrami_chart (f : R3 → ℂ) (hf : ContDiff ℝ 2 f) (r θ φ : ℝ) :
     laplaceBeltrami (fun p => f (sphereChart r p.1 p.2)) (θ, φ)
       = -((1 / (sin θ : ℂ)) * ((cos θ : ℂ) * deriv (fun u => f (sphereChart r u φ)) θ
@@ -594,6 +630,8 @@ lemma lapBeltrami_chart (f : R3 → ℂ) (hf : ContDiff ℝ 2 f) (r θ φ : ℝ)
   rw [laplaceBeltrami]
   simp only [hprod, hsec]
 
+/-- Polar second jet: `∂²_θ (f ∘ chart) = r² · D²f[ê_θ, ê_θ] + Df[(-r) ê_r]`, combining the
+    velocity `r ê_θ` (Hessian term) with the acceleration `-r ê_r` (gradient term). -/
 lemma jet_polar (f : R3 → ℂ) (hf : ContDiff ℝ 2 f) (r θ φ : ℝ) :
     iteratedDeriv 2 (fun u => f (sphereChart r u φ)) θ
       = (r ^ 2 : ℝ) • iteratedFDeriv ℝ 2 f (sphereChart r θ φ) ![sphereFrameθ θ φ, sphereFrameθ θ φ]
@@ -601,6 +639,8 @@ lemma jet_polar (f : R3 → ℂ) (hf : ContDiff ℝ 2 f) (r θ φ : ℝ) :
   rw [curve_jet f hf (chart_polar_contDiffAt r θ φ), chart_polar_deriv, chart_polar_iteratedDeriv,
     iFD2_smul_diag]
 
+/-- Azimuthal second jet: `∂²_φ (f ∘ chart) = (r sinθ)² · D²f[ê_φ, ê_φ] + Df[-(r sinθ) v_ρ]`,
+    combining the velocity `(r sinθ) ê_φ` (Hessian term) with the acceleration `-(r sinθ) v_ρ`. -/
 lemma jet_azim (f : R3 → ℂ) (hf : ContDiff ℝ 2 f) (r θ φ : ℝ) :
     iteratedDeriv 2 (fun u => f (sphereChart r θ u)) φ
       = ((r * sin θ) ^ 2 : ℝ) • iteratedFDeriv ℝ 2 f (sphereChart r θ φ) ![sphereFrameφ φ, sphereFrameφ φ]

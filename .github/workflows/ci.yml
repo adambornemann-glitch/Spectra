@@ -1,8 +1,14 @@
 # Continuous integration for Spectra.
 #
-# Builds the library and runs the axiom gate. The `AxiomCheck` default target
-# `assert_no_sorry`s every headline theorem, so a `sorry` reaching any of them
-# fails `lake build` — and therefore the PR.
+# Three gates, run in parallel:
+#   * build          — `lake build` compiles the library and runs the `AxiomCheck`
+#     default target, which `assert_no_sorry`s every headline theorem (a `sorry`
+#     reaching any of them fails the build, and therefore the PR).
+#   * numeric-checks — the statement-level gate: `NumericChecks/run_all.py`
+#     validates that the formalized constants/signs/normalizations match the
+#     intended mathematics (a correct proof of a *wrong* statement passes the
+#     axiom gate but fails here). Pure-stdlib Python; no Lean build needed.
+#   * lint           — a file/line/declaration length ratchet.
 #
 # Mathlib oleans are restored with `lake exe cache get`. Spectra has no cache
 # server of its own, so its sources compile on the runner; the actions/cache
@@ -48,6 +54,20 @@ jobs:
 
       - name: Build Spectra and run the axiom gate
         run: lake build
+
+  numeric-checks:
+    name: Numeric statement checks
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Pure-stdlib Python (no numpy, no Lean build) — the statement-level gate.
+      # Transcribes the library's definitions literally and compares them against
+      # high-precision numerics via independent routes; a failure names the Lean
+      # declaration whose statement disagrees with the intended mathematics.
+      - name: Validate formalized statements against numerics
+        run: python3 NumericChecks/run_all.py
 
   lint:
     name: Length ratchet

@@ -34,15 +34,28 @@ common dense invariant core on which `AB = BA`, yet no joint PVM exists).  The c
 *strong* commutativity — equivalently the spectral projections, the resolvents, or the unitary
 groups commute.  This file uses spectral-projection commutation (`StronglyCommute`).
 
-## Main statements
+## Main definitions
 
 * `StronglyCommute` — the correct commutativity notion (projections of `spectralPVM` commute).
 * `POVM.IsProjective` — a POVM is a PVM (multiplicative); the joint PVM is a projective
   `POVM H (ℝ × ℝ)`.
-* `stronglyCommute_iff_jointPVM` — **the corrected iff.**  Forward is the multivariate spectral
-  theorem; backward is multiplicativity of the joint PVM.
-* `jointBornMeasure`, `jointBornMeasure_fst/_snd`, `jointBornMeasure_correlation` — the joint Born
-  law for a commuting pair, with the Born measures as marginals and `⟪ξ, AB ξ⟫` as the correlation.
+* `POVM.IsJointOf` — the marginal-PVM predicate: the cylinder effects recover `E_A` and `E_B`.
+* `jointBornMeasure` — the per-state joint distribution carried by a joint PVM.
+
+## Main statements
+
+* `stronglyCommute_iff_groups_commute` — strong commutativity is equivalent to commutation of the
+  one-parameter unitary groups, via the cross-group engines of §0.
+* `stronglyCommute_of_jointPVM` — the easy (backward) half of the corrected iff: a joint projective
+  PVM forces strong commutativity.
+* `jointBornMeasure_fst` / `jointBornMeasure_snd` — the Born measures are the marginals of the joint
+  Born measure.
+* `exists_coupling_always` — the naive per-state coupling is vacuous.
+
+The full equivalence `stronglyCommute_iff_jointPVM` (whose forward direction is the genuine
+multivariate spectral-theorem construction) and the correlation identity
+`jointBornMeasure_correlation` (`∫ xy dμ_ξ = ⟪ξ, AB ξ⟫`) live in the cross-file
+`BornRule.Joint.Forward`, where they are proved sorry-free and axiom-clean.
 
 ## The Bell connection (forward, to `BellsTheorem`)
 
@@ -55,18 +68,24 @@ gap.  Non-commutativity of the *same-side* observables (`A₁,A₂`) is what blo
 anything about a single cross-pair `(Aᵢ, Bⱼ)`, each of which (being commuting/spacelike) does have a
 joint law.
 
-## Dependencies
+## Implementation notes
 
-`[needs spectralPVM]` throughout (every `E_A` is `A.spectralPVM`).  The forward construction of the
-joint PVM additionally needs `[needs infra: 2-parameter Bochner / commuting functional calculus]` —
-the two-dimensional analogue of your Herglotz/Stone spectral-measure construction.
+Every `E_A` is `A.spectralPVM`.  The forward construction of the joint PVM (in
+`BornRule.Joint.Forward`) is built by Carathéodory extension of the bimeasure content
+`μ_ξ(S × T) = ⟪ξ, E_A(S) E_B(T) ξ⟫`, with the operator field recovered by polarization; it is the
+two-dimensional analogue of the in-house Herglotz/Stone spectral-measure construction.
 
 ## References
 
-* [Reed, Simon, *Methods of Modern Mathematical Physics I*], §VIII.5 (strong commutativity; the
-  Nelson counterexample is §VIII, Example 1 in some editions).
+* [Reed, Simon, *Methods of Modern Mathematical Physics I: Functional Analysis*][reedsimon1980],
+  §VIII.5 (strong commutativity; the Nelson counterexample is §VIII, Example 1 in some editions).
 * [Conway, *A Course in Operator Theory*], spectral theorem for commuting normal operators.
 * [Tsirelson, *Quantum generalizations of Bell's inequality*] (1980).
+
+## Tags
+
+joint spectral measure, strong commutativity, joint PVM, Born rule, projection-valued measure, Bell,
+CHSH
 -/
 
 open MeasureTheory Complex Spectra
@@ -213,7 +232,8 @@ theorem commute_spectralCalculus_of_commute_group (U : OneParameterUnitaryGroup 
 spectral projection `E(S)`, then `D` commutes with the bounded functional calculus `Φ(g)` for
 every bounded measurable symbol `g`. -/
 theorem commute_spectralCalculus_of_commute_proj (U : OneParameterUnitaryGroup (H := H))
-    (D : H →L[ℂ] H) (hD : ∀ (S : Set ℝ) (hS : MeasurableSet S), Commute (spectralProjection U S hS) D)
+    (D : H →L[ℂ] H)
+    (hD : ∀ (S : Set ℝ) (hS : MeasurableSet S), Commute (spectralProjection U S hS) D)
     {g : ℝ → ℂ} (hgm : Measurable g) (hgb : ∃ C, ∀ ω, ‖g ω‖ ≤ C) :
     Commute (spectralCalculus U g hgm hgb) D := by
   have hkey : ∀ ξ η : H,
@@ -252,14 +272,14 @@ sets.  This is the notion that admits a joint PVM.
 
 It is *strictly stronger* than `Commute A.toLinearPMap B.toLinearPMap` (algebraic commutation on a
 common domain), which by Nelson's counterexample does **not** imply a joint spectral measure.  It is
-equivalent to: the resolvents commute; the unitary groups `e^{isA}`, `e^{itB}` commute (the form your
+equivalent to: the resolvents commute; the unitary groups `e^{isA}`, `e^{itB}` commute (the form the
 Stone machinery exposes directly). -/
 def StronglyCommute (A B : SelfAdjointOperator H) : Prop :=
   ∀ (S T : Set ℝ) (hS : MeasurableSet S) (hT : MeasurableSet T),
     Commute (A.spectralPVM.proj S hS) (B.spectralPVM.proj T hT)
 
-/-- `[needs spectralPVM + Stone]` **Equivalence with commutation of the unitary groups** — the form
-most convenient to *verify* in practice (and the one the `OneParameterUnitaryGroup` stack supplies).
+/-- **Equivalence with commutation of the unitary groups** — the form most convenient to *verify*
+in practice (and the one the `OneParameterUnitaryGroup` stack supplies).
 
 Both directions go through the cross-group commutation engines of §0 — no Stone–Weierstrass, no
 operator topology, no Stone's-formula limit.  `(⇐)` lifts character commutation to projection
@@ -308,9 +328,9 @@ theorem stronglyCommute_iff_groups_commute (A B : SelfAdjointOperator H) :
 
 /-! ## §2  The joint PVM as a projective POVM on `ℝ × ℝ`
 
-A joint spectral measure is a PVM on `ℝ²`.  Rather than re-bundle, reuse the `POVM H (ℝ × ℝ)` you
-already have and add the projectivity predicate that distinguishes a PVM from a general POVM — i.e.
-the `proj_inter` axiom that the POVM structure dropped. -/
+A joint spectral measure is a PVM on `ℝ²`.  Rather than re-bundle, reuse the existing
+`POVM H (ℝ × ℝ)` and add the projectivity predicate that distinguishes a PVM from a general POVM —
+i.e. the `proj_inter` axiom that the POVM structure dropped. -/
 
 /-- A POVM is **projective** — a genuine PVM — when its effects are multiplicative:
 `M(B₁) · M(B₂) = M(B₁ ∩ B₂)`.  (Equivalently, every effect is a projection, by `proj_idem`.)
@@ -329,8 +349,9 @@ noncomputable def _root_.Spectra.POVM.marginalSnd (M : POVM H (ℝ × ℝ)) (ξ 
   (M.diag ξ).snd
 
 /-- **The marginal PVM property** at the operator level: the effect on the cylinder `S × ℝ` is the
-spectral projection `E_A(S)`.  This is the hypothesis with teeth — it forces the marginal *operators*
-(not merely the marginal measures) to be `A`'s, which is what couples to commutativity. -/
+spectral projection `E_A(S)`.  This is the hypothesis with teeth — it forces the marginal
+*operators* (not merely the marginal measures) to be `A`'s, which is what couples to
+commutativity. -/
 def _root_.Spectra.POVM.IsJointOf (M : POVM H (ℝ × ℝ)) (A B : SelfAdjointOperator H) : Prop :=
   (∀ (S : Set ℝ) (hS : MeasurableSet S),
       M.effect (S ×ˢ Set.univ) (hS.prod MeasurableSet.univ) = A.spectralPVM.proj S hS)
@@ -361,15 +382,16 @@ multivariate-spectral-theorem construction) lives in `BornRule.Joint.Forward`, s
 /-! ## §4  The joint Born law (forward corollary)
 
 Given a joint PVM for a commuting pair, the per-state joint distribution is its diagonal measure.
-Unlike a generic coupling it (a) has the Born measures as *marginals via the operator marginals*, and
-(b) reproduces the correlation `⟪ξ, AB ξ⟫`. -/
+Unlike a generic coupling it (a) has the Born measures as *marginals via the operator marginals*,
+and (b) reproduces the correlation `⟪ξ, AB ξ⟫`. -/
 
 /-- The **joint Born measure** of a state `ξ` under a joint PVM `M`: the carried diagonal measure on
 `ℝ²`.  (Defined for any `M`; physically meaningful when `M.IsJointOf A B`.) -/
 noncomputable def jointBornMeasure (M : POVM H (ℝ × ℝ)) (ξ : H) : Measure (ℝ × ℝ) :=
   M.diag ξ
 
-/-- `[done]` For a unit vector, a probability measure on `ℝ²` (mass `‖ξ‖² = 1`, `diag_univ_toReal`). -/
+/-- `[done]` For a unit vector, a probability measure on `ℝ²`
+(mass `‖ξ‖² = 1`, `diag_univ_toReal`). -/
 theorem isProbabilityMeasure_jointBornMeasure (M : POVM H (ℝ × ℝ)) {ξ : H} (hξ : ‖ξ‖ = 1) :
     IsProbabilityMeasure (jointBornMeasure M ξ) := by
   refine ⟨(ENNReal.toReal_eq_one_iff _).mp ?_⟩
@@ -420,7 +442,8 @@ correctly. -/
 `A, B` (commuting or not) and any `ξ`, the product measure has the Born marginals.  Hence
 `∃ μ_ξ` with the right marginals is always true and is *not* equivalent to commutativity.  Proof:
 `Measure.fst_prod`, `Measure.snd_prod` (with each marginal a probability measure — hence the unit
-vector `‖ξ‖ = 1`, without which the product's marginals are scaled by `‖ξ‖²` and the claim is false). -/
+vector `‖ξ‖ = 1`, without which the product's marginals are scaled by `‖ξ‖²` and the claim is
+false). -/
 theorem exists_coupling_always (A B : SelfAdjointOperator H) {ξ : H} (hξ : ‖ξ‖ = 1) :
     ∃ μ : Measure (ℝ × ℝ),
       μ.fst = bornMeasure A.spectralPVM ξ ∧ μ.snd = bornMeasure B.spectralPVM ξ := by
@@ -434,8 +457,8 @@ theorem exists_coupling_always (A B : SelfAdjointOperator H) {ξ : H} (hξ : ‖
 `[connects to BellsTheorem.LHV / CHSH_Bounds.Commuting — verify their API]`
 
 A family `A₁, A₂, B₁, B₂` that **pairwise** strongly commutes (in particular the *same-side* pairs
-`A₁,A₂` and `B₁,B₂`) admits a single global joint PVM on `ℝ⁴`, hence a global joint Born law, hence a
-local-hidden-variable model in the sense of `BellsTheorem.LHV`, hence the CHSH bound:
+`A₁,A₂` and `B₁,B₂`) admits a single global joint PVM on `ℝ⁴`, hence a global joint Born law, hence
+a local-hidden-variable model in the sense of `BellsTheorem.LHV`, hence the CHSH bound:
 ```
 theorem chsh_le_two_of_stronglyCommute
     (A₁ A₂ B₁ B₂ : SelfAdjointOperator H)
@@ -443,11 +466,11 @@ theorem chsh_le_two_of_stronglyCommute
     (hAB : ∀ i j, StronglyCommute (![A₁,A₂] i) (![B₁,B₂] j)) (ξ : H) :
     |⟪ξ, …CHSH operator… ξ⟫.re| ≤ 2
 ```
-routed through your `BellsTheorem.LHV` model built from the global joint Born law and your existing
+routed through the `BellsTheorem.LHV` model built from the global joint Born law and the existing
 `CHSH_Bounds.Commuting`.  The Tsirelson bound (`≤ 2√2`) is the quantum ceiling *without* the
 same-side commutativity hypotheses — the regime where no global joint law exists, which is precisely
-the failure the naive "backward direction" was groping for, now correctly located at the level of the
-incompatible *family* rather than a single pair.
+the failure the naive "backward direction" was groping for, now correctly located at the level of
+the incompatible *family* rather than a single pair.
 -/
 
 end Spectra.QuantumMechanics.BornRule

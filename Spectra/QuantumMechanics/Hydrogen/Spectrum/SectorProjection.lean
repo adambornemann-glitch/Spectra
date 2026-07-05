@@ -15,7 +15,7 @@ The mathematical heart of the **forward direction** (`eigenpair ⟹ E = E_n`) of
 `hydrogen_discrete_spectrum`: projecting the Cartesian weak eigenequation onto a single angular
 sector to extract a *radial* weak equation.
 
-Given an `H²` eigenfunction `H ψ = E ψ` of `H = −½Δ − Z/r`, we test against the smooth
+Given an `H²` eigenfunction `H ψ = E ψ` of `H = −½Δ − Z/r`, the argument tests against the smooth
 solid-harmonic function `χ(‖x‖) · solidHarmonicNat ℓ m x` (a globally `C∞`, compactly supported
 separated test function).  Combining
 
@@ -29,7 +29,7 @@ radial profile `χ(a)·a^ℓ`, paired against the angular coefficient `c_{ℓ,-m
 realization, integrates to `0` against `r² dr`.  This is exactly the weak radial equation consumed
 by `forward_bridge → classical_of_weak_ode → radial_classical_of_logCoord → radial_quantization_Z`.
 
-## Main results
+## Main statements
 
 * `sphericalHarmonic_conj` — `conj(Y_ℓ^m) = κ · Y_ℓ^{-m}` (Condon–Shortley; `κ ≠ 0`).
 * `solidTest_contDiff_infty`, `solidTest_hasCompactSupport` — the solid-harmonic test function is
@@ -37,6 +37,14 @@ by `forward_bridge → classical_of_weak_ode → radial_classical_of_logCoord �
 * `weak_eigen_combined` — the combined weak eigenequation `∫ ψ·(−½∑∂² + V − E)φ = 0`.
 * `solidTest_chart_value` — the pointwise chart value of the operator on the solid-harmonic test.
 * `sector_projection_radial` — the sector-projected radial weak equation.
+* `sector_weak_part`, `sector_hweak`, `sector_sweak` — the realified radial weak equation, bridged
+  through `forward_bridge` into the `s`-weak form consumed by `classical_of_weak_ode`.
+* `hydrogenHamiltonian_star`, `coeffFun_star`, `exists_nonzero_sector` — conjugation symmetry of the
+  eigenproblem, used to produce a nonzero non-positive-`m` sector coefficient.
+* `radial_bc_of_logCoord` — the at-origin Dirichlet boundary dichotomy `r·c₀(log r) → 0`, via
+  convexity of `eˢ·c₀²` near `−∞`.
+* `forward_eigenvalue` — a nonzero `H²` eigenpair with `E < 0` forces `E = eigenvalue p n hn`.
+* `no_positive_eigenvalue` — no nonzero `L²` eigenfunction exists at energy `E ≥ 0`.
 -/
 
 noncomputable section
@@ -584,7 +592,7 @@ lemma sector_sweak (p : CoulombParams) (E : ℝ)
 /-! ## Wiring the regularity pipeline
 
 `sector_sweak` is the hypothesis of `Spectra.RadialRegularity.classical_of_weak_ode`; its remaining
-side condition is the local integrability of `s ↦ L(coeffFun(eˢ))`, which we establish from
+side condition is the local integrability of `s ↦ L(coeffFun(eˢ))`, which follows from
 `L²(r²dr)`.  Applying `classical_of_weak_ode` and then `radial_classical_of_logCoord` yields a
 classical `C²` radial solution of the charge-`Z` reduced radial eigen-equation. -/
 
@@ -825,8 +833,8 @@ lemma exists_reIm_comp_ne_zero {μ : Measure ℝ} (c : ℝ → ℂ) (hc : ¬ (c 
   simp only [Pi.zero_apply]
   exact Complex.ext (by simpa using hr') (by simpa using hi')
 
-/-- **Deliverable C (test copy).** If every angular coefficient `coeffFun i F` vanishes a.e., then
-`F = 0`. (Steps 4–6 of `sectorEmbedding_dense`, factored.) -/
+/-- **Coefficients determine the function.** If every angular coefficient `coeffFun i F` vanishes
+a.e., then `F = 0` (the completeness argument of `sectorEmbedding_dense`, factored out). -/
 lemma eq_zero_of_coeffFun_ae_zero (F : Decomposition.l2R3)
     (hc0 : ∀ i : HarmonicIdx, coeffFun i F =ᵐ[radialMeasure] 0) : F = 0 := by
   -- a.e. slices of F lie in L²(S²).

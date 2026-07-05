@@ -14,7 +14,7 @@ This file assembles the *spectral-projection theorem* for the bound states of th
 self-adjoint Hamiltonian `H = −½Δ − 1/r` onto the spectral atom `{Eₙ}` is exactly
 the `ℂ`-span of the `n²` degeneracy eigenfunctions `ψ_{nℓm}`.
 
-## Main results
+## Main statements
 
 * `hydrogen_eigenspace_eq_span` — the operator eigenspace
   `ker(H − Eₙ) = { ψ | ∃ h, H ψ = Eₙ ψ }` equals
@@ -146,7 +146,8 @@ theorem hydrogen_spectral_projection_discrete (n : ℕ) (hn : 1 ≤ n) :
 
 /-- **Degeneracy of the `n`-th spectral subspace.**  `dim range E({Eₙ}) = n²`.
 
-The spectral form of `degenFamily_span_finrank`: the dimension of the range of `E({Eₙ})` equals `n²`.
+The spectral form of `degenFamily_span_finrank`: the dimension of the range of `E({Eₙ})` equals
+`n²`.
 Transported from the spherical-side degeneracy count along the unitary `chartRealization` (which
 maps `span (degenFamily n)` isometrically onto `span (chartRealization.symm ∘ degenFamily n)`,
 preserving dimension). -/

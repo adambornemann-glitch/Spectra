@@ -44,6 +44,8 @@ Elementary energy/Grönwall machinery for `reduced_radial_continuum`: the potent
 private noncomputable def contW (ℓ : ℕ) (E : ℝ) : ℝ → ℝ :=
   fun r => (ℓ : ℝ) * ((ℓ : ℝ) + 1) / r ^ 2 - 2 / r - 2 * E
 
+/-- Derivative of the reduced-radial potential: for `r > 0`,
+`W'(r) = −2ℓ(ℓ+1)/r³ + 2/r²`. -/
 private lemma contW_hasDerivAt (ℓ : ℕ) (E : ℝ) {r : ℝ} (hr : 0 < r) :
     HasDerivAt (contW ℓ E)
       (-2 * (ℓ : ℝ) * ((ℓ : ℝ) + 1) / r ^ 3 + 2 / r ^ 2) r := by
@@ -91,8 +93,9 @@ private lemma contW_thresh (ℓ : ℕ) (E : ℝ) (hE : 0 ≤ E) {r : ℝ}
     apply div_nonneg _ (le_of_lt h3)
     nlinarith [hrge]
 
-/-- **Energy differential inequality.** With `G = χ'² − Wχ²`, on `[r₀,∞)` (`r₀ ≥ ℓ(ℓ+1)+1`)
-`G` is decreasing and `G/(−W)` is increasing (`G'(−W) + GW' = W'χ'² ≥ 0`), giving the
+/-- **Energy differential inequality.** With `G = χ'² − Wχ²`, on `[r₀,∞)`
+(`r₀ ≥ ℓ(ℓ+1)+1`) `G` is decreasing and `G/(−W)` is increasing
+(`G'(−W) + GW' = W'χ'² ≥ 0`), giving the
 cross-multiplied lower bound `G(r₀)·(−W r) ≤ G(r)·(−W r₀)`. -/
 private lemma energy_diff_ineq (ℓ : ℕ) (E : ℝ) (hE : 0 ≤ E) (χ : ℝ → ℝ)
     (hχ1 : ∀ r, 0 < r → HasDerivAt χ (deriv χ r) r)
@@ -232,7 +235,8 @@ private lemma l2_tendsto_zero {f : ℝ → ℝ} {a B : ℝ} (hB : 0 ≤ B)
   linarith [hlb, hub, hT₁tail]
 
 /-- **Forward uniqueness** for `u'' = V u` with zero Cauchy data at the left endpoint:
-Grönwall on the system `(u, u')`, needing only the norm bound `‖(u', Vu)‖ ≤ (M+1)‖(u,u')‖`. -/
+Grönwall on the system `(u, u')`, needing only the norm bound
+`‖(u', Vu)‖ ≤ (M+1)‖(u,u')‖`. -/
 private lemma forward_zero {u du V : ℝ → ℝ} {a b : ℝ} (_hab : a ≤ b)
     (hu : ∀ x ∈ Set.Icc a b, HasDerivAt u (du x) x)
     (hdu : ∀ x ∈ Set.Icc a b, HasDerivAt du (V x * u x) x)
@@ -329,16 +333,18 @@ private lemma cont_cauchy_zero (ℓ : ℕ) (E : ℝ) (χ : ℝ → ℝ)
 /-- **For `E ≥ 0`, every `C²` square-integrable solution of the reduced radial equation
     vanishes** (the continuous spectrum carries no bound states).
 
-    Any `χ` solving `χ''(r) = (ℓ(ℓ+1)/r² − 2/r − 2E)·χ(r)` on `(0,∞)` and square-integrable
-    there is identically `0`.
+    Any `χ` solving `χ''(r) = (ℓ(ℓ+1)/r² − 2/r − 2E)·χ(r)` on `(0,∞)` and
+    square-integrable there is identically `0`.
 
-    **Proof.** For `r ≥ ℓ(ℓ+1)+1` the potential `W = ℓ(ℓ+1)/r² − 2/r − 2E` is negative,
-    increasing, with `−W ≥ 1/r`. The energy `G = χ'² − Wχ²` is decreasing (`G' = −W'χ²`) and
-    `G/(−W)` is increasing (`(G/(−W))' = W'χ'²/W² ≥ 0`), so `G ≥ K·(−W)` with
-    `K = G(r₀)/(−W(r₀)) > 0` whenever `χ(r₀) ≠ 0` (`energy_diff_ineq`). Then `χ'` is bounded,
-    so the `L²` function `χ` is Lipschitz and tends to `0` (`l2_tendsto_zero`); hence
-    `(χχ')' = χ'² − (−W)χ² ≥ (K/2)·(−W) ≥ (K/2)/r` eventually, forcing `χχ' → +∞` by
-    log-divergence — contradicting `χχ' → 0` (`χ → 0`, `χ'` bounded). So `χ ≡ 0` on
+    **Proof.** For `r ≥ ℓ(ℓ+1)+1` the potential `W = ℓ(ℓ+1)/r² − 2/r − 2E` is
+    negative, increasing, with `−W ≥ 1/r`. The energy `G = χ'² − Wχ²` is decreasing
+    (`G' = −W'χ²`) and `G/(−W)` is increasing (`(G/(−W))' = W'χ'²/W² ≥ 0`), so
+    `G ≥ K·(−W)` with `K = G(r₀)/(−W(r₀)) > 0` whenever `χ(r₀) ≠ 0`
+    (`energy_diff_ineq`). Then `χ'` is bounded, so the `L²` function `χ` is Lipschitz
+    and tends to `0` (`l2_tendsto_zero`); hence
+    `(χχ')' = χ'² − (−W)χ² ≥ (K/2)·(−W) ≥ (K/2)/r` eventually,
+    forcing `χχ' → +∞` by log-divergence — contradicting `χχ' → 0`
+    (`χ → 0`, `χ'` bounded). So `χ ≡ 0` on
     `[ℓ(ℓ+1)+1, ∞)`, and Cauchy-data uniqueness (`cont_cauchy_zero`, Grönwall forward +
     reflection backward) extends this to all of `(0,∞)`. -/
 theorem reduced_radial_continuum (ℓ : ℕ) (E : ℝ) (hE : 0 ≤ E) (χ : ℝ → ℝ)

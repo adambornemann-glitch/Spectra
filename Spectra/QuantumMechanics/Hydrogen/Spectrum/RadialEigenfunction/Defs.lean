@@ -52,6 +52,16 @@ continuous) and the second (where the classical first derivative is bounded but
 discontinuous at the origin) uniformly, culminating in the **master cutoff integration by
 parts** `master_ibp`.  `RadialEigenfunction.Basic` uses `master_ibp` to assemble the Green's
 identity, the required `L²` memberships, and the full reverse direction.
+
+## Main statements
+
+* `classical_radial_eigen` — the classical radial eigen-identity
+  `−½·Δ(R_{n0}∘‖·‖)(x) − (1/‖x‖)·R_{n0}(‖x‖) = E_n·R_{n0}(‖x‖)` at every `x ≠ 0`.
+* `chartRealization_symm_eigenfunction_coeFn` — the Cartesian transport of the `s`-state
+  eigenfunction is a.e. the cusped radial function `x ↦ (sphericalNorm 0 0)·R_{n0}(‖x‖)`.
+* `master_ibp` — the master cutoff integration by parts, giving the weak-derivative identity
+  `∫ v·∂ⱼφ = −∫ w·φ` for a function `v` that is continuous and `C¹` off the origin and bounded
+  near it, with classical `j`-partial `w`.
 -/
 
 noncomputable section
@@ -181,9 +191,9 @@ lemma chartRealization_symm_eigenfunction_coeFn (n : ℕ) (hn : 0 + 1 ≤ n)
 
 /-! ## Classical first derivatives of a radial function off the origin
 
-These feed the weak-derivative analysis (task F): the first weak derivative of the cusped
+These feed the weak-derivative analysis: the first weak derivative of the cusped
 function `c·R(‖·‖)` equals its classical gradient off the origin, established by a smooth
-cutoff integration by parts.  Here we record the classical Fréchet derivative `∂ᵢ(g∘‖·‖) =
+cutoff integration by parts.  Recorded here are the classical Fréchet derivative `∂ᵢ(g∘‖·‖) =
 (xᵢ/‖x‖)·g′(‖x‖)`, its boundedness (`≤ |g′|`, the key input to the vanishing of the cutoff
 shell term), and `C²` smoothness away from the origin. -/
 

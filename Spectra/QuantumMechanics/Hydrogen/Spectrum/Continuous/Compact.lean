@@ -30,7 +30,7 @@ operator on `L²(ℝ³)`, and concludes that the textbook hydrogen Hamiltonian
   `Kₙ(x, y) = 𝟙_{closedBall 0 (n+1)}(x) · V(x) · G_z(x - y)` truncated to the ball of radius
   `n + 1`, viewed as an element of `L²(ℝ³ × ℝ³)`.
 
-## Main results
+## Main statements
 
 * `coulombResolventAt_isCompact` — the Coulomb resolvent `coulombResolventAt p z hz` is a compact
   operator on `L²(ℝ³)`, for every spectral parameter `z` off the real axis.
@@ -42,11 +42,11 @@ operator on `L²(ℝ³)`, and concludes that the textbook hydrogen Hamiltonian
 ## Implementation notes
 
 Compactness is proved by the classical kernel-truncation argument: the integral operator with
-kernel `Kₙ ∈ L²(ℝ³ × ℝ³)` is compact for every `n` (Hilbert–Schmidt), and the truncated kernels
-converge to the Coulomb resolvent in operator norm as `n → ∞`, since the tail of the Coulomb
-multiplier `Z/‖x‖` outside `closedBall 0 (n+1)` is bounded by `Z/(n+1) → 0`. A limit of compact
-operators in operator norm is compact, which finishes the argument. The proof runs in five stages,
-each isolated as its own section below:
+kernel `Kₙ ∈ L²(ℝ³ × ℝ³)` is compact for every `n` (Hilbert–Schmidt), and the truncated
+kernels converge to the Coulomb resolvent in operator norm as `n → ∞`, since the tail of the
+Coulomb multiplier `Z/‖x‖` outside `closedBall 0 (n+1)` is bounded by `Z/(n+1) → 0`. A limit
+of compact operators in operator norm is compact, which finishes the argument. The proof runs in
+five stages, each isolated as its own section below:
 
 1. **Kernel truncation as a bounded operator** (`multIndicatorBall`): package
    "multiply by `𝟙_{closedBall 0 (n+1)}`" as a CLM of operator norm `≤ 1`.
@@ -58,8 +58,8 @@ each isolated as its own section below:
 4. **Density to the full operator identity** (`step_C_at`): extend the Schwartz-level agreement to
    all of `L²(ℝ³)` by density of Schwartz functions.
 5. **Operator-norm tail bound and the limit** (`step_D_at`, `step_E_tendsto_at`): bound
-   `‖coulombResolventAt − integralOperator Kₙ‖ ≤ (Z/(n+1)) · ‖freeResolventAt‖ → 0`, then invoke
-   `isCompactOperator_of_tendsto`.
+   `‖coulombResolventAt − integralOperator Kₙ‖ ≤ (Z/(n+1)) · ‖freeResolventAt‖ → 0`,
+   then invoke `isCompactOperator_of_tendsto`.
 
 ## References
 
@@ -116,6 +116,7 @@ lemma multIndicatorBallLM_bound (n : ℕ) (f : l2R3) :
 noncomputable def multIndicatorBall (n : ℕ) : l2R3 →L[ℂ] l2R3 :=
   LinearMap.mkContinuous (multIndicatorBallLM n) 1 (multIndicatorBallLM_bound n)
 
+/-- The coeFn of `multIndicatorBall n f` is a.e. `𝟙_{closedBall 0 (n+1)} · f`. -/
 lemma multIndicatorBall_coeFn (n : ℕ) (f : l2R3) :
     (multIndicatorBall n f : R3 → ℂ) =ᵐ[volume]
       (closedBall (0 : R3) (n + 1 : ℝ)).indicator (f : R3 → ℂ) :=

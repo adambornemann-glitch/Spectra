@@ -13,6 +13,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from nclib.quadrature import tanh_sinh, exp_sinh
 from nclib.special import genlaguerre, kummer_1f1, assoc_legendre, sph_harm_real_theta
 from nclib.harness import check, finish
+from nclib import linalg as la
 
 # --- quadrature ---
 check("ts: int_0^1 4/(1+x^2) = pi", "(toolkit)",
@@ -57,5 +58,78 @@ for l, m in [(0, 0), (1, 0), (2, 1), (3, 2)]:
     val = tanh_sinh(lambda th: sph_harm_real_theta(l, m, th) ** 2
                     * 2 * math.pi * math.sin(th), 0.0, math.pi)
     check(f"Y_{l}^{m} normalized on sphere", "(toolkit)", val, 1.0)
+
+# --- linalg: complex linear algebra core (used by modular/kms/cocycle/spectral) ---
+def md(A, B):
+    return la.max_abs_diff(A, B)
+
+
+# real symmetric eigensolver: eigenvalues of tridiag [2,-1;...] on 3 nodes
+_S = [[2.0, -1.0, 0.0], [-1.0, 2.0, -1.0], [0.0, -1.0, 2.0]]
+_lam, _ = la.real_sym_eig(_S)
+check("linalg: real_sym_eig eigenvalues (2±√2, 2)", "(toolkit)",
+      max(abs(a - b) for a, b in zip(sorted(_lam), sorted([2 - 2 ** .5, 2.0, 2 + 2 ** .5]))),
+      0.0, abs_tol=1e-10)
+
+# Hermitian [[2,i],[-i,3]] eigenvalues (5±√5)/2
+_H = la.mat([[2.0, 1j], [-1j, 3.0]])
+check("linalg: herm_eigvalues (5±√5)/2", "(toolkit)",
+      max(abs(a - b) for a, b in zip(la.herm_eigvalues(_H),
+          sorted([(5 - 5 ** .5) / 2, (5 + 5 ** .5) / 2]))), 0.0, abs_tol=1e-10)
+
+# functional calculus: sqrt squares back, exp∘log = id, and herm_exp vs power series
+check("linalg: (√H)² = H", "(toolkit)", md(la.matmul(la.herm_sqrt(_H), la.herm_sqrt(_H)), _H),
+      0.0, abs_tol=1e-9)
+check("linalg: exp(log H) = H", "(toolkit)", md(la.herm_exp(la.herm_log(_H)), _H), 0.0, abs_tol=1e-9)
+check("linalg: herm_exp = truncated power series (independent route)", "(toolkit)",
+      md(la.herm_exp(_H), la.expm_series(_H)), 0.0, abs_tol=1e-8)
+
+# unitary flow e^{iKt} vs independent series; ρ^{it} group law
+_K = la.mat([[0.5, 0.3 - 0.2j], [0.3 + 0.2j, -0.7]])
+check("linalg: e^{iKt} = e^{itK} series (independent route)", "(toolkit)",
+      md(la.herm_unitary_exp(_K, 0.9), la.expm_series(la.scale(0.9j, _K))), 0.0, abs_tol=1e-8)
+_rho = la.density_from_seed(3, 7)
+check("linalg: ρ^{it} unitary", "(toolkit)",
+      1.0 if la.is_unitary(la.herm_pow_imag(_rho, 1.3)) else 0.0, 1.0)
+check("linalg: ρ^{it}ρ^{is} = ρ^{i(t+s)} (group law)", "(toolkit)",
+      md(la.matmul(la.herm_pow_imag(_rho, 1.3), la.herm_pow_imag(_rho, 0.4)),
+         la.herm_pow_imag(_rho, 1.7)), 0.0, abs_tol=1e-9)
+
+# inverse / determinant
+_Amat = la.mat([[1, 2j, 0], [0, 1, 1], [1j, 0, 3]])
+check("linalg: A·A⁻¹ = I", "(toolkit)", md(la.matmul(_Amat, la.inv(_Amat)), la.eye(3)),
+      0.0, abs_tol=1e-9)
+check("linalg: det(A)·det(A⁻¹) = 1", "(toolkit)",
+      abs(la.det(_Amat) * la.det(la.inv(_Amat)) - 1), 0.0, abs_tol=1e-9)
+
+# kron / partial trace: Tr_B(X⊗Y) = X·Tr(Y)
+_X, _Y = la.mat([[1, 2], [3, 4]]), la.mat([[5, 0], [0, 1]])
+check("linalg: partial_trace(X⊗Y) = X·Tr(Y)", "(toolkit)",
+      md(la.partial_trace(la.kron(_X, _Y), (2, 2), 0), la.scale(la.trace(_Y), _X)),
+      0.0, abs_tol=1e-12)
+
+# singular values / trace norm: diag(3,-4i) ⇒ σ={3,4}, ‖·‖₁=7, ‖·‖₂=5
+_D = la.mat([[3, 0], [0, -4j]])
+check("linalg: trace_norm(diag(3,-4i)) = 7", "(toolkit)", la.trace_norm(_D), 7.0, abs_tol=1e-9)
+check("linalg: hs_norm(diag(3,-4i)) = 5", "(toolkit)", la.hs_norm(_D), 5.0, abs_tol=1e-9)
+
+# realification adjoint identity underpinning the modular checks:
+#   Δ = S⋆S built from the antilinear graph  ==  ρ(·)ρ⁻¹  (the KEY route independence)
+_n = 2
+_r = la.density_from_seed(_n, 4)
+_rh, _rih, _rinv = la.herm_sqrt(_r), la.herm_pow(_r, -0.5), la.inv(_r)
+_P = la.transpose_perm(_n)
+_AS = la.matmul(la.kron(la.transpose(_rh), _rih), la.mat(_P))     # S ξ = ρ^{-½}ξ⋆ρ^{½}
+_SR = la.realify_antilinear(_AS)
+_Delta_abs = la.unrealify_linear(la.real_matmul(la.real_transpose(_SR), _SR), _n * _n)
+_Delta_clo = la.matmul(la.kron(la.eye(_n), _r), la.kron(la.transpose(_rinv), la.eye(_n)))
+check("linalg: S⋆S (realified antilinear graph) = ρ(·)ρ⁻¹", "(toolkit)",
+      md(_Delta_abs, _Delta_clo), 0.0, abs_tol=1e-8)
+
+# rank / commutant dimension: commutant of full M_2(ℂ) is the scalars (dim 1)
+_full = [la.mat([[1, 0], [0, 0]]), la.mat([[0, 1], [0, 0]]),
+         la.mat([[0, 0], [1, 0]]), la.mat([[0, 0], [0, 1]])]
+check("linalg: commutant_dim(M₂(ℂ)) = 1 (scalars)", "(toolkit)",
+      la.commutant_dim(_full, 2), 1, abs_tol=0)
 
 finish("nclib self-test")

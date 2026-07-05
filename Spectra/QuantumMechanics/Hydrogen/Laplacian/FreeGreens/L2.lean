@@ -11,21 +11,29 @@ import Mathlib.MeasureTheory.Integral.ExpDecay
 # The free Green's function as an `L¹` and `L²` element
 
 The free Green's function `G_z(x) = e^{−√(−z)|x|}/(4π|x|)` decays exponentially
-(`freeGreensFunction_decay`), so its only integrability worry is the `1/|x|` singularity at the
-origin.  In dimension three the radial Jacobian `r² = r^{dim − 1}` cancels that singularity:
+(`freeGreensFunction_decay`), so its only integrability worry is the `1/|x|` singularity at
+the origin.  In dimension three the radial Jacobian `r² = r^{dim − 1}` cancels that singularity:
 
-* **M1** `‖G_z‖₁`: the radial integrand is `r² · e^{−c r}/(4π r) = (1/4π) · r · e^{−c r}`, which is
-  continuous at `0` and `O(e^{−c r})` at infinity, hence integrable on `(0,∞)`.
-* **M2** `‖G_z‖₂²`: the radial integrand is `r² · (e^{−c r}/(4π r))² = (1/16π²) · e^{−2c r}`, again
-  continuous at `0` and `O(e^{−2c r})` at infinity.
+* **M1** `‖G_z‖₁`: the radial integrand is `r² · e^{−c r}/(4π r) = (1/4π) · r · e^{−c r}`,
+  which is continuous at `0` and `O(e^{−c r})` at infinity, hence integrable on `(0,∞)`.
+* **M2** `‖G_z‖₂²`: the radial integrand is `r² · (e^{−c r}/(4π r))² = (1/16π²) · e^{−2c r}`,
+  again continuous at `0` and `O(e^{−2c r})` at infinity.
 
 Both reductions use Mathlib's radial change of variables `integrable_fun_norm_addHaar`
 (`∫ f(‖x‖) dx` ↔ a 1-D integral of `r^{dim−1} • f r` over `(0,∞)`) together with the exponential
-decay test `integrable_of_isBigO_exp_neg`.  We then dominate the genuine `‖G_z‖^p` by the radial
+decay test `integrable_of_isBigO_exp_neg`.  The genuine `‖G_z‖^p` is then dominated by the radial
 profile via `Integrable.mono'`.
 
-We package the `L²` witness as an honest `Lp` element `freeGreensL2 z hz` together with the a.e.
+The `L²` witness is packaged as an honest `Lp` element `freeGreensL2 z hz` together with the a.e.
 identification `coeFn_freeGreensL2` with `freeGreensFunction z`.
+
+## Main statements
+
+* `aestronglyMeasurable_freeGreensFunction` — `freeGreensFunction z` is a.e.-strongly measurable.
+* `memL1_freeGreensFunction` — `freeGreensFunction z ∈ L¹(ℝ³)` for `Im z ≠ 0`.
+* `memL2_freeGreensFunction` — `freeGreensFunction z ∈ L²(ℝ³)` for `Im z ≠ 0`.
+* `freeGreensL2` — the packaged `L²` element represented by `freeGreensFunction z`.
+* `coeFn_freeGreensL2` — `freeGreensL2 z hz` is a.e. equal to `freeGreensFunction z`.
 -/
 open MeasureTheory Set Complex Filter Asymptotics
 open Spectra.Sobolev
@@ -68,8 +76,8 @@ theorem aestronglyMeasurable_freeGreensFunction (z : ℂ) :
     filter_upwards [hne] with x hx using freeGreensFunction_eq_formula z hx
   exact (measurable_greensFormula z).aestronglyMeasurable.congr hae.symm
 
-/-- The 1-D radial profile `r^{2} • greensRadial c 1 r = (1/4π) · r · e^{−c r}` is integrable on
-`(0,∞)`: continuous (the `1/r` singularity cancels) and `O(e^{−c r})` at infinity. -/
+/-- The 1-D radial profile `r^{2} • greensRadial c 1 r = (1/4π) · r · e^{−c r}` is integrable
+on `(0,∞)`: continuous (the `1/r` singularity cancels) and `O(e^{−c r})` at infinity. -/
 private lemma integrableOn_radial_one (c : ℝ) (hc : 0 < c) :
     IntegrableOn (fun r : ℝ => r ^ 2 • greensRadial c 1 r) (Ioi 0) := by
   -- On `(0,∞)`, `r² • greensRadial c 1 r = (1/4π) · r · e^{−c r}`.
@@ -92,8 +100,9 @@ private lemma integrableOn_radial_one (c : ℝ) (hc : 0 < c) :
     rw [Real.rpow_one]; ring
   exact hbase.const_mul (1 / (4 * Real.pi))
 
-/-- The 1-D radial profile `r^{2} • greensRadial c 2 r = (1/16π²) · e^{−2c r}` is integrable on
-`(0,∞)`: continuous (the `1/r²` singularity fully cancels) and `O(e^{−2c r})` at infinity. -/
+/-- The 1-D radial profile `r^{2} • greensRadial c 2 r = (1/16π²) · e^{−2c r}` is integrable
+on `(0,∞)`: continuous (the `1/r²` singularity fully cancels) and `O(e^{−2c r})` at infinity.
+-/
 private lemma integrableOn_radial_two (c : ℝ) (hc : 0 < c) :
     IntegrableOn (fun r : ℝ => r ^ 2 • greensRadial c 2 r) (Ioi 0) := by
   have hcongr : ∀ r ∈ Ioi (0 : ℝ),

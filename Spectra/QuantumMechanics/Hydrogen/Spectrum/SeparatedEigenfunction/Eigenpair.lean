@@ -9,7 +9,22 @@ import Spectra.QuantumMechanics.Hydrogen.Spectrum.SeparatedEigenfunction.Profile
 # Separated hydrogen eigenfunctions: Cartesian eigenpairs
 
 This file turns the local spherical-coordinate eigen-equation into an a.e. Cartesian
-eigen-equation and transports the named degeneracy family to genuine Hamiltonian eigenvectors.
+eigen-equation and transports the named degeneracy family to genuine Hamiltonian eigenvectors
+of the `Z = 1` hydrogen Hamiltonian at `Eₙ = −1/(2n²)`.
+
+## Main statements
+
+* `separated_eigen_ae`: the separated eigenfunction solves `Σⱼ ∂ⱼ²Ψ = −2(Eₙ + 1/‖x‖)·Ψ`
+  `volume`-a.e., upgraded from the chart-level identity via a.e. chart coverage.
+* `chartRealization_symm_eigenfunction_eq_separated`: the Cartesian transport of the abstract
+  spherical eigenfunction equals the concrete separated product a.e.
+* `hydrogen_bound_state_separated`: for `1 ≤ ℓ < n`, `|m| ≤ ℓ`, the separated eigenfunction is a
+  genuine `H²` eigenvector at `Eₙ`.
+* `chartRealization_symm_eigenfunction_eigenpair`: the transported named eigenfunction is an `H²`
+  eigenvector at `Eₙ` for every `ℓ < n` and every integer `m ∈ {−ℓ,…,ℓ}` (negative `m` via
+  Condon–Shortley conjugation).
+* `degenFamily_mem_ker`: every member of the degeneracy family `degenFamily n`, transported to
+  Cartesian `L²(ℝ³)`, is a genuine `H²` eigenvector at `Eₙ` (all `n²` states).
 -/
 
 noncomputable section
@@ -384,7 +399,7 @@ theorem hydrogen_bound_state_separated (n ℓ m : ℕ) (hn : ℓ + 1 ≤ n) (hm 
 
 /-! ## The degeneracy family transported to Cartesian `L²(ℝ³)` are genuine `H²` eigenvectors
 
-We now assemble the reverse direction at the level of the *named* eigenfunctions
+The reverse direction is now assembled at the level of the *named* eigenfunctions
 `hydrogenEigenfunction n ℓ m`: transported back to Cartesian `L²` via `chartRealization.symm`
 each is a genuine `H²` eigenvector of the `Z = 1` hydrogen Hamiltonian at `Eₙ = −1/(2n²)`.
 This holds for **every** `ℓ < n` and **every** `m ∈ {−ℓ,…,ℓ}` (including `m < 0`, handled by

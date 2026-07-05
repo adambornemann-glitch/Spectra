@@ -22,7 +22,9 @@ eigenfunctions of the hydrogen atom after appropriate substitutions.
 
 * `laguerre_recurrence` — three-term recurrence relation.
 * `laguerre_differential_eq` — the Laguerre ODE.
-* `laguerre_orthogonality` — orthogonality with weight x^α e^{-x}.
+* `laguerre_smooth` — `L_n^α` is `C^ω` (a polynomial in `x`).
+* `laguerre_orthogonality` — off-diagonal (`n ≠ m`) orthogonality with weight
+  `x^α e^{-x}`.
 
 ## Implementation notes
 
@@ -86,6 +88,7 @@ lemma laguerre_zero (α : ℝ) : laguerrePolynomial 0 α = fun _ => 1 := by
   ext x
   simp [laguerrePolynomial, realBinom]
 
+/-- Explicit value of the degree-one Laguerre polynomial: `L₁^α(x) = 1 + α - x`. -/
 lemma laguerre_one (α : ℝ) :
     laguerrePolynomial 1 α = fun x => 1 + α - x := by
   ext x
@@ -94,6 +97,8 @@ lemma laguerre_one (α : ℝ) :
   push_cast
   ring
 
+/-- Explicit value of the degree-two Laguerre polynomial:
+    `L₂^α(x) = ½·((α+1)(α+2) - 2(α+2)x + x²)`. -/
 lemma laguerre_two (α : ℝ) :
     laguerrePolynomial 2 α = fun x =>
       (1 / 2) * ((α + 1) * (α + 2) - 2 * (α + 2) * x + x ^ 2) := by
@@ -289,6 +294,8 @@ theorem laguerre_recurrence (n : ℕ) (α : ℝ) (hn : 1 ≤ n) (x : ℝ) :
 
 /-! ## Differential equation -/
 
+/-- First derivative of `Lₙ^α`, term-by-term:
+    `d/dx Lₙ^α(x) = Σₖ (-1)ᵏ C(n+α, n-k) · k·x^{k-1} / k!`. -/
 lemma deriv_laguerrePolynomial (n : ℕ) (α : ℝ) (x : ℝ) :
     deriv (laguerrePolynomial n α) x =
     ∑ k ∈ Finset.range (n + 1),
@@ -328,6 +335,8 @@ lemma deriv_laguerrePolynomial (n : ℕ) (α : ℝ) (x : ℝ) :
       DifferentiableAt.div_const h_pow (k.factorial : ℝ)
     exact DifferentiableAt.const_mul h_div ((-1 : ℝ) ^ k * realBinom (n + α) (n - k))
 
+/-- Second derivative of `Lₙ^α`, term-by-term:
+    `d²/dx² Lₙ^α(x) = Σₖ (-1)ᵏ C(n+α, n-k) · k(k-1)·x^{k-2} / k!`. -/
 lemma deriv2_laguerrePolynomial (n : ℕ) (α : ℝ) (x : ℝ) :
     deriv^[2] (laguerrePolynomial n α) x =
     ∑ k ∈ Finset.range (n + 1),
@@ -392,6 +401,9 @@ lemma deriv2_laguerrePolynomial (n : ℕ) (α : ℝ) (x : ℝ) :
       exact DifferentiableAt.const_mul h_pow (k : ℝ)
     exact DifferentiableAt.const_mul h_div ((-1 : ℝ) ^ k * realBinom (n + α) (n - k))
 
+/-- The per-coefficient binomial identity that makes the Laguerre ODE series vanish
+    term by term: the coefficient of `x^k` in `x·L'' + (α+1-x)·L' + n·L` is zero
+    (valid for `1 ≤ n` and `k ≤ n - 1`, where the natural subtractions are genuine). -/
 private lemma laguerre_ode_coeff (n k : ℕ) (α : ℝ) (hn : 1 ≤ n) (hk : k ≤ n - 1) :
     -((k : ℝ) * realBinom (n + α) (n - (k + 1))) -
     ((α + 1) * realBinom (n + α) (n - (k + 1))) -
@@ -680,7 +692,7 @@ lemma laguerreWeight_mul_laguerre_mul_laguerre_integrable
 
 /-- `Lₙ' · xᵃ⁺¹e⁻ˣ · Lₘ'` is integrable on `(0, ∞)`. Same skeleton as
     `laguerreWeight_mul_laguerre_mul_laguerre_integrable`, but on `(0,∞)`
-    we have `xᵃ⁺¹e⁻ˣ = laguerreWeight (α+1) x`, so every monomial lands on
+    the identity `xᵃ⁺¹e⁻ˣ = laguerreWeight (α+1) x` holds, so every monomial lands on
     the weight-monomial kernel at the shifted parameter `α+1`. First
     parameter is the outer derivative, second the inner one. -/
 lemma laguerre_deriv_mul_weight_mul_laguerre_deriv_integrable

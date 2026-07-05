@@ -13,13 +13,13 @@ import Mathlib.Analysis.Calculus.Deriv.Mul
 /-!
 # Local Conservation of the Dirac Current
 
-This file proves the **local** continuity equation `∂ᵤjᵘ = 0`: when a spinor field satisfies the
-Dirac equation, its 4-current is divergence-free. This is the local form of probability
-conservation.
+This file proves the **local** continuity equation `∂ᵤjᵘ = 0`: when a spinor field
+satisfies the Dirac equation, its 4-current is divergence-free. This is the local form of
+probability conservation.
 
-The **global** results — `d/dt ∫ρ d³x = 0` (`probability_conserved`) and the Born rule
-(`born_rule_valid`) — are *not* in this file. They are developed in
-`QuantumMechanics/BornRule/Conservation.lean`, which consumes the continuity equation proved here.
+The **global** result `d/dt ∫ρ d³x = 0` (`probability_conserved`) is *not* in this file. It is
+developed in `QuantumMechanics/Unitarity/Basic.lean`, whose `continuity_equation` and
+`probability_conserved` consume the local conservation theorem proved here.
 
 ## Main definitions
 
@@ -50,25 +50,28 @@ with vanishing boundary conditions). The total probability is constant.
 
 ### The Born Rule
 Max Born's interpretation (1926): |ψ(x)|² gives the probability density for
-finding the particle at position x. Our theorem `born_rule_valid` shows that
-ρ/∫ρ satisfies the mathematical axioms of a probability distribution:
+finding the particle at position x. The local conservation proved here is what makes
+`ρ/∫ρ` a *consistent* probability distribution over time — normalized once, it stays
+normalized:
 1. Non-negativity: P(x) ≥ 0
 2. Normalization: ∫P(x)d³x = 1
 
-This connects the mathematical formalism to physical measurement.
+This connects the mathematical formalism to physical measurement. (The normalization
+axioms themselves are not established in this file.)
 
 ## References
 
 * [Born, *Zur Quantenmechanik der Stoßvorgänge*][born1926]
 * [Dirac, *The Principles of Quantum Mechanics*][dirac1930], Chapter XI
-* [Thaller, *The Dirac Equation*][thaller1992], Chapter 1
+* [Thaller, *The Dirac Equation*][thaller1992], §1.4 (conserved current)
+* [Peskin, Schroeder, *An Introduction to Quantum Field Theory*][peskin1995], §3.4
 
 ## Tags
 
 probability conservation, continuity equation, Born rule, divergence theorem,
 current conservation
 -/
-open Complex MeasureTheory Filter Topology
+open Complex
 open Spectra.QuantumMechanics.Dirac.Current
 namespace Spectra.QuantumMechanics.Dirac.Conservation
 
@@ -86,7 +89,8 @@ def stdBasis (μ : Fin 4) : Spacetime := fun ν => if μ = ν then 1 else 0
 In components: ∂ᵤjᵘ = ∂ρ/∂t + ∂jˣ/∂x + ∂jʸ/∂y + ∂jᶻ/∂z.
 
 The continuity equation states ∂ᵤjᵘ = 0 for solutions of the Dirac equation. -/
-noncomputable def fourDivergence (j : (Fin 4 → ℝ) → (Fin 4 → ℂ)) : (Fin 4 → ℝ) → ℂ :=
+noncomputable def fourDivergence (j : (Fin 4 → ℝ) → (Fin 4 → ℂ)) :
+    (Fin 4 → ℝ) → ℂ :=
   fun x => ∑ μ, deriv (fun t => j (Function.update x μ t) μ) (x μ)
 
 /-- Partial derivative of a spinor field: ∂ᵤψ.
@@ -94,13 +98,19 @@ noncomputable def fourDivergence (j : (Fin 4 → ℝ) → (Fin 4 → ℂ)) : (Fi
 This is the directional derivative along the μ-th coordinate axis:
   (∂ᵤψ)(x) = lim_{ε→0} (ψ(x + εeᵤ) - ψ(x)) / ε
 
-Each spinor component is differentiated separately. -/
-noncomputable def partialDeriv' (μ : Fin 4) (ψ : Spacetime → (Fin 4 → ℂ)) (x : Spacetime) : Fin 4 → ℂ :=
+Each spinor component is differentiated separately.
+
+The trailing prime distinguishes this spinor-field partial derivative from the scalar-field
+`partialDeriv`-family lemmas in `Spaces/Sobolev/` (`memLp_partialDeriv`, `contDiff_partialDeriv`,
+…); here the value is a full spinor `Fin 4 → ℂ` rather than a single component. -/
+noncomputable def partialDeriv' (μ : Fin 4) (ψ : Spacetime → (Fin 4 → ℂ))
+    (x : Spacetime) : Fin 4 → ℂ :=
   fun a => fderiv ℝ (fun y => ψ y a) x (stdBasis μ)
 
 /-- **Adjoint transfer**: u†(A†w) = (Au)†w for the spinor bilinear form.
 
-    In components: ∑ᵢ conj(uᵢ) · ∑ⱼ conj(Aⱼᵢ) · wⱼ = ∑ⱼ conj(∑ᵢ Aⱼᵢuᵢ) · wⱼ.
+    In components:
+    ∑ᵢ conj(uᵢ) · ∑ⱼ conj(Aⱼᵢ) · wⱼ = ∑ⱼ conj(∑ᵢ Aⱼᵢuᵢ) · wⱼ.
     This is the finite-dimensional version of ⟨u, A†w⟩ = ⟨Au, w⟩. -/
 lemma star_dotProduct_conjTranspose_mulVec
     (A : Matrix (Fin 4) (Fin 4) ℂ) (u w : Fin 4 → ℂ) :
@@ -191,22 +201,6 @@ lemma hasDerivAt_update (x : Spacetime) (μ : Fin 4) :
     simp_rw [hν]
     exact hasDerivAt_const _ _
 
-/-! ### Helper B2: Chain rule for partial derivatives -/
-
-lemma deriv_comp_update (ψ : Spacetime → Fin 4 → ℂ) (x : Spacetime) (μ a : Fin 4)
-    (hψ : DifferentiableAt ℝ (fun y => ψ y a) x) :
-    deriv (fun t => ψ (Function.update x μ t) a) (x μ) = partialDeriv' μ ψ x a := by
-  unfold partialDeriv'
-  have h_base : Function.update x μ (x μ) = x := Function.update_eq_self μ x
-  have h_fderiv : HasFDerivAt (fun y => ψ y a)
-      (fderiv ℝ (fun y => ψ y a) x) (Function.update x μ (x μ)) := by
-    rw [h_base]; exact hψ.hasFDerivAt
-  have h_chain := h_fderiv.comp_hasDerivAt (x μ) (hasDerivAt_update x μ)
-  have h_eq : (fun y => ψ y a) ∘ Function.update x μ = fun t => ψ (Function.update x μ t) a :=
-    rfl
-  rw [h_eq] at h_chain
-  exact h_chain.deriv
-
 /-! ### Helper C1: Bilinear product rule -/
 
 /-- Product rule for the sesquilinear form t ↦ star(f t) ⬝ᵥ M.mulVec(f t) -/
@@ -267,7 +261,7 @@ lemma hasDerivAt_bilinear_self
     ∂_μ(ψ†γ⁰γ^μψ) = (∂_μψ)†γ⁰γ^μψ + ψ†γ⁰γ^μ(∂_μψ) -/
 lemma current_divergence_product_rule (Γ : GammaMatrices)
     (ψ : Spacetime → Fin 4 → ℂ) (x : Spacetime)
-    (_hψ : ∀ a, DifferentiableAt ℝ (fun y => ψ y a) x) :
+    (hψ : ∀ a, DifferentiableAt ℝ (fun y => ψ y a) x) :
     fourDivergence (fun y => diracCurrent Γ (ψ y)) x =
     ∑ μ : Fin 4,
       (star (partialDeriv' μ ψ x) ⬝ᵥ (Γ.gamma 0 * Γ.gamma μ).mulVec (ψ x) +
@@ -284,7 +278,7 @@ lemma current_divergence_product_rule (Γ : GammaMatrices)
     have h_base : Function.update x μ (x μ) = x := Function.update_eq_self μ x
     have h_fderiv : HasFDerivAt (fun y => ψ y a)
         (fderiv ℝ (fun y => ψ y a) x) (Function.update x μ (x μ)) := by
-      rw [h_base]; exact (_hψ a).hasFDerivAt
+      rw [h_base]; exact (hψ a).hasFDerivAt
     have h_chain := h_fderiv.comp_hasDerivAt (x μ) (hasDerivAt_update x μ)
     have h_eq : (fun y => ψ y a) ∘ Function.update x μ =
         fun t => ψ (Function.update x μ t) a := rfl
@@ -320,9 +314,7 @@ lemma dotProduct_finset_sum {ι : Type*} {s : Finset ι}
 lemma mulVec_finset_sum {ι : Type*} {s : Finset ι}
     (M : Matrix (Fin 4) (Fin 4) ℂ) (f : ι → Fin 4 → ℂ) :
     M.mulVec (∑ i ∈ s, f i) = ∑ i ∈ s, M.mulVec (f i) := by
-  ext i
-  simp_rw [Matrix.mulVec, Finset.sum_apply]
-  exact dotProduct_finset_sum (fun j => M i j) f
+  simpa only [Matrix.mulVecLin_apply] using map_sum M.mulVecLin f s
 
 /-- **Current conservation** (real mass): ∂_μj^μ = 0.-/
 theorem dirac_current_conserved (Γ : GammaMatrices) (ψ : SpinorField) (m : ℝ)

@@ -10,6 +10,17 @@ import Spectra.QuantumMechanics.Hydrogen.Spectrum.SeparatedEigenfunction.Eigenpa
 
 This file proves the reverse inclusion: every Cartesian eigenstate at the hydrogen
 energy `E_n` lies in the span of the transported degeneracy family.
+
+## Main statements
+
+* `eigenspace_subset_span` — the H2 deliverable: every `Z = 1` hydrogen eigenstate `ψ` at the
+  energy `Eₙ` lies in the `ℂ`-span of the `n²` transported degeneracy states, i.e. the reverse
+  inclusion `ker(H − Eₙ) ⊆ span`.
+* `coeffFun_dichotomy` — the per-sector dichotomy for any magnetic index: each `⟨ℓ, M⟩` angular
+  coefficient of an `Eₙ`-eigenstate is `radialMeasure`-a.e. either zero or (when `ℓ < n`) a
+  complex scalar multiple of the radial eigenfunction `R_{nℓ}`.
+* `sectorEmbedding_w_mem_span` — each reassembled summand of the spherical decomposition lies in
+  the degeneracy span and vanishes once `ℓ ≥ n`, so the summand family is finitely supported.
 -/
 
 noncomputable section
@@ -29,9 +40,9 @@ The reverse inclusion `ker(H − Eₙ) ⊆ span(degenFamily n)`.  The forward ma
 (`SectorProjection.lean`) gives, sector by sector, a *classical* `C²` radial solution of the
 reduced radial eigen-equation at `Eₙ`; the quantization/uniqueness theorems
 (`radial_quantization` + `bound_state_eq_smul_eigenfunction`) then force each sector coefficient
-to be either zero (if `ℓ ≥ n`) or a scalar multiple of `R_{nℓ}` (if `ℓ < n`).  The Hilbert-sum
-reassembly collapses the (finitely-supported) decomposition into a finite span combination, which
-`chartRealization.symm` transports back to the Cartesian side. -/
+to be either zero (if `ℓ ≥ n`) or a scalar multiple of `R_{nℓ}` (if `ℓ < n`).  The
+Hilbert-sum reassembly collapses the (finitely-supported) decomposition into a finite span
+combination, which `chartRealization.symm` transports back to the Cartesian side. -/
 
 /-- **Injectivity of the energy levels.** `Eₙ = Eₙ' ⟹ n = n'` for `n, n' ≥ 1`
 (immediate from strict monotonicity). -/
@@ -70,11 +81,11 @@ lemma radial_ae_of_logCoord_ae {f h : ℝ → ℝ}
   · exact measure_union_null (hac himg) hIoic
 
 /-- **Per-sector dichotomy at a *known* level `n`.** A classical `C²`, `L²`, origin-regular
-solution `ψ` of the reduced radial eigen-equation `H_ℓ ψ = Eₙ ψ` (at the *given* `Eₙ`) is *either*
-identically zero on `(0,∞)`, *or* `ℓ < n` and `ψ = c·R_{nℓ}` for some constant `c`.  Specialization
-of the general `RadialEq.radial_bound_state_unique` (which quantizes the energy of a nonzero bound
-state) to a known `n`, using injectivity of the energy levels (`hydrogenEigenvalue_inj`) to pin
-`n' = n`. -/
+solution `ψ` of the reduced radial eigen-equation `H_ℓ ψ = Eₙ ψ` (at the *given* `Eₙ`) is
+*either* identically zero on `(0,∞)`, *or* `ℓ < n` and `ψ = c·R_{nℓ}` for some constant `c`.
+Specialization of the general `RadialEq.radial_bound_state_unique` (which quantizes the energy of
+a nonzero bound state) to a known `n`, using injectivity of the energy levels
+(`hydrogenEigenvalue_inj`) to pin `n' = n`. -/
 lemma radial_bound_state_dichotomy_at (ℓ n : ℕ) (hn1 : 1 ≤ n) (ψ : ℝ → ℝ)
     (hL2 : RadialL2 ψ)
     (hψ1 : ∀ r, 0 < r → HasDerivAt ψ (deriv ψ r) r)
@@ -92,10 +103,10 @@ lemma radial_bound_state_dichotomy_at (ℓ n : ℕ) (hn1 : 1 ≤ n) (ψ : ℝ �
     subst hnn'
     exact ⟨hn', c, hc⟩
 
-/-- **Step A — GAP-1 bridge.**  The `i`-th component of the spherical decomposition of `Φ` is the
-radial `L²` element built from the angular coefficient `coeffFun i Φ`.  Proved by `ext_inner_left`:
-pairing the `i`-component against an arbitrary `R` reduces, through the unitary
-`sphericalDecomposition` (`lp.inner_single_left`, `inner_map_map`,
+/-- **Step A — bridge to the radial coefficient.**  The `i`-th component of the spherical
+decomposition of `Φ` is the radial `L²` element built from the angular coefficient `coeffFun i Φ`.
+Proved by `ext_inner_left`: pairing the `i`-component against an arbitrary `R` reduces, through
+the unitary `sphericalDecomposition` (`lp.inner_single_left`, `inner_map_map`,
 `sphericalDecomposition_symm_single`) and the Fubini identity
 `inner_sectorEmbedding_eq_integral_coeffFun`, to the radial pairing of `R` against `coeffFun i Φ`. -/
 lemma sphericalDecomposition_eq_toLp_coeffFun (Φ : Decomposition.l2R3) (i : HarmonicIdx) :

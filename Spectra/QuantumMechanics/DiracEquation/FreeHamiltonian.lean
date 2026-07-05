@@ -31,10 +31,10 @@ one-parameter unitary group). It is the relativistic analogue of `Hydrogen/Hamil
   evolution `e^{-itH_D}` with generator `H_D`.
 
 Once self-adjoint, `H_D` is the operator on which `Operators.lean`'s abstract spectral hypotheses
-(`h_spectrum_below/above`) are meant to be discharged. That bridge — instantiating the abstract
-`DiracHamiltonian` with `diracUnitaryGroup` and identifying its `spectralProjection` with the
-concrete Fourier-multiplier PVM — is **not yet built**, so `diracHamiltonian` has no downstream
-consumer at present.
+(`h_spectrum_below/above`) are discharged. That bridge is built in `ConcreteSpectrum.lean`, which
+instantiates the abstract `DiracHamiltonian` with `diracUnitaryGroup` (`diracHamiltonianAbstract`)
+and proves `generator (diracHamiltonianAbstract mc2 κ).U_grp = diracHamiltonian mc2`
+(`generator_diracHamiltonianAbstract`), so `diracHamiltonian` is consumed directly downstream.
 
 ## Implementation notes
 
@@ -64,6 +64,11 @@ action, its linearity (`diracKineticFn_add`/`diracKineticFn_smul`), its symmetry
 * `diracKinetic_isSelfAdjoint` — `D₀` is self-adjoint on `H¹(ℝ³; ℂ⁴)`.
 * `diracHamiltonian_isSelfAdjoint` — `H_D` is self-adjoint (Kato–Rellich, bounded mass term).
 * `generator_diracUnitaryGroup` — the generator of `e^{-itH_D}` is `H_D`.
+* *Auxiliary* (the Fourier-symbol machinery inverting `D₀ ± iμ`):
+  `diracKineticSymbol_entry_normSq_le` bounds each kinetic-symbol entry by `laplacianSymbol ξ`;
+  `diracResolventSymbol_apply` expands the resolvent multiplier entrywise; and
+  `norm_diracResolventSymbol_entry_le` gives the uniform bound `‖R(ξ)_{ab}‖ ≤ 3/(2|μ|)` that lands
+  the resolvent solution in `L²`.
 
 ## References
 
@@ -74,13 +79,12 @@ action, its linearity (`diracKineticFn_add`/`diracKineticFn_smul`), its symmetry
 
 Dirac equation, free Dirac operator, self-adjoint, unbounded operator, Stone's theorem
 -/
-open Complex MeasureTheory InnerProductSpace
+open MeasureTheory InnerProductSpace
 open scoped InnerProductSpace
 open Spectra.Sobolev
 open Spectra.Operator
 open Spectra.OneParameterUnitaryGroup
 open Spectra.YosidaHille
-open Spectra.QuantumMechanics.Hydrogen
 
 noncomputable section
 namespace Spectra.QuantumMechanics.Dirac
@@ -258,7 +262,8 @@ lemma fourier_diracKineticFn (ψ : DiracSpinorL2) (hψ : MemSobolevDiracH1 ψ) (
     simp only [map_smul, map_sum, Finset.smul_sum, smul_smul]
   rw [hel]
   exact l2_coeFn_sum Finset.univ
-    (fun k => ∑ b : Fin 4, (-Complex.I * diracAlphaMat k a b) • fourierL2 (weakGradient (ψ b) (hψ b) k))
+    (fun k => ∑ b : Fin 4,
+      (-Complex.I * diracAlphaMat k a b) • fourierL2 (weakGradient (ψ b) (hψ b) k))
     (fun k ξ => ∑ b : Fin 4, (-Complex.I * diracAlphaMat k a b) *
       (derivSymbol k ξ * (fourierL2 (ψ b) : R3 → ℂ) ξ))
     (fun k _ => l2_coeFn_sum_smul Finset.univ (fun b => -Complex.I * diracAlphaMat k a b)
@@ -369,7 +374,8 @@ lemma diracResolventSymbol_apply (μ : ℝ) (ξ : R3) (a b : Fin 4) :
             - (Complex.I * (μ : ℂ)) * (1 : Matrix (Fin 4) (Fin 4) ℂ) a b) := by
   simp only [diracResolventSymbol, Matrix.smul_apply, Matrix.sub_apply, smul_eq_mul]
 
-/-- Each resolvent symbol entry is a (continuous, hence) a.e.-strongly-measurable function of `ξ`. -/
+/-- Each resolvent symbol entry is a (continuous, hence) a.e.-strongly-measurable function of `ξ`.
+-/
 lemma aestronglyMeasurable_diracResolventSymbol_entry (μ : ℝ) (hμ : μ ≠ 0) (a b : Fin 4) :
     AEStronglyMeasurable (fun ξ : R3 => diracResolventSymbol μ ξ a b) volume := by
   apply Continuous.aestronglyMeasurable

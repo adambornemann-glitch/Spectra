@@ -5,7 +5,7 @@ Authors: Adam Bornemann
 -/
 import Spectra.QuantumMechanics.DiracEquation.SpinorSpaceL2
 import Spectra.QuantumMechanics.DiracEquation.Dispersion
-import Spectra.QuantumMechanics.Hydrogen.Laplacian.Basic
+import Spectra.Spaces.Sobolev.FourierDecay
 /-!
 # Fourier analysis of the free Dirac operator
 
@@ -23,6 +23,15 @@ scalar Laplacian symbol `(2π)²‖ξ‖²` times the identity (the dispersion r
 since the denominator never vanishes for `μ ≠ 0`. This is the spinor analogue of the scalar
 resolvent symbol `resolventSymbol` from `Hydrogen/Laplacian.lean`.
 
+The second half of the file supplies the Sobolev-regularity input to the same surjectivity
+argument, at the level of the *scalar* Fourier transform. `fourier_weakGradient` diagonalises the
+first weak derivative (`𝓕(∂ₖf) = derivSymbol k · 𝓕f` a.e.), the first-order analogue of the
+Laplacian symbol; `memSobolevH1_of_fourier_decay` reads this backwards, promoting Fourier decay of
+`derivSymbol k · 𝓕ψ` to membership in `H¹(ℝ³)` (the resolvent solution lands in `H¹`, not `H²`);
+and `scalarResolventSolve` solves the scalar shifted equation `(-Δ + c)χ = g` in `H²` for `c > 0`
+via the bounded multiplier `1/(laplacianSymbol ξ + c)`. Both of the latter two are consumed
+downstream by `FreeHamiltonian.lean`.
+
 ## Main definitions
 
 * `spinorFourierL2` — the Fourier transform on `L²(ℝ³; ℂ⁴)`, an isometric equivalence.
@@ -36,6 +45,12 @@ resolvent symbol `resolventSymbol` from `Hydrogen/Laplacian.lean`.
 * `diracKineticSymbol_sq` — `D(ξ)² = ((2π)²‖ξ‖²) • 1` (dispersion relation).
 * `diracResolventSymbol_add_inverse` — `(D(ξ) + iμ)` is inverted by the resolvent symbol (the
   `D(ξ) - iμ` case is recovered by negating `μ`).
+* `fourier_weakGradient` — the Fourier transform diagonalises the first weak derivative:
+  `𝓕(∂ₖf) = derivSymbol k · 𝓕f` a.e.
+* `memSobolevH1_of_fourier_decay` — `H¹`-membership from Fourier decay: if each
+  `derivSymbol k · 𝓕ψ ∈ L²`, then `ψ ∈ H¹(ℝ³)`.
+* `scalarResolventSolve` — the scalar shift `-Δ + c` (for `c > 0`) is surjective onto `L²(ℝ³)`,
+  with the solution in `H²`.
 
 ## References
 
@@ -48,7 +63,6 @@ Dirac equation, Fourier transform, Plancherel, resolvent, Fourier multiplier
 -/
 open Complex Matrix MeasureTheory InnerProductSpace
 open Spectra.Sobolev
-open Spectra.QuantumMechanics.Hydrogen
 open FourierTransform
 open scoped SchwartzMap
 
@@ -61,6 +75,8 @@ the componentwise `ℓ²` lift of the scalar Plancherel transform `fourierL2`. -
 noncomputable def spinorFourierL2 : DiracSpinorL2 ≃ₗᵢ[ℂ] DiracSpinorL2 :=
   LinearIsometryEquiv.piLpCongrRight 2 (fun _ : Fin 4 => fourierL2)
 
+/-- The vector Fourier transform acts componentwise: its `a`-th component is the scalar Plancherel
+transform `fourierL2` of the `a`-th component of `ψ`. -/
 @[simp] lemma spinorFourierL2_apply (ψ : DiracSpinorL2) (a : Fin 4) :
     spinorFourierL2 ψ a = fourierL2 (ψ a) := by
   simp only [spinorFourierL2, LinearIsometryEquiv.piLpCongrRight_apply, PiLp.toLp_apply]
@@ -90,18 +106,7 @@ lemma l2_coeFn_sum_smul {ι : Type*} (s : Finset ι) (c : ι → ℂ) (F : ι �
 lemma l2_coeFn_sum {ι : Type*} (s : Finset ι) (F : ι → l2R3) (g : ι → R3 → ℂ)
     (hg : ∀ i ∈ s, (F i : R3 → ℂ) =ᵐ[volume] g i) :
     ((∑ i ∈ s, F i : l2R3) : R3 → ℂ) =ᵐ[volume] fun ξ => ∑ i ∈ s, g i ξ := by
-  classical
-  induction s using Finset.induction with
-  | empty =>
-    simp only [Finset.sum_empty]
-    filter_upwards [Lp.coeFn_zero (E := ℂ) (p := 2) (μ := (volume : Measure R3))] with ξ h
-    rw [h, Pi.zero_apply]
-  | @insert a s ha ih =>
-    rw [Finset.sum_insert ha]
-    filter_upwards [Lp.coeFn_add (F a) (∑ i ∈ s, F i), hg a (Finset.mem_insert_self a s),
-      ih fun i hi => hg i (Finset.mem_insert_of_mem hi)] with ξ e0 e2 e3
-    rw [e0]
-    simp only [Pi.add_apply, e2, e3, Finset.sum_insert ha]
+  simpa using l2_coeFn_sum_smul s (fun _ => (1 : ℂ)) F g hg
 
 /-! ## The matrix Fourier symbol of the kinetic operator -/
 

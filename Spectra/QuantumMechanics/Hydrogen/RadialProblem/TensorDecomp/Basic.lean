@@ -113,6 +113,7 @@ lemma measurable_radialDensity :
     Measurable fun r : ℝ => ENNReal.ofReal (r ^ 2) :=
   (measurable_id.pow_const 2).ennreal_ofReal
 
+/-- `radialMeasure` is σ-finite (a restricted Lebesgue measure with a density). -/
 instance : SigmaFinite radialMeasure := by
   unfold radialMeasure
   infer_instance
@@ -312,10 +313,12 @@ onto the lp-sum. -/
     sector V_ℓ expanded in its orthonormal basis. -/
 def HarmonicIdx : Type := Σ ℓ : ℕ, {m : ℤ // |m| ≤ (ℓ : ℤ)}
 
+/-- The index set `HarmonicIdx` is countable. -/
 instance : Countable HarmonicIdx := by
   unfold HarmonicIdx
   infer_instance
 
+/-- Equality of indices in `HarmonicIdx` is decidable. -/
 instance : DecidableEq HarmonicIdx := by
   unfold HarmonicIdx
   exact inferInstance
@@ -329,9 +332,11 @@ lemma HarmonicIdx.ext {i j : HarmonicIdx} (h1 : i.1 = j.1) (h2 : i.2.1 = j.2.1) 
 noncomputable def harmonic (i : HarmonicIdx) : ℝ × ℝ → ℂ :=
   SphericalHarmonic i.1 i.2.1 i.2.2
 
+/-- The spherical harmonic attached to an index is continuous. -/
 lemma harmonic_continuous (i : HarmonicIdx) : Continuous (harmonic i) :=
   sphericalHarmonic_continuous i.1 i.2.1 i.2.2
 
+/-- The spherical harmonic attached to an index lies in L²(S²). -/
 lemma memLp_harmonic (i : HarmonicIdx) : MemLp (harmonic i) 2 sphereMeasure :=
   memLp_sphericalHarmonic i.1 i.2.1 i.2.2
 
@@ -339,6 +344,7 @@ lemma memLp_harmonic (i : HarmonicIdx) : MemLp (harmonic i) 2 sphereMeasure :=
 noncomputable def harmonicLp (i : HarmonicIdx) : L2_S2 :=
   (memLp_harmonic i).toLp (harmonic i)
 
+/-- The L²(S²) element `harmonicLp i` agrees a.e. with the function `harmonic i`. -/
 lemma harmonicLp_coeFn (i : HarmonicIdx) :
     ⇑(harmonicLp i) =ᵐ[sphereMeasure] harmonic i :=
   (memLp_harmonic i).coeFn_toLp
@@ -544,6 +550,9 @@ the slices, F = 0. -/
 noncomputable def coeffFun (i : HarmonicIdx) (F : l2R3) : ℝ → ℂ :=
   fun r => ∫ ω, (starRingEnd ℂ) (harmonic i ω) * F (r, ω) ∂sphereMeasure
 
+/-- The angular coefficient function `coeffFun i F` is a.e. strongly measurable
+    (as a radial function), by integrating the joint measurability of `F` over
+    the sphere. -/
 lemma coeffFun_aestronglyMeasurable (i : HarmonicIdx) (F : l2R3) :
     AEStronglyMeasurable (coeffFun i F) radialMeasure := by
   have hsm : StronglyMeasurable fun p : ℝ × (ℝ × ℝ) =>
@@ -781,10 +790,12 @@ theorem sphericalDecomposition_symm_single (i : HarmonicIdx) (R : RadialL2) :
 
 /-! ## Interface summary
 
-### For `RadialEquation.lean`:
+Exports consumed downstream (see `Spectrum/Eigenvalue.lean`, where the reduced
+radial operator `reducedRadialOp` and its eigenvalues are built):
+
 - `RadialL2`, `ReducedRadialL2` — the radial Hilbert spaces
-- `reducedRadialOp` — the 1D operator whose eigenvalues we compute
-- `radialReduction` — the R ↦ rR isomorphism
+- `radialReduction` — the R ↦ rR unitary
+- `sphericalDecomposition` — the L²(ℝ³) ≃ ⊕_ℓ RadialL2 ⊗ V_ℓ unitary
 
 -/
 

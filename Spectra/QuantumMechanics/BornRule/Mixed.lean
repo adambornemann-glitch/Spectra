@@ -12,55 +12,92 @@ import Mathlib.Analysis.CStarAlgebra.ContinuousLinearMap
 # The mixed-state Born rule
 
 For a density operator `ρ` and a resolution of the identity `P`, the probability of an
-outcome in a Borel set `B` is `Tr(ρ · E(B))`.
+outcome in a Borel set `B` is `Tr(ρ · E(B))`.  A density operator is carried here as a
+normalized countable **ensemble** of unit vectors rather than a bundled trace-class operator,
+and `Tr(ρ ·)` is realized as an honest normal state on the bounded operators.
 
-## ensemble primitive + state bridge
+## Main definitions
+
+* `DensityOperator` — a mixed state as a normalized ensemble: `ℝ≥0∞` weights summing to `1`
+  and a family of unit vectors.
+* `DensityOperator.pure` — the one-point ensemble `|ψ⟩⟨ψ|`.
+* `bornMeasureMixed` — the mixed-state Born measure, the weight-weighted mixture of the
+  pure-state Born measures `P.diag (eᵢ)`.
+* `DensityOperator.toStateCLM` / `DensityOperator.toState` — the normal-state functional
+  `T ↦ ∑ᵢ pᵢ ⟪eᵢ, T eᵢ⟫` on `H →L[ℂ] H`, packaged as a continuous linear map and as an
+  element of the weak-* dual.
+* `DensityOperator.trace` — the trace `Tr ρ = ∑ pᵢ`, equal to `(toState ρ) 1`.
+
+## Main statements
+
+* `isProbabilityMeasure_bornMeasureMixed` — `bornMeasureMixed P ρ` is a probability measure.
+* `bornMeasureMixed_apply` / `bornMeasureMixed_apply_norm` — the trace form as the spectral
+  sum `∑' i, pᵢ · μ_{eᵢ}(B)`, in real/norm terms `∑' i, pᵢ · ‖E(B) eᵢ‖²`.
+* `bornMeasureMixed_pure` — the pure case reduces to the pure-state `bornMeasure`.
+* `DensityOperator.toState_mem_stateSet` — the ensemble is a state: `toState ρ ∈ stateSet`.
+* `toState_proj_eq` — `Tr(ρ E(B))` is literal: evaluating the normal state on the spectral
+  projection returns the Born probability, with no trace functional.
+* `bornMeasureMixed_eq_of_toState_eq` — ensemble invariance: the Born measure depends only on
+  the state, not on the ensemble realizing it.
+* `bornExpectation_eq_toState` — the expectation `∫ s dμ` equals `Tr(ρ A)` when `A` is the
+  observable of `P`.
+
+## Implementation notes
 
 Two structures are involved and they play different roles.
 
-**The measure needs normality, not a trace.**  As of 4.31, Mathlib has no infinite-dimensional
-trace-class trace, so `Tr(ρ E(B))` is not available on a bundled operator.  But the deeper point
-is about additivity: for a *general* state `φ ∈ stateSet (H →L[ℂ] H)` the set function
-`B ↦ φ(E(B))` is only **finitely** additive; it is a genuine measure exactly when `φ` is
-**normal** (= a density operator).  `stateSet` does not encode normality — its Krein–Milman pure
-states (`Spectra.KMS.pureStateSet`) include singular states that are not vector states.  So
-`stateSet` is the wrong carrier for the Born *measure*.
+**The measure needs normality, not a trace.**  As of Mathlib 4.31 there is no
+infinite-dimensional trace-class trace, so `Tr(ρ E(B))` is not available on a bundled
+operator.  The deeper point is about additivity: for a *general* state
+`φ ∈ stateSet (H →L[ℂ] H)` the set function `B ↦ φ(E(B))` is only **finitely** additive; it is
+a genuine measure exactly when `φ` is **normal** (= a density operator).  `stateSet` does not
+encode normality — its Krein–Milman pure states (`Spectra.KMS.pureStateSet`) include singular
+states that are not vector states.  So `stateSet` is the wrong carrier for the Born *measure*.
 
-**The ensemble is manifestly normal.**  A countable convex combination of vector states is normal
-by construction, so its Born measure is countably additive for free — it is literally a
-`Measure.sum` of the pure measures `P.diag` already built in `Basic.lean`.  Hence `DensityOperator`
-is carried as an **ensemble** (a normalized family of unit vectors), and `bornMeasureMixed` is the
+**The ensemble is manifestly normal.**  A countable convex combination of vector states is
+normal by construction, so its Born measure is countably additive for free — it is literally a
+`Measure.sum` of the pure measures `P.diag` built in `Basic.lean`.  Hence `DensityOperator` is
+carried as an **ensemble** (a normalized family of unit vectors), and `bornMeasureMixed` is the
 mixture.  No trace functional, no normality side-condition.
 
-**`stateSet` is the right *target*, via a bridge.**  `DensityOperator.toState` sends the ensemble
-to the normal state `T ↦ ∑ᵢ pᵢ ⟪eᵢ, T eᵢ⟫` and lands it inside your already-built convex, compact
-`stateSet`.  This bridge does three things v1 could not:
+**`stateSet` is the right *target*, via a bridge.**  `DensityOperator.toState` sends the
+ensemble to the normal state `T ↦ ∑ᵢ pᵢ ⟪eᵢ, T eᵢ⟫` and lands it inside the convex, compact
+`stateSet` of `StateTopology`.  This bridge:
 
-* it **replaces** v1's placeholder `toOp`/`trace` with a genuine, Mathlib-native functional —
-  `trace ρ = (toState ρ) 1` and `⟪eᵢ, ρ A eᵢ⟫`-style expectations are now real definitions;
-* it makes **`Tr(ρ E(B))` literal**: `(toState ρ) (P.proj B hB) = Born probability`
+* provides a genuine, Mathlib-native functional — `trace ρ = (toState ρ) 1` and
+  `⟪eᵢ, ρ A eᵢ⟫`-style expectations are real definitions;
+* makes **`Tr(ρ E(B))` literal**: `(toState ρ) (P.proj B hB) = Born probability`
   (`toState_proj_eq`), with no trace-class theory;
-* it makes **ensemble invariance** provable (`bornMeasureMixed_eq_of_toState_eq`): the Born
-  measure depends only on the state `toState ρ`, not on the chosen ensemble — the physical fact
-  that distinct preparations of the same `ρ` are indistinguishable.
+* makes **ensemble invariance** provable (`bornMeasureMixed_eq_of_toState_eq`): the Born
+  measure depends only on the state `toState ρ`, not on the chosen ensemble — the physical
+  fact that distinct preparations of the same `ρ` are indistinguishable.
 
-It also hands `InformationGeometry` the convex state space (`stateSet_convex`, `stateSet_isCompact`)
-as the manifold of mixed states, with pure states as extreme points.
+It also hands `InformationGeometry` the convex state space (`stateSet_convex`,
+`stateSet_isCompact`) as the manifold of mixed states, with pure states as extreme points.
 
-## Caveats (honest)
+Two scope facts are worth stating plainly:
 
 * `toState` is a functional on **bounded** operators `H →L[ℂ] H`.  The Born *measure* handles
   unbounded observables (projections are bounded), but the operator expectation `Tr(ρ A)` via
   `toState` is only for bounded `A`; for unbounded `A` use the measure mean `∫ s dμ`.
 * The embedding `DensityOperator ↪ stateSet` is **not** surjective: only normal states are hit.
-* Requires the instance `CStarAlgebra (H →L[ℂ] H)` for `stateSet (H →L[ℂ] H)` to typecheck —
-  confirm it resolves on your toolchain (Mathlib has `ContinuousLinearMap.instCStarRingId`).
+
+The construction relies on the instance `CStarAlgebra (H →L[ℂ] H)` (via Mathlib's
+`ContinuousLinearMap.instCStarRingId`) for `stateSet (H →L[ℂ] H)` to typecheck; it resolves,
+as `DensityOperator.toState_mem_stateSet` is a proved theorem that uses it.
 
 ## References
 
 * [Hall, *Quantum Theory for Mathematicians*][hall2013], §19.
 * [Bratteli, Robinson, *Operator Algebras and Quantum Statistical Mechanics I*], §2.4
   (normal states ↔ density matrices; the finitely- vs countably-additive distinction).
+* [Reed, Simon, *Methods of Modern Mathematical Physics I: Functional Analysis*], §VI.6
+  (trace-class operators and density matrices).
+
+## Tags
+
+density operator, mixed state, Born rule, normal state, ensemble, trace, projection-valued
+measure, state space
 -/
 
 open MeasureTheory Complex
@@ -72,16 +109,17 @@ variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteS
 namespace Spectra.QuantumMechanics.BornRule
 open PVM
 
-/-! ## §1  Density operators as ensembles (unchanged from v1) -/
+/-! ## §1  Density operators as ensembles -/
 
 /-- A **density operator** (mixed state), presented as a normalized ensemble: `ℝ≥0∞` weights
 summing to `1` and a family of unit vectors.  The minimal data from which the Born measure is a
-mixture of pure measures; manifestly a normal state.  `state` need not be orthonormal. -/
+mixture of pure measures; manifestly a normal state.  The unit vectors `state` need not be
+orthonormal, and no spectral decomposition of any operator is assumed. -/
 structure DensityOperator (H : Type*) [NormedAddCommGroup H] [InnerProductSpace ℂ H]
     [CompleteSpace H] where
-  /-- The mixing weights (eigenvalues). -/
+  /-- The mixing weights (the ensemble probabilities). -/
   weight : ℕ → ℝ≥0∞
-  /-- The pure states in the ensemble (eigenvectors). -/
+  /-- The ensemble's unit vectors. -/
   state : ℕ → H
   /-- Each ensemble member is a unit vector. -/
   state_unit : ∀ i, ‖state i‖ = 1
@@ -99,7 +137,7 @@ noncomputable def pure {ψ : H} (hψ : ‖ψ‖ = 1) : DensityOperator H where
 
 end DensityOperator
 
-/-! ## §2  The mixed Born measure (unchanged from v1) -/
+/-! ## §2  The mixed Born measure -/
 
 /-- The **mixed-state Born measure** `Tr(ρ E(·))`, as the eigenvalue-weighted mixture of the
 pure-state Born measures `P.diag (eᵢ)`. -/
@@ -153,10 +191,10 @@ theorem bornMeasureMixed_pure (P : ProjValMeasure H) {ψ : H} (hψ : ‖ψ‖ = 
   rw [bornMeasureMixed_apply P _ hB]
   simp only [DensityOperator.pure, ite_mul, one_mul, zero_mul, tsum_ite_eq, bornMeasure]
 
-/-! ## §3  The normal state `toState` (replaces v1's `toOp` / `trace`)
+/-! ## §3  The normal state `toState`
 
-The functional `T ↦ ∑ᵢ pᵢ ⟪eᵢ, T eᵢ⟫` on `H →L[ℂ] H`.  It is the trace `Tr(ρ ·)` computed in
-the eigenbasis — a genuine normal state, built with only `tsum` of inner products and the
+The functional `T ↦ ∑ᵢ pᵢ ⟪eᵢ, T eᵢ⟫` on `H →L[ℂ] H`.  It is the trace `Tr(ρ ·)` computed
+against the ensemble — a genuine normal state, built with only `tsum` of inner products and the
 contraction bound `‖·‖ ≤ ‖T‖`.  No trace-class theory. -/
 
 /-- The weights, as a summable real family (`weight_sum = 1 < ∞`). -/
@@ -220,12 +258,12 @@ noncomputable def DensityOperator.toStateCLM (ρ : DensityOperator H) :
     ρ.toStateCLM T = ∑' i, (ρ.weight i).toReal • ⟪ρ.state i, T (ρ.state i)⟫_ℂ :=
   rfl
 
-/-- `ρ` as an element of the weak-* dual, the home of your state geometry. -/
+/-- `ρ` as an element of the weak-* dual, the home of the state geometry. -/
 noncomputable def DensityOperator.toState (ρ : DensityOperator H) :
     WeakDual ℂ (H →L[ℂ] H) :=
   StrongDual.toWeakDual ρ.toStateCLM
 
-/-- `[needs CStarAlgebra (H →L[ℂ] H)]` **The ensemble is a state.**  `toState ρ` lands in your
+/-- `[done — reuses StateTopology]` **The ensemble is a state.**  `toState ρ` lands in
 `stateSet`: positivity is `⟪eᵢ, (T⋆T) eᵢ⟫ = ‖T eᵢ‖² ≥ 0` summed with `pᵢ ≥ 0`; normalization is
 `∑ pᵢ ‖eᵢ‖² = ∑ pᵢ = 1` (`state_unit`, `weight_sum`).  Reuses `Spectra.KMS.mem_stateSet`. -/
 theorem DensityOperator.toState_mem_stateSet (ρ : DensityOperator H) :
@@ -327,19 +365,19 @@ toState ρ`.
 
 `[needs InformationGeometry.StatisticalModel API]`  **The weld.**
 ```
-noncomputable def toStatisticalModel (P) (A) (ρ : DensityOperator H) :
-    InformationGeometry.StatisticalModel ℝ
+noncomputable def toStatisticalModel (P : ProjValMeasure H) (A : H →L[ℂ] H)
+    (ρ : DensityOperator H) : InformationGeometry.StatisticalModel ℝ
 ```
 the classical model induced on `ρ` by an observable, with measure `bornMeasureMixed P ρ` and
 score/Fisher data flowing from the convex structure of `stateSet`.  This is what
 `CramerRao.Quantum` consumes; the quantum Fisher information is the pullback of the Fisher metric
 along `ρ ↦ toStatisticalModel`.
 
-Note (pure states): `DensityOperator.pure ψ` maps under `toState` to the vector state `⟪ψ, · ψ⟫`,
-which is an extreme point of `stateSet`; but `pureStateSet` (your Krein–Milman extreme points) is
-strictly larger — it contains singular pure states with no vector (hence no `DensityOperator`)
-realization.  So `DensityOperator.pure` is a section of, not a bijection onto, the *normal* pure
-states.
+Note (pure states): `DensityOperator.pure ψ` maps under `toState` to the vector state
+`⟪ψ, · ψ⟫`, which is an extreme point of `stateSet`; but `pureStateSet` (the Krein–Milman
+extreme points) is strictly larger — it contains singular pure states with no vector (hence no
+`DensityOperator`) realization.  So `DensityOperator.pure` is a section of, not a bijection
+onto, the *normal* pure states.
 -/
 
 end Spectra.QuantumMechanics.BornRule

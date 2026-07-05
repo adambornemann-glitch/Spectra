@@ -20,15 +20,28 @@ theorem (`Spectra.Essential.essSpectrum_eq_of_isCompactOperator_perturb`).
 
 **Reduction.** The on-ramp needs a compact `W : L²(ℝ³) →L[ℂ] L²(ℝ³)` with
 `Bχ − Aχ = W(Aχ − i·χ)` for `χ` in the domain. For hydrogen `A = laplacianPMap`,
-`B = hydrogenHamiltonian` and `Bχ − Aχ = V·χ` (Coulomb), so `W = V·R_i` is forced. We build
+`B = hydrogenHamiltonian` and `Bχ − Aχ = V·χ` (Coulomb), so `W = V·R_i` is forced. This file builds
 `coulombResolvent` (`= W`) as a CLM (boundedness from the Hardy relative bound `coulombB_bound` +
-the resolvent estimate), verify `coulomb_hVW`, and obtain `hydrogen_essSpectrum_eq_Ici` *given*
-`W` compact.
+the resolvent estimate), verifies `coulomb_hVW`, and obtains `hydrogen_essSpectrum_eq_Ici_of_compact`
+*given* `W` compact.
 
 **Kernel data for compactness.** The compactness of `W` is proved (in the companion file) from a
 *ball* truncation: `truncCoulombBall` keeps the `L²`-integrable `1/|x|` singularity and cuts off
 only the `L^∞`-small tail, and the truncated resolvent kernel `Vⁿ(x)·G̃_i(x−y)` lies in
 `L²(ℝ³×ℝ³)` (`truncKernelG_memLp`), so each `integralOperator Kₙ` is compact via the A3 gate.
+
+## Main statements
+
+* `coulombResolventAt` / `coulombResolvent` / `coulombResolventHalf` — the Coulomb-perturbed
+  resolvent `W = V · R_z` as a bounded operator on `L²(ℝ³)`, at general non-real `z`, at `z = i`,
+  and (for the textbook `−½Δ` reduction) at `z = 2i`.
+* `coulombResolventLinearAt_bound` — the operator-norm bound `‖W ψ‖ ≤ C ‖ψ‖` underlying
+  boundedness of `W`.
+* `coulomb_hVW` — the Weyl on-ramp identity `Bχ − Aχ = W(Aχ − i·χ)` for `A = −½Δ`, `B = H`.
+* `hydrogen_essSpectrum_of_compact` / `hydrogen_essSpectrum_eq_Ici_of_compact` — given `W` compact,
+  the hydrogen Hamiltonian shares the essential spectrum of `−½Δ`, namely `[0, ∞)`.
+* `truncCoulombBall_memLp` / `truncKernelG_memLp` — the ball-truncated potential and the truncated
+  free-resolvent kernel lie in `L²`, the kernel data feeding the compactness proof of `W`.
 -/
 
 open MeasureTheory Complex Filter InnerProductSpace Metric Set
@@ -58,6 +71,8 @@ def freeResolventCodAt (z : ℂ) (hz : z.im ≠ 0) :
     (freeResolventAt z hz : l2R3 →L[ℂ] l2R3).toLinearMap
     (freeResolventAt_mem_domain z hz)
 
+/-- The corestriction `freeResolventCodAt` agrees with `freeResolventAt` after forgetting the
+domain membership. -/
 @[simp] lemma freeResolventCodAt_coe (z : ℂ) (hz : z.im ≠ 0) (ψ : l2R3) :
     ((freeResolventCodAt z hz ψ : laplacianPMap.domain) : l2R3) = freeResolventAt z hz ψ := rfl
 
@@ -70,9 +85,12 @@ def coulombResolventLinearAt (p : CoulombParams) (z : ℂ) (hz : z.im ≠ 0) :
 def coulombB (p : CoulombParams) : ℝ :=
   (coulomb_relative_bound_is_zero p 1 (by norm_num)).choose
 
+/-- The relative-bound constant `coulombB` is non-negative. -/
 lemma coulombB_nonneg (p : CoulombParams) : 0 ≤ coulombB p :=
   (coulomb_relative_bound_is_zero p 1 (by norm_num)).choose_spec.1
 
+/-- The Coulomb relative bound at slope `a = 1`:
+`‖V ψ‖ ≤ ‖−Δ ψ‖ + coulombB p · ‖ψ‖` for `ψ` in the Laplacian domain. -/
 lemma coulombB_bound (p : CoulombParams) (ψ : laplacianPMap.domain) :
     ‖coulombPotential p ψ‖ ≤ 1 * ‖laplacianPMap ψ‖ + coulombB p * ‖(ψ : l2R3)‖ :=
   (coulomb_relative_bound_is_zero p 1 (by norm_num)).choose_spec.2 ψ
@@ -126,6 +144,8 @@ def coulombResolventAt (p : CoulombParams) (z : ℂ) (hz : z.im ≠ 0) : l2R3 �
   LinearMap.mkContinuous (coulombResolventLinearAt p z hz) (coulombResolventCAt p z hz)
     (coulombResolventLinearAt_bound p z hz)
 
+/-- `W ψ = V · (R_z ψ)`: the perturbed resolvent applied to `ψ` is the Coulomb potential on the
+corestricted free resolvent. -/
 lemma coulombResolventAt_apply (p : CoulombParams) (z : ℂ) (hz : z.im ≠ 0) (ψ : l2R3) :
     coulombResolventAt p z hz ψ = coulombPotential p (freeResolventCodAt z hz ψ) := rfl
 
@@ -145,6 +165,8 @@ def freeResolventCod :
     l2R3 →ₗ[ℂ] laplacianPMap.domain :=
   freeResolventCodAt Complex.I I_im_ne_zero
 
+/-- The corestriction `freeResolventCod` agrees with `freeResolvent` after forgetting the domain
+membership. -/
 @[simp] lemma freeResolventCod_coe (ψ : l2R3) :
     ((freeResolventCod ψ : laplacianPMap.domain) : l2R3) = freeResolvent ψ := rfl
 
@@ -152,6 +174,7 @@ def freeResolventCod :
 def coulombResolvent (p : CoulombParams) : l2R3 →L[ℂ] l2R3 :=
   coulombResolventAt p Complex.I I_im_ne_zero
 
+/-- `W ψ = V · (R_i ψ)` at the spectral parameter `z = i`. -/
 lemma coulombResolvent_apply (p : CoulombParams) (ψ : l2R3) :
     coulombResolvent p ψ = coulombPotential p (freeResolventCod ψ) :=
   coulombResolventAt_apply p Complex.I I_im_ne_zero ψ
@@ -169,7 +192,7 @@ def coulombResolventHalf (p : CoulombParams) : l2R3 →L[ℂ] l2R3 :=
 
 /-- **The Weyl on-ramp hypothesis `hVW` for `−½Δ`.**
 
-The reduction `A = −½Δ`, `B = H` gives `Bχ − Aχ = V·χ`; we exhibit it as
+The reduction `A = −½Δ`, `B = H` gives `Bχ − Aχ = V·χ`, exhibited here as
 `W(Aχ − i·χ)` with `W = coulombResolventHalf`.  Algebra: `½Δχ − iχ = ½(Δχ − 2iχ)`,
 the free resolvent at `2i` is linear and a left inverse on `Dom(−Δ)`, so
 `R_{2i}(½Δχ − iχ) = ½χ`, and `2 • V(½χ) = V(χ)`. -/
@@ -231,6 +254,8 @@ lemma hydrogen_essSpectrum_eq_Ici_of_compact (p : CoulombParams)
 def truncCoulombBall (p : CoulombParams) (n : ℕ) : R3 → ℂ :=
   (closedBall (0 : R3) (n + 1 : ℝ)).indicator (fun x => ((coulombMultiplier p x : ℝ) : ℂ))
 
+/-- The ball-truncated Coulomb potential is `L²`: keeping the integrable `1/|x|` singularity and
+cutting the tail leaves `truncCoulombBall p n` in `L²(ℝ³)`. -/
 lemma truncCoulombBall_memLp (p : CoulombParams) (n : ℕ) :
     MemLp (truncCoulombBall p n) 2 volume := by
   rw [truncCoulombBall, memLp_indicator_iff_restrict measurableSet_closedBall]

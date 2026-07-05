@@ -43,12 +43,14 @@ namespace QuantumMechanics.Hydrogen.RadialEq
 private noncomputable def lagCoeff (p : ℕ) (α : ℝ) (k : ℕ) : ℝ :=
   (-1 : ℝ) ^ k * realBinom (p + α) (p - k) / (k.factorial : ℝ)
 
+/-- Expansion of the Laguerre polynomial as a power series with coefficients `lagCoeff`. -/
 private lemma laguerre_eq_sum_coeff (p : ℕ) (α : ℝ) (x : ℝ) :
     laguerrePolynomial p α x = ∑ k ∈ Finset.range (p + 1), lagCoeff p α k * x ^ k := by
   rw [laguerrePolynomial]
   refine Finset.sum_congr rfl (fun k _ => ?_)
   rw [lagCoeff]; ring
 
+/-- The top (degree-`p`) coefficient of `laguerrePolynomial p α` is `(-1)^p / p!`. -/
 private lemma lagCoeff_leading (p : ℕ) (α : ℝ) :
     lagCoeff p α p = (-1 : ℝ) ^ p / (p.factorial : ℝ) := by
   rw [lagCoeff, Nat.sub_self, realBinom_zero, mul_one]
@@ -127,6 +129,9 @@ private lemma laguerre_asymptotic (p : ℕ) (α : ℝ) :
 
 /-! ## χ_R = r·R_{nℓ} two-sided tail bound -/
 
+/-- Two-sided tail bound for the reduced eigenfunction: for `r` large,
+`c·rⁿe^{-r/n} ≤ |r·R_{nℓ}(r)| ≤ C·rⁿe^{-r/n}` and `r·R_{nℓ}(r) ≠ 0`. The estimate comes
+from the leading-term Laguerre asymptotics (`laguerre_asymptotic`). -/
 private lemma chiR_tail_bounds (n ℓ : ℕ) (hn : ℓ + 1 ≤ n) :
     ∃ r₂ c C : ℝ, 0 < r₂ ∧ 0 < c ∧ 0 < C ∧ ∀ r, r₂ ≤ r →
       c * (r ^ n * Real.exp (-r / n)) ≤ |r * hydrogenRadialWavefunction n ℓ hn r| ∧
@@ -190,14 +195,18 @@ private lemma chiR_tail_bounds (n ℓ : ℕ) (hn : ℓ + 1 ≤ n) :
 private noncomputable def chiR (n ℓ : ℕ) (hn : ℓ + 1 ≤ n) : ℝ → ℝ :=
   fun s => s * hydrogenRadialWavefunction n ℓ hn s
 
+/-- The reference reduced eigenfunction `χ_R = r·R_{nℓ}` is differentiable on all of `ℝ`. -/
 private lemma chiR_differentiable (n ℓ : ℕ) (hn : ℓ + 1 ≤ n) :
     Differentiable ℝ (chiR n ℓ hn) := by
   unfold chiR
   exact differentiable_id.mul (differentiable_hydrogenRadial n ℓ hn)
 
+/-- The reference reduced eigenfunction `χ_R = r·R_{nℓ}` is continuous on all of `ℝ`. -/
 private lemma chiR_continuous (n ℓ : ℕ) (hn : ℓ + 1 ≤ n) : Continuous (chiR n ℓ hn) :=
   (chiR_differentiable n ℓ hn).continuous
 
+/-- Product-rule formula for the derivative of `χ_R = r·R_{nℓ}`:
+`(r·R_{nℓ})' = R_{nℓ} + r·R_{nℓ}'`. -/
 private lemma chiR_deriv_eq (n ℓ : ℕ) (hn : ℓ + 1 ≤ n) :
     deriv (chiR n ℓ hn) = fun s =>
       hydrogenRadialWavefunction n ℓ hn s + s * deriv (hydrogenRadialWavefunction n ℓ hn) s := by
@@ -205,18 +214,24 @@ private lemma chiR_deriv_eq (n ℓ : ℕ) (hn : ℓ + 1 ≤ n) :
   show deriv (fun t => t * hydrogenRadialWavefunction n ℓ hn t) s = _
   exact deriv_reducedMul _ ((differentiable_hydrogenRadial n ℓ hn s).hasDerivAt)
 
+/-- The derivative of `χ_R = r·R_{nℓ}` is itself differentiable, so `χ_R` is `C²`. -/
 private lemma chiR_deriv_differentiable (n ℓ : ℕ) (hn : ℓ + 1 ≤ n) :
     Differentiable ℝ (deriv (chiR n ℓ hn)) := by
   rw [chiR_deriv_eq]
   exact (differentiable_hydrogenRadial n ℓ hn).add
     (differentiable_id.mul (differentiable_deriv_hydrogenRadial n ℓ hn))
 
+/-- The reference `χ_R = r·R_{nℓ}` solves the reduced Schrödinger-form ODE
+`χ'' = (ℓ(ℓ+1)/r² − 2/r + (1/n)²)·χ` on `(0,∞)`. -/
 private lemma chiR_solves (n ℓ : ℕ) (hn : ℓ + 1 ≤ n) {r : ℝ} (hr : 0 < r) :
     deriv^[2] (chiR n ℓ hn) r
       = ((ℓ : ℝ) * ((ℓ : ℝ) + 1) / r ^ 2 - 2 / r + (1 / (n : ℝ)) ^ 2) * chiR n ℓ hn r := by
   unfold chiR
   exact reduced_eigenfunction_solves n ℓ hn hr
 
+/-- The Wronskian `χ·χ_R' − χ'·χ_R` of any solution `χ` of the reduced ODE with the
+reference `χ_R` has vanishing derivative at every `r > 0`: since both solve the same
+second-order equation, the second-order terms cancel. -/
 private lemma wronskian_R_hasDerivAt_zero (n ℓ : ℕ) (hn : ℓ + 1 ≤ n) (χ : ℝ → ℝ)
     (hχ1 : ∀ r, 0 < r → HasDerivAt χ (deriv χ r) r)
     (hχ2 : ∀ r, 0 < r → HasDerivAt (deriv χ) (deriv^[2] χ r) r)
@@ -240,6 +255,9 @@ private lemma wronskian_R_hasDerivAt_zero (n ℓ : ℕ) (hn : ℓ + 1 ≤ n) (χ
   rw [hode r hr, chiR_solves n ℓ hn hr]
   ring
 
+/-- The Wronskian `χ·χ_R' − χ'·χ_R` of any solution `χ` of the reduced ODE with the
+reference `χ_R` is constant on `(0,∞)`: it takes the same value at any two positive
+points `s` and `r₀`. This is the crux enabling the uniqueness argument. -/
 private lemma wronskian_R_const (n ℓ : ℕ) (hn : ℓ + 1 ≤ n) (χ : ℝ → ℝ)
     (hχ1 : ∀ r, 0 < r → HasDerivAt χ (deriv χ r) r)
     (hχ2 : ∀ r, 0 < r → HasDerivAt (deriv χ) (deriv^[2] χ r) r)

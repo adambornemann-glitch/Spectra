@@ -7,21 +7,28 @@ import Spectra.QuantumMechanics.Hydrogen.Laplacian.FreeGreens.Basic
 import Spectra.QuantumMechanics.Hydrogen.Laplacian.SphereIntegral
 
 /-!
-# The free Green's function as an L² element (abstract)
+# The free resolvent symbol as an L² element
 
-Toward Coulomb relative compactness we need the free Green's function `G_z ∈ L²(ℝ³)`, but **only
-that it is square-integrable** — not its explicit form `e^{−√(−z)|x|}/(4π|x|)`.  Square
+Toward Coulomb relative compactness we need the free Green's function `G_z ∈ L²(ℝ³)`, but
+**only that it is square-integrable** — not its explicit form `e^{−√(−z)|x|}/(4π|x|)`.  Square
 integrability is elementary: by Plancherel `‖G_z‖₂ = ‖(laplacianSymbol · − z)⁻¹‖₂`, and the
-resolvent symbol `(laplacianSymbol ξ − z)⁻¹` is in `L²` because `∫_{ℝ³}|(4π²‖ξ‖² − z)|⁻² dξ < ∞`
-(the integrand is **radial**, decaying like `‖ξ‖⁻⁴`).  This file proves that, sidestepping the
-whole Yukawa-Fourier-transform / sphere-integration thread.
+resolvent symbol `(laplacianSymbol ξ − z)⁻¹` is in `L²` because
+`∫_{ℝ³}|(4π²‖ξ‖² − z)|⁻² dξ < ∞` (the integrand is **radial**, decaying like `‖ξ‖⁻⁴`).
+This file proves square integrability of that momentum-space symbol, sidestepping the whole
+Yukawa-Fourier-transform / sphere-integration thread.
+
+## Main statements
+
+- `memLp_inv_laplacianSymbol_sub` — the free resolvent symbol `(laplacianSymbol ξ − z)⁻¹` is
+  in `L²(ℝ³)` for every `z` with `z.im ≠ 0`.
 -/
 open MeasureTheory Set Complex
 open Spectra.Sobolev
 
 namespace Spectra.QuantumMechanics.Hydrogen
 
-/-- The radial profile of `‖(laplacianSymbol ξ − z)⁻¹‖²`: `1/(((2π)²r² − a)² + b²)`. -/
+/-- The radial profile of `‖(laplacianSymbol ξ − z)⁻¹‖²`:
+`1/(((2π)²r² − a)² + b²)`. -/
 private noncomputable def resolventRadial (a b r : ℝ) : ℝ :=
   (((2 * Real.pi) ^ 2 * r ^ 2 - a) ^ 2 + b ^ 2)⁻¹
 
@@ -75,7 +82,8 @@ private lemma integrableOn_sq_resolventRadial (a b : ℝ) (hb : b ≠ 0) :
     rw [div_le_iff₀ (hden_pos r)]
     nlinarith [hineq]
 
-/-- **A1: the resolvent symbol `(laplacianSymbol ξ − z)⁻¹` is in `L²(ℝ³)`** for `z.im ≠ 0`. -/
+/-- **A1: the resolvent symbol `(laplacianSymbol ξ − z)⁻¹` is in `L²(ℝ³)`** for
+`z.im ≠ 0`. -/
 theorem memLp_inv_laplacianSymbol_sub (z : ℂ) (hz : z.im ≠ 0) :
     MemLp (fun ξ : R3 => ((laplacianSymbol ξ : ℂ) - z)⁻¹) 2 volume := by
   have hne : ∀ ξ : R3, (laplacianSymbol ξ : ℂ) - z ≠ 0 := by

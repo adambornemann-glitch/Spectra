@@ -46,20 +46,7 @@ both `P_L ψ` and `P_R ψ`.
 
 chirality, projectors, gamma5, left-handed, right-handed, parity violation
 -/
-open Complex Matrix
 namespace Spectra.QuantumMechanics.Dirac
-
-/-- Verify an entrywise matrix identity in the chirality algebra, where entries are rationals
-    (the projectors carry a factor `1/2`). Like `dirac_compute`, but closes the numeric leaf
-    goals with `norm_num`. Pass the matrix definitions to unfold as simp lemmas. -/
-macro "chiral_compute" defs:Lean.Parser.Tactic.simpLemma,* : tactic =>
-  `(tactic|
-    (ext a b
-     fin_cases a <;> fin_cases b <;>
-       simp [$defs,*, Matrix.mul_apply, Matrix.add_apply, Matrix.sub_apply, Matrix.one_apply,
-             Matrix.smul_apply, Matrix.neg_apply, Matrix.zero_apply, Matrix.conjTranspose_apply,
-             Fin.sum_univ_four, Complex.I_mul_I] <;>
-     norm_num))
 
 /-! ## The chirality projectors -/
 
@@ -75,44 +62,47 @@ noncomputable def chiralRight : Matrix (Fin 4) (Fin 4) ℂ :=
 
 /-- Completeness: `P_L + P_R = I`. Every spinor splits as `ψ = P_L ψ + P_R ψ`. -/
 lemma chiral_add : chiralLeft + chiralRight = 1 := by
-  chiral_compute chiralLeft, chiralRight, gamma5
+  dirac_compute chiralLeft, chiralRight, gamma5
 
 /-- `P_L` is idempotent: `P_L² = P_L`, the defining property of a projector. -/
 lemma chiralLeft_idem : chiralLeft * chiralLeft = chiralLeft := by
-  chiral_compute chiralLeft, gamma5
+  dirac_compute chiralLeft, gamma5
 
 /-- `P_R` is idempotent: `P_R² = P_R`. -/
 lemma chiralRight_idem : chiralRight * chiralRight = chiralRight := by
-  chiral_compute chiralRight, gamma5
-
-/-! ## Orthogonality -/
-
-/-- The two chiralities are orthogonal: `P_L P_R = 0`. -/
-lemma chiral_ortho_lr : chiralLeft * chiralRight = 0 := by
-  chiral_compute chiralLeft, chiralRight, gamma5
-
-/-- The two chiralities are orthogonal: `P_R P_L = 0`. -/
-lemma chiral_ortho_rl : chiralRight * chiralLeft = 0 := by
-  chiral_compute chiralRight, chiralLeft, gamma5
+  dirac_compute chiralRight, gamma5
 
 /-! ## Hermiticity -/
 
 /-- `P_L` is Hermitian, hence an orthogonal projector (chirality is an observable). -/
 lemma chiralLeft_hermitian : chiralLeft.conjTranspose = chiralLeft := by
-  chiral_compute chiralLeft, gamma5
+  dirac_compute chiralLeft, gamma5
 
 /-- `P_R` is Hermitian, hence an orthogonal projector. -/
 lemma chiralRight_hermitian : chiralRight.conjTranspose = chiralRight := by
-  chiral_compute chiralRight, gamma5
+  dirac_compute chiralRight, gamma5
+
+/-! ## Orthogonality -/
+
+/-- The two chiralities are orthogonal: `P_L P_R = 0`. -/
+lemma chiral_ortho_lr : chiralLeft * chiralRight = 0 := by
+  dirac_compute chiralLeft, chiralRight, gamma5
+
+/-- The two chiralities are orthogonal: `P_R P_L = 0`. Derived from `chiral_ortho_lr` by
+    conjugate-transposing, using that both projectors are Hermitian. -/
+lemma chiral_ortho_rl : chiralRight * chiralLeft = 0 := by
+  have h := congrArg Matrix.conjTranspose chiral_ortho_lr
+  rwa [Matrix.conjTranspose_mul, chiralLeft_hermitian, chiralRight_hermitian,
+    Matrix.conjTranspose_zero] at h
 
 /-! ## Action of `γ⁵` on the chiral subspaces -/
 
 /-- `γ⁵ P_R = P_R`: the right-handed space is the `+1` eigenspace of `γ⁵`. -/
 lemma gamma5_chiralRight : gamma5 * chiralRight = chiralRight := by
-  chiral_compute chiralRight, gamma5
+  dirac_compute chiralRight, gamma5
 
 /-- `γ⁵ P_L = -P_L`: the left-handed space is the `-1` eigenspace of `γ⁵`. -/
 lemma gamma5_chiralLeft : gamma5 * chiralLeft = -chiralLeft := by
-  chiral_compute chiralLeft, gamma5
+  dirac_compute chiralLeft, gamma5
 
 end Spectra.QuantumMechanics.Dirac

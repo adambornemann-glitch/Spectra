@@ -24,14 +24,20 @@ harmonic — is multivalued on a given point of `ℝ³`). The smooth solid harmo
 
 This file provides **local** versions, where the separation is supplied only as an `EventuallyEq`
 along the radial curve (`u ↦ f (sphereChart u θ φ)` near `u = r`) and the angular surface
-(`(b,c) ↦ f (sphereChart r b c)` near `(θ,φ)`).  The point is that the underlying operators are
+(`(b,c) ↦ f (sphereChart r b c)` near `(θ,φ)`). The point is that the underlying operators are
 *local*: `laplacian_separates` is hypothesis-free, and `laplaceBeltrami` is built from `deriv`, so
 both respect eventual equality.
+
+## Main statements
 
 * `laplaceBeltrami_congr` — `laplaceBeltrami` respects `EventuallyEq` at a point.
 * `laplacian_in_sector_local` — the `−Δ` reduction with local separation.
 * `hydrogen_reduces_half_local` — the half-Laplacian hydrogen Hamiltonian reduction with local
-  separation (the form consumed by the forward direction's sector projection).
+  separation.
+* `solidTest_contDiff` — the smooth separated test function `χ(‖x‖) · solidHarmonicNat ℓ m x` is
+  globally `C²`.
+* `solidTest_reduces_half` — the local half-Laplacian reduction specialized to that test function
+  (the form consumed by the forward direction's sector projection).
 -/
 
 open Spectra.QuantumMechanics.Hydrogen
@@ -130,7 +136,7 @@ theorem hydrogen_reduces_half_local (p : CoulombParams) (ℓ : ℕ) (m : ℤ) (h
 
 The concrete instance of the local reduction used by the forward direction: the smooth, separated
 test function `χ(‖x‖) · solidHarmonicNat ℓ m x` (with `χ` a smooth radial cutoff vanishing near the
-origin).  It is globally `C²`, and on the physical chart domain it realizes the separation with
+origin). It is globally `C²`, and on the physical chart domain it realizes the separation with
 radial profile `R a = χ(a)·a^ℓ`, so the local half-Laplacian reduction applies. -/
 
 /-- The smooth separated test function `χ(‖x‖) · solidHarmonicNat ℓ m x` is globally `C²`. -/
@@ -159,7 +165,7 @@ lemma solidTest_contDiff (ℓ m : ℕ) (χ : ℝ → ℝ) (hχ : ContDiff ℝ �
 /-- **Sector reduction for the solid-harmonic test function.** Applying the local half-Laplacian
 reduction to `f = χ(‖·‖)·solidHarmonicNat ℓ m` (a globally smooth, separated test function) with
 radial profile `R a = χ(a)·a^ℓ`: at every interior chart point the hydrogen Hamiltonian acts as the
-radial operator on `R`, tensored with `Yℓᵐ`.  This is the form fed into the forward direction's
+radial operator on `R`, tensored with `Yℓᵐ`. This is the form fed into the forward direction's
 sector projection. -/
 theorem solidTest_reduces_half (p : CoulombParams) (ℓ m : ℕ) (hm : m ≤ ℓ)
     (χ : ℝ → ℝ) (hχ : ContDiff ℝ ∞ χ) (hχ0 : ∀ᶠ s in 𝓝 (0 : ℝ), χ s = 0)

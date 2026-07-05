@@ -19,6 +19,16 @@ where `σ = μ.toSphere` is the induced surface measure on the unit sphere.  Thi
 generalisation, reusing `measurePreserving_homeomorphUnitSphereProd` (the measure-preserving
 "polar coordinates" homeomorphism `{0}ᶜ ≃ₜ sphere × Ioi`).  It is the first brick toward the
 angular reduction `∫_{S²} e^{−2πi r⟨ξ,ω⟩} dσ = 4π·sin(2πr‖ξ‖)/(2πr‖ξ‖)`.
+
+## Main statements
+
+* `coe_homeomorphUnitSphereProd`: a nonzero point equals its radius times its normalisation,
+  `x = ‖x‖ • (x/‖x‖)`, expressed through the polar-coordinates homeomorphism.
+* `integral_eq_integral_prod_toSphere`: radial disintegration in product form — `∫ x, F x` equals
+  the integral of `F(r • ω)` against `μ.toSphere ⊗ (r^{n-1} dr)`, with no integrability hypothesis.
+* `integral_eq_integral_toSphere`: radial disintegration in iterated form, for integrable `F`.
+* `exists_linearIsometryEquiv_apply_eq`: any two vectors of equal norm in a real inner-product space
+  are related by a linear isometry equivalence.
 -/
 
 noncomputable section
@@ -79,8 +89,8 @@ open Submodule
 
 variable {F : Type*} [NormedAddCommGroup F] [InnerProductSpace ℝ F]
 
-/-- **Any two vectors of equal norm are related by a linear isometry** (a reflection that swaps
-them).  In particular any unit vector can be rotated onto a coordinate axis. -/
+/-- **Any two vectors of equal norm are related by a linear isometry equivalence** — the reflection
+across the hyperplane orthogonal to `u - v`, which swaps `u` and `v`. -/
 theorem exists_linearIsometryEquiv_apply_eq (u v : F) (h : ‖u‖ = ‖v‖) :
     ∃ R : F ≃ₗᵢ[ℝ] F, R u = v := by
   rcases eq_or_ne u v with rfl | hne

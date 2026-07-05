@@ -10,9 +10,9 @@ import Mathlib.Analysis.InnerProductSpace.Adjoint
 /-!
 # The Dirac spinor Hilbert space `L²(ℝ³; ℂ⁴)`
 
-A Dirac wavefunction is a square-integrable map `ℝ³ → ℂ⁴`. The natural state space is the
-Hilbert space `L²(ℝ³; ℂ⁴)`, which is isometrically the `ℓ²`-direct sum of four copies of the
-scalar space `L²(ℝ³)`:
+A Dirac wavefunction is a square-integrable map `ℝ³ → ℂ⁴`. The natural state space is
+the Hilbert space `L²(ℝ³; ℂ⁴)`, which is isometrically the `ℓ²`-direct sum of four
+copies of the scalar space `L²(ℝ³)`:
 
   `L²(ℝ³; ℂ⁴) ≅ L²(ℝ³) ⊕ L²(ℝ³) ⊕ L²(ℝ³) ⊕ L²(ℝ³)`.
 
@@ -28,17 +28,42 @@ to the (unbounded) kinetic part.
 
 ## Main definitions
 
-* `DiracSpinorL2` — the spinor Hilbert space `L²(ℝ³; ℂ⁴)` as `PiLp 2 (fun _ : Fin 4 => l2R3)`.
+* `DiracSpinorL2` — the spinor Hilbert space `L²(ℝ³; ℂ⁴)`, defined as
+  `PiLp 2 (fun _ : Fin 4 => l2R3)`.
 * `matrixOp` — the bounded operator on `DiracSpinorL2` given by a constant `4 × 4` matrix.
 
 ## Main statements
 
-* `DiracSpinorL2.inner_eq` — `⟪ψ, φ⟫ = Σ_a ⟪ψ_a, φ_a⟫`, the inner product componentwise.
+* `DiracSpinorL2.inner_eq` — `⟪ψ, φ⟫ = Σ_a ⟪ψ_a, φ_a⟫`, the inner product
+  componentwise.
 * `matrixOp_apply` — `(matrixOp M ψ)_a = Σ_b M_{ab} • ψ_b`.
 * `matrixOp_one`, `matrixOp_add`, `matrixOp_smul` — `matrixOp` is linear and unital.
+* `matrixOp_mul` — `matrixOp (M * N) = matrixOp M ∘ matrixOp N`, so `matrixOp` is a
+  representation of the matrix algebra.
 * `matrixOp_adjoint` — `(matrixOp M)† = matrixOp Mᴴ`.
-* `matrixOp_isSelfAdjoint_of_hermitian` — `matrixOp M` is self-adjoint when `M` is Hermitian.
+* `matrixOp_isSelfAdjoint_of_hermitian` — `matrixOp M` is self-adjoint when `M` is
+  Hermitian.
 * `matrixOp_diracBeta_isSelfAdjoint` — the mass-term matrix `β` gives a self-adjoint operator.
+* `matrixOp_massTerm_isSelfAdjoint` — the full mass term `mc² · β` (real `mc²`) is
+  self-adjoint; this is the ingredient the intro cites as enabling `kato_rellich_bounded`.
+
+## Implementation notes
+
+The spinor space is modelled as `PiLp 2 (fun _ : Fin 4 => l2R3)` — the honest `ℓ²`-sum of
+four copies of the scalar `L²(ℝ³)` — rather than `EuclideanSpace ℂ (Fin 4)`-valued fields or
+`L²(ℝ³) ⊗ ℂ⁴`. The `PiLp 2` model puts each spinor component in the *same* scalar space
+`l2R3` that `Spaces.Sobolev` is built on, so the scalar Sobolev/Fourier machinery (weak
+derivatives, the Fourier transform, the free Laplacian) is available componentwise with no
+re-derivation, while still carrying the correct `ℓ²` inner product
+`⟪ψ, φ⟫ = Σ_a ⟪ψ_a, φ_a⟫` (`DiracSpinorL2.inner_eq`).
+
+`matrixOp M` is built by transporting the componentwise map through the identity continuous
+linear equivalence `diracSpinorCLE : DiracSpinorL2 ≃L[ℂ] (Fin 4 → l2R3)` and assembling the
+coordinate action with `ContinuousLinearMap.pi`/`ContinuousLinearMap.proj`
+(`M ↦ pi (fun a => Σ_b M_{ab} • proj b)`). Routing through `diracSpinorCLE` this way lets us
+reuse Mathlib's bounded `pi`/`proj` combinators — which give boundedness and continuity for
+free — instead of hand-building a bounded map and separately discharging its operator-norm
+bound; the equivalence is underlyingly the identity, so `matrixOp_apply` holds by `rfl`.
 
 ## References
 
@@ -49,18 +74,18 @@ to the (unbounded) kinetic part.
 
 Dirac equation, spinor, L2 space, bounded operator, self-adjoint, mass term
 -/
-open Complex MeasureTheory
 open scoped InnerProductSpace
 open Spectra.Sobolev
 
 namespace Spectra.QuantumMechanics.Dirac
 
-/-- The Dirac spinor Hilbert space `L²(ℝ³; ℂ⁴)`, modelled as the `ℓ²`-direct sum of four copies
-of the scalar space `L²(ℝ³)`. A spinor field `ψ : DiracSpinorL2` has four components
+/-- The Dirac spinor Hilbert space `L²(ℝ³; ℂ⁴)`, modelled as the `ℓ²`-direct sum of four
+copies of the scalar space `L²(ℝ³)`. A spinor field `ψ : DiracSpinorL2` has four components
 `ψ a : l2R3` (`a : Fin 4`). -/
 abbrev DiracSpinorL2 : Type := PiLp 2 (fun _ : Fin 4 => l2R3)
 
-/-- The inner product on `L²(ℝ³; ℂ⁴)` is the sum of the four componentwise `L²` inner products. -/
+/-- The inner product on `L²(ℝ³; ℂ⁴)` is the sum of the four componentwise `L²` inner
+products. -/
 lemma DiracSpinorL2.inner_eq (ψ φ : DiracSpinorL2) :
     ⟪ψ, φ⟫_ℂ = ∑ a, ⟪ψ a, φ a⟫_ℂ :=
   PiLp.inner_apply ψ φ
@@ -73,7 +98,8 @@ noncomputable def diracSpinorCLE : DiracSpinorL2 ≃L[ℂ] (Fin 4 → l2R3) :=
 /-- The action of a constant `4 × 4` complex matrix `M` on spinor fields:
 `(matrixOp M ψ)_a = Σ_b M_{ab} • ψ_b`. A bounded operator, built from the coordinate
 projections and inclusions. -/
-noncomputable def matrixOp (M : Matrix (Fin 4) (Fin 4) ℂ) : DiracSpinorL2 →L[ℂ] DiracSpinorL2 :=
+noncomputable def matrixOp (M : Matrix (Fin 4) (Fin 4) ℂ) :
+    DiracSpinorL2 →L[ℂ] DiracSpinorL2 :=
   diracSpinorCLE.symm.toContinuousLinearMap.comp
     ((ContinuousLinearMap.pi (fun a => ∑ b, (M a b) • ContinuousLinearMap.proj b)).comp
       diracSpinorCLE.toContinuousLinearMap)

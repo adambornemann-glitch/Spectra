@@ -18,9 +18,11 @@ import Spectra.QuantumMechanics.Hydrogen.Spectrum.SectorProjection
 The main theorems about the hydrogen spectrum, assembling the radial
 eigenvalue problem with the angular decomposition.
 
-## The main theorem
+## Main statements
 
-For the hydrogen Hamiltonian H = −Δ − Z/r (Z = 1 in atomic units):
+* `hydrogen_discrete_spectrum` — for the hydrogen Hamiltonian H = −½Δ − Z/r
+  (Z = 1 in atomic units), for every `E < 0`, `E` is an eigenvalue of `H` iff
+  `E = E_n = −Z²/(2n²)` for some `n ≥ 1`.  Equivalently:
 
   **Discrete spectrum**: σ_disc(H) = { −1/(2n²) : n = 1, 2, 3, ... }
 

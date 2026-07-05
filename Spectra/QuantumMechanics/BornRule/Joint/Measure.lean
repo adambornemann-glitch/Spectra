@@ -14,17 +14,46 @@ over an *arbitrary* disjoint rectangle partition of a rectangle (`AddContent.sUn
 Pythagoras reduces to **vector completeness** `∑ₖ E_A(Sₖ)E_B(Tₖ)ξ = E_A(S)E_B(T)ξ` (a grid/atom
 refinement via `Spectra.AxisGrid`).  Compact inner regularity (Alexandrov) then discharges
 ∅-continuity, the multivariate spectral theorem's measure-theoretic core, and Carathéodory produces
-the finite Borel measure `jointScalarMeasure`.
+the finite Borel measure `jointScalarMeasure`.  The whole development is `sorry`-free and
+axiom-clean.
+
+## Main definitions
+
+* `jointRectVal` — the `ℝ≥0∞`-valued rectangle content value `ENNReal.ofReal (‖E_A(S)E_B(T)ξ‖²)`.
+* `jointContent` — that content packaged as a `MeasureTheory.AddContent` on `jointRectangles`.
+* `rectVec`, `jointVectorContent` — the effect vector `E_A(S)E_B(T)ξ` attached to a rectangle, and
+  the partition-independent sum over a disjoint rectangle cover of an elementary set.
+* `jointScalarMeasure` — the per-state joint measure `μ_ξ`, the Carathéodory extension of
+  `jointContent`.
 
 ## Main statements
 
-* `jointVectorContent`, `jointVectorContent_eq` — the partition-independent vector content of an
-  elementary set, the crux reduction for finite additivity.
-* `jointContent` — the rectangle content packaged as a `MeasureTheory.AddContent`.
+* `jointVectorContent_eq` — partition independence of the vector content, the crux reduction for the
+  finite additivity of `jointContent`.
 * `jointContentRing_tendsto_empty` — ∅-continuity of the ring content (Route T / tightness), the
-  multivariate spectral theorem's core estimate.
-* `jointScalarMeasure` — the per-state joint measure `μ_ξ`, the Carathéodory extension of
-  `jointContent`; `jointScalarMeasure_isFiniteMeasure` gives total mass `‖ξ‖²`.
+  multivariate spectral theorem's core estimate; proved via compact inner regularity and a
+  finite-intersection-property argument.
+* `jointContent_isSigmaSubadditive` — σ-subadditivity of the rectangle content, the Carathéodory
+  input.
+* `jointScalarMeasure_prod` — `μ_ξ(S ×ˢ T) = μ^A_{E_B(T)ξ}(S)`, the bimeasure value on rectangles.
+* `jointScalarMeasure_isFiniteMeasure` — `μ_ξ` is a finite measure, with total mass `‖ξ‖²`.
+
+## Implementation notes
+
+The finite-additivity obligation `AddContent.sUnion'` is reduced by Pythagoras to the vector
+identity `jointVector_sUnion`, proved by refining both axes over a common Boolean sign-atom grid
+(`Spectra.AxisGrid.signAtom`) and multiplicity counting, rather than by induction.  ∅-continuity is
+not recoverable from the marginal data alone; it is discharged by Route T (tightness / Alexandrov),
+where the approximation *defect* — but not the mass — is marginal-controlled through
+`jointRect_diff_defect_le`, the one place the commuting-projection structure genuinely enters.
+
+## References
+
+* [Reed, Simon, *Methods of Modern Mathematical Physics I*], §VIII.5 (strong commutativity and the
+  multivariate spectral theorem).
+* [Reed, Simon, *Methods of Modern Mathematical Physics IV*] (joint spectral measures).
+* [Cohn, *Measure Theory*], Ch. 1 (Carathéodory extension from a semiring; the Alexandrov / compact
+  inner regularity ∅-continuity argument).
 -/
 
 open MeasureTheory Complex Spectra Filter Topology
@@ -333,8 +362,9 @@ theorem jointRectVal_prod (A B : Spectra.Operator.SelfAdjointOperator H) (ξ : H
 
 /-- **The diagonal-measure form of the content value.**  Restating `jointRectVal_prod` through the
 content bridge `jointRect_norm_sq_eq_diag`: on a rectangle the content is `μ^A_{E_B(T)ξ}(S)`. -/
-theorem jointRectVal_prod_diag (A B : Spectra.Operator.SelfAdjointOperator H) (hSC : StronglyCommute A B)
-    (ξ : H) {S T : Set ℝ} (hS : MeasurableSet S) (hT : MeasurableSet T) :
+theorem jointRectVal_prod_diag (A B : Spectra.Operator.SelfAdjointOperator H)
+    (hSC : StronglyCommute A B) (ξ : H) {S T : Set ℝ} (hS : MeasurableSet S)
+    (hT : MeasurableSet T) :
     jointRectVal A B ξ (S ×ˢ T)
       = (A.spectralPVM.diag (B.spectralPVM.proj T hT ξ)) S := by
   rw [jointRectVal_prod A B ξ hS hT, jointRect_norm_sq_eq_diag A B hSC hS hT ξ,
@@ -343,8 +373,8 @@ theorem jointRectVal_prod_diag (A B : Spectra.Operator.SelfAdjointOperator H) (h
 /-- **The joint rectangle content as a `MeasureTheory.AddContent`.**  `toFun = jointRectVal`;
 `empty'` is `E_A(∅) = 0`; `sUnion'` is the Pythagoras payload `jointRect_sUnion_norm_sq` lifted to
 `ℝ≥0∞` via `ENNReal.ofReal_sum_of_nonneg`.  This is the per-state content extended to `μ_ξ`. -/
-noncomputable def jointContent (A B : Spectra.Operator.SelfAdjointOperator H) (hSC : StronglyCommute A B)
-    (ξ : H) : MeasureTheory.AddContent ENNReal jointRectangles where
+noncomputable def jointContent (A B : Spectra.Operator.SelfAdjointOperator H)
+    (hSC : StronglyCommute A B) (ξ : H) : MeasureTheory.AddContent ENNReal jointRectangles where
   toFun := jointRectVal A B ξ
   empty' := by
     have he : (∅ : Set (ℝ × ℝ)) = (∅ : Set ℝ) ×ˢ (∅ : Set ℝ) := by simp
@@ -389,8 +419,9 @@ noncomputable def jointContent (A B : Spectra.Operator.SelfAdjointOperator H) (h
 
 /-- **The content never takes the value `∞`.**  On a rectangle the value is `ENNReal.ofReal _`,
 which is finite.  (Feeds the local finiteness needed by the Carathéodory extension.) -/
-theorem jointContent_ne_top (A B : Spectra.Operator.SelfAdjointOperator H) (hSC : StronglyCommute A B)
-    (ξ : H) {R : Set (ℝ × ℝ)} (hR : R ∈ jointRectangles) : jointContent A B hSC ξ R ≠ ⊤ := by
+theorem jointContent_ne_top (A B : Spectra.Operator.SelfAdjointOperator H)
+    (hSC : StronglyCommute A B) (ξ : H) {R : Set (ℝ × ℝ)} (hR : R ∈ jointRectangles) :
+    jointContent A B hSC ξ R ≠ ⊤ := by
   obtain ⟨S, T, hS, hT, rfl⟩ := hR
   show jointRectVal A B ξ (S ×ˢ T) ≠ ⊤
   rw [jointRectVal_prod A B ξ hS hT]
@@ -411,15 +442,16 @@ The `MeasureTheory.AddContent` `jointContent` (on the rectangle *semiring*) is e
 finite Borel measure on `ℝ × ℝ` by Carathéodory (`AddContent.measure`).  This needs σ-subadditivity
 of the content, which on a *semiring* follows from σ-additivity on the generated *ring* (the
 sup-closure), which in turn (Mathlib's `addContent_iUnion_eq_sum_of_tendsto_zero`) reduces to
-**continuity at `∅`** of the ring content.  That ∅-continuity is the one genuine open analytic nut of
-G2.2 (`jointContentRing_tendsto_empty`, left as `sorry`); everything else here is `sorry`-free. -/
+**continuity at `∅`** of the ring content.  That ∅-continuity is the one genuine analytic nut of
+G2.2 (`jointContentRing_tendsto_empty`); it is discharged here by the tightness / Alexandrov
+argument, so the whole development is `sorry`-free. -/
 
 /-- **Finiteness on the sup-closure ring.**  The ring content (the sup-closure of `jointContent`)
 never takes the value `⊤`: an element of the sup-closure is a finite disjoint union of rectangles
 (`mem_supClosure_iff`), its content is the finite sum of the rectangle values
 (`supClosure_apply_finpartition`), and each summand is finite (`jointContent_ne_top`). -/
-theorem jointContentRing_ne_top (A B : Spectra.Operator.SelfAdjointOperator H) (hSC : StronglyCommute A B)
-    (ξ : H) {s : Set (ℝ × ℝ)} (hs : s ∈ supClosure jointRectangles) :
+theorem jointContentRing_ne_top (A B : Spectra.Operator.SelfAdjointOperator H)
+    (hSC : StronglyCommute A B) (ξ : H) {s : Set (ℝ × ℝ)} (hs : s ∈ supClosure jointRectangles) :
     (jointContent A B hSC ξ).supClosure isSetSemiring_jointRectangles s ≠ ⊤ := by
   obtain ⟨P, hP⟩ := (isSetSemiring_jointRectangles.mem_supClosure_iff).mp hs
   rw [(jointContent A B hSC ξ).supClosure_apply_finpartition isSetSemiring_jointRectangles hP]
@@ -432,12 +464,12 @@ The ring content `mR(s) = (jointContent.supClosure) s` is the squared norm of a 
 `jointVectorContent ξ s ∈ H`, defined on the elementary sets (finite disjoint unions of rectangles)
 and *additive* there.  Concretely, for any disjoint rectangle partition `J` of `s`,
 `jointVectorContent ξ s = ∑_{R ∈ J} E_A(S_R) E_B(T_R) ξ`, a value independent of the partition
-(`jointVectorContent_eq`, via the common-refinement collapse `jointVector_sUnion`).  Its squared norm
-is `mR(s).toReal` (`jointVectorContent_norm_sq`, finite Pythagoras over the disjoint cells) and it is
-finitely additive on disjoint elementary sets (`jointVectorContent_add`).
+(`jointVectorContent_eq`, via the common-refinement collapse `jointVector_sUnion`).  Its squared
+norm is `mR(s).toReal` (`jointVectorContent_norm_sq`, finite Pythagoras over the disjoint cells) and
+it is finitely additive on disjoint elementary sets (`jointVectorContent_add`).
 
-This reduces ∅-continuity to a **single, sharp** statement: on an antitone `sₙ` with `⋂ₙ sₙ = ∅`, the
-vectors `jointVectorContent ξ sₙ` form a Cauchy sequence (the squared increments telescope the
+This reduces ∅-continuity to a **single, sharp** statement: on an antitone `sₙ` with `⋂ₙ sₙ = ∅`,
+the vectors `jointVectorContent ξ sₙ` form a Cauchy sequence (the squared increments telescope the
 antitone real sequence `mR(sₙ).toReal`), hence converge to a limit `w`, and the open content is
 exactly `w = 0` — the joint spectral measure of the commuting pair has no mass on `∅`. -/
 
@@ -453,8 +485,8 @@ noncomputable def rectVec (A B : Spectra.Operator.SelfAdjointOperator H) (ξ : H
   else 0
 
 /-- **Effect-vector representation independence.**  The vector form of `jointRectVal_aux_indep`: two
-presentations of the same rectangle give the same effect vector (factor-agreement, or an empty factor
-annihilates `ξ`). -/
+presentations of the same rectangle give the same effect vector (factor-agreement, or an empty
+factor annihilates `ξ`). -/
 theorem rectVec_aux_indep (A B : Spectra.Operator.SelfAdjointOperator H) (ξ : H)
     {S T S' T' : Set ℝ} (hS : MeasurableSet S) (hT : MeasurableSet T)
     (hS' : MeasurableSet S') (hT' : MeasurableSet T') (heq : S ×ˢ T = S' ×ˢ T') :
@@ -497,8 +529,8 @@ noncomputable def jointVectorContent (A B : Spectra.Operator.SelfAdjointOperator
 /-- **Partition independence (the crux).**  For *any* disjoint rectangle cover `J` of `s` (parts in
 `jointRectangles`), the sum of the rectangle effect vectors equals `jointVectorContent ξ s`.  Proof:
 the chosen partition `K` (from `mem_supClosure_iff`) and `J` have a common refinement
-`{R ∩ R' : R ∈ J, R' ∈ K}`; for each fixed `R ∈ J`, `{R ∩ R' : R' ∈ K}` is a disjoint rectangle cover
-of the rectangle `R` (since `R ⊆ s = ⋃ K`), so `jointVector_sUnion` collapses
+`{R ∩ R' : R ∈ J, R' ∈ K}`; for each fixed `R ∈ J`, `{R ∩ R' : R' ∈ K}` is a disjoint rectangle
+cover of the rectangle `R` (since `R ⊆ s = ⋃ K`), so `jointVector_sUnion` collapses
 `∑_{R'} E(R ∩ R') = E(R)`.  Summing over `J` and symmetrizing in `J, K` gives equality. -/
 theorem jointVectorContent_eq (A B : Spectra.Operator.SelfAdjointOperator H) (ξ : H)
     {s : Set (ℝ × ℝ)} (hs : s ∈ supClosure jointRectangles)
@@ -593,10 +625,10 @@ theorem jointVectorContent_eq (A B : Spectra.Operator.SelfAdjointOperator H) (ξ
   rw [Set.inter_comm]
 
 /-- **The content of a rectangle is `‖rectVec‖²`.**  For `R ∈ jointRectangles`,
-`jointContent ξ R = ENNReal.ofReal (‖rectVec ξ R‖²)`.  Restates `jointRectVal_prod` through `rectVec`
-(`rectVec_prod`). -/
-theorem jointContent_rectVec (A B : Spectra.Operator.SelfAdjointOperator H) (hSC : StronglyCommute A B)
-    (ξ : H) {R : Set (ℝ × ℝ)} (hR : R ∈ jointRectangles) :
+`jointContent ξ R = ENNReal.ofReal (‖rectVec ξ R‖²)`.  Restates `jointRectVal_prod` through
+`rectVec` (`rectVec_prod`). -/
+theorem jointContent_rectVec (A B : Spectra.Operator.SelfAdjointOperator H)
+    (hSC : StronglyCommute A B) (ξ : H) {R : Set (ℝ × ℝ)} (hR : R ∈ jointRectangles) :
     jointContent A B hSC ξ R = ENNReal.ofReal (‖rectVec A B ξ R‖ ^ 2) := by
   obtain ⟨S, T, hS, hT, rfl⟩ := hR
   show jointRectVal A B ξ (S ×ˢ T) = _
@@ -605,9 +637,9 @@ theorem jointContent_rectVec (A B : Spectra.Operator.SelfAdjointOperator H) (hSC
 /-- **The squared norm of the vector content is the ring content.**
 `‖jointVectorContent ξ s‖² = mR(s).toReal`.  Over the chosen rectangle partition `K` of `s`,
 `mR(s) = ∑_{R ∈ K} ofReal ‖rectVec R‖²` (`supClosure_apply_finpartition` + `jointContent_rectVec`),
-whose `.toReal` is `∑ ‖rectVec R‖²` (`toReal_sum`), which is `‖∑ rectVec R‖²` (finite Pythagoras over
-the pairwise-orthogonal disjoint cells, `jointRect_orthogonal_general`), i.e. `‖jointVectorContent‖²`
-(`jointVectorContent_eq`). -/
+whose `.toReal` is `∑ ‖rectVec R‖²` (`toReal_sum`), which is `‖∑ rectVec R‖²` (finite Pythagoras
+over the pairwise-orthogonal disjoint cells, `jointRect_orthogonal_general`), i.e.
+`‖jointVectorContent‖²` (`jointVectorContent_eq`). -/
 theorem jointVectorContent_norm_sq (A B : Spectra.Operator.SelfAdjointOperator H)
     (hSC : StronglyCommute A B) (ξ : H) {s : Set (ℝ × ℝ)} (hs : s ∈ supClosure jointRectangles) :
     ‖jointVectorContent A B ξ s‖ ^ 2
@@ -703,17 +735,18 @@ theorem jointVectorContent_add (A B : Spectra.Operator.SelfAdjointOperator H) (�
 
 The ring content `mR` is **inner regular by compact rectangles**: any elementary set is approximated
 from inside by a compact elementary set up to arbitrarily small content.  Per rectangle this is the
-marginal-defect bound `jointContentRing_diff_le` (the ℝ≥0∞ lift of `jointRect_diff_defect_le`) fed by
-the inner regularity of the genuine marginals `μ^A_ξ, μ^B_ξ` on `ℝ`.  This is the compactness input
-that discharges `jointContentRing_tendsto_empty` by the classical Alexandrov argument (a finitely
-additive, compact-inner-regular content is σ-additive): a decreasing elementary sequence with empty
-intersection cannot keep positive content, else the inner compact approximants would have the finite
-intersection property and meet. -/
+marginal-defect bound `jointContentRing_diff_le` (the ℝ≥0∞ lift of `jointRect_diff_defect_le`) fed
+by the inner regularity of the genuine marginals `μ^A_ξ, μ^B_ξ` on `ℝ`.  This is the compactness
+input that discharges `jointContentRing_tendsto_empty` by the classical Alexandrov argument (a
+finitely additive, compact-inner-regular content is σ-additive): a decreasing elementary sequence
+with empty intersection cannot keep positive content, else the inner compact approximants would have
+the finite intersection property and meet. -/
 
 /-- The ring content of a single rectangle is `ofReal ‖E_A(S)E_B(T)ξ‖²` (`supClosure_apply_of_mem` +
 `jointContent_rectVec` + `rectVec_prod`). -/
-theorem jointContentRing_prod (A B : Spectra.Operator.SelfAdjointOperator H) (hSC : StronglyCommute A B)
-    (ξ : H) {S T : Set ℝ} (hS : MeasurableSet S) (hT : MeasurableSet T) :
+theorem jointContentRing_prod (A B : Spectra.Operator.SelfAdjointOperator H)
+    (hSC : StronglyCommute A B) (ξ : H) {S T : Set ℝ} (hS : MeasurableSet S)
+    (hT : MeasurableSet T) :
     (jointContent A B hSC ξ).supClosure isSetSemiring_jointRectangles (S ×ˢ T)
       = ENNReal.ofReal (‖(A.spectralPVM.proj S hS * B.spectralPVM.proj T hT) ξ‖ ^ 2) := by
   rw [(jointContent A B hSC ξ).supClosure_apply_of_mem isSetSemiring_jointRectangles
@@ -726,8 +759,9 @@ theorem jointContentRing_prod (A B : Spectra.Operator.SelfAdjointOperator H) (hS
 difference decomposition `(S×T)∖(S'×T') = (S∖S')×T ⊔ (S∩S')×(T∖T')` + finite additivity
 (`addContent_union`).  Together with inner regularity of `μ^A_ξ, μ^B_ξ`, this is the compact
 inner-regularity input to the Alexandrov ∅-continuity argument. -/
-theorem jointContentRing_diff_le (A B : Spectra.Operator.SelfAdjointOperator H) (hSC : StronglyCommute A B)
-    (ξ : H) {S S' T T' : Set ℝ} (hS : MeasurableSet S) (hS' : MeasurableSet S')
+theorem jointContentRing_diff_le (A B : Spectra.Operator.SelfAdjointOperator H)
+    (hSC : StronglyCommute A B) (ξ : H) {S S' T T' : Set ℝ} (hS : MeasurableSet S)
+    (hS' : MeasurableSet S')
     (hT : MeasurableSet T) (hT' : MeasurableSet T') :
     (jointContent A B hSC ξ).supClosure isSetSemiring_jointRectangles ((S ×ˢ T) \ (S' ×ˢ T'))
       ≤ A.spectralPVM.diag ξ (S \ S') + B.spectralPVM.diag ξ (T \ T') := by
@@ -759,8 +793,9 @@ theorem jointContentRing_diff_le (A B : Spectra.Operator.SelfAdjointOperator H) 
 from inside by a compact rectangle `K = S' ×ˢ T'` whose content defect is `< ε`: pick compact
 `S' ⊆ S`, `T' ⊆ T` by inner regularity of the marginals `μ^A_ξ, μ^B_ξ` (each defect `< ε/2`), then
 `jointContentRing_diff_le` bounds the joint defect by `μ^A_ξ(S∖S') + μ^B_ξ(T∖T') < ε`. -/
-theorem jointRect_inner_compact (A B : Spectra.Operator.SelfAdjointOperator H) (hSC : StronglyCommute A B)
-    (ξ : H) {S T : Set ℝ} (hS : MeasurableSet S) (hT : MeasurableSet T) {ε : ENNReal} (hε : ε ≠ 0) :
+theorem jointRect_inner_compact (A B : Spectra.Operator.SelfAdjointOperator H)
+    (hSC : StronglyCommute A B) (ξ : H) {S T : Set ℝ} (hS : MeasurableSet S) (hT : MeasurableSet T)
+    {ε : ENNReal} (hε : ε ≠ 0) :
     ∃ K : Set (ℝ × ℝ), K ∈ jointRectangles ∧ K ⊆ S ×ˢ T ∧ IsCompact K ∧
       (jointContent A B hSC ξ).supClosure isSetSemiring_jointRectangles ((S ×ˢ T) \ K) < ε := by
   have hε2 : ε / 2 ≠ 0 := (ENNReal.half_pos hε).ne'
@@ -781,11 +816,12 @@ theorem jointRect_inner_compact (A B : Spectra.Operator.SelfAdjointOperator H) (
 /-- **Compact inner regularity of the ring content.**  Every elementary set `s` (a finite union of
 measurable rectangles) is approximated from inside by a compact elementary set `K ⊆ s` with content
 defect `mR(s ∖ K) ≤ ε`.  Induction over a rectangle cover of `s`: approximate each rectangle part by
-a compact sub-rectangle (`jointRect_inner_compact`) at budget `ε/2ⁿ`, union them, and bound the total
-defect by finite subadditivity (`addContent_union_le`).  This is the tightness hypothesis the
+a compact sub-rectangle (`jointRect_inner_compact`) at budget `ε/2ⁿ`, union them, and bound the
+total defect by finite subadditivity (`addContent_union_le`).  This is the tightness hypothesis the
 Alexandrov ∅-continuity argument feeds on. -/
-theorem jointElem_inner_compact (A B : Spectra.Operator.SelfAdjointOperator H) (hSC : StronglyCommute A B)
-    (ξ : H) {s : Set (ℝ × ℝ)} (hs : s ∈ supClosure jointRectangles) {ε : ENNReal} (hε : ε ≠ 0) :
+theorem jointElem_inner_compact (A B : Spectra.Operator.SelfAdjointOperator H)
+    (hSC : StronglyCommute A B) (ξ : H) {s : Set (ℝ × ℝ)} (hs : s ∈ supClosure jointRectangles)
+    {ε : ENNReal} (hε : ε ≠ 0) :
     ∃ K : Set (ℝ × ℝ), K ∈ supClosure jointRectangles ∧ K ⊆ s ∧ IsCompact K ∧
       (jointContent A B hSC ξ).supClosure isSetSemiring_jointRectangles (s \ K) ≤ ε := by
   classical
@@ -849,18 +885,19 @@ theorem jointElem_inner_compact (A B : Spectra.Operator.SelfAdjointOperator H) (
   exact aux P.parts hPC hε
 
 /-- **Continuity at `∅` of the ring content.**  For an antitone sequence `sₙ` of elementary sets
-(finite disjoint unions of rectangles) with `⋂ₙ sₙ = ∅`, the content `mR(sₙ) = ‖jointVectorContent ξ sₙ‖²`
-tends to `0` — the σ-additivity input (`AddContent.measure`) for the joint scalar measure.
+(finite disjoint unions of rectangles) with `⋂ₙ sₙ = ∅`, the content
+`mR(sₙ) = ‖jointVectorContent ξ sₙ‖²` tends to `0` — the σ-additivity input (`AddContent.measure`)
+for the joint scalar measure.
 
 The reduction `mR(sₙ) → ‖w‖²` for the in-`H` limit `w` of the Cauchy sequence of vector contents
 `jointVectorContent ξ sₙ` is elementary (`jointVectorContent_norm_sq`, `_add`, ring additivity); the
-sharp content is `w = 0`, the **multivariate spectral theorem's** core (the joint spectral measure of
-the commuting pair assigns no mass to `∅`; *not* recoverable from the marginal data alone, cf.
-`exists_coupling_always`).  It is discharged here by **Route T (tightness / Alexandrov)**: the
-joint content's compact inner regularity comes from the genuine marginals via commutation + contraction
-(the approximation *defect* `mR((S×T)∖(S'×T')) ≤ μ^A_ξ(S∖S') + μ^B_ξ(T∖T')` is marginal-controlled even
-though the *mass* is not), and a finite-intersection-property argument on decreasing compacts forces
-`w = 0`.  `sorry`-free and axiom-clean. -/
+sharp content is `w = 0`, the **multivariate spectral theorem's** core (the joint spectral measure
+of the commuting pair assigns no mass to `∅`; *not* recoverable from the marginal data alone, cf.
+`exists_coupling_always`).  It is discharged here by **Route T (tightness / Alexandrov)**: the joint
+content's compact inner regularity comes from the genuine marginals via commutation + contraction
+(the approximation *defect* `mR((S×T)∖(S'×T')) ≤ μ^A_ξ(S∖S') + μ^B_ξ(T∖T')` is marginal-controlled
+even though the *mass* is not), and a finite-intersection-property argument on decreasing compacts
+forces `w = 0`.  `sorry`-free and axiom-clean. -/
 theorem jointContentRing_tendsto_empty (A B : Spectra.Operator.SelfAdjointOperator H)
     (hSC : StronglyCommute A B) (ξ : H) ⦃s : ℕ → Set (ℝ × ℝ)⦄
     (hs : ∀ n, s n ∈ supClosure jointRectangles) (hanti : Antitone s) (hempty : (⋂ n, s n) = ∅) :
@@ -950,11 +987,12 @@ theorem jointContentRing_tendsto_empty (A B : Spectra.Operator.SelfAdjointOperat
     refine (hw.norm.pow 2).congr fun n => ?_
     exact (hav n).symm
   /- The limit `w = 0` by the **tightness (Alexandrov) argument**: it suffices that `L = ⨅ₙ aₙ = 0`.
-     If `L > 0`, inner-approximate each `sₙ` by a compact elementary `Cₙ ⊆ sₙ` (`jointElem_inner_compact`)
-     with content defect `≤ L/4·2⁻ⁿ`; the decreasing compacts `Kₙ = ⋂_{j≤n} Cⱼ` then keep content
-     `≥ L/2 > 0`, so each is nonempty, and by the finite intersection property `⋂ₙ Kₙ ≠ ∅` — but
-     `Kₙ ⊆ sₙ`, contradicting `⋂ₙ sₙ = ∅`.  The defect is marginal-controlled (`jointRect_diff_defect_le`),
-     the one place the genuine commuting-projection structure enters. -/
+     If `L > 0`, inner-approximate each `sₙ` by a compact elementary `Cₙ ⊆ sₙ`
+     (`jointElem_inner_compact`) with content defect `≤ L/4·2⁻ⁿ`; the decreasing compacts
+     `Kₙ = ⋂_{j≤n} Cⱼ` then keep content `≥ L/2 > 0`, so each is nonempty, and by the finite
+     intersection property `⋂ₙ Kₙ ≠ ∅` — but `Kₙ ⊆ sₙ`, contradicting `⋂ₙ sₙ = ∅`.  The defect is
+     marginal-controlled (`jointRect_diff_defect_le`), the one place the genuine
+     commuting-projection structure enters. -/
   have hw0 : w = 0 := by
     have hwsq : ‖w‖ ^ 2 = L := tendsto_nhds_unique ha_to_w ha_tendsto
     have hL_nonneg : 0 ≤ L := ge_of_tendsto' ha_tendsto ha_nonneg
@@ -1065,8 +1103,8 @@ theorem jointContentRing_tendsto_empty (A B : Spectra.Operator.SelfAdjointOperat
 `addContent_iUnion_eq_sum_of_tendsto_zero` (finiteness `jointContentRing_ne_top` + ∅-continuity
 `jointContentRing_tendsto_empty`), get `mR.IsSigmaSubadditive`
 (`isSigmaSubadditive_of_addContent_iUnion_eq_tsum`), then transfer down to the rectangles via
-`supClosure_apply_of_mem` (a rectangle is its own one-element sup-closure value).  Rests on the open
-∅-continuity, hence transitively `sorry`-dependent. -/
+`supClosure_apply_of_mem` (a rectangle is its own one-element sup-closure value).  Rests on the
+∅-continuity `jointContentRing_tendsto_empty`, which is proved, so this is `sorry`-free. -/
 theorem jointContent_isSigmaSubadditive (A B : Spectra.Operator.SelfAdjointOperator H)
     (hSC : StronglyCommute A B) (ξ : H) : (jointContent A B hSC ξ).IsSigmaSubadditive := by
   have hRing : MeasureTheory.IsSetRing (supClosure jointRectangles) :=
@@ -1118,8 +1156,9 @@ noncomputable def jointScalarMeasure (A B : Spectra.Operator.SelfAdjointOperator
 /-- **`μ_ξ` on a rectangle is the bimeasure value.**  `μ_ξ(S ×ˢ T) = μ^A_{E_B(T)ξ}(S)` — the
 Carathéodory measure agrees with the content on the semiring (`AddContent.measure_eq`), and the
 content on a rectangle is the diagonal form (`jointRectVal_prod_diag`). -/
-theorem jointScalarMeasure_prod (A B : Spectra.Operator.SelfAdjointOperator H) (hSC : StronglyCommute A B)
-    (ξ : H) {S T : Set ℝ} (hS : MeasurableSet S) (hT : MeasurableSet T) :
+theorem jointScalarMeasure_prod (A B : Spectra.Operator.SelfAdjointOperator H)
+    (hSC : StronglyCommute A B) (ξ : H) {S T : Set ℝ} (hS : MeasurableSet S)
+    (hT : MeasurableSet T) :
     jointScalarMeasure A B hSC ξ (S ×ˢ T)
       = (A.spectralPVM.diag (B.spectralPVM.proj T hT ξ)) S := by
   have hmem : (S ×ˢ T) ∈ jointRectangles := ⟨S, T, hS, hT, rfl⟩
@@ -1130,7 +1169,8 @@ theorem jointScalarMeasure_prod (A B : Spectra.Operator.SelfAdjointOperator H) (
 
 /-- **`μ_ξ` on a rectangle, in norm² form.**  `μ_ξ(S ×ˢ T).toReal = ‖E_A(S)E_B(T)ξ‖²`. -/
 theorem jointScalarMeasure_prod_norm_sq (A B : Spectra.Operator.SelfAdjointOperator H)
-    (hSC : StronglyCommute A B) (ξ : H) {S T : Set ℝ} (hS : MeasurableSet S) (hT : MeasurableSet T) :
+    (hSC : StronglyCommute A B) (ξ : H) {S T : Set ℝ} (hS : MeasurableSet S)
+    (hT : MeasurableSet T) :
     (jointScalarMeasure A B hSC ξ (S ×ˢ T)).toReal
       = ‖(A.spectralPVM.proj S hS * B.spectralPVM.proj T hT) ξ‖ ^ 2 := by
   rw [jointScalarMeasure_prod A B hSC ξ hS hT, ← jointRect_norm_sq_eq_diag A B hSC hS hT ξ]

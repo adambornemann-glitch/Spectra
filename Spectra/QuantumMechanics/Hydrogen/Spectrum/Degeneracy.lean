@@ -16,19 +16,20 @@ The combinatorial content of hydrogen's `n²` degeneracy: the index set of the
 `2ℓ+1` magnetic sublevels at each `ℓ < n`, the resulting orthonormal family of
 `n²` bound states `ψ_{nℓm}`, and the dimension count for its span.
 
-## Main results
+## Main statements
 
 * `degeneracy_sum` — `Σ_{ℓ=0}^{n-1} (2ℓ+1) = n²`.
 * `degenIndex` — the `Finset` of `(ℓ, j)` pairs indexing the `n²` sublevels at level `n`.
 * `orthonormal_degenFamily` — the family `{ψ_{nℓm}}` is orthonormal.
 * `degenFamily_span_finrank` — `dim span {ψ_{nℓm}} = n²`.
 
-This is a **lower bound** on the physical degeneracy `dim ker(H − E_n) = n²`, not
-yet the full statement: that equality additionally needs completeness within each
-angular-momentum sector and the as-yet-unbuilt unitary identifying this
-spherical-coordinate `L²(ℝ³)` with `Sobolev.l2R3` (where `hydrogenHamiltonian`
-lives). See `Spectrum/Projections.lean` for the spectral-side transport of this
-count along `chartRealization`.
+This is the **combinatorial half** of the physical degeneracy `dim ker(H − E_n) = n²`:
+it counts the `n²` orthonormal spherical-coordinate bound states and shows their span
+has dimension `n²`. Transporting this count to the true `Eₙ`-eigenspace of
+`hydrogenHamiltonian` on `Sobolev.l2R3` — via the unitary `chartRealization` and the
+completeness of the separated eigenfunctions within each angular-momentum sector — is
+carried out in `Spectrum/Projections.lean` (`hydrogen_eigenspace_eq_span` and
+`hydrogen_spectral_projection_finrank`), which delivers the full `n²` degeneracy.
 
 ## References
 
@@ -109,12 +110,13 @@ lemma orthonormal_degenFamily (n : ℕ) : Orthonormal ℂ (degenFamily n) := by
     family linearly independent, so the dimension of its span equals its cardinality
     `n²` (`card_degenIndex`, via `degeneracy_sum`).
 
-    This makes the lower bound `dim ker(H − E_n) ≥ n²` precise. That the span is
-    *exactly* the `E_n`-eigenspace additionally needs completeness within each
-    sector and the as-yet-unbuilt unitary identifying this spherical-coordinate
-    `L²(ℝ³)` with `Sobolev.l2R3` (where `hydrogenHamiltonian` lives), so the full
-    `dim ker(H − E_n) = n²` — the physical degeneracy theorem — is not yet
-    available; this lemma is the combinatorial half of it. -/
+    This is the combinatorial half of the physical degeneracy: it fixes the count on
+    the spherical-coordinate side. That the transported span is *exactly* the
+    `E_n`-eigenspace of `hydrogenHamiltonian` on `Sobolev.l2R3` — via the unitary
+    `chartRealization` and completeness within each angular-momentum sector — is
+    established in `Spectrum/Projections.lean` (`hydrogen_eigenspace_eq_span`,
+    `hydrogen_spectral_projection_finrank`), yielding the full
+    `dim ker(H − E_n) = n²`. -/
 theorem degenFamily_span_finrank (n : ℕ) :
     Module.finrank ℂ (Submodule.span ℂ (Set.range (degenFamily n))) = n ^ 2 := by
   rw [finrank_span_eq_card (orthonormal_degenFamily n).linearIndependent,

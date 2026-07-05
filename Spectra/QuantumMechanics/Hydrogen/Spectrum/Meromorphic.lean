@@ -6,15 +6,18 @@ Authors: Adam Bornemann
 import Spectra.SpectralTheory.SimplePole
 import Spectra.QuantumMechanics.Hydrogen.Spectrum.Isolation
 /-!
-# Meromorphy of the hydrogen resolvent (Tier C: C3 + C4)
+# Meromorphy of the hydrogen resolvent (Tier C: C3 + C4 + C5)
 
-The resolvent of the hydrogen Hamiltonian is **meromorphic** on `ℂ ∖ [0,∞)`, with a simple pole at
+The resolvent of the hydrogen Hamiltonian is **meromorphic** on `ℂ ∖ [0,∞)`, with a pole at
 each negative eigenvalue `Eₙ`.  The pole step (C3) is the operator-general
 `meromorphicAt_resolventOf_of_isolated` specialized via the eigenvalue isolation (`C2`) and the
-gap-projection (`G3`); the assembly (C4) cases on the region `ℂ ∖ Set.Ici (0:ℂ)`.
+gap-projection (`G3`); the assembly (C4) cases on the region `ℂ ∖ Set.Ici (0:ℂ)`; the residue
+step (C5) reads off the limit `(z − Eₙ)·R(z) → −E({Eₙ})`.
 
 ## Main statements
 * `hydrogen_meromorphicAt_eigenvalue` — `MeromorphicAt (resolventOf H) Eₙ` (C3).
+* `hydrogen_meromorphicOn` — `MeromorphicOn (resolventOf H) (Set.Ici (0:ℂ))ᶜ` (C4).
+* `hydrogen_residue_eigenvalue` — the residue at `Eₙ` is `−E({Eₙ})` (C5).
 -/
 open Complex Filter
 open scoped ComplexOrder Topology
@@ -27,7 +30,8 @@ open Spectra.QuantumMechanics.Hydrogen
 
 namespace QuantumMechanics.Hydrogen.Spectrum
 
-/-- **C3 — the hydrogen resolvent has a simple pole at each negative eigenvalue.** -/
+/-- **C3 — the hydrogen resolvent is meromorphic at each negative eigenvalue `Eₙ`** (a pole,
+`MeromorphicAt (resolventOf H) Eₙ`). -/
 theorem hydrogen_meromorphicAt_eigenvalue (n : ℕ) (hn : 1 ≤ n) :
     MeromorphicAt (resolventOf (hydrogenHamiltonian ⟨1, one_pos⟩))
       (hydrogenEigenvalue n hn : ℂ) := by
@@ -56,8 +60,8 @@ theorem hydrogen_meromorphicAt_eigenvalue (n : ℕ) (hn : 1 ≤ n) :
   have hmero := meromorphicAt_resolventOf_of_isolated (genToGroup hA) hδpos hgapJ hiso'
   rwa [generator_genToGroup hA] at hmero
 
-/-- **C4 — the hydrogen resolvent is meromorphic on `ℂ ∖ [0,∞)`** (the complement of the essential
-spectrum): analytic off the spectrum, with a simple pole at each negative eigenvalue. -/
+/-- **C4 — the hydrogen resolvent is meromorphic on `ℂ ∖ [0,∞)`** (the complement of the
+essential spectrum): analytic off the spectrum, with a pole at each negative eigenvalue. -/
 theorem hydrogen_meromorphicOn :
     MeromorphicOn (resolventOf (hydrogenHamiltonian ⟨1, one_pos⟩)) (Set.Ici (0 : ℂ))ᶜ := by
   set A := hydrogenHamiltonian ⟨1, one_pos⟩ with hA_def
@@ -84,8 +88,8 @@ theorem hydrogen_meromorphicOn :
   · -- non-real: resolvent point (analytic, C1)
     exact (resolventOf_analyticAt (mem_resolventSet_of_im_ne_zero hA him)).meromorphicAt
 
-/-- **C5 — the residue of the hydrogen resolvent at `Eₙ` is `−E({Eₙ})`** (the spectral projection):
-`(z − Eₙ)·R(z) → −E({Eₙ})` in operator norm as `z → Eₙ`. -/
+/-- **C5 — the residue of the hydrogen resolvent at `Eₙ` is `−E({Eₙ})`** (the spectral
+projection): `(z − Eₙ)·R(z) → −E({Eₙ})` in operator norm as `z → Eₙ`. -/
 theorem hydrogen_residue_eigenvalue (n : ℕ) (hn : 1 ≤ n) :
     Tendsto (fun z => (z - (hydrogenEigenvalue n hn : ℂ))
         • resolventOf (hydrogenHamiltonian ⟨1, one_pos⟩) z)
