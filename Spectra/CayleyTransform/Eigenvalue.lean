@@ -168,6 +168,45 @@ lemma self_adjoint_norm_sq_add
     ‖A ψ + I • (ψ : H)‖ ^ 2 = ‖A ψ‖ ^ 2 + ‖(ψ : H)‖ ^ 2 :=
   norm_sq_add_I_smul hsym ψ
 
+/-- Pure real-arithmetic core of the δ-independent norm floor used in
+`cayley_approx_eigenvalue_backward`: given the norm identity `‖Aψ‖² + ‖ψ‖² = 1`, the upper bound
+`‖Aψ‖ ≤ |μ|·‖ψ‖ + δ`, and `δ` small relative to `denom`, conclude `1/(2·denom) ≤ ‖ψ‖`. Extracted as
+a standalone real-number lemma (no Hilbert-space dependency) — run in place inside the accumulated
+proof context of `cayley_approx_eigenvalue_backward`, the same `nlinarith` calls cost ~10× more
+(context-size cost, not a repeated-coercion bug; see the compile-time case study). -/
+lemma cayley_norm_lower_bound {μ nψ nAψ δ denom : ℝ}
+    (hnψ_nonneg : 0 ≤ nψ) (hnAψ_nonneg : 0 ≤ nAψ) (hδ_nonneg : 0 ≤ δ)
+    (hdenom_pos : denom > 0) (hdenom_ge_one : denom ≥ 1)
+    (h_denom_sq : denom ^ 2 = 1 + μ ^ 2)
+    (hδ_small : δ < 1 / (4 * denom))
+    (h_norm_identity : nAψ ^ 2 + nψ ^ 2 = 1)
+    (h_Aψ_upper : nAψ ≤ |μ| * nψ + δ) :
+    1 / (2 * denom) ≤ nψ := by
+  have hδ_half : δ ≤ 1 / 2 := by
+    have hle : (1 : ℝ) / (4 * denom) ≤ 1 / 2 := by
+      rw [div_le_div_iff₀ (by positivity) (by norm_num)]; nlinarith [hdenom_ge_one]
+    linarith [hδ_small, hle]
+  have h_crude : (1 : ℝ) ≤ (1 + 2 * μ ^ 2) * nψ ^ 2 + 2 * δ ^ 2 := by
+    have hsq : nAψ ^ 2 ≤ (|μ| * nψ + δ) ^ 2 :=
+      sq_le_sq'
+        (by nlinarith [hnAψ_nonneg, mul_nonneg (abs_nonneg μ) hnψ_nonneg, hδ_nonneg])
+        h_Aψ_upper
+    rw [← sq_abs μ]
+    nlinarith [h_norm_identity, hsq, sq_nonneg (|μ| * nψ - δ)]
+  have hsq_lower : 1 / (4 * denom ^ 2) ≤ nψ ^ 2 := by
+    have hge : (1 : ℝ) / 2 ≤ (1 + 2 * μ ^ 2) * nψ ^ 2 := by
+      nlinarith [h_crude, hδ_half, hδ_nonneg]
+    have hsq1 : 1 / (2 * (1 + 2 * μ ^ 2)) ≤ nψ ^ 2 := by
+      rw [div_le_iff₀ (by positivity)]; nlinarith [hge]
+    have hcmp : 1 / (4 * denom ^ 2) ≤ 1 / (2 * (1 + 2 * μ ^ 2)) := by
+      rw [h_denom_sq, div_le_div_iff₀ (by positivity) (by positivity)]; nlinarith [sq_nonneg μ]
+    linarith [hsq1, hcmp]
+  have h := Real.sqrt_le_sqrt hsq_lower
+  rwa [Real.sqrt_sq hnψ_nonneg,
+       show Real.sqrt (1 / (4 * denom ^ 2)) = 1 / (2 * denom) by
+         rw [show (1 : ℝ) / (4 * denom ^ 2) = (1 / (2 * denom)) ^ 2 by ring,
+             Real.sqrt_sq (by positivity)]] at h
+
 /-- Approximate eigenvalues of `U` give approximate eigenvalues of `A`. -/
 lemma cayley_approx_eigenvalue_backward
     {A : H →ₗ.[ℂ] H} (hsym : A.IsFormalAdjoint A)
@@ -234,30 +273,8 @@ lemma cayley_approx_eigenvalue_backward
         _ ≤ ‖A ψ - (↑μ : ℂ) • (ψ : H)‖ + ‖(↑μ : ℂ) • (ψ : H)‖ := norm_add_le _ _
         _ = δ + |μ| * ‖(ψ : H)‖ := by rw [← hδ_def, h1]
         _ = |μ| * ‖(ψ : H)‖ + δ := by ring
-    have hδ_half : δ ≤ 1 / 2 := by
-      have hle : (1 : ℝ) / (4 * denom) ≤ 1 / 2 := by
-        rw [div_le_div_iff₀ (by positivity) (by norm_num)]; nlinarith [hdenom_ge_one]
-      linarith [hδ_small, hle]
-    have h_crude : (1 : ℝ) ≤ (1 + 2 * μ ^ 2) * ‖(ψ : H)‖ ^ 2 + 2 * δ ^ 2 := by
-      have hsq : ‖A ψ‖ ^ 2 ≤ (|μ| * ‖(ψ : H)‖ + δ) ^ 2 :=
-        sq_le_sq'
-          (by nlinarith [norm_nonneg (A ψ), mul_nonneg (abs_nonneg μ) (norm_nonneg (ψ : H)), hδ_nonneg])
-          h_Aψ_upper
-      rw [← sq_abs μ]
-      nlinarith [h_norm_identity, hsq, sq_nonneg (|μ| * ‖(ψ : H)‖ - δ)]
-    have hsq_lower : 1 / (4 * denom ^ 2) ≤ ‖(ψ : H)‖ ^ 2 := by
-      have hge : (1 : ℝ) / 2 ≤ (1 + 2 * μ ^ 2) * ‖(ψ : H)‖ ^ 2 := by
-        nlinarith [h_crude, hδ_half, hδ_nonneg]
-      have hsq1 : 1 / (2 * (1 + 2 * μ ^ 2)) ≤ ‖(ψ : H)‖ ^ 2 := by
-        rw [div_le_iff₀ (by positivity)]; nlinarith [hge]
-      have hcmp : 1 / (4 * denom ^ 2) ≤ 1 / (2 * (1 + 2 * μ ^ 2)) := by
-        rw [h_denom_sq, div_le_div_iff₀ (by positivity) (by positivity)]; nlinarith [sq_nonneg μ]
-      linarith [hsq1, hcmp]
-    have h := Real.sqrt_le_sqrt hsq_lower
-    rwa [Real.sqrt_sq (norm_nonneg (ψ : H)),
-         show Real.sqrt (1 / (4 * denom ^ 2)) = 1 / (2 * denom) by
-           rw [show (1 : ℝ) / (4 * denom ^ 2) = (1 / (2 * denom)) ^ 2 by ring,
-               Real.sqrt_sq (by positivity)]] at h
+    exact cayley_norm_lower_bound (norm_nonneg (ψ : H)) (norm_nonneg (A ψ)) hδ_nonneg
+      hdenom_pos hdenom_ge_one h_denom_sq hδ_small h_norm_identity h_Aψ_upper
   calc δ < C' / (2 * denom) := hδ_bound
     _ ≤ C / (2 * denom) := div_le_div_of_nonneg_right hC'_le_C (by positivity)
     _ ≤ C * ‖(ψ : H)‖ := by

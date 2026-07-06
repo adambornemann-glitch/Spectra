@@ -110,6 +110,17 @@ objects it is stated in terms of now all exist and carry their defining properti
   bundle.
 - **Hilbert tensor products** `E ⊗̂ F` — cross norm `‖A ⊗̂ B‖ = ‖A‖·‖B‖`, the tensor Hilbert basis,
   the tensor powers `⨂ⁿ H`, and the **full Fock space** `fullFock`.
+- **Bosonic & fermionic Fock spaces** — the symmetrizer/antisymmetrizer as self-adjoint idempotent
+  contractions, the symmetric/antisymmetric sectors with their permutation-invariance
+  characterizations, **Pauli exclusion** at the tensor level (`altProj_tprod_eq_zero`),
+  `boseFock`/`fermiFock`, and diagonal isometries of Hilbert sums (`lpCongrRight`).
+- **Fock-space kinematics** — the vacuum, orthogonal sector embeddings, dense finite-particle
+  cores, the **self-adjoint number operator** (`numberOp_isSelfAdjoint`), exponential vectors
+  with `⟪ε(f), ε(g)⟫ = exp ⟪f, g⟫` (`inner_expVec_expVec`), the polarization identity, and the
+  totality theorem `expVec_total` — the closed span of the coherent vectors is everything.
+- **Krein spaces** — fundamental symmetries `J`, the indefinite Krein form, the fundamental
+  decomposition `H₋ = H₊ᗮ`, the J-adjoint calculus, and the **Krein–Fock lift**: `J` second-quantizes
+  to `fockSymmetry` on `fullFock` — the Gupta–Bleuler indefinite metric, sector by sector.
 
 ### Quantum mechanics  (`QuantumMechanics/`)
 
@@ -210,7 +221,10 @@ confirm it holds:
 
 A CI workflow ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) runs the build+gate, the
 statement-level [`NumericChecks`](NumericChecks/README.md) suite, and a `scripts/check_lengths.py`
-length ratchet on every push and pull request.
+length ratchet on every push and pull request. A companion `scripts/check_compile_time.py` times
+each file's isolated elaboration and flags anything slower than 5s against a baseline
+([`scripts/compile-time-baseline.txt`](scripts/compile-time-baseline.txt)); see
+[CONTRIBUTING.md](CONTRIBUTING.md#compile-time-monitoring) for how to run it.
 
 ### Statement-level checks — the second gate
 

@@ -260,7 +260,8 @@ lemma exponential_strong_continuous
         Continuous (fun s : ℝ => expBounded (I • yosidaApproxSym hsym hplus hminus n) s φ) := by
       intro n
       have hc : Continuous (fun s : ℝ => expBounded (I • yosidaApproxSym hsym hplus hminus n) s) :=
-        Differentiable.continuous fun s => (expBounded_hasDerivAt _ s).differentiableAt
+        Differentiable.continuous fun s =>
+          (expBounded_hasDerivAt (I • yosidaApproxSym hsym hplus hminus n) s).differentiableAt
       exact hc.clm_apply continuous_const
     have hbound : ∀ (n : ℕ+) (s : ℝ),
         ‖exponential hsym hplus hminus h_dense s φ
@@ -446,7 +447,8 @@ lemma expBounded_yosidaApproxSym_duhamel
       expBounded (I • yosidaApproxSym hsym hplus hminus n) s
         (I • yosidaApproxSym hsym hplus hminus n φ)) := by
     have hc : Continuous (fun s : ℝ => expBounded (I • yosidaApproxSym hsym hplus hminus n) s) :=
-      Differentiable.continuous fun s => (expBounded_hasDerivAt _ s).differentiableAt
+      Differentiable.continuous fun s =>
+        (expBounded_hasDerivAt (I • yosidaApproxSym hsym hplus hminus n) s).differentiableAt
     exact hc.clm_apply continuous_const
   have h := intervalIntegral.integral_eq_sub_of_hasDerivAt
     (fun s _ => hderiv s) (hcont.intervalIntegrable 0 t)
@@ -468,7 +470,8 @@ lemma exponential_sub_eq_integral
         (I • yosidaApproxSym hsym hplus hminus n φ)) := by
     intro n
     have hc : Continuous (fun s : ℝ => expBounded (I • yosidaApproxSym hsym hplus hminus n) s) :=
-      Differentiable.continuous fun s => (expBounded_hasDerivAt _ s).differentiableAt
+      Differentiable.continuous fun s =>
+        (expBounded_hasDerivAt (I • yosidaApproxSym hsym hplus hminus n) s).differentiableAt
     exact hc.clm_apply continuous_const
   -- pointwise convergence of the integrand to `I·exp(isA)(Aφ)`
   have hptwise : ∀ s : ℝ, Tendsto (fun n : ℕ+ =>

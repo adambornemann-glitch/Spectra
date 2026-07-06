@@ -921,22 +921,26 @@ theorem borelForm_cfcHom_left (f₁ : C(spectrum ℂ U, ℂ)) (g : spectrum ℂ 
     (hg_meas : Measurable g) (hg_bdd : ∃ C, ∀ z, ‖g z‖ ≤ C) (ξ η : H) :
     borelForm U hn g (cfcHom hn f₁ ξ) η
       = borelForm U hn (fun z => starRingEnd ℂ (f₁ z) * g z) ξ η := by
+  -- `cfcHom hn f₁ ξ` recurs 7 times below; naming it once avoids repeatedly re-unifying the
+  -- same `cfcHom`-coerced expression (see the compile-time case study).
+  set cfcF1Xi : H := cfcHom hn f₁ ξ with hcfcF1Xi
   have hcf_meas : Measurable fun z => starRingEnd ℂ (f₁ z) :=
     (Complex.continuous_conj.comp f₁.continuous).measurable
   have hcf_bdd : ∃ C, ∀ z, ‖starRingEnd ℂ (f₁ z)‖ ≤ C :=
     ⟨‖f₁‖, fun z => by rw [RCLike.norm_conj]; exact f₁.norm_coe_le_norm z⟩
   -- (KL) on continuous symbols, via `cfcHom` multiplicativity
   have hcont_kl : ∀ f : C(spectrum ℂ U, ℂ),
-      borelForm U hn (fun z => f z) (cfcHom hn f₁ ξ) η
+      borelForm U hn (fun z => f z) cfcF1Xi η
         = borelForm U hn (fun z => starRingEnd ℂ (f₁ z) * f z) ξ η := by
     intro f
     have hadj : (cfcHom hn f₁).adjoint = cfcHom hn (star f₁) := by
       rw [← ContinuousLinearMap.star_eq_adjoint, ← map_star]
-    have e2 : ⟪cfcHom hn f₁ ξ, cfcHom hn f η⟫_ℂ = ⟪ξ, cfcHom hn (star f₁ * f) η⟫_ℂ := by
-      rw [map_mul, ContinuousLinearMap.mul_apply, ← hadj, ContinuousLinearMap.adjoint_inner_right]
-    rw [show borelForm U hn (fun z => f z) (cfcHom hn f₁ ξ) η
-          = ⟪cfcHom hn f₁ ξ, cfcHom hn f η⟫_ℂ from
-        (inner_cfcHom_polarized U hn (cfcHom hn f₁ ξ) η f).symm, e2]
+    have e2 : ⟪cfcF1Xi, cfcHom hn f η⟫_ℂ = ⟪ξ, cfcHom hn (star f₁ * f) η⟫_ℂ := by
+      rw [hcfcF1Xi, map_mul, ContinuousLinearMap.mul_apply, ← hadj,
+        ContinuousLinearMap.adjoint_inner_right]
+    rw [show borelForm U hn (fun z => f z) cfcF1Xi η
+          = ⟪cfcF1Xi, cfcHom hn f η⟫_ℂ from
+        (inner_cfcHom_polarized U hn cfcF1Xi η f).symm, e2]
     exact inner_cfcHom_polarized U hn ξ η (star f₁ * f)
   -- extend to bounded measurable `g` by the two-sided density engine
   have hcomm : ∀ (q : spectrum ℂ U → ℂ) (μ : Measure (spectrum ℂ U)),
@@ -944,7 +948,7 @@ theorem borelForm_cfcHom_left (f₁ : C(spectrum ℂ U, ℂ)) (g : spectrum ℂ 
     fun q μ => integral_congr_ae (.of_forall fun z => mul_comm _ _)
   have key := spectrum_combination_ext_density U hn
     (![1 / 4, -(1 / 4), -(I / 4), I / 4])
-    (![cfcHom hn f₁ ξ + η, cfcHom hn f₁ ξ - η, cfcHom hn f₁ ξ + I • η, cfcHom hn f₁ ξ - I • η])
+    (![cfcF1Xi + η, cfcF1Xi - η, cfcF1Xi + I • η, cfcF1Xi - I • η])
     (![fun _ => (1 : ℂ), fun _ => 1, fun _ => 1, fun _ => 1])
     (fun i => by fin_cases i <;> exact measurable_const)
     (fun i => by fin_cases i <;> exact ⟨1, fun _ => by simp⟩)
@@ -975,17 +979,20 @@ theorem borelForm_calculus_right (g h : spectrum ℂ U → ℂ)
     (hhm : Measurable h) (hhb : ∃ C, ∀ z, ‖h z‖ ≤ C) (ξ η : H) :
     borelForm U hn h ξ (borelCalculus U hn g hgm hgb η)
       = borelForm U hn (fun z => h z * g z) ξ η := by
+  -- `borelCalculus U hn g hgm hgb η` recurs 7 times below; naming it once avoids repeatedly
+  -- re-unifying the same expression (see the compile-time case study).
+  set uGη : H := borelCalculus U hn g hgm hgb η with huGη
   -- per-continuous-symbol identity, via the cfcHom adjoint + left intertwining
   have hcont_key : ∀ f : C(spectrum ℂ U, ℂ),
-      borelForm U hn (fun z => f z) ξ (borelCalculus U hn g hgm hgb η)
+      borelForm U hn (fun z => f z) ξ uGη
         = borelForm U hn (fun z => f z * g z) ξ η := by
     intro f
     have hadj : (cfcHom hn f).adjoint = cfcHom hn (star f) := by
       rw [← ContinuousLinearMap.star_eq_adjoint, ← map_star]
-    rw [show borelForm U hn (fun z => f z) ξ (borelCalculus U hn g hgm hgb η)
-          = ⟪ξ, cfcHom hn f (borelCalculus U hn g hgm hgb η)⟫_ℂ from
-        (inner_cfcHom_polarized U hn ξ (borelCalculus U hn g hgm hgb η) f).symm,
-      ← ContinuousLinearMap.adjoint_inner_left, hadj,
+    rw [show borelForm U hn (fun z => f z) ξ uGη
+          = ⟪ξ, cfcHom hn f uGη⟫_ℂ from
+        (inner_cfcHom_polarized U hn ξ uGη f).symm,
+      ← ContinuousLinearMap.adjoint_inner_left, hadj, huGη,
       inner_borelCalculus U hn g hgm hgb (cfcHom hn (star f) ξ) η,
       borelForm_cfcHom_left U hn (star f) g hgm hgb ξ η]
     congr 1
@@ -993,8 +1000,7 @@ theorem borelForm_calculus_right (g h : spectrum ℂ U → ℂ)
     simp [ContinuousMap.star_apply]
   have key := spectrum_combination_ext_density U hn
     (![1 / 4, -(1 / 4), -(I / 4), I / 4])
-    (![ξ + borelCalculus U hn g hgm hgb η, ξ - borelCalculus U hn g hgm hgb η,
-        ξ + I • borelCalculus U hn g hgm hgb η, ξ - I • borelCalculus U hn g hgm hgb η])
+    (![ξ + uGη, ξ - uGη, ξ + I • uGη, ξ - I • uGη])
     (![fun _ => (1 : ℂ), fun _ => 1, fun _ => 1, fun _ => 1])
     (fun i => by fin_cases i <;> exact measurable_const)
     (fun i => by fin_cases i <;> exact ⟨1, fun _ => by simp⟩)

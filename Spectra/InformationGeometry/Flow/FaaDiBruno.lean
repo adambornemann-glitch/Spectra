@@ -268,6 +268,481 @@ lemma fderiv_klDiv_phi_apply_live
     Spectra.InformationGeometry.TwiceDifferentiableModel.DivergencePreservingFamily.fderiv_klDiv_phi_apply_live
       (M := M.toTwiceDifferentiableModel) F hθ t a hV
 
+/-- Third-order regularity of `D(α‖·)` at `α`: the second-derivative map
+`θ' ↦ fderiv (klDiv α) θ'` is itself differentiable at `α`. Via a basis
+decomposition of scalar CLMs and the third-order (`ThriceDifferentiableModel`)
+domination/measurability fields, reduces to differentiability of finitely many
+scalar cross-score partials. Extracted from `kl_faa_di_bruno`'s `h_helper` as a
+compile-time experiment: independent of `F`/`t`/`θ`/`a`/`b`/`c`, so it doesn't
+need to live inside this `DivergencePreservingFamily` proof at all. -/
+private lemma klDiv_secondDerivMap_differentiableAt {α : ParamSpace n} (hα : α ∈ M.paramDomain) :
+    DifferentiableAt ℝ (fun θ' => fderiv ℝ (fun θ'' => fderiv ℝ (M.klDiv α) θ'') θ') α := by
+  haveI : IsScalarTower ℝ ℝ (ParamSpace n →L[ℝ] ℝ) :=
+    ⟨fun r s f => by ext x; simp only [ContinuousLinearMap.smul_apply,
+      smul_eq_mul, mul_assoc]⟩
+  -- (i) Basis decomposition of scalar-valued CLMs (pointwise h_eq).
+  have hCLM : ∀ L : ParamSpace n →L[ℝ] ℝ,
+      L = ∑ k : Fin n, L (EuclideanSpace.single k 1) •
+        (innerSL ℝ (EuclideanSpace.single k (1 : ℝ)) :
+          ParamSpace n →L[ℝ] ℝ) :=
+    continuousLinearMap_eq_sum_innerSL
+  -- (ii) Scalar third partials are differentiable at α.
+  have hS : ∀ j k : Fin n, DifferentiableAt ℝ
+      (fun θ' => fderiv ℝ (fun θ'' =>
+        -∫ ω, M.density α ω *
+          M.toRegularStatisticalModel.score θ'' k ω ∂M.refMeasure) θ'
+        (EuclideanSpace.single j 1)) α := by
+    intro j k
+    obtain ⟨g₂, hg₂, _⟩ := M.klDiv_third_partial hα j k
+      (M.scorePartial_fderiv_bound α hα α hα j k)
+      (M.scorePartial_density_integrable α hα j k)
+      (M.scorePartial_deriv_aestronglyMeasurable α hα j k)
+      (M.scorePartial_density_aestronglyMeasurable α hα j k)
+    refine hg₂.differentiableAt.congr_of_eventuallyEq ?_
+    filter_upwards [M.isOpen_paramDomain.mem_nhds hα] with θ' hθ'
+    obtain ⟨g₁, hg₁, heval⟩ := M.cross_score_hasFDerivAt' hα hθ' k
+    rw [hg₁.fderiv]
+    exact heval j
+  -- (iii) Doubly-scalar rank-one representation.  Near α the
+  -- second-derivative map equals
+  --   ∑ₖ ∑ⱼ ∂ⱼCₖ(θ') • (⟪eⱼ,·⟫.smulRight ⟪eₖ,·⟫),
+  -- a finite sum of scalar functions (differentiable at α by (ii))
+  -- times *constant* rank-one operators.  All types are pinned via
+  -- named arguments: with metavariables in the operator-valued
+  -- codomain `ParamSpace n →L[ℝ] (ParamSpace n →L[ℝ] ℝ)`, typeclass
+  -- resolution of `NormedSpace ?𝕜 ?F` gets stuck — which is what
+  -- killed the `smulRightL`/`clm_apply` formulation of this step.
+  haveI : IsScalarTower ℝ ℝ (ParamSpace n →L[ℝ] (ParamSpace n →L[ℝ] ℝ)) :=
+    ⟨fun r s f => by
+      ext x v
+      simp only [ContinuousLinearMap.smul_apply, smul_eq_mul, mul_assoc]⟩
+  have hsum : ∀ k : Fin n, DifferentiableAt ℝ
+      (fun θ' => ∑ j : Fin n,
+        fderiv ℝ (fun θ'' =>
+          -∫ ω, M.density α ω *
+            M.toRegularStatisticalModel.score θ'' k ω ∂M.refMeasure) θ'
+          (EuclideanSpace.single j 1) •
+        (((innerSL ℝ (EuclideanSpace.single j (1 : ℝ))).smulRight
+          (innerSL ℝ (EuclideanSpace.single k (1 : ℝ)))) :
+          ParamSpace n →L[ℝ] (ParamSpace n →L[ℝ] ℝ))) α := fun k =>
+    DifferentiableAt.fun_sum (𝕜 := ℝ)
+      (u := (Finset.univ : Finset (Fin n))) (x := α)
+      (A := fun j θ' =>
+        fderiv ℝ (fun θ'' =>
+          -∫ ω, M.density α ω *
+            M.toRegularStatisticalModel.score θ'' k ω ∂M.refMeasure) θ'
+          (EuclideanSpace.single j 1) •
+        (((innerSL ℝ (EuclideanSpace.single j (1 : ℝ))).smulRight
+          (innerSL ℝ (EuclideanSpace.single k (1 : ℝ)))) :
+          ParamSpace n →L[ℝ] (ParamSpace n →L[ℝ] ℝ)))
+      -- `smul_const` demands `[IsBoundedSMul ℝ F]` on the
+      -- operator-valued type, and that goal's instance arguments
+      -- (inherited from `smul_const`'s binders) sit on paths the
+      -- global `NormedSpace.toIsBoundedSMul` won't unify with.
+      -- Route around it: `θ' ↦ ∂ⱼCₖ(θ') • Eⱼₖ` factors through the
+      -- *continuous linear map* `(1 : ℝ →L[ℝ] ℝ).smulRight Eⱼₖ`
+      -- (generic topological-module layer, no `IsBoundedSMul`), and
+      -- `(smulRight 1 Eⱼₖ) r = r • Eⱼₖ` is `rfl`.  `g` is pinned as
+      -- the coercion of that map, so the `f` of
+      -- `ContinuousLinearMap.differentiableAt` is forced by
+      -- unification and the operator blob is written only once.
+      fun j _ =>
+        DifferentiableAt.fun_comp' (𝕜 := ℝ)
+          (g := ⇑((1 : ℝ →L[ℝ] ℝ).smulRight
+            (((innerSL ℝ (EuclideanSpace.single j (1 : ℝ))).smulRight
+              (innerSL ℝ (EuclideanSpace.single k (1 : ℝ)))) :
+              ParamSpace n →L[ℝ] (ParamSpace n →L[ℝ] ℝ))))
+          (f := fun θ' =>
+            fderiv ℝ (fun θ'' =>
+              -∫ ω, M.density α ω *
+                M.toRegularStatisticalModel.score θ'' k ω ∂M.refMeasure) θ'
+              (EuclideanSpace.single j 1))
+          α
+          (ContinuousLinearMap.differentiableAt _)
+          (hS j k)
+  have h_repr_diff : DifferentiableAt ℝ
+      (fun θ' => ∑ k : Fin n, ∑ j : Fin n,
+        fderiv ℝ (fun θ'' =>
+          -∫ ω, M.density α ω *
+            M.toRegularStatisticalModel.score θ'' k ω ∂M.refMeasure) θ'
+          (EuclideanSpace.single j 1) •
+        (((innerSL ℝ (EuclideanSpace.single j (1 : ℝ))).smulRight
+          (innerSL ℝ (EuclideanSpace.single k (1 : ℝ)))) :
+          ParamSpace n →L[ℝ] (ParamSpace n →L[ℝ] ℝ))) α :=
+    -- `𝕜`, `u`, `x` must be pinned in addition to `A`: they are the
+    -- metavariables that were still unassigned when unification
+    -- compared the (normed-path) conclusion of `fun_sum` against the
+    -- (TVS-path) ascription above, making the defeq instance-path
+    -- bridge fail.  With all arguments ground, the final defeq check
+    -- unfolds the paths (same situation as `h1` below).
+    DifferentiableAt.fun_sum (𝕜 := ℝ)
+      (u := (Finset.univ : Finset (Fin n))) (x := α)
+      (A := fun k θ' => ∑ j : Fin n,
+        fderiv ℝ (fun θ'' =>
+          -∫ ω, M.density α ω *
+            M.toRegularStatisticalModel.score θ'' k ω ∂M.refMeasure) θ'
+          (EuclideanSpace.single j 1) •
+        (((innerSL ℝ (EuclideanSpace.single j (1 : ℝ))).smulRight
+          (innerSL ℝ (EuclideanSpace.single k (1 : ℝ)))) :
+          ParamSpace n →L[ℝ] (ParamSpace n →L[ℝ] ℝ)))
+      fun k _ => hsum k
+  refine h_repr_diff.congr_of_eventuallyEq ?_
+  filter_upwards [M.isOpen_paramDomain.mem_nhds hα] with θ' hθ'
+  calc fderiv ℝ (fun θ'' => fderiv ℝ (M.klDiv α) θ'') θ'
+      = fderiv ℝ (fun θ'' => ∑ k : Fin n,
+          (-∫ ω, M.density α ω *
+            M.toRegularStatisticalModel.score θ'' k ω ∂M.refMeasure) •
+          (innerSL ℝ (EuclideanSpace.single k (1 : ℝ)) :
+            ParamSpace n →L[ℝ] ℝ)) θ' := by
+        -- The second-derivative map agrees near θ' with the
+        -- component sum: klDiv_partial_j inside the hCLM expansion.
+        refine Filter.EventuallyEq.fderiv_eq ?_
+        filter_upwards [M.isOpen_paramDomain.mem_nhds hθ'] with θ'' hθ''
+        rw [hCLM (fderiv ℝ (M.klDiv α) θ'')]
+        exact Finset.sum_congr rfl fun k _ => by
+          rw [M.klDiv_partial_j hα hθ'' k]
+    _ = ∑ k : Fin n, fderiv ℝ (fun θ'' =>
+          (-∫ ω, M.density α ω *
+            M.toRegularStatisticalModel.score θ'' k ω ∂M.refMeasure) •
+          (innerSL ℝ (EuclideanSpace.single k (1 : ℝ)) :
+            ParamSpace n →L[ℝ] ℝ)) θ' :=
+        fderiv_fun_sum fun k _ =>
+          (M.cross_score_differentiableAt hα hθ' k).smul_const _
+    _ = ∑ k : Fin n, ∑ j : Fin n,
+        fderiv ℝ (fun θ'' =>
+          -∫ ω, M.density α ω *
+            M.toRegularStatisticalModel.score θ'' k ω ∂M.refMeasure) θ'
+          (EuclideanSpace.single j 1) •
+        (((innerSL ℝ (EuclideanSpace.single j (1 : ℝ))).smulRight
+          (innerSL ℝ (EuclideanSpace.single k (1 : ℝ)))) :
+          ParamSpace n →L[ℝ] (ParamSpace n →L[ℝ] ℝ)) := by
+        refine Finset.sum_congr rfl fun k _ => ?_
+        -- fderiv of (scalar • const), as a term-mode equation:
+        -- `rw [fderiv_smul_const …]` fails its keyed match on the
+        -- instance-laden CLM types, but elaboration-level defeq
+        -- (`Eq.trans` against the goal) is fine.
+        refine (((M.cross_score_differentiableAt hα hθ' k).hasFDerivAt.smul_const
+          (innerSL ℝ (EuclideanSpace.single k (1 : ℝ)) :
+            ParamSpace n →L[ℝ] ℝ)).fderiv).trans ?_
+        -- (fderiv Cₖ θ').smulRight ⟪eₖ,·⟫ = ∑ⱼ ∂ⱼCₖ(θ') • Eⱼₖ:
+        -- expand fderiv Cₖ θ' by (i) and push the sum through.
+        conv_lhs => rw [hCLM (fderiv ℝ (fun θ'' =>
+          -∫ ω, M.density α ω *
+            M.toRegularStatisticalModel.score θ'' k ω ∂M.refMeasure) θ')]
+        ext w v
+        simp only [ContinuousLinearMap.smulRight_apply,
+          ContinuousLinearMap.sum_apply, ContinuousLinearMap.smul_apply,
+          smul_eq_mul]
+        rw [Finset.sum_mul]
+        exact Finset.sum_congr rfl fun j _ => mul_assoc _ _ _
+
+/-- Product rule at Level 2: `fderiv(L(·)(v(·)))(θ₁)(eᵇ) = dL(eᵇ)(v(θ₁)) + L(θ₁)(dv(eᵇ))`
+holds eventually near `θ`, where `L(θ₂) := fderiv(klDiv α)(φ_t θ₂)` and
+`v(θ₂) := dφ(θ₂)(e_c)`. Extracted from `kl_faa_di_bruno`'s `h_prod` as a compile-time
+experiment. -/
+private lemma klDiv_phi_prodRule_eventually {α : ParamSpace n} (hα : α ∈ M.paramDomain)
+    {t : ℝ} {θ : ParamSpace n} (hθ : θ ∈ M.paramDomain)
+    (hφ_smooth : ContDiff ℝ (⊤ : ℕ∞) (F.φ t)) (b c : Fin n) :
+    ∀ᶠ θ₁ in 𝓝 θ,
+      fderiv ℝ (fun θ₂ => fderiv ℝ (M.klDiv α) (F.φ t θ₂)
+        (fderiv ℝ (F.φ t) θ₂ (EuclideanSpace.single c 1))) θ₁
+        (EuclideanSpace.single b 1) =
+      fderiv ℝ (fun θ₂ => fderiv ℝ (M.klDiv α) (F.φ t θ₂)) θ₁
+        (EuclideanSpace.single b 1)
+        (fderiv ℝ (F.φ t) θ₁ (EuclideanSpace.single c 1))
+      +
+      fderiv ℝ (M.klDiv α) (F.φ t θ₁)
+        (fderiv ℝ (fun θ₂ => fderiv ℝ (F.φ t) θ₂
+          (EuclideanSpace.single c 1)) θ₁
+          (EuclideanSpace.single b 1)) := by
+  filter_upwards [M.isOpen_paramDomain.mem_nhds hθ] with θ₁ hθ₁
+  have hθ₁_im : F.φ t θ₁ ∈ M.paramDomain := F.maps_domain t θ₁ hθ₁
+  have hL_diff : DifferentiableAt ℝ
+      (fun θ₂ => fderiv ℝ (M.klDiv α) (F.φ t θ₂)) θ₁ := by
+    have h_fKL : DifferentiableAt ℝ (fderiv ℝ (M.klDiv α)) (F.φ t θ₁) :=
+      M.klDiv_fderiv_differentiableAt hα hθ₁_im
+    exact h_fKL.comp θ₁
+      (hφ_smooth.differentiable (by simp)).differentiableAt
+  have hv_diff : DifferentiableAt ℝ
+      (fun θ₂ => fderiv ℝ (F.φ t) θ₂ (EuclideanSpace.single c 1)) θ₁ :=
+    ((hφ_smooth.fderiv_right (m := (⊤ : ℕ∞)) (by exact_mod_cast le_top)).differentiable
+      (by simp)).differentiableAt.clm_apply
+      (differentiableAt_const _)
+  have h_pr := hL_diff.hasFDerivAt.clm_apply hv_diff.hasFDerivAt
+  rw [DFunLike.congr_fun h_pr.fderiv (EuclideanSpace.single b 1),
+      ContinuousLinearMap.add_apply, ContinuousLinearMap.comp_apply,
+      ContinuousLinearMap.flip_apply]
+  abel
+
+/-- Computation of `fderiv(P)(θ)(eₐ)`, where `P(θ₁) := fderiv(fderiv(klDiv α) ∘ φ_t)(θ₁)(eᵇ)
+(dφ(θ₁)(e_c))`. Splits via three nested product rules into the tensorial third-KL-derivative
+term plus two Hessian × second-derivative correction terms. Extracted from `kl_faa_di_bruno`'s
+`h_P_val` as a compile-time experiment. -/
+private lemma klDiv_phi_P_val {α : ParamSpace n} (hα : α ∈ M.paramDomain)
+    {t : ℝ} {θ : ParamSpace n} (hθ : θ ∈ M.paramDomain)
+    (a b c : Fin n)
+    (hα_def : α = F.φ t θ)
+    (hφ_smooth : ContDiff ℝ (⊤ : ℕ∞) (F.φ t))
+    (hG_diff : ∀ θ' ∈ M.paramDomain,
+      DifferentiableAt ℝ (fun θ'' => fderiv ℝ (M.klDiv α) θ'') θ')
+    (hF_diff : ∀ θ₂, DifferentiableAt ℝ (F.φ t) θ₂)
+    (hK_fderiv_ev :
+      (fun θ₂ => fderiv ℝ (fun θ₃ => fderiv ℝ (M.klDiv α) (F.φ t θ₃)) θ₂) =ᶠ[𝓝 θ]
+      (fun θ₂ => (fderiv ℝ (fun θ' => fderiv ℝ (M.klDiv α) θ') (F.φ t θ₂)).comp
+        (fderiv ℝ (F.φ t) θ₂)))
+    (h1 : DifferentiableAt ℝ
+      (fun θ₂ => fderiv ℝ (fun θ' => fderiv ℝ (M.klDiv α) θ') (F.φ t θ₂)) θ)
+    (h_helper' : DifferentiableAt ℝ
+      (fun θ' => fderiv ℝ (fun θ'' => fderiv ℝ (M.klDiv α) θ'') θ') (F.φ t θ))
+    (h_helper : DifferentiableAt ℝ
+      (fun θ' => fderiv ℝ (fun θ'' => fderiv ℝ (M.klDiv α) θ'') θ') α)
+    (hN_diff : DifferentiableAt ℝ
+      (fun θ₁ => fderiv ℝ (fun θ₂ => fderiv ℝ (M.klDiv α) (F.φ t θ₂)) θ₁
+        (EuclideanSpace.single b 1)) θ)
+    (hv_diff : DifferentiableAt ℝ
+      (fun θ₁ => fderiv ℝ (F.φ t) θ₁ (EuclideanSpace.single c 1)) θ) :
+    fderiv ℝ (fun θ₁ =>
+        fderiv ℝ (fun θ₂ => fderiv ℝ (M.klDiv α) (F.φ t θ₂)) θ₁
+          (EuclideanSpace.single b 1)
+          (fderiv ℝ (F.φ t) θ₁ (EuclideanSpace.single c 1))) θ
+        (EuclideanSpace.single a 1) =
+      -- Tensorial third KL derivative at α
+      fderiv ℝ (fun θ₁ =>
+        fderiv ℝ (fun θ₂ =>
+          fderiv ℝ (M.klDiv α) θ₂
+            (fderiv ℝ (F.φ t) θ (EuclideanSpace.single c 1))) θ₁
+          (fderiv ℝ (F.φ t) θ (EuclideanSpace.single b 1))) α
+        (fderiv ℝ (F.φ t) θ (EuclideanSpace.single a 1))
+      + M.toRegularStatisticalModel.fisherBilin α
+          (F.secondDerivPhi t θ a b)
+          (fderiv ℝ (F.φ t) θ (EuclideanSpace.single c 1))
+      + M.toRegularStatisticalModel.fisherBilin α
+          (F.secondDerivPhi t θ a c)
+          (fderiv ℝ (F.φ t) θ (EuclideanSpace.single b 1)) := by
+  -- Three nested product rules:
+  -- 1. P = M(·)(w(·)):  M'·w + M·w'
+  --    M(θ) = Hessian(α)(uᵇ), w' = d²φ_ac → M·w' = fisherBilin correction 3
+  --    (Schwarz symmetry of the Hessian swaps the slots)
+  -- 2. M = N(·)(w₂(·)):  N'·w₂ + N·w₂'
+  --    N(θ) = Hessian(α), w₂' = d²φ_ab → N·w₂' = fisherBilin correction 2
+  -- 3. N' composed with chain rule through φ_t gives tensorial part
+  have hφtθ : F.φ t θ = α := hα_def.symm
+  have hv_b : DifferentiableAt ℝ
+      (fun θ₁ => fderiv ℝ (F.φ t) θ₁ (EuclideanSpace.single b 1)) θ :=
+    ((hφ_smooth.fderiv_right (m := (⊤ : ℕ∞)) (by exact_mod_cast le_top)).differentiable
+      (by simp)).differentiableAt.clm_apply (differentiableAt_const _)
+  -- ── Rule 1: split fderiv(P)(θ)(eₐ) = M(θ)(w'(eₐ)) + (dM(eₐ))(w(θ)). ──
+  have h_pr := hN_diff.hasFDerivAt.clm_apply hv_diff.hasFDerivAt
+  rw [DFunLike.congr_fun h_pr.fderiv (EuclideanSpace.single a 1),
+      ContinuousLinearMap.add_apply, ContinuousLinearMap.comp_apply,
+      ContinuousLinearMap.flip_apply]
+  -- ── M(θ) = Hess(α) ∘ dφ(θ) at e_b, via the chain rule at θ. ──
+  have hMθ : fderiv ℝ (fun θ₂ => fderiv ℝ (M.klDiv α) (F.φ t θ₂)) θ =
+      (fderiv ℝ (fun θ' => fderiv ℝ (M.klDiv α) θ') α).comp
+        (fderiv ℝ (F.φ t) θ) := by
+    have h : fderiv ℝ (fun θ₂ => fderiv ℝ (M.klDiv α) (F.φ t θ₂)) θ =
+        (fderiv ℝ (fun θ' => fderiv ℝ (M.klDiv α) θ') (F.φ t θ)).comp
+          (fderiv ℝ (F.φ t) θ) := by
+      show fderiv ℝ ((fun θ' => fderiv ℝ (M.klDiv α) θ') ∘ F.φ t) θ = _
+      exact ((hG_diff _ (F.maps_domain t θ hθ)).hasFDerivAt.comp θ
+        (hF_diff θ).hasFDerivAt).fderiv
+    rw [hφtθ] at h
+    exact h
+  -- ── Schwarz: the Hessian of D(α‖·) at α is symmetric. ──
+  have hSchwarz : ∀ v w : ParamSpace n,
+      fderiv ℝ (fun θ' => fderiv ℝ (M.klDiv α) θ') α v w =
+      fderiv ℝ (fun θ' => fderiv ℝ (M.klDiv α) θ') α w v := by
+    have hev : ∀ᶠ θ' in 𝓝 α,
+        HasFDerivAt (M.klDiv α) (fderiv ℝ (M.klDiv α) θ') θ' := by
+      filter_upwards [M.isOpen_paramDomain.mem_nhds hα] with θ' hθ'
+      have hd : DifferentiableAt ℝ (M.klDiv α) θ' := by
+        obtain ⟨g, hg⟩ := M.negCrossEntropy_hasFDerivAt hα hθ'
+        exact (hg.const_add _).differentiableAt |>.congr_of_eventuallyEq
+          (by filter_upwards [M.isOpen_paramDomain.mem_nhds hθ']
+                with θ'' hθ''; exact M.klDiv_decomp hα hθ'')
+      exact hd.hasFDerivAt
+    exact fun v w => second_derivative_symmetric_of_eventually_of_real
+      hev (hG_diff α hα).hasFDerivAt v w
+  -- ── Correction 3: M(θ)(d²φ_ac) = g(α)(d²φ_ac, dφ_b). ──
+  have hterm1 : fderiv ℝ (fun θ₂ => fderiv ℝ (M.klDiv α) (F.φ t θ₂)) θ
+      (EuclideanSpace.single b 1)
+      (fderiv ℝ (fun θ₁ => fderiv ℝ (F.φ t) θ₁
+        (EuclideanSpace.single c 1)) θ (EuclideanSpace.single a 1)) =
+    M.toRegularStatisticalModel.fisherBilin α
+      (F.secondDerivPhi t θ a c)
+      (fderiv ℝ (F.φ t) θ (EuclideanSpace.single b 1)) := by
+    rw [DFunLike.congr_fun hMθ (EuclideanSpace.single b 1),
+        ContinuousLinearMap.comp_apply, hSchwarz]
+    exact M.klDiv_hessian_vec hα _ _
+  -- ── Rule 2: dM(eₐ) via M(θ₁) = N(θ₁)(dφ(θ₁)e_b) near θ. ──
+  have hM_ev : (fun θ₁ =>
+      fderiv ℝ (fun θ₂ => fderiv ℝ (M.klDiv α) (F.φ t θ₂)) θ₁
+        (EuclideanSpace.single b 1)) =ᶠ[𝓝 θ]
+      (fun θ₁ => fderiv ℝ (fun θ' => fderiv ℝ (M.klDiv α) θ') (F.φ t θ₁)
+        (fderiv ℝ (F.φ t) θ₁ (EuclideanSpace.single b 1))) := by
+    filter_upwards [hK_fderiv_ev] with θ₁ h₁
+    rw [h₁, ContinuousLinearMap.comp_apply]
+  have h_pr2 := h1.hasFDerivAt.clm_apply hv_b.hasFDerivAt
+  have hterm2 : fderiv ℝ (fun θ₁ =>
+      fderiv ℝ (fun θ₂ => fderiv ℝ (M.klDiv α) (F.φ t θ₂)) θ₁
+        (EuclideanSpace.single b 1)) θ (EuclideanSpace.single a 1)
+      (fderiv ℝ (F.φ t) θ (EuclideanSpace.single c 1)) =
+    M.toRegularStatisticalModel.fisherBilin α
+      (F.secondDerivPhi t θ a b)
+      (fderiv ℝ (F.φ t) θ (EuclideanSpace.single c 1))
+    + fderiv ℝ (fun θ₁ =>
+        fderiv ℝ (fun θ' => fderiv ℝ (M.klDiv α) θ') (F.φ t θ₁)) θ
+        (EuclideanSpace.single a 1)
+        (fderiv ℝ (F.φ t) θ (EuclideanSpace.single b 1))
+        (fderiv ℝ (F.φ t) θ (EuclideanSpace.single c 1)) := by
+    rw [DFunLike.congr_fun (Filter.EventuallyEq.fderiv_eq hM_ev)
+          (EuclideanSpace.single a 1),
+        DFunLike.congr_fun h_pr2.fderiv (EuclideanSpace.single a 1)]
+    simp only [ContinuousLinearMap.add_apply, ContinuousLinearMap.comp_apply,
+      ContinuousLinearMap.flip_apply]
+    refine congrArg₂ (· + ·) ?_ rfl
+    rw [hφtθ]
+    exact M.klDiv_hessian_vec hα _ _
+  -- ── Rule 3: the tensorial term — chain rule through φ_t, then
+  -- scalarize the operator-valued third derivative at α. ──
+  have hT : fderiv ℝ (fun θ₁ =>
+      fderiv ℝ (fun θ' => fderiv ℝ (M.klDiv α) θ') (F.φ t θ₁)) θ
+      (EuclideanSpace.single a 1)
+      (fderiv ℝ (F.φ t) θ (EuclideanSpace.single b 1))
+      (fderiv ℝ (F.φ t) θ (EuclideanSpace.single c 1)) =
+    fderiv ℝ (fun θ₁ =>
+      fderiv ℝ (fun θ₂ =>
+        fderiv ℝ (M.klDiv α) θ₂
+          (fderiv ℝ (F.φ t) θ (EuclideanSpace.single c 1))) θ₁
+        (fderiv ℝ (F.φ t) θ (EuclideanSpace.single b 1))) α
+      (fderiv ℝ (F.φ t) θ (EuclideanSpace.single a 1)) := by
+    have hN_chain : fderiv ℝ (fun θ₁ =>
+        fderiv ℝ (fun θ' => fderiv ℝ (M.klDiv α) θ') (F.φ t θ₁)) θ =
+        (fderiv ℝ (fun θ'' =>
+          fderiv ℝ (fun θ' => fderiv ℝ (M.klDiv α) θ') θ'') α).comp
+          (fderiv ℝ (F.φ t) θ) := by
+      have h : fderiv ℝ (fun θ₁ =>
+          fderiv ℝ (fun θ' => fderiv ℝ (M.klDiv α) θ') (F.φ t θ₁)) θ =
+          (fderiv ℝ (fun θ'' =>
+            fderiv ℝ (fun θ' => fderiv ℝ (M.klDiv α) θ') θ'') (F.φ t θ)).comp
+            (fderiv ℝ (F.φ t) θ) := by
+        show fderiv ℝ ((fun θ'' =>
+          fderiv ℝ (fun θ' => fderiv ℝ (M.klDiv α) θ') θ'') ∘ F.φ t) θ = _
+        -- `comp` must be fully pinned: with `g`/`g'` as metavariables,
+        -- unification gives up bridging the generic vs normed instance
+        -- paths on the operator-valued codomain (same disease as the
+        -- `fun_comp'` NOTE above for `h1`).
+        exact (HasFDerivAt.comp (𝕜 := ℝ)
+          (g := fun θ' => fderiv ℝ (fun θ'' => fderiv ℝ (M.klDiv α) θ'') θ')
+          (g' := fderiv ℝ (fun θ' =>
+            fderiv ℝ (fun θ'' => fderiv ℝ (M.klDiv α) θ'') θ') (F.φ t θ))
+          (f := F.φ t) (f' := fderiv ℝ (F.φ t) θ)
+          θ h_helper'.hasFDerivAt (hF_diff θ).hasFDerivAt).fderiv
+      rw [hφtθ] at h
+      exact h
+    rw [DFunLike.congr_fun hN_chain (EuclideanSpace.single a 1),
+        ContinuousLinearMap.comp_apply]
+    -- Scalarize: near α, the b-partial of the frozen-c-direction map
+    -- is the second-derivative operator applied to (u_b, u_c).
+    have hmid_ev : (fun θ₁ => fderiv ℝ (fun θ₂ =>
+        fderiv ℝ (M.klDiv α) θ₂
+          (fderiv ℝ (F.φ t) θ (EuclideanSpace.single c 1))) θ₁
+        (fderiv ℝ (F.φ t) θ (EuclideanSpace.single b 1))) =ᶠ[𝓝 α]
+        (fun θ₁ => fderiv ℝ (fun θ'' => fderiv ℝ (M.klDiv α) θ'') θ₁
+          (fderiv ℝ (F.φ t) θ (EuclideanSpace.single b 1))
+          (fderiv ℝ (F.φ t) θ (EuclideanSpace.single c 1))) := by
+      filter_upwards [M.isOpen_paramDomain.mem_nhds hα] with θ₁ hθ₁
+      rw [((hG_diff θ₁ hθ₁).hasFDerivAt.clm_apply
+        (hasFDerivAt_const
+          (fderiv ℝ (F.φ t) θ (EuclideanSpace.single c 1)) θ₁)).fderiv]
+      simp only [ContinuousLinearMap.add_apply, ContinuousLinearMap.comp_apply,
+        ContinuousLinearMap.zero_apply, ContinuousLinearMap.flip_apply,
+        map_zero, zero_add]
+    rw [DFunLike.congr_fun (Filter.EventuallyEq.fderiv_eq hmid_ev)
+        (fderiv ℝ (F.φ t) θ (EuclideanSpace.single a 1))]
+    -- Two `clm_apply`s with constant directions unpack the
+    -- operator-valued third derivative.
+    have hd1 := h_helper.hasFDerivAt.clm_apply
+      (hasFDerivAt_const
+        (fderiv ℝ (F.φ t) θ (EuclideanSpace.single b 1)) α)
+    have hd2 := hd1.clm_apply
+      (hasFDerivAt_const
+        (fderiv ℝ (F.φ t) θ (EuclideanSpace.single c 1)) α)
+    rw [hd2.fderiv]
+    simp only [ContinuousLinearMap.add_apply, ContinuousLinearMap.comp_apply,
+      ContinuousLinearMap.zero_apply, ContinuousLinearMap.flip_apply,
+      map_zero, zero_add]
+  rw [hterm1, hterm2, hT]
+  ring
+
+/-- **Differentiability toolkit for `K := fderiv(klDiv α) ∘ φ_t`.** Bundles the
+seven-step chain establishing that `θ₂ ↦ fderiv(fderiv(klDiv α)(φ_t θ₂))(θ₂)`
+(informally `fderiv(K)`) is `DifferentiableAt ℝ` at `θ`, together with the
+intermediate facts (`hG_diff`, `hF_diff`, `hK_fderiv_ev`, `h_helper`,
+`h_helper'`, `h1`) that later steps of `kl_faa_di_bruno` re-use directly (the
+chain-rule identity for `K` itself, its factor differentiability, the
+third-order-regularity helper at `α`/at `F.φ t θ`, and the once-composed
+intermediate `h1`).
+Extracted from `kl_faa_di_bruno`'s `hG_diff`–`hfK_diff` group as a compile-time
+experiment: independent of `a`/`b`/`c`, needing only `α`, its membership, `t`,
+`θ`, `hθ`, `hφ_smooth`, and the point-identification `F.φ t θ = α`. -/
+private lemma klDiv_phi_fderiv_differentiableAt_toolkit
+    {α : ParamSpace n} (hα : α ∈ M.paramDomain)
+    {t : ℝ} {θ : ParamSpace n} (hθ : θ ∈ M.paramDomain)
+    (hφ_smooth : ContDiff ℝ (⊤ : ℕ∞) (F.φ t)) (hφtθ : F.φ t θ = α) :
+    (∀ θ' ∈ M.paramDomain,
+      DifferentiableAt ℝ (fun θ'' => fderiv ℝ (M.klDiv α) θ'') θ') ∧
+    (∀ θ₂, DifferentiableAt ℝ (F.φ t) θ₂) ∧
+    ((fun θ₂ => fderiv ℝ (fun θ₃ => fderiv ℝ (M.klDiv α) (F.φ t θ₃)) θ₂) =ᶠ[𝓝 θ]
+      (fun θ₂ => (fderiv ℝ (fun θ' => fderiv ℝ (M.klDiv α) θ') (F.φ t θ₂)).comp
+        (fderiv ℝ (F.φ t) θ₂))) ∧
+    (DifferentiableAt ℝ
+      (fun θ' => fderiv ℝ (fun θ'' => fderiv ℝ (M.klDiv α) θ'') θ') α) ∧
+    (DifferentiableAt ℝ
+      (fun θ' => fderiv ℝ (fun θ'' => fderiv ℝ (M.klDiv α) θ'') θ') (F.φ t θ)) ∧
+    (DifferentiableAt ℝ
+      (fun θ₂ => fderiv ℝ (fun θ' => fderiv ℝ (M.klDiv α) θ') (F.φ t θ₂)) θ) ∧
+    (DifferentiableAt ℝ
+      (fun θ₂ => fderiv ℝ (fun θ₃ => fderiv ℝ (M.klDiv α) (F.φ t θ₃)) θ₂) θ) := by
+  have hG_diff : ∀ θ' ∈ M.paramDomain,
+      DifferentiableAt ℝ (fun θ'' => fderiv ℝ (M.klDiv α) θ'') θ' := by
+    intro θ' hθ'
+    exact M.klDiv_fderiv_differentiableAt hα hθ'
+  have hF_diff : ∀ θ₂, DifferentiableAt ℝ (F.φ t) θ₂ := fun _ =>
+    (hφ_smooth.differentiable (by simp)).differentiableAt
+  have hK_fderiv_ev :
+      (fun θ₂ => fderiv ℝ (fun θ₃ => fderiv ℝ (M.klDiv α) (F.φ t θ₃)) θ₂) =ᶠ[𝓝 θ]
+      (fun θ₂ => (fderiv ℝ (fun θ' => fderiv ℝ (M.klDiv α) θ') (F.φ t θ₂)).comp
+        (fderiv ℝ (F.φ t) θ₂)) := by
+    filter_upwards [M.isOpen_paramDomain.mem_nhds hθ] with θ₂ hθ₂
+    have hF : F.φ t θ₂ ∈ M.paramDomain := F.maps_domain t θ₂ hθ₂
+    show fderiv ℝ ((fun θ' => fderiv ℝ (M.klDiv α) θ') ∘ F.φ t) θ₂ = _
+    exact ((hG_diff _ hF).hasFDerivAt.comp θ₂ (hF_diff θ₂).hasFDerivAt).fderiv
+  have h_helper : DifferentiableAt ℝ
+      (fun θ' => fderiv ℝ (fun θ'' => fderiv ℝ (M.klDiv α) θ'') θ') α :=
+    klDiv_secondDerivMap_differentiableAt hα
+  have h_helper' : DifferentiableAt ℝ
+      (fun θ' => fderiv ℝ (fun θ'' => fderiv ℝ (M.klDiv α) θ'') θ')
+      (F.φ t θ) := by
+    rw [hφtθ]; exact h_helper
+  have h1 : DifferentiableAt ℝ
+      (fun θ₂ => fderiv ℝ (fun θ' => fderiv ℝ (M.klDiv α) θ') (F.φ t θ₂)) θ :=
+    DifferentiableAt.fun_comp' (𝕜 := ℝ)
+      (g := fun θ' => fderiv ℝ (fun θ'' => fderiv ℝ (M.klDiv α) θ'') θ')
+      (f := F.φ t)
+      θ h_helper' (hF_diff θ)
+  have h2 : DifferentiableAt ℝ (fun θ₂ => fderiv ℝ (F.φ t) θ₂) θ :=
+    ((hφ_smooth.fderiv_right (m := (⊤ : ℕ∞)) (by exact_mod_cast le_top)).differentiable
+      (by simp)).differentiableAt
+  have h_RHS_diff : DifferentiableAt ℝ
+      (fun θ₂ => (fderiv ℝ (fun θ' => fderiv ℝ (M.klDiv α) θ') (F.φ t θ₂)).comp
+        (fderiv ℝ (F.φ t) θ₂)) θ :=
+    h1.clm_comp h2
+  have hfK_diff : DifferentiableAt ℝ
+      (fun θ₂ => fderiv ℝ (fun θ₃ => fderiv ℝ (M.klDiv α) (F.φ t θ₃)) θ₂) θ :=
+    h_RHS_diff.congr_of_eventuallyEq hK_fderiv_ev
+  exact ⟨hG_diff, hF_diff, hK_fderiv_ev, h_helper, h_helper', h1, hfK_diff⟩
+
 /-- **Faà di Bruno at critical point.** Since fderiv(klDiv α)(α) = 0,
 the third derivative of θ₂ ↦ D(α, φ_t(θ₂)) at θ₂ = θ is:
 
@@ -324,6 +799,13 @@ lemma kl_faa_di_bruno
         (F.secondDerivPhi t θ b c) := by
   -- ═══ Setup ═══
   set α := F.φ t θ with hα_def
+  -- The pushed-forward basis vectors `dφ(θ)·eₐ/eᵦ/e_c` each recur 7-13 times below; naming them
+  -- once avoids repeatedly re-deriving `NormedAddCommGroup`/`NormedSpace` instances on
+  -- `ParamSpace n` (a `PiLp`/`EuclideanSpace`-backed type — instance resolution on it is not free)
+  -- for the same expression over and over.
+  set dφa : ParamSpace n := fderiv ℝ (F.φ t) θ (EuclideanSpace.single a 1) with hdφa
+  set dφb : ParamSpace n := fderiv ℝ (F.φ t) θ (EuclideanSpace.single b 1) with hdφb
+  set dφc : ParamSpace n := fderiv ℝ (F.φ t) θ (EuclideanSpace.single c 1) with hdφc
   have hα : α ∈ M.paramDomain := F.maps_domain t θ hθ
   have hφ_smooth : ContDiff ℝ (⊤ : ℕ∞) (F.φ t) :=
     F.smooth.comp (contDiff_const.prodMk contDiff_id)
@@ -376,38 +858,15 @@ lemma kl_faa_di_bruno
       fderiv ℝ (fun θ₂ => fderiv ℝ (M.klDiv α) (F.φ t θ₂)
         (fderiv ℝ (F.φ t) θ₂ (EuclideanSpace.single c 1))) θ₁
         (EuclideanSpace.single b 1) =
-      -- P(θ₁): dL(eᵇ) applied to v(θ₁)
       fderiv ℝ (fun θ₂ => fderiv ℝ (M.klDiv α) (F.φ t θ₂)) θ₁
         (EuclideanSpace.single b 1)
         (fderiv ℝ (F.φ t) θ₁ (EuclideanSpace.single c 1))
       +
-      -- Q(θ₁): L(θ₁) applied to dv(eᵇ) = d²φ(θ₁)(eᵇ, eᶜ)
       fderiv ℝ (M.klDiv α) (F.φ t θ₁)
         (fderiv ℝ (fun θ₂ => fderiv ℝ (F.φ t) θ₂
           (EuclideanSpace.single c 1)) θ₁
-          (EuclideanSpace.single b 1)) := by
-    filter_upwards [M.isOpen_paramDomain.mem_nhds hθ] with θ₁ hθ₁
-    have hθ₁_im : F.φ t θ₁ ∈ M.paramDomain := F.maps_domain t θ₁ hθ₁
-    -- L(θ₂) := fderiv(klDiv α)(φ_t θ₂) is differentiable at θ₁
-    have hL_diff : DifferentiableAt ℝ
-        (fun θ₂ => fderiv ℝ (M.klDiv α) (F.φ t θ₂)) θ₁ := by
-      have h_fKL : DifferentiableAt ℝ (fderiv ℝ (M.klDiv α)) (F.φ t θ₁) :=
-        M.klDiv_fderiv_differentiableAt hα hθ₁_im
-      exact h_fKL.comp θ₁
-        (hφ_smooth.differentiable (by simp)).differentiableAt
-    -- v(θ₂) := fderiv(φ_t)(θ₂)(eᶜ) is differentiable at θ₁
-    have hv_diff : DifferentiableAt ℝ
-        (fun θ₂ => fderiv ℝ (F.φ t) θ₂ (EuclideanSpace.single c 1)) θ₁ :=
-      ((hφ_smooth.fderiv_right (m := (⊤ : ℕ∞)) (by exact_mod_cast le_top)).differentiable
-        (by simp)).differentiableAt.clm_apply
-        (differentiableAt_const _)
-    -- Product rule for CL map evaluation: d(L(·)(v(·))) = dL(·)(v) + L(dv(·))
-    have h_pr := hL_diff.hasFDerivAt.clm_apply hv_diff.hasFDerivAt
-    rw [DFunLike.congr_fun h_pr.fderiv (EuclideanSpace.single b 1),
-        ContinuousLinearMap.add_apply, ContinuousLinearMap.comp_apply,
-        ContinuousLinearMap.flip_apply]
-    -- The two terms match (possibly in opposite order)
-    abel
+          (EuclideanSpace.single b 1)) :=
+    klDiv_phi_prodRule_eventually (F := F) hα hθ hφ_smooth b c
   -- ═══ fderiv_eq: third derivative = fderiv(P + Q) ═══
   rw [DFunLike.congr_fun (Filter.EventuallyEq.fderiv_eq h_prod)
       (EuclideanSpace.single a 1)]
@@ -416,236 +875,11 @@ lemma kl_faa_di_bruno
   -- Split: fderiv(P)(θ)(eₐ) + fderiv(Q)(θ)(eₐ)
   -- ═══════════════════════════════════════════════════════════════════
   -- Use fderiv_add (both P and Q are differentiable at θ)
-  -- ════ Third-order regularity toolkit (hoisted from `h_P_diff` so that
-  -- `h_P_val` in the final calc step can reuse it) ════
-  -- ─── Step 1: G(θ') := fderiv(klDiv α)(θ') is DifferentiableAt every
-  -- point of paramDomain. Same h_fKL template as in h_Q_diff, lifted to
-  -- vary the base point.
-  have hG_diff : ∀ θ' ∈ M.paramDomain,
-      DifferentiableAt ℝ (fun θ'' => fderiv ℝ (M.klDiv α) θ'') θ' := by
-    intro θ' hθ'
-    exact M.klDiv_fderiv_differentiableAt hα hθ'
-  have hF_diff : ∀ θ₂, DifferentiableAt ℝ (F.φ t) θ₂ := fun _ =>
-    (hφ_smooth.differentiable (by simp)).differentiableAt
-  -- ─── Step 2: Chain rule formula for fderiv of K := (fderiv(klDiv α)) ∘ φ_t.
-  -- Holds on a neighborhood of θ (= the open set paramDomain).
-  have hK_fderiv_ev :
-      (fun θ₂ => fderiv ℝ (fun θ₃ => fderiv ℝ (M.klDiv α) (F.φ t θ₃)) θ₂) =ᶠ[𝓝 θ]
-      (fun θ₂ => (fderiv ℝ (fun θ' => fderiv ℝ (M.klDiv α) θ') (F.φ t θ₂)).comp
-        (fderiv ℝ (F.φ t) θ₂)) := by
-    filter_upwards [M.isOpen_paramDomain.mem_nhds hθ] with θ₂ hθ₂
-    have hF : F.φ t θ₂ ∈ M.paramDomain := F.maps_domain t θ₂ hθ₂
-    show fderiv ℝ ((fun θ' => fderiv ℝ (M.klDiv α) θ') ∘ F.φ t) θ₂ = _
-    exact ((hG_diff _ hF).hasFDerivAt.comp θ₂ (hF_diff θ₂).hasFDerivAt).fderiv
-  -- ─── Step 3: The chain rule RHS is DifferentiableAt θ — clm_comp of:
-  --   • outer factor: fderiv(G) at α (helper) composed with smooth φ_t
-  --   • inner factor: fderiv(φ_t), C^⊤ since φ_t is.
-  -- NOTE: the former `letI inst_ncg/inst_ns : … (ParamSpace n)` locals
-  -- were removed.  Local *data* instances make every CLM type formed in
-  -- their scope carry fvar instance paths (`inst_ncg.toAddCommGroup`,
-  -- `NormedSpace.toModule`, …) that fail to unify with the global
-  -- `WithLp.instAddCommGroup`/`PiLp.topologicalSpace` paths appearing
-  -- in ascribed statement types — they were the actual source of the
-  -- "WithLp/PiLp instance gap", not `DifferentiableAt.comp`.
-  -- ── Third-order regularity of D(α‖·) at α. ──
-  -- Strategy (one tensor level above the h_fKL template):
-  --  (i)   hCLM:  basis decomposition L = ∑ₖ L(eₖ)•⟪eₖ,·⟫ of scalar CLMs;
-  --  (ii)  hS:    the scalar third partials θ' ↦ ∂ⱼ[−∫ p(α)sₖ(θ')](θ')
-  --        are differentiable at α — identify ∂ⱼ of the cross-score
-  --        integral with −∫ p(α)·∂ⱼsₖ(θ') near α via
-  --        `cross_score_hasFDerivAt'`, then one more Leibniz pass via
-  --        `klDiv_third_partial` fed by the ThriceDifferentiableModel
-  --        domination/measurability fields;
-  --  (iii) doubly-scalar rank-one representation: near α the
-  --        second-derivative map equals ∑ₖ∑ⱼ ∂ⱼCₖ(θ')•(⟪eⱼ,·⟫⊗⟪eₖ,·⟫),
-  --        differentiable at α by (ii); conclude by congruence.
-  have h_helper : DifferentiableAt ℝ
-      (fun θ' => fderiv ℝ (fun θ'' => fderiv ℝ (M.klDiv α) θ'') θ') α := by
-    haveI : IsScalarTower ℝ ℝ (ParamSpace n →L[ℝ] ℝ) :=
-      ⟨fun r s f => by ext x; simp only [ContinuousLinearMap.smul_apply,
-        smul_eq_mul, mul_assoc]⟩
-    -- (i) Basis decomposition of scalar-valued CLMs (pointwise h_eq).
-    have hCLM : ∀ L : ParamSpace n →L[ℝ] ℝ,
-        L = ∑ k : Fin n, L (EuclideanSpace.single k 1) •
-          (innerSL ℝ (EuclideanSpace.single k (1 : ℝ)) :
-            ParamSpace n →L[ℝ] ℝ) :=
-      continuousLinearMap_eq_sum_innerSL
-    -- (ii) Scalar third partials are differentiable at α.
-    have hS : ∀ j k : Fin n, DifferentiableAt ℝ
-        (fun θ' => fderiv ℝ (fun θ'' =>
-          -∫ ω, M.density α ω *
-            M.toRegularStatisticalModel.score θ'' k ω ∂M.refMeasure) θ'
-          (EuclideanSpace.single j 1)) α := by
-      intro j k
-      obtain ⟨g₂, hg₂, _⟩ := M.klDiv_third_partial hα j k
-        (M.scorePartial_fderiv_bound α hα α hα j k)
-        (M.scorePartial_density_integrable α hα j k)
-        (M.scorePartial_deriv_aestronglyMeasurable α hα j k)
-        (M.scorePartial_density_aestronglyMeasurable α hα j k)
-      refine hg₂.differentiableAt.congr_of_eventuallyEq ?_
-      filter_upwards [M.isOpen_paramDomain.mem_nhds hα] with θ' hθ'
-      obtain ⟨g₁, hg₁, heval⟩ := M.cross_score_hasFDerivAt' hα hθ' k
-      rw [hg₁.fderiv]
-      exact heval j
-    -- (iii) Doubly-scalar rank-one representation.  Near α the
-    -- second-derivative map equals
-    --   ∑ₖ ∑ⱼ ∂ⱼCₖ(θ') • (⟪eⱼ,·⟫.smulRight ⟪eₖ,·⟫),
-    -- a finite sum of scalar functions (differentiable at α by (ii))
-    -- times *constant* rank-one operators.  All types are pinned via
-    -- named arguments: with metavariables in the operator-valued
-    -- codomain `ParamSpace n →L[ℝ] (ParamSpace n →L[ℝ] ℝ)`, typeclass
-    -- resolution of `NormedSpace ?𝕜 ?F` gets stuck — which is what
-    -- killed the `smulRightL`/`clm_apply` formulation of this step.
-    haveI : IsScalarTower ℝ ℝ (ParamSpace n →L[ℝ] (ParamSpace n →L[ℝ] ℝ)) :=
-      ⟨fun r s f => by
-        ext x v
-        simp only [ContinuousLinearMap.smul_apply, smul_eq_mul, mul_assoc]⟩
-    have hsum : ∀ k : Fin n, DifferentiableAt ℝ
-        (fun θ' => ∑ j : Fin n,
-          fderiv ℝ (fun θ'' =>
-            -∫ ω, M.density α ω *
-              M.toRegularStatisticalModel.score θ'' k ω ∂M.refMeasure) θ'
-            (EuclideanSpace.single j 1) •
-          (((innerSL ℝ (EuclideanSpace.single j (1 : ℝ))).smulRight
-            (innerSL ℝ (EuclideanSpace.single k (1 : ℝ)))) :
-            ParamSpace n →L[ℝ] (ParamSpace n →L[ℝ] ℝ))) α := fun k =>
-      DifferentiableAt.fun_sum (𝕜 := ℝ)
-        (u := (Finset.univ : Finset (Fin n))) (x := α)
-        (A := fun j θ' =>
-          fderiv ℝ (fun θ'' =>
-            -∫ ω, M.density α ω *
-              M.toRegularStatisticalModel.score θ'' k ω ∂M.refMeasure) θ'
-            (EuclideanSpace.single j 1) •
-          (((innerSL ℝ (EuclideanSpace.single j (1 : ℝ))).smulRight
-            (innerSL ℝ (EuclideanSpace.single k (1 : ℝ)))) :
-            ParamSpace n →L[ℝ] (ParamSpace n →L[ℝ] ℝ)))
-        -- `smul_const` demands `[IsBoundedSMul ℝ F]` on the
-        -- operator-valued type, and that goal's instance arguments
-        -- (inherited from `smul_const`'s binders) sit on paths the
-        -- global `NormedSpace.toIsBoundedSMul` won't unify with.
-        -- Route around it: `θ' ↦ ∂ⱼCₖ(θ') • Eⱼₖ` factors through the
-        -- *continuous linear map* `(1 : ℝ →L[ℝ] ℝ).smulRight Eⱼₖ`
-        -- (generic topological-module layer, no `IsBoundedSMul`), and
-        -- `(smulRight 1 Eⱼₖ) r = r • Eⱼₖ` is `rfl`.  `g` is pinned as
-        -- the coercion of that map, so the `f` of
-        -- `ContinuousLinearMap.differentiableAt` is forced by
-        -- unification and the operator blob is written only once.
-        fun j _ =>
-          DifferentiableAt.fun_comp' (𝕜 := ℝ)
-            (g := ⇑((1 : ℝ →L[ℝ] ℝ).smulRight
-              (((innerSL ℝ (EuclideanSpace.single j (1 : ℝ))).smulRight
-                (innerSL ℝ (EuclideanSpace.single k (1 : ℝ)))) :
-                ParamSpace n →L[ℝ] (ParamSpace n →L[ℝ] ℝ))))
-            (f := fun θ' =>
-              fderiv ℝ (fun θ'' =>
-                -∫ ω, M.density α ω *
-                  M.toRegularStatisticalModel.score θ'' k ω ∂M.refMeasure) θ'
-                (EuclideanSpace.single j 1))
-            α
-            (ContinuousLinearMap.differentiableAt _)
-            (hS j k)
-    have h_repr_diff : DifferentiableAt ℝ
-        (fun θ' => ∑ k : Fin n, ∑ j : Fin n,
-          fderiv ℝ (fun θ'' =>
-            -∫ ω, M.density α ω *
-              M.toRegularStatisticalModel.score θ'' k ω ∂M.refMeasure) θ'
-            (EuclideanSpace.single j 1) •
-          (((innerSL ℝ (EuclideanSpace.single j (1 : ℝ))).smulRight
-            (innerSL ℝ (EuclideanSpace.single k (1 : ℝ)))) :
-            ParamSpace n →L[ℝ] (ParamSpace n →L[ℝ] ℝ))) α :=
-      -- `𝕜`, `u`, `x` must be pinned in addition to `A`: they are the
-      -- metavariables that were still unassigned when unification
-      -- compared the (normed-path) conclusion of `fun_sum` against the
-      -- (TVS-path) ascription above, making the defeq instance-path
-      -- bridge fail.  With all arguments ground, the final defeq check
-      -- unfolds the paths (same situation as `h1` below).
-      DifferentiableAt.fun_sum (𝕜 := ℝ)
-        (u := (Finset.univ : Finset (Fin n))) (x := α)
-        (A := fun k θ' => ∑ j : Fin n,
-          fderiv ℝ (fun θ'' =>
-            -∫ ω, M.density α ω *
-              M.toRegularStatisticalModel.score θ'' k ω ∂M.refMeasure) θ'
-            (EuclideanSpace.single j 1) •
-          (((innerSL ℝ (EuclideanSpace.single j (1 : ℝ))).smulRight
-            (innerSL ℝ (EuclideanSpace.single k (1 : ℝ)))) :
-            ParamSpace n →L[ℝ] (ParamSpace n →L[ℝ] ℝ)))
-        fun k _ => hsum k
-    refine h_repr_diff.congr_of_eventuallyEq ?_
-    filter_upwards [M.isOpen_paramDomain.mem_nhds hα] with θ' hθ'
-    calc fderiv ℝ (fun θ'' => fderiv ℝ (M.klDiv α) θ'') θ'
-        = fderiv ℝ (fun θ'' => ∑ k : Fin n,
-            (-∫ ω, M.density α ω *
-              M.toRegularStatisticalModel.score θ'' k ω ∂M.refMeasure) •
-            (innerSL ℝ (EuclideanSpace.single k (1 : ℝ)) :
-              ParamSpace n →L[ℝ] ℝ)) θ' := by
-          -- The second-derivative map agrees near θ' with the
-          -- component sum: klDiv_partial_j inside the hCLM expansion.
-          refine Filter.EventuallyEq.fderiv_eq ?_
-          filter_upwards [M.isOpen_paramDomain.mem_nhds hθ'] with θ'' hθ''
-          rw [hCLM (fderiv ℝ (M.klDiv α) θ'')]
-          exact Finset.sum_congr rfl fun k _ => by
-            rw [M.klDiv_partial_j hα hθ'' k]
-      _ = ∑ k : Fin n, fderiv ℝ (fun θ'' =>
-            (-∫ ω, M.density α ω *
-              M.toRegularStatisticalModel.score θ'' k ω ∂M.refMeasure) •
-            (innerSL ℝ (EuclideanSpace.single k (1 : ℝ)) :
-              ParamSpace n →L[ℝ] ℝ)) θ' :=
-          fderiv_fun_sum fun k _ =>
-            (M.cross_score_differentiableAt hα hθ' k).smul_const _
-      _ = ∑ k : Fin n, ∑ j : Fin n,
-          fderiv ℝ (fun θ'' =>
-            -∫ ω, M.density α ω *
-              M.toRegularStatisticalModel.score θ'' k ω ∂M.refMeasure) θ'
-            (EuclideanSpace.single j 1) •
-          (((innerSL ℝ (EuclideanSpace.single j (1 : ℝ))).smulRight
-            (innerSL ℝ (EuclideanSpace.single k (1 : ℝ)))) :
-            ParamSpace n →L[ℝ] (ParamSpace n →L[ℝ] ℝ)) := by
-          refine Finset.sum_congr rfl fun k _ => ?_
-          -- fderiv of (scalar • const), as a term-mode equation:
-          -- `rw [fderiv_smul_const …]` fails its keyed match on the
-          -- instance-laden CLM types, but elaboration-level defeq
-          -- (`Eq.trans` against the goal) is fine.
-          refine (((M.cross_score_differentiableAt hα hθ' k).hasFDerivAt.smul_const
-            (innerSL ℝ (EuclideanSpace.single k (1 : ℝ)) :
-              ParamSpace n →L[ℝ] ℝ)).fderiv).trans ?_
-          -- (fderiv Cₖ θ').smulRight ⟪eₖ,·⟫ = ∑ⱼ ∂ⱼCₖ(θ') • Eⱼₖ:
-          -- expand fderiv Cₖ θ' by (i) and push the sum through.
-          conv_lhs => rw [hCLM (fderiv ℝ (fun θ'' =>
-            -∫ ω, M.density α ω *
-              M.toRegularStatisticalModel.score θ'' k ω ∂M.refMeasure) θ')]
-          ext w v
-          simp only [ContinuousLinearMap.smulRight_apply,
-            ContinuousLinearMap.sum_apply, ContinuousLinearMap.smul_apply,
-            smul_eq_mul]
-          rw [Finset.sum_mul]
-          exact Finset.sum_congr rfl fun j _ => mul_assoc _ _ _
-  -- Third-order regularity composed with the smooth flow.  Re-type the
-  -- helper at the unfolded point `F.φ t θ`, then compose with
-  -- `fun_comp'`, whose conclusion is the applied-lambda form (no `∘` to
-  -- unify), pinning `g` and `f` by name so no metavariable reaches the
-  -- operator-valued instance problems (`comp` left `NormedSpace ?𝕜 ?G`
-  -- stuck and errored on `hg`).
-  have h_helper' : DifferentiableAt ℝ
-      (fun θ' => fderiv ℝ (fun θ'' => fderiv ℝ (M.klDiv α) θ'') θ')
-      (F.φ t θ) := by
-    rw [← hα_def]; exact h_helper
-  have h1 : DifferentiableAt ℝ
-      (fun θ₂ => fderiv ℝ (fun θ' => fderiv ℝ (M.klDiv α) θ') (F.φ t θ₂)) θ :=
-    DifferentiableAt.fun_comp' (𝕜 := ℝ)
-      (g := fun θ' => fderiv ℝ (fun θ'' => fderiv ℝ (M.klDiv α) θ'') θ')
-      (f := F.φ t)
-      θ h_helper' (hF_diff θ)
-  have h2 : DifferentiableAt ℝ (fun θ₂ => fderiv ℝ (F.φ t) θ₂) θ :=
-    ((hφ_smooth.fderiv_right (m := (⊤ : ℕ∞)) (by exact_mod_cast le_top)).differentiable
-      (by simp)).differentiableAt
-  have h_RHS_diff : DifferentiableAt ℝ
-      (fun θ₂ => (fderiv ℝ (fun θ' => fderiv ℝ (M.klDiv α) θ') (F.φ t θ₂)).comp
-        (fderiv ℝ (F.φ t) θ₂)) θ :=
-    h1.clm_comp h2
-  -- ─── Step 4: Lift to fderiv(K) DifferentiableAt θ via EventuallyEq.
-  have hfK_diff : DifferentiableAt ℝ
-      (fun θ₂ => fderiv ℝ (fun θ₃ => fderiv ℝ (M.klDiv α) (F.φ t θ₃)) θ₂) θ :=
-    h_RHS_diff.congr_of_eventuallyEq hK_fderiv_ev
+  -- Extracted as `klDiv_phi_fderiv_differentiableAt_toolkit`, a compile-time
+  -- experiment: bundles Steps 1-4 (`hG_diff`, `hF_diff`, `hK_fderiv_ev`,
+  -- `h_helper`, `h_helper'`, `h1`, `hfK_diff`) into one top-level private lemma.
+  obtain ⟨hG_diff, hF_diff, hK_fderiv_ev, h_helper, h_helper', h1, hfK_diff⟩ :=
+    klDiv_phi_fderiv_differentiableAt_toolkit (F := F) hα hθ hφ_smooth hα_def.symm
   -- ─── Step 5: Apply at single b 1 (clm_apply with const).
   have hN_diff : DifferentiableAt ℝ
       (fun θ₁ => fderiv ℝ (fun θ₂ => fderiv ℝ (M.klDiv α) (F.φ t θ₂)) θ₁
@@ -778,162 +1012,9 @@ lemma kl_faa_di_bruno
             (fderiv ℝ (F.φ t) θ (EuclideanSpace.single c 1))
         + M.toRegularStatisticalModel.fisherBilin α
             (F.secondDerivPhi t θ a c)
-            (fderiv ℝ (F.φ t) θ (EuclideanSpace.single b 1)) := by
-        -- Three nested product rules:
-        -- 1. P = M(·)(w(·)):  M'·w + M·w'
-        --    M(θ) = Hessian(α)(uᵇ), w' = d²φ_ac → M·w' = fisherBilin correction 3
-        --    (Schwarz symmetry of the Hessian swaps the slots)
-        -- 2. M = N(·)(w₂(·)):  N'·w₂ + N·w₂'
-        --    N(θ) = Hessian(α), w₂' = d²φ_ab → N·w₂' = fisherBilin correction 2
-        -- 3. N' composed with chain rule through φ_t gives tensorial part
-        have hφtθ : F.φ t θ = α := hα_def.symm
-        have hv_b : DifferentiableAt ℝ
-            (fun θ₁ => fderiv ℝ (F.φ t) θ₁ (EuclideanSpace.single b 1)) θ :=
-          ((hφ_smooth.fderiv_right (m := (⊤ : ℕ∞)) (by exact_mod_cast le_top)).differentiable
-            (by simp)).differentiableAt.clm_apply (differentiableAt_const _)
-        -- ── Rule 1: split fderiv(P)(θ)(eₐ) = M(θ)(w'(eₐ)) + (dM(eₐ))(w(θ)). ──
-        have h_pr := hN_diff.hasFDerivAt.clm_apply hv_diff.hasFDerivAt
-        rw [DFunLike.congr_fun h_pr.fderiv (EuclideanSpace.single a 1),
-            ContinuousLinearMap.add_apply, ContinuousLinearMap.comp_apply,
-            ContinuousLinearMap.flip_apply]
-        -- ── M(θ) = Hess(α) ∘ dφ(θ) at e_b, via the chain rule at θ. ──
-        have hMθ : fderiv ℝ (fun θ₂ => fderiv ℝ (M.klDiv α) (F.φ t θ₂)) θ =
-            (fderiv ℝ (fun θ' => fderiv ℝ (M.klDiv α) θ') α).comp
-              (fderiv ℝ (F.φ t) θ) := by
-          have h : fderiv ℝ (fun θ₂ => fderiv ℝ (M.klDiv α) (F.φ t θ₂)) θ =
-              (fderiv ℝ (fun θ' => fderiv ℝ (M.klDiv α) θ') (F.φ t θ)).comp
-                (fderiv ℝ (F.φ t) θ) := by
-            show fderiv ℝ ((fun θ' => fderiv ℝ (M.klDiv α) θ') ∘ F.φ t) θ = _
-            exact ((hG_diff _ (F.maps_domain t θ hθ)).hasFDerivAt.comp θ
-              (hF_diff θ).hasFDerivAt).fderiv
-          rw [hφtθ] at h
-          exact h
-        -- ── Schwarz: the Hessian of D(α‖·) at α is symmetric. ──
-        have hSchwarz : ∀ v w : ParamSpace n,
-            fderiv ℝ (fun θ' => fderiv ℝ (M.klDiv α) θ') α v w =
-            fderiv ℝ (fun θ' => fderiv ℝ (M.klDiv α) θ') α w v := by
-          have hev : ∀ᶠ θ' in 𝓝 α,
-              HasFDerivAt (M.klDiv α) (fderiv ℝ (M.klDiv α) θ') θ' := by
-            filter_upwards [M.isOpen_paramDomain.mem_nhds hα] with θ' hθ'
-            have hd : DifferentiableAt ℝ (M.klDiv α) θ' := by
-              obtain ⟨g, hg⟩ := M.negCrossEntropy_hasFDerivAt hα hθ'
-              exact (hg.const_add _).differentiableAt |>.congr_of_eventuallyEq
-                (by filter_upwards [M.isOpen_paramDomain.mem_nhds hθ']
-                      with θ'' hθ''; exact M.klDiv_decomp hα hθ'')
-            exact hd.hasFDerivAt
-          exact fun v w => second_derivative_symmetric_of_eventually_of_real
-            hev (hG_diff α hα).hasFDerivAt v w
-        -- ── Correction 3: M(θ)(d²φ_ac) = g(α)(d²φ_ac, dφ_b). ──
-        have hterm1 : fderiv ℝ (fun θ₂ => fderiv ℝ (M.klDiv α) (F.φ t θ₂)) θ
-            (EuclideanSpace.single b 1)
-            (fderiv ℝ (fun θ₁ => fderiv ℝ (F.φ t) θ₁
-              (EuclideanSpace.single c 1)) θ (EuclideanSpace.single a 1)) =
-          M.toRegularStatisticalModel.fisherBilin α
-            (F.secondDerivPhi t θ a c)
-            (fderiv ℝ (F.φ t) θ (EuclideanSpace.single b 1)) := by
-          rw [DFunLike.congr_fun hMθ (EuclideanSpace.single b 1),
-              ContinuousLinearMap.comp_apply, hSchwarz]
-          exact M.klDiv_hessian_vec hα _ _
-        -- ── Rule 2: dM(eₐ) via M(θ₁) = N(θ₁)(dφ(θ₁)e_b) near θ. ──
-        have hM_ev : (fun θ₁ =>
-            fderiv ℝ (fun θ₂ => fderiv ℝ (M.klDiv α) (F.φ t θ₂)) θ₁
-              (EuclideanSpace.single b 1)) =ᶠ[𝓝 θ]
-            (fun θ₁ => fderiv ℝ (fun θ' => fderiv ℝ (M.klDiv α) θ') (F.φ t θ₁)
-              (fderiv ℝ (F.φ t) θ₁ (EuclideanSpace.single b 1))) := by
-          filter_upwards [hK_fderiv_ev] with θ₁ h₁
-          rw [h₁, ContinuousLinearMap.comp_apply]
-        have h_pr2 := h1.hasFDerivAt.clm_apply hv_b.hasFDerivAt
-        have hterm2 : fderiv ℝ (fun θ₁ =>
-            fderiv ℝ (fun θ₂ => fderiv ℝ (M.klDiv α) (F.φ t θ₂)) θ₁
-              (EuclideanSpace.single b 1)) θ (EuclideanSpace.single a 1)
-            (fderiv ℝ (F.φ t) θ (EuclideanSpace.single c 1)) =
-          M.toRegularStatisticalModel.fisherBilin α
-            (F.secondDerivPhi t θ a b)
-            (fderiv ℝ (F.φ t) θ (EuclideanSpace.single c 1))
-          + fderiv ℝ (fun θ₁ =>
-              fderiv ℝ (fun θ' => fderiv ℝ (M.klDiv α) θ') (F.φ t θ₁)) θ
-              (EuclideanSpace.single a 1)
-              (fderiv ℝ (F.φ t) θ (EuclideanSpace.single b 1))
-              (fderiv ℝ (F.φ t) θ (EuclideanSpace.single c 1)) := by
-          rw [DFunLike.congr_fun (Filter.EventuallyEq.fderiv_eq hM_ev)
-                (EuclideanSpace.single a 1),
-              DFunLike.congr_fun h_pr2.fderiv (EuclideanSpace.single a 1)]
-          simp only [ContinuousLinearMap.add_apply, ContinuousLinearMap.comp_apply,
-            ContinuousLinearMap.flip_apply]
-          refine congrArg₂ (· + ·) ?_ rfl
-          rw [hφtθ]
-          exact M.klDiv_hessian_vec hα _ _
-        -- ── Rule 3: the tensorial term — chain rule through φ_t, then
-        -- scalarize the operator-valued third derivative at α. ──
-        have hT : fderiv ℝ (fun θ₁ =>
-            fderiv ℝ (fun θ' => fderiv ℝ (M.klDiv α) θ') (F.φ t θ₁)) θ
-            (EuclideanSpace.single a 1)
-            (fderiv ℝ (F.φ t) θ (EuclideanSpace.single b 1))
-            (fderiv ℝ (F.φ t) θ (EuclideanSpace.single c 1)) =
-          fderiv ℝ (fun θ₁ =>
-            fderiv ℝ (fun θ₂ =>
-              fderiv ℝ (M.klDiv α) θ₂
-                (fderiv ℝ (F.φ t) θ (EuclideanSpace.single c 1))) θ₁
-              (fderiv ℝ (F.φ t) θ (EuclideanSpace.single b 1))) α
-            (fderiv ℝ (F.φ t) θ (EuclideanSpace.single a 1)) := by
-          have hN_chain : fderiv ℝ (fun θ₁ =>
-              fderiv ℝ (fun θ' => fderiv ℝ (M.klDiv α) θ') (F.φ t θ₁)) θ =
-              (fderiv ℝ (fun θ'' =>
-                fderiv ℝ (fun θ' => fderiv ℝ (M.klDiv α) θ') θ'') α).comp
-                (fderiv ℝ (F.φ t) θ) := by
-            have h : fderiv ℝ (fun θ₁ =>
-                fderiv ℝ (fun θ' => fderiv ℝ (M.klDiv α) θ') (F.φ t θ₁)) θ =
-                (fderiv ℝ (fun θ'' =>
-                  fderiv ℝ (fun θ' => fderiv ℝ (M.klDiv α) θ') θ'') (F.φ t θ)).comp
-                  (fderiv ℝ (F.φ t) θ) := by
-              show fderiv ℝ ((fun θ'' =>
-                fderiv ℝ (fun θ' => fderiv ℝ (M.klDiv α) θ') θ'') ∘ F.φ t) θ = _
-              -- `comp` must be fully pinned: with `g`/`g'` as metavariables,
-              -- unification gives up bridging the generic vs normed instance
-              -- paths on the operator-valued codomain (same disease as the
-              -- `fun_comp'` NOTE above for `h1`).
-              exact (HasFDerivAt.comp (𝕜 := ℝ)
-                (g := fun θ' => fderiv ℝ (fun θ'' => fderiv ℝ (M.klDiv α) θ'') θ')
-                (g' := fderiv ℝ (fun θ' =>
-                  fderiv ℝ (fun θ'' => fderiv ℝ (M.klDiv α) θ'') θ') (F.φ t θ))
-                (f := F.φ t) (f' := fderiv ℝ (F.φ t) θ)
-                θ h_helper'.hasFDerivAt (hF_diff θ).hasFDerivAt).fderiv
-            rw [hφtθ] at h
-            exact h
-          rw [DFunLike.congr_fun hN_chain (EuclideanSpace.single a 1),
-              ContinuousLinearMap.comp_apply]
-          -- Scalarize: near α, the b-partial of the frozen-c-direction map
-          -- is the second-derivative operator applied to (u_b, u_c).
-          have hmid_ev : (fun θ₁ => fderiv ℝ (fun θ₂ =>
-              fderiv ℝ (M.klDiv α) θ₂
-                (fderiv ℝ (F.φ t) θ (EuclideanSpace.single c 1))) θ₁
-              (fderiv ℝ (F.φ t) θ (EuclideanSpace.single b 1))) =ᶠ[𝓝 α]
-              (fun θ₁ => fderiv ℝ (fun θ'' => fderiv ℝ (M.klDiv α) θ'') θ₁
-                (fderiv ℝ (F.φ t) θ (EuclideanSpace.single b 1))
-                (fderiv ℝ (F.φ t) θ (EuclideanSpace.single c 1))) := by
-            filter_upwards [M.isOpen_paramDomain.mem_nhds hα] with θ₁ hθ₁
-            rw [((hG_diff θ₁ hθ₁).hasFDerivAt.clm_apply
-              (hasFDerivAt_const
-                (fderiv ℝ (F.φ t) θ (EuclideanSpace.single c 1)) θ₁)).fderiv]
-            simp only [ContinuousLinearMap.add_apply, ContinuousLinearMap.comp_apply,
-              ContinuousLinearMap.zero_apply, ContinuousLinearMap.flip_apply,
-              map_zero, zero_add]
-          rw [DFunLike.congr_fun (Filter.EventuallyEq.fderiv_eq hmid_ev)
-              (fderiv ℝ (F.φ t) θ (EuclideanSpace.single a 1))]
-          -- Two `clm_apply`s with constant directions unpack the
-          -- operator-valued third derivative.
-          have hd1 := h_helper.hasFDerivAt.clm_apply
-            (hasFDerivAt_const
-              (fderiv ℝ (F.φ t) θ (EuclideanSpace.single b 1)) α)
-          have hd2 := hd1.clm_apply
-            (hasFDerivAt_const
-              (fderiv ℝ (F.φ t) θ (EuclideanSpace.single c 1)) α)
-          rw [hd2.fderiv]
-          simp only [ContinuousLinearMap.add_apply, ContinuousLinearMap.comp_apply,
-            ContinuousLinearMap.zero_apply, ContinuousLinearMap.flip_apply,
-            map_zero, zero_add]
-        rw [hterm1, hterm2, hT]
-        ring
+            (fderiv ℝ (F.φ t) θ (EuclideanSpace.single b 1)) :=
+        klDiv_phi_P_val (F := F) hα hθ a b c hα_def hφ_smooth hG_diff hF_diff
+          hK_fderiv_ev h1 h_helper' h_helper hN_diff hv_diff
       -- ═══ Assemble ═══
       rw [h_P_val, h_Q_val]
 

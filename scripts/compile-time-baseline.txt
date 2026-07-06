@@ -1,0 +1,12 @@
+# Spectra compile-time baseline — grandfathered slow files.
+# CI (check_compile_time.py --strict --baseline this) fails only on NEW or
+# WORSENED (beyond tolerance) entries, so the list can only shrink.
+# Regenerate after improvements with:
+#   python3 scripts/check_compile_time.py --all --write-baseline compile-time-baseline.txt
+# threshold: 5.0s
+Spectra.CayleyTransform.BorelCalculus 5.28
+Spectra.InformationGeometry.Divergence 5.66
+Spectra.QuantumMechanics.DiracEquation.CliffordAlgebra 5.53
+Spectra.QuantumMechanics.DiracEquation.Spin 6.25
+Spectra.QuantumMechanics.Hydrogen.Laplacian.FreeGreens.Convolution 7.78
+Spectra.QuantumMechanics.Hydrogen.Spectrum.SeparatedEigenfunction.Profile 5.81

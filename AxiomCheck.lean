@@ -904,6 +904,109 @@ assert_no_sorry Spectra.TomitaTakesaki.modularAut_zero
 assert_no_sorry Spectra.TomitaTakesaki.modularAut_add
 assert_no_sorry Spectra.TomitaTakesaki.modularAut_mapsTo_of_invariance
 
+/-! ## E3 — vector-state invariance of the modular flow
+
+`ω(σ_t x) = ω(x)` for the vector state `ω = ⟪Ω, ·Ω⟫`: generic for any unitary flow fixing `Ω`,
+unconditional for the constructed modular flow (via the proved `Δ^{it}Ω = Ω`), and in bundled
+`ModularData` form. -/
+assert_no_sorry Spectra.TomitaTakesaki.inner_modularAut_vacuum
+assert_no_sorry Spectra.TomitaTakesaki.inner_modularAut_modularFlow_vacuum
+assert_no_sorry Spectra.TomitaTakesaki.ModularData.inner_modularAut_vacuum
+
+/-! ## The inverse-calculus twins `Δ^{-½}Δ^{½} = 1`, `Δ^{½}Δ^{-½} = 1` and `ran Δ^{½} = D(Δ^{-½})` -/
+assert_no_sorry Spectra.TomitaTakesaki.modularSqrt_mem_modularSqrtInv_domain
+assert_no_sorry Spectra.TomitaTakesaki.modularSqrtInv_modularSqrt_apply
+assert_no_sorry Spectra.TomitaTakesaki.modularSqrtInv_mem_modularSqrt_domain
+assert_no_sorry Spectra.TomitaTakesaki.modularSqrt_modularSqrtInv_apply
+assert_no_sorry Spectra.TomitaTakesaki.mem_modularSqrtInv_domain_iff
+
+/-! ## The spectral-square bridge (generic): pointwise composition ⟹ `pmapOfPVM (·²)` -/
+assert_no_sorry Spectra.QuantumMechanics.SpectralTheory.mem_pmapDomain_id_of_mem_generator
+assert_no_sorry Spectra.QuantumMechanics.SpectralTheory.spectralCalculus_apply_pmapOfPVM_of_mul_bounded
+assert_no_sorry Spectra.QuantumMechanics.SpectralTheory.mem_sq_domain_of_generator_comp
+assert_no_sorry Spectra.QuantumMechanics.SpectralTheory.pmapOfPVM_sq_apply_generator_comp
+assert_no_sorry Spectra.QuantumMechanics.SpectralTheory.pmapOfPVM_sq_genToGroup_eq
+
+/-! ## ★★ Field 3 CLOSED — `J² = 1` and the Tomita conjugation relations
+
+The second-polar-decomposition argument: the involution `S̃² = 1` + the full-domain polar identity
+give `S = W″ ∘ (JΔ^{-½}J⁻¹)`; the KS3 bounded-factor adjoint law computes `Δ = S⋆S = (JΔ^{-½}J⁻¹)²`;
+`posSqrt_unique` forces `JΔ^{-½}J⁻¹ = Δ^{½}`; factor-matching on the dense `ran Δ^{½}` closes
+`J² = 1`, and the conjugation relations `JΔ^{½}J⁻¹ = Δ^{-½}`, `JΔJ⁻¹ = Δ⁻¹` follow.  This
+discharges the `ModularData.J_involutive` field — the former research node. -/
+assert_no_sorry Spectra.TomitaTakesaki.modularConjugation_symm_apply_eq
+assert_no_sorry Spectra.TomitaTakesaki.tomitaClosure_eq_modularWInv_comp
+assert_no_sorry Spectra.TomitaTakesaki.exists_conjModularSqrtInv_sq
+assert_no_sorry Spectra.TomitaTakesaki.sq_conjModularSqrtInv_eq_modularOp
+assert_no_sorry Spectra.TomitaTakesaki.sq_modularSqrt_eq_modularOp
+assert_no_sorry Spectra.TomitaTakesaki.sq_modularSqrtInv_eq_modularOpInv
+assert_no_sorry Spectra.TomitaTakesaki.conjModularSqrtInv_eq_modularSqrt
+assert_no_sorry Spectra.TomitaTakesaki.modularConjugation_involutive
+assert_no_sorry Spectra.TomitaTakesaki.modularConjugation_symm_eq
+assert_no_sorry Spectra.TomitaTakesaki.conjModularSqrt_eq_modularSqrtInv
+assert_no_sorry Spectra.TomitaTakesaki.conjModularOp_eq_modularOpInv
+
+/-! ## D3-1 — the balanced vector: cyclic for `M₂(M)`, NOT separating (the `H⊕H` dead-end sealed)
+
+The cyclic half of the balanced-state construction is real (`isCyclic_M2_of_isCyclic`), and the
+in-code witness (`M = B(H)`, `[[1,-1],[0,0]]`) proves the naive `Ω_θ = (Ω,Ω)` on `H⊕H` is NOT
+separating — the correct GNS carrier for the balanced state is `H⁴` (Route A). -/
+assert_no_sorry Spectra.TomitaTakesaki.isCyclic_M2_of_isCyclic
+assert_no_sorry Spectra.TomitaTakesaki.wholeAlgebra
+assert_no_sorry Spectra.TomitaTakesaki.isCyclic_wholeAlgebra
+assert_no_sorry Spectra.TomitaTakesaki.not_isSeparating_M2_wholeAlgebra
+assert_no_sorry Spectra.TomitaTakesaki.exists_isCyclic_not_isSeparating_M2
+
+/-! ## Base-`M` Tomita (fields 6/7/8) — the off-gate engines (vault: PLAN-tomita-fields678)
+
+First bricks of the merged RvD-§4 / van-Daele route to Tomita's theorem: the bounded picture
+`R = Φ(2/(1+s))`, `T = Φ(2√s/(1+s))` with the resolvent gluing `Δ(Rξ) = 2ξ − Rξ`, `Δ^{½}∘R = T`;
+the adjoint-closure lemma `S̄⋆ = S₀⋆`; the L¹-Fourier injectivity closer; and ★ the flow-commutation
+ladder `J Δ^{it} = Δ^{it} J` (via `J e^{isΔ} J⁻¹ = e^{isΔ⁻¹}` + the spectral-measure pushforward
+`μ_{Jξ} = (s⁻¹)_*μ_ξ` — classically available only inside the polar machinery). -/
+assert_no_sorry Spectra.QuantumMechanics.SpectralTheory.spectralCalculus_congr_ae_forall
+assert_no_sorry Spectra.TomitaTakesaki.rvdR
+assert_no_sorry Spectra.TomitaTakesaki.rvdT
+assert_no_sorry Spectra.TomitaTakesaki.rvdT_sq
+assert_no_sorry Spectra.TomitaTakesaki.modularOp_rvdR_apply
+assert_no_sorry Spectra.TomitaTakesaki.modularSqrt_rvdR_apply
+assert_no_sorry Spectra.TomitaTakesaki.rvdT_comm_modularFlow
+assert_no_sorry Spectra.TomitaTakesaki.rvdT_injective
+assert_no_sorry Spectra.TomitaTakesaki.denseRange_rvdT
+assert_no_sorry Spectra.TomitaTakesaki.tomitaClosure_adjoint_eq
+assert_no_sorry Spectra.TomitaTakesaki.tomitaClosure_adjoint_apply_commutant
+assert_no_sorry Spectra.Fourier.eq_zero_of_fourierIntegral_eq_zero
+assert_no_sorry Spectra.QuantumMechanics.SpectralTheory.flowGroup
+assert_no_sorry Spectra.QuantumMechanics.SpectralTheory.generator_flowGroup
+assert_no_sorry Spectra.TomitaTakesaki.modularConjGroup
+assert_no_sorry Spectra.TomitaTakesaki.generator_modularConjGroup
+assert_no_sorry Spectra.TomitaTakesaki.modularConjGroup_genToGroup_modularOp
+assert_no_sorry Spectra.TomitaTakesaki.borelMeasure_modularConjugation_eq_map
+assert_no_sorry Spectra.TomitaTakesaki.jConj_modularFlow
+assert_no_sorry Spectra.TomitaTakesaki.modularConjugation_comm_modularFlow
+
+/-! ## R4 — `ModularData` existence, up to Tomita's theorem
+
+Fields 1–5 (J, Δ^{it}, `J²=1`, `JΩ=Ω`, `Δ^{it}Ω=Ω`) are constructed and proved; the two Tomita
+fields and the commutation theorem enter as typed hypotheses — the isolated research frontier. -/
+assert_no_sorry Spectra.TomitaTakesaki.tomitaTakesaki_exists_of_invariance
+
+/-! ## M1 — the GNS bridge: state ⟶ `(π(A)'', Ω)` with `Ω` cyclic
+
+The generic double-commutant constructor, the GNS von Neumann algebra `π(A)''`, unconditional
+cyclicity of the GNS vacuum, and the separation consequences of faithfulness at the level of `A`
+(the bicommutant-level `IsSeparating` needs normality + Kaplansky density — the documented gap). -/
+assert_no_sorry Spectra.KMS.doubleCommutant
+assert_no_sorry Spectra.KMS.subset_doubleCommutant
+assert_no_sorry Spectra.KMS.State.gnsVonNeumann
+assert_no_sorry Spectra.KMS.State.gnsStarAlgHom_mem_gnsVonNeumann
+assert_no_sorry Spectra.KMS.State.isCyclic_gnsVonNeumann
+assert_no_sorry Spectra.KMS.State.norm_sq_gnsStarAlgHom_cyclicVector
+assert_no_sorry Spectra.KMS.State.gnsStarAlgHom_cyclicVector_eq_zero_iff
+assert_no_sorry Spectra.KMS.State.gnsStarAlgHom_injective
+assert_no_sorry Spectra.KMS.FaithfulNormalState.isCyclic_gnsVonNeumann
+assert_no_sorry Spectra.KMS.FaithfulNormalState.gnsStarAlgHom_injective
+
 /-! ## Inner-product `ℓ²`-pairing estimates (shared, trace-class-free)
 
 General `RCLike`-valued inner-product summability facts underpinning the trace bounds: inner
@@ -1063,6 +1166,82 @@ assert_no_sorry Spectra.QuantumMechanics.Channels.isPositiveMatrix_one_iff
 assert_no_sorry Spectra.QuantumMechanics.Channels.IsCompletelyPositive.isPositive
 assert_no_sorry Spectra.QuantumMechanics.Channels.QuantumChannel.id_toFun_apply
 
+/-! ## Quantum entropy -/
+
+-- Von Neumann entropy `S(ρ) = tr(-ρ log ρ)` of a quantum state, built operator-theoretically for a
+-- (possibly infinite-dimensional) `H`.  The spectrum of a state lies in `[0,1]`, so the entropy
+-- operator `-ρ log ρ = cfc negMulLog ρ` is positive (`entropyOp_nonneg`, the load-bearing fact that
+-- makes `posTrace` the honest trace and not a junk value); its `ℝ≥0∞`-valued positive trace is
+-- `vonNeumannEntropy`, which is basis-independent, and a pure state `|ψ⟩⟨ψ|` has zero entropy.
+assert_no_sorry Spectra.InformationGeometry.Quantum.QState.spectrum_toOp_nonneg
+assert_no_sorry Spectra.InformationGeometry.Quantum.QState.spectrum_toOp_le_one
+assert_no_sorry Spectra.InformationGeometry.Quantum.entropyOp_nonneg
+assert_no_sorry Spectra.InformationGeometry.Quantum.entropyOp_isSelfAdjoint
+assert_no_sorry Spectra.InformationGeometry.Quantum.vonNeumannEntropy
+assert_no_sorry Spectra.InformationGeometry.Quantum.vonNeumannEntropy_indep
+assert_no_sorry Spectra.InformationGeometry.Quantum.pureState
+assert_no_sorry Spectra.InformationGeometry.Quantum.entropyOp_pure
+assert_no_sorry Spectra.InformationGeometry.Quantum.vonNeumannEntropy_pure
+
+-- The eigenbasis KEYSTONE: a positive trace-class operator is compact
+-- (`IsTraceClass.isCompactOperator`, general; via `opNorm_le_hsNorm` + finite-rank truncation), so
+-- Mathlib's compact self-adjoint spectral theorem assembles a genuine `HilbertBasis` of eigenvectors
+-- (`eigenbasis`/`apply_eigenbasis`), and the CFC acts diagonally on eigenvectors
+-- (`cfc_apply_eigenvector`).  Applied to a `QState`, the eigenvalues form a probability distribution
+-- (`eigenvalue_nonneg`/`eigenvalue_le_one`/`hasSum_eigenvalue`), yielding the SPECTRAL FORM of the von
+-- Neumann entropy `S(ρ) = ∑ᵢ negMulLog λᵢ` (`vonNeumannEntropy_eq_tsum`) and the scalar Klein
+-- inequality (`Real.klein_scalar`) for the quantum relative entropy.
+assert_no_sorry Spectra.QuantumMechanics.Channels.opNorm_le_hsNorm
+assert_no_sorry Spectra.QuantumMechanics.Channels.IsHilbertSchmidt.isCompactOperator
+assert_no_sorry Spectra.QuantumMechanics.Channels.IsTraceClass.isCompactOperator
+assert_no_sorry Spectra.InformationGeometry.Quantum.eigenbasis
+assert_no_sorry Spectra.InformationGeometry.Quantum.apply_eigenbasis
+assert_no_sorry Spectra.InformationGeometry.Quantum.inner_eigenbasis_self
+assert_no_sorry Spectra.InformationGeometry.Quantum.cfc_apply_eigenvector
+assert_no_sorry Spectra.InformationGeometry.Quantum.inner_cfc_eigenvector
+assert_no_sorry Spectra.InformationGeometry.Quantum.QState.isCompactOperator_toOp
+assert_no_sorry Spectra.InformationGeometry.Quantum.QState.eigenvalue_nonneg
+assert_no_sorry Spectra.InformationGeometry.Quantum.QState.eigenvalue_mem_spectrum
+assert_no_sorry Spectra.InformationGeometry.Quantum.QState.eigenvalue_le_one
+assert_no_sorry Spectra.InformationGeometry.Quantum.QState.hasSum_eigenvalue
+assert_no_sorry Spectra.InformationGeometry.Quantum.QState.vonNeumannEntropy_eq_tsum
+assert_no_sorry Real.klein_scalar
+assert_no_sorry Real.mul_log_sub_mul_log_ge
+
+-- M4 (quantum relative entropy), first leg: the bounded diagonal `sᵢ = ⟪eᵢ, σ eᵢ⟫` of a second state
+-- `σ` in `ρ`'s eigenbasis is a probability distribution (`hasSum_diagSigma`), and the GIBBS /
+-- commuting-case Klein inequality `S(ρ) ≤ ∑ᵢ -λᵢ log sᵢ` holds for faithful `σ`
+-- (`vonNeumannEntropy_le_measuredCrossEntropy`) — the classical KL divergence of `ρ`'s eigenvalues
+-- against `σ`'s dephased diagonal is nonnegative.
+assert_no_sorry Spectra.InformationGeometry.Quantum.QState.diagSigma_nonneg
+assert_no_sorry Spectra.InformationGeometry.Quantum.QState.diagSigma_le_one
+assert_no_sorry Spectra.InformationGeometry.Quantum.QState.hasSum_diagSigma
+assert_no_sorry Spectra.InformationGeometry.Quantum.QState.measuredCrossEntropy
+assert_no_sorry Spectra.InformationGeometry.Quantum.QState.vonNeumannEntropy_le_measuredCrossEntropy
+
+-- M4 (quantum relative entropy), full Umegaki leg: the quantum cross entropy `crossEntropy(ρ,σ) =
+-- -Tr(ρ log σ)` is built in `ℝ≥0∞` from `σ`'s scalar spectral measure (never forming the unbounded
+-- `log σ`), and the FULL Klein inequality `S(ρ) ≤ crossEntropy(ρ,σ)` holds for faithful `σ` — the
+-- ordering form of the quantum relative entropy `D(ρ‖σ) ≥ 0`, proved via the tangent-line Jensen
+-- inequality `∫ log t dμ_{eᵢ} ≤ log sᵢ`.  `crossEntropy_self` (`crossEntropy ρ ρ = S(ρ)`) is the
+-- non-vacuity witness (`D(ρ‖ρ) = 0`).
+assert_no_sorry Real.integral_log_le_log_of_probability
+assert_no_sorry Spectra.InformationGeometry.Quantum.QState.crossEntropy
+assert_no_sorry Spectra.InformationGeometry.Quantum.QState.measuredCrossEntropy_le_crossEntropy
+assert_no_sorry Spectra.InformationGeometry.Quantum.QState.vonNeumannEntropy_le_crossEntropy
+assert_no_sorry Spectra.InformationGeometry.Quantum.QState.crossEntropy_self
+-- The Bogoliubov–Kubo–Mori (BKM) metric object and its well-definedness (G4a): the integrand kernel
+-- `K_τ(A,B) = tr(A τ⁻¹ B τ⁻¹)` is trace-class (via the trace-class ideal), bilinear, symmetric (one
+-- cyclicity step), and positive-semidefinite (`tr((τ^{-1/2}Aτ^{-1/2})⋆(·))`); the metric
+-- `bkmMetric ρ A B = ∫_{s>0} re K_{ρ+s}(A,B)` inherits symmetry and positive-semidefiniteness.
+assert_no_sorry Spectra.InformationGeometry.Quantum.bkmKernel
+assert_no_sorry Spectra.InformationGeometry.Quantum.bkmKernel_isTraceClass
+assert_no_sorry Spectra.InformationGeometry.Quantum.bkmKernel_comm
+assert_no_sorry Spectra.InformationGeometry.Quantum.bkmKernel_self_re_nonneg
+assert_no_sorry Spectra.InformationGeometry.Quantum.bkmMetric
+assert_no_sorry Spectra.InformationGeometry.Quantum.bkmMetric_comm
+assert_no_sorry Spectra.InformationGeometry.Quantum.bkmMetric_self_nonneg
+
 /-! ## Information geometry -/
 
 assert_no_sorry Spectra.InformationGeometry.RegularStatisticalModel.cramerRao_scalar
@@ -1147,6 +1326,132 @@ assert_no_sorry Spectra.HilbertTensorPower.permUnitary
 assert_no_sorry Spectra.HilbertTensorPower.permUnitary_tprod
 -- The full Fock space (`Spaces/Fock/Basic.lean`): the Hilbert sum of the sectors.
 assert_no_sorry Spectra.fullFock
+
+/-! ## Symmetrizers, Bose/Fermi Fock spaces, and the Krein–Fock lift (Fock Spaces M2) -/
+
+-- M2 symmetrizers (`Spaces/Fock/Symmetrizer.lean`): the permutation-unitary group law on the
+-- n-particle sector and the symmetrizer/antisymmetrizer as self-adjoint contractive idempotents.
+assert_no_sorry Spectra.HilbertTensorPower.permUnitary_comp
+assert_no_sorry Spectra.HilbertTensorPower.symProj
+assert_no_sorry Spectra.HilbertTensorPower.altProj
+assert_no_sorry Spectra.HilbertTensorPower.symProj_idem
+assert_no_sorry Spectra.HilbertTensorPower.altProj_idem
+assert_no_sorry Spectra.HilbertTensorPower.isSelfAdjoint_symProj
+assert_no_sorry Spectra.HilbertTensorPower.isSelfAdjoint_altProj
+assert_no_sorry Spectra.HilbertTensorPower.norm_symProj_le
+-- M2 sectors (`Spaces/Fock/BoseFermi.lean`): the bosonic/fermionic sectors as closed subspaces
+-- (permutation-(anti)invariant vectors), Pauli exclusion, sector disjointness for n ≥ 2, and
+-- the bosonic/fermionic Fock spaces as Hilbert sums of the sectors.
+assert_no_sorry Spectra.HilbertTensorPower.symPower
+assert_no_sorry Spectra.HilbertTensorPower.altPower
+assert_no_sorry Spectra.HilbertTensorPower.mem_symPower_iff_forall
+assert_no_sorry Spectra.HilbertTensorPower.mem_altPower_iff_forall
+assert_no_sorry Spectra.HilbertTensorPower.altProj_tprod_eq_zero
+assert_no_sorry Spectra.HilbertTensorPower.symPower_inf_altPower
+assert_no_sorry Spectra.boseFock
+assert_no_sorry Spectra.fermiFock
+-- Sector functoriality Γₙ (`Spaces/Tensor/PowerCongr.lean`): a unitary `H ≃ H'` lifts
+-- isometrically to the completed tensor powers, functorially in the unitary.
+assert_no_sorry Spectra.HilbertTensorPower.congr
+assert_no_sorry Spectra.HilbertTensorPower.congr_tprod
+assert_no_sorry Spectra.HilbertTensorPower.congr_trans
+assert_no_sorry Spectra.HilbertTensorPower.congr_refl
+assert_no_sorry Spectra.HilbertTensorPower.congr_symm
+assert_no_sorry Spectra.HilbertTensorPower.inner_congr_left
+-- lp congruence (`Spaces/HilbertSum/Congr.lean`): componentwise unitaries assemble into a
+-- unitary of Hilbert sums (upstream candidates; norm/membership transfer holds for all `p`).
+assert_no_sorry memℓp_congrRight_iff
+assert_no_sorry lp.norm_congr
+assert_no_sorry LinearIsometryEquiv.lpCongrRight
+assert_no_sorry LinearIsometryEquiv.lpCongrRight_apply
+assert_no_sorry LinearIsometryEquiv.lpCongrRight_symm
+assert_no_sorry LinearIsometryEquiv.lpCongrRight_trans
+-- Krein spaces (`Spaces/Krein/Basic.lean`): fundamental symmetries, the indefinite inner
+-- product, the fundamental decomposition H = H₊ ⊕ H₋, and the Krein adjoint.
+assert_no_sorry Spectra.FundamentalSymmetry.isometryEquiv_trans_self
+assert_no_sorry Spectra.FundamentalSymmetry.posPart_sup_negPart
+assert_no_sorry Spectra.FundamentalSymmetry.negPart_eq_orthogonal
+assert_no_sorry Spectra.FundamentalSymmetry.kreinInner_self_of_mem_posPart
+assert_no_sorry Spectra.FundamentalSymmetry.kreinInner_self_of_mem_negPart
+assert_no_sorry Spectra.FundamentalSymmetry.kreinInner_map_left
+assert_no_sorry Spectra.FundamentalSymmetry.kreinAdjoint_kreinAdjoint
+assert_no_sorry Spectra.FundamentalSymmetry.isKreinSelfAdjoint_iff_isSelfAdjoint_comp
+-- Krein–Fock lift (`Spaces/Krein/Fock.lean`): Γ(J) — a fundamental symmetry on the
+-- one-particle space lifts to the Gupta–Bleuler indefinite metric on the full Fock space.
+assert_no_sorry Spectra.FundamentalSymmetry.powerLift
+assert_no_sorry Spectra.FundamentalSymmetry.powerLift_tprod
+assert_no_sorry Spectra.FundamentalSymmetry.fockLiftEquiv
+assert_no_sorry Spectra.FundamentalSymmetry.inner_fockLiftEquiv_left
+assert_no_sorry Spectra.FundamentalSymmetry.fockSymmetry
+assert_no_sorry Spectra.FundamentalSymmetry.kreinInner_fockSymmetry
+assert_no_sorry Spectra.FundamentalSymmetry.fockSymmetry_id_apply
+-- M2 non-degeneracy (`Spaces/Fock/BoseFermi.lean`): constant tensors are bosonic, and the
+-- Slater normalization ‖altProj (⨂ₜ x)‖² = (n!)⁻¹ for orthonormal x makes the fermionic
+-- sector visibly nonzero — the sectors are not vacuous subspaces.
+assert_no_sorry Spectra.HilbertTensorPower.tprod_const_mem_symPower
+assert_no_sorry Spectra.HilbertTensorPower.symPower_ne_bot
+assert_no_sorry Spectra.HilbertTensorPower.norm_sq_altProj_tprod
+assert_no_sorry Spectra.HilbertTensorPower.altProj_tprod_ne_zero_of_orthonormal
+assert_no_sorry Spectra.HilbertTensorPower.altPower_ne_bot
+-- Γₙ intertwines permutations (`Spaces/Tensor/PowerCongr.lean`), hence Γₙ(J) preserves the
+-- bosonic/fermionic sectors (`Spaces/Krein/Fock.lean`): the Gupta–Bleuler metric restricts.
+assert_no_sorry Spectra.HilbertTensorPower.congr_permUnitary
+assert_no_sorry Spectra.FundamentalSymmetry.powerLift_mem_symPower
+assert_no_sorry Spectra.FundamentalSymmetry.powerLift_mem_altPower
+-- Krein spectral projections project onto the parts, and the diag(1, −1) witness on 𝕜²
+-- exhibits a Krein form taking both signs (`Spaces/Krein/Basic.lean`).
+assert_no_sorry Spectra.FundamentalSymmetry.range_posProj
+assert_no_sorry Spectra.FundamentalSymmetry.range_negProj
+assert_no_sorry Spectra.FundamentalSymmetry.diagSymmetry
+assert_no_sorry Spectra.FundamentalSymmetry.kreinInner_diagSymmetry_single_zero
+assert_no_sorry Spectra.FundamentalSymmetry.kreinInner_diagSymmetry_single_one
+
+/-! ## Vacuum, sectors, number operator, exponential vectors (Fock Spaces M3) -/
+
+-- Sector embeddings and the vacuum (`Spaces/Fock/Sector.lean`): `lp.single` bundled as a
+-- linear isometry, orthogonal sector embeddings into the full/bose/fermi Fock spaces, the
+-- normalized vacuum vectors, and the dense finite-particle cores.
+assert_no_sorry lp.dense_iSup_range_lsingle
+assert_no_sorry Spectra.fockSector
+assert_no_sorry Spectra.inner_fockSector_of_ne
+assert_no_sorry Spectra.fockVacuum
+assert_no_sorry Spectra.norm_fockVacuum
+assert_no_sorry Spectra.boseVacuum
+assert_no_sorry Spectra.dense_finParticle
+assert_no_sorry Spectra.dense_boseFinParticle
+assert_no_sorry Spectra.dense_fermiFinParticle
+-- Exponential (coherent) vectors (`Spaces/Fock/Exponential.lean`), Parthasarathy convention
+-- `ε(f)ₙ = (√n!)⁻¹ f^⊗n`: the inner-product formula `⟪ε(f), ε(g)⟫ = exp ⟪f, g⟫` and
+-- `‖ε(f)‖² = exp ‖f‖²`.
+assert_no_sorry Spectra.expVec
+assert_no_sorry Spectra.expVec_apply
+assert_no_sorry Spectra.inner_expVec_expVec
+assert_no_sorry Spectra.norm_expVec_sq
+assert_no_sorry Spectra.expVec_ne_zero
+-- Polarization (`Spaces/Fock/Polarization.lean`): the inclusion–exclusion identity
+-- `n! • symProj (⨂ₜ x) = ∑_{S ⊆ [n]} (−1)^{n−|S|} (∑_{i∈S} xᵢ)^{⊗n}`, hence tensor powers
+-- span a dense subspace of the bosonic sector.
+assert_no_sorry Spectra.HilbertTensorPower.polarization_symProj_tprod
+assert_no_sorry Spectra.HilbertTensorPower.symProj_tprod_mem_span_powers
+assert_no_sorry Spectra.HilbertTensorPower.topologicalClosure_span_tprod_const
+-- The number operator (`Spaces/Fock/NumberOp.lean`): the diagonal multiplier `(Nξ)ₙ = n ξₙ`
+-- on its natural dense domain is SELF-ADJOINT (adjoint domain forced by sector testing),
+-- with `N (sector n x) = n • sector n x`, `N Ω = 0`, and `⟪ξ, Nξ⟫ ≥ 0`.
+assert_no_sorry Spectra.numberOp
+assert_no_sorry Spectra.dense_numberDomain
+assert_no_sorry Spectra.numberOp_isFormalAdjoint_self
+assert_no_sorry Spectra.numberOp_isSelfAdjoint
+assert_no_sorry Spectra.numberOp_fockSector
+assert_no_sorry Spectra.re_inner_self_numberOp_nonneg
+assert_no_sorry Spectra.numberOperator
+-- ★ The M3 keystone (`Spaces/Fock/Total.lean`): exponential vectors are TOTAL in the bosonic
+-- Fock space — the closed span of `{ε(f) : f ∈ H}` is everything. Load-bearing for the Weyl
+-- operators (M5), second quantization (M6), and Fock irreducibility (M7).
+assert_no_sorry Spectra.expVecSector_smul
+assert_no_sorry Spectra.boseSector_expVecSector_mem
+assert_no_sorry Spectra.boseSector_mem_of_forall_tprod_const
+assert_no_sorry Spectra.expVec_total
+assert_no_sorry Spectra.dense_span_expVec
 
 /-! ## Sobolev spaces -/
 
@@ -1238,6 +1543,16 @@ and `Quot.sound` should appear — anything else (especially `sorryAx`) is a red
 #print axioms Spectra.QuantumMechanics.Channels.fidelity_comm
 #print axioms Spectra.QuantumMechanics.Channels.norm_traceFunctional
 #print axioms Spectra.QuantumMechanics.Channels.traceDualₗᵢ
+#print axioms Spectra.InformationGeometry.Quantum.entropyOp_nonneg
+#print axioms Spectra.InformationGeometry.Quantum.vonNeumannEntropy_pure
+#print axioms Spectra.QuantumMechanics.Channels.IsTraceClass.isCompactOperator
+#print axioms Spectra.InformationGeometry.Quantum.eigenbasis
+#print axioms Spectra.InformationGeometry.Quantum.QState.vonNeumannEntropy_eq_tsum
+#print axioms Spectra.InformationGeometry.Quantum.QState.vonNeumannEntropy_le_measuredCrossEntropy
+#print axioms Spectra.InformationGeometry.Quantum.QState.vonNeumannEntropy_le_crossEntropy
+#print axioms Spectra.InformationGeometry.Quantum.QState.crossEntropy_self
+#print axioms Spectra.InformationGeometry.Quantum.bkmKernel_self_re_nonneg
+#print axioms Spectra.InformationGeometry.Quantum.bkmMetric_self_nonneg
 #print axioms Spectra.QuantumMechanics.Channels.isPositiveMatrix_one_iff
 #print axioms Spectra.QuantumMechanics.Channels.IsCompletelyPositive.isPositive
 #print axioms Spectra.QuantumMechanics.Channels.QuantumChannel.id_toFun_apply
@@ -1289,6 +1604,22 @@ and `Quot.sound` should appear — anything else (especially `sorryAx`) is a red
 #print axioms Spectra.TomitaTakesaki.M2
 #print axioms Spectra.TomitaTakesaki.modularAut
 #print axioms Spectra.TomitaTakesaki.modularAut_add
+#print axioms Spectra.TomitaTakesaki.inner_modularAut_modularFlow_vacuum
+#print axioms Spectra.TomitaTakesaki.modularSqrtInv_modularSqrt_apply
+#print axioms Spectra.TomitaTakesaki.modularSqrt_modularSqrtInv_apply
+#print axioms Spectra.QuantumMechanics.SpectralTheory.pmapOfPVM_sq_genToGroup_eq
+#print axioms Spectra.TomitaTakesaki.conjModularSqrtInv_eq_modularSqrt
+#print axioms Spectra.TomitaTakesaki.modularConjugation_involutive
+#print axioms Spectra.TomitaTakesaki.conjModularSqrt_eq_modularSqrtInv
+#print axioms Spectra.TomitaTakesaki.conjModularOp_eq_modularOpInv
+#print axioms Spectra.TomitaTakesaki.tomitaTakesaki_exists_of_invariance
+#print axioms Spectra.KMS.State.isCyclic_gnsVonNeumann
+#print axioms Spectra.KMS.State.gnsStarAlgHom_injective
+#print axioms Spectra.TomitaTakesaki.isCyclic_M2_of_isCyclic
+#print axioms Spectra.TomitaTakesaki.not_isSeparating_M2_wholeAlgebra
+#print axioms Spectra.TomitaTakesaki.modularOp_rvdR_apply
+#print axioms Spectra.TomitaTakesaki.tomitaClosure_adjoint_eq
+#print axioms Spectra.TomitaTakesaki.modularConjugation_comm_modularFlow
 #print axioms Spectra.HilbertTensor.dense_span_tmul
 #print axioms Spectra.HilbertTensor.inner_tmul_tmul
 #print axioms Spectra.HilbertTensor.norm_mapL
@@ -1301,3 +1632,8 @@ and `Quot.sound` should appear — anything else (especially `sorryAx`) is a red
 #print axioms Spectra.InformationGeometry.ThriceDifferentiableModel.DivergencePreservingFamily.mConnection_correction
 #print axioms Spectra.TensorPower.instInnerProductSpace
 #print axioms Spectra.fullFock
+#print axioms Spectra.boseFock
+#print axioms Spectra.fermiFock
+#print axioms Spectra.FundamentalSymmetry.fockSymmetry
+#print axioms Spectra.expVec_total
+#print axioms Spectra.numberOp_isSelfAdjoint

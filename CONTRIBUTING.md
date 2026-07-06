@@ -104,6 +104,44 @@ Spectra inherits Mathlib's linters. At minimum, before opening a PR:
 > suite — adding more checks is welcome; until then, the gates above + `#lint` + the STYLE.md checklist
 > are the bar.
 
+### Compile-time monitoring
+
+[`scripts/check_compile_time.py`](scripts/check_compile_time.py) times how long each file takes to
+elaborate in isolation (`lake env lean <file>`, against already-built dependency `.olean`s — the same
+unit of work Lake redoes when a file changes) and flags anything slower than a threshold (default 5s)
+so it can be assessed. There's no external "correct" number here — Mathlib manages compile time via a
+*relative* CI regression bot plus its line-count linter, not an absolute per-file wall-clock budget —
+5s was picked from this library's own data: a clean (uncontended) full sweep put ~1-4s down to nothing
+more than each file's own Mathlib-heavy import-closure loading (a real, unavoidable floor, not a
+measurement artifact), while the genuine outliers sit at 5s+. The tool ships with a baseline ratchet
+exactly like the length checker, plus a *tolerance* (default 50% relative / 1s absolute) since
+wall-clock timings are noisier than line counts:
+
+```sh
+lake exe cache get && lake build                        # must be built first
+python3 scripts/check_compile_time.py --changed          # fast: files touched vs. base + working tree
+python3 scripts/check_compile_time.py --all --jobs 4     # full sweep (slower; jobs>1 trades fidelity for speed)
+python3 scripts/check_compile_time.py --changed --strict --baseline scripts/compile-time-baseline.txt
+```
+
+After genuinely speeding up a slow file, regenerate the baseline (`--all --write-baseline
+scripts/compile-time-baseline.txt`) to lock in the gain. This is currently a local/manual tool, not
+wired into CI — see [`scripts/compile-time-baseline.txt`](scripts/compile-time-baseline.txt) for the
+current picture.
+
+It can also track the *shape* of the build over time. `--graph` prints an ASCII histogram of the
+current run's time distribution straight to the terminal (no file). `--history [PATH]` appends this
+run's aggregate stats (mean/median/p90/max/count-over-threshold) as one JSON line to
+[`scripts/compile-time-history.jsonl`](scripts/compile-time-history.jsonl) by default — aggregate,
+not per-file, so it survives files being added, split, or renamed. `--trend [PATH]` reads that log
+back as an ASCII sparkline:
+
+```sh
+python3 scripts/check_compile_time.py --all --graph                                   # this run's histogram
+python3 scripts/check_compile_time.py --all --history                                 # record a data point
+python3 scripts/check_compile_time.py --trend                                         # see the trend
+```
+
 ---
 
 ## Informal and work-in-progress results

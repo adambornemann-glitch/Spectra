@@ -274,7 +274,6 @@ theorem fourierL2_toLp_ae (φ : 𝓢(R3, ℂ)) :
   rw [hx, SchwartzMap.fourier_coe]
 
 /-! ## The two convergences powering the density argument -/
-set_option maxHeartbeats 270000 in
 /-- Per-index estimate for `Fₙ → B`: the `L²` distance between `fourierL2 (φ ⋆ χ).toLp` and the
 `L²` symbol `(fourierL2 g · 𝓕χ).toLp` is bounded by
 `‖𝓕χ‖_∞ · ‖fourierL2 (φ.toLp) − fourierL2 g‖`. -/
@@ -284,20 +283,20 @@ theorem fourier_conv_seqB_bound (g : l2R3) (χ : 𝓢(R3, ℂ)) (φ : 𝓢(R3, �
       ≤ ((SchwartzMap.seminorm ℝ 0 0 (SchwartzMap.fourierTransformCLM ℂ χ)).toNNReal : ℝ≥0∞)
         * eLpNorm (⇑(fourierL2 (φ.toLp 2)) - ⇑(fourierL2 g)) 2 volume := by
   set C := (SchwartzMap.seminorm ℝ 0 0 (SchwartzMap.fourierTransformCLM ℂ χ)).toNNReal with hC
+  set fdiff : R3 → ℂ := ⇑(fourierL2 (φ.toLp 2)) - ⇑(fourierL2 g) with hfdiff
   have hFn := fourier_conv_schwartz_L2 φ χ
   have hB := memB.coeFn_toLp
-  have hmemdiff : MemLp (⇑(fourierL2 (φ.toLp 2)) - ⇑(fourierL2 g)) 2 volume :=
-    (Lp.memLp _).sub (Lp.memLp _)
+  have hmemdiff : MemLp fdiff 2 volume := (Lp.memLp _).sub (Lp.memLp _)
   have hb := (memLp_bdd_mul (m := 𝓕 (χ:R3→ℂ))
-    (f := ⇑(fourierL2 (φ.toLp 2)) - ⇑(fourierL2 g)) (C := C)
+    (f := fdiff) (C := C)
     (fourier_chi_bound χ) (fourier_chi_meas χ) hmemdiff).2
   rw [ENNReal.smul_def, smul_eq_mul] at hb
   have hdiff : (⇑(fourierL2 ((memLp_schwartz_conv φ χ).toLp _)) - ⇑(memB.toLp _))
-      =ᵐ[volume] fun ξ => 𝓕 (χ:R3→ℂ) ξ * ((⇑(fourierL2 (φ.toLp 2)) - ⇑(fourierL2 g)) ξ) := by
+      =ᵐ[volume] fun ξ => 𝓕 (χ:R3→ℂ) ξ * fdiff ξ := by
     filter_upwards [hFn, hB, fourierL2_toLp_ae φ, Lp.coeFn_sub (fourierL2 (φ.toLp 2)) (fourierL2 g)]
       with ξ h1 h2 h3 h4
     rw [Pi.sub_apply] at h4
-    simp only [Pi.sub_apply, h1, h2, h3]
+    simp only [Pi.sub_apply, h1, h2, h3, hfdiff]
     ring
   rw [eLpNorm_congr_ae hdiff]
   exact hb
@@ -390,8 +389,8 @@ theorem freeGreens_resolvent_kernel_schwartz (z : ℂ) (hz : z.im ≠ 0) (ψ : �
     ∀ᵐ x : R3,
       (selfAdjointResolvent laplacian_isSelfAdjoint z hz (ψ.toLp 2) : R3 → ℂ) x
         = ∫ y, (freeGreensFunctionL2 z hz : R3 → ℂ) (x - y) * (ψ : R3 → ℂ) y := by
-  have hconv_m :
-      (fourierL2 ((memLp_conv_L2_schwartz (freeGreensFunctionL2 z hz) ψ).toLp _) : R3 → ℂ)
+  set gconv : l2R3 := (memLp_conv_L2_schwartz (freeGreensFunctionL2 z hz) ψ).toLp _ with hgconv
+  have hconv_m : (fourierL2 gconv : R3 → ℂ)
         =ᵐ[volume] fun ξ => ((laplacianSymbol ξ : ℂ) - z)⁻¹ * 𝓕 (ψ : R3 → ℂ) ξ := by
     filter_upwards [fourier_conv_L2_schwartz (freeGreensFunctionL2 z hz) ψ,
       fourierL2_freeGreensFunctionL2 z hz] with ξ h1 h2
@@ -401,11 +400,11 @@ theorem freeGreens_resolvent_kernel_schwartz (z : ℂ) (hz : z.im ≠ 0) (ψ : �
     filter_upwards [fourierL2_selfAdjointResolvent z hz (ψ.toLp 2), fourierL2_toLp_ae ψ]
       with ξ h1 h2
     rw [h1, h2]
-  have hR_conv : selfAdjointResolvent laplacian_isSelfAdjoint z hz (ψ.toLp 2)
-      = (memLp_conv_L2_schwartz (freeGreensFunctionL2 z hz) ψ).toLp _ :=
+  have hR_conv : selfAdjointResolvent laplacian_isSelfAdjoint z hz (ψ.toLp 2) = gconv :=
     fourierL2.injective (Lp.ext (hres_m.trans hconv_m.symm))
   rw [hR_conv]
-  filter_upwards [(memLp_conv_L2_schwartz (freeGreensFunctionL2 z hz) ψ).coeFn_toLp] with x hx
+  filter_upwards [hgconv ▸ (memLp_conv_L2_schwartz (freeGreensFunctionL2 z hz) ψ).coeFn_toLp]
+    with x hx
   rw [hx, convolution_mul_swap]
 
 end Spectra.QuantumMechanics.Hydrogen

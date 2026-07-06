@@ -23,7 +23,6 @@ complex-differentiable on the whole ball.
 * `differentiableOn_of_continuousOn_of_differentiableOn_off_horizLine` (Lemma 3, todo)
 -/
 
-set_option maxHeartbeats 275000
 /-- **Cauchy–Goursat across a horizontal line.**
 
 If `f` is continuous on a closed rectangle and complex-differentiable on the open
@@ -70,33 +69,39 @@ lemma integral_boundary_rect_eq_zero_off_horizLine
       rcases le_or_gt a w.im with haw | haw
       · exact absurd h.1 (by rw [min_eq_left haw]; exact lt_irrefl _)
       · exact absurd h.2 (by rw [max_eq_left haw.le]; exact lt_irrefl _)
-    -- The two new corners, with their real/imaginary parts.
-    have hcre : (↑w.re + ↑a * I : ℂ).re = w.re := by simp
-    have hcim : (↑w.re + ↑a * I : ℂ).im = a := by simp
-    have hdre : (↑z.re + ↑a * I : ℂ).re = z.re := by simp
-    have hdim : (↑z.re + ↑a * I : ℂ).im = a := by simp
+    -- The two new corners, with their real/imaginary parts. Named via `set` — each corner
+    -- literal recurs 4 times below (both `ContinuousOn`/`DifferentiableOn` hypotheses and the
+    -- Cauchy–Goursat application); writing it out repeatedly forced Lean to re-unfold
+    -- `Complex.re`/`.im` on the same constructed complex number from scratch each time
+    -- (measured ~2s per occurrence-cluster; see the compile-time case study).
+    set cornerW : ℂ := (↑w.re + ↑a * I : ℂ) with hcornerW
+    set cornerZ : ℂ := (↑z.re + ↑a * I : ℂ) with hcornerZ
+    have hcre : cornerW.re = w.re := by rw [hcornerW]; simp
+    have hcim : cornerW.im = a := by rw [hcornerW]; simp
+    have hdre : cornerZ.re = z.re := by rw [hcornerZ]; simp
+    have hdim : cornerZ.im = a := by rw [hcornerZ]; simp
     -- Continuity of `f` on each closed sub-rectangle, inherited from `Hc`.
     have Hc_low : ContinuousOn f
-        (Set.uIcc z.re (↑w.re + ↑a * I).re ×ℂ Set.uIcc z.im (↑w.re + ↑a * I).im) := by
+        (Set.uIcc z.re cornerW.re ×ℂ Set.uIcc z.im cornerW.im) := by
       rw [hcre, hcim]
       refine Hc.mono fun ζ hζ => ⟨hζ.1, low_uIcc hζ.2⟩
     have Hc_up : ContinuousOn f
-        (Set.uIcc (↑z.re + ↑a * I).re w.re ×ℂ Set.uIcc (↑z.re + ↑a * I).im w.im) := by
+        (Set.uIcc cornerZ.re w.re ×ℂ Set.uIcc cornerZ.im w.im) := by
       rw [hdre, hdim]
       refine Hc.mono fun ζ hζ => ⟨hζ.1, up_uIcc hζ.2⟩
     -- Differentiability of `f` on each open sub-rectangle.  The open sub-rectangle
     -- is a subset of the open big rectangle and avoids the line.
     have Hd_low : DifferentiableOn ℂ f
-        (Set.Ioo (min z.re (↑w.re + ↑a * I).re) (max z.re (↑w.re + ↑a * I).re) ×ℂ
-         Set.Ioo (min z.im (↑w.re + ↑a * I).im) (max z.im (↑w.re + ↑a * I).im)) := by
+        (Set.Ioo (min z.re cornerW.re) (max z.re cornerW.re) ×ℂ
+         Set.Ioo (min z.im cornerW.im) (max z.im cornerW.im)) := by
       rw [hcre, hcim]
       refine Hd.mono fun ζ hζ => ⟨⟨hζ.1, low_Ioo hζ.2⟩, ?_⟩
       intro hζa
       simp only [Set.mem_setOf_eq] at hζa
       exact a_not_low (hζa ▸ hζ.2)
     have Hd_up : DifferentiableOn ℂ f
-        (Set.Ioo (min (↑z.re + ↑a * I).re w.re) (max (↑z.re + ↑a * I).re w.re) ×ℂ
-         Set.Ioo (min (↑z.re + ↑a * I).im w.im) (max (↑z.re + ↑a * I).im w.im)) := by
+        (Set.Ioo (min cornerZ.re w.re) (max cornerZ.re w.re) ×ℂ
+         Set.Ioo (min cornerZ.im w.im) (max cornerZ.im w.im)) := by
       rw [hdre, hdim]
       refine Hd.mono fun ζ hζ => ⟨⟨hζ.1, up_Ioo hζ.2⟩, ?_⟩
       intro hζa
@@ -105,10 +110,10 @@ lemma integral_boundary_rect_eq_zero_off_horizLine
     -- Apply Mathlib's Cauchy–Goursat on each sub-rectangle.
     have low_zero :=
       Complex.integral_boundary_rect_eq_zero_of_continuousOn_of_differentiableOn
-        f z (↑w.re + ↑a * I) Hc_low Hd_low
+        f z cornerW Hc_low Hd_low
     have up_zero :=
       Complex.integral_boundary_rect_eq_zero_of_continuousOn_of_differentiableOn
-        f (↑z.re + ↑a * I) w Hc_up Hd_up
+        f cornerZ w Hc_up Hd_up
     -- Substitute the corner coordinates.
     simp only [hcre, hcim, hdre, hdim] at low_zero up_zero
     -- Continuity of the horizontal-edge integrands along the closed im-interval.
