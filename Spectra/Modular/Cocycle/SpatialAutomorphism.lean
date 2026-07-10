@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
-Author: Adam Bornemann
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Adam Bornemann
 -/
 import Spectra.OneParameterUnitaryGroup.Basic
 import Mathlib.Algebra.Star.UnitaryStarAlgAut
@@ -23,11 +23,11 @@ functor `t ↦ Ad(U t)`.
 ## Design: carrier-agnostic, gate-free
 
 `modularAut` is stated for an **arbitrary** `OneParameterUnitaryGroup H`, so the same builder serves
-the base modular flow on `H`, the amplified flow on `H2 H = H ⊕ H`, and any other carrier — it is the
-`E2` lego the library previously lacked (only the antilinear `jConj` and the `ModularData`-consuming
-`modularAutomorphism_mem` existed).  The invariance / Tomita landing `Δ^{it} M Δ^{-it} = M` is **not**
-discharged here: `modularAut_mapsTo_of_invariance` takes it as an explicit hypothesis, keeping this
-file entirely off the research gates.
+the base modular flow on `H`, the amplified flow on `H2 H = H ⊕ H`, and any other carrier — it is
+the `E2` lego the library previously lacked (only the antilinear `jConj` and the
+`ModularData`-consuming `modularAutomorphism_mem` existed).  The invariance / Tomita landing
+`Δ^{it} M Δ^{-it} = M` is **not** discharged here: `modularAut_mapsTo_of_invariance` takes it as an
+explicit hypothesis, keeping this file entirely off the research gates.
 
 ## Main statements
 

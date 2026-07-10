@@ -1,8 +1,7 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
-Filename: QuantumMechanics/DiracEquation/GammaTrace.lean
 -/
 import Mathlib.Tactic.NoncommRing
 import Spectra.QuantumMechanics.DiracEquation.CliffordAlgebra
@@ -399,13 +398,11 @@ lemma gamma_trace_three (μ ν ρ : Fin 4) :
                   gamma5 * gamma5 * gammaAt μ * gammaAt ν * gammaAt ρ := by
     rw [gamma5_sq]
     noncomm_ring
-
   have h_cyclic : Matrix.trace (gamma5 * gamma5 * gammaAt μ * gammaAt ν * gammaAt ρ) =
                   Matrix.trace (gamma5 * gammaAt μ * gammaAt ν * gammaAt ρ * gamma5) := by
     have h_assoc : gamma5 * gamma5 * gammaAt μ * gammaAt ν * gammaAt ρ =
                    gamma5 * (gamma5 * gammaAt μ * gammaAt ν * gammaAt ρ) := by noncomm_ring
     rw [h_assoc, trace_mul_comm]
-
   have h_anticomm : gamma5 * gammaAt μ * gammaAt ν * gammaAt ρ * gamma5 =
                     -(gammaAt μ * gammaAt ν * gammaAt ρ) := by
     rw [gamma5_move_through_three]
@@ -413,7 +410,6 @@ lemma gamma_trace_three (μ ν ρ : Fin 4) :
                    -(gammaAt μ * gammaAt ν * gammaAt ρ * (gamma5 * gamma5)) := by noncomm_ring
     rw [h_assoc, gamma5_sq]
     noncomm_ring
-
   have h_neg_self : Matrix.trace (gammaAt μ * gammaAt ν * gammaAt ρ) =
       -Matrix.trace (gammaAt μ * gammaAt ν * gammaAt ρ) := by
     calc Matrix.trace (gammaAt μ * gammaAt ν * gammaAt ρ)

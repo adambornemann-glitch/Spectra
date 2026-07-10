@@ -1,6 +1,6 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Spectra.QuantumMechanics.BornRule.POVM
@@ -157,7 +157,8 @@ theorem spectralForm_ext_of_set (U : OneParameterUnitaryGroup (H := H)) (ξ₁ �
       ((borelMeasure U (ξ₁ + η₁)) S).toReal - ((borelMeasure U (ξ₁ - η₁)) S).toReal
           = ((borelMeasure U (ξ₂ + η₂)) S).toReal - ((borelMeasure U (ξ₂ - η₂)) S).toReal
       ∧ ((borelMeasure U (ξ₁ - I • η₁)) S).toReal - ((borelMeasure U (ξ₁ + I • η₁)) S).toReal
-          = ((borelMeasure U (ξ₂ - I • η₂)) S).toReal - ((borelMeasure U (ξ₂ + I • η₂)) S).toReal := by
+          = ((borelMeasure U (ξ₂ - I • η₂)) S).toReal
+              - ((borelMeasure U (ξ₂ + I • η₂)) S).toReal := by
     intro S hS
     have h := hset S hS
     simp only [spectralForm, integral_indicator_const (1 : ℂ) hS, Complex.real_smul,
@@ -221,7 +222,7 @@ theorem commute_spectralCalculus_of_commute_group (U : OneParameterUnitaryGroup 
       have h := DFunLike.congr_fun (hD t).eq η
       simpa only [ContinuousLinearMap.mul_apply] using h
     rw [hcomm, ContinuousLinearMap.adjoint_inner_left]
-  show spectralCalculus U g hgm hgb * D = D * spectralCalculus U g hgm hgb
+  change spectralCalculus U g hgm hgb * D = D * spectralCalculus U g hgm hgb
   refine ContinuousLinearMap.ext fun η => ext_inner_left ℂ fun ξ => ?_
   rw [ContinuousLinearMap.mul_apply, ContinuousLinearMap.mul_apply, inner_spectralCalculus,
     ← ContinuousLinearMap.adjoint_inner_left D (spectralCalculus U g hgm hgb η) ξ,
@@ -244,15 +245,15 @@ theorem commute_spectralCalculus_of_commute_proj (U : OneParameterUnitaryGroup (
     have hcomm : spectralProjection U S hS (D η) = D (spectralProjection U S hS η) := by
       have h := DFunLike.congr_fun (hD S hS).eq η
       simpa only [ContinuousLinearMap.mul_apply] using h
-    show spectralForm U ξ (D η) (Set.indicator S (fun _ => (1 : ℂ)))
+    change spectralForm U ξ (D η) (Set.indicator S (fun _ => (1 : ℂ)))
         = spectralForm U (ContinuousLinearMap.adjoint D ξ) η (Set.indicator S (fun _ => (1 : ℂ)))
     rw [← inner_spectralCalculus U _ (measurable_const.indicator hS) (indicator_one_bdd S) ξ (D η)]
     rw [← inner_spectralCalculus U _ (measurable_const.indicator hS) (indicator_one_bdd S)
       (ContinuousLinearMap.adjoint D ξ) η]
-    show ⟪ξ, spectralProjection U S hS (D η)⟫_ℂ
+    change ⟪ξ, spectralProjection U S hS (D η)⟫_ℂ
         = ⟪ContinuousLinearMap.adjoint D ξ, spectralProjection U S hS η⟫_ℂ
     rw [hcomm, ContinuousLinearMap.adjoint_inner_left]
-  show spectralCalculus U g hgm hgb * D = D * spectralCalculus U g hgm hgb
+  change spectralCalculus U g hgm hgb * D = D * spectralCalculus U g hgm hgb
   refine ContinuousLinearMap.ext fun η => ext_inner_left ℂ fun ξ => ?_
   rw [ContinuousLinearMap.mul_apply, ContinuousLinearMap.mul_apply, inner_spectralCalculus,
     ← ContinuousLinearMap.adjoint_inner_left D (spectralCalculus U g hgm hgb η) ξ,
@@ -312,7 +313,7 @@ theorem stronglyCommute_iff_groups_commute (A B : SelfAdjointOperator H) :
     rwa [SpectralTheory.spectralCalculus_char] at h2
   · -- (⇐) groups commute ⟹ projections commute
     intro hG S T hS hT
-    show Commute (SpectralTheory.spectralProjection (YosidaHille.genToGroup A.selfAdjoint) S hS)
+    change Commute (SpectralTheory.spectralProjection (YosidaHille.genToGroup A.selfAdjoint) S hS)
         (SpectralTheory.spectralProjection (YosidaHille.genToGroup B.selfAdjoint) T hT)
     -- lift the `A`-side character `e^{is·}` to indicators, keeping the `B`-projection fixed
     have hstep : ∀ s : ℝ, Commute ((YosidaHille.genToGroup A.selfAdjoint).U s)
@@ -368,7 +369,7 @@ theorem stronglyCommute_of_jointPVM {A B : SelfAdjointOperator H} {M : POVM H (�
     StronglyCommute A B := by
   intro S T hS hT
   rw [← hjoint.1 S hS, ← hjoint.2 T hT]
-  show M.effect (S ×ˢ Set.univ) (hS.prod MeasurableSet.univ)
+  change M.effect (S ×ˢ Set.univ) (hS.prod MeasurableSet.univ)
       * M.effect (Set.univ ×ˢ T) (MeasurableSet.univ.prod hT)
     = M.effect (Set.univ ×ˢ T) (MeasurableSet.univ.prod hT)
       * M.effect (S ×ˢ Set.univ) (hS.prod MeasurableSet.univ)
@@ -395,7 +396,7 @@ noncomputable def jointBornMeasure (M : POVM H (ℝ × ℝ)) (ξ : H) : Measure 
 theorem isProbabilityMeasure_jointBornMeasure (M : POVM H (ℝ × ℝ)) {ξ : H} (hξ : ‖ξ‖ = 1) :
     IsProbabilityMeasure (jointBornMeasure M ξ) := by
   refine ⟨(ENNReal.toReal_eq_one_iff _).mp ?_⟩
-  show ((M.diag ξ) Set.univ).toReal = 1
+  change ((M.diag ξ) Set.univ).toReal = 1
   rw [M.diag_univ_toReal, hξ, one_pow]
 
 /-- `[done]` **The first marginal is `A`'s Born measure.**  From `IsJointOf` (operator marginal) and
@@ -405,7 +406,7 @@ theorem jointBornMeasure_fst {M : POVM H (ℝ × ℝ)} {A B : SelfAdjointOperato
     (jointBornMeasure M ξ).fst = bornMeasure A.spectralPVM ξ := by
   refine Measure.ext fun S hS => ?_
   rw [Measure.fst_apply hS]
-  show (M.diag ξ) (Prod.fst ⁻¹' S) = (A.spectralPVM.diag ξ) S
+  change (M.diag ξ) (Prod.fst ⁻¹' S) = (A.spectralPVM.diag ξ) S
   rw [← Set.prod_univ]
   have hcoe : (((M.diag ξ) (S ×ˢ Set.univ)).toReal : ℂ)
       = (((A.spectralPVM.diag ξ) S).toReal : ℂ) := by
@@ -420,7 +421,7 @@ theorem jointBornMeasure_snd {M : POVM H (ℝ × ℝ)} {A B : SelfAdjointOperato
     (jointBornMeasure M ξ).snd = bornMeasure B.spectralPVM ξ := by
   refine Measure.ext fun T hT => ?_
   rw [Measure.snd_apply hT]
-  show (M.diag ξ) (Prod.snd ⁻¹' T) = (B.spectralPVM.diag ξ) T
+  change (M.diag ξ) (Prod.snd ⁻¹' T) = (B.spectralPVM.diag ξ) T
   rw [← Set.univ_prod]
   have hcoe : (((M.diag ξ) (Set.univ ×ˢ T)).toReal : ℂ)
       = (((B.spectralPVM.diag ξ) T).toReal : ℂ) := by

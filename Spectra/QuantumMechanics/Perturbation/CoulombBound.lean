@@ -1,6 +1,6 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Spectra.QuantumMechanics.Hydrogen.Laplacian.Basic
@@ -171,7 +171,7 @@ no further transport: it is already of the type
 `(Vψ)(x) = (−Z/|x|)·ψ(x)`, well-defined by `coulomb_mul_memLp_H2`. Since
 `laplacianPMap.domain = SobolevH2` definitionally, this is already of the type
 `laplacianPMap.domain →ₗ[ℂ] l2R3` consumed by Kato–Rellich. -/
-noncomputable def coulombPotential (p : CoulombParams) : SobolevH2 →ₗ[ℂ] l2R3 where
+noncomputable def coulombPotential (p : CoulombParams) : SobolevH2 (d := 3) →ₗ[ℂ] l2R3 where
   toFun := fun ⟨ψ, hψ⟩ =>
     (coulomb_mul_memLp_H2 p ψ hψ).toLp
       (fun x => (coulombMultiplier p x : ℂ) * (ψ : R3 → ℂ) x)
@@ -191,7 +191,7 @@ noncomputable def coulombPotential (p : CoulombParams) : SobolevH2 →ₗ[ℂ] l
 /-- The Coulomb potential is symmetric on `H²`: `⟪Vψ, φ⟫ = ⟪ψ, Vφ⟫`. As `V` is
 multiplication by the real-valued `−Z/|x|`, both sides equal `∫ (−Z/|x|)·conj(ψ)·φ`. -/
 theorem coulomb_symmetric (p : CoulombParams) :
-    ∀ (ψ φ : SobolevH2),
+    ∀ (ψ φ : SobolevH2 (d := 3)),
       ⟪coulombPotential p ψ, (φ : l2R3)⟫_ℂ =
       ⟪(ψ : l2R3), coulombPotential p φ⟫_ℂ := by
   rintro ⟨ψ, hψ⟩ ⟨φ, hφ⟩

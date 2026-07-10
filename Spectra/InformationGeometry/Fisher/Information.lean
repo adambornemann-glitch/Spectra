@@ -1,6 +1,6 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Spectra.InformationGeometry.Score
@@ -107,7 +107,7 @@ lemma score_aestronglyMeasurable {θ : ParamSpace n}
     (hθ : θ ∈ M.paramDomain) (i : Fin n) :
     AEStronglyMeasurable (M.score θ i) M.refMeasure := by
   -- score = partialDensity / density = partialDensity * (density)⁻¹
-  show AEStronglyMeasurable (fun ω => M.partialDensity θ i ω / M.density θ ω) M.refMeasure
+  change AEStronglyMeasurable (fun ω => M.partialDensity θ i ω / M.density θ ω) M.refMeasure
   -- Rewrite division as multiplication by inverse
   have : (fun ω => M.partialDensity θ i ω / M.density θ ω) =
          (fun ω => M.partialDensity θ i ω * (M.density θ ω)⁻¹) := by
@@ -328,7 +328,8 @@ lemma fisherBilin_eq_sum_fisherMatrix {θ : ParamSpace n}
     · congr 1; ext j
       -- Factor out constants vᵢ and wⱼ
       -- Need to massage the expression to match integral_mul_left pattern
-      have factorize : (fun a => v.ofLp i * w.ofLp j * M.score θ i a * M.score θ j a * M.density θ a) =
+      have factorize :
+          (fun a => v.ofLp i * w.ofLp j * M.score θ i a * M.score θ j a * M.density θ a) =
           (fun a => (v.ofLp i * w.ofLp j) * (M.score θ i a * M.score θ j a * M.density θ a)) := by
         ext a; ring
       simp only [factorize]

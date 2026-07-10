@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
-Author: Adam Bornemann
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Adam Bornemann
 -/
 import Spectra.Modular.TomitaTakesaki.TomitaOperator
 import Spectra.Modular.TomitaTakesaki.Duality
@@ -42,7 +42,8 @@ lemma inner_tomitaOp_eq {M : VonNeumannAlgebra H} {Ω : H} (hsep : IsSeparating 
     {b : H →L[ℂ] H} (hb : b ∈ M.commutant) :
     ∀ (v : H) (hv : v ∈ (tomitaOp M Ω).domain),
       ⟪toConj (b Ω), tomitaOp M Ω ⟨v, hv⟩⟫_ℂ = ⟪(star b) Ω, v⟫_ℂ := by
-  have hdom : (tomitaOp M Ω).domain = Submodule.span ℂ (cyclicSet M Ω) := tomitaOp_domain_eq_span M Ω
+  have hdom : (tomitaOp M Ω).domain = Submodule.span ℂ (cyclicSet M Ω) :=
+    tomitaOp_domain_eq_span M Ω
   suffices h : ∀ v ∈ Submodule.span ℂ (cyclicSet M Ω), ∀ (hv : v ∈ (tomitaOp M Ω).domain),
       ⟪toConj (b Ω), tomitaOp M Ω ⟨v, hv⟩⟫_ℂ = ⟪(star b) Ω, v⟫_ℂ by
     exact fun v hv => h v (hdom ▸ hv) hv
@@ -74,7 +75,7 @@ lemma inner_tomitaOp_eq {M : VonNeumannAlgebra H} {Ω : H} (hsep : IsSeparating 
 lemma toConj_mem_adjoint_domain {M : VonNeumannAlgebra H} {Ω : H} (hsep : IsSeparating M Ω)
     {b : H →L[ℂ] H} (hb : b ∈ M.commutant) :
     toConj (b Ω) ∈ (tomitaOp M Ω).adjoint.domain := by
-  show Continuous ((innerₛₗ ℂ (toConj (b Ω))).comp (tomitaOp M Ω).toFun)
+  change Continuous ((innerₛₗ ℂ (toConj (b Ω))).comp (tomitaOp M Ω).toFun)
   have hfun : ⇑((innerₛₗ ℂ (toConj (b Ω))).comp (tomitaOp M Ω).toFun)
       = fun x : (tomitaOp M Ω).domain => ⟪(star b) Ω, (x : H)⟫_ℂ := by
     funext x

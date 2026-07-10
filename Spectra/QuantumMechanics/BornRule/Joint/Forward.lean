@@ -1,6 +1,6 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Spectra.QuantumMechanics.BornRule.Joint.Measure
@@ -214,7 +214,8 @@ theorem jointScalarMeasure_compl_toReal (A B : Spectra.Operator.SelfAdjointOpera
 the diagonal of the (self-adjoint, idempotent) rectangle projection
 (`norm_sq_apply_of_isStarProjection` for the real part; idempotence + self-adjointness for vanishing
 imaginary part). -/
-theorem jointRect_diag_complex (A B : Spectra.Operator.SelfAdjointOperator H) (hSC : StronglyCommute A B)
+theorem jointRect_diag_complex (A B : Spectra.Operator.SelfAdjointOperator H)
+    (hSC : StronglyCommute A B)
     {S T : Set ℝ} (hS : MeasurableSet S) (hT : MeasurableSet T) (ξ : H) :
     ((jointScalarMeasure A B hSC ξ (S ×ˢ T)).toReal : ℂ)
       = ⟪ξ, (A.spectralPVM.proj S hS * B.spectralPVM.proj T hT) ξ⟫_ℂ := by
@@ -233,7 +234,8 @@ theorem jointRect_diag_complex (A B : Spectra.Operator.SelfAdjointOperator H) (h
 /-- **Base case.**  On a rectangle the form is the honest projection effect:
 `crossMeasureForm (S ×ˢ T) ψ φ = ⟪ψ, E_A(S)E_B(T) φ⟫` — each diagonal mass is the star-projection
 diagonal (`jointRect_diag_complex`) and polarization (`inner_polarization_right`) reassembles it. -/
-theorem crossMeasureForm_rect (A B : Spectra.Operator.SelfAdjointOperator H) (hSC : StronglyCommute A B)
+theorem crossMeasureForm_rect (A B : Spectra.Operator.SelfAdjointOperator H)
+    (hSC : StronglyCommute A B)
     {S T : Set ℝ} (hS : MeasurableSet S) (hT : MeasurableSet T) (ψ φ : H) :
     crossMeasureForm A B hSC (S ×ˢ T) ψ φ
       = ⟪ψ, (A.spectralPVM.proj S hS * B.spectralPVM.proj T hT) φ⟫_ℂ := by
@@ -245,7 +247,8 @@ theorem crossMeasureForm_rect (A B : Spectra.Operator.SelfAdjointOperator H) (hS
 /-- **Complement closure.**  `crossMeasureForm Eᶜ ψ φ = ⟪ψ, φ⟫ − crossMeasureForm E ψ φ`: the four
 masses split as `μ_z(Eᶜ) = ‖z‖² − μ_z(E)`, the `‖·‖²` part polarizes to the inner product `⟪ψ, φ⟫`
 (`inner_polarization_right` at `id`), and the rest is `−crossMeasureForm E`. -/
-theorem crossMeasureForm_compl (A B : Spectra.Operator.SelfAdjointOperator H) (hSC : StronglyCommute A B)
+theorem crossMeasureForm_compl (A B : Spectra.Operator.SelfAdjointOperator H)
+    (hSC : StronglyCommute A B)
     {E : Set (ℝ × ℝ)} (hE : MeasurableSet E) (ψ φ : H) :
     crossMeasureForm A B hSC Eᶜ ψ φ = ⟪ψ, φ⟫_ℂ - crossMeasureForm A B hSC E ψ φ := by
   have hc : ∀ z : H, ((jointScalarMeasure A B hSC z Eᶜ).toReal : ℂ)
@@ -264,7 +267,8 @@ theorem crossMeasureForm_compl (A B : Spectra.Operator.SelfAdjointOperator H) (h
 /-- **Countable disjoint-union closure.**  `crossMeasureForm (⋃ i, f i) ψ φ = ∑' i, crossMeasureForm
 (f i) ψ φ`: each mass is σ-additive (`measure_iUnion`), `Complex.ofReal_tsum` moves the coercion
 through, and `tsum` linearity reassembles the four series into one. -/
-theorem crossMeasureForm_iUnion (A B : Spectra.Operator.SelfAdjointOperator H) (hSC : StronglyCommute A B)
+theorem crossMeasureForm_iUnion (A B : Spectra.Operator.SelfAdjointOperator H)
+    (hSC : StronglyCommute A B)
     {f : ℕ → Set (ℝ × ℝ)} (hd : Pairwise (Function.onFun Disjoint f))
     (hm : ∀ i, MeasurableSet (f i)) (ψ φ : H) :
     crossMeasureForm A B hSC (⋃ i, f i) ψ φ = ∑' i, crossMeasureForm A B hSC (f i) ψ φ := by
@@ -330,14 +334,16 @@ theorem crossMeasureForm_add_left (A B : Spectra.Operator.SelfAdjointOperator H)
     generateFrom_jointRectangles isSetSemiring_jointRectangles.isPiSystem ?_ ?_ ?_ ?_ E hE ψ₁ ψ₂ φ
   · intro ψ₁ ψ₂ φ; simp [crossMeasureForm]
   · rintro _ ⟨S, T, hS, hT, rfl⟩ ψ₁ ψ₂ φ
-    rw [crossMeasureForm_rect A B hSC hS hT, crossMeasureForm_rect A B hSC hS hT, crossMeasureForm_rect A B hSC hS hT, inner_add_left]
+    rw [crossMeasureForm_rect A B hSC hS hT, crossMeasureForm_rect A B hSC hS hT,
+      crossMeasureForm_rect A B hSC hS hT, inner_add_left]
   · intro t htm ih ψ₁ ψ₂ φ
     rw [crossMeasureForm_compl A B hSC htm, crossMeasureForm_compl A B hSC htm,
       crossMeasureForm_compl A B hSC htm, inner_add_left, ih ψ₁ ψ₂ φ]
     ring
   · intro g hgd hgm ih ψ₁ ψ₂ φ
     rw [crossMeasureForm_iUnion A B hSC hgd hgm, crossMeasureForm_iUnion A B hSC hgd hgm,
-      crossMeasureForm_iUnion A B hSC hgd hgm, ← (crossMeasureForm_summable A B hSC hgd hgm ψ₁ φ).tsum_add
+      crossMeasureForm_iUnion A B hSC hgd hgm,
+      ← (crossMeasureForm_summable A B hSC hgd hgm ψ₁ φ).tsum_add
         (crossMeasureForm_summable A B hSC hgd hgm ψ₂ φ)]
     exact tsum_congr fun i => ih i ψ₁ ψ₂ φ
 
@@ -373,15 +379,16 @@ theorem crossMeasureForm_add_right (A B : Spectra.Operator.SelfAdjointOperator H
     generateFrom_jointRectangles isSetSemiring_jointRectangles.isPiSystem ?_ ?_ ?_ ?_ E hE ψ φ₁ φ₂
   · intro ψ φ₁ φ₂; simp [crossMeasureForm]
   · rintro _ ⟨S, T, hS, hT, rfl⟩ ψ φ₁ φ₂
-    rw [crossMeasureForm_rect A B hSC hS hT, crossMeasureForm_rect A B hSC hS hT, crossMeasureForm_rect A B hSC hS hT, map_add,
-      inner_add_right]
+    rw [crossMeasureForm_rect A B hSC hS hT, crossMeasureForm_rect A B hSC hS hT,
+      crossMeasureForm_rect A B hSC hS hT, map_add, inner_add_right]
   · intro t htm ih ψ φ₁ φ₂
     rw [crossMeasureForm_compl A B hSC htm, crossMeasureForm_compl A B hSC htm,
       crossMeasureForm_compl A B hSC htm, inner_add_right, ih ψ φ₁ φ₂]
     ring
   · intro g hgd hgm ih ψ φ₁ φ₂
     rw [crossMeasureForm_iUnion A B hSC hgd hgm, crossMeasureForm_iUnion A B hSC hgd hgm,
-      crossMeasureForm_iUnion A B hSC hgd hgm, ← (crossMeasureForm_summable A B hSC hgd hgm ψ φ₁).tsum_add
+      crossMeasureForm_iUnion A B hSC hgd hgm,
+      ← (crossMeasureForm_summable A B hSC hgd hgm ψ φ₁).tsum_add
         (crossMeasureForm_summable A B hSC hgd hgm ψ φ₂)]
     exact tsum_congr fun i => ih i ψ φ₁ φ₂
 
@@ -395,7 +402,8 @@ theorem crossMeasureForm_smul_right (A B : Spectra.Operator.SelfAdjointOperator 
     generateFrom_jointRectangles isSetSemiring_jointRectangles.isPiSystem ?_ ?_ ?_ ?_ E hE ψ φ
   · intro ψ φ; simp [crossMeasureForm]
   · rintro _ ⟨S, T, hS, hT, rfl⟩ ψ φ
-    rw [crossMeasureForm_rect A B hSC hS hT, crossMeasureForm_rect A B hSC hS hT, map_smul, inner_smul_right]
+    rw [crossMeasureForm_rect A B hSC hS hT, crossMeasureForm_rect A B hSC hS hT, map_smul,
+      inner_smul_right]
   · intro t htm ih ψ φ
     rw [crossMeasureForm_compl A B hSC htm, crossMeasureForm_compl A B hSC htm,
       inner_smul_right, ih ψ φ]
@@ -409,7 +417,8 @@ theorem crossMeasureForm_smul_right (A B : Spectra.Operator.SelfAdjointOperator 
 polarized form recovers the original quadratic form on the diagonal.  Dynkin induction: rectangles
 (`jointRect_diag_complex`), complements (`jointScalarMeasure_compl_toReal` + `inner_self_complex`),
 countable unions (σ-additivity). -/
-theorem crossMeasureForm_diag (A B : Spectra.Operator.SelfAdjointOperator H) (hSC : StronglyCommute A B)
+theorem crossMeasureForm_diag (A B : Spectra.Operator.SelfAdjointOperator H)
+    (hSC : StronglyCommute A B)
     {E : Set (ℝ × ℝ)} (hE : MeasurableSet E) (ξ : H) :
     crossMeasureForm A B hSC E ξ ξ = ((jointScalarMeasure A B hSC ξ E).toReal : ℂ) := by
   refine MeasurableSpace.induction_on_inter
@@ -436,7 +445,8 @@ by the operator `jointEffect E`, with `⟪ξ, jointEffect E ξ⟫ = μ_ξ(E)` (t
 
 /-- **Operator-norm bound** for the form, `‖crossMeasureForm E ψ φ‖ ≤ 2‖ψ‖‖φ‖`: a crude
 `‖ψ‖²+‖φ‖²` bound (mass bound + the two parallelogram laws), homogenized by rescaling `φ ↦ t•φ`. -/
-theorem crossMeasureForm_norm_le (A B : Spectra.Operator.SelfAdjointOperator H) (hSC : StronglyCommute A B)
+theorem crossMeasureForm_norm_le (A B : Spectra.Operator.SelfAdjointOperator H)
+    (hSC : StronglyCommute A B)
     {E : Set (ℝ × ℝ)} (hE : MeasurableSet E) (ψ φ : H) :
     ‖crossMeasureForm A B hSC E ψ φ‖ ≤ 2 * ‖ψ‖ * ‖φ‖ := by
   -- each mass `μ_z(E) ≤ μ_z(univ) = ‖z‖²`
@@ -544,7 +554,8 @@ noncomputable def crossMeasureFormBilin (A B : Spectra.Operator.SelfAdjointOpera
 /-- **The joint effect** `jointEffect E`: the operator whose sesquilinear form is
 `crossMeasureForm E` (`continuousLinearMapOfBilin`, adjointed to put the operator in the second
 inner-product slot, as in `spectralCalculus`). -/
-noncomputable def jointEffect (A B : Spectra.Operator.SelfAdjointOperator H) (hSC : StronglyCommute A B)
+noncomputable def jointEffect (A B : Spectra.Operator.SelfAdjointOperator H)
+    (hSC : StronglyCommute A B)
     {E : Set (ℝ × ℝ)} (hE : MeasurableSet E) : H →L[ℂ] H :=
   ContinuousLinearMap.adjoint
     (InnerProductSpace.continuousLinearMapOfBilin (crossMeasureFormBilin A B hSC hE))
@@ -574,7 +585,8 @@ theorem jointEffect_rect (A B : Spectra.Operator.SelfAdjointOperator H) (hSC : S
   rw [jointEffect_inner, crossMeasureForm_rect A B hSC hS hT]
 
 /-- **Normalization.**  `jointEffect univ = 1`. -/
-theorem jointEffect_univ (A B : Spectra.Operator.SelfAdjointOperator H) (hSC : StronglyCommute A B) :
+theorem jointEffect_univ (A B : Spectra.Operator.SelfAdjointOperator H)
+    (hSC : StronglyCommute A B) :
     jointEffect A B hSC (MeasurableSet.univ : MeasurableSet (Set.univ : Set (ℝ × ℝ)))
       = ContinuousLinearMap.id ℂ H := by
   refine op_ext_of_inner_self fun ξ => ?_
@@ -595,7 +607,8 @@ operator-topology σ-additivity needed). -/
 
 /-- **The joint POVM** of a strongly-commuting pair: the operator-valued measure on `ℝ²` whose
 effects are `jointEffect` and whose diagonal data is the joint scalar measure `μ_ξ`. -/
-noncomputable def jointPOVM (A B : Spectra.Operator.SelfAdjointOperator H) (hSC : StronglyCommute A B) :
+noncomputable def jointPOVM (A B : Spectra.Operator.SelfAdjointOperator H)
+    (hSC : StronglyCommute A B) :
     POVM H (ℝ × ℝ) where
   effect _ hE := jointEffect A B hSC hE
   diag ξ := jointScalarMeasure A B hSC ξ
@@ -606,13 +619,14 @@ noncomputable def jointPOVM (A B : Spectra.Operator.SelfAdjointOperator H) (hSC 
 /-- **G2.5 — the joint POVM has the right cylinder marginals.**  `M(S × ℝ) = E_A(S)` and
 `M(ℝ × T) = E_B(T)`: immediate from `jointEffect_rect` and `proj_univ` (the other factor is the
 identity).  This is the hypothesis that couples the joint PVM to `A` and `B` (`IsJointOf`). -/
-theorem jointPOVM_isJointOf (A B : Spectra.Operator.SelfAdjointOperator H) (hSC : StronglyCommute A B) :
+theorem jointPOVM_isJointOf (A B : Spectra.Operator.SelfAdjointOperator H)
+    (hSC : StronglyCommute A B) :
     (jointPOVM A B hSC).IsJointOf A B := by
   refine ⟨fun S hS => ?_, fun T hT => ?_⟩
-  · show jointEffect A B hSC (hS.prod MeasurableSet.univ) = A.spectralPVM.proj S hS
+  · change jointEffect A B hSC (hS.prod MeasurableSet.univ) = A.spectralPVM.proj S hS
     rw [jointEffect_rect A B hSC hS MeasurableSet.univ, B.spectralPVM.proj_univ]
     exact mul_one _
-  · show jointEffect A B hSC (MeasurableSet.univ.prod hT) = B.spectralPVM.proj T hT
+  · change jointEffect A B hSC (MeasurableSet.univ.prod hT) = B.spectralPVM.proj T hT
     rw [jointEffect_rect A B hSC MeasurableSet.univ hT, A.spectralPVM.proj_univ]
     exact one_mul _
 
@@ -629,12 +643,15 @@ to an arbitrary set (`crossMeasureForm_inter`, induct over `B₂`), using self-a
 
 /-- **Finite additivity of `crossMeasureForm`** in its set argument: each diagonal mass
 `μ_z(X ∪ Y) = μ_z(X) + μ_z(Y)` (`measure_union`), and the polarization is linear in the masses. -/
-theorem crossMeasureForm_union2 (A B : Spectra.Operator.SelfAdjointOperator H) (hSC : StronglyCommute A B)
-    {X Y : Set (ℝ × ℝ)} (_hX : MeasurableSet X) (hY : MeasurableSet Y) (hd : Disjoint X Y) (ψ φ : H) :
+theorem crossMeasureForm_union2 (A B : Spectra.Operator.SelfAdjointOperator H)
+    (hSC : StronglyCommute A B)
+    {X Y : Set (ℝ × ℝ)} (_hX : MeasurableSet X) (hY : MeasurableSet Y) (hd : Disjoint X Y)
+    (ψ φ : H) :
     crossMeasureForm A B hSC (X ∪ Y) ψ φ
       = crossMeasureForm A B hSC X ψ φ + crossMeasureForm A B hSC Y ψ φ := by
   have hm : ∀ z : H, ((jointScalarMeasure A B hSC z (X ∪ Y)).toReal : ℂ)
-      = ((jointScalarMeasure A B hSC z X).toReal : ℂ) + ((jointScalarMeasure A B hSC z Y).toReal : ℂ) := by
+      = ((jointScalarMeasure A B hSC z X).toReal : ℂ)
+        + ((jointScalarMeasure A B hSC z Y).toReal : ℂ) := by
     intro z
     rw [measure_union hd hY, ENNReal.toReal_add (measure_ne_top _ _) (measure_ne_top _ _)]
     push_cast; ring
@@ -644,7 +661,8 @@ theorem crossMeasureForm_union2 (A B : Spectra.Operator.SelfAdjointOperator H) (
 
 /-- **Each joint effect is self-adjoint.**  `⟪ξ, jointEffect E ξ⟫ = μ_ξ(E)` is real for every `ξ`
 (`jointEffect_diag`), and a real diagonal characterizes self-adjointness. -/
-theorem jointEffect_isSelfAdjoint (A B : Spectra.Operator.SelfAdjointOperator H) (hSC : StronglyCommute A B)
+theorem jointEffect_isSelfAdjoint (A B : Spectra.Operator.SelfAdjointOperator H)
+    (hSC : StronglyCommute A B)
     {E : Set (ℝ × ℝ)} (hE : MeasurableSet E) : IsSelfAdjoint (jointEffect A B hSC hE) :=
   (jointPOVM A B hSC).isSelfAdjoint_effect E hE
 
@@ -703,7 +721,8 @@ theorem crossMeasureForm_inter_rect (A B : Spectra.Operator.SelfAdjointOperator 
 crossMeasureForm B₂ (jointEffect B₁ ξ) η`.  Dynkin induction over `B₂`: base = Step A + the
 self-adjointness swap of `jointEffect B₁`, complement/⋃ with the vectors `(jointEffect B₁ ξ, η)`
 fixed. -/
-theorem crossMeasureForm_inter (A B : Spectra.Operator.SelfAdjointOperator H) (hSC : StronglyCommute A B)
+theorem crossMeasureForm_inter (A B : Spectra.Operator.SelfAdjointOperator H)
+    (hSC : StronglyCommute A B)
     {B₁ : Set (ℝ × ℝ)} (hB₁ : MeasurableSet B₁) {B₂ : Set (ℝ × ℝ)} (hB₂ : MeasurableSet B₂) :
     ∀ ξ η : H, crossMeasureForm A B hSC (B₁ ∩ B₂) ξ η
       = crossMeasureForm A B hSC B₂ (jointEffect A B hSC hB₁ ξ) η := by
@@ -750,7 +769,8 @@ theorem jointEffect_inter (A B : Spectra.Operator.SelfAdjointOperator H) (hSC : 
     jointEffect_swap A B hSC h₁ ξ (jointEffect A B hSC h₂ η), ContinuousLinearMap.mul_apply]
 
 /-- **G2.4 — the joint POVM is projective.**  Immediate from `jointEffect_inter`. -/
-theorem jointPOVM_isProjective (A B : Spectra.Operator.SelfAdjointOperator H) (hSC : StronglyCommute A B) :
+theorem jointPOVM_isProjective (A B : Spectra.Operator.SelfAdjointOperator H)
+    (hSC : StronglyCommute A B) :
     (jointPOVM A B hSC).IsProjective :=
   fun _ _ h₁ h₂ => (jointEffect_inter A B hSC h₁ h₂).symm
 
@@ -1160,7 +1180,8 @@ private lemma joint_truncated_vector (A B : Spectra.Operator.SelfAdjointOperator
   have hψA : ψ ∈ (generator UA).domain := by rw [generator_genToGroup]; exact hξ'
   have hAval : generator UA ⟨ψ, hψA⟩ = A.toLinearPMap ⟨ψ, hξ'⟩ :=
     (le_of_eq (generator_genToGroup A.selfAdjoint)).2 rfl
-  have hC : ∀ t, UA.U t * EB = EB * UA.U t := fun t => commute_groupA_projB A B hSC t measurableSet_Icc
+  have hC : ∀ t, UA.U t * EB = EB * UA.U t := fun t =>
+    commute_groupA_projB A B hSC t measurableSet_Icc
   have hχA : EB ψ ∈ (generator UA).domain := mem_generatorDomain_of_commute EB hC ⟨ψ, hψA⟩
   have hgenχ : generator UA ⟨EB ψ, hχA⟩ = EB (A.toLinearPMap ⟨ψ, hξ'⟩) := by
     rw [generator_commute EB hC ⟨ψ, hψA⟩, hAval]
@@ -1220,7 +1241,7 @@ theorem jointBornMeasure_correlation {A B : Spectra.Operator.SelfAdjointOperator
     (hξ' : (B.toLinearPMap ⟨ξ, hξ⟩) ∈ A.domain) :
     ∫ p, p.1 * p.2 ∂(jointBornMeasure (jointPOVM A B hSC) ξ)
       = (⟪ξ, A.toLinearPMap ⟨B.toLinearPMap ⟨ξ, hξ⟩, hξ'⟩⟫_ℂ).re := by
-  show ∫ p, p.1 * p.2 ∂(jointScalarMeasure A B hSC ξ)
+  change ∫ p, p.1 * p.2 ∂(jointScalarMeasure A B hSC ξ)
     = (⟪ξ, A.toLinearPMap ⟨B.toLinearPMap ⟨ξ, hξ⟩, hξ'⟩⟫_ℂ).re
   -- the truncated box integral `∫_{[-N,N]²} xy dμ_ξ` equals the truncated operator matrix element
   have key : ∀ N : ℕ,
@@ -1254,8 +1275,9 @@ theorem jointBornMeasure_correlation {A B : Spectra.Operator.SelfAdjointOperator
         · simp only [Set.indicator_of_mem h1, Set.indicator_of_mem h2,
             Set.indicator_of_mem (Set.mem_prod.mpr ⟨h1, h2⟩), mul_one, Complex.ofReal_mul]
         · simp only [Set.indicator_of_notMem h2,
-            Set.indicator_of_notMem (show p ∉ Set.Icc (-(N : ℝ)) (N : ℝ) ×ˢ Set.Icc (-(N : ℝ)) (N : ℝ)
-              from fun hh => h2 hh.2), mul_zero, Complex.ofReal_zero]
+            Set.indicator_of_notMem
+              (show p ∉ Set.Icc (-(N : ℝ)) (N : ℝ) ×ˢ Set.Icc (-(N : ℝ)) (N : ℝ)
+                from fun hh => h2 hh.2), mul_zero, Complex.ofReal_zero]
       · simp only [Set.indicator_of_notMem h1,
           Set.indicator_of_notMem (show p ∉ Set.Icc (-(N : ℝ)) (N : ℝ) ×ˢ Set.Icc (-(N : ℝ)) (N : ℝ)
             from fun hh => h1 hh.1), zero_mul, mul_zero, Complex.ofReal_zero]

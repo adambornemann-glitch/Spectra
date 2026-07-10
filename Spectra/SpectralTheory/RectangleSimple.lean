@@ -1,6 +1,6 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Mathlib.Order.CompletePartialOrder
@@ -307,7 +307,8 @@ lemma h0P_rect {α β : Type*} [MeasurableSpace α] [MeasurableSpace β]
       apply Set.Countable.mono
         (s₂ := ⋃ k, ⋃ l, {spanningSets μ k ×ˢ spanningSets ν l})
       · rintro R ⟨k, l, rfl⟩; simp only [Set.mem_iUnion, Set.mem_singleton_iff]; exact ⟨k, l, rfl⟩
-      · exact Set.countable_iUnion (fun k => Set.countable_iUnion (fun l => Set.countable_singleton _))
+      · exact Set.countable_iUnion (fun k =>
+          Set.countable_iUnion (fun l => Set.countable_singleton _))
     · rintro R ⟨k, l, rfl⟩
       exact ⟨_, measurableSet_spanningSets μ k, _, measurableSet_spanningSets ν l, rfl⟩
     · -- complement is empty

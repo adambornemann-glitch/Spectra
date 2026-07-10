@@ -1,6 +1,6 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Spectra.CayleyTransform.Defs        -- cayleyTransform, *_isStarNormal, *_unitary
@@ -490,7 +490,7 @@ lemma combination_ext_zero_density
       obtain ⟨Ck, hCk⟩ := hk_bdd i
       refine (integrable_of_bdd U ((Complex.measurable_ofReal.comp hgim_meas).mul (hk_meas i))
         (C := max Cg 0 * max Ck 0) fun z => ?_).const_mul I
-      show ‖((g z).im : ℂ) * k i z‖ ≤ max Cg 0 * max Ck 0
+      change ‖((g z).im : ℂ) * k i z‖ ≤ max Cg 0 * max Ck 0
       rw [norm_mul, Complex.norm_real, Real.norm_eq_abs]
       refine mul_le_mul ?_ ((hCk z).trans (le_max_left _ _)) (norm_nonneg _) (le_max_right _ _)
       exact ((Complex.abs_im_le_norm (g z)).trans (hCg z)).trans (le_max_left _ _)
@@ -641,7 +641,8 @@ theorem borelForm_add_left (g : spectrum ℂ U → ℂ)
   simp only [borelForm]
   linear_combination key
 
-/-- Conjugate-homogeneity of the form in the left slot: `borelForm g (c • ξ) η = c̄ · borelForm g ξ η`. -/
+/-- Conjugate-homogeneity of the form in the left slot:
+`borelForm g (c • ξ) η = c̄ · borelForm g ξ η`. -/
 theorem borelForm_smul_left (g : spectrum ℂ U → ℂ)
     (hg_meas : Measurable g) (hg_bdd : ∃ C, ∀ z, ‖g z‖ ≤ C) (c : ℂ) (ξ η : H) :
     borelForm U hn g (c • ξ) η = conj c * borelForm U hn g ξ η := by
@@ -1063,7 +1064,7 @@ theorem norm_sq_borelCalculus_apply (g : spectrum ℂ U → ℂ)
     have hcg : (∫ z, conj (g z) * g z ∂(spectralMeasure U hn ξ))
         = ∫ z, ((‖g z‖ ^ 2 : ℝ) : ℂ) ∂(spectralMeasure U hn ξ) := by
       refine integral_congr_ae (.of_forall fun z => ?_)
-      show conj (g z) * g z = ((‖g z‖ ^ 2 : ℝ) : ℂ)
+      change conj (g z) * g z = ((‖g z‖ ^ 2 : ℝ) : ℂ)
       rw [RCLike.conj_mul]; norm_cast
     rw [hcg, integral_complex_ofReal (f := fun z => ‖g z‖ ^ 2)]
   have h12 : ⟪borelCalculus U hn g hg_meas hg_bdd ξ, borelCalculus U hn g hg_meas hg_bdd ξ⟫_ℂ
@@ -1091,7 +1092,8 @@ theorem norm_borelCalculus_le (g : spectrum ℂ U → ℂ)
     calc (∫ z, ‖g z‖ ^ 2 ∂(spectralMeasure U hn ξ)) ≤ C ^ 2 * ‖ξ‖ ^ 2 := hint
       _ = (C * ‖ξ‖) ^ 2 := by ring
   calc ‖borelCalculus U hn g hg_meas hg_bdd ξ‖
-      = Real.sqrt (‖borelCalculus U hn g hg_meas hg_bdd ξ‖ ^ 2) := (Real.sqrt_sq (norm_nonneg _)).symm
+      = Real.sqrt (‖borelCalculus U hn g hg_meas hg_bdd ξ‖ ^ 2) :=
+        (Real.sqrt_sq (norm_nonneg _)).symm
     _ ≤ Real.sqrt ((C * ‖ξ‖) ^ 2) := Real.sqrt_le_sqrt hsq
     _ = C * ‖ξ‖ := Real.sqrt_sq (mul_nonneg hC0 (norm_nonneg _))
 

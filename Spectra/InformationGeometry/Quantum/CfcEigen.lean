@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
-Author: Adam Bornemann
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Adam Bornemann
 -/
 import Spectra.InformationGeometry.Quantum.State
 import Mathlib.Analysis.CStarAlgebra.ContinuousFunctionalCalculus.Unital
@@ -86,7 +86,7 @@ theorem cfc_apply_eigenvector {T : H →L[ℂ] H} (hT : IsSelfAdjoint T) {μ : �
       rw [h2] at h1
       rw [← h1]
       congr 1
-    show (cfcHom hT (Polynomial.toContinuousMapOnAlgHom s q)) v
+    change (cfcHom hT (Polynomial.toContinuousMapOnAlgHom s q)) v
       = (Polynomial.toContinuousMapOnAlgHom s q) ⟨μ, hμ⟩ • v
     rw [hcfc, aeval_apply_eigenvector hvℝ q]
     simp [Polynomial.toContinuousMapOnAlgHom_apply, Polynomial.toContinuousMapOn_apply,

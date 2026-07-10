@@ -1,6 +1,6 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Spectra.QuantumMechanics.Hydrogen.RadialProblem.Laguerre.Orthogonality
@@ -115,7 +115,8 @@ lemma laguerre_norm_sq_one (α : ℝ) (hα : -1 < α) :
 
 /-- Norm recurrence: for `n ≥ 1`,  `(n+1)·hₙ₊₁ = (n+1+α)·hₙ`. -/
 lemma laguerre_norm_sq_step (α : ℝ) (hα : -1 < α) (n : ℕ) (hn : 1 ≤ n) :
-    ((n : ℝ) + 1) * (∫ x in Set.Ioi (0 : ℝ), laguerreWeight α x * (laguerrePolynomial (n + 1) α x) ^ 2)
+    ((n : ℝ) + 1) *
+        (∫ x in Set.Ioi (0 : ℝ), laguerreWeight α x * (laguerrePolynomial (n + 1) α x) ^ 2)
     = ((n : ℝ) + 1 + α) *
         (∫ x in Set.Ioi (0 : ℝ), laguerreWeight α x * (laguerrePolynomial n α x) ^ 2) := by
   -- (★) the weighted pointwise identity; RHS is a sum of cross terms
@@ -126,7 +127,8 @@ lemma laguerre_norm_sq_step (α : ℝ) (hα : -1 < α) (n : ℕ) (hn : 1 ≤ n) 
         + ((n : ℝ) + 2) *
             (laguerreWeight α x * laguerrePolynomial (n + 2) α x * laguerrePolynomial n α x)
         - ((n : ℝ) + α) *
-            (laguerreWeight α x * laguerrePolynomial (n + 1) α x * laguerrePolynomial (n - 1) α x) := by
+            (laguerreWeight α x * laguerrePolynomial (n + 1) α x *
+              laguerrePolynomial (n - 1) α x) := by
     intro x
     have hR1 := laguerre_recurrence n α hn x
     have hR2 := laguerre_recurrence (n + 1) α (by omega) x
@@ -166,7 +168,8 @@ lemma laguerre_norm_sq_step (α : ℝ) (hα : -1 < α) (n : ℕ) (hn : 1 ≤ n) 
               (laguerreWeight α x * laguerrePolynomial (n + 1) α x
                 * laguerrePolynomial (n - 1) α x))) = 0 := by
     erw [integral_sub
-        (Integrable.add (Integrable.const_mul iC1 (-2 : ℝ)) (Integrable.const_mul iC2 ((n : ℝ) + 2)))
+        (Integrable.add (Integrable.const_mul iC1 (-2 : ℝ))
+          (Integrable.const_mul iC2 ((n : ℝ) + 2)))
         (Integrable.const_mul iC3 ((n : ℝ) + α)),
       integral_add (Integrable.const_mul iC1 (-2 : ℝ)) (Integrable.const_mul iC2 ((n : ℝ) + 2)),
       integral_const_mul, integral_const_mul, integral_const_mul,
@@ -666,7 +669,8 @@ lemma laplaceTr_eventuallyEq_zero (α : ℝ) (hα : -1 < α) (f : ℝ → ℝ)
   -- It suffices to show `laplaceTr α f z = 0` for `‖z‖ < 1/2` (a nbhd of 0):
   -- `g = w·f` complexified is a.e.-strongly measurable, and `g` vanishes off `(0,∞)`.
   have hgC : AEStronglyMeasurable (fun x : ℝ => ((laguerreWeight α x * f x : ℝ) : ℂ)) volume :=
-    Complex.continuous_ofReal.comp_aestronglyMeasurable (g_integrable α hα f hf).aestronglyMeasurable
+    Complex.continuous_ofReal.comp_aestronglyMeasurable
+      (g_integrable α hα f hf).aestronglyMeasurable
   have hgz : ∀ x : ℝ, x ≤ 0 → laguerreWeight α x * f x = 0 := by
     intro x hx; simp only [laguerreWeight, if_neg (not_lt.2 hx), zero_mul]
   have key : ∀ z : ℂ, ‖z‖ < 1 / 2 → laplaceTr α f z = 0 := by
@@ -681,7 +685,8 @@ lemma laplaceTr_eventuallyEq_zero (α : ℝ) (hα : -1 < α) (f : ℝ → ℝ)
     have hlim : ∀ x : ℝ,
         HasSum (fun n => F n x) ((laguerreWeight α x : ℂ) * (f x : ℂ) * Complex.exp (z * x)) := by
       intro x
-      have hexp : HasSum (fun n => (z * (x : ℂ)) ^ n / (n.factorial : ℂ)) (Complex.exp (z * x)) := by
+      have hexp : HasSum (fun n => (z * (x : ℂ)) ^ n / (n.factorial : ℂ))
+          (Complex.exp (z * x)) := by
         rw [Complex.exp_eq_exp_ℂ]; exact NormedSpace.expSeries_div_hasSum_exp (z * (x : ℂ))
       simpa only [hF_def, mul_assoc] using hexp.mul_left ((laguerreWeight α x : ℂ) * (f x : ℂ))
     -- norm of `Fₙ` is exactly `boundₙ`
@@ -714,8 +719,10 @@ lemma laplaceTr_eventuallyEq_zero (α : ℝ) (hα : -1 < α) (f : ℝ → ℝ)
     have hFmeas : ∀ n, AEStronglyMeasurable (F n) volume := by
       intro n
       simp only [hF_def]
-      rw [show (fun x : ℝ => (laguerreWeight α x : ℂ) * (f x : ℂ) * ((z * x) ^ n / (n.factorial : ℂ)))
-            = (fun x : ℝ => ((laguerreWeight α x * f x : ℝ) : ℂ) * ((z * x) ^ n / (n.factorial : ℂ)))
+      rw [show (fun x : ℝ =>
+            (laguerreWeight α x : ℂ) * (f x : ℂ) * ((z * x) ^ n / (n.factorial : ℂ)))
+          = (fun x : ℝ =>
+            ((laguerreWeight α x * f x : ℝ) : ℂ) * ((z * x) ^ n / (n.factorial : ℂ)))
           from by funext x; push_cast; ring]
       exact hgC.mul (by fun_prop)
     -- each `∫ Fₙ` vanishes by the moment hypothesis
@@ -901,4 +908,4 @@ theorem laguerre_complete (α : ℝ) (hα : -1 < α) (f : ℝ → ℝ)
   -- transfer to μ_α
   exact ae_zero_laguerreMeasure_of_g_ae_zero α f hg0
 
-end QuantumMechanics.Hydrogen.Radial
+end Spectra.QuantumMechanics.Hydrogen.Radial

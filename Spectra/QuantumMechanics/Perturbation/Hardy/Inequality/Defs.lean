@@ -1,6 +1,6 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Spectra.Spaces.Sobolev.WeakDerivative
@@ -434,7 +434,7 @@ private lemma ibp_direction_hardyField
     have h_open_nhds : {y : R3 | r/2 < ‖y‖} ∈ 𝓝 x :=
       IsOpen.mem_nhds (isOpen_lt continuous_const continuous_norm) h_strict
     filter_upwards [h_open_nhds] with y hy
-    show gReg y = hardyField y i
+    change gReg y = hardyField y i
     simp [gReg, hχ_eq_one_outside (le_of_lt hy)]
   have h_gReg_eq_at : ∀ x ∈ tsupport u, gReg x = hardyField x i :=
     fun x hx => (h_gReg_eq_nbhd x hx).eq_of_nhds
@@ -469,7 +469,8 @@ private lemma ibp_direction_hardyField
       (by exact_mod_cast ENat.top_ne_zero)).differentiableAt)
   -- Swap gReg → hardyField · i on each side via support agreement.
   have h_lhs : (∫ x, u x * fderiv ℝ gReg x (EuclideanSpace.single i (1:ℝ)) ∂volume) =
-      (∫ x, u x * fderiv ℝ (fun y => hardyField y i) x (EuclideanSpace.single i (1:ℝ)) ∂volume) := by
+      (∫ x, u x * fderiv ℝ (fun y => hardyField y i) x
+        (EuclideanSpace.single i (1:ℝ)) ∂volume) := by
     refine integral_congr_ae (Filter.Eventually.of_forall fun x => ?_)
     by_cases hx : x ∈ tsupport u
     · simp [h_fgReg_eq_at x hx]
@@ -515,7 +516,7 @@ private lemma ibp_summed_hardyField
   rw [← integral_finsetSum _ (fun i _ =>
     integrable_u_mul_fderiv_hardyField hu_smooth.continuous hu_supp r hr_pos hu_zero i)]
   refine integral_congr_ae (Filter.Eventually.of_forall fun x => ?_)
-  simp [← Finset.mul_sum]
+  simp only [← Finset.mul_sum, mul_eq_mul_left_iff]
   -- Goal: u x * (∑ i, fderiv (hardyField · i) x e_i) = u x * inverseRSq x
   by_cases hx_u : u x = 0
   · simp [hx_u]
@@ -557,11 +558,12 @@ private lemma ibp_v_squared_hardyField
     have h_eq : (fun x => v x ^ 2) = v * v := by funext x; norm_num; ring
     rw [h_eq]; exact hv_supp.mul_right
   have hu_zero : ∀ x, ‖x‖ < r → (fun x => v x ^ 2) x = 0 := fun x hx => by
-    show v x ^ 2 = 0; rw [hv_zero x hx]; ring
+    change v x ^ 2 = 0; rw [hv_zero x hx]; ring
   -- Apply summed IBP to v².
   have h_ibp := ibp_summed_hardyField hu_smooth hu_supp r hr_pos hu_zero
   -- Chain rule per direction: fderiv (v²) x e_i = 2·v(x)·fderiv v x e_i.
-  have h_v_diff : Differentiable ℝ v := hv_smooth.differentiable (by exact_mod_cast ENat.top_ne_zero)
+  have h_v_diff : Differentiable ℝ v :=
+    hv_smooth.differentiable (by exact_mod_cast ENat.top_ne_zero)
   have h_per : ∀ i : Fin 3,
       ∫ x, fderiv ℝ (fun y => v y ^ 2) x (EuclideanSpace.single i (1:ℝ)) * hardyField x i ∂volume
         = 2 * ∫ x, v x * fderiv ℝ v x (EuclideanSpace.single i (1:ℝ)) * hardyField x i ∂volume := by
@@ -672,7 +674,7 @@ private lemma cs_bound_v_grad_hardy
     {v : R3 → ℝ}
     (hA_memLp : MemLp (fun x => Real.sqrt (v x ^ 2 * inverseRSq x)) 2 volume)
     (hB_memLp : MemLp (fun x => Real.sqrt
-        (∑ i : Fin 3, (fderiv ℝ v x (EuclideanSpace.single i (1:ℝ))) ^ 2)) 2 volume)
+        (∑ i : Fin 3, (fderiv ℝ v x (EuclideanSpace.single i (1 : ℝ))) ^ 2)) 2 volume)
     (h_int_summand : ∀ i : Fin 3, Integrable (fun x =>
         v x * (fderiv ℝ v x (EuclideanSpace.single i (1:ℝ)) * hardyField x i)) volume) :
     |∑ i : Fin 3, ∫ x,

@@ -1,5 +1,5 @@
 /-
-Copyright (c) 2026 Bell Theorem Formalization Project
+Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
@@ -113,7 +113,8 @@ noncomputable def CHModel.CH (M : CHModel Λ) : ℝ :=
 /-! ## The Algebraic Core -/
 
 /-- **The Clauser–Horne pointwise bound.** For `u, u', v, v' ∈ [0,1]`,
-`-1 ≤ u*v - u*v' + u'*v + u'*v' - u' - v ≤ 0`. Unlike CHSH's `±1` case, this is not a short sign-case
+`-1 ≤ u*v - u*v' + u'*v + u'*v' - u' - v ≤ 0`.
+Unlike CHSH's `±1` case, this is not a short sign-case
 factorization; it is closed here by `nlinarith` given the twelve pairwise products of the four
 variables' `≥ 0` / `≤ 1` slack terms. -/
 lemma ch_pointwise_bound (u u' v v' : ℝ) (hu0 : 0 ≤ u) (hu1 : u ≤ 1) (hu'0 : 0 ≤ u')

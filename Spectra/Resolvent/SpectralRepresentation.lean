@@ -1,6 +1,6 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Spectra.Kernel.Resolvent
@@ -63,7 +63,7 @@ lemma sub_ne_zero_of_im_ne_zero (z : ℂ) (hz : z.im ≠ 0) (s : ℝ) :
     (s : ℂ) - z ≠ 0 := by
   intro h
   have : ((s : ℂ) - z).im = -z.im := by simp
-  simp [h] at this
+  simp only [h, zero_im, zero_eq_neg] at this
   exact hz this
 
 /-- Measurability of the resolvent symbol. -/
@@ -204,12 +204,12 @@ theorem im_inner_resolvent_diag (t : ℝ) {ε : ℝ} (hε : 0 < ε) (ξ : H) :
   -- Pointwise: `Im (s − (t + iε))⁻¹ = ε/((s − t)² + ε²)`.
   have h_im : ((s : ℂ) - ⟨t, ε⟩).im = -ε := by
     rw [Complex.sub_im, Complex.ofReal_im]
-    show (0 : ℝ) - ε = -ε
+    change (0 : ℝ) - ε = -ε
     ring
   have h_sq : Complex.normSq ((s : ℂ) - ⟨t, ε⟩) = (s - t) ^ 2 + ε ^ 2 := by
     rw [Complex.normSq_apply, Complex.sub_re, Complex.sub_im, Complex.ofReal_re,
       Complex.ofReal_im]
-    show (s - t) * (s - t) + ((0 : ℝ) - ε) * ((0 : ℝ) - ε) = (s - t) ^ 2 + ε ^ 2
+    change (s - t) * (s - t) + ((0 : ℝ) - ε) * ((0 : ℝ) - ε) = (s - t) ^ 2 + ε ^ 2
     ring
   rw [h_im, h_sq, neg_neg]
 

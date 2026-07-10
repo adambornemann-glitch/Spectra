@@ -1,7 +1,6 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
-File: KatoRellich.lean
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Spectra.OneParameterUnitaryGroup.Basic
@@ -200,7 +199,7 @@ lemma isSymmetricOn_of_selfAdjoint (A : H →ₗ.[ℂ] H) {T : H →L[ℂ] H}
     (hT : IsSelfAdjoint T) :
     IsSymmetricOn A (T.comp (Submodule.subtypeL A.domain)).toLinearMap := by
   intro ψ φ
-  show ⟪T (ψ : H), (φ : H)⟫_ℂ = ⟪(ψ : H), T (φ : H)⟫_ℂ
+  change ⟪T (ψ : H), (φ : H)⟫_ℂ = ⟪(ψ : H), T (φ : H)⟫_ℂ
   have h := ContinuousLinearMap.adjoint_inner_right T (ψ : H) (φ : H)
   -- h : ⟪↑ψ, adjoint T ↑φ⟫ = ⟪T ↑ψ, ↑φ⟫
   rw [← ContinuousLinearMap.star_eq_adjoint, hT.star_eq] at h
@@ -213,7 +212,7 @@ lemma perturbedOp_isFormalAdjoint {A : H →ₗ.[ℂ] H}
     (hV : IsSymmetricOn A V) :
     (perturbedOp A V).IsFormalAdjoint (perturbedOp A V) := by
   intro ψ φ
-  show ⟪A ψ + V ψ, (φ : H)⟫_ℂ = ⟪(ψ : H), A φ + V φ⟫_ℂ
+  change ⟪A ψ + V ψ, (φ : H)⟫_ℂ = ⟪(ψ : H), A φ + V φ⟫_ℂ
   rw [inner_add_left, inner_add_right, hsymA ψ φ, hV ψ φ]
 
 /-! ## von Neumann's criterion at height `μ`
@@ -230,7 +229,7 @@ operator `B` with `ran (B + iμ) = ran (B − iμ) = H` is self-adjoint. -/
 lemma isSelfAdjoint_of_surjective_addSub_smul
     (B : H →ₗ.[ℂ] H) (hsym : B.IsFormalAdjoint B)
     (hdense : Dense (B.domain : Set H)) (μ : ℝ)
-    (hplus  : ∀ φ : H, ∃ ψ : B.domain, B ψ + (I * (μ : ℂ)) • (ψ : H) = φ)
+    (hplus : ∀ φ : H, ∃ ψ : B.domain, B ψ + (I * (μ : ℂ)) • (ψ : H) = φ)
     (hminus : ∀ φ : H, ∃ ψ : B.domain, B ψ - (I * (μ : ℂ)) • (ψ : H) = φ) :
     IsSelfAdjoint B := by
   have hconj : (starRingEnd ℂ) (I * (μ : ℂ)) = -(I * (μ : ℂ)) := by
@@ -287,7 +286,7 @@ Neumann series fall out:  `‖A ψ‖ ≤ ‖χ‖`  and  `‖ψ‖ ≤ ‖χ‖
 
 private lemma norm_resolvent_apply_le {A : H →ₗ.[ℂ] H}
     (hsym : A.IsFormalAdjoint A)
-    (hplus  : ∀ φ : H, ∃ ψ : A.domain, A ψ + I • (ψ : H) = φ)
+    (hplus : ∀ φ : H, ∃ ψ : A.domain, A ψ + I • (ψ : H) = φ)
     (hminus : ∀ φ : H, ∃ ψ : A.domain, A ψ - I • (ψ : H) = φ)
     (z : ℂ) (him : z.im ≠ 0) (χ : H) :
     ‖resolvent z him hsym hplus hminus χ‖ ≤ (1 / |z.im|) * ‖χ‖ :=
@@ -297,7 +296,7 @@ private lemma norm_resolvent_apply_le {A : H →ₗ.[ℂ] H}
 
 private lemma norm_op_resolvent_le {A : H →ₗ.[ℂ] H}
     (hsym : A.IsFormalAdjoint A)
-    (hplus  : ∀ φ : H, ∃ ψ : A.domain, A ψ + I • (ψ : H) = φ)
+    (hplus : ∀ φ : H, ∃ ψ : A.domain, A ψ + I • (ψ : H) = φ)
     (hminus : ∀ φ : H, ∃ ψ : A.domain, A ψ - I • (ψ : H) = φ)
     (z : ℂ) (hre : z.re = 0) (him : z.im ≠ 0) (χ : H) :
     ‖A ⟨resolvent z him hsym hplus hminus χ,
@@ -328,7 +327,7 @@ private lemma norm_op_resolvent_le {A : H →ₗ.[ℂ] H}
 `1 + V ∘ (A − z)⁻¹`. -/
 private noncomputable def resolventPerturb {A : H →ₗ.[ℂ] H}
     (hsym : A.IsFormalAdjoint A)
-    (hplus  : ∀ φ : H, ∃ ψ : A.domain, A ψ + I • (ψ : H) = φ)
+    (hplus : ∀ φ : H, ∃ ψ : A.domain, A ψ + I • (ψ : H) = φ)
     (hminus : ∀ φ : H, ∃ ψ : A.domain, A ψ - I • (ψ : H) = φ)
     (V : A.domain →ₗ[ℂ] H) (z : ℂ) (him : z.im ≠ 0) : H →ₗ[ℂ] H :=
   V ∘ₗ LinearMap.codRestrict A.domain
@@ -337,7 +336,7 @@ private noncomputable def resolventPerturb {A : H →ₗ.[ℂ] H}
 
 private lemma resolventPerturb_apply {A : H →ₗ.[ℂ] H}
     (hsym : A.IsFormalAdjoint A)
-    (hplus  : ∀ φ : H, ∃ ψ : A.domain, A ψ + I • (ψ : H) = φ)
+    (hplus : ∀ φ : H, ∃ ψ : A.domain, A ψ + I • (ψ : H) = φ)
     (hminus : ∀ φ : H, ∃ ψ : A.domain, A ψ - I • (ψ : H) = φ)
     (V : A.domain →ₗ[ℂ] H) (z : ℂ) (him : z.im ≠ 0) (χ : H) :
     resolventPerturb hsym hplus hminus V z him χ
@@ -348,7 +347,7 @@ private lemma resolventPerturb_apply {A : H →ₗ.[ℂ] H}
 `‖V ∘ (A − z)⁻¹‖ ≤ a + b / |Im z|` for purely imaginary `z`. -/
 private lemma resolventPerturb_norm_le {A : H →ₗ.[ℂ] H}
     (hsym : A.IsFormalAdjoint A)
-    (hplus  : ∀ φ : H, ∃ ψ : A.domain, A ψ + I • (ψ : H) = φ)
+    (hplus : ∀ φ : H, ∃ ψ : A.domain, A ψ + I • (ψ : H) = φ)
     (hminus : ∀ φ : H, ∃ ψ : A.domain, A ψ - I • (ψ : H) = φ)
     (V : A.domain →ₗ[ℂ] H) {a b : ℝ} (ha₀ : 0 ≤ a) (hb₀ : 0 ≤ b)
     (hbound : ∀ ψ : A.domain, ‖V ψ‖ ≤ a * ‖A ψ‖ + b * ‖(ψ : H)‖)
@@ -411,7 +410,7 @@ lemma perturbedOp_sub_smul_surjective {A : H →ₗ.[ℂ] H}
   -- ψ := R χ does it.
   refine ⟨⟨resolvent z him hsym hplus hminus χ,
            resolvent_mem_domain hsym hplus hminus z him χ⟩, ?_⟩
-  show A ⟨resolvent z him hsym hplus hminus χ,
+  change A ⟨resolvent z him hsym hplus hminus χ,
           resolvent_mem_domain hsym hplus hminus z him χ⟩
       + V ⟨resolvent z him hsym hplus hminus χ,
            resolvent_mem_domain hsym hplus hminus z him χ⟩

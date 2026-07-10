@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
-Author: Adam Bornemann
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Adam Bornemann
 -/
 import Spectra.ProjValMeasure.Basic
 import Spectra.SpectralTheory.Measure.Convergence
@@ -18,7 +18,8 @@ unbounded) operator with natural domain
 
 built as the strong `L²`-limit of the bounded calculus on the truncations `truncSym f n`. This is
 the one piece of infrastructure missing for the Tomita–Takesaki square root `Δ^{½}` (R2): with
-`U_grp` the unitary group of a self-adjoint `Δ` and `f := (Real.sqrt ·)`, `pmapOfPVM U_grp f = Δ^{½}`.
+`U_grp` the unitary group of a self-adjoint `Δ` and `f := (Real.sqrt ·)`,
+`pmapOfPVM U_grp f = Δ^{½}`.
 
 This file builds, in order:
 
@@ -151,7 +152,8 @@ lemma measurable_truncSym {f : ℝ → ℂ} (hf : Measurable f) (n : ℕ) :
   refine Measurable.ite ?_ hf measurable_const
   exact measurableSet_le (hf.norm) measurable_const
 
-/-- Pointwise, `truncSym f n s → f s` as `n → ∞` (for `n ≥ ‖f s‖` the truncation is exactly `f s`). -/
+/-- Pointwise, `truncSym f n s → f s` as `n → ∞`
+(for `n ≥ ‖f s‖` the truncation is exactly `f s`). -/
 lemma tendsto_truncSym (f : ℝ → ℂ) (s : ℝ) :
     Filter.Tendsto (fun n => truncSym f n s) Filter.atTop (nhds (f s)) := by
   refine Filter.Tendsto.congr' ?_ tendsto_const_nhds
@@ -423,7 +425,7 @@ theorem pmapOfPVM_isFormalAdjoint_self (f : ℝ → ℂ) (hf : Measurable f)
       split_ifs
       · exact hreal s
       · simp
-    show ContinuousLinearMap.adjoint
+    change ContinuousLinearMap.adjoint
         (spectralCalculus U_grp (truncSym f n) (measurable_truncSym hf n) (truncSym_bdd f n))
       = spectralCalculus U_grp (truncSym f n) (measurable_truncSym hf n) (truncSym_bdd f n)
     rw [spectralCalculus_adjoint U_grp (truncSym f n) (measurable_truncSym hf n)
@@ -448,11 +450,13 @@ theorem pmapOfPVM_isFormalAdjoint_self (f : ℝ → ℂ) (hf : Measurable f)
 
 /-- **Positivity of the quadratic form**: if the symbol has nonnegative real part everywhere
 (`0 ≤ (f s).re`), then `0 ≤ Re ⟪ξ, (∫ f dP) ξ⟫`.  Immediate from the diagonal pairing
-`inner_self_pmapOfPVM` and `integral_re`.  For the modular square root `f = √· ≥ 0` this is `Δ^{½} ≥ 0`. -/
+`inner_self_pmapOfPVM` and `integral_re`.  For the modular square root `f = √· ≥ 0` this is
+`Δ^{½} ≥ 0`. -/
 theorem re_inner_self_pmapOfPVM_nonneg (f : ℝ → ℂ) (hf : Measurable f)
     (hnn : ∀ s, 0 ≤ (f s).re) {ξ : H}
     (hξ : Integrable (fun s => ‖f s‖ ^ 2) (borelMeasure U_grp ξ)) :
-    0 ≤ (⟪ξ, pmapOfPVM U_grp f hf ⟨ξ, (ProjValMeasure.mem_pmapDomain U_grp.toPVM).mpr hξ⟩⟫_ℂ).re := by
+    0 ≤ (⟪ξ, pmapOfPVM U_grp f hf
+        ⟨ξ, (ProjValMeasure.mem_pmapDomain U_grp.toPVM).mpr hξ⟩⟫_ℂ).re := by
   rw [inner_self_pmapOfPVM U_grp f hf hξ, ← RCLike.re_eq_complex_re,
     ← integral_re (integrable_of_mem_pmapDomain U_grp f hf hξ)]
   exact integral_nonneg fun s => hnn s

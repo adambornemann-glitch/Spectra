@@ -1,11 +1,32 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Spectra.Resolvent.Diagonal.Basic
 import Spectra.Fourier.IsUnique
 import Spectra.Kernel.Poisson.Lemmas
+
+/-!
+# The Fourier identity linking the resolvent to the unitary group
+
+For a strongly continuous one-parameter unitary group `U_grp` and a vector `ξ`, this file proves
+the key identity connecting the resolvent of the generator to the Fourier–Laplace transform of the
+diagonal matrix element `t ↦ ⟪ξ, U_grp.U t ξ⟫`:
+
+`2 · Im ⟪ξ, R(λ + iε) ξ⟫ = ∫ t, e^{-iλt} e^{-ε|t|} ⟪ξ, U_grp.U t ξ⟫ dt`.
+
+The proof splits the resolvent at `λ ± iε` into one-sided Laplace transforms via
+`resolvent_diag_lower_laplace`/`resolvent_diag_upper_eq_conj`, reflects the upper piece using the
+Hermitian symmetry `⟪ξ, U(-t)ξ⟫ = conj ⟪ξ, U(t)ξ⟫` (`inner_unitary_neg`), and glues the two halves
+into the two-sided integral. The elementary Fourier transform of the two-sided exponential kernel
+`e^{-δ|·|}` needed elsewhere is recorded as `fourier_kernel_eval`.
+
+## Main results
+
+* `fourier_identity` : the resolvent/Fourier-transform identity above.
+* `fourier_kernel_eval` : `∫ e^{-iλt} e^{-δ|λ|} dλ = 2δ/(t² + δ²)`.
+-/
 
 open Complex MeasureTheory Filter Topology
 open Spectra.OneParameterUnitaryGroup
@@ -84,7 +105,8 @@ lemma fourier_identity
   have h_main : m_plus - m_minus = I * ∫ t : ℝ,
         cexp (-(I * (lambda:ℂ) * (t:ℂ))) * cexp (-(↑ε * ↑|t|)) *
         ⟪ξ, U_grp.U t ξ⟫_ℂ := by
-    simp [h_plus_int, h_minus_int, sub_neg_eq_add, ← mul_add]
+    simp only [h_plus_int, h_minus_int, ofReal_exp, ofReal_mul, ofReal_neg,
+      neg_mul, sub_neg_eq_add, sub_neg_eq_add, ← mul_add]
     -- Match integrands to the e^{-ε|t|} form on each half (|s| = -s on Iic, |t| = t on Ici).
     have h_iic : (∫ s in Set.Iic (0:ℝ),
             cexp (-(I * (lambda:ℂ) * (s:ℂ))) * cexp ((↑ε * ↑s : ℂ)) *

@@ -1,8 +1,7 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
-Filename: StoneBridge/SpectralPVM.lean
 -/
 import Spectra.StoneBridge.Basic
 import Spectra.SpectralTheory.ResolventForm
@@ -60,7 +59,7 @@ groups are the same group (`stoneGroup_eq_genToGroup`: generator-uniqueness, no 
 comparison needed). -/
 theorem spectralPVM_eq_groupPVM_stoneGroup [Nontrivial H] (hA : IsSelfAdjoint A) :
     spectralPVM hA = groupPVM (stoneGroup hA) := by
-  show groupPVM (genToGroup hA) = groupPVM (stoneGroup hA)
+  change groupPVM (genToGroup hA) = groupPVM (stoneGroup hA)
   rw [stoneGroup_eq_genToGroup hA]
 
 /-- The `.toPVM` form of the bridge, for readers who reach `spectralPVM` through the

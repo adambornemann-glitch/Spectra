@@ -1,6 +1,6 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Spectra.CayleyTransform.Defs
@@ -290,7 +290,8 @@ lemma cayley_approx_eigenvalue_forward
     (hμ_ne : (↑μ : ℂ) + I ≠ 0) :
     (∀ C > 0, ∃ ψ : A.domain, (ψ : H) ≠ 0 ∧ ‖A ψ - (↑μ : ℂ) • (ψ : H)‖ < C * ‖(ψ : H)‖) →
     (∀ ε > 0, ∃ φ, ‖φ‖ = 1 ∧
-      ‖(cayleyTransform hsym hplus - ((↑μ - I) * (↑μ + I)⁻¹) • ContinuousLinearMap.id ℂ H) φ‖ < ε) := by
+      ‖(cayleyTransform hsym hplus - ((↑μ - I) * (↑μ + I)⁻¹) •
+          ContinuousLinearMap.id ℂ H) φ‖ < ε) := by
   intro h_approx ε hε
   set U := cayleyTransform hsym hplus with hU_def
   set w := (↑μ - I) * (↑μ + I)⁻¹ with hw_def

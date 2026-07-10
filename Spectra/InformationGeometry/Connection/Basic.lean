@@ -1,6 +1,6 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Spectra.InformationGeometry.Connection.AmariChentsov
@@ -79,7 +79,7 @@ noncomputable def christoffelFirstKind
               (EuclideanSpace.single k 1))
 
 /-- The α-connection coefficients:
-  Γ^(α)_{ij,k}(θ) = Γ^(0)_{ij,k}(θ) − (α/2) C_{ijk}(θ)  -/
+  Γ^(α)_{ij,k}(θ) = Γ^(0)_{ij,k}(θ) − (α/2) C_{ijk}(θ) -/
 noncomputable def alphaConnectionCoeff
     (α : ℝ) (θ : ParamSpace n) (i j k : Fin n) : ℝ :=
   M.christoffelFirstKind θ i j k - (α / 2) * M.cubicTensor θ i j k

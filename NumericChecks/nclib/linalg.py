@@ -343,8 +343,49 @@ def herm_eigvalues(H):
     return [lam[2 * i] for i in range(n)]
 
 
+def herm_eig(H, tol=1e-9):
+    """Eigenvalues (ascending) and orthonormal COMPLEX eigenvectors of Hermitian H.
+
+    Returns ``(evals, vecs)`` with ``evals`` a list of ``n`` floats and ``vecs`` a
+    list of ``n`` complex vectors (each a list of ``complex``), orthonormal, with
+    ``H vecs[k] = evals[k] vecs[k]``.
+
+    Mechanism: the real embedding ``M = [[Re,-Im],[Im,Re]]`` has, for every
+    eigenpair ``(mu, w)`` with ``w = [a; b]`` (``a,b in R^n``), the property that
+    the complex vector ``a + i b`` is an eigenvector of ``H`` for the same ``mu``
+    (``H(a+ib) = (Aa-Bb) + i(Ba+Ab) = mu(a+ib)``).  Each eigenvalue of ``H``
+    appears twice in ``M`` (real eigvecs ``[a;b]`` and ``[-b;a]``), so we
+    Gram-Schmidt the complex candidates within each degenerate cluster and keep
+    exactly ``n`` orthonormal vectors — robust under degeneracy, never needing a
+    complex eigensolver.
+    """
+    n = len(H)
+    lam, V = real_sym_eig(_embed(H))
+    order = sorted(range(2 * n), key=lambda k: lam[k])
+    evals = []
+    vecs = []
+    for k in order:
+        mu = lam[k]
+        c = [complex(V[i][k], V[n + i][k]) for i in range(n)]
+        # Gram-Schmidt against already-kept vectors in the same eigen-cluster.
+        for prev_mu, u in zip(evals, vecs):
+            if abs(prev_mu - mu) < 1e-6:
+                ip = sum(u[i].conjugate() * c[i] for i in range(n))
+                c = [c[i] - ip * u[i] for i in range(n)]
+        nrm = math.sqrt(sum(abs(c[i]) ** 2 for i in range(n)))
+        if nrm < tol:
+            continue
+        vecs.append([c[i] / nrm for i in range(n)])
+        evals.append(mu)
+        if len(vecs) == n:
+            break
+    return evals, vecs
+
+
 def herm_sqrt(H):
-    return herm_func(H, math.sqrt)
+    # `max(0, ·)` clamps sub-epsilon negative eigenvalues (Jacobi roundoff on a PSD
+    # operator) to 0 — the CFC √ of a positive operator is defined on its spectrum ⊆ [0,∞).
+    return herm_func(H, lambda x: math.sqrt(x) if x > 0.0 else 0.0)
 
 
 def herm_log(H):

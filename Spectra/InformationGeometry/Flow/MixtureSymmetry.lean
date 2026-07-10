@@ -1,6 +1,6 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Spectra.InformationGeometry.StatisticalManifold
@@ -126,7 +126,7 @@ lemma scorePartial_symm_ae {θ : ParamSpace n} (hθ : θ ∈ M.paramDomain)
   have h_ab : M.scorePartial θ a b ω =
       fderiv ℝ (fderiv ℝ (fun θ'' => Real.log (M.density θ'' ω))) θ
         (EuclideanSpace.single a 1) (EuclideanSpace.single b 1) := by
-    show fderiv ℝ (fun θ' => M.toRegularStatisticalModel.score θ' b ω) θ
+    change fderiv ℝ (fun θ' => M.toRegularStatisticalModel.score θ' b ω) θ
       (EuclideanSpace.single a 1) = _
     rw [DFunLike.congr_fun (Filter.EventuallyEq.fderiv_eq (hscore_ev b))
       (EuclideanSpace.single a 1)]
@@ -134,7 +134,7 @@ lemma scorePartial_symm_ae {θ : ParamSpace n} (hθ : θ ∈ M.paramDomain)
   have h_ba : M.scorePartial θ b a ω =
       fderiv ℝ (fderiv ℝ (fun θ'' => Real.log (M.density θ'' ω))) θ
         (EuclideanSpace.single b 1) (EuclideanSpace.single a 1) := by
-    show fderiv ℝ (fun θ' => M.toRegularStatisticalModel.score θ' a ω) θ
+    change fderiv ℝ (fun θ' => M.toRegularStatisticalModel.score θ' a ω) θ
       (EuclideanSpace.single b 1) = _
     rw [DFunLike.congr_fun (Filter.EventuallyEq.fderiv_eq (hscore_ev a))
       (EuclideanSpace.single b 1)]

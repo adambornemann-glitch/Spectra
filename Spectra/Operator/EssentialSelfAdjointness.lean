@@ -1,8 +1,7 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
-Filename: Operator/EssentialSelfAdjointness.lean
 -/
 import Spectra.Operator.AdjointClosure
 import Spectra.YosidaHille.Helpers
@@ -56,7 +55,7 @@ def IsEssentiallySelfAdjoint (B : H →ₗ.[ℂ] H) : Prop := IsSelfAdjoint B.cl
 self-adjoint. -/
 theorem isEssentiallySelfAdjoint_of_denseRange_addSub {B : H →ₗ.[ℂ] H}
     (hsym : B.IsFormalAdjoint B) (hdense : Dense (B.domain : Set H))
-    (hplus  : Dense (Set.range fun x : B.domain => B x + I • (x : H)))
+    (hplus : Dense (Set.range fun x : B.domain => B x + I • (x : H)))
     (hminus : Dense (Set.range fun x : B.domain => B x - I • (x : H))) :
     IsEssentiallySelfAdjoint B := by
   have hclosable : B.IsClosable := symmetric_isClosable hsym hdense
@@ -68,7 +67,8 @@ theorem isEssentiallySelfAdjoint_of_denseRange_addSub {B : H →ₗ.[ℂ] H}
     isFormalAdjoint_of_le_adjoint hdenseC hcl_le_cladj
   have hclosedC : IsClosed (B.closure.graph : Set (H × H)) := hclosable.closure_isClosed
   -- `ran(B.closure ± I)` is closed (symmetric + closed graph) …
-  have hclosed_plus : IsClosed (Set.range fun x : B.closure.domain => B.closure x + I • (x : H)) := by
+  have hclosed_plus :
+      IsClosed (Set.range fun x : B.closure.domain => B.closure x + I • (x : H)) := by
     have h := op_range_isClosed hsymC hclosedC (-I) (by simp)
     simpa [neg_smul, sub_neg_eq_add] using h
   have hclosed_minus : IsClosed (Set.range fun x : B.closure.domain => B.closure x - I • (x : H)) :=

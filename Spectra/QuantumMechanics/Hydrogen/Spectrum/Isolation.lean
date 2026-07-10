@@ -1,6 +1,6 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Spectra.QuantumMechanics.Hydrogen.Spectrum.Complete
@@ -82,7 +82,8 @@ lemma hydrogenEigenvalue_gap (n : ℕ) (hn : 1 ≤ n) :
         have hle : min δ₀ δ₁ ≤ δ₁ := min_le_right _ _
         rw [hδ₁] at hle; linarith
       · -- `n < m`
-        have h1 : hydrogenEigenvalue (n + 1) hp1 ≤ hydrogenEigenvalue m hm := mono_le hp1 hm (by omega)
+        have h1 : hydrogenEigenvalue (n + 1) hp1 ≤ hydrogenEigenvalue m hm :=
+          mono_le hp1 hm (by omega)
         have h2 : hydrogenEigenvalue n hn < hydrogenEigenvalue m hm :=
           hydrogenEigenvalue_strictMono hn hm hmn
         rw [abs_of_pos (by linarith)]

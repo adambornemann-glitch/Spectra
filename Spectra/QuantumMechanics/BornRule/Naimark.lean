@@ -1,6 +1,6 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Spectra.QuantumMechanics.BornRule.POVM
@@ -233,6 +233,7 @@ private lemma norm_sq_sqrt {E : κ → (H →L[ℂ] H)} (hpos : ∀ k, (E k).IsP
     ‖CFC.sqrt (E k) ψ‖ ^ 2 = (⟪ψ, E k ψ⟫_ℂ).re := by
   rw [norm_sq_eq_re_inner (𝕜 := ℂ), inner_sqrt_self hpos k ψ, RCLike.re_eq_complex_re]
 
+omit [CompleteSpace H] [Countable κ] [MeasurableSpace κ] in
 /-- The real series `k ↦ re ⟪ψ, Eₖ ψ⟫` is summable. -/
 private lemma summable_re_quadForm {E : κ → (H →L[ℂ] H)} (hsum : ∑' k, E k = 1) (ψ : H) :
     Summable (fun k => (⟪ψ, E k ψ⟫_ℂ).re) := by
@@ -241,6 +242,7 @@ private lemma summable_re_quadForm {E : κ → (H →L[ℂ] H)} (hsum : ∑' k, 
   have h2 : Summable (fun k => ⟪ψ, (E k) ψ⟫_ℂ) := h1.mapL (innerSL ℂ ψ)
   exact h2.mapL Complex.reCLM
 
+omit [Countable κ] [MeasurableSpace κ] in
 /-- `fun k => √Eₖ ψ` is in `ℓ²`. -/
 private lemma memℓp_sqrt {E : κ → (H →L[ℂ] H)} (hpos : ∀ k, (E k).IsPositive)
     (hsum : ∑' k, E k = 1) (ψ : H) :
@@ -264,6 +266,7 @@ private lemma tsum_inner_quadForm {E : κ → (H →L[ℂ] H)} (hSE : Summable E
   have hsumapp : Summable (fun k => (E k) ψ) := hSE.mapL (ContinuousLinearMap.apply ℂ H ψ)
   exact (hsumapp.hasSum.mapL (innerSL ℂ ψ)).tsum_eq
 
+omit [CompleteSpace H] [Countable κ] [MeasurableSpace κ] in
 /-- `∑' k, re ⟪ψ, Eₖ ψ⟫ = ‖ψ‖²` from `∑' k, Eₖ = 1`. -/
 private lemma tsum_re_quadForm_eq {E : κ → (H →L[ℂ] H)} (hsum : ∑' k, E k = 1) (ψ : H) :
     ∑' k, (⟪ψ, E k ψ⟫_ℂ).re = ‖ψ‖ ^ 2 := by
@@ -289,7 +292,7 @@ noncomputable def naimarkV (E : κ → (H →L[ℂ] H)) (hpos : ∀ k, (E k).IsP
     funext k
     simp [map_smul]
   norm_map' ψ := by
-    show ‖(⟨fun k => CFC.sqrt (E k) ψ, memℓp_sqrt hpos hsum ψ⟩ : NaimarkSpace H κ)‖ = ‖ψ‖
+    change ‖(⟨fun k => CFC.sqrt (E k) ψ, memℓp_sqrt hpos hsum ψ⟩ : NaimarkSpace H κ)‖ = ‖ψ‖
     have hnonneg : (0 : ℝ) ≤ ‖ψ‖ := norm_nonneg ψ
     set v : NaimarkSpace H κ := ⟨fun k => CFC.sqrt (E k) ψ, memℓp_sqrt hpos hsum ψ⟩ with hv
     have hVnonneg : (0 : ℝ) ≤ ‖v‖ := norm_nonneg v
@@ -297,7 +300,7 @@ noncomputable def naimarkV (E : κ → (H →L[ℂ] H)) (hpos : ∀ k, (E k).IsP
       rw [lp.norm_rpow_eq_tsum (by norm_num) v]
       have hcoord : ∀ k, ‖v k‖ ^ (2 : ℝ≥0∞).toReal = (⟪ψ, E k ψ⟫_ℂ).re := fun k => by
         rw [show (2 : ℝ≥0∞).toReal = 2 by norm_num, Real.rpow_two]
-        show ‖CFC.sqrt (E k) ψ‖ ^ 2 = (⟪ψ, E k ψ⟫_ℂ).re
+        change ‖CFC.sqrt (E k) ψ‖ ^ 2 = (⟪ψ, E k ψ⟫_ℂ).re
         exact norm_sq_sqrt hpos k ψ
       rw [tsum_congr hcoord, tsum_re_quadForm_eq hsum ψ]
     rw [show (2 : ℝ≥0∞).toReal = 2 by norm_num, Real.rpow_two] at hsq
@@ -308,10 +311,12 @@ noncomputable def naimarkVclm (E : κ → (H →L[ℂ] H)) (hpos : ∀ k, (E k).
     (hsum : ∑' k, E k = 1) : H →L[ℂ] NaimarkSpace H κ :=
   (naimarkV E hpos hsum).toContinuousLinearMap
 
+omit [Countable κ] [MeasurableSpace κ] in
 @[simp] lemma naimarkVclm_apply (E : κ → (H →L[ℂ] H)) (hpos : ∀ k, (E k).IsPositive)
     (hsum : ∑' k, E k = 1) (ψ : H) :
     (naimarkVclm E hpos hsum ψ : ∀ _ : κ, H) = fun k => CFC.sqrt (E k) ψ := rfl
 
+omit [Countable κ] [MeasurableSpace κ] in
 lemma naimarkVclm_isometry (E : κ → (H →L[ℂ] H)) (hpos : ∀ k, (E k).IsPositive)
     (hsum : ∑' k, E k = 1) : Isometry (naimarkVclm E hpos hsum) := by
   have h : ⇑(naimarkVclm E hpos hsum) = ⇑(naimarkV E hpos hsum) :=
@@ -321,7 +326,7 @@ lemma naimarkVclm_isometry (E : κ → (H →L[ℂ] H)) (hpos : ∀ k, (E k).IsP
   exact (naimarkV E hpos hsum).isometry
 
 /-! ## §4  The compression identity and Naimark's theorem -/
-
+omit [Countable κ] [MeasurableSpace κ] in
 /-- The compression of the diagonal PVM along `V` recovers the POVM effect:
 both `⟪V ψ, P(B) (V ψ)⟫` and `⟪ψ, M(B) ψ⟫` equal `∑' k, B.indicator (k ↦ ⟪ψ, Eₖ ψ⟫) k`. -/
 private lemma inner_compression_eq (E : κ → (H →L[ℂ] H)) (hpos : ∀ k, (E k).IsPositive)
@@ -360,6 +365,7 @@ private lemma inner_compression_eq (E : κ → (H →L[ℂ] H)) (hpos : ∀ k, (
     · rw [Set.indicator_of_notMem hk, Set.indicator_of_notMem hk, inner_zero_right]
   rw [hLHS, hRHS]
 
+omit [Countable κ] in
 /-- **The compression identity** `M(B) = V⋆ P(B) V`: the POVM effect `M(B)` is the `V⋆`-compression
 of the dilating PVM's projection `P(B)`. -/
 theorem naimark_effect_eq (E : κ → (H →L[ℂ] H)) (hpos : ∀ k, (E k).IsPositive)
@@ -370,10 +376,11 @@ theorem naimark_effect_eq (E : κ → (H →L[ℂ] H)) (hpos : ∀ k, (E k).IsPo
   refine op_ext_of_inner_self fun ψ => ?_
   rw [ContinuousLinearMap.comp_apply, ContinuousLinearMap.comp_apply,
     ContinuousLinearMap.adjoint_inner_right]
-  show ⟪ψ, (∑' k, Set.indicator B E k) ψ⟫_ℂ
+  change ⟪ψ, (∑' k, Set.indicator B E k) ψ⟫_ℂ
     = ⟪naimarkVclm E hpos hsum ψ, lpRestrict B (naimarkVclm E hpos hsum ψ)⟫_ℂ
   rw [inner_compression_eq E hpos hsum B ψ]
 
+omit [Countable κ] in
 /-- **Naimark dilation (discrete case).** A resolution of the identity `∑' k, E k = 1` by positive
 effects on `H` is the compression `V⋆ P(·) V` of a projection-valued measure `P` on the larger
 Hilbert space `NaimarkSpace H κ`, along an isometry `V`. -/

@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
-Author: Adam Bornemann
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Adam Bornemann
 -/
 import Spectra.Modular.Cocycle.ModularSqrtSquare
 import Spectra.Modular.Cocycle.PolarIsometry
@@ -10,9 +10,9 @@ import Spectra.SpectralTheory.Calculus.PMapRealSelfAdjoint
 # The reciprocal modular calculus `Δ⁻¹`, `Δ^{-½}` (Stage 0)
 
 For a cyclic–separating vector `Ω` of a von Neumann algebra `M`, the modular operator
-`Δ = modularOp M Ω` is self-adjoint, `≥ 0`, and **injective** (`modularOp_injective`), so `s = 0` is a
-null point of its spectral measure.  Hence the reciprocal symbols `1/s` and `1/√s` are a.e.-finite and
-define genuine unbounded self-adjoint operators
+`Δ = modularOp M Ω` is self-adjoint, `≥ 0`, and **injective** (`modularOp_injective`), so `s = 0` is
+a null point of its spectral measure.  Hence the reciprocal symbols `1/s` and `1/√s` are a.e.-finite
+and define genuine unbounded self-adjoint operators
 
   `Δ⁻¹  := modularOpInv   = pmapOfPVM (genToGroup Δ) (1/s)`,
   `Δ^{-½} := modularSqrtInv = pmapOfPVM (genToGroup Δ) (1/√s)`.
@@ -22,8 +22,8 @@ This J-free layer supplies the operators needed to **state** the final Tomita re
 engine `pmapOfPVM_isSelfAdjoint_of_real` (surjectivity of `A ± i` is unconditional because the
 reciprocal symbols are real), with **density of the domains** discharged by the away-from-zero band
 engine `pmapOfPVM_domain_dense_of_support_Ioi`: the modular spectral measures are carried by `(0,∞)`
-(`borelMeasure_modular_Iio_zero`, `borelMeasure_modular_singleton_zero`), and both reciprocal symbols
-are bounded on each band `[1/(n+1), n+1]`.
+(`borelMeasure_modular_Iio_zero`, `borelMeasure_modular_singleton_zero`), and both reciprocal
+symbols are bounded on each band `[1/(n+1), n+1]`.
 
 ## Main statements
 

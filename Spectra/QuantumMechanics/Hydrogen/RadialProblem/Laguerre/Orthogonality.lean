@@ -1,6 +1,6 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Mathlib.Analysis.Calculus.ContDiff.Basic
@@ -184,7 +184,7 @@ private lemma laguerre_coeff_recurrence (n k : ℕ) (α : ℝ) (hn : 1 ≤ n) (h
   ring
 
 /-- **Three-term recurrence.**
-    (n+1) L_{n+1}^α(x) = (2n + α + 1 - x) L_n^α(x) - (n + α) L_{n-1}^α(x)-/
+    (n+1) L_{n+1}^α(x) = (2n + α + 1 - x) L_n^α(x) - (n + α) L_{n-1}^α(x) -/
 theorem laguerre_recurrence (n : ℕ) (α : ℝ) (hn : 1 ≤ n) (x : ℝ) :
     (n + 1 : ℝ) * laguerrePolynomial (n + 1) α x =
     (2 * n + α + 1 - x) * laguerrePolynomial n α x -
@@ -561,7 +561,7 @@ lemma laguerreWeight_nonneg (α : ℝ) (_hα : 0 ≤ α) (x : ℝ) :
 /-- The Laguerre weight is integrable on (0, ∞) for α > -1. -/
 lemma laguerreWeight_integrable (α : ℝ) (hα : -1 < α) :
     Integrable (laguerreWeight α) (volume.restrict (Set.Ioi 0)) := by
-  show IntegrableOn (laguerreWeight α) (Set.Ioi 0) volume
+  change IntegrableOn (laguerreWeight α) (Set.Ioi 0) volume
   -- The Euler Γ-integrand with s = α + 1; converges since 0 < s ⇔ -1 < α.
   have hconv := Real.GammaIntegral_convergent (s := α + 1) (by linarith)
   refine hconv.congr_fun (fun x hx => ?_) measurableSet_Ioi
@@ -877,4 +877,4 @@ theorem laguerre_orthogonality (n m : ℕ) (α : ℝ) (hα : -1 < α) (hnm : n �
     linear_combination hkey
   exact (mul_eq_zero.mp hprod).resolve_left hmn
 
-end QuantumMechanics.Hydrogen.Radial
+end Spectra.QuantumMechanics.Hydrogen.Radial

@@ -1,9 +1,12 @@
 /-
-Copyright (c) 2025 Bell Theorem Formalization Project
+Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Ported from Isabelle/HOL formalization by Echenim & Mhalla
-Ported by: Adam Bornemann
-
+Authors: Ported from Isabelle/HOL formalization by Echenim & Mhalla, by Adam Bornemann
+-/
+import Mathlib.Algebra.Star.CHSH
+import Spectra.QuantumMechanics.BellsTheorem.QuantumCHSH.Violation
+import Spectra.QuantumMechanics.BellsTheorem.CHSH_Bounds.Tsirelson.Basic
+/-!
 # Tsirelson's Bound (front-door restatement)
 
 `tsirelson_bound` (`CHSH_Bounds/Tsirelson/Basic.lean`) is stated over a bundled `IsCHSHTuple`
@@ -17,10 +20,6 @@ this as the unpacked-hypothesis sibling of the original.
 * `tsirelson_bound'` : `‖Tr(Sρ)‖ ≤ 2√2` for any `A₀, A₁, B₀, B₁` satisfying the CHSH
   Hermitian/involution/commutation conditions individually, no `IsCHSHTuple` construction required
 -/
-import Mathlib.Algebra.Star.CHSH
-import Spectra.QuantumMechanics.BellsTheorem.QuantumCHSH.Violation
-import Spectra.QuantumMechanics.BellsTheorem.CHSH_Bounds.Tsirelson.Basic
-
 open Spectra.QuantumInfo
 namespace Spectra.QuantumCHSH
 

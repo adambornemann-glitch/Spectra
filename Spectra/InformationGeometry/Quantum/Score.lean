@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
-Author: Adam Bornemann
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Adam Bornemann
 -/
 import Spectra.InformationGeometry.Quantum.Manifold
 
@@ -41,7 +41,8 @@ namespace QuantumStatisticalModel
 variable {n : ℕ} (M : QuantumStatisticalModel n H)
 
 /-- The **differential** `dρ_θ : ParamSpace n →L[ℝ] TraceClass H` of the model at `θ` — the bundled
-tangent map sending a parameter direction to the corresponding tangent vector (`m`-representation). -/
+tangent map sending a parameter direction to the corresponding tangent vector
+(`m`-representation). -/
 noncomputable def differential (θ : ParamSpace n) : ParamSpace n →L[ℝ] TraceClass H :=
   fderivWithin ℝ (fun θ' => (M.ρ θ').toTraceClass) M.paramDomain θ
 
@@ -56,8 +57,8 @@ lemma deriv_eq_differential (θ : ParamSpace n) (i : Fin n) :
 /-- **The quantum score has vanishing first moment, in every tangent direction**: for each parameter
 direction `v`, the tangent vector `dρ_θ(v)` is traceless, `tr(dρ_θ(v)) = 0`. This is the operator
 analogue of `score_expectation_eq_zero`, and the infinitesimal form of trace preservation
-`tr ρ_θ ≡ 1`. Consequently the tangent space at `ρ_θ` lies in the kernel of the trace functional — it
-is (contained in) the space of traceless trace-class operators. -/
+`tr ρ_θ ≡ 1`. Consequently the tangent space at `ρ_θ` lies in the kernel of the trace functional —
+it is (contained in) the space of traceless trace-class operators. -/
 theorem traceCLM_differential_eq_zero {θ : ParamSpace n} (hθ : θ ∈ M.paramDomain)
     (v : ParamSpace n) : traceCLM (M.differential θ v) = 0 := by
   -- the state family, as a trace-norm-valued curve, is differentiable within the (open) domain
@@ -71,7 +72,8 @@ theorem traceCLM_differential_eq_zero {θ : ParamSpace n} (hθ : θ ∈ M.paramD
       (L.comp (fderivWithin ℝ (fun θ' => (M.ρ θ').toTraceClass) M.paramDomain θ)) M.paramDomain θ :=
     L.hasFDerivAt.comp_hasFDerivWithinAt θ hfw
   -- but `θ ↦ tr ρ_θ ≡ 1`, so that same composite has derivative `0`
-  have hEq : (fun θ' => L ((M.ρ θ').toTraceClass)) =ᶠ[nhdsWithin θ M.paramDomain] fun _ => (1 : ℂ) := by
+  have hEq : (fun θ' => L ((M.ρ θ').toTraceClass))
+      =ᶠ[nhdsWithin θ M.paramDomain] fun _ => (1 : ℂ) := by
     filter_upwards [self_mem_nhdsWithin] with y hy
     change trace ((M.ρ y).toTraceClass).toOp = 1
     exact (M.ρ y).trace_one

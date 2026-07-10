@@ -1,6 +1,6 @@
 /-
-Copyright (c) 2026 Logos Library Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Spectra.SphericalHarmonics.Completeness
@@ -269,7 +269,7 @@ noncomputable def radialReduction : RadialL2 ≃ₗᵢ[ℂ] ReducedRadialL2 :=
       rw [hout, hin, ← mul_assoc, mul_inv_cancel₀ hne, one_mul]
     norm_map' := by
       intro R
-      show ‖(memLp_radialReductionFun (Lp.memLp R)).toLp (fun (r : ℝ) => (r : ℂ) * R r)‖ = ‖R‖
+      change ‖(memLp_radialReductionFun (Lp.memLp R)).toLp (fun (r : ℝ) => (r : ℂ) * R r)‖ = ‖R‖
       rw [Lp.norm_toLp, eLpNorm_radialReductionFun]
       exact (Lp.norm_def R).symm }
 
@@ -449,7 +449,7 @@ lemma tensorFun_congr_ae {g g' : ℝ → ℂ} (h : g =ᵐ[radialMeasure] g')
     (i : HarmonicIdx) :
     tensorFun g i =ᵐ[radialMeasure.prod sphereMeasure] tensorFun g' i := by
   filter_upwards [Measure.quasiMeasurePreserving_fst.ae_eq h] with p hp
-  show g p.1 * harmonic i p.2 = g' p.1 * harmonic i p.2
+  change g p.1 * harmonic i p.2 = g' p.1 * harmonic i p.2
   rw [show g p.1 = g' p.1 from hp]
 
 /-- **The sector embedding**: the isometric embedding R ↦ R ⊗ Y_i of the
@@ -482,7 +482,7 @@ noncomputable def sectorEmbedding (i : HarmonicIdx) : RadialL2 →ₗᵢ[ℂ] l2
       ring
     norm_map' := by
       intro R
-      show ‖(memLp_tensorFun (Lp.memLp R) i).toLp (tensorFun (⇑R) i)‖ = ‖R‖
+      change ‖(memLp_tensorFun (Lp.memLp R) i).toLp (tensorFun (⇑R) i)‖ = ‖R‖
       rw [Lp.norm_toLp, eLpNorm_tensorFun (Lp.aestronglyMeasurable R)]
       exact (Lp.norm_def R).symm }
 

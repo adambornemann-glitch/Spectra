@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
-Author: Adam Bornemann
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Adam Bornemann
 -/
 import Spectra.Modular.Cocycle.ModularSqrt
 import Spectra.SpectralTheory.Eigenspace
@@ -45,8 +45,8 @@ variable {M : VonNeumannAlgebra H} {Ω : H}
 /-! ## The adjoint of the closure and `S ≤ S⋆⋆` -/
 
 /-- **Density of `S†`'s domain.**  Every `toConj (b Ω)` with `b ∈ M'` lies in `D(S†)`
-(`toConj_mem_adjoint_domain`); these are dense because `M' Ω` is dense (the duality `E1`, transported
-by the antiunitary `toConjₗᵢ`).  (Extracted from the closability proof.) -/
+(`toConj_mem_adjoint_domain`); these are dense because `M' Ω` is dense (the duality `E1`,
+transported by the antiunitary `toConjₗᵢ`).  (Extracted from the closability proof.) -/
 theorem tomitaOp_adjoint_domain_dense (hsep : IsSeparating M Ω) :
     Dense ((tomitaOp M Ω).adjoint.domain : Set (Conj H)) := by
   have hcyc' : IsCyclic M.commutant Ω := isCyclic_commutant_of_isSeparating hsep
@@ -80,8 +80,9 @@ theorem tomitaClosure_le_adjoint_adjoint (hcyc : IsCyclic M Ω) (hsep : IsSepara
   have hce : ((tomitaOp M Ω).adjoint).adjoint.closure = ((tomitaOp M Ω).adjoint).adjoint := by
     apply LinearPMap.eq_of_eq_graph
     rw [← h_closed.isClosable.graph_closure_eq_closure_graph]
-    exact (h_closed : IsClosed
-      (↑(((tomitaOp M Ω).adjoint).adjoint.graph) : Set (H × Conj H))).submodule_topologicalClosure_eq
+    exact (h_closed :
+      IsClosed (↑(((tomitaOp M Ω).adjoint).adjoint.graph) : Set (H × Conj H))
+      ).submodule_topologicalClosure_eq
   rwa [hce] at hmono
 
 /-- The value of `S†` on `M' Ω`: `S†(toConj (b Ω)) = b⋆ Ω` for `b ∈ M'`.  From the functional
@@ -178,7 +179,7 @@ theorem tomitaClosure_range_dense (hcyc : IsCyclic M Ω) (hsep : IsSeparating M 
     have hzdom : (star a) Ω ∈ (tomitaClosure M Ω).domain :=
       (LinearPMap.le_closure (tomitaOp M Ω)).1 hzdom_op
     refine ⟨⟨(star a) Ω, hzdom⟩, ?_⟩
-    show tomitaClosure M Ω ⟨(star a) Ω, hzdom⟩ = (toConjₗᵢ H) (a Ω)
+    change tomitaClosure M Ω ⟨(star a) Ω, hzdom⟩ = (toConjₗᵢ H) (a Ω)
     have hagree : tomitaOp M Ω ⟨(star a) Ω, hzdom_op⟩ = tomitaClosure M Ω ⟨(star a) Ω, hzdom⟩ :=
       (LinearPMap.le_closure (tomitaOp M Ω)).2 rfl
     rw [coe_toConjₗᵢ, ← hagree, tomitaOp_apply M Ω hsep hstar hzdom_op, star_star]
@@ -291,7 +292,8 @@ theorem eq_zero_of_mem_graphL2_orthogonal (hcyc : IsCyclic M Ω) (hsep : IsSepar
 `⊆`; for `⊇`, orthogonally decompose any `q ∈ Γ(S)` along the closed `K := closure(...)`:
 the complementary part `k'` lies in `Γ(S) ∩ K ᗮ ⊆ Γ(S) ∩ (Γ(S ↾ D(Δ)))ᗮ`, so `k' = 0` by Step C,
 forcing `q = k ∈ K`. -/
-theorem graphL2_eq_topologicalClosure_modularGraphL2 (hcyc : IsCyclic M Ω) (hsep : IsSeparating M Ω) :
+theorem graphL2_eq_topologicalClosure_modularGraphL2 (hcyc : IsCyclic M Ω)
+    (hsep : IsSeparating M Ω) :
     graphL2 M Ω = (modularGraphL2 M Ω).topologicalClosure := by
   set K := (modularGraphL2 M Ω).topologicalClosure with hKdef
   have hKle : K ≤ graphL2 M Ω :=
@@ -449,7 +451,7 @@ theorem borelMeasure_modular_Iio_zero (hcyc : IsCyclic M Ω) (hsep : IsSeparatin
     have hmem : z ∈ (generator U).domain := hz
     have hμ : borelMeasure U z (Set.Iio 0) = 0 :=
       borelMeasure_Iio_zero_eq_zero U (modularGroup_hpos hcyc hsep) ⟨z, hmem⟩
-    show spectralProjection U (Set.Iio 0) measurableSet_Iio z = 0
+    change spectralProjection U (Set.Iio 0) measurableSet_Iio z = 0
     rw [← norm_eq_zero, ← sq_eq_zero_iff,
       norm_sq_spectralProjection U (Set.Iio 0) measurableSet_Iio z, hμ]
     simp
@@ -494,10 +496,10 @@ private lemma bdd_sqrtCutoffSym (n : ℕ) : ∃ C, ∀ s, ‖sqrtCutoffSym n s�
   · rw [Set.indicator_of_notMem hs, norm_zero, mul_zero]; positivity
 
 /-- **Step 2 (operator identity).**  `Δ^{½} (E([0,n]) y) = Φ(√·1_{[0,n]}) y`.  Truncating the `√`
-calculus, `pmapTrunc U √ m (E([0,n])y) = Φ(truncSym √ m · 1_{[0,n]}) y`, which is EVENTUALLY (in `m`)
-equal to `Φ(√·1_{[0,n]}) y = Φ(g_n) y` (on `[0,n]`, `‖√s‖ = √s ≤ √n ≤ m`); an eventually-constant
-sequence converges to that constant, while `pmapOfPVM_apply_tendsto` says it converges to
-`Δ^{½}(E([0,n])y)`.  Uniqueness of limits finishes. -/
+calculus, `pmapTrunc U √ m (E([0,n])y) = Φ(truncSym √ m · 1_{[0,n]}) y`, which is EVENTUALLY (in
+`m`) equal to `Φ(√·1_{[0,n]}) y = Φ(g_n) y` (on `[0,n]`, `‖√s‖ = √s ≤ √n ≤ m`); an
+eventually-constant sequence converges to that constant, while `pmapOfPVM_apply_tendsto` says it
+converges to `Δ^{½}(E([0,n])y)`.  Uniqueness of limits finishes. -/
 theorem modularSqrt_cutoff_apply (hcyc : IsCyclic M Ω) (hsep : IsSeparating M Ω) (y : H) (n : ℕ) :
     modularSqrt hcyc hsep
         ⟨spectralProjection (modularGroup hcyc hsep) (Set.Icc 0 (n : ℝ)) measurableSet_Icc y,
@@ -536,7 +538,8 @@ theorem modularSqrt_cutoff_apply (hcyc : IsCyclic M Ω) (hsep : IsSeparating M �
   -- for `m ≥ ⌈√n⌉₊`, the truncated symbol equals `g_n` pointwise.
   have hev : ∀ᶠ m : ℕ in atTop,
       pmapTrunc U (fun s => (Real.sqrt s : ℂ)) measurable_sqrtC m xn
-        = spectralCalculus U (sqrtCutoffSym n) (measurable_sqrtCutoffSym n) (bdd_sqrtCutoffSym n) y := by
+        = spectralCalculus U (sqrtCutoffSym n) (measurable_sqrtCutoffSym n)
+          (bdd_sqrtCutoffSym n) y := by
     filter_upwards [eventually_ge_atTop ⌈Real.sqrt (n : ℝ)⌉₊] with m hm
     rw [htrunc m]
     refine congrArg (fun T : H →L[ℂ] H => T y) ?_
@@ -550,7 +553,8 @@ theorem modularSqrt_cutoff_apply (hcyc : IsCyclic M Ω) (hsep : IsSeparating M �
         _ ≤ ⌈Real.sqrt (n : ℝ)⌉₊ := Nat.le_ceil _
         _ ≤ (m : ℝ) := by exact_mod_cast hm
     · rw [Set.indicator_of_notMem hs, mul_zero, mul_zero]
-  -- uniqueness of limits: eventually-constant ⟹ tends to the constant; and `pmapOfPVM_apply_tendsto`.
+  -- uniqueness of limits: eventually-constant ⟹ tends to the constant;
+  -- and `pmapOfPVM_apply_tendsto`.
   have htends1 := pmapOfPVM_apply_tendsto U (fun s => (Real.sqrt s : ℂ)) measurable_sqrtC hxnL2
   have htends2 : Tendsto (fun m => pmapTrunc U (fun s => (Real.sqrt s : ℂ)) measurable_sqrtC m xn)
       atTop (𝓝 (spectralCalculus U (sqrtCutoffSym n) (measurable_sqrtCutoffSym n)
@@ -606,9 +610,10 @@ private lemma integrable_realCutoffSym (U_grp : OneParameterUnitaryGroup (H := H
   · rw [Set.indicator_of_mem hs, mul_one]; exact Real.sqrt_le_sqrt hs.2
   · rw [Set.indicator_of_notMem hs, mul_zero]; positivity
 
-/-- **Step 3 (cut-off version).**  If `⟪y, Δ^{½}(E([0,n])y)⟫ = 0` then `μ_y((0,n]) = 0`.  The pairing
-is `∫ √s·1_{[0,n]} dμ_y = ∫ (realCutoffSym n) dμ_y` (real); vanishing of a nonnegative integrable
-integral gives `realCutoffSym n =ᵐ 0`, but `realCutoffSym n > 0` on `(0,n]`, so `μ_y((0,n]) = 0`. -/
+/-- **Step 3 (cut-off version).**  If `⟪y, Δ^{½}(E([0,n])y)⟫ = 0` then `μ_y((0,n]) = 0`.  The
+pairing is `∫ √s·1_{[0,n]} dμ_y = ∫ (realCutoffSym n) dμ_y` (real); vanishing of a nonnegative
+integrable integral gives `realCutoffSym n =ᵐ 0`, but `realCutoffSym n > 0` on `(0,n]`, so
+`μ_y((0,n]) = 0`. -/
 theorem borelMeasure_modular_Ioc_zero (hcyc : IsCyclic M Ω) (hsep : IsSeparating M Ω) (y : H)
     (n : ℕ)
     (hpair : ⟪y, modularSqrt hcyc hsep
@@ -758,8 +763,8 @@ theorem denseRange_modularSqrtOnModularDomain (hcyc : IsCyclic M Ω) (hsep : IsS
 
 /-! ## R3 capstone: the polar isometry `W` and the modular conjugation `J`
 
-With both density inputs in hand — `denseRange_modularSqrtOnModularDomain` (source `Δ^{½}(D(Δ))`) and
-`denseRange_tomitaOnModularDomain` (target `S(D(Δ))`) — and the isometry `‖S x‖ = ‖Δ^{½} x‖`
+With both density inputs in hand — `denseRange_modularSqrtOnModularDomain` (source `Δ^{½}(D(Δ))`)
+and `denseRange_tomitaOnModularDomain` (target `S(D(Δ))`) — and the isometry `‖S x‖ = ‖Δ^{½} x‖`
 (`norm_modularSqrt_eq_norm_tomita`, R2), `LinearEquiv.extendOfIsometry` extends the densely-defined
 correspondence `Δ^{½}x ↦ S x` to a unitary `W : H ≃ₗᵢ[ℂ] Conj H`.  The **modular conjugation** is
 `J = ofConj ∘ W : H ≃ₗᵢ⋆[ℂ] H` (antiunitary), and the polar decomposition reads `S = J Δ^{½}`. -/

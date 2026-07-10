@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
-Author: Adam Bornemann
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Adam Bornemann
 -/
 import Mathlib.Analysis.VonNeumannAlgebra.Basic
 import Mathlib.Analysis.InnerProductSpace.ProdL2
@@ -18,7 +18,8 @@ whose four entries all lie in `M`.
 ## Representation choice: `WithLp 2 (H × H)`
 
 `H2 H := WithLp 2 (H × H)` carries `NormedAddCommGroup`, `InnerProductSpace ℂ`, and `CompleteSpace`
-**for free** (all by `inferInstance`), with the `L²` inner product `⟪x, y⟫ = ⟪x.1, y.1⟫ + ⟪x.2, y.2⟫`
+**for free** (all by `inferInstance`), with the `L²` inner product
+`⟪x, y⟫ = ⟪x.1, y.1⟫ + ⟪x.2, y.2⟫`
 (`WithLp.prod_inner_apply`).  This beats `PiLp 2 (fun _ : Fin 2 => H)`: the `Fin 2` indexing forces
 `Fintype`/`Finset.sum` plumbing at every turn, whereas `prod` gives honest `.fst`/`.snd` projectors
 and a ready `WithLp` continuous-linear-map toolkit.
@@ -26,7 +27,8 @@ and a ready `WithLp` continuous-linear-map toolkit.
 ## Block operators
 
 `blockOp a b c d` is the operator with matrix `[[a, b], [c, d]]`,
-`(x₁, x₂) ↦ (a x₁ + b x₂, c x₁ + d x₂)`, assembled from the `WithLp` projectors/injectors so it lands
+`(x₁, x₂) ↦ (a x₁ + b x₂, c x₁ + d x₂)`, assembled from the `WithLp` projectors/injectors so
+it lands
 in `H2 H →L[ℂ] H2 H` with no side conditions.  The load-bearing facts are the ring/`*` structure:
 
 * `blockOp_comp` — composition is matrix multiplication (THE key lemma);
@@ -413,7 +415,7 @@ Its carrier is `M2set M` (block operators with all four entries in `M`); the bic
 noncomputable def M2 (M : VonNeumannAlgebra H) : VonNeumannAlgebra (H2 H) where
   toStarSubalgebra := M2subalg M
   centralizer_centralizer' := by
-    show Set.centralizer (Set.centralizer (M2set M)) = M2set M
+    change Set.centralizer (Set.centralizer (M2set M)) = M2set M
     rw [centralizer_M2set, centralizer_scalarBlockSet, VonNeumannAlgebra.commutant_commutant]
 
 @[simp] lemma mem_M2 {M : VonNeumannAlgebra H} {T : H2 H →L[ℂ] H2 H} :

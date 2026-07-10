@@ -1,21 +1,22 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
-Author: Adam Bornemann
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Adam Bornemann
 -/
 import Spectra.SpectralTheory.Calculus.PMapSquareRoot
 /-!
 # The mixed bounded/unbounded product law for the PVM functional calculus (J-free)
 
-Generic spectral-calculus infrastructure, independent of the Tomita/modular (`J`) machinery. Relocated
-here from `Spectra/Modular/Cocycle/ModularSqrtSelfAdjoint.lean` so that downstream *pure-spectral* files
-(e.g. `SpectralTheory/Calculus/SquarePushforward.lean`) can use them without importing any modular/`J`
-file — a correctness (non-circularity) requirement for the Field-3 polar-uniqueness build.
+Generic spectral-calculus infrastructure, independent of the Tomita/modular (`J`) machinery.
+Relocated here from `Spectra/Modular/Cocycle/ModularSqrtSelfAdjoint.lean` so that downstream
+*pure-spectral* files (e.g. `SpectralTheory/Calculus/SquarePushforward.lean`) can use them without
+importing any modular/`J` file — a correctness (non-circularity) requirement for the Field-3
+polar-uniqueness build.
 
 * `borelMeasure_spectralCalculus_eq_withDensity` — `μ_{Φ(g)ξ} = μ_ξ.withDensity ‖g‖²`.
 * `mem_pmapDomain_spectralCalculus` — `Φ(g)ξ ∈ D(∫f dP)` when `f·g` is bounded.
-* `pmapOfPVM_spectralCalculus_of_mul_bounded` — **the mixed product law**: `(∫f dP)(Φ(g)ξ) = Φ(f·g)ξ`
-  when `g`, `f·g` are bounded.
+* `pmapOfPVM_spectralCalculus_of_mul_bounded` — **the mixed product law**:
+  `(∫f dP)(Φ(g)ξ) = Φ(f·g)ξ` when `g`, `f·g` are bounded.
 -/
 
 open Complex MeasureTheory Filter Topology
@@ -196,7 +197,8 @@ theorem pmapOfPVM_spectralCalculus_of_mul_bounded
   have htend2 : Tendsto (fun n => pmapTrunc U_grp f hf_meas n
       (spectralCalculus U_grp g hg_meas hg_bdd ξ)) atTop
       (𝓝 (spectralCalculus U_grp (fun s => f s * g s) hfg_meas hfg_bdd ξ)) := by
-    refine (tendsto_spectralCalculus_truncMul U_grp f g hf_meas hg_meas hg_bdd hfg_meas hfg_bdd ξ).congr
+    refine (tendsto_spectralCalculus_truncMul
+      U_grp f g hf_meas hg_meas hg_bdd hfg_meas hfg_bdd ξ).congr
       fun n => (hstep n).symm
   exact tendsto_nhds_unique htend1 htend2
 

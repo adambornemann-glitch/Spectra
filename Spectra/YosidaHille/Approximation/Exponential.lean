@@ -1,6 +1,6 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Spectra.YosidaHille.Approximation.Commutation
@@ -41,7 +41,7 @@ namespace Spectra.YosidaHille.Approximation
 /-! ### Definition of the exponential -/
 
 variable {A : H →ₗ.[ℂ] H} (hsym : A.IsFormalAdjoint A)
-  (hplus  : ∀ φ : H, ∃ ψ : A.domain, A ψ + I • (ψ : H) = φ)
+  (hplus : ∀ φ : H, ∃ ψ : A.domain, A ψ + I • (ψ : H) = φ)
   (hminus : ∀ φ : H, ∃ ψ : A.domain, A ψ - I • (ψ : H) = φ)
 
 /-- The exponential `exp(itA)ψ` as a bare vector: the limit of the Yosida approximant evolutions. -/
@@ -195,7 +195,8 @@ lemma exponential_group_law
               (exponential hsym hplus hminus h_dense t ψ)) +
            (expBounded (I • yosidaApproxSym hsym hplus hminus n) s
               (exponential hsym hplus hminus h_dense t ψ) -
-            exponential hsym hplus hminus h_dense s (exponential hsym hplus hminus h_dense t ψ))‖ := by
+            exponential hsym hplus hminus h_dense s (exponential hsym hplus hminus h_dense t ψ))‖
+            := by
               congr 1; abel
       _ ≤ ‖expBounded (I • yosidaApproxSym hsym hplus hminus n) s
               (expBounded (I • yosidaApproxSym hsym hplus hminus n) t ψ) -
@@ -210,13 +211,15 @@ lemma exponential_group_law
                 - exponential hsym hplus hminus h_dense t ψ)‖ +
           ‖expBounded (I • yosidaApproxSym hsym hplus hminus n) s
               (exponential hsym hplus hminus h_dense t ψ) -
-            exponential hsym hplus hminus h_dense s (exponential hsym hplus hminus h_dense t ψ)‖ := by
+            exponential hsym hplus hminus h_dense s (exponential hsym hplus hminus h_dense t ψ)‖
+            := by
           rw [← map_sub]
       _ = ‖expBounded (I • yosidaApproxSym hsym hplus hminus n) t ψ
               - exponential hsym hplus hminus h_dense t ψ‖ +
           ‖expBounded (I • yosidaApproxSym hsym hplus hminus n) s
               (exponential hsym hplus hminus h_dense t ψ) -
-            exponential hsym hplus hminus h_dense s (exponential hsym hplus hminus h_dense t ψ)‖ := by
+            exponential hsym hplus hminus h_dense s (exponential hsym hplus hminus h_dense t ψ)‖
+            := by
           rw [expBounded_yosidaApproxSym_isometry hsym hplus hminus n s _]
       _ < ε / 2 + ε / 2 := by
           apply add_lt_add
@@ -350,14 +353,14 @@ lemma exponential_strong_continuous
             exact norm_add_le _ _
       _ < ε / 3 + ε / 3 + ε / 3 := by
             apply add_lt_add
-            apply add_lt_add
-            · calc ‖exponential hsym hplus hminus h_dense t φ
-                      - expBounded (I • yosidaApproxSym hsym hplus hminus n) t φ‖
-                  ≤ |t| * ‖L - yosidaApproxSym hsym hplus hminus n φ‖ := hbound n t
-                _ ≤ (|t₀| + 1) * ‖L - yosidaApproxSym hsym hplus hminus n φ‖ :=
-                    mul_le_mul_of_nonneg_right htT (norm_nonneg _)
-                _ < ε / 3 := hn0
-            · rw [← dist_eq_norm]; exact hδ₀ t htδ₀
+            · apply add_lt_add
+              · calc ‖exponential hsym hplus hminus h_dense t φ
+                        - expBounded (I • yosidaApproxSym hsym hplus hminus n) t φ‖
+                    ≤ |t| * ‖L - yosidaApproxSym hsym hplus hminus n φ‖ := hbound n t
+                  _ ≤ (|t₀| + 1) * ‖L - yosidaApproxSym hsym hplus hminus n φ‖ :=
+                      mul_le_mul_of_nonneg_right htT (norm_nonneg _)
+                  _ < ε / 3 := hn0
+              · rw [← dist_eq_norm]; exact hδ₀ t htδ₀
             · rw [norm_sub_rev]
               calc ‖exponential hsym hplus hminus h_dense t₀ φ
                       - expBounded (I • yosidaApproxSym hsym hplus hminus n) t₀ φ‖
@@ -392,11 +395,13 @@ lemma exponential_strong_continuous
   calc ‖exponential hsym hplus hminus h_dense s ψ - exponential hsym hplus hminus h_dense t ψ‖
       = ‖(exponential hsym hplus hminus h_dense s ψ - exponential hsym hplus hminus h_dense s φ) +
          (exponential hsym hplus hminus h_dense s φ - exponential hsym hplus hminus h_dense t φ) +
-         (exponential hsym hplus hminus h_dense t φ - exponential hsym hplus hminus h_dense t ψ)‖ := by
+         (exponential hsym hplus hminus h_dense t φ - exponential hsym hplus hminus h_dense t ψ)‖
+         := by
             abel_nf
     _ ≤ ‖exponential hsym hplus hminus h_dense s ψ - exponential hsym hplus hminus h_dense s φ‖ +
         ‖exponential hsym hplus hminus h_dense s φ - exponential hsym hplus hminus h_dense t φ‖ +
-        ‖exponential hsym hplus hminus h_dense t φ - exponential hsym hplus hminus h_dense t ψ‖ := by
+        ‖exponential hsym hplus hminus h_dense t φ - exponential hsym hplus hminus h_dense t ψ‖
+        := by
           apply le_trans (norm_add_le _ _)
           gcongr
           exact norm_add_le _ _
@@ -410,13 +415,14 @@ lemma exponential_strong_continuous
           rw [h_isometry s (ψ - φ), h_isometry t (φ - ψ)]
     _ < ε / 3 + ε / 3 + ε / 3 := by
           apply add_lt_add
-          apply add_lt_add
-          · exact hφ_close
-          · rw [← dist_eq_norm]; exact hδ s hs
+          · apply add_lt_add
+            · exact hφ_close
+            · rw [← dist_eq_norm]; exact hδ s hs
           · rw [norm_sub_rev]; exact hφ_close
     _ = ε := by ring
 
-/-- Bounded Duhamel identity for the Yosida approximant: `e^{itAₙ}φ - φ = ∫₀ᵗ e^{isAₙ}(I·Aₙφ) ds`. -/
+/-- Bounded Duhamel identity for the Yosida approximant:
+`e^{itAₙ}φ - φ = ∫₀ᵗ e^{isAₙ}(I·Aₙφ) ds`. -/
 lemma expBounded_yosidaApproxSym_duhamel
     (n : ℕ+) (t : ℝ) (φ : H) :
     expBounded (I • yosidaApproxSym hsym hplus hminus n) t φ - φ

@@ -1,6 +1,6 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Spectra.Kernel.Poisson.Lemmas
@@ -92,7 +92,7 @@ theorem poissonKernel_fourier {ε : ℝ} (hε : 0 < ε) (t : ℝ) :
   have h_inv : 𝓕⁻ (𝓕 f) t = f t :=
     hf_int.fourierInv_fourier_eq h_Ff_int hf_cont.continuousAt
   set g : ℝ → ℂ := fun x => (poissonKernel ε x : ℂ) * Complex.exp (I * ↑x * ↑t) with hg_def
-  show (∫ x, g x) = f t
+  change (∫ x, g x) = f t
   rw [← h_inv, Real.fourierInv_eq']
   simp_rw [h_Ff, Real.inner_apply, smul_eq_mul]
   -- after substituting `v = w`, the inversion integrand is the `x = 2πv` rescaling of

@@ -1,6 +1,6 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Spectra.Bochner.Borel.CDF
@@ -143,7 +143,7 @@ lemma borel_cauchy_approx_tendsto
                 * (borelDensity U_grp ξ (borelEps_pos (borelSubseq U_grp ξ k)) lam : ℂ)))
             (volume.prod (volume.restrict (Set.Ici 0))) := by
           apply Continuous.aestronglyMeasurable
-          show Continuous (fun p : ℝ × ℝ =>
+          change Continuous (fun p : ℝ × ℝ =>
             cexp (-(I * w * (p.2 : ℂ))) * cexp (I * (p.1 : ℂ) * (p.2 : ℂ))
               * (borelDensity U_grp ξ (borelEps_pos (borelSubseq U_grp ξ k)) p.1 : ℂ))
           refine Continuous.mul (Continuous.mul ?_ ?_) ?_
@@ -164,7 +164,7 @@ lemma borel_cauchy_approx_tendsto
           hD_int.mul_prod hexp_int
         refine h_dom.mono' h_meas ?_
         filter_upwards with p
-        show ‖cexp (-(I * w * (p.2 : ℂ))) * cexp (I * (p.1 : ℂ) * (p.2 : ℂ))
+        change ‖cexp (-(I * w * (p.2 : ℂ))) * cexp (I * (p.1 : ℂ) * (p.2 : ℂ))
               * (borelDensity U_grp ξ (borelEps_pos (borelSubseq U_grp ξ k)) p.1 : ℂ)‖ ≤ _
         have h1 : (-(I * w * (p.2 : ℂ))).re = w.im * p.2 := by
           simp [Complex.neg_re, Complex.mul_re, Complex.mul_im, Complex.I_re, Complex.I_im,

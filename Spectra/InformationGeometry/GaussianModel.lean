@@ -1,6 +1,6 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Spectra.InformationGeometry.Fisher.Information
@@ -193,7 +193,7 @@ lemma scoreCLM_single (R : Matrix (Fin m) (Fin n) ℝ) (θ : ParamSpace n) (x : 
   congr 1
   have : ((EuclideanSpace.single i (1 : ℝ)) : ParamSpace n).ofLp = Pi.single i (1 : ℝ) := by
     ext l; simp [EuclideanSpace.single, PiLp.single_apply, Pi.single_apply]
-  show (R.mulVec ((EuclideanSpace.single i (1 : ℝ)) : ParamSpace n).ofLp) k = R k i
+  change (R.mulVec ((EuclideanSpace.single i (1 : ℝ)) : ParamSpace n).ofLp) k = R k i
   rw [this, Matrix.mulVec_single_one]
   rfl
 
@@ -347,7 +347,8 @@ lemma continuous_gaussianShiftDensity (R : Matrix (Fin m) (Fin n) ℝ) (θ : Par
 lemma aestronglyMeasurable_fderiv_gaussianShiftDensity (R : Matrix (Fin m) (Fin n) ℝ)
     (θ : ParamSpace n) :
     AEStronglyMeasurable
-      (fun x => fderiv ℝ (fun θ' => gaussianShiftDensity R θ' x) θ) (volume : Measure (Fin m → ℝ)) := by
+      (fun x => fderiv ℝ (fun θ' => gaussianShiftDensity R θ' x) θ)
+      (volume : Measure (Fin m → ℝ)) := by
   have hfun : (fun x => fderiv ℝ (fun θ' => gaussianShiftDensity R θ' x) θ) =
       (fun x => gaussianShiftDensity R θ x • scoreCLM R θ x) := by
     ext x; rw [fderiv_gaussianShiftDensity]
@@ -845,11 +846,11 @@ theorem gaussianShiftModel_fisherMatrix (R : Matrix (Fin m) (Fin n) ℝ)
       (gaussianShiftModel R).score θ j ω * (gaussianShiftModel R).density θ ω) =
       (fun ω => scoreFun R θ i ω * scoreFun R θ j ω * gaussianShiftDensity R θ ω) := by
     ext ω
-    show ((gaussianShiftModel R).partialDensity θ i ω / (gaussianShiftModel R).density θ ω) *
+    change ((gaussianShiftModel R).partialDensity θ i ω / (gaussianShiftModel R).density θ ω) *
       ((gaussianShiftModel R).partialDensity θ j ω / (gaussianShiftModel R).density θ ω) *
       (gaussianShiftModel R).density θ ω = _
     simp only [RegularStatisticalModel.partialDensity]
-    show ((fderiv ℝ (fun θ' => gaussianShiftDensity R θ' ω) θ (EuclideanSpace.single i 1)) /
+    change ((fderiv ℝ (fun θ' => gaussianShiftDensity R θ' ω) θ (EuclideanSpace.single i 1)) /
         gaussianShiftDensity R θ ω) *
       ((fderiv ℝ (fun θ' => gaussianShiftDensity R θ' ω) θ (EuclideanSpace.single j 1)) /
         gaussianShiftDensity R θ ω) * gaussianShiftDensity R θ ω = _

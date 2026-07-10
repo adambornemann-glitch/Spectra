@@ -1,6 +1,6 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Spectra.YosidaHille.Approximation.Exponential
@@ -140,7 +140,7 @@ lemma group_apply_curve_hasDerivAt (V : OneParameterUnitaryGroup (H := H))
           ≤ ‖(σ - s : ℝ)‖ * ε := by gcongr
         _ = ε * ‖σ - s‖ := by ring
     refine (hT1.add hT2).congr_left fun σ => ?_
-    show (V.U (r σ) (v σ - v s - (σ - s) • v') - V.U (r s) (v σ - v s - (σ - s) • v'))
+    change (V.U (r σ) (v σ - v s - (σ - s) • v') - V.U (r s) (v σ - v s - (σ - s) • v'))
         + (σ - s) • (V.U (r σ) v' - V.U (r s) v')
       = V.U (r σ) (v σ) - V.U (r σ) (v s) - V.U (r s) (v σ) + V.U (r s) (v s)
     simp only [map_sub, smul_sub]

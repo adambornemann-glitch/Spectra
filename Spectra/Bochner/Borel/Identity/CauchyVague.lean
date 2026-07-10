@@ -1,6 +1,6 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Spectra.Bochner.Borel.Identity.CauchyTransform
@@ -94,7 +94,7 @@ lemma borel_cauchy_vague
     fun k => (borelDensity_mass _ _ _).2
   -- `μk k univ = ofReal M`, hence each `μk k` is a finite measure.
   have hμk_univ : ∀ k, μk k Set.univ = ENNReal.ofReal M := fun k => by
-    show (volume.withDensity (fun l => ENNReal.ofReal (ρ k l))) Set.univ = _
+    change (volume.withDensity (fun l => ENNReal.ofReal (ρ k l))) Set.univ = _
     rw [withDensity_apply _ MeasurableSet.univ, MeasureTheory.setLIntegral_univ,
         ← MeasureTheory.ofReal_integral_eq_lintegral_ofReal (hρint k)
               (Filter.Eventually.of_forall (hρnn k)),
@@ -117,7 +117,7 @@ lemma borel_cauchy_vague
       (Filter.Eventually.of_forall hg_bdd)
   -- The `k`-th Cauchy approximant equals `∫ g ∂(μk k)`.
   have cauchy_eq : ∀ k, borelCauchyApprox U_grp ξ z k = ∫ l, g l ∂(μk k) := fun k => by
-    show ∫ lambda : ℝ, ((lambda : ℂ) - z)⁻¹ * (ρ k lambda : ℂ) = ∫ l, g l ∂(μk k)
+    change ∫ lambda : ℝ, ((lambda : ℂ) - z)⁻¹ * (ρ k lambda : ℂ) = ∫ l, g l ∂(μk k)
     rw [show μk k = volume.withDensity (fun l => ENNReal.ofReal (ρ k l)) from rfl,
         integral_withDensity_eq_integral_toReal_smul (hρenn k)
           (Filter.Eventually.of_forall (fun _ => ENNReal.ofReal_lt_top))]

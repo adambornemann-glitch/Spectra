@@ -1,6 +1,6 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Spectra.InformationGeometry.Flow.CubicInvariance
@@ -56,7 +56,7 @@ noncomputable def generator (θ : ParamSpace n) : ParamSpace n :=
 /-- The generator is well-defined (the derivative exists). -/
 lemma generator_exists (θ : ParamSpace n) :
     DifferentiableAt ℝ (fun t => F.φ t θ) 0 := by
-  show DifferentiableAt ℝ (Function.uncurry F.φ ∘ (fun t => (t, θ))) 0
+  change DifferentiableAt ℝ (Function.uncurry F.φ ∘ (fun t => (t, θ))) 0
   exact DifferentiableAt.comp 0
     ((F.smooth.differentiable (by simp)).differentiableAt)
     (DifferentiableAt.prodMk differentiableAt_id (differentiableAt_const θ))
@@ -223,7 +223,7 @@ lemma killing_expansion
     have h2 : deriv (fun t => F.φ t θ') 0 =
         fderiv ℝ (Function.uncurry F.φ) ((0:ℝ), θ') ((1:ℝ), (0:ParamSpace n)) :=
       h.deriv
-    show fderiv ℝ (fun t => F.φ t θ') 0 1 =
+    change fderiv ℝ (fun t => F.φ t θ') 0 1 =
       fderiv ℝ (Function.uncurry F.φ) ((0:ℝ), θ') ((1:ℝ), (0:ParamSpace n))
     rw [fderiv_apply_one_eq_deriv]; exact h2
   have hgen_eq : (fun θ' : ParamSpace n => F.generator θ') =

@@ -1,6 +1,6 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Spectra.CayleyTransform.Defs
@@ -62,7 +62,8 @@ lemma inverse_cayley_formula
     {A : H →ₗ.[ℂ] H} (hsym : A.IsFormalAdjoint A)
     (hplus : ∀ φ : H, ∃ ψ : A.domain, A ψ + I • (ψ : H) = φ)
     (ψ : A.domain) :
-    (ContinuousLinearMap.id ℂ H - cayleyTransform hsym hplus) (A ψ + I • (ψ : H)) = (2 * I) • (ψ : H) ∧
+    (ContinuousLinearMap.id ℂ H - cayleyTransform hsym hplus) (A ψ + I • (ψ : H))
+      = (2 * I) • (ψ : H) ∧
     (ContinuousLinearMap.id ℂ H + cayleyTransform hsym hplus) (A ψ + I • (ψ : H)) = (2 : ℂ) • A ψ :=
   ⟨one_minus_cayley_apply hsym hplus ψ, one_plus_cayley_apply hsym hplus ψ⟩
 
@@ -81,7 +82,8 @@ lemma inverse_cayley_domain
     (hplus : ∀ φ : H, ∃ ψ : A.domain, A ψ + I • (ψ : H) = φ)
     (ψ : A.domain) :
     (ψ : H)
-      = ((-I) / 2) • ((ContinuousLinearMap.id ℂ H - cayleyTransform hsym hplus) (A ψ + I • (ψ : H))) := by
+      = ((-I) / 2) •
+          ((ContinuousLinearMap.id ℂ H - cayleyTransform hsym hplus) (A ψ + I • (ψ : H))) := by
   have hscal : (-I) / 2 * (2 * I) = 1 := by
     rw [div_mul_eq_mul_div, mul_comm (2 : ℂ) I, ← mul_assoc, neg_mul, Complex.I_mul_I]
     norm_num
@@ -92,8 +94,10 @@ lemma cayley_bijection
     {A : H →ₗ.[ℂ] H} (hsym : A.IsFormalAdjoint A)
     (hplus : ∀ φ : H, ∃ ψ : A.domain, A ψ + I • (ψ : H) = φ)
     (ψ : A.domain) :
-    ((-I) / 2) • ((ContinuousLinearMap.id ℂ H - cayleyTransform hsym hplus) (A ψ + I • (ψ : H))) = (ψ : H) ∧
-    ((1 : ℂ) / 2) • ((ContinuousLinearMap.id ℂ H + cayleyTransform hsym hplus) (A ψ + I • (ψ : H))) = A ψ := by
+    ((-I) / 2) •
+        ((ContinuousLinearMap.id ℂ H - cayleyTransform hsym hplus) (A ψ + I • (ψ : H))) = (ψ : H) ∧
+    ((1 : ℂ) / 2) •
+        ((ContinuousLinearMap.id ℂ H + cayleyTransform hsym hplus) (A ψ + I • (ψ : H))) = A ψ := by
   refine ⟨(inverse_cayley_domain hsym hplus ψ).symm, ?_⟩
   rw [one_plus_cayley_apply hsym hplus ψ, smul_smul, show (1 : ℂ) / 2 * 2 = 1 by norm_num, one_smul]
 
@@ -185,9 +189,11 @@ lemma inverseCayleyOp_symmetric (U : H →L[ℂ] H)
     rw [← hχ₁]; simp only [ContinuousLinearMap.sub_apply, ContinuousLinearMap.id_apply]
   have hφ₂_eq : φ₂ = χ₂ - U χ₂ := by
     rw [← hχ₂]; simp only [ContinuousLinearMap.sub_apply, ContinuousLinearMap.id_apply]
-  have hcoe₁ : (⟨φ₁, hφ₁⟩ : LinearMap.range (↑(ContinuousLinearMap.id ℂ H - U) : H →ₗ[ℂ] H)).val = φ₁ := rfl
-  have hcoe₂ : (⟨φ₂, hφ₂⟩ : LinearMap.range (↑(ContinuousLinearMap.id ℂ H - U) : H →ₗ[ℂ] H)).val = φ₂ := rfl
-  show ⟪I • (U χ₁ + χ₁), φ₂⟫_ℂ = ⟪φ₁, I • (U χ₂ + χ₂)⟫_ℂ
+  have hcoe₁ :
+      (⟨φ₁, hφ₁⟩ : LinearMap.range (↑(ContinuousLinearMap.id ℂ H - U) : H →ₗ[ℂ] H)).val = φ₁ := rfl
+  have hcoe₂ :
+      (⟨φ₂, hφ₂⟩ : LinearMap.range (↑(ContinuousLinearMap.id ℂ H - U) : H →ₗ[ℂ] H)).val = φ₂ := rfl
+  change ⟪I • (U χ₁ + χ₁), φ₂⟫_ℂ = ⟪φ₁, I • (U χ₂ + χ₂)⟫_ℂ
   rw [hφ₁_eq, hφ₂_eq]
   rw [inner_smul_left, inner_smul_right]
   simp only [starRingEnd_apply]
@@ -202,7 +208,8 @@ theorem generator_domain_eq_range_one_minus_cayley
     {A : H →ₗ.[ℂ] H} (hsym : A.IsFormalAdjoint A)
     (hplus : ∀ φ : H, ∃ ψ : A.domain, A ψ + I • (ψ : H) = φ) :
     (A.domain : Set H)
-      = ↑(LinearMap.range (↑(ContinuousLinearMap.id ℂ H - cayleyTransform hsym hplus) : H →ₗ[ℂ] H)) := by
+      = ↑(LinearMap.range
+          (↑(ContinuousLinearMap.id ℂ H - cayleyTransform hsym hplus) : H →ₗ[ℂ] H)) := by
   have hne : (2 : ℂ) * I ≠ 0 := mul_ne_zero two_ne_zero Complex.I_ne_zero
   ext ψ
   constructor
@@ -220,7 +227,8 @@ theorem generator_domain_eq_range_one_minus_cayley
     obtain ⟨η, hη⟩ := hplus χ
     have h_Uχ : cayleyTransform hsym hplus χ = A η - I • (η : H) := by
       rw [← hη]; exact cayleyTransform_apply_resolvent hsym hplus η
-    have h_diff : (ContinuousLinearMap.id ℂ H - cayleyTransform hsym hplus) χ = (2 * I) • (η : H) := by
+    have h_diff :
+        (ContinuousLinearMap.id ℂ H - cayleyTransform hsym hplus) χ = (2 * I) • (η : H) := by
       have hsplit : (ContinuousLinearMap.id ℂ H - cayleyTransform hsym hplus) χ
           = χ - cayleyTransform hsym hplus χ := by
         simp only [ContinuousLinearMap.sub_apply, ContinuousLinearMap.id_apply]

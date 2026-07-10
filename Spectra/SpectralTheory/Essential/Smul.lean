@@ -1,6 +1,6 @@
 /-
-Copyright (c) 2026 Spectra Project, Adam Bornemann. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Spectra.SpectralTheory.Essential.Weyl
@@ -182,7 +182,7 @@ theorem selfAdjointResolvent_smul_real {A : H →ₗ.[ℂ] H} (hA : IsSelfAdjoin
   have hRHS : selfAdjointResolvent hA z' hz' φ = (c : ℂ) • (ψ : H) := by
     rw [← hψ, hψ', map_smul]
     rw [selfAdjointResolvent_left_inverse hA z' hz' ⟨(ψ : H), hψA⟩]
-  show selfAdjointResolvent hcA_SA z hz φ
+  change selfAdjointResolvent hcA_SA z hz φ
       = ((c⁻¹ : ℝ) : ℂ) • selfAdjointResolvent hA z' hz' φ
   rw [hLHS, hRHS, smul_smul]
   rw [show (((c⁻¹ : ℝ) : ℂ)) * (c : ℂ) = 1 by push_cast; field_simp, one_smul]

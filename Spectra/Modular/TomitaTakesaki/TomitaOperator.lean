@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
-Author: Adam Bornemann
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Adam Bornemann
 -/
 import Spectra.Modular.TomitaTakesaki.Basic
 import Spectra.SpectralTheory.Antilinear.ConjugateSpace
@@ -83,7 +83,7 @@ lemma tomitaGraph_functional (M : VonNeumannAlgebra H) (Ω : H) (hsep : IsSepara
   rw [tomitaGraph, Submodule.mem_map] at hx
   obtain ⟨T, hT, rfl⟩ := hx
   replace hx1 : T Ω = 0 := hx1
-  show tomitaPre Ω T = 0
+  change tomitaPre Ω T = 0
   rw [hsep T (mem_toSubmodule.mp hT) hx1]
   exact map_zero _
 

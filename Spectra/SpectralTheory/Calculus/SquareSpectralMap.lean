@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
-Author: Adam Bornemann
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Adam Bornemann
 -/
 import Spectra.SpectralTheory.Calculus.SquarePushforward
 import Spectra.ProjValMeasure.Map
@@ -9,22 +9,24 @@ import Spectra.SpectralTheory.Essential.Weyl
 /-!
 # The `s ↦ s²` spectral-mapping theorem: `E^{A²} = (spectralPVM A).map (·²)`
 
-Building on the resolvent identity `(A² − z)⁻¹ = Φ(1/(s²−z))` (`resolvent_sq_identity`), this file proves
-the **spectral-mapping theorem for squares**: for a self-adjoint `A` with `A² := pmapOfPVM (genToGroup A) (·²)`,
+Building on the resolvent identity `(A² − z)⁻¹ = Φ(1/(s²−z))` (`resolvent_sq_identity`), this file
+proves the **spectral-mapping theorem for squares**: for a self-adjoint `A` with
+`A² := pmapOfPVM (genToGroup A) (·²)`,
 
 > `spectralPVM (A²) = (spectralPVM A).map (fun s => s²)`   (`spectralPVM_sq_eq_pushforward`)
 
-i.e. the spectral measure of `A²` is the `s ↦ s²` pushforward of the spectral measure of `A`. This is the
-DAG-node `spectralPVM_sq_eq_pushforward` of the Field-3 polar-uniqueness plan — the load-bearing step feeding
-positive-square-root uniqueness `posSqrt_unique`.
+i.e. the spectral measure of `A²` is the `s ↦ s²` pushforward of the spectral measure of `A`. This
+is the DAG-node `spectralPVM_sq_eq_pushforward` of the Field-3 polar-uniqueness plan — the
+load-bearing step feeding positive-square-root uniqueness `posSqrt_unique`.
 
 Along the way (all `J`-free, for an arbitrary one-parameter unitary group `U_grp`):
 
-* `sq_isSelfAdjoint` — `A² := pmapOfPVM U_grp (·²)` is **self-adjoint**, via von Neumann's deficiency
-  criterion: symmetry (real symbol `s²`), density of `D(A²)` (spectral cut-offs), and surjectivity of
-  `A² ± i` (both read off `resolvent_sq_identity` at `z = ∓i`).
-* `selfAdjointResolvent_sq_eq` — the resolvent bridge `(A² − z)⁻¹ = Φ(1/(s²−z))`, identifying the abstract
-  self-adjoint resolvent with the concrete bounded calculus (via `selfAdjointResolvent_left_inverse`).
+* `sq_isSelfAdjoint` — `A² := pmapOfPVM U_grp (·²)` is **self-adjoint**, via von Neumann's
+  deficiency criterion: symmetry (real symbol `s²`), density of `D(A²)` (spectral cut-offs), and
+  surjectivity of `A² ± i` (both read off `resolvent_sq_identity` at `z = ∓i`).
+* `selfAdjointResolvent_sq_eq` — the resolvent bridge `(A² − z)⁻¹ = Φ(1/(s²−z))`, identifying the
+  abstract self-adjoint resolvent with the concrete bounded calculus (via
+  `selfAdjointResolvent_left_inverse`).
 -/
 
 open Complex MeasureTheory Filter Topology
@@ -119,9 +121,9 @@ theorem selfAdjointResolvent_sq_eq {z : ℂ} (hz : z.im ≠ 0) (φ : H) :
 
 `spectralPVM (A²) = (spectralPVM A).map (fun s => s²)`.
 
-Via `spectralPVM_unique`: the pushforward's diagonal represents `A²`'s resolvent, using the resolvent
-bridge (`selfAdjointResolvent_sq_eq`), the diagonal identity (`inner_resolvent_sq`), and the
-change-of-variables `∫ (t−z)⁻¹ d(map (·²) μ) = ∫ (s²−z)⁻¹ dμ`. -/
+Via `spectralPVM_unique`: the pushforward's diagonal represents `A²`'s resolvent, using the
+resolvent bridge (`selfAdjointResolvent_sq_eq`), the diagonal identity (`inner_resolvent_sq`), and
+the change-of-variables `∫ (t−z)⁻¹ d(map (·²) μ) = ∫ (s²−z)⁻¹ dμ`. -/
 theorem spectralPVM_sq_eq_pushforward {A : H →ₗ.[ℂ] H} (hA : IsSelfAdjoint A) :
     spectralPVM (sq_isSelfAdjoint (genToGroup hA))
       = (spectralPVM hA).map (fun s => s ^ 2) (by fun_prop) := by
@@ -130,7 +132,8 @@ theorem spectralPVM_sq_eq_pushforward {A : H →ₗ.[ℂ] H} (hA : IsSelfAdjoint
     ((spectralPVM hA).map (fun s => s ^ 2) (by fun_prop)) (fun z hz ξ => ?_)
   rw [selfAdjointResolvent_sq_eq (genToGroup hA) hz ξ, inner_resolvent_sq (genToGroup hA) hz ξ,
     ProjValMeasure.map_diag, spectralPVM_diag,
-    integral_map (by fun_prop) ((by fun_prop : Measurable fun t : ℝ => ((t : ℂ) - z)⁻¹).aestronglyMeasurable)]
+    integral_map (by fun_prop)
+      ((by fun_prop : Measurable fun t : ℝ => ((t : ℂ) - z)⁻¹).aestronglyMeasurable)]
   refine integral_congr_ae (Filter.Eventually.of_forall (fun s => ?_))
   push_cast
   ring_nf
@@ -139,8 +142,8 @@ theorem spectralPVM_sq_eq_pushforward {A : H →ₗ.[ℂ] H} (hA : IsSelfAdjoint
 
 /-- **Injectivity of `(·²)_*` on measures supported in `[0,∞)`.**  If `μ, ν` on `ℝ` satisfy
 `μ((-∞,0)) = ν((-∞,0)) = 0` and have equal `s ↦ s²` pushforwards, then `μ = ν`.  Proof: `√` inverts
-`s ↦ s²` on `[0,∞)` — `√(s²) = |s| = s` there — so `√_* ((·²)_* ρ) = ρ` for any `[0,∞)`-supported `ρ`,
-whence `μ = √_*((·²)_* μ) = √_*((·²)_* ν) = ν`. -/
+`s ↦ s²` on `[0,∞)` — `√(s²) = |s| = s` there — so `√_* ((·²)_* ρ) = ρ` for any `[0,∞)`-supported
+`ρ`, whence `μ = √_*((·²)_* μ) = √_*((·²)_* ν) = ν`. -/
 theorem map_sq_injective_of_supported {μ ν : Measure ℝ}
     (hμ : μ (Set.Iio 0) = 0) (hν : ν (Set.Iio 0) = 0)
     (h : Measure.map (fun s => s ^ 2) μ = Measure.map (fun s => s ^ 2) ν) : μ = ν := by
@@ -159,9 +162,9 @@ theorem map_sq_injective_of_supported {μ ν : Measure ℝ}
   rw [← hrecover μ hμ, ← hrecover ν hν, h]
 
 /-- **`(·²)_*` is injective on PVMs whose diagonal measures are supported in `[0,∞)`.**  If
-`P.map (·²) = Q.map (·²)` and both `P, Q` have `diag ξ ((-∞,0)) = 0`, then `P = Q` (via `ext_of_diag`
-and `map_sq_injective_of_supported` on each diagonal).  This is the injectivity half of the spectral
-`s ↦ s²` mapping powering positive-square-root uniqueness. -/
+`P.map (·²) = Q.map (·²)` and both `P, Q` have `diag ξ ((-∞,0)) = 0`, then `P = Q` (via
+`ext_of_diag` and `map_sq_injective_of_supported` on each diagonal).  This is the injectivity half
+of the spectral `s ↦ s²` mapping powering positive-square-root uniqueness. -/
 theorem sq_pushforward_injective {P Q : ProjValMeasure H}
     (hP : ∀ ξ : H, P.diag ξ (Set.Iio 0) = 0) (hQ : ∀ ξ : H, Q.diag ξ (Set.Iio 0) = 0)
     (h : P.map (fun s => s ^ 2) (by fun_prop) = Q.map (fun s => s ^ 2) (by fun_prop)) : P = Q := by
@@ -179,12 +182,14 @@ theorem spectralPVM_congr {A B : H →ₗ.[ℂ] H} (hAB : A = B)
     (hA : IsSelfAdjoint A) (hB : IsSelfAdjoint B) : spectralPVM hA = spectralPVM hB := by
   subst hAB; rfl
 
-/-- **Equal resolvents (at `z = i`) ⟹ equal operators.**  The resolvent `R := (P − i)⁻¹` is a bijection
-`H → D(P)`: `selfAdjointResolvent_mem_domain` and `selfAdjointResolvent_left_inverse` give
-`D(P) = range R`, and `selfAdjointResolvent_solves` recovers the operator on that range.  So a shared
-resolvent forces equal domains and equal values, i.e. `P = Q`. -/
-theorem eq_of_selfAdjointResolvent_eq {P Q : H →ₗ.[ℂ] H} (hP : IsSelfAdjoint P) (hQ : IsSelfAdjoint Q)
-    (h : selfAdjointResolvent hP I I_im_ne_zero = selfAdjointResolvent hQ I I_im_ne_zero) : P = Q := by
+/-- **Equal resolvents (at `z = i`) ⟹ equal operators.**  The resolvent `R := (P − i)⁻¹` is a
+bijection `H → D(P)`: `selfAdjointResolvent_mem_domain` and `selfAdjointResolvent_left_inverse` give
+`D(P) = range R`, and `selfAdjointResolvent_solves` recovers the operator on that range.  So a
+shared resolvent forces equal domains and equal values, i.e. `P = Q`. -/
+theorem eq_of_selfAdjointResolvent_eq {P Q : H →ₗ.[ℂ] H}
+    (hP : IsSelfAdjoint P) (hQ : IsSelfAdjoint Q)
+    (h : selfAdjointResolvent hP I I_im_ne_zero = selfAdjointResolvent hQ I I_im_ne_zero) :
+    P = Q := by
   have hdom : P.domain = Q.domain := by
     refine SetLike.ext fun x => ⟨fun hx => ?_, fun hx => ?_⟩
     · have hli : selfAdjointResolvent hP I I_im_ne_zero (P ⟨x, hx⟩ - I • x) = x := by
@@ -213,9 +218,9 @@ theorem eq_of_selfAdjointResolvent_eq {P Q : H →ₗ.[ℂ] H} (hP : IsSelfAdjoi
     _ = (Q ⟨x, hxQ⟩ - I • x) + I • x := by rw [← hsQ]
     _ = Q ⟨x, hxQ⟩ := by abel
 
-/-- **A self-adjoint operator is determined by its spectral measure.**  Equal spectral PVMs give equal
-resolvent diagonals (`spectralPVM_resolvent_formula`), hence equal resolvents (complex polarization,
-`op_ext_of_inner_self`), hence equal operators (`eq_of_selfAdjointResolvent_eq`). -/
+/-- **A self-adjoint operator is determined by its spectral measure.**  Equal spectral PVMs give
+equal resolvent diagonals (`spectralPVM_resolvent_formula`), hence equal resolvents (complex
+polarization, `op_ext_of_inner_self`), hence equal operators (`eq_of_selfAdjointResolvent_eq`). -/
 theorem spectralPVM_determines {P Q : H →ₗ.[ℂ] H} (hP : IsSelfAdjoint P) (hQ : IsSelfAdjoint Q)
     (h : spectralPVM hP = spectralPVM hQ) : P = Q := by
   refine eq_of_selfAdjointResolvent_eq hP hQ (op_ext_of_inner_self fun ξ => ?_)
@@ -224,13 +229,14 @@ theorem spectralPVM_determines {P Q : H →ₗ.[ℂ] H} (hP : IsSelfAdjoint P) (
 
 /-! ## ★ Positive-square-root uniqueness (the keystone) -/
 
-/-- **Positive-square-root uniqueness.**  For self-adjoint `P, Q` with spectral measures supported in
-`[0,∞)` (`P, Q ≥ 0`), if their functional-calculus squares agree
+/-- **Positive-square-root uniqueness.**  For self-adjoint `P, Q` with spectral measures supported
+in `[0,∞)` (`P, Q ≥ 0`), if their functional-calculus squares agree
 (`pmapOfPVM (genToGroup P) (·²) = pmapOfPVM (genToGroup Q) (·²)`, i.e. `P² = Q²`), then `P = Q`.
 
-Proof: `spectralPVM_sq_eq_pushforward` turns `P² = Q²` into `(spectralPVM P).map(·²) = (spectralPVM Q).map(·²)`;
-`sq_pushforward_injective` (using `≥0` ⟹ support ⊆ `[0,∞)`) cancels the `(·²)` pushforward to give
-`spectralPVM P = spectralPVM Q`; and `spectralPVM_determines` recovers `P = Q`. -/
+Proof: `spectralPVM_sq_eq_pushforward` turns `P² = Q²` into
+`(spectralPVM P).map(·²) = (spectralPVM Q).map(·²)`; `sq_pushforward_injective` (using `≥0` ⟹
+support ⊆ `[0,∞)`) cancels the `(·²)` pushforward to give `spectralPVM P = spectralPVM Q`; and
+`spectralPVM_determines` recovers `P = Q`. -/
 theorem posSqrt_unique {P Q : H →ₗ.[ℂ] H} (hP : IsSelfAdjoint P) (hQ : IsSelfAdjoint Q)
     (hPnn : ∀ ξ : H, borelMeasure (genToGroup hP) ξ (Set.Iio 0) = 0)
     (hQnn : ∀ ξ : H, borelMeasure (genToGroup hQ) ξ (Set.Iio 0) = 0)

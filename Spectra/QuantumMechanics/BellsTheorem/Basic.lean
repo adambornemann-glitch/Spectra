@@ -1,9 +1,16 @@
 /-
-Copyright (c) 2025 Bell Theorem Formalization Project
+Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Ported from Isabelle/HOL formalization by Echenim & Mhalla
-Ported by: Adam Bornemann
-
+Authors: Ported from Isabelle/HOL formalization by Echenim & Mhalla, by Adam Bornemann
+-/
+import Mathlib.Analysis.Complex.Basic
+import Mathlib.LinearAlgebra.Matrix.Hermitian
+import Mathlib.LinearAlgebra.Matrix.Kronecker
+import Mathlib.LinearAlgebra.Matrix.Trace
+import Mathlib.MeasureTheory.Integral.Bochner.Basic
+import Mathlib.MeasureTheory.Measure.ProbabilityMeasure
+import Spectra.QuantumMechanics.PauliMatrices
+/-!
 # Bell's Theorem and the CHSH Inequality in Lean 4
 
 This file formalizes Bell's lemma, the CHSH inequality, and its quantum-mechanical violation.
@@ -35,14 +42,6 @@ The Hermitian/involutive/commuting conditions on a CHSH observable tuple are mat
 
 bell's theorem, chsh, local hidden variables, density matrix, quantum information
 -/
-import Mathlib.Analysis.Complex.Basic
-import Mathlib.LinearAlgebra.Matrix.Hermitian
-import Mathlib.LinearAlgebra.Matrix.Kronecker
-import Mathlib.LinearAlgebra.Matrix.Trace
-import Mathlib.MeasureTheory.Integral.Bochner.Basic
-import Mathlib.MeasureTheory.Measure.ProbabilityMeasure
-import Spectra.QuantumMechanics.PauliMatrices
-
 open MeasureTheory ProbabilityTheory Matrix Complex
 
 /-! ## Quantum State Foundations -/
@@ -169,7 +168,6 @@ This is the fundamental constraint that Bell showed is violated by quantum mecha
 theorem CHSH_lhv_bound (M : LocalHiddenVariableModel Λ) :
     |lhvCHSHValue M| ≤ 2 := by
   unfold lhvCHSHValue lhvCorrelation
-
   have h_int : ∀ a b, Integrable (fun ω => M.alice a ω * M.bob b ω) (M.μ : Measure Λ) := by
     intro a b
     apply Integrable.mono' (g := fun _ => (1 : ℝ)) (integrable_const 1)
@@ -177,7 +175,6 @@ theorem CHSH_lhv_bound (M : LocalHiddenVariableModel Λ) :
     · filter_upwards [M.alice_pm1 a, M.bob_pm1 b] with ω ha hb
       simp only [norm_mul, Real.norm_eq_abs]
       rcases ha with ha | ha <;> rcases hb with hb | hb <;> rw [ha, hb] <;> norm_num
-
   rw [← integral_sub, ← integral_add, ← integral_add]
   · -- Main bound
     have hμ : IsProbabilityMeasure (M.μ : Measure Λ) :=

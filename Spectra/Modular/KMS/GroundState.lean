@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
-Author: Adam Bornemann
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Adam Bornemann
 -/
 import Spectra.Modular.KMS.Condition
 import Mathlib.Analysis.Calculus.Deriv.Star
@@ -160,7 +160,7 @@ lemma IsGroundState.isInvariant {ω : State A} {α : Dynamics A}
     intro s
     have hFs : F (s : ℂ) = ω (α.evolve s a) := by rw [hFbound s, one_mul]
     have hGs : G (s : ℂ) = star (ω (α.evolve s (star a))) := by
-      show conj (F' (conj (s : ℂ))) = star (ω (α.evolve s (star a)))
+      change conj (F' (conj (s : ℂ))) = star (ω (α.evolve s (star a)))
       rw [Complex.conj_ofReal, hF'bound s, one_mul, starRingEnd_apply]
     rw [hFs, hGs, ← ω.star_apply, ← α.map_star, star_star]
   -- Glue and conclude.

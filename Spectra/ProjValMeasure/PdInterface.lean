@@ -1,6 +1,6 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Spectra.PositiveDefinite.Unitary
@@ -199,10 +199,10 @@ used, never a Stieltjes structure. Proved by transporting both measures to `AddC
 the quotient map, using density of `span (range fourier)` in `C(AddCircle (2π), ℂ)` to upgrade
 agreement on characters to agreement on all continuous test functions, and transporting back. -/
 lemma measure_eq_of_fourier_eq (μ ν : Measure ℝ) [IsFiniteMeasure μ] [IsFiniteMeasure ν]
-    (hμ : μ (Set.Icc 0 (2*Real.pi))ᶜ = 0) (hν : ν (Set.Icc 0 (2*Real.pi))ᶜ = 0)
+    (hμ : μ (Set.Icc 0 (2 * Real.pi))ᶜ = 0) (hν : ν (Set.Icc 0 (2 * Real.pi))ᶜ = 0)
     (h0μ : μ {0} = 0) (h0ν : ν {0} = 0)
-    (h : ∀ n : ℤ, ∫ θ in Set.Ioc 0 (2*Real.pi), exp (I*n*θ) ∂μ
-                = ∫ θ in Set.Ioc 0 (2*Real.pi), exp (I*n*θ) ∂ν) :
+    (h : ∀ n : ℤ, ∫ θ in Set.Ioc 0 (2 * Real.pi), exp (I * n * θ) ∂μ
+                = ∫ θ in Set.Ioc 0 (2 * Real.pi), exp (I * n * θ) ∂ν) :
     μ = ν := by
   classical
   set T : ℝ := 2 * Real.pi with hT          -- `set` folds 2π→T in all hyps (h_supp_*, h)
@@ -272,7 +272,7 @@ lemma measure_eq_of_fourier_eq (μ ν : Measure ℝ) [IsFiniteMeasure μ] [IsFin
             _ ≤ ∫ _ : AddCircle T, dist g g' ∂ν := by
                   refine integral_mono_of_nonneg (ae_of_all _ fun c => norm_nonneg _)
                     (integrable_const _) (ae_of_all _ fun c => ?_)
-                  simp [dist_eq_norm]
+                  simp only [dist_eq_norm]
                   rw [← ContinuousMap.sub_apply]
                   exact (g - g').norm_coe_le_norm c
             _ = ((ν.real Set.univ).toNNReal : ℝ) * dist g g' := by
@@ -334,7 +334,7 @@ Fourier-uniqueness fact) is an explicit hypothesis rather than a placeholder, so
 instantiates it with the concrete spectral-measure lemmas for their family `μ`. -/
 lemma spectralMeasure_parallelogram
     (μ : H → Measure ℝ)
-    (hfin  : ∀ z, IsFiniteMeasure (μ z))
+    (hfin : ∀ z, IsFiniteMeasure (μ z))
     (hsupp : ∀ z, μ z (Set.Icc 0 (2 * Real.pi))ᶜ = 0)
     (hatom : ∀ z, μ z {(0 : ℝ)} = 0)
     (mom : H → ℤ → ℂ)

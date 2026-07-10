@@ -1,9 +1,14 @@
 /-
-Copyright (c) 2025 Bell Theorem Formalization Project
+Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Ported from Isabelle/HOL formalization by Echenim & Mhalla
-Ported by: Adam Bornemann
-
+Authors: Ported from Isabelle/HOL formalization by Echenim & Mhalla, by Adam Bornemann
+-/
+import Spectra.QuantumMechanics.BellsTheorem.Basic
+import Spectra.QuantumMechanics.PauliMatrices
+import Mathlib.LinearAlgebra.Matrix.Hermitian
+import Mathlib.LinearAlgebra.Matrix.Trace
+import Mathlib.Tactic.NoncommRing
+/-!
 # CHSH Building Blocks: Pauli Matrices and the Singlet State
 
 Seeds the `Spectra.QuantumCHSH` port chain (`Correlations.lean`, `Violation.lean`,
@@ -40,12 +45,6 @@ name, rather than an independent re-derivation of the same density matrix.
 
 chsh, bell state, pauli matrices, quantum information
 -/
-import Spectra.QuantumMechanics.BellsTheorem.Basic
-import Spectra.QuantumMechanics.PauliMatrices
-import Mathlib.LinearAlgebra.Matrix.Hermitian
-import Mathlib.LinearAlgebra.Matrix.Trace
-import Mathlib.Tactic.NoncommRing
-
 open Matrix Complex
 
 namespace Spectra.QuantumCHSH
@@ -91,7 +90,7 @@ lemma σZ_sq : σZ * σZ = 1 := pauliZ_sq
 
 /-- Pauli matrices anticommute: σₓσZ = -σZσₓ -/
 lemma σₓ_σZ_anticomm : σₓ * σZ = -σZ * σₓ := by
-  show pauliX * pauliZ = -pauliZ * pauliX
+  change pauliX * pauliZ = -pauliZ * pauliX
   linear_combination (norm := noncomm_ring) pauliXZ_anticommute
 
 end

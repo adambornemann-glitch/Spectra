@@ -1,6 +1,6 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Mathlib.Analysis.Calculus.FDeriv.Symmetric
@@ -219,7 +219,7 @@ private lemma klDiv_fderiv_differentiableAt
     exact (M.cross_score_differentiableAt hα hθ' j).congr_of_eventuallyEq (by
       filter_upwards [M.isOpen_paramDomain.mem_nhds hθ'] with θ₀ hθ₀
       exact M.klDiv_partial_j hα hθ₀ j)
-  show DifferentiableAt ℝ (fun θ₀ => fderiv ℝ (M.klDiv α) θ₀) θ'
+  change DifferentiableAt ℝ (fun θ₀ => fderiv ℝ (M.klDiv α) θ₀) θ'
   rw [show (fun θ₀ => fderiv ℝ (M.klDiv α) θ₀) =
       (fun θ₀ => ∑ j : Fin n,
         fderiv ℝ (M.klDiv α) θ₀ (EuclideanSpace.single j 1) •
@@ -265,7 +265,7 @@ lemma fderiv_klDiv_phi_apply_live
     M.toRegularStatisticalModel.fisherBilin (F.φ t θ)
       (fderiv ℝ (F.φ t) θ (EuclideanSpace.single a 1)) (V θ) := by
   exact
-    Spectra.InformationGeometry.TwiceDifferentiableModel.DivergencePreservingFamily.fderiv_klDiv_phi_apply_live
+    TwiceDifferentiableModel.DivergencePreservingFamily.fderiv_klDiv_phi_apply_live
       (M := M.toTwiceDifferentiableModel) F hθ t a hV
 
 /-- Third-order regularity of `D(α‖·)` at `α`: the second-derivative map
@@ -543,7 +543,7 @@ private lemma klDiv_phi_P_val {α : ParamSpace n} (hα : α ∈ M.paramDomain)
     have h : fderiv ℝ (fun θ₂ => fderiv ℝ (M.klDiv α) (F.φ t θ₂)) θ =
         (fderiv ℝ (fun θ' => fderiv ℝ (M.klDiv α) θ') (F.φ t θ)).comp
           (fderiv ℝ (F.φ t) θ) := by
-      show fderiv ℝ ((fun θ' => fderiv ℝ (M.klDiv α) θ') ∘ F.φ t) θ = _
+      change fderiv ℝ ((fun θ' => fderiv ℝ (M.klDiv α) θ') ∘ F.φ t) θ = _
       exact ((hG_diff _ (F.maps_domain t θ hθ)).hasFDerivAt.comp θ
         (hF_diff θ).hasFDerivAt).fderiv
     rw [hφtθ] at h
@@ -626,7 +626,7 @@ private lemma klDiv_phi_P_val {α : ParamSpace n} (hα : α ∈ M.paramDomain)
           (fderiv ℝ (fun θ'' =>
             fderiv ℝ (fun θ' => fderiv ℝ (M.klDiv α) θ') θ'') (F.φ t θ)).comp
             (fderiv ℝ (F.φ t) θ) := by
-        show fderiv ℝ ((fun θ'' =>
+        change fderiv ℝ ((fun θ'' =>
           fderiv ℝ (fun θ' => fderiv ℝ (M.klDiv α) θ') θ'') ∘ F.φ t) θ = _
         -- `comp` must be fully pinned: with `g`/`g'` as metavariables,
         -- unification gives up bridging the generic vs normed instance
@@ -716,7 +716,7 @@ private lemma klDiv_phi_fderiv_differentiableAt_toolkit
         (fderiv ℝ (F.φ t) θ₂)) := by
     filter_upwards [M.isOpen_paramDomain.mem_nhds hθ] with θ₂ hθ₂
     have hF : F.φ t θ₂ ∈ M.paramDomain := F.maps_domain t θ₂ hθ₂
-    show fderiv ℝ ((fun θ' => fderiv ℝ (M.klDiv α) θ') ∘ F.φ t) θ₂ = _
+    change fderiv ℝ ((fun θ' => fderiv ℝ (M.klDiv α) θ') ∘ F.φ t) θ₂ = _
     exact ((hG_diff _ hF).hasFDerivAt.comp θ₂ (hF_diff θ₂).hasFDerivAt).fderiv
   have h_helper : DifferentiableAt ℝ
       (fun θ' => fderiv ℝ (fun θ'' => fderiv ℝ (M.klDiv α) θ'') θ') α :=
@@ -823,7 +823,7 @@ lemma kl_faa_di_bruno
       exact (hg.const_add _).differentiableAt |>.congr_of_eventuallyEq
         (by filter_upwards [M.isOpen_paramDomain.mem_nhds (F.maps_domain t θ₂ hθ₂)]
               with θ' hθ'; exact M.klDiv_decomp hα hθ')
-    show fderiv ℝ (M.klDiv α ∘ F.φ t) θ₂ (EuclideanSpace.single c 1) = _
+    change fderiv ℝ (M.klDiv α ∘ F.φ t) θ₂ (EuclideanSpace.single c 1) = _
     rw [(hKL_diff.hasFDerivAt.comp θ₂
       ((hφ_smooth.differentiable (by simp)).differentiableAt).hasFDerivAt).fderiv]
     rfl
@@ -850,7 +850,7 @@ lemma kl_faa_di_bruno
       (by filter_upwards [M.isOpen_paramDomain.mem_nhds hθ] with θ₁ hθ₁
           exact DFunLike.congr_fun (h_L2 θ₁ hθ₁) (EuclideanSpace.single b 1)))
       (EuclideanSpace.single a 1)
-  simp [h_L3]
+  simp only [h_L3]
   -- ═══ Product rule at Level 2 ═══
   -- fderiv(L(·)(v(·)))(θ₁)(eᵇ) = dL(eᵇ)(v(θ₁)) + L(θ₁)(dv(eᵇ))
   -- This holds for all θ₁ ∈ paramDomain → EventuallyEq near θ
@@ -978,7 +978,7 @@ lemma kl_faa_di_bruno
             (by simp)).differentiableAt.clm_apply (differentiableAt_const _)
         rw [hα_def]
         exact
-          Spectra.InformationGeometry.TwiceDifferentiableModel.DivergencePreservingFamily.fderiv_klDiv_phi_apply_live
+          TwiceDifferentiableModel.DivergencePreservingFamily.fderiv_klDiv_phi_apply_live
             (M := M.toTwiceDifferentiableModel) F hθ t a hV
       -- ═══════════════════════════════════════════════════════════════════
       -- Compute fderiv(P)(θ)(eₐ)

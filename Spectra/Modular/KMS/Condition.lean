@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
-Author: Adam Bornemann
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Adam Bornemann
 -/
 import Spectra.Modular.KMS.PeriodicStrip.Basic
 import Mathlib.Algebra.Star.Module
@@ -93,7 +93,8 @@ lemma LowerBoundary_subset_ClosedStrip {β : ℝ} (hβ : 0 ≤ β) : LowerBounda
   simp only [LowerBoundary, ClosedStrip, mem_setOf_eq] at *
   exact ⟨le_of_eq hz.symm, by linarith⟩
 
-/-- The upper boundary `{Im z = β}` is contained in the closed strip when `0 ≤ β`. (Currently unused.) -/
+/-- The upper boundary `{Im z = β}` is contained in the closed strip when `0 ≤ β`.
+(Currently unused.) -/
 lemma UpperBoundary_subset_ClosedStrip {β : ℝ} (hβ : 0 ≤ β) : UpperBoundary β ⊆ ClosedStrip β := by
   intro z hz
   simp only [UpperBoundary, ClosedStrip, mem_setOf_eq] at *
@@ -234,7 +235,7 @@ noncomputable def State.mix {A : Type*} [CStarAlgebra A]
 lemma State.mix_apply {A : Type*} [CStarAlgebra A]
     (ω₁ ω₂ : State A) (t : ℝ) (ht₀ : 0 ≤ t) (ht₁ : t ≤ 1) (a : A) :
     State.mix ω₁ ω₂ t ht₀ ht₁ a = t * ω₁ a + (1 - t) * ω₂ a := by
-  show ((t : ℂ) • ω₁.toFun + (1 - (t : ℂ)) • ω₂.toFun) a = _
+  change ((t : ℂ) • ω₁.toFun + (1 - (t : ℂ)) • ω₂.toFun) a = _
   simp [LinearMap.add_apply, LinearMap.smul_apply, smul_eq_mul]
 
 /-! ## Hermiticity of States
@@ -254,7 +255,7 @@ lemma State.inner_conj {A : Type*} [CStarAlgebra A] (ω : State A) (b c : A) :
   -- The diagonal `ω (star x * x)` of the form is real.
   have hr : ∀ x : A, (ω.toFun (star x * x)).im = 0 :=
     fun x => (Complex.nonneg_iff.mp (ω.nonneg x)).2.symm
-  show ω.toFun (star b * c) = star (ω.toFun (star c * b))
+  change ω.toFun (star b * c) = star (ω.toFun (star c * b))
   -- Polarization at `x = b + c`.
   have e1 : ω.toFun (star (b + c) * (b + c))
       = ω.toFun (star b * b) + ω.toFun (star b * c)
@@ -545,7 +546,7 @@ def KMSFunction.smul {ω : State A} {α : Dynamics A} {β : ℝ} {a b : A}
     obtain ⟨M, hM⟩ := F.bounded
     refine ⟨‖c‖ * M, ?_⟩
     rintro y ⟨w, ⟨z, hz, rfl⟩, rfl⟩
-    show ‖c • F.toFun z‖ ≤ ‖c‖ * M
+    change ‖c • F.toFun z‖ ≤ ‖c‖ * M
     rw [norm_smul]
     exact mul_le_mul_of_nonneg_left
       (hM (Set.mem_image_of_mem _ (Set.mem_image_of_mem _ hz))) (norm_nonneg c)
@@ -589,7 +590,7 @@ def KMSFunction.smulLeft {ω : State A} {α : Dynamics A} {β : ℝ} {a b : A}
     obtain ⟨M, hM⟩ := F.bounded
     refine ⟨‖c‖ * M, ?_⟩
     rintro y ⟨w, ⟨z, hz, rfl⟩, rfl⟩
-    show ‖c • F.toFun z‖ ≤ ‖c‖ * M
+    change ‖c • F.toFun z‖ ≤ ‖c‖ * M
     rw [norm_smul]
     exact mul_le_mul_of_nonneg_left
       (hM (Set.mem_image_of_mem _ (Set.mem_image_of_mem _ hz))) (norm_nonneg c)
@@ -684,7 +685,7 @@ noncomputable def KMSFunction.starReflect {ω : State A} {α : Dynamics A} {β :
     obtain ⟨hz0, hzβ⟩ := hz
     have hmem : conj z + (β : ℂ) * I ∈ ClosedStrip β := by
       refine ⟨?_, ?_⟩ <;> rw [reflect_im] <;> linarith
-    show ‖conj (H.toFun (conj z + (β : ℂ) * I))‖ ≤ M
+    change ‖conj (H.toFun (conj z + (β : ℂ) * I))‖ ≤ M
     rw [starRingEnd_apply, norm_star]
     exact hM (Set.mem_image_of_mem _ (Set.mem_image_of_mem _ hmem))
   lower_boundary := fun t => by
@@ -738,11 +739,11 @@ lemma KMSFunction.norm_le_threeLines
       simp only [Set.mem_preimage, Set.mem_singleton_iff] at hw
       have hwre : realToLower w.re = w := by apply Complex.ext <;> simp [realToLower, hw]
       refine ⟨w.re, ?_⟩
-      show ‖ω (a * α.evolve w.re b)‖ = ‖F.toFun w‖
+      change ‖ω (a * α.evolve w.re b)‖ = ‖F.toFun w‖
       rw [← F.lower_boundary w.re, hwre]
     · rintro ⟨t, rfl⟩
       refine ⟨realToLower t, by simp [realToLower], ?_⟩
-      show ‖F.toFun (realToLower t)‖ = ‖ω (a * α.evolve t b)‖
+      change ‖F.toFun (realToLower t)‖ = ‖ω (a * α.evolve t b)‖
       rw [F.lower_boundary]
   have hup : (norm ∘ F.toFun) '' (Complex.im ⁻¹' {β})
       = Set.range fun t : ℝ => ‖ω (α.evolve t b * a)‖ := by
@@ -752,11 +753,11 @@ lemma KMSFunction.norm_le_threeLines
       simp only [Set.mem_preimage, Set.mem_singleton_iff] at hw
       have hwre : realToUpper β w.re = w := by apply Complex.ext <;> simp [realToUpper, hw]
       refine ⟨w.re, ?_⟩
-      show ‖ω (α.evolve w.re b * a)‖ = ‖F.toFun w‖
+      change ‖ω (α.evolve w.re b * a)‖ = ‖F.toFun w‖
       rw [← F.upper_boundary w.re, hwre]
     · rintro ⟨t, rfl⟩
       refine ⟨realToUpper β t, by simp [realToUpper], ?_⟩
-      show ‖F.toFun (realToUpper β t)‖ = ‖ω (α.evolve t b * a)‖
+      change ‖F.toFun (realToUpper β t)‖ = ‖ω (α.evolve t b * a)‖
       rw [F.upper_boundary]
   have key := Spectra.ThreeLines.hadamard_three_lines_horizontal F.toFun hβ
     F.holomorphic F.continuousOn F.bounded z hz

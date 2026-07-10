@@ -1,6 +1,6 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Spectra.ProjValMeasure.Basic
@@ -271,7 +271,7 @@ theorem DensityOperator.toState_mem_stateSet (ρ : DensityOperator H) :
   rw [mem_stateSet]
   refine ⟨fun T => ?_, ?_⟩
   · -- positivity: `⟪eᵢ, (T⋆T) eᵢ⟫ = ‖T eᵢ‖² ≥ 0`, weighted by `pᵢ ≥ 0`
-    show (0 : ℂ) ≤ ρ.toStateCLM (star T * T)
+    change (0 : ℂ) ≤ ρ.toStateCLM (star T * T)
     rw [DensityOperator.toStateCLM_apply]
     have key : ∀ i, (ρ.weight i).toReal • ⟪ρ.state i, (star T * T) (ρ.state i)⟫_ℂ
         = ((ρ.weight i).toReal * ‖T (ρ.state i)‖ ^ 2 : ℝ) := fun i => by
@@ -287,7 +287,7 @@ theorem DensityOperator.toState_mem_stateSet (ρ : DensityOperator H) :
     exact Complex.zero_le_real.mpr
       (tsum_nonneg fun i => mul_nonneg ENNReal.toReal_nonneg (sq_nonneg _))
   · -- normalization: `∑ pᵢ ‖eᵢ‖² = ∑ pᵢ = 1`
-    show ρ.toStateCLM 1 = 1
+    change ρ.toStateCLM 1 = 1
     rw [DensityOperator.toStateCLM_apply]
     have key : ∀ i, (ρ.weight i).toReal • ⟪ρ.state i, (1 : H →L[ℂ] H) (ρ.state i)⟫_ℂ
         = ((ρ.weight i).toReal : ℝ) := fun i => by

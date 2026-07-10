@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
-Author: Adam Bornemann
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Adam Bornemann
 -/
 import Mathlib.Analysis.VonNeumannAlgebra.Basic
 import Mathlib.Analysis.Normed.Operator.LinearIsometry
@@ -140,7 +140,8 @@ result is a genuine ℂ-linear bounded operator. -/
 def jConj (J : H ≃ₗᵢ⋆[ℂ] H) (x : H →L[ℂ] H) : H →L[ℂ] H :=
   -- `∘L` is pinned to the fully-linear case; the antilinear composition needs the general
   -- `ContinuousLinearMap.comp`, whose `RingHomCompTriple (starRingEnd ℂ) (starRingEnd ℂ) (id)`
-  -- (from the involutivity of conjugation) makes antilinear ∘ linear ∘ antilinear land in `H →L[ℂ] H`.
+  -- (from the involutivity of conjugation) makes antilinear ∘ linear ∘ antilinear land in
+  -- `H →L[ℂ] H`.
   (J.toLinearIsometry.toContinuousLinearMap).comp
     (x.comp J.symm.toLinearIsometry.toContinuousLinearMap)
 

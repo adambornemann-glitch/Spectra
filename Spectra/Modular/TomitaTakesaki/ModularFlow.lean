@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
-Author: Adam Bornemann
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Adam Bornemann
 -/
 import Spectra.Modular.TomitaTakesaki.VonNeumannTstarT
 import Spectra.CayleyTransform.Defs
@@ -30,8 +30,8 @@ This discharges the **R1-link** step of the Tomita–Takesaki construction: the 
 Identifying `(modularFlow …).U t` with the genuine complex power `Δ^{it}` (in `cpow` form, via
 `modularSymbol_eq_cpow`) requires positivity of the *pulled-back* spectrum
 `(inverseMobius z).re > 0` for `z ∈ spectrum V`. Non-negativity of `Δ` (`modularOp_nonneg`) supplies
-this through the spectral mapping of the Cayley transform; that identification is developed alongside
-the fundamental theorems (R4 — `modularFlow_fixes_vacuum`, Tomita's theorem).
+this through the spectral mapping of the Cayley transform; that identification is developed
+alongside the fundamental theorems (R4 — `modularFlow_fixes_vacuum`, Tomita's theorem).
 -/
 
 open scoped InnerProductSpace

@@ -1,6 +1,6 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Spectra.QuantumMechanics.Hydrogen.Spectrum.Eigenvalue
@@ -551,7 +551,6 @@ private lemma contDiff_chi_mul {ε : ℝ} (hε : 0 < ε) {v : R3 → ℂ}
   · exact (Complex.ofRealCLM.contDiff.contDiffAt.comp x (contDiff_chi hε).contDiffAt).mul
       (hv.contDiffAt (compl_singleton_mem_nhds hx))
 
-set_option maxHeartbeats 1000000 in
 /-- **Per-`ε` integration by parts.** With the cutoff masking the cusp, `↑χ_ε·v` is globally
     `C¹`, so the classical integration by parts applies. -/
 private lemma chi_ibp {ε : ℝ} (hε : 0 < ε) {v w : R3 → ℂ} (j : Fin 3)
@@ -752,7 +751,6 @@ private lemma continuous_fderiv_chi_mul {ε : ℝ} (hε : 0 < ε) {v : R3 → �
       zero_mul]
   · exact hdc.continuousAt.mul (hv.continuousAt (compl_singleton_mem_nhds hx))
 
-set_option maxHeartbeats 1000000 in
 /-- **The master cutoff integration by parts.**  For `v` continuous and `C¹` off the origin,
     bounded near it, with classical `j`-partial `w` off the origin (`Integrable (w·φ)`), the
     weak-derivative identity `∫ v·∂ⱼφ = −∫ w·φ` holds against any test function `φ`.  The cusp

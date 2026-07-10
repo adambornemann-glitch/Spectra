@@ -1,6 +1,6 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Mathlib.Analysis.InnerProductSpace.Adjoint
@@ -39,7 +39,7 @@ lemma mem_unitary_iff_Unitary (U : H →L[ℂ] H) :
     have h : star U * U = 1 ∧ U * star U = 1 := hU        -- membership unfolds to this
     rwa [ContinuousLinearMap.star_eq_adjoint] at h
   · intro hU
-    show star U * U = 1 ∧ U * star U = 1                   -- defeq to the goal `U ∈ unitary _`
+    change star U * U = 1 ∧ U * star U = 1                   -- defeq to the goal `U ∈ unitary _`
     rw [ContinuousLinearMap.star_eq_adjoint]
     exact hU
 
@@ -329,7 +329,8 @@ lemma unitary_not_isUnit_approx_eigenvalue [Nontrivial H] {U : H →L[ℂ] H} (h
   have h_isUnit := normal_bounded_below_isUnit h_normal ε hε_pos h_bounded_below
   exact h_not h_isUnit
 
-/-- Converse: if `w` is not an approximate eigenvalue, then `U - w` is invertible. (Currently unused.) -/
+/-- Converse: if `w` is not an approximate eigenvalue, then `U - w` is invertible.
+(Currently unused.) -/
 lemma unitary_not_approx_eigenvalue_isUnit [Nontrivial H] {U : H →L[ℂ] H} (hU : Unitary U) (w : ℂ)
     (h_not : ¬∀ ε > 0, ∃ φ, ‖φ‖ = 1 ∧ ‖(U - w • ContinuousLinearMap.id ℂ H) φ‖ < ε) :
     IsUnit (U - w • ContinuousLinearMap.id ℂ H) := by

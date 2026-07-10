@@ -1,8 +1,7 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
-Filename: Operator/VonNeumannFormula.lean
 -/
 import Spectra.Operator.VonNeumannExtensionSelfAdjoint
 import Spectra.Operator.UniqueSelfAdjointExtension
@@ -85,7 +84,7 @@ theorem deficiencySubspacePlus_closure {A : H →ₗ.[ℂ] H} (hdense : Dense (A
     deficiencySubspacePlus A.closure = deficiencySubspacePlus A := by
   have h : A.closure.adjoint = A.adjoint := closure_adjoint_eq_adjoint hdense hclosable
   ext χ
-  show (∃ hm : χ ∈ A.closure.adjoint.domain, A.closure.adjoint ⟨χ, hm⟩ = I • χ) ↔
+  change (∃ hm : χ ∈ A.closure.adjoint.domain, A.closure.adjoint ⟨χ, hm⟩ = I • χ) ↔
       (∃ hm : χ ∈ A.adjoint.domain, A.adjoint ⟨χ, hm⟩ = I • χ)
   rw [h]
 
@@ -95,7 +94,7 @@ theorem deficiencySubspaceMinus_closure {A : H →ₗ.[ℂ] H} (hdense : Dense (
     deficiencySubspaceMinus A.closure = deficiencySubspaceMinus A := by
   have h : A.closure.adjoint = A.adjoint := closure_adjoint_eq_adjoint hdense hclosable
   ext χ
-  show (∃ hm : χ ∈ A.closure.adjoint.domain, A.closure.adjoint ⟨χ, hm⟩ = (-I) • χ) ↔
+  change (∃ hm : χ ∈ A.closure.adjoint.domain, A.closure.adjoint ⟨χ, hm⟩ = (-I) • χ) ↔
       (∃ hm : χ ∈ A.adjoint.domain, A.adjoint ⟨χ, hm⟩ = (-I) • χ)
   rw [h]
 
@@ -189,7 +188,7 @@ theorem adjoint_domain_cases (A : H →ₗ.[ℂ] H) (hsym : A.IsFormalAdjoint A)
     abel
   have hξN : u - (ψ : H) - (η : H) ∈ deficiencySubspaceMinus A := ⟨hξadj, hξval⟩
   refine ⟨ψ, η, ⟨u - (ψ : H) - (η : H), hξN⟩, ?_⟩
-  show u = (ψ : H) + (η : H) + (u - (ψ : H) - (η : H))
+  change u = (ψ : H) + (η : H) + (u - (ψ : H) - (η : H))
   abel
 
 /-- **The first von Neumann formula** (closed case): for closed, symmetric, densely-defined

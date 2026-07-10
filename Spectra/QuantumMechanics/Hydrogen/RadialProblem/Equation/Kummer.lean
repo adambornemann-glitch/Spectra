@@ -1,6 +1,6 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Mathlib.Analysis.SpecificLimits.Normed
@@ -89,7 +89,8 @@ lemma kummer_den_pos (b : ℝ) (hb : 0 < b) (k : ℕ) : 0 < (b + (k : ℝ)) * ((
 
 /-- The recurrence cleared of denominators: `(k+1)(b+k)·c_{k+1} = (a+k)·c_k`. -/
 lemma kummerCoeff_rec (a b : ℝ) (hb : 0 < b) (k : ℕ) :
-    ((k : ℝ) + 1) * (b + (k : ℝ)) * kummerCoeff a b (k + 1) = (a + (k : ℝ)) * kummerCoeff a b k := by
+    ((k : ℝ) + 1) * (b + (k : ℝ)) * kummerCoeff a b (k + 1)
+      = (a + (k : ℝ)) * kummerCoeff a b k := by
   have hden := (kummer_den_pos b hb k).ne'
   rw [kummerCoeff_succ]
   field_simp
@@ -121,7 +122,8 @@ lemma summable_abs_kummer_mul_pow (a b : ℝ) (hb : 0 < b) (j : ℕ) {R : ℝ} (
   have hfac : 0 ≤ cn * R ^ n := mul_nonneg hcn0 hRn
   -- The norms are the (nonnegative) values themselves.
   have hnormeq : ‖|kummerCoeff a b (n + 1)| * ((↑(n + 1) : ℝ) + 1) ^ j * R ^ (n + 1)‖
-      = cn * (|a + (n : ℝ)| / ((b + (n : ℝ)) * ((n : ℝ) + 1))) * ((n : ℝ) + 2) ^ j * R ^ (n + 1) := by
+      = cn * (|a + (n : ℝ)| / ((b + (n : ℝ)) * ((n : ℝ) + 1))) * ((n : ℝ) + 2) ^ j
+        * R ^ (n + 1) := by
     rw [Real.norm_eq_abs, abs_of_nonneg (by positivity), abs_kummerCoeff_succ a b hb n, ← hcn]
     push_cast
     ring_nf
@@ -238,7 +240,7 @@ lemma kummerM_hasDerivAt (a b : ℝ) (hb : 0 < b) (z : ℝ) :
           exact mul_le_mul (by linarith) hyn (by positivity) (by linarith [abs_nonneg z])
       _ = |kummerCoeff a b n| * ((n : ℝ) + 1) * (|z| + 1) ^ n := by ring
   rw [← kummerCoeff_deriv_reindex a b hb z]
-  show HasDerivAt (fun y => ∑' n, kummerCoeff a b n * y ^ n)
+  change HasDerivAt (fun y => ∑' n, kummerCoeff a b n * y ^ n)
     (∑' n, kummerCoeff a b n * ((n : ℝ) * z ^ (n - 1))) z
   exact hasDerivAt_tsum_of_isPreconnected
     (summable_abs_kummer_mul_pow a b hb 1 (R := |z| + 1) (by positivity)) ht h't
@@ -333,7 +335,7 @@ lemma kummerCoeff_deriv2_reindex (a b : ℝ) (hb : 0 < b) (z : ℝ) :
   rw [← hsum.sum_add_tsum_nat_add 2, Finset.sum_range_succ, Finset.sum_range_one]
   simp only [Nat.cast_zero, zero_mul, mul_zero, Nat.sub_self, zero_add]
   refine tsum_congr (fun k => ?_)
-  show kummerCoeff a b (k + 2) * ((((k + 2 : ℕ)) : ℝ) * ((((k + 1 : ℕ)) : ℝ) * z ^ k))
+  change kummerCoeff a b (k + 2) * ((((k + 2 : ℕ)) : ℝ) * ((((k + 1 : ℕ)) : ℝ) * z ^ k))
       = ((k : ℝ) + 1) * ((k : ℝ) + 2) * kummerCoeff a b (k + 2) * z ^ k
   push_cast
   ring
@@ -502,7 +504,8 @@ lemma abs_kummerCoeff_ratio_lower (a b : ℝ) (hb : 0 < b) :
   calc (1 / 2) * |kummerCoeff a b k|
       ≤ (a + (k : ℝ)) / (b + (k : ℝ)) * |kummerCoeff a b k| :=
         mul_le_mul_of_nonneg_right hratio (abs_nonneg _)
-    _ = ((k : ℝ) + 1) * (|kummerCoeff a b k| * ((a + (k : ℝ)) / ((b + (k : ℝ)) * ((k : ℝ) + 1)))) := by
+    _ = ((k : ℝ) + 1) *
+        (|kummerCoeff a b k| * ((a + (k : ℝ)) / ((b + (k : ℝ)) * ((k : ℝ) + 1)))) := by
         field_simp
 
 /-- **Geometric lower bound on the coefficients of a non-terminating series.**
@@ -523,7 +526,7 @@ lemma abs_kummerCoeff_geom_lower (a b : ℝ) (hb : 0 < b) (ha : ∀ p : ℕ, a �
     | succ n hn ih =>
       refine le_trans ih ?_
       have hr := hK n hn
-      show |kummerCoeff a b n| * (n.factorial : ℝ) / (1 / 2) ^ n
+      change |kummerCoeff a b n| * (n.factorial : ℝ) / (1 / 2) ^ n
         ≤ |kummerCoeff a b (n + 1)| * ((n + 1).factorial : ℝ) / (1 / 2) ^ (n + 1)
       rw [div_le_div_iff₀ (by positivity) (by positivity), Nat.factorial_succ, pow_succ]
       push_cast
@@ -531,7 +534,7 @@ lemma abs_kummerCoeff_geom_lower (a b : ℝ) (hb : 0 < b) (ha : ∀ p : ℕ, a �
         (show (0 : ℝ) < (1 / 2 : ℝ) ^ n by positivity)]
   refine ⟨K, D K, hDpos K, fun k hk => ?_⟩
   have hmk := hmono k hk
-  show D K * (1 / 2) ^ k / (k.factorial : ℝ) ≤ |kummerCoeff a b k|
+  change D K * (1 / 2) ^ k / (k.factorial : ℝ) ≤ |kummerCoeff a b k|
   rw [div_le_iff₀ (by positivity)]
   have hmk' : D K * (1 / 2) ^ k ≤ |kummerCoeff a b k| * (k.factorial : ℝ) := by
     rw [← le_div_iff₀ (show (0 : ℝ) < (1 / 2) ^ k by positivity)]
@@ -582,7 +585,8 @@ lemma kummer_poly_le_exp (M C : ℝ) (hC : 0 < C) (K : ℕ) :
     simpa using h0.const_mul M
   filter_upwards [htend.eventually (Iio_mem_nhds hC)] with ρ hρ
   have he : (0 : ℝ) < Real.exp (ρ / 2) := Real.exp_pos _
-  rw [show Real.exp (-(1 / 2) * ρ) = (Real.exp (ρ / 2))⁻¹ from by rw [← Real.exp_neg]; congr 1; ring,
+  rw [show Real.exp (-(1 / 2) * ρ) = (Real.exp (ρ / 2))⁻¹ from by
+      rw [← Real.exp_neg]; congr 1; ring,
     show M * (ρ ^ K * (Real.exp (ρ / 2))⁻¹) = M * ρ ^ K / Real.exp (ρ / 2) from by ring,
     div_lt_iff₀ he] at hρ
   linarith

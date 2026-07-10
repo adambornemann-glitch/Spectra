@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
-Author: Adam Bornemann
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Adam Bornemann
 -/
 import Mathlib.Analysis.SpecialFunctions.ContinuousFunctionalCalculus.Rpow.ConjSqrt
 import Spectra.QuantumMechanics.Channels.TraceClass.Basic
@@ -9,20 +9,20 @@ import Spectra.QuantumMechanics.Channels.TraceClass.Basic
 /-!
 # The Petz recovery map and exact recovery of the reference
 
-Given a quantum channel `N` with Heisenberg (Hilbert–Schmidt) dual `N†` and a faithful reference `σ`,
-the **Petz recovery map** is
+Given a quantum channel `N` with Heisenberg (Hilbert–Schmidt) dual `N†` and a faithful reference
+`σ`, the **Petz recovery map** is
 
   `P_{σ,N}(X) = σ^{1/2} · N†( N(σ)^{-1/2} · X · N(σ)^{-1/2} ) · σ^{1/2}`.
 
 It is the canonical channel that *undoes* `N` — whenever anything can — and its defining property is
-**exact recovery of the reference state**, `P_{σ,N}(N σ) = σ`, which holds for *every* channel with no
-extra hypotheses beyond faithfulness and the unitality of `N†`.
+**exact recovery of the reference state**, `P_{σ,N}(N σ) = σ`, which holds for *every* channel with
+no extra hypotheses beyond faithfulness and the unitality of `N†`.
 
 ## This file: the operator-algebra core
 
 We formalise the map and the exact-recovery theorem at the level of bounded operators on a Hilbert
-space `H`, abstracting the Heisenberg dual as a *unital* map `Φ` (`Φ 1 = 1`) and writing `σ`, `τ` for
-the reference and its image `N(σ)`. The two square-root sandwiches are Mathlib's `CFC.conjSqrt`
+space `H`, abstracting the Heisenberg dual as a *unital* map `Φ` (`Φ 1 = 1`) and writing `σ`, `τ`
+for the reference and its image `N(σ)`. The two square-root sandwiches are Mathlib's `CFC.conjSqrt`
 (`conjSqrt c a = √c · a · √c`), so:
 
   `petzMap Φ σ τ X = conjSqrt σ (Φ (conjSqrt τ⁻¹ X))`.
@@ -34,9 +34,10 @@ The exact-recovery identity is then three rewrites: the inner sandwich collapses
 **Scope (honest).** The reference image `τ = N(σ)` is required *strictly positive*
 (`IsStrictlyPositive`, i.e. positive and invertible / bounded below), so that `τ^{-1/2}` is a
 *bounded* operator. This is the natural regularity condition and holds automatically in finite
-dimensions and for faithful weights; it is a genuine statement over an arbitrary (infinite-dimensional)
-`H`. The refinement to a *trace-class* faithful state — where the density is compact, its eigenvalues
-accumulate at `0`, and `τ^{-1/2}` is therefore genuinely **unbounded** — requires the unbounded
+dimensions and for faithful weights; it is a genuine statement over an arbitrary
+(infinite-dimensional) `H`. The refinement to a *trace-class* faithful state — where the density is
+compact, its eigenvalues accumulate at `0`, and `τ^{-1/2}` is therefore genuinely **unbounded** —
+requires the unbounded
 functional calculus and is deferred (cf. `InformationGeometry/Quantum/State.lean`'s `Faithful`
 remark). Constructing the Heisenberg dual `N†` from a `QuantumChannel` (so `Φ` is a *theorem*, not a
 hypothesis) is the companion milestone.
@@ -70,8 +71,8 @@ noncomputable def petzMap (Φ : (H →L[ℂ] H) → H →L[ℂ] H) (σ τ : H �
 @[simp] lemma petzMap_apply (Φ : (H →L[ℂ] H) → H →L[ℂ] H) (σ τ X : H →L[ℂ] H) :
     petzMap Φ σ τ X = conjSqrt σ (Φ (conjSqrt (Ring.inverse τ) X)) := rfl
 
-/-- **Exact recovery of the reference state.** For a unital dual `Φ` (`Φ 1 = 1`), a positive reference
-`σ`, and a strictly positive image `τ = N(σ)`, the Petz map sends `τ` back to `σ`:
+/-- **Exact recovery of the reference state.** For a unital dual `Φ` (`Φ 1 = 1`), a positive
+reference `σ`, and a strictly positive image `τ = N(σ)`, the Petz map sends `τ` back to `σ`:
 `P_{σ,N}(N σ) = σ`. This is the defining property of the Petz recovery map, and needs no hypothesis
 beyond faithfulness and unitality — it holds for *any* channel. -/
 theorem petzMap_recovery {Φ : (H →L[ℂ] H) → H →L[ℂ] H} {σ τ : H →L[ℂ] H}

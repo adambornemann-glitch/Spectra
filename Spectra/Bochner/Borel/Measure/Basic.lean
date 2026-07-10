@@ -1,6 +1,6 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Spectra.Bochner.Borel.Identity.CauchyVague
@@ -249,7 +249,7 @@ theorem borelMeasure_fourier
               cexp (-(I * z * (t:ℂ))) * cexp (I * (lambda:ℂ) * (t:ℂ))))
             ((volume.restrict (Set.Ici (0:ℝ))).prod μ) := by
           apply Continuous.aestronglyMeasurable
-          show Continuous (fun p : ℝ × ℝ =>
+          change Continuous (fun p : ℝ × ℝ =>
             cexp (-(I * z * (p.1:ℂ))) * cexp (I * (p.2:ℂ) * (p.1:ℂ)))
           exact (Complex.continuous_exp.comp (by fun_prop)).mul
                 (Complex.continuous_exp.comp (by fun_prop))
@@ -263,7 +263,7 @@ theorem borelMeasure_fourier
           hexp_int.mul_prod (integrable_const (1:ℝ))
         refine h_dom.mono' h_meas ?_
         filter_upwards with p
-        show ‖cexp (-(I * z * (p.1:ℂ))) * cexp (I * (p.2:ℂ) * (p.1:ℂ))‖
+        change ‖cexp (-(I * z * (p.1:ℂ))) * cexp (I * (p.2:ℂ) * (p.1:ℂ))‖
               ≤ Real.exp (z.im * p.1) * (1:ℝ)
         have h1 : (-(I * z * (p.1:ℂ))).re = z.im * p.1 := by
           simp [Complex.neg_re, Complex.mul_re, Complex.mul_im, Complex.I_re, Complex.I_im,

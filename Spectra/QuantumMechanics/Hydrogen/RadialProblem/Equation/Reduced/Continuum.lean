@@ -1,6 +1,6 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Spectra.QuantumMechanics.Hydrogen.RadialProblem.Equation.Reduced.Quantization
@@ -305,7 +305,8 @@ private lemma cont_cauchy_zero (ℓ : ℕ) (E : ℝ) (χ : ℝ → ℝ)
     have hr₁b : r₁ ≤ b := by rw [hbdef]; linarith
     have hpos2 : ∀ x ∈ Set.Icc r₁ b, 0 < 2 * r₁ - x := by
       intro x hx; have hxb := hx.2; rw [hbdef] at hxb; linarith
-    have hu : ∀ x ∈ Set.Icc r₁ b, HasDerivAt (fun t => χ (2 * r₁ - t)) (-deriv χ (2 * r₁ - x)) x := by
+    have hu : ∀ x ∈ Set.Icc r₁ b, HasDerivAt (fun t => χ (2 * r₁ - t))
+        (-deriv χ (2 * r₁ - x)) x := by
       intro x hx
       have h := (hχ1 (2 * r₁ - x) (hpos2 x hx)).comp x (hlin x)
       convert h using 1; ring
@@ -319,9 +320,9 @@ private lemma cont_cauchy_zero (ℓ : ℕ) (E : ℝ) (χ : ℝ → ℝ)
       fun x hx => (contW_hasDerivAt ℓ E (hpos2 x hx)).continuousAt.comp_continuousWithinAt
         ((continuous_const.sub continuous_id).continuousWithinAt)
     have hu0 : (fun t => χ (2 * r₁ - t)) r₁ = 0 := by
-      show χ (2 * r₁ - r₁) = 0; rw [show 2 * r₁ - r₁ = r₁ from by ring]; exact h0
+      change χ (2 * r₁ - r₁) = 0; rw [show 2 * r₁ - r₁ = r₁ from by ring]; exact h0
     have hdu0 : (fun t => -deriv χ (2 * r₁ - t)) r₁ = 0 := by
-      show -deriv χ (2 * r₁ - r₁) = 0; rw [show 2 * r₁ - r₁ = r₁ from by ring, h0']; ring
+      change -deriv χ (2 * r₁ - r₁) = 0; rw [show 2 * r₁ - r₁ = r₁ from by ring, h0']; ring
     have hfz := forward_zero hr₁b hu hdu hVc hu0 hdu0 b (Set.right_mem_Icc.2 hr₁b)
     have hfz' : χ (2 * r₁ - b) = 0 := hfz
     rwa [show 2 * r₁ - b = r from by rw [hbdef]; ring] at hfz'
@@ -403,7 +404,8 @@ theorem reduced_radial_continuum (ℓ : ℕ) (E : ℝ) (hE : 0 ≤ E) (χ : ℝ 
       exact hbd
     -- χ → 0
     have hχ0 : Filter.Tendsto χ Filter.atTop (𝓝 0) :=
-      l2_tendsto_zero (Real.sqrt_nonneg G0) hlip (hL2.mono_set (Set.Ioi_subset_Ioi (le_of_lt hr₀pos)))
+      l2_tendsto_zero (Real.sqrt_nonneg G0) hlip
+        (hL2.mono_set (Set.Ioi_subset_Ioi (le_of_lt hr₀pos)))
     -- χ² → 0
     have hχ0sq : Filter.Tendsto (fun r => (χ r) ^ 2) Filter.atTop (𝓝 0) := by
       have h := hχ0.mul hχ0

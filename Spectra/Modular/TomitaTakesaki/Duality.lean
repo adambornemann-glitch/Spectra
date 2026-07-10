@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
-Author: Adam Bornemann
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Adam Bornemann
 -/
 import Spectra.Modular.TomitaTakesaki.Basic
 import Mathlib.Analysis.InnerProductSpace.Adjoint
@@ -14,8 +14,9 @@ separating vectors (`isSeparating_commutant_of_isCyclic`). This file proves the 
 
   `IsSeparating M Ω → IsCyclic M.commutant Ω`,
 
-i.e. a vector separating for `M` is cyclic for the commutant `M'`. Together with the easy direction
-(applied to `M'`, using `M'' = M`) this gives the full equivalence `IsCyclic M' Ω ↔ IsSeparating M Ω`.
+i.e. a vector separating for `M` is cyclic for the commutant `M'`.
+Together with the easy direction (applied to `M'`, using `M'' = M`) this gives the full
+equivalence `IsCyclic M' Ω ↔ IsSeparating M Ω`.
 
 ## Proof
 
@@ -50,7 +51,8 @@ theorem isCyclic_commutant_of_isSeparating {M : VonNeumannAlgebra H} {Ω : H}
   have hΩK : Ω ∈ K := Kspan.le_topologicalClosure (Submodule.subset_span hΩS)
   -- `K` is invariant under the commutant, hence `P ∈ M`
   have hPM : P ∈ M := by
-    rw [hPdef, VonNeumannAlgebra.IsStarProjection.mem_iff (isStarProjection_starProjection (U := K)) M]
+    rw [hPdef,
+      VonNeumannAlgebra.IsStarProjection.mem_iff (isStarProjection_starProjection (U := K)) M]
     intro y hy
     rw [Submodule.range_starProjection, Module.End.mem_invtSubmodule_iff_mapsTo]
     have hspan : Set.MapsTo (⇑y) (↑Kspan : Set H) (↑Kspan : Set H) := by
@@ -76,7 +78,7 @@ theorem isCyclic_commutant_of_isSeparating {M : VonNeumannAlgebra H} {Ω : H}
     have h0 : (1 : H →L[ℂ] H) - P = 0 := hsep _ (sub_mem (one_mem M) hPM) hkill
     exact (sub_eq_zero.mp h0).symm
   -- hence `K = ⊤`, i.e. `Ω` is cyclic for `M'`
-  show Dense (↑Kspan : Set H)
+  change Dense (↑Kspan : Set H)
   rw [Submodule.dense_iff_topologicalClosure_eq_top, ← hKdef, Submodule.eq_top_iff']
   intro v
   rw [← Submodule.starProjection_eq_self_iff (K := K), ← hPdef, hP1,

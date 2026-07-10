@@ -1,6 +1,6 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Spectra.CayleyTransform.Mobius
@@ -58,7 +58,7 @@ lemma cayleyImage_inverseCayleyImage (S : Set ℂ) (hS : S ⊆ {w | ‖w‖ = 1 
   have h_mobius_eq : (↑(inverseMobius w).re - I) * (↑(inverseMobius w).re + I)⁻¹ = w := by
     rw [hμ_eq, mobius_inverseMobius w hw_ne]
   refine ⟨(inverseMobius w).re, ?_, h_mobius_eq⟩
-  show (↑(inverseMobius w).re - I) * (↑(inverseMobius w).re + I)⁻¹ ∈ S
+  change (↑(inverseMobius w).re - I) * (↑(inverseMobius w).re + I)⁻¹ ∈ S
   rw [h_mobius_eq]
   exact hw
 

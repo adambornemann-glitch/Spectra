@@ -1,10 +1,27 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
-Author: Adam Bornemann
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Adam Bornemann
 -/
 import Spectra.Modular.KMS.PeriodicStrip.Defs
 import Mathlib.Analysis.Complex.Hadamard
+
+/-!
+# Hadamard's three-lines theorem for a horizontal strip
+
+Mathlib's Hadamard three-lines theorem is stated for a *vertical* strip. This file transports it
+to the *horizontal* strip `{0 ≤ Im z ≤ β}` used throughout `PeriodicStrip/`, via the rotation
+`tildeF F z := F (I * z)`, which sends the vertical strip `{0 ≤ Re z ≤ β}` to the horizontal one
+since `(I * z).im = z.re`. Differentiability, continuity, boundedness, and the boundary suprema of
+`tildeF F` are transported across this rotation, and Mathlib's theorem is then translated back to
+give `hadamard_three_lines_horizontal`.
+
+## Main results
+
+* `hadamard_three_lines_horizontal` : for `F` holomorphic on the open horizontal strip, continuous
+  and bounded on its closure, `‖F w‖` is bounded by the log-convex interpolation of the boundary
+  suprema of `‖F‖` along `{Im = 0}` and `{Im = β}`.
+-/
 
 open Complex Set Filter Topology Int MeasureTheory Complex.HadamardThreeLines
 open Spectra.PeriodicHolomorphic
@@ -105,7 +122,7 @@ lemma hadamard_three_lines_horizontal
     · rw [hre_eq]; exact hw.1
     · rw [hre_eq]; exact hw.2
   have hF_eq : tildeF F (-I * w) = F w := by
-    show F (I * (-I * w)) = F w
+    change F (I * (-I * w)) = F w
     congr 1
     have h : I * (-I * w) = -(I * I) * w := by ring
     rw [h, Complex.I_mul_I]; ring
@@ -128,7 +145,7 @@ lemma hadamard_three_lines_horizontal
     rintro x ⟨z, hz, rfl⟩
     simp only [Set.mem_preimage, Set.mem_singleton_iff] at hz
     refine hM ⟨F z, ⟨z, ?_, rfl⟩, rfl⟩
-    show 0 ≤ z.im ∧ z.im ≤ β
+    change 0 ≤ z.im ∧ z.im ≤ β
     rw [hz]; exact ⟨le_refl 0, le_of_lt hβ⟩
   have h_bdd_upper : BddAbove ((fun a => ‖F a‖) '' (Complex.im ⁻¹' {β})) := by
     obtain ⟨M, hM⟩ := hbdd
@@ -136,7 +153,7 @@ lemma hadamard_three_lines_horizontal
     rintro x ⟨z, hz, rfl⟩
     simp only [Set.mem_preimage, Set.mem_singleton_iff] at hz
     refine hM ⟨F z, ⟨z, ?_, rfl⟩, rfl⟩
-    show 0 ≤ z.im ∧ z.im ≤ β
+    change 0 ≤ z.im ∧ z.im ≤ β
     rw [hz]; exact ⟨le_of_lt hβ, le_refl _⟩
   -- The edge bounds Mathlib requires
   have ha : ∀ z : ℂ, z.re = 0 →
@@ -144,14 +161,14 @@ lemma hadamard_three_lines_horizontal
     intro z hz
     apply le_csSup h_bdd_lower
     refine ⟨I * z, ?_, rfl⟩
-    show (I * z).im = 0
+    change (I * z).im = 0
     rw [show (I * z).im = z.re from by simp]; exact hz
   have hb : ∀ z : ℂ, z.re = β →
       ‖tildeF F z‖ ≤ sSup ((fun a => ‖F a‖) '' (Complex.im ⁻¹' {β})) := by
     intro z hz
     apply le_csSup h_bdd_upper
     refine ⟨I * z, ?_, rfl⟩
-    show (I * z).im = β
+    change (I * z).im = β
     rw [show (I * z).im = z.re from by simp]; exact hz
   -- Bridge the exponent: (β - w.im)/β = 1 - w.im/β
   have hβ_ne : β ≠ 0 := ne_of_gt hβ

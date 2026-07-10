@@ -1,8 +1,7 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
-Target: Mathlib master (2026-06-10)
 -/
 import Mathlib.Analysis.InnerProductSpace.Adjoint
 import Mathlib.Analysis.CStarAlgebra.ContinuousLinearMap
@@ -83,7 +82,8 @@ lemma isStarNormal_of_inner_map_map_of_surjective {U : H →L[ℂ] H}
     IsStarNormal U :=
   isStarNormal_of_mem_unitary (mem_unitary_of_inner_map_map_of_surjective hinner hsurj)
 
-/-- Spectrum of an inner-product-preserving surjection lies on the unit circle. (Currently unused.) -/
+/-- Spectrum of an inner-product-preserving surjection lies on the unit circle.
+(Currently unused.) -/
 lemma spectrum_subset_circle_of_inner_map_map_of_surjective {U : H →L[ℂ] H}
     (hinner : ∀ ψ φ : H, ⟪U ψ, U φ⟫_ℂ = ⟪ψ, φ⟫_ℂ)
     (hsurj : Function.Surjective U) :

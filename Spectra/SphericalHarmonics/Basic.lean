@@ -1,6 +1,6 @@
 /-
-Copyright (c) 2026 Spectra Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Spectra.SphericalHarmonics.AssociatedLegendre
@@ -120,7 +120,7 @@ lemma sphericalHarmonic_eq (ℓ : ℕ) (m : ℤ) (hm : |m| ≤ ℓ) (a b : ℝ) 
       ((sphericalNorm ℓ m * reflectionFactor ℓ m *
           assocLegendreNat ℓ m.natAbs (Real.cos a) : ℝ) : ℂ) *
         Complex.exp (I * m * b) := by
-  show (sphericalNorm ℓ m : ℂ) * ((AssociatedLegendre ℓ m (Real.cos a) : ℝ) : ℂ) *
+  change (sphericalNorm ℓ m : ℂ) * ((AssociatedLegendre ℓ m (Real.cos a) : ℝ) : ℂ) *
       Complex.exp (I * m * b) = _
   rw [associatedLegendre_eq_reflection]
   push_cast
@@ -690,12 +690,15 @@ lemma inner_toLp_sphericalHarmonic (ℓ ℓ' : ℕ) (m m' : ℤ)
   rw [hcongr]
   erw [integral_sphereMeasure_eq
   /-Tactic `rewrite` failed: Did not find an occurrence of the pattern
-  ∫ (p : ℝ × ℝ), (⇑(starRingEnd ℂ) ∘ SphericalHarmonic ℓ m hm * SphericalHarmonic ℓ' m' hm') p ∂sphereMeasure
+  ∫ (p : ℝ × ℝ), (⇑(starRingEnd ℂ) ∘ SphericalHarmonic ℓ m hm
+    * SphericalHarmonic ℓ' m' hm') p ∂sphereMeasure
 in the target expression
-  ∫ (p : ℝ × ℝ), (starRingEnd ℂ) (SphericalHarmonic ℓ m hm p) * SphericalHarmonic ℓ' m' hm' p ∂sphereMeasure =
+  ∫ (p : ℝ × ℝ), (starRingEnd ℂ) (SphericalHarmonic ℓ m hm p)
+    * SphericalHarmonic ℓ' m' hm' p ∂sphereMeasure =
     ∫ (θ : ℝ) in 0..Real.pi,
       ∫ (φ : ℝ) in 0..2 * Real.pi,
-        (starRingEnd ℂ) (SphericalHarmonic ℓ m hm (θ, φ)) * SphericalHarmonic ℓ' m' hm' (θ, φ) * ↑(Real.sin θ)-/
+        (starRingEnd ℂ) (SphericalHarmonic ℓ m hm (θ, φ))
+          * SphericalHarmonic ℓ' m' hm' (θ, φ) * ↑(Real.sin θ)-/
     (((Complex.continuous_conj).comp (sphericalHarmonic_continuous ℓ m hm)).mul
       (sphericalHarmonic_continuous ℓ' m' hm'))]
   exact intervalIntegral.integral_congr fun ⦃x⦄ => congrFun rfl

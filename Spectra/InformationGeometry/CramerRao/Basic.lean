@@ -1,6 +1,6 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Spectra.InformationGeometry.StatisticalManifold
@@ -183,5 +183,5 @@ lemma variance_eq_centered {θ : ParamSpace n}
   rw [mid, hE_def, last]
   ring
 
-  end RegularStatisticalModel
-  end Spectra.InformationGeometry
+end RegularStatisticalModel
+end Spectra.InformationGeometry

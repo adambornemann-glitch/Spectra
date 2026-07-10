@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
-Author: Adam Bornemann
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Adam Bornemann
 -/
 import Spectra.QuantumMechanics.Channels.PolarDecomp
 import Mathlib.Analysis.InnerProductSpace.l2Space
@@ -109,8 +109,10 @@ lemma tsum_enorm_apply_sq_comm {κ : Type*} (A : H →L[ℂ] H) (hA : IsSelfAdjo
     _ = ∑' j, (‖A (b' j)‖₊ : ℝ≥0∞) ^ 2 :=
         tsum_congr fun j => (tsum_enorm_inner_sq b (A (b' j))).symm
 
-/-- **Basis-independence of the positive trace.** `posTrace` does not depend on the Hilbert basis. -/
-theorem posTrace_indep {κ : Type*} (b : HilbertBasis ι ℂ H) (b' : HilbertBasis κ ℂ H) (T : H →L[ℂ] H) :
+/-- **Basis-independence of the positive trace.** `posTrace` does not depend on the Hilbert basis.
+-/
+theorem posTrace_indep {κ : Type*} (b : HilbertBasis ι ℂ H) (b' : HilbertBasis κ ℂ H)
+    (T : H →L[ℂ] H) :
     posTrace b T = posTrace b' T :=
   tsum_enorm_apply_sq_comm (sqrtOp T) (sqrtOp_isSelfAdjoint T) b b'
 

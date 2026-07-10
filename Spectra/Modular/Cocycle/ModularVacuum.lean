@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
-Author: Adam Bornemann
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Adam Bornemann
 -/
 import Spectra.Modular.Cocycle.PolarIsometry
 /-!
@@ -23,12 +23,13 @@ calculus gives `Δ^{½} Ω = Ω`, and the polar relation `S = J Δ^{½}` then fo
 
 The remaining vacuum-fixing fact `Δ^{it} Ω = Ω` (the modular flow fixes `Ω`) is **not** proved here:
 `modularFlow = borelModularGroup (cayleyTransform Δ) …` acts through the *Borel* calculus of the
-Cayley transform `V` (symbol `modularSymbol V t = λ^{it}`), whose generator is `log Δ` (not `Δ`), and
-the codebase currently lacks the "`borelCalculus V g` on a `V`-eigenvector `ψ` (with `V ψ = z • ψ`)
-equals `g z • ψ`" lemma — equivalently, that the spectral measure of an eigenvector is a Dirac mass.
-That lemma (or, alternatively, `generator (modularFlow) = log Δ` via a Stone/Yosida/Borel bridge) is
-the missing infrastructure; with either, `Ω` being a `Δ`-eigenvector at `1` (`modularOp_vacuum`) gives
-`modularSymbol V t (cayley 1) = exp(i t · log 1) = 1`, hence `Δ^{it} Ω = Ω`.
+Cayley transform `V` (symbol `modularSymbol V t = λ^{it}`), whose generator is `log Δ` (not `Δ`),
+and the codebase currently lacks the "`borelCalculus V g` on a `V`-eigenvector `ψ` (with
+`V ψ = z • ψ`) equals `g z • ψ`" lemma — equivalently, that the spectral measure of an eigenvector
+is a Dirac mass. That lemma (or, alternatively, `generator (modularFlow) = log Δ` via a
+Stone/Yosida/Borel bridge) is the missing infrastructure; with either, `Ω` being a `Δ`-eigenvector
+at `1` (`modularOp_vacuum`) gives `modularSymbol V t (cayley 1) = exp(i t · log 1) = 1`, hence
+`Δ^{it} Ω = Ω`.
 -/
 
 open scoped InnerProductSpace
@@ -47,9 +48,11 @@ variable {M : VonNeumannAlgebra H} {Ω : H}
 /-! ## Lemma A — `Δ Ω = Ω`
 
 Throughout we use `(1 : H →L[ℂ] H) Ω = Ω` (which holds by `rfl`) so that `Ω = 1 · Ω` with `1 ∈ M`
-and `1 ∈ M'`; the membership proofs for `Ω` and `1 Ω` are therefore definitionally interchangeable. -/
+and `1 ∈ M'`; the membership proofs for `Ω` and `1 Ω` are therefore definitionally interchangeable.
+-/
 
-/-- `Ω ∈ D(S)`: the vacuum lies in the domain of the Tomita operator (it is `1 · Ω` with `1 ∈ M`). -/
+/-- `Ω ∈ D(S)`: the vacuum lies in the domain of the Tomita operator (it is `1 · Ω` with `1 ∈ M`).
+-/
 theorem vacuum_mem_tomitaClosure_domain :
     Ω ∈ (tomitaClosure M Ω).domain := by
   have hΩop : Ω ∈ (tomitaOp M Ω).domain := by
@@ -115,7 +118,7 @@ theorem tomitaClosure_adjoint_vacuum (hcyc : IsCyclic M Ω) (hsep : IsSeparating
     intro x
     have h := hFA ⟨toConj Ω, htcΩ⟩ x
     rw [hw, h]
-    show ⟪toConj Ω, tomitaClosure M Ω x⟫_ℂ = ⟪Ω, (x : H)⟫_ℂ
+    change ⟪toConj Ω, tomitaClosure M Ω x⟫_ℂ = ⟪Ω, (x : H)⟫_ℂ
     rw [← inner_conj_symm (𝕜 := ℂ) (toConj Ω) (tomitaClosure M Ω x), hpair x, inner_conj_symm]
   have hsub0 : w - Ω = 0 := by
     have hd : ∀ z ∈ (tomitaClosure M Ω).domain, ⟪w - Ω, z⟫_ℂ = 0 := by
@@ -153,8 +156,9 @@ theorem modularOp_vacuum (hcyc : IsCyclic M Ω) (hsep : IsSeparating M Ω)
 /-! ## Lemma B — `Ω` in the spectral atom `{1}` of `Δ`
 
 The unitary group of `Δ = modularOp M Ω` (mirroring `PolarIsometry.lean`).  Its spectral projection
-`spectralProjection U` is definitionally the projection of `PVM.spectralPVM (modularOp_isSelfAdjoint …)`,
-so the eigenspace bridge `spectralPVM_proj_singleton_eq_self_iff` transfers directly. -/
+`spectralProjection U` is definitionally the projection of
+`PVM.spectralPVM (modularOp_isSelfAdjoint …)`, so the eigenspace bridge
+`spectralPVM_proj_singleton_eq_self_iff` transfers directly. -/
 
 /-- The unitary group of the modular operator `Δ = modularOp M Ω`. -/
 private noncomputable abbrev modularGroup (hcyc : IsCyclic M Ω) (hsep : IsSeparating M Ω) :
@@ -186,7 +190,8 @@ theorem modularSqrt_atom_apply (hcyc : IsCyclic M Ω) (hsep : IsSeparating M Ω)
     (hmem : spectralProjection (modularGroup hcyc hsep) ({(1 : ℝ)} : Set ℝ)
         (measurableSet_singleton 1) Ω ∈ (modularOp M Ω).domain) :
     modularSqrt hcyc hsep
-        ⟨spectralProjection (modularGroup hcyc hsep) ({(1 : ℝ)} : Set ℝ) (measurableSet_singleton 1) Ω,
+        ⟨spectralProjection (modularGroup hcyc hsep) ({(1 : ℝ)} : Set ℝ)
+          (measurableSet_singleton 1) Ω,
           modularOp_domain_le_modularSqrt_domain hcyc hsep hmem⟩
       = spectralProjection (modularGroup hcyc hsep) ({(1 : ℝ)} : Set ℝ)
           (measurableSet_singleton 1) Ω := by

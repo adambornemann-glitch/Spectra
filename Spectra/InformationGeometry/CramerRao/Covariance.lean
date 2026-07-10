@@ -1,6 +1,6 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Spectra.InformationGeometry.CramerRao.Basic
@@ -175,7 +175,7 @@ For a regular unbiased estimator `T` with `E_θ[T] = τ(θ)`:
   since `E[sᵢ] = 0`.
 - `E[T · sᵢ] = ∫ T · sᵢ · p dμ = ∫ T · ∂ᵢp dμ` (a.e. rewrite).
 - `∫ T · ∂ᵢp dμ = ∂ᵢ(∫ T · p dμ)` (Leibniz).
-- `∂ᵢ(∫ T · p dμ) = ∂ᵢ(E[T]) = ∂ᵢ(τ(θ))` (unbiasedness).  -/
+- `∂ᵢ(∫ T · p dμ) = ∂ᵢ(E[T]) = ∂ᵢ(τ(θ))` (unbiasedness). -/
 lemma covariance_score_eq_deriv_target
     {θ : ParamSpace n} (hθ : θ ∈ M.paramDomain)
     (T : Ω → ℝ)

@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
-Author: Adam Bornemann
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Adam Bornemann
 -/
 import Spectra.InformationGeometry.Quantum.Entropy.Spectral
 
@@ -12,8 +12,8 @@ For two quantum states `ρ σ : QState H`, the **diagonal** `sᵢ = ⟪eᵢ, σ 
 eigenbasis `{eᵢ}` is the bounded, positive quantity that carries the classical (commuting-case) part
 of Klein's inequality: it needs no unbounded functional calculus of `log σ`, only an inner product.
 This file records its `[0,1]` bounds and — the key fact — that `∑ᵢ sᵢ = Tr σ = 1`, so `s` is a
-probability distribution on `ρ`'s eigen-index.  This is `Tr σ` read off in `ρ`'s basis, and its proof
-is the eigenbasis `hasSum_eigenvalue` with `σ.toOp` in place of `ρ.toOp`.
+probability distribution on `ρ`'s eigen-index.  This is `Tr σ` read off in `ρ`'s basis, and
+its proof is the eigenbasis `hasSum_eigenvalue` with `σ.toOp` in place of `ρ.toOp`.
 
 ## Main results
 
@@ -49,8 +49,8 @@ lemma diagSigma_le_one (ρ σ : QState H) (i : eigenIndex ρ.toOp) : ρ.diagSigm
     _ = ‖σ.toOp‖ * ‖ρ.eigenbasis i‖ ^ 2 := by ring
     _ ≤ 1 := by rw [he]; simpa using hσ
 
-/-- **The diagonal is a probability distribution**: `∑ᵢ sᵢ = Tr σ = 1`, read off in `ρ`'s eigenbasis.
-The proof is `hasSum_eigenvalue` with `σ.toOp` in place of `ρ.toOp`. -/
+/-- **The diagonal is a probability distribution**: `∑ᵢ sᵢ = Tr σ = 1`, read off in `ρ`'s
+eigenbasis. The proof is `hasSum_eigenvalue` with `σ.toOp` in place of `ρ.toOp`. -/
 lemma hasSum_diagSigma (ρ σ : QState H) : HasSum (ρ.diagSigma σ) 1 := by
   have htr : ((posTrace ρ.eigenbasis σ.toOp).toReal : ℂ) = 1 := by
     rw [← trace_of_nonneg σ.toOp_nonneg ρ.eigenbasis]; exact σ.trace_toOp

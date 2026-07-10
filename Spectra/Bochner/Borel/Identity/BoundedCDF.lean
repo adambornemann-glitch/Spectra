@@ -1,6 +1,6 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Spectra.Bochner.Borel.CDF
@@ -79,7 +79,7 @@ lemma integral_Ioc_tendsto_of_cdf_tendsto
   have mass_k : ∀ k c d, c ≤ d →
       (μk k (Set.Ioc c d)).toReal = F (φ k) d - F (φ k) c := by
     intro k c d hcd
-    show ((mono_F (φ k)).stieltjesFunction.measure (Set.Ioc c d)).toReal = F (φ k) d - F (φ k) c
+    change ((mono_F (φ k)).stieltjesFunction.measure (Set.Ioc c d)).toReal = F (φ k) d - F (φ k) c
     rw [StieltjesFunction.measure_Ioc,
         (mono_F (φ k)).stieltjesFunction_eq, (mono_F (φ k)).stieltjesFunction_eq,
         rc_F (φ k) d, rc_F (φ k) c,
@@ -88,7 +88,7 @@ lemma integral_Ioc_tendsto_of_cdf_tendsto
   have mass_G_cont : ∀ c d, c ≤ d → ContinuousAt G c → ContinuousAt G d →
       (μ (Set.Ioc c d)).toReal = G d - G c := by
     intro c d hcd hcc hdd
-    show (mono_G.stieltjesFunction.measure (Set.Ioc c d)).toReal = G d - G c
+    change (mono_G.stieltjesFunction.measure (Set.Ioc c d)).toReal = G d - G c
     rw [StieltjesFunction.measure_Ioc,
         stieltjes_eq_at_continuousAt G mono_G d hdd,
         stieltjes_eq_at_continuousAt G mono_G c hcc,
@@ -200,7 +200,7 @@ lemma integral_Ioc_tendsto_of_cdf_tendsto
     ∑ i ∈ Finset.range n,
       (μ (Set.Ioc (t i) (t (i + 1)))).toReal • g (t (i + 1)) with hRS_inf_def
   have hRS_tendsto : Tendsto RS atTop (𝓝 RS_inf) := by
-    show Tendsto (fun k => ∑ i ∈ Finset.range n,
+    change Tendsto (fun k => ∑ i ∈ Finset.range n,
         (μk k (Set.Ioc (t i) (t (i + 1)))).toReal • g (t (i + 1))) atTop
       (𝓝 (∑ i ∈ Finset.range n,
         (μ (Set.Ioc (t i) (t (i + 1)))).toReal • g (t (i + 1))))
@@ -304,15 +304,15 @@ lemma integral_Ioc_tendsto_of_cdf_tendsto
       _ ≤ ‖intFk - RSk‖ + (‖RSk - RSinf‖ + ‖RSinf - intG‖) := by gcongr; exact norm_add_le _ _
       _ = ‖intFk - RSk‖ + ‖RSk - RSinf‖ + ‖RSinf - intG‖ := by ring
   have hAB : ‖intFk - RSk‖ ≤ ε * (F (φ k) b - F (φ k) a) := by
-    show ‖(∫ x in Set.Ioc a b, g x ∂(μk k))
+    change ‖(∫ x in Set.Ioc a b, g x ∂(μk k))
         - ∑ i ∈ Finset.range n,
             (μk k (Set.Ioc (t i) (t (i + 1)))).toReal • g (t (i + 1))‖
         ≤ ε * (F (φ k) b - F (φ k) a)
     exact total_bound (μk k) _ (sum_masses_F k)
   have hCD : ‖RSinf - intG‖ ≤ ε * M := by
-    show ‖RS_inf - ∫ x in Set.Ioc a b, g x ∂μ‖ ≤ ε * M
+    change ‖RS_inf - ∫ x in Set.Ioc a b, g x ∂μ‖ ≤ ε * M
     rw [norm_sub_rev]
-    show ‖(∫ x in Set.Ioc a b, g x ∂μ)
+    change ‖(∫ x in Set.Ioc a b, g x ∂μ)
         - ∑ i ∈ Finset.range n,
             (μ (Set.Ioc (t i) (t (i + 1)))).toReal • g (t (i + 1))‖ ≤ ε * M
     exact total_bound μ _ sum_masses_G

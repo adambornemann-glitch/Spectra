@@ -1,8 +1,7 @@
 /-
-Copyright (c) 2025 Bell Theorem Formalization Project
+Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Ported from Isabelle/HOL formalization by Echenim & Mhalla
-Ported by: Adam Bornemann
+Authors: Ported from Isabelle/HOL formalization by Echenim & Mhalla, by Adam Bornemann
 -/
 import Mathlib.Algebra.Lie.OfAssociative
 import Mathlib.Algebra.Star.CHSH
@@ -60,7 +59,7 @@ lemma norm_mulVec_le_of_sq_le {n : ℕ} [NeZero n]
     (H : Matrix (Fin n) (Fin n) ℂ)
     (hH : H.IsHermitian)
     (c : ℝ)
-    (h_sq : IsPosSemidefComplex ((c^2 : ℝ) • (1 : Matrix (Fin n) (Fin n) ℂ) - H * H))
+    (h_sq : IsPosSemidefComplex ((c ^ 2 : ℝ) • (1 : Matrix (Fin n) (Fin n) ℂ) - H * H))
     (x : Fin n → ℂ) :
     ∑ i, ‖(H.mulVec x) i‖^2 ≤ c^2 * ∑ i, ‖x i‖^2 := by
   have hx := h_sq x
@@ -94,7 +93,7 @@ private lemma abs_re_dotProduct_mulVec_le_of_sq_le {n : ℕ} [NeZero n]
     (H : Matrix (Fin n) (Fin n) ℂ)
     (hH : H.IsHermitian)
     (c : ℝ) (hc : 0 ≤ c)
-    (h_sq : IsPosSemidefComplex ((c^2 : ℝ) • (1 : Matrix (Fin n) (Fin n) ℂ) - H * H))
+    (h_sq : IsPosSemidefComplex ((c ^ 2 : ℝ) • (1 : Matrix (Fin n) (Fin n) ℂ) - H * H))
     (x : Fin n → ℂ) :
     |(star x ⬝ᵥ H.mulVec x).re| ≤ c * ∑ i, ‖x i‖^2 := by
   have h_norm_bound : ∑ i, ‖(H.mulVec x) i‖^2 ≤ c^2 * ∑ i, ‖x i‖^2 :=
@@ -148,7 +147,7 @@ lemma posSemidef_sub_of_sq_le {n : ℕ} [NeZero n]
     (H : Matrix (Fin n) (Fin n) ℂ)
     (hH : H.IsHermitian)
     (c : ℝ) (hc : 0 ≤ c)
-    (h_sq : IsPosSemidefComplex ((c^2 : ℝ) • (1 : Matrix (Fin n) (Fin n) ℂ) - H * H)) :
+    (h_sq : IsPosSemidefComplex ((c ^ 2 : ℝ) • (1 : Matrix (Fin n) (Fin n) ℂ) - H * H)) :
     IsPosSemidefComplex ((c : ℂ) • (1 : Matrix (Fin n) (Fin n) ℂ) - H) := by
   intro x
   simp only [Matrix.sub_mulVec, Matrix.smul_mulVec, Matrix.one_mulVec]
@@ -165,7 +164,7 @@ lemma posSemidef_add_of_sq_le {n : ℕ} [NeZero n]
     (H : Matrix (Fin n) (Fin n) ℂ)
     (hH : H.IsHermitian)
     (c : ℝ) (hc : 0 ≤ c)
-    (h_sq : IsPosSemidefComplex ((c^2 : ℝ) • (1 : Matrix (Fin n) (Fin n) ℂ) - H * H)) :
+    (h_sq : IsPosSemidefComplex ((c ^ 2 : ℝ) • (1 : Matrix (Fin n) (Fin n) ℂ) - H * H)) :
     IsPosSemidefComplex ((c : ℂ) • (1 : Matrix (Fin n) (Fin n) ℂ) + H) := by
   intro x
   simp only [Matrix.add_mulVec, Matrix.smul_mulVec, Matrix.one_mulVec]
@@ -268,29 +267,24 @@ theorem tsirelson_bound {n : ℕ} [NeZero n]
   let S := chshOp A₀ A₁ B₀ B₁
   let c := 2 * Real.sqrt 2
   have hS_herm : S.IsHermitian := CHSH_op_isHermitian A₀ A₁ B₀ B₁ hT
-
   have hS_sq : IsPosSemidefComplex (8 • (1 : Matrix (Fin n) (Fin n) ℂ) - S * S) :=
     CHSH_op_sq_le_eight A₀ A₁ B₀ B₁ hT
-
-  have hc_sq : c^2 = 8 := by
+  have hc_sq : c ^ 2 = 8 := by
     simp only [c]
     rw [mul_pow]
     norm_num
   have hc : 0 ≤ c := by simp only [c]; positivity
-
-  have hS_sq' : IsPosSemidefComplex ((c^2 : ℝ) • (1 : Matrix (Fin n) (Fin n) ℂ) - S * S) := by
+  have hS_sq' : IsPosSemidefComplex ((c ^ 2 : ℝ) • (1 : Matrix (Fin n) (Fin n) ℂ) - S * S) := by
     have h_sqrt : (2 * Real.sqrt 2)^2 = 8 := by
       rw [mul_pow]
       norm_num
     convert hS_sq using 2
     rw [h_sqrt]
     exact ofNat_smul_eq_nsmul ℝ 8 1
-
   have h_upper : IsPosSemidefComplex ((c : ℂ) • (1 : Matrix (Fin n) (Fin n) ℂ) - S) :=
     posSemidef_sub_of_sq_le S hS_herm c hc hS_sq'
   have h_lower : IsPosSemidefComplex ((c : ℂ) • (1 : Matrix (Fin n) (Fin n) ℂ) + S) :=
     posSemidef_add_of_sq_le S hS_herm c hc hS_sq'
-
   exact trace_bound_of_posSemidef_bounds (chshOp A₀ A₁ B₀ B₁) hS_herm (2 * √2) h_upper h_lower ρ
 
 end Spectra.QuantumInfo

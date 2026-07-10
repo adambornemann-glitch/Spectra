@@ -1,5 +1,5 @@
 /-
-Copyright (c) 2026 Bell Theorem Formalization Project
+Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
@@ -72,11 +72,12 @@ lemma wigner_card_le {Ω : Type*} [DecidableEq Ω] (A B C : Finset Ω) :
 and three sign functions `σa, σb, σc : Ω → Bool` recording each class's would-be outcome at each of
 three measurement settings, the fraction of the ensemble with `σa = true` and `σb = false` is at
 most the sum of the fractions with (`σa = true`, `σc = false`) and (`σc = true`, `σb = false`). -/
-theorem wigner_inequality {Ω : Type*} [Fintype Ω] [DecidableEq Ω] (σa σb σc : Ω → Bool) :
+theorem wigner_inequality {Ω : Type*} [Fintype Ω] (σa σb σc : Ω → Bool) :
     (Finset.univ.filter (fun ω => σa ω = true ∧ σb ω = false)).card / (Fintype.card Ω : ℝ)
       ≤ (Finset.univ.filter (fun ω => σa ω = true ∧ σc ω = false)).card / (Fintype.card Ω : ℝ)
         + (Finset.univ.filter (fun ω => σc ω = true ∧ σb ω = false)).card
           / (Fintype.card Ω : ℝ) := by
+  classical
   set A := Finset.univ.filter (fun ω => σa ω = true) with hA
   set B := Finset.univ.filter (fun ω => σb ω = true) with hB
   set C := Finset.univ.filter (fun ω => σc ω = true) with hC

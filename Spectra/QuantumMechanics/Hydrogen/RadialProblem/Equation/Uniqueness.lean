@@ -1,6 +1,6 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Spectra.QuantumMechanics.Hydrogen.RadialProblem.Equation.Reduced
@@ -59,7 +59,8 @@ private lemma lagCoeff_leading (p : ℕ) (α : ℝ) :
 where `cL = (-1)^p/p!` is the leading coefficient. -/
 private lemma laguerre_asymptotic (p : ℕ) (α : ℝ) :
     ∃ x₀ c C : ℝ, 1 ≤ x₀ ∧ 0 < c ∧ 0 < C ∧
-      ∀ x, x₀ ≤ x → c * x ^ p ≤ |laguerrePolynomial p α x| ∧ |laguerrePolynomial p α x| ≤ C * x ^ p := by
+      ∀ x, x₀ ≤ x → c * x ^ p ≤ |laguerrePolynomial p α x|
+        ∧ |laguerrePolynomial p α x| ≤ C * x ^ p := by
   set cL := (-1 : ℝ) ^ p / (p.factorial : ℝ) with hcL
   have hcLpos : 0 < |cL| := by
     rw [hcL, abs_div, abs_pow, abs_neg, abs_one, one_pow]
@@ -211,7 +212,7 @@ private lemma chiR_deriv_eq (n ℓ : ℕ) (hn : ℓ + 1 ≤ n) :
     deriv (chiR n ℓ hn) = fun s =>
       hydrogenRadialWavefunction n ℓ hn s + s * deriv (hydrogenRadialWavefunction n ℓ hn) s := by
   funext s
-  show deriv (fun t => t * hydrogenRadialWavefunction n ℓ hn t) s = _
+  change deriv (fun t => t * hydrogenRadialWavefunction n ℓ hn t) s = _
   exact deriv_reducedMul _ ((differentiable_hydrogenRadial n ℓ hn s).hasDerivAt)
 
 /-- The derivative of `χ_R = r·R_{nℓ}` is itself differentiable, so `χ_R` is `C²`. -/
@@ -721,7 +722,7 @@ theorem bound_state_eq_smul_eigenfunction (n ℓ : ℕ) (hn : ℓ + 1 ≤ n) (ψ
     have hval : 0 < hydrogenReducedWavefunction n ℓ hn s := by
       have hm := mul_pos hpos hsp
       rwa [div_mul_cancel₀ _ (ne_of_gt hsp)] at hm
-    show chiR n ℓ hn s ≠ 0
+    change chiR n ℓ hn s ≠ 0
     rw [show chiR n ℓ hn s = hydrogenReducedWavefunction n ℓ hn s from rfl]
     exact ne_of_gt hval
   obtain ⟨δ, hδpos, hδne⟩ := hnear0
@@ -730,7 +731,7 @@ theorem bound_state_eq_smul_eigenfunction (n ℓ : ℕ) (hn : ℓ + 1 ≤ n) (ψ
     rw [show chiR n ℓ hn rs = rs * hydrogenRadialWavefunction n ℓ hn rs from rfl]
     exact mul_ne_zero (ne_of_gt hrspos) hRrs
   have hc₀eq : χ rs / chiR n ℓ hn rs = c₀ := by
-    show (rs * ψ rs) / (rs * hydrogenRadialWavefunction n ℓ hn rs)
+    change (rs * ψ rs) / (rs * hydrogenRadialWavefunction n ℓ hn rs)
       = ψ rs / hydrogenRadialWavefunction n ℓ hn rs
     rw [mul_div_mul_left _ _ (ne_of_gt hrspos)]
   -- global identification χ = c₀·χ_R

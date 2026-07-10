@@ -1,9 +1,12 @@
 /-
-Copyright (c) 2025 Bell Theorem Formalization Project
+Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Ported from Isabelle/HOL formalization by Echenim & Mhalla
-Ported by: Adam Bornemann
-
+Authors: Ported from Isabelle/HOL formalization by Echenim & Mhalla, by Adam Bornemann
+-/
+import Mathlib.Algebra.Lie.OfAssociative
+import Mathlib.Algebra.Star.CHSH
+import Spectra.QuantumMechanics.BellsTheorem.Basic
+/-!
 # The CHSH Operator Squared: S² = 4I - [A₀,A₁]·[B₀,B₁]
 
 The algebraic engine of the whole Tsirelson chain (`Commuting.lean`,
@@ -51,10 +54,6 @@ instead uses `Ring.lie_def : ⁅x, y⁆ = x * y - y * x` (itself `rfl`) via `rw`
 
 chsh, commutator, tsirelson bound, quantum information
 -/
-import Mathlib.Algebra.Lie.OfAssociative
-import Mathlib.Algebra.Star.CHSH
-import Spectra.QuantumMechanics.BellsTheorem.Basic
-
 namespace Spectra.QuantumInfo
 
 /-- For involutions A² = B² = I: (A + B)² = 2I + AB + BA -/

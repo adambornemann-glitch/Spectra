@@ -1,8 +1,7 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
-Filename: SpectralTheory/StoneFormula/Basic.lean
 -/
 import Spectra.Resolvent.SpectralRepresentation
 import Spectra.Kernel.Arctan
@@ -180,7 +179,7 @@ lemma stoneLimit_measurable (a b : ℝ) (hab : a < b) : Measurable (stoneLimit a
 
 lemma stoneLimit_bdd (a b : ℝ) : ∃ C, ∀ s, ‖stoneLimit a b s‖ ≤ C := by
   refine ⟨1, fun s => ?_⟩
-  show ‖((averagedIndicator a b s : ℝ) : ℂ)‖ ≤ 1
+  change ‖((averagedIndicator a b s : ℝ) : ℂ)‖ ≤ 1
   rw [Complex.norm_real, Real.norm_eq_abs]
   unfold averagedIndicator
   split_ifs <;> norm_num

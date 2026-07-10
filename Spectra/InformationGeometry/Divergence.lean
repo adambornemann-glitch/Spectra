@@ -1,6 +1,6 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Spectra.InformationGeometry.Regularity
@@ -294,14 +294,14 @@ lemma klDiv_partial_j
   rw [hKL.fderiv]
   simp only [ContinuousLinearMap.neg_apply, neg_inj]
   rw [ContinuousLinearMap.integral_apply]
-  apply integral_congr_ae
-  filter_upwards [M.density_pos_ae θ₀ hθ₀] with ω hω
-  simp only [ContinuousLinearMap.smul_apply, smul_eq_mul]
-  have h_ne : M.density θ₀ ω ≠ 0 := ne_of_gt hω
-  have h_diff := M.toStatisticalModel.density_differentiableAt hθ₀ ω
-  rw [(h_diff.hasFDerivAt.log h_ne).fderiv, ContinuousLinearMap.smul_apply, smul_eq_mul]
-  unfold RegularStatisticalModel.score RegularStatisticalModel.partialDensity
-  · ring
+  · apply integral_congr_ae
+    filter_upwards [M.density_pos_ae θ₀ hθ₀] with ω hω
+    simp only [ContinuousLinearMap.smul_apply, smul_eq_mul]
+    have h_ne : M.density θ₀ ω ≠ 0 := ne_of_gt hω
+    have h_diff := M.toStatisticalModel.density_differentiableAt hθ₀ ω
+    rw [(h_diff.hasFDerivAt.log h_ne).fderiv, ContinuousLinearMap.smul_apply, smul_eq_mul]
+    unfold RegularStatisticalModel.score RegularStatisticalModel.partialDensity
+    ring
   · obtain ⟨ε₁, hε₁, bound, hbound_int, h_ae⟩ :=
       M.crossEntropy_fderiv_bound θ hθ θ₀ hθ₀
     apply Integrable.mono hbound_int.norm
@@ -394,7 +394,8 @@ lemma score_deriv_aestronglyMeasurable
       have h_slope_tendsto : Tendsto (fun h : ℝ => (g h - g 0) / h) (𝓝[≠] 0) (𝓝 L) := by
         have := hasDerivAt_iff_tendsto_slope.mp h_deriv
         exact this.congr (fun h => by
-          simp [slope, sub_zero]; exact inv_mul_eq_div h (g h - g 0))
+          simp only [slope, sub_zero]
+          exact inv_mul_eq_div h (g h - g 0))
       suffices h_seq : Tendsto (fun m : ℕ =>
           (g ((m + 1 + N₀ : ℝ)⁻¹) - g 0) / (m + 1 + N₀ : ℝ)⁻¹) atTop (𝓝 L) by
         refine h_seq.congr (fun m => ?_)
@@ -1152,7 +1153,7 @@ lemma klDiv_taylor_second_order {θ : ParamSpace n} (hθ : θ ∈ M.paramDomain)
       HasDerivAt (fun s => M.klDiv θ (θ + s • δ))
         (fderiv ℝ (M.klDiv θ) (θ + t • δ) δ) t := by
     intro t ht0 ht1
-    show HasDerivAt ((M.klDiv θ) ∘ (fun s => θ + s • δ)) _ t
+    change HasDerivAt ((M.klDiv θ) ∘ (fun s => θ + s • δ)) _ t
     exact (hKL_fderiv t ht0 ht1).comp_hasDerivAt t (hline t)
   set G := ∑ i : Fin n, ∑ j : Fin n,
     δ i * δ j * M.toRegularStatisticalModel.fisherMatrix θ i j
@@ -1297,7 +1298,7 @@ lemma klDiv_hessian_vec {θ : ParamSpace n} (hθ : θ ∈ M.paramDomain)
             ParamSpace n →L[ℝ] ℝ)) := by
       funext θ₀
       exact continuousLinearMap_eq_sum_innerSL _
-    show DifferentiableAt ℝ (fun θ₀ => fderiv ℝ (M.klDiv θ) θ₀) θ
+    change DifferentiableAt ℝ (fun θ₀ => fderiv ℝ (M.klDiv θ) θ₀) θ
     rw [h_eq]
     refine DifferentiableAt.fun_sum fun j _ => ?_
     haveI : IsScalarTower ℝ ℝ (ParamSpace n →L[ℝ] ℝ) :=

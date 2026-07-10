@@ -1,9 +1,13 @@
 /-
-Copyright (c) 2025 Bell Theorem Formalization Project
+Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Ported from Isabelle/HOL formalization by Echenim & Mhalla
-Ported by: Adam Bornemann
-
+Authors: Ported from Isabelle/HOL formalization by Echenim & Mhalla, by Adam Bornemann
+-/
+import Mathlib.Algebra.Lie.OfAssociative
+import Mathlib.Algebra.Star.CHSH
+import Spectra.QuantumMechanics.BellsTheorem.CHSH_Bounds.CHSH_Basic
+import Spectra.QuantumMechanics.BellsTheorem.CHSH_Bounds.Op_square
+/-!
 # Commuting Observables Cannot Violate CHSH
 
 If either Alice's pair `A₀, A₁` or Bob's pair `B₀, B₁` commutes (`IsCHSHTuple` alone only supplies
@@ -23,11 +27,6 @@ correction term), so `S/2` is an involution and the dichotomic bound applies dir
 
 chsh, commuting observables, quantum information
 -/
-import Mathlib.Algebra.Lie.OfAssociative
-import Mathlib.Algebra.Star.CHSH
-import Spectra.QuantumMechanics.BellsTheorem.CHSH_Bounds.CHSH_Basic
-import Spectra.QuantumMechanics.BellsTheorem.CHSH_Bounds.Op_square
-
 open Matrix Complex
 
 namespace Spectra.QuantumInfo
@@ -63,7 +62,7 @@ lemma CHSH_commuting_bound {n : ℕ} [NeZero n]
     module
   -- S' is Hermitian (CHSH operator is Hermitian)
   have h_S_herm : S.IsHermitian := by
-    show (chshOp A₀ A₁ B₀ B₁).IsHermitian
+    change (chshOp A₀ A₁ B₀ B₁).IsHermitian
     simp only [chshOp]
     simp only [Matrix.IsHermitian]
     rw [Matrix.conjTranspose_add, Matrix.conjTranspose_add, Matrix.conjTranspose_sub]

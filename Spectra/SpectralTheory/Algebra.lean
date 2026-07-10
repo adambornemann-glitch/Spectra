@@ -1,4 +1,10 @@
 /-
+Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Adam Bornemann
+-/
+
+/-
 Spectra: SpectralTheory/Algebra.lean
 Dirac Operator and Hamiltonian, rebuilt on the constructed spectral calculus.
 -/
@@ -598,7 +604,7 @@ theorem generator_has_arbitrarily_negative_energy
     pow_pos (norm_pos_iff.mpr hM) 2
   refine ⟨⟨spectralProjection U_grp (Set.Icc (-(↑M : ℝ)) (bound - 1)) measurableSet_Icc φ,
     hmem⟩, hM, ?_⟩
-  show (⟪generator U_grp
+  change (⟪generator U_grp
       ⟨spectralProjection U_grp (Set.Icc (-(↑M : ℝ)) (bound - 1)) measurableSet_Icc φ, hmem⟩,
       spectralProjection U_grp (Set.Icc (-(↑M : ℝ)) (bound - 1)) measurableSet_Icc φ⟫_ℂ).re
     < bound * ‖spectralProjection U_grp (Set.Icc (-(↑M : ℝ)) (bound - 1))
@@ -624,7 +630,7 @@ theorem generator_has_arbitrarily_positive_energy
     pow_pos (norm_pos_iff.mpr hM) 2
   refine ⟨⟨spectralProjection U_grp (Set.Icc (bound + 1) (↑M : ℝ)) measurableSet_Icc φ,
     hmem⟩, hM, ?_⟩
-  show (⟪generator U_grp
+  change (⟪generator U_grp
       ⟨spectralProjection U_grp (Set.Icc (bound + 1) (↑M : ℝ)) measurableSet_Icc φ, hmem⟩,
       spectralProjection U_grp (Set.Icc (bound + 1) (↑M : ℝ)) measurableSet_Icc φ⟫_ℂ).re
     > bound * ‖spectralProjection U_grp (Set.Icc (bound + 1) (↑M : ℝ))

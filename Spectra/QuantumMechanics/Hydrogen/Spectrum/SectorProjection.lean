@@ -1,6 +1,6 @@
 /-
-Copyright (c) 2026 Logos Library Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Spectra.QuantumMechanics.Hydrogen.Spectrum.Forward
@@ -127,7 +127,8 @@ lemma weak_eigen_combined (p : CoulombParams) (E : ℝ)
     (φ : R3 → ℂ) (hφ : ContDiff ℝ ∞ φ) (hφ0 : HasCompactSupport φ) :
     ∫ x, (ψ : Spectra.Sobolev.l2R3) x *
       (-(1 / 2 : ℂ) * (∑ i : Fin 3,
-          fderiv ℝ (fun y => fderiv ℝ φ y (EuclideanSpace.single i 1)) x (EuclideanSpace.single i 1))
+          fderiv ℝ (fun y => fderiv ℝ φ y (EuclideanSpace.single i 1)) x
+            (EuclideanSpace.single i 1))
         + (coulombMultiplier p x : ℂ) * φ x - (E : ℂ) * φ x) = 0 := by
   -- the Cartesian weak eigenequation: `-∫ ψ·(∑∂²φ) = ∫ 2(E−V)ψφ`
   have hcwe := cartesian_weak_eigen p E ψ heig φ hφ hφ0
@@ -141,7 +142,8 @@ lemma weak_eigen_combined (p : CoulombParams) (E : ℝ)
       (contDiff_partialDeriv φ i hφ) (hasCompactSupport_partialDeriv φ i hφ0)
   have hint_lap : Integrable (fun x => (ψ : Spectra.Sobolev.l2R3) x * ∑ i : Fin 3,
       fderiv ℝ (fun y => fderiv ℝ φ y (EuclideanSpace.single i 1)) x (EuclideanSpace.single i 1)) :=
-    memLp_one_iff_integrable.mp (MemLp.mul' (r := 1) hlapMemLp (Lp.memLp (ψ : Spectra.Sobolev.l2R3)))
+    memLp_one_iff_integrable.mp (MemLp.mul' (r := 1)
+      hlapMemLp (Lp.memLp (ψ : Spectra.Sobolev.l2R3)))
   -- integrability of the RHS integrand: a.e. equal to the `L²·L²` product `(weakLaplacian ψ)·φ`
   have hwe := weak_eigenequation_ae p E ψ heig
   have hint_wlφ : Integrable (fun x => ⇑(weakLaplacian (ψ : Spectra.Sobolev.l2R3) ψ.2) x * φ x) :=
@@ -154,10 +156,12 @@ lemma weak_eigen_combined (p : CoulombParams) (E : ℝ)
   -- rewrite the goal integral as `-(1/2)·(∫ ψ·∑∂²φ) + -(1/2)·(∫ 2(E−V)ψφ)`
   have hrw : (∫ x, (ψ : Spectra.Sobolev.l2R3) x *
         (-(1 / 2 : ℂ) * (∑ i : Fin 3,
-            fderiv ℝ (fun y => fderiv ℝ φ y (EuclideanSpace.single i 1)) x (EuclideanSpace.single i 1))
+            fderiv ℝ (fun y => fderiv ℝ φ y (EuclideanSpace.single i 1)) x
+              (EuclideanSpace.single i 1))
           + (coulombMultiplier p x : ℂ) * φ x - (E : ℂ) * φ x))
       = -(1 / 2 : ℂ) * (∫ x, (ψ : Spectra.Sobolev.l2R3) x * ∑ i : Fin 3,
-            fderiv ℝ (fun y => fderiv ℝ φ y (EuclideanSpace.single i 1)) x (EuclideanSpace.single i 1))
+            fderiv ℝ (fun y => fderiv ℝ φ y (EuclideanSpace.single i 1)) x
+              (EuclideanSpace.single i 1))
         + -(1 / 2 : ℂ) * (∫ x, (2 : ℂ) * ((E : ℂ) - (coulombMultiplier p x : ℂ))
             * (ψ : Spectra.Sobolev.l2R3) x * φ x) := by
     rw [← integral_const_mul, ← integral_const_mul,
@@ -239,7 +243,8 @@ theorem sector_projection_radial (p : CoulombParams) (E : ℝ)
     / (sphericalNorm ℓ (m : ℤ) * reflectionFactor ℓ (m : ℤ)) with hκ
   have hκne : (κ : ℝ) ≠ 0 := by
     rw [hκ]
-    exact div_ne_zero (mul_ne_zero (sphericalNorm_pos ℓ (-(m:ℤ))).ne' (reflectionFactor_ne_zero ℓ _))
+    exact div_ne_zero
+      (mul_ne_zero (sphericalNorm_pos ℓ (-(m:ℤ))).ne' (reflectionFactor_ne_zero ℓ _))
       (mul_ne_zero (sphericalNorm_pos ℓ (m:ℤ)).ne' (reflectionFactor_ne_zero ℓ _))
   -- the solid-harmonic test function
   have hφsm : ContDiff ℝ ∞ φ := solidTest_contDiff_infty ℓ m χ hχ hχ0
@@ -249,10 +254,12 @@ theorem sector_projection_radial (p : CoulombParams) (E : ℝ)
   -- the volume integrand G
   set G : R3 → ℂ := fun x => (ψ : Spectra.Sobolev.l2R3) x *
       (-(1 / 2 : ℂ) * (∑ i : Fin 3,
-          fderiv ℝ (fun y => fderiv ℝ φ y (EuclideanSpace.single i 1)) x (EuclideanSpace.single i 1))
+          fderiv ℝ (fun y => fderiv ℝ φ y (EuclideanSpace.single i 1)) x
+            (EuclideanSpace.single i 1))
         + (coulombMultiplier p x : ℂ) * φ x - (E : ℂ) * φ x) with hG
   -- the spherical integrand F
-  set F : ℝ × ℝ × ℝ → ℂ := fun q => chartRealization (ψ : Spectra.Sobolev.l2R3) q * (Qfun q.1 * Y q.2)
+  set F : ℝ × ℝ × ℝ → ℂ := fun q =>
+    chartRealization (ψ : Spectra.Sobolev.l2R3) q * (Qfun q.1 * Y q.2)
     with hF
   -- (P1) integrability of `G`
   have hGint : Integrable G volume := by
@@ -264,8 +271,10 @@ theorem sector_projection_radial (p : CoulombParams) (E : ℝ)
       exact memLp_partialDeriv (fun y => fderiv ℝ φ y (EuclideanSpace.single i 1)) i
         (contDiff_partialDeriv φ i hφsm) (hasCompactSupport_partialDeriv φ i hφcs')
     have hint_lap : Integrable (fun x => (ψ : Spectra.Sobolev.l2R3) x * ∑ i : Fin 3,
-        fderiv ℝ (fun y => fderiv ℝ φ y (EuclideanSpace.single i 1)) x (EuclideanSpace.single i 1)) :=
-      memLp_one_iff_integrable.mp (MemLp.mul' (r := 1) hlapMemLp (Lp.memLp (ψ : Spectra.Sobolev.l2R3)))
+        fderiv ℝ (fun y => fderiv ℝ φ y (EuclideanSpace.single i 1)) x
+          (EuclideanSpace.single i 1)) :=
+      memLp_one_iff_integrable.mp (MemLp.mul' (r := 1)
+        hlapMemLp (Lp.memLp (ψ : Spectra.Sobolev.l2R3)))
     have hwe := weak_eigenequation_ae p E ψ heig
     have hint_wlφ : Integrable (fun x => ⇑(weakLaplacian (ψ : Spectra.Sobolev.l2R3) ψ.2) x * φ x) :=
       memLp_one_iff_integrable.mp
@@ -298,7 +307,8 @@ theorem sector_projection_radial (p : CoulombParams) (E : ℝ)
     have hop : ∀ q : ℝ × ℝ × ℝ, q.1 ∈ Set.Ioi (0 : ℝ) → q.2.1 ∈ Set.Ioo 0 Real.pi →
         -(1 / 2 : ℂ) * (∑ i : Fin 3, fderiv ℝ (fun y => fderiv ℝ φ y (EuclideanSpace.single i 1))
               (sphereChart q.1 q.2.1 q.2.2) (EuclideanSpace.single i 1))
-          + (coulombMultiplier p (sphereChart q.1 q.2.1 q.2.2) : ℂ) * φ (sphereChart q.1 q.2.1 q.2.2)
+          + (coulombMultiplier p (sphereChart q.1 q.2.1 q.2.2) : ℂ)
+          * φ (sphereChart q.1 q.2.1 q.2.2)
           - (E : ℂ) * φ (sphereChart q.1 q.2.1 q.2.2)
         = Qfun q.1 * Y q.2 := by
       intro q hr hθ
@@ -382,7 +392,7 @@ lemma cont_sing_mul {g f : ℝ → ℝ} (hg : ContinuousOn g {(0 : ℝ)}ᶜ) (hf
     exact (continuousAt_const).congr hev.symm
   · exact (hg.continuousAt (isOpen_compl_singleton.mem_nhds hr)).mul hf.continuousAt
 
-/-- The `ℂ`-valued derivative of the lifted real radial profile is the lift of the real derivative. -/
+/-- The `ℂ`-valued derivative of lifted real radial profile is the lift of the real derivative -/
 lemma deriv_ofReal_radial (χ : ℝ → ℝ) (hχ : ContDiff ℝ ∞ χ) (ℓ : ℕ) :
     (∀ r, deriv (fun a => (χ a : ℂ) * (a : ℂ) ^ ℓ) r
         = ((deriv (fun a => χ a * a ^ ℓ) r : ℝ) : ℂ)) ∧
@@ -581,9 +591,10 @@ lemma sector_sweak (p : CoulombParams) (E : ℝ)
     (ℓ m : ℕ) (hm : m ≤ ℓ) (L : ℂ →L[ℝ] ℝ) :
     ∀ η : ℝ → ℝ, ContDiff ℝ ∞ η → HasCompactSupport η →
       ∫ s, L (coeffFun ⟨ℓ, -(m : ℤ), by rw [abs_neg]; simpa using hm⟩
-            (chartRealization (ψ : Spectra.Sobolev.l2R3)) (Real.exp s)) *
-        (deriv (deriv η) s - deriv η s
-          - ((ℓ : ℝ) * ((ℓ : ℝ) + 1) - 2 * p.Z * Real.exp s - 2 * E * Real.exp (2 * s)) * η s) = 0 :=
+            (chartRealization (ψ : Spectra.Sobolev.l2R3)) (Real.exp s))
+        * (deriv (deriv η) s - deriv η s - ((ℓ : ℝ) * ((ℓ : ℝ) + 1)
+        - 2 * p.Z * Real.exp s - 2 * E * Real.exp (2 * s)) * η s)
+        = 0 :=
   forward_bridge ℓ p.Z E
     (fun r => L (coeffFun ⟨ℓ, -(m : ℤ), by rw [abs_neg]; simpa using hm⟩
         (chartRealization (ψ : Spectra.Sobolev.l2R3)) r))
@@ -784,7 +795,7 @@ lemma sector_radialL2 (g : ℝ → ℂ) (hg : MemLp g 2 radialMeasure) (L : ℂ 
       integrable_withDensity_iff_integrable_smul₀' (by fun_prop)
         (.of_forall fun _ => ENNReal.ofReal_lt_top)] at h1
     refine h1.congr (Filter.Eventually.of_forall fun r => ?_)
-    show (ENNReal.ofReal (r ^ 2)).toReal • L (g r) ^ 2 = L (g r) ^ 2 * r ^ 2
+    change (ENNReal.ofReal (r ^ 2)).toReal • L (g r) ^ 2 = L (g r) ^ 2 * r ^ 2
     rw [ENNReal.toReal_ofReal (sq_nonneg r), smul_eq_mul, mul_comm]
   -- change of variables `r = eˢ` to land an `s`-integral, where the a.e. link is clean
   have hs_int : Integrable
@@ -794,7 +805,7 @@ lemma sector_radialL2 (g : ℝ → ℂ) (hg : MemLp g 2 radialMeasure) (L : ℂ 
       (fun r => (L (g r)) ^ 2 * r ^ 2)).mp (by rw [Set.image_univ, Real.range_exp]; exact hLg_int)
     rwa [integrableOn_univ] at h
   -- rewrite the goal via the same change of variables
-  show IntegrableOn (fun r => c₀ (Real.log r) ^ 2 * r ^ 2) (Set.Ioi 0) volume
+  change IntegrableOn (fun r => c₀ (Real.log r) ^ 2 * r ^ 2) (Set.Ioi 0) volume
   rw [show (Set.Ioi (0 : ℝ)) = Real.exp '' Set.univ by rw [Set.image_univ, Real.range_exp],
     integrableOn_image_iff_integrableOn_abs_deriv_smul MeasurableSet.univ
       (fun x _ => (Real.hasDerivAt_exp x).hasDerivWithinAt) Real.exp_injective.injOn,
@@ -1237,7 +1248,8 @@ lemma coeffFun_coulomb (p : CoulombParams) (ℓ m : ℕ) (hm : m ≤ ℓ)
   set G := (coulomb_mul_memLp_H2 p ψ hψ).toLp (fun x => (coulombMultiplier p x : ℂ) * ψ x) with hG
   -- a.e. on the product box, `chartReal G = coulomb(sphereChart)·chartReal ψ`
   have hcombined : ⇑(chartRealization G) =ᵐ[radialMeasure.prod sphereMeasure]
-      fun q => (coulombMultiplier p (sphereChart q.1 q.2.1 q.2.2) : ℂ) * ⇑(chartRealization ψ) q := by
+      fun q => (coulombMultiplier p (sphereChart q.1 q.2.1 q.2.2) : ℂ) * ⇑(chartRealization ψ) q
+      := by
     have h1 := chartRealization_coeFn G
     have h2 := measurePreserving_sphereChart.quasiMeasurePreserving.ae_eq_comp
       ((coulomb_mul_memLp_H2 p ψ hψ).coeFn_toLp)
@@ -1358,4 +1370,3 @@ theorem no_positive_eigenvalue (p : CoulombParams) (E : ℝ) (hE : 0 ≤ E)
     (sector_radialL2 _ (memLp_coeffFun _ _) L c₀ hae) h1 h2 h3 r₀ hr₀)
 
 end QuantumMechanics.Hydrogen.Spectrum
-

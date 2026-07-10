@@ -1,6 +1,6 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Spectra.QuantumMechanics.Perturbation.Hardy.Inequality.Defs
@@ -100,23 +100,23 @@ private lemma exists_hardy_cutoff :
       (hρ_smooth.comp (ε⁻¹ • ContinuousLinearMap.id ℝ R3).contDiff)
   -- 2. χ = 0 on closedBall ε.
   · intro x hx
-    show 1 - (ρ : R3 → ℝ) (ε⁻¹ • x) = 0
+    change 1 - (ρ : R3 → ℝ) (ε⁻¹ • x) = 0
     have : (ρ : R3 → ℝ) (ε⁻¹ • x) = 1 := by
       apply ρ.one_of_mem_closedBall
       rw [Metric.mem_closedBall, dist_zero_right, norm_smul, norm_inv,
         Real.norm_eq_abs, abs_of_pos hε]
-      show ε⁻¹ * ‖x‖ ≤ 1
+      change ε⁻¹ * ‖x‖ ≤ 1
       have hc : ε⁻¹ * ε = 1 := inv_mul_cancel₀ hε.ne'
       have h2 := mul_le_mul_of_nonneg_left hx (inv_nonneg.mpr hε.le)
       linarith
     rw [this]; ring
   -- 3. χ = 1 off ball (2ε).
   · intro x hx
-    show 1 - (ρ : R3 → ℝ) (ε⁻¹ • x) = 1
+    change 1 - (ρ : R3 → ℝ) (ε⁻¹ • x) = 1
     have : (ρ : R3 → ℝ) (ε⁻¹ • x) = 0 := by
       apply ρ.zero_of_le_dist
       rw [dist_zero_right, norm_smul, norm_inv, Real.norm_eq_abs, abs_of_pos hε]
-      show (2 : ℝ) ≤ ε⁻¹ * ‖x‖
+      change (2 : ℝ) ≤ ε⁻¹ * ‖x‖
       have hc : ε⁻¹ * (2 * ε) = 2 := by
         rw [mul_comm 2 ε, ← mul_assoc, inv_mul_cancel₀ hε.ne', one_mul]
       have h2 := mul_le_mul_of_nonneg_left hx (inv_nonneg.mpr hε.le)
@@ -152,7 +152,7 @@ private lemma exists_hardy_cutoff :
       have : (ρ : R3 → ℝ) (ε⁻¹ • y) = 0 := by
         apply ρ.zero_of_le_dist
         rw [dist_zero_right, norm_smul, norm_inv, Real.norm_eq_abs, abs_of_pos hε]
-        show (2 : ℝ) ≤ ε⁻¹ * ‖y‖
+        change (2 : ℝ) ≤ ε⁻¹ * ‖y‖
         have hc : ε⁻¹ * (2 * ε) = 2 := by
           rw [mul_comm 2 ε, ← mul_assoc, inv_mul_cancel₀ hε.ne', one_mul]
         have h2 := mul_le_mul_of_nonneg_left (le_of_lt hy) (inv_nonneg.mpr hε.le)
@@ -240,7 +240,7 @@ private lemma hardy_cutoff_step
     {v : R3 → ℝ} (hv_smooth : ContDiff ℝ ∞ v) (hv_supp : HasCompactSupport v)
     {χ : R3 → ℝ} (hχ_smooth : ContDiff ℝ ∞ χ)
     {ε : ℝ} (hε : 0 < ε) (hχ0 : ∀ x, ‖x‖ ≤ ε → χ x = 0)
-    (hχ01 : ∀ x, χ x ∈ Set.Icc (0:ℝ) 1)
+    (hχ01 : ∀ x, χ x ∈ Set.Icc (0 : ℝ) 1)
     {t : ℝ} (ht : 0 < t) :
     ∫ x, (v x * χ x) ^ 2 * inverseRSq x
       ≤ 4 * (1 + t) * (∫ x, ∑ i : Fin 3,
@@ -750,7 +750,8 @@ private lemma hardy_lintegral_le (ψ : l2R3) (hψ : MemSobolevH1 ψ) :
     refine Finset.sum_congr rfl (fun i _ => ?_)
     rw [weakGradient_toLp_eq (hφ n) (hsupp n) (hmem n) i]
   have htend_B : Tendsto (fun n => gradientNormSq ((hmem n).toLp (φ n))
-      (sobolevH2_le_sobolevH1 (smooth_compactSupport_memSobolevH2 (φ n) (hφ n) (hsupp n) (hmem n)))) atTop
+      (sobolevH2_le_sobolevH1
+        (smooth_compactSupport_memSobolevH2 (φ n) (hφ n) (hsupp n) (hmem n)))) atTop
       (𝓝 (gradientNormSq ψ hψ)) := by
     rw [show (fun n => gradientNormSq ((hmem n).toLp (φ n)) _)
           = (fun n => ∑ i : Fin 3, ‖(memLp_partialDeriv (φ n) i (hφ n) (hsupp n)).toLp
@@ -768,13 +769,15 @@ private lemma hardy_lintegral_le (ψ : l2R3) (hψ : MemSobolevH1 ψ) :
       rw [eLpNorm_congr_ae (Lp.coeFn_sub ((hmem n).toLp (φ n)) ψ).symm,
         ← ENNReal.ofReal_toReal (Lp.eLpNorm_ne_top ((hmem n).toLp (φ n) - ψ)),
         ← Lp.norm_def, norm_sub_rev]
-    rw [show (fun n => eLpNorm ((fun x => ((hmem n).toLp (φ n) : R3 → ℂ) x) - (ψ : R3 → ℂ)) 2 volume)
+    rw [show (fun n => eLpNorm
+          ((fun x => ((hmem n).toLp (φ n) : R3 → ℂ) x) - (ψ : R3 → ℂ)) 2 volume)
           = (fun n => ENNReal.ofReal ‖ψ - (hmem n).toLp (φ n)‖) from funext heq]
     rw [show (0 : ℝ≥0∞) = ENNReal.ofReal 0 from (ENNReal.ofReal_zero).symm]
     exact (ENNReal.continuous_ofReal.tendsto 0).comp hnorm_tend
   obtain ⟨ns, hns_mono, hns_ae⟩ :=
     (tendstoInMeasure_of_tendsto_eLpNorm (μ := volume) (two_ne_zero)
-      (fun n => Lp.aestronglyMeasurable _) (Lp.aestronglyMeasurable ψ) heLp_tend).exists_seq_tendsto_ae
+      (fun n => Lp.aestronglyMeasurable _) (Lp.aestronglyMeasurable ψ)
+      heLp_tend).exists_seq_tendsto_ae
   -- (3) Integrability of each approximant's Hardy integrand, and lintegral ↔ Bochner.
   have hInt : ∀ n, Integrable
       (fun x => inverseRSq x * ‖((hmem n).toLp (φ n) : R3 → ℂ) x‖ ^ 2) volume := by
@@ -809,7 +812,8 @@ private lemma hardy_lintegral_le (ψ : l2R3) (hψ : MemSobolevH1 ψ) :
             (hsupp (ns i)) (hmem (ns i)))))) atTop := by
         refine Filter.liminf_le_liminf (Filter.Eventually.of_forall fun i => ?_)
         rw [hlin_eq (ns i)]
-        exact ENNReal.ofReal_le_ofReal (hardyIntegral_toLp_le (hφ (ns i)) (hsupp (ns i)) (hmem (ns i)))
+        exact ENNReal.ofReal_le_ofReal
+          (hardyIntegral_toLp_le (hφ (ns i)) (hsupp (ns i)) (hmem (ns i)))
     _ = ENNReal.ofReal (4 * gradientNormSq ψ hψ) := by
         refine Filter.Tendsto.liminf_eq ?_
         exact (ENNReal.continuous_ofReal.tendsto _).comp

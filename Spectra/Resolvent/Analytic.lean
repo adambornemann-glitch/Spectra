@@ -1,6 +1,6 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Spectra.Resolvent.Identities
@@ -119,7 +119,7 @@ lemma resolventFun_hasSum {A : H →ₗ.[ℂ] H}
             rw [ContinuousLinearMap.comp_smul]
         _ = (z - z₀.val)^n • ((z - z₀.val) • R₀^(n+2)) := by
             have : (R₀^(n+1)).comp R₀ = R₀^(n+2) := by
-              show R₀^(n+1) * R₀ = R₀^(n+2)
+              change R₀^(n+1) * R₀ = R₀^(n+2)
               rw [← pow_succ]
             rw [this]
         _ = (z - z₀.val)^(n+1) • R₀^(n+2) := by

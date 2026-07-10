@@ -1,8 +1,7 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
-Filename: Operator/VonNeumannExtensionSelfAdjoint.lean
 -/
 import Spectra.Operator.VonNeumannExtension
 
@@ -291,7 +290,7 @@ theorem vonNeumannExtension_denseRange_plus (A : H →ₗ.[ℂ] H) (hsym : A.IsF
       have hy : A ψ - (-I) • (ψ : H) ∈ Spectra.Resolvent.rangeSubmodule
           (A := vonNeumannExtension A hsym hdense V) (-I) := by
         refine ⟨⟨(ψ : H), hmem⟩, ?_⟩
-        show vonNeumannExtension A hsym hdense V ⟨(ψ : H), hmem⟩ - (-I) • (ψ : H)
+        change vonNeumannExtension A hsym hdense V ⟨(ψ : H), hmem⟩ - (-I) • (ψ : H)
             = A ψ - (-I) • (ψ : H)
         rw [heq]
       exact Submodule.inner_right_of_mem_orthogonal hy hχ
@@ -301,7 +300,7 @@ theorem vonNeumannExtension_denseRange_plus (A : H →ₗ.[ℂ] H) (hsym : A.IsF
     have hχR : χ ∈ Spectra.Resolvent.rangeSubmodule
         (A := vonNeumannExtension A hsym hdense V) (-I) := by
       refine ⟨u, ?_⟩
-      show vonNeumannExtension A hsym hdense V u - (-I) • (u : H) = χ
+      change vonNeumannExtension A hsym hdense V u - (-I) • (u : H) = χ
       rw [neg_smul, sub_neg_eq_add, hu]
       simp [LinearPMap.map_zero]
     exact inner_self_eq_zero.mp (Submodule.inner_right_of_mem_orthogonal hχR hχ)
@@ -347,7 +346,7 @@ theorem vonNeumannExtension_denseRange_minus (A : H →ₗ.[ℂ] H) (hsym : A.Is
       have hy : A ψ - I • (ψ : H) ∈ Spectra.Resolvent.rangeSubmodule
           (A := vonNeumannExtension A hsym hdense V) I := by
         refine ⟨⟨(ψ : H), hmem⟩, ?_⟩
-        show vonNeumannExtension A hsym hdense V ⟨(ψ : H), hmem⟩ - I • (ψ : H)
+        change vonNeumannExtension A hsym hdense V ⟨(ψ : H), hmem⟩ - I • (ψ : H)
             = A ψ - I • (ψ : H)
         rw [heq]
       exact Submodule.inner_right_of_mem_orthogonal hy hχ
@@ -356,7 +355,7 @@ theorem vonNeumannExtension_denseRange_minus (A : H →ₗ.[ℂ] H) (hsym : A.Is
     have hχR : χ ∈ Spectra.Resolvent.rangeSubmodule
         (A := vonNeumannExtension A hsym hdense V) I := by
       refine ⟨u, ?_⟩
-      show vonNeumannExtension A hsym hdense V u - I • (u : H) = χ
+      change vonNeumannExtension A hsym hdense V u - I • (u : H) = χ
       rw [hu]
       simp [LinearPMap.map_zero]
     exact inner_self_eq_zero.mp (Submodule.inner_right_of_mem_orthogonal hχR hχ)

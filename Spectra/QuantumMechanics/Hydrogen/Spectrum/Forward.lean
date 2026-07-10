@@ -1,6 +1,6 @@
 /-
-Copyright (c) 2026 Logos Library Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Spectra.QuantumMechanics.Hydrogen.Hamiltonian
@@ -96,7 +96,7 @@ theorem weak_eigenequation_ae (p : CoulombParams) (E : ℝ)
       fun x => (2 : ℂ) * ((E : ℂ) - (coulombMultiplier p x : ℂ))
         * (ψ : Spectra.Sobolev.l2R3) x := by
   obtain ⟨Ψ, hH2⟩ := ψ
-  show ⇑(weakLaplacian Ψ hH2) =ᵐ[volume]
+  change ⇑(weakLaplacian Ψ hH2) =ᵐ[volume]
       fun x => (2 : ℂ) * ((E : ℂ) - (coulombMultiplier p x : ℂ)) * ⇑Ψ x
   have ehalf : ⇑(halfLaplacianPMap ⟨Ψ, hH2⟩) =ᵐ[volume]
       ((1 / 2 : ℝ) : ℂ) • ⇑(weakLaplacian Ψ hH2) := by
@@ -367,7 +367,7 @@ theorem radial_classical_of_logCoord (ℓ : ℕ) (Z E : ℝ) (c₀ : ℝ → ℝ
   have hderiv2 : ∀ r, 0 < r → deriv^[2] ψ r =
       deriv^[2] c₀ (Real.log r) * r⁻¹ * r⁻¹ + deriv c₀ (Real.log r) * (-(r ^ 2)⁻¹) := by
     intro r hr
-    show deriv (deriv ψ) r = _
+    change deriv (deriv ψ) r = _
     exact (hd2 r hr).deriv
   refine ⟨fun r hr => by rw [hderiv1 r hr]; exact hd1 r hr,
     fun r hr => by rw [hderiv2 r hr]; exact hd2 r hr, ?_⟩
@@ -418,7 +418,8 @@ theorem forward_bridge (ℓ : ℕ) (Z E : ℝ) (R : ℝ → ℝ)
     ∀ η : ℝ → ℝ, ContDiff ℝ ∞ η → HasCompactSupport η →
       ∫ s, R (Real.exp s) *
         (deriv (deriv η) s - deriv η s
-          - ((ℓ : ℝ) * ((ℓ : ℝ) + 1) - 2 * Z * Real.exp s - 2 * E * Real.exp (2 * s)) * η s) = 0 := by
+          - ((ℓ : ℝ) * ((ℓ : ℝ) + 1) - 2 * Z * Real.exp s
+              - 2 * E * Real.exp (2 * s)) * η s) = 0 := by
   intro η hη hη0
   -- `η` derivative facts
   have hη1 : ∀ s, HasDerivAt η (deriv η s) s := fun s =>
@@ -478,13 +479,15 @@ theorem forward_bridge (ℓ : ℕ) (Z E : ℝ) (R : ℝ → ℝ)
       filter_upwards [Ioi_mem_nhds hr] with t ht; exact hχ_pos t ht
     have hbase : HasDerivAt (fun t => η (Real.log t) * t⁻¹)
         ((deriv η (Real.log r) - η (Real.log r)) * (r ^ 2)⁻¹) r := by
-      have h0 := ((hη1 (Real.log r)).comp r (Real.hasDerivAt_log hr.ne')).mul (hasDerivAt_inv hr.ne')
+      have h0 := ((hη1 (Real.log r)).comp r (Real.hasDerivAt_log hr.ne')).mul
+        (hasDerivAt_inv hr.ne')
       simp only [Function.comp_def] at h0
       convert h0 using 1
       field_simp; ring
     exact (hbase.congr_of_eventuallyEq hev).deriv
   have hd2 : ∀ r, 0 < r → deriv^[2] χ r =
-      (deriv (deriv η) (Real.log r) - 3 * deriv η (Real.log r) + 2 * η (Real.log r)) * (r ^ 3)⁻¹ := by
+      (deriv (deriv η) (Real.log r) - 3 * deriv η (Real.log r)
+        + 2 * η (Real.log r)) * (r ^ 3)⁻¹ := by
     intro r hr
     have hrne : r ≠ 0 := hr.ne'
     have hev : deriv χ =ᶠ[𝓝 r] (fun t => (deriv η (Real.log t) - η (Real.log t)) * (t ^ 2)⁻¹) := by
@@ -494,12 +497,13 @@ theorem forward_bridge (ℓ : ℕ) (Z E : ℝ) (R : ℝ → ℝ)
     have hP2 : HasDerivAt (fun t => η (Real.log t)) (deriv η (Real.log r) * r⁻¹) r :=
       (hη1 (Real.log r)).comp r (Real.hasDerivAt_log hr.ne')
     have hbase : HasDerivAt (fun t => (deriv η (Real.log t) - η (Real.log t)) * (t ^ 2)⁻¹)
-        ((deriv (deriv η) (Real.log r) - 3 * deriv η (Real.log r) + 2 * η (Real.log r)) * (r ^ 3)⁻¹) r := by
+        ((deriv (deriv η) (Real.log r) - 3 * deriv η (Real.log r)
+          + 2 * η (Real.log r)) * (r ^ 3)⁻¹) r := by
       have h0 := (hP1.sub hP2).mul ((hasDerivAt_pow 2 r).inv (pow_ne_zero 2 hr.ne'))
       simp only [Pi.sub_apply, Pi.inv_apply] at h0
       convert h0 using 1
       field_simp; ring
-    show deriv (deriv χ) r = _
+    change deriv (deriv χ) r = _
     rw [hev.deriv_eq]
     exact hbase.deriv
   -- feed the weak hypothesis the test `χ` (which vanishes on a neighbourhood of `0`)
@@ -633,7 +637,8 @@ theorem radialHamiltonian_formallySymm (ℓ : ℕ) (u v : ℝ → ℝ)
       have hdv : Continuous (deriv v) := hv'.continuous
       fun_prop
     have hBregint : IntegrableOn Breg (Set.Ioi 0) :=
-      (hBregcont.integrable_of_hasCompactSupport (by rw [hBregdef]; exact hu0.mul_right)).integrableOn
+      (hBregcont.integrable_of_hasCompactSupport
+        (by rw [hBregdef]; exact hu0.mul_right)).integrableOn
     refine hBregint.congr_fun ?_ measurableSet_Ioi
     intro r hr
     have hrne : r ≠ 0 := (hr : (0:ℝ) < r).ne'

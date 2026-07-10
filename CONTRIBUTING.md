@@ -70,7 +70,7 @@ The directory path and the namespace match: a file at `Spectra/Resolvent/Defs.le
 
 A new file must, from the start:
 
-- open with the MIT copyright header,
+- open with the Apache 2.0 copyright header,
 - carry a full module docstring,
 - declare a single `Spectra.…` namespace matching its path,
 - have a letters-only `UpperCamelCase` filename (no underscores or digits),

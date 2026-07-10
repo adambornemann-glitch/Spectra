@@ -1,21 +1,37 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Spectra.CayleyTransform.Eigenvalue
 import Spectra.Resolvent.SpecialCases
+
+/-!
+# The Cayley transform maps the resolvent set
+
+This file identifies the resolvent `(A + iI)⁻¹` with the continuous functional calculus of the
+Cayley transform `U` at `w ↦ (1 - w)/(2i)` (`resolvent_at_neg_i_eq_cfc`), and uses this together
+with the unitarity of `U` to show that every non-real `z` lies in the resolvent set of `A`: the
+Möbius image `w = (z - i)/(z + i)` falls off the unit circle, so `U - w` is a unit
+(`cayley_maps_resolvent`).
+
+## Main results
+
+* `resolvent_at_neg_i_eq_cfc` : `(A + iI)⁻¹ = cfc (fun w => (1 - w) / (2 * I)) (cayleyTransform ..)`
+* `cayley_maps_resolvent` : for `z.im ≠ 0`, `cayleyTransform .. - w • 1` is a unit, where
+  `w = (z - i) * (z + i)⁻¹`.
+-/
 
 open Complex
 open Spectra.Resolvent
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
 namespace Spectra.Cayley
 
-/-- The resolvent `(A + iI)⁻¹` of `A` is the continuous functional calculus of the Cayley transform `U`
-evaluated at `w ↦ (1 - w) / (2i)`; equivalently `(2 * I)⁻¹ • (1 - U)`. -/
+/-- The resolvent `(A + iI)⁻¹` of `A` is the continuous functional calculus of the Cayley
+transform `U` evaluated at `w ↦ (1 - w) / (2i)`; equivalently `(2 * I)⁻¹ • (1 - U)`. -/
 lemma resolvent_at_neg_i_eq_cfc
     {A : H →ₗ.[ℂ] H} (hsym : A.IsFormalAdjoint A)
-    (hplus  : ∀ φ : H, ∃ ψ : A.domain, A ψ + I • (ψ : H) = φ)
+    (hplus : ∀ φ : H, ∃ ψ : A.domain, A ψ + I • (ψ : H) = φ)
     (hminus : ∀ φ : H, ∃ ψ : A.domain, A ψ - I • (ψ : H) = φ) :
     resolventAtNegI hsym hplus
       = cfc (fun w : ℂ => (1 - w) / (2 * I)) (cayleyTransform hsym hplus) := by
@@ -45,7 +61,7 @@ lemma resolvent_at_neg_i_eq_cfc
 for `Im z ≠ 0` the Möbius image `w = (z-i)/(z+i)` lies off the unit circle, so `U - w` is a unit. -/
 theorem cayley_maps_resolvent [Nontrivial H]
     {A : H →ₗ.[ℂ] H} (hsym : A.IsFormalAdjoint A)
-    (hplus  : ∀ φ : H, ∃ ψ : A.domain, A ψ + I • (ψ : H) = φ)
+    (hplus : ∀ φ : H, ∃ ψ : A.domain, A ψ + I • (ψ : H) = φ)
     (hminus : ∀ φ : H, ∃ ψ : A.domain, A ψ - I • (ψ : H) = φ)
     (z : ℂ) (hz : z.im ≠ 0) :
     let w := (z - I) * (z + I)⁻¹

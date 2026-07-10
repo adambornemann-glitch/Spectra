@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
-Author: Adam Bornemann
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Adam Bornemann
 -/
 import Mathlib.Analysis.InnerProductSpace.Adjoint
 import Mathlib.Analysis.InnerProductSpace.Positive
@@ -18,8 +18,8 @@ For a bounded operator `T : H →L[ℂ] H` on a complex Hilbert space, this file
 isometry that is isometric on `closure (range |T|)` and zero on its orthogonal complement.
 
 This is a genuine gap in Mathlib: `LinearIsometry.extend` (the natural tool) is **finite-dimensional
-only**, so the partial isometry is built by hand from `LinearMap.extendOfNorm` (dense extension into a
-complete space) composed with the orthogonal projection onto `K = closure (range |T|)`.
+only**, so the partial isometry is built by hand from `LinearMap.extendOfNorm` (dense extension into
+a complete space) composed with the orthogonal projection onto `K = closure (range |T|)`.
 
 ## Main definitions
 
@@ -65,8 +65,8 @@ lemma adjoint_absOp_comp_absOp (T : H →L[ℂ] H) :
   rw [← star_eq_adjoint, ← star_eq_adjoint, ← mul_def, ← mul_def,
     (absOp_isSelfAdjoint T).star_eq, absOp_mul_absOp]
 
-/-- **The polar isometry identity** `‖|T| x‖ = ‖T x‖` — the heart of the bounded polar decomposition,
-making `U : |T|x ↦ Tx` a well-defined isometry on `range |T|`. -/
+/-- **The polar isometry identity** `‖|T| x‖ = ‖T x‖` — the heart of the bounded polar
+decomposition, making `U : |T|x ↦ Tx` a well-defined isometry on `range |T|`. -/
 lemma norm_absOp_apply (T : H →L[ℂ] H) (x : H) : ‖absOp T x‖ = ‖T x‖ := by
   rw [apply_norm_eq_sqrt_inner_adjoint_right, apply_norm_eq_sqrt_inner_adjoint_right,
     adjoint_absOp_comp_absOp]
@@ -74,7 +74,8 @@ lemma norm_absOp_apply (T : H →L[ℂ] H) (x : H) : ‖absOp T x‖ = ‖T x‖
 /-! ## The partial isometry `U` and `T = U |T|`
 
 `K := closure (range |T|)`; the isometry `|T|x ↦ Tx` extends (via `LinearMap.extendOfNorm`, since
-`LinearIsometry.extend` is finite-dimensional only) to `K → H`, then `U := (that) ∘ orthogonalProjection K`. -/
+`LinearIsometry.extend` is finite-dimensional only) to `K → H`, then
+`U := (that) ∘ orthogonalProjection K`. -/
 
 /-- `K = closure (range |T|)`, the initial space of the polar isometry. -/
 noncomputable def polarRange (T : H →L[ℂ] H) : Submodule ℂ H :=

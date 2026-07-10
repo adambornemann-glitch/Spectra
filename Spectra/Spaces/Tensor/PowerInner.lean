@@ -1,8 +1,7 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
-File: Spectra/Spaces/Tensor/PowerInner.lean
 -/
 import Mathlib.LinearAlgebra.TensorPower.Basic
 import Spectra.Spaces.Tensor.Map
@@ -160,7 +159,7 @@ private lemma inner_def (t s : ⨂[𝕜]^n H) : inner 𝕜 t s = innerJ s t := r
 theorem inner_tprod_tprod (x y : Fin n → H) :
     inner 𝕜 (tprod 𝕜 x) (tprod 𝕜 y) = ∏ i, inner 𝕜 (x i) (y i) := by
   rw [inner_def, innerJ, lift.tprod]
-  show starComp (prodInnerRight y) (tprod 𝕜 x) = _
+  change starComp (prodInnerRight y) (tprod 𝕜 x) = _
   rw [starComp_apply, prodInnerRight_tprod, map_prod]
   exact Finset.prod_congr rfl fun i _ => inner_conj_symm _ _
 

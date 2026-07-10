@@ -1,6 +1,6 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Spectra.InformationGeometry.CramerRao.Covariance
@@ -149,7 +149,7 @@ lemma integral_mul_sq_eq_iff
           = ∫ ω, c * (g ω ^ 2 * M.density θ ω)
             ∂M.refMeasure :=
             integral_congr_ae
-              (hcg.mono fun ω h => by simp; rw [h]; ring)
+              (hcg.mono fun ω h => by simp only; rw [h]; ring)
         _ = c * ∫ ω, g ω ^ 2 * M.density θ ω
             ∂M.refMeasure :=
             MeasureTheory.integral_const_mul c _
@@ -160,7 +160,7 @@ lemma integral_mul_sq_eq_iff
           = ∫ ω, c ^ 2 * (g ω ^ 2 * M.density θ ω)
             ∂M.refMeasure :=
             integral_congr_ae
-              (hcg.mono fun ω h => by simp; rw [h]; ring)
+              (hcg.mono fun ω h => by simp only; rw [h]; ring)
         _ = c ^ 2 * ∫ ω, g ω ^ 2 * M.density θ ω
             ∂M.refMeasure :=
             MeasureTheory.integral_const_mul (c ^ 2) _

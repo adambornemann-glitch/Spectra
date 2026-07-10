@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
-Author: Adam Bornemann
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Adam Bornemann
 -/
 import Spectra.QuantumMechanics.Channels.TraceClass.RankOne
 import Spectra.QuantumMechanics.Channels.TraceClass.Cyclic
@@ -12,13 +12,14 @@ import Mathlib.Analysis.CStarAlgebra.ContinuousFunctionalCalculus.Order
 # Stage J — the trace pairing embeds `B(H)` into the dual of `T(H)`
 
 Each bounded operator `B` gives a bounded linear functional on the trace-class operators,
-`traceFunctional B : T ↦ tr(B T)`, with `‖traceFunctional B‖ = ‖B‖`.  The map `B ↦ traceFunctional B`
-is therefore an **isometric linear embedding** `B(H) ↪ (T(H))*` — the concrete
-`B(H)`-into-predual-dual direction of the duality `B(H) = (T(H))*`.
+`traceFunctional B : T ↦ tr(B T)`, with `‖traceFunctional B‖ = ‖B‖`.  The map
+`B ↦ traceFunctional B` is therefore an **isometric linear embedding** `B(H) ↪ (T(H))*` — the
+concrete `B(H)`-into-predual-dual direction of the duality `B(H) = (T(H))*`.
 
 Boundedness is `norm_trace_comp_le` (`|tr(BT)| ≤ ‖B‖ ‖T‖₁`).  Injectivity is the rank-one separation
-of the pairing (`eq_of_forall_trace_toOp_mul_eq`).  The isometry `‖traceFunctional B‖ = ‖B‖` uses the
-unit rank-one witnesses `T = |û⟩⟨v̂|` (`‖T‖₁ = 1`), for which `tr(B T) = ⟪v̂, B û⟫` recovers `‖B u‖`.
+of the pairing (`eq_of_forall_trace_toOp_mul_eq`).  The isometry `‖traceFunctional B‖ = ‖B‖` uses
+the unit rank-one witnesses `T = |û⟩⟨v̂|` (`‖T‖₁ = 1`), for which `tr(B T) = ⟪v̂, B û⟫` recovers
+`‖B u‖`.
 
 The reverse (surjectivity: every bounded functional on `T(H)` is `tr(B · )`) needs the trace-norm
 density of the finite-rank operators and is not proved here.
@@ -117,9 +118,9 @@ noncomputable def rankOneTCunit {u v : H} (hu : ‖u‖ = 1) (hv : ‖v‖ = 1) 
 @[simp] lemma rankOneTCunit_toOp {u v : H} (hu : ‖u‖ = 1) (hv : ‖v‖ = 1) :
     (rankOneTCunit hu hv).toOp = rankOne ℂ u v := rfl
 
-/-- **The trace pairing embeds `B(H)` isometrically:** `‖traceFunctional B‖ = ‖B‖`.  For `≥`, the unit
-witness `T = |p⟩⟨q|` with `p = u/‖u‖`, `q = Bu/‖Bu‖` has `‖T‖₁ = 1` and `tr(B T) = ⟪q, B p⟫ = ‖Bu‖/‖u‖`,
-so `‖Bu‖ ≤ ‖traceFunctional B‖ · ‖u‖`. -/
+/-- **The trace pairing embeds `B(H)` isometrically:** `‖traceFunctional B‖ = ‖B‖`.  For `≥`, the
+unit witness `T = |p⟩⟨q|` with `p = u/‖u‖`, `q = Bu/‖Bu‖` has `‖T‖₁ = 1` and
+`tr(B T) = ⟪q, B p⟫ = ‖Bu‖/‖u‖`, so `‖Bu‖ ≤ ‖traceFunctional B‖ · ‖u‖`. -/
 theorem norm_traceFunctional (B : H →L[ℂ] H) : ‖traceFunctional B‖ = ‖B‖ := by
   refine le_antisymm (norm_traceFunctional_le B) ?_
   refine ContinuousLinearMap.opNorm_le_bound _ (norm_nonneg _) fun u => ?_

@@ -1,6 +1,6 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Spectra.Fourier.Identity
@@ -64,7 +64,7 @@ lemma fubini_regularized
   have hF_int : Integrable (Function.uncurry F) (volume.prod volume) := by
     have h_meas : AEStronglyMeasurable (Function.uncurry F) (volume.prod volume) := by
       apply Continuous.aestronglyMeasurable
-      show Continuous (fun p : ℝ × ℝ =>
+      change Continuous (fun p : ℝ × ℝ =>
         cexp (-(I * (p.1 : ℂ) * (p.2 : ℂ))) * cexp (-(↑ε * ↑|p.2|)) * ⟪ξ, U_grp.U p.2 ξ⟫_ℂ *
         (Real.exp (-(δ * |p.1|)) : ℂ))
       refine Continuous.mul (Continuous.mul (Continuous.mul ?_ ?_) ?_) ?_
@@ -78,14 +78,14 @@ lemma fubini_regularized
       (hδ_int.mul_prod hε_int).const_mul _
     refine h_dom.mono' h_meas ?_
     filter_upwards with p
-    show ‖cexp (-(I * (p.1 : ℂ) * (p.2 : ℂ))) * cexp (-(↑ε * ↑|p.2|)) * ⟪ξ, U_grp.U p.2 ξ⟫_ℂ *
+    change ‖cexp (-(I * (p.1 : ℂ) * (p.2 : ℂ))) * cexp (-(↑ε * ↑|p.2|)) * ⟪ξ, U_grp.U p.2 ξ⟫_ℂ *
           (Real.exp (-(δ * |p.1|)) : ℂ)‖ ≤ _
     rw [norm_mul, norm_mul, norm_mul, Complex.norm_exp, Complex.norm_exp, Complex.norm_real]
     have h1 : (-(I * (p.1 : ℂ) * (p.2 : ℂ))).re = 0 := by
       rw [Complex.neg_re, re_I_mul_ofReal_mul_ofReal, neg_zero]
     have h2 : (-((ε : ℂ) * (|p.2|))).re = -(ε * |p.2|) := by
       simp [Complex.mul_re]
-    simp [h1, h2, Real.exp_zero, one_mul, abs_of_pos (Real.exp_pos _)]
+    simp only [h1, h2, Real.exp_zero, one_mul, Real.norm_eq_abs, Real.abs_exp, ge_iff_le]
     have h_inner : ‖⟪ξ, U_grp.U p.2 ξ⟫_ℂ‖ ≤ ‖ξ‖ ^ 2 :=
       calc ‖⟪ξ, U_grp.U p.2 ξ⟫_ℂ‖ ≤ ‖ξ‖ * ‖U_grp.U p.2 ξ‖ := norm_inner_le_norm _ _
         _ = ‖ξ‖ * ‖ξ‖ := by rw [norm_preserving U_grp p.2 ξ]

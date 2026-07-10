@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
-Author: Adam Bornemann
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Adam Bornemann
 -/
 import Spectra.SpectralTheory.Calculus.MixedProduct
 /-!
@@ -17,12 +17,13 @@ bounded spectral-calculus symbol `1/(s² − z)`:
 > `(A² − z)⁻¹ = Φ(1/(s² − z))`  and hence  `⟪ξ, (A²−z)⁻¹ ξ⟫ = ∫ (s²−z)⁻¹ dμ^E_ξ`.
 
 **Result: GREEN.** Both are proved here, sorry-free, for an arbitrary one-parameter unitary group
-`U_grp` (so in particular for the modular group `genToGroup Δ`), with `A² := pmapOfPVM U_grp (s ↦ s²)`:
+`U_grp` (so in particular for the modular group `genToGroup Δ`), with
+`A² := pmapOfPVM U_grp (s ↦ s²)`:
 
 * `resolvent_sq_identity` — `A²(Φ(1/(s²−z)) ξ) = ξ + z • Φ(1/(s²−z)) ξ`, i.e. `Φ(1/(s²−z))` is the
-  right-inverse of `A² − z` (the resolvent identity). Proved via the **mixed bounded/unbounded product
-  law** `pmapOfPVM_spectralCalculus_of_mul_bounded` on the `s²` symbol composed with the bounded
-  resolvent symbol `1/(s²−z)`, then the pointwise arithmetic `s²·1/(s²−z) = 1 + z·1/(s²−z)`.
+  right-inverse of `A² − z` (the resolvent identity). Proved via the **mixed bounded/unbounded
+  product law** `pmapOfPVM_spectralCalculus_of_mul_bounded` on the `s²` symbol composed with the
+  bounded resolvent symbol `1/(s²−z)`, then the pointwise arithmetic `s²·1/(s²−z) = 1 + z·1/(s²−z)`.
 * `resolvent_sq_symbols` — the measurability/boundedness/domain-membership witnesses are inhabited
   (the spike is non-vacuous); `resolvent_sq_identity'` packages the identity from just `(z, hz, ξ)`.
 * `inner_resolvent_sq` — the pairing `⟪ξ, Φ(1/(s²−z)) ξ⟫ = ∫ (s²−z)⁻¹ dμ^E_ξ`
@@ -34,9 +35,9 @@ analytic infrastructure, using only the already-built mixed product law and chan
 **Import hygiene (done).** The two generic lemmas reused here —
 `mem_pmapDomain_spectralCalculus` and `pmapOfPVM_spectralCalculus_of_mul_bounded` — now live in the
 `J`-free `Spectra/SpectralTheory/Calculus/MixedProduct.lean` (relocated there from the `J`-bearing
-`ModularSqrtSelfAdjoint.lean`). This file therefore imports **no** modular/`J` file, so circularity for
-the Field-3 build is structurally impossible (landmine #5): the whole `s ↦ s²` pushforward layer is a
-statement purely about a PVM/`Δ`, never about `J`/`modularConjugation`/`S̃`.
+`ModularSqrtSelfAdjoint.lean`). This file therefore imports **no** modular/`J` file, so circularity
+for the Field-3 build is structurally impossible (landmine #5): the whole `s ↦ s²` pushforward layer
+is a statement purely about a PVM/`Δ`, never about `J`/`modularConjugation`/`S̃`.
 -/
 
 open Complex MeasureTheory Filter Topology

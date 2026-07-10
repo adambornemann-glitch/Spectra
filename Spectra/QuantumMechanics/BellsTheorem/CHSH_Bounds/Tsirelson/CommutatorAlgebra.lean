@@ -1,8 +1,7 @@
 /-
-Copyright (c) 2025 Bell Theorem Formalization Project
+Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Ported from Isabelle/HOL formalization by Echenim & Mhalla
-Ported by: Adam Bornemann
+Authors: Ported from Isabelle/HOL formalization by Echenim & Mhalla, by Adam Bornemann
 -/
 import Mathlib.Algebra.Lie.OfAssociative
 import Spectra.QuantumMechanics.BellsTheorem.CHSH_Bounds.Tsirelson.UnitaryBounds

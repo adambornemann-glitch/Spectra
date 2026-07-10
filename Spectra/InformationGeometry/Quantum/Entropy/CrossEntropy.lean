@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
-Author: Adam Bornemann
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Adam Bornemann
 -/
 import Spectra.InformationGeometry.Quantum.Entropy.Gibbs
 import Spectra.QuantumMechanics.Channels.TraceClass.Basic
@@ -18,8 +18,9 @@ import Spectra.Resolvent.NumericalRangeSpectrum
 For two quantum states `ρ σ : QState H`, the **quantum relative entropy** (Umegaki) is
 `D(ρ‖σ) = Tr(ρ log ρ) − Tr(ρ log σ) = crossEntropy(ρ,σ) − S(ρ)`, and **Klein's inequality** is the
 statement `D(ρ‖σ) ≥ 0`, i.e. `S(ρ) ≤ crossEntropy(ρ,σ)`.  This file builds the cross-entropy
-`crossEntropy(ρ,σ) = −Tr(ρ log σ)` **operator-theoretically**, so that it is correct in (possibly)
-infinite dimensions, and proves the full Klein inequality as the ordering `S(ρ) ≤ crossEntropy(ρ,σ)`.
+`crossEntropy(ρ,σ) = −Tr(ρ log σ)` **operator-theoretically**, so that it is correct in
+(possibly) infinite dimensions, and proves the full Klein inequality as the ordering
+`S(ρ) ≤ crossEntropy(ρ,σ)`.
 
 ## The construction
 
@@ -78,13 +79,13 @@ lemma spectralMeasure_eq (σ : QState H) (ψ : H) :
 
 /-- Every vector lies in `σ.sigmaOp`'s (full) domain. -/
 lemma mem_sigmaOp_domain (σ : QState H) (ψ : H) : ψ ∈ σ.sigmaOp.toLinearPMap.domain := by
-  show ψ ∈ ((σ.toOp : H →ₗ[ℂ] H).toPMap ⊤).domain
+  change ψ ∈ ((σ.toOp : H →ₗ[ℂ] H).toPMap ⊤).domain
   rw [LinearMap.toPMap_domain]; trivial
 
 /-- `σ.sigmaOp` acts as `σ.toOp`. -/
 lemma sigmaOp_apply (σ : QState H) (ψ : H) (hψ : ψ ∈ σ.sigmaOp.toLinearPMap.domain) :
     σ.sigmaOp.toLinearPMap ⟨ψ, hψ⟩ = σ.toOp ψ := by
-  show ((σ.toOp : H →ₗ[ℂ] H).toPMap ⊤) ⟨ψ, hψ⟩ = σ.toOp ψ
+  change ((σ.toOp : H →ₗ[ℂ] H).toPMap ⊤) ⟨ψ, hψ⟩ = σ.toOp ψ
   rw [LinearMap.toPMap_apply]; rfl
 
 /-- **The mean of `σ`'s spectral measure is the diagonal element `⟪ψ, σ ψ⟫`.**  For `ψ = eᵢ` this is
@@ -179,7 +180,7 @@ lemma spectralMeasure_Ioi_one (σ : QState H) (ψ : H) :
   have hσnorm : ‖σ.toOp‖ ≤ 1 := σ.traceNorm_toOp ▸ norm_le_traceNorm σ.isTraceClass
   have hW : numericalRange σ.sigmaOp.toLinearPMap ⊆ {z : ℂ | z.re ≤ 1} := by
     rintro z ⟨φ, hφ1, rfl⟩
-    show (⟪(φ : H), σ.sigmaOp.toLinearPMap φ⟫_ℂ).re ≤ 1
+    change (⟪(φ : H), σ.sigmaOp.toLinearPMap φ⟫_ℂ).re ≤ 1
     rw [show σ.sigmaOp.toLinearPMap φ = σ.toOp (φ : H) from σ.sigmaOp_apply (φ : H) φ.2]
     calc (⟪(φ : H), σ.toOp (φ : H)⟫_ℂ).re
         ≤ ‖⟪(φ : H), σ.toOp (φ : H)⟫_ℂ‖ := by
@@ -242,9 +243,9 @@ noncomputable def crossEntropy (ρ σ : QState H) : ℝ≥0∞ :=
     * ∫⁻ t, ENNReal.ofReal (-Real.log t) ∂(σ.spectralMeasure (ρ.eigenbasis i))
 
 /-- **The per-eigenvector Jensen bridge** (the analytic crux).  `ofReal(−λᵢ log sᵢ)` is dominated by
-the `i`-th cross-entropy term.  In the integrable branch this is the tangent-line Jensen inequality
-`∫ log t dμ_{eᵢ} ≤ log sᵢ`; in the non-integrable branch the lower integral is `+∞` and domination is
-free. -/
+the `i`-th cross-entropy term.  In the integrable branch this is the tangent-line Jensen
+inequality `∫ log t dμ_{eᵢ} ≤ log sᵢ`; in the non-integrable branch the lower integral is `+∞`
+and domination is free. -/
 lemma ofReal_measuredTerm_le_lintegral (ρ σ : QState H) (hσ : σ.Faithful) (i : eigenIndex ρ.toOp) :
     ENNReal.ofReal (-ρ.eigenvalue i * Real.log (ρ.diagSigma σ i))
       ≤ ENNReal.ofReal (ρ.eigenvalue i)
@@ -260,7 +261,7 @@ lemma ofReal_measuredTerm_le_lintegral (ρ σ : QState H) (hσ : σ.Faithful) (i
   have haele : ∀ᵐ t ∂μ, t ≤ 1 := σ.spectralMeasure_ae_le_one (ρ.eigenbasis i)
   have haenn : 0 ≤ᵐ[μ] fun t => -Real.log t := by
     filter_upwards [haepos, haele] with t ht1 ht2
-    show (0 : ℝ) ≤ -Real.log t
+    change (0 : ℝ) ≤ -Real.log t
     have : Real.log t ≤ 0 := Real.log_nonpos ht1.le ht2
     linarith
   have hmeas : AEStronglyMeasurable (fun t => -Real.log t) μ :=
@@ -299,7 +300,9 @@ bounded by the cross entropy: `S(ρ) ≤ −Tr(ρ log σ)` — equivalently the 
 tangent-line Jensen bridge. -/
 theorem vonNeumannEntropy_le_crossEntropy (ρ σ : QState H) (hσ : σ.Faithful) :
     vonNeumannEntropy ρ ≤ crossEntropy ρ σ :=
-  le_trans (ρ.vonNeumannEntropy_le_measuredCrossEntropy σ fun i => ρ.diagSigma_pos_of_faithful σ hσ i)
+  le_trans
+    (ρ.vonNeumannEntropy_le_measuredCrossEntropy σ
+      fun i => ρ.diagSigma_pos_of_faithful σ hσ i)
     (ρ.measuredCrossEntropy_le_crossEntropy σ hσ)
 
 /-! ## Non-vacuity: `crossEntropy ρ ρ = S(ρ)` -/

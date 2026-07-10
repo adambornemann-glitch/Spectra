@@ -9,10 +9,31 @@ require mathlib from git
 
 @[default_target]
 lean_lib «Spectra» where
-  -- add any library configuration options here
+  leanOptions := #[
+    ⟨`weak.linter.mathlibStandardSet, true⟩, -- check that `mathlib` style is followed
+    ⟨`weak.linter.defProp, true⟩, -- check that `def` is used for propositions, not `theorem`/`lemma`
+    ⟨`relaxedAutoImplicit, false⟩, -- check that all implicit arguments are explicitly marked with `{}` or `[]`
+    --⟨`autoImplicit, false⟩, -- check that all implicit arguments are explicitly marked with `{}` or `[]`
+    --⟨`weak.linter.unusedVariables.analyzeTactics, true⟩, -- check that all tactic variables are used
+    ⟨`weak.linter.loopingSimpArgs, true⟩, -- check that `simp`/`rw`/`dsimp` are not called with the same argument multiple times
+    ⟨`maxSynthPendingDepth, 3⟩]
 
 -- Compile-time axiom gate (root module `AxiomCheck.lean`): `assert_no_sorry` on every
 -- headline result. As a default target, `lake build` fails if a `sorry` reaches any of them.
 @[default_target]
 lean_lib «AxiomCheck» where
   globs := #[.one `AxiomCheck]
+
+-- Forensic index engine (`Forensic.lean`): reusable meta-programming to audit theorem
+-- *statements* — unused hypotheses and transitive assumption cones. No side effects; built
+-- as a dependency of the gate/report modules below.
+lean_lib «Forensic» where
+  globs := #[.one `Forensic]
+
+-- Compile-time hypothesis-hygiene gate (`ForensicCheck.lean`): as a default target,
+-- `lake build` fails if any theorem carries a normally-named but unused hypothesis
+-- (an over-strong or vacuous statement). Intentionally-unused hypotheses are exempt by
+-- the `_`-prefix convention.
+@[default_target]
+lean_lib «ForensicCheck» where
+  globs := #[.one `ForensicCheck]

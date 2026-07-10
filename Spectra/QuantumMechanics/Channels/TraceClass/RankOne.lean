@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
-Author: Adam Bornemann
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Adam Bornemann
 -/
 import Spectra.QuantumMechanics.Channels.TraceClass.Complete
 import Mathlib.Analysis.InnerProductSpace.Positive
@@ -42,18 +42,20 @@ omit [CompleteSpace H] in
 lemma rankOneSelf_nonneg (x : H) : (0 : H →L[ℂ] H) ≤ rankOne ℂ x x :=
   (ContinuousLinearMap.nonneg_iff_isPositive _).mpr (InnerProductSpace.isPositive_rankOne_self x)
 
-/-- **The trace of a rank-one operator** `tr(|u⟩⟨v|) = ⟪v, u⟫` (Parseval over the canonical basis). -/
+/-- **The trace of a rank-one operator** `tr(|u⟩⟨v|) = ⟪v, u⟫` (Parseval over the canonical
+basis). -/
 lemma trace_rankOne (u v : H) : trace (rankOne ℂ u v) = ⟪v, u⟫_ℂ := by
-  show ∑' i, ⟪stdHilbertBasis H i, rankOne ℂ u v (stdHilbertBasis H i)⟫_ℂ = ⟪v, u⟫_ℂ
+  change ∑' i, ⟪stdHilbertBasis H i, rankOne ℂ u v (stdHilbertBasis H i)⟫_ℂ = ⟪v, u⟫_ℂ
   simp_rw [rankOne_apply, inner_smul_right]
   exact (stdHilbertBasis H).tsum_inner_mul_inner v u
 
-/-- `|x⟩⟨x|` is trace-class: its positive trace `∑ᵢ |⟪x, eᵢ⟫|²` is Parseval-summable, hence finite. -/
+/-- `|x⟩⟨x|` is trace-class: its positive trace `∑ᵢ |⟪x, eᵢ⟫|²` is Parseval-summable, hence
+finite. -/
 lemma isTraceClass_rankOneSelf (x : H) : IsTraceClass (rankOne ℂ x x) := by
   have hpos := rankOneSelf_nonneg x
   have hsum : Summable fun i => re (⟪x, stdHilbertBasis H i⟫_ℂ * ⟪stdHilbertBasis H i, x⟫_ℂ) :=
     ((stdHilbertBasis H).summable_inner_mul_inner x x).map Complex.reCLM Complex.reCLM.continuous
-  show posTrace (stdHilbertBasis H) (absOp (rankOne ℂ x x)) ≠ ⊤
+  change posTrace (stdHilbertBasis H) (absOp (rankOne ℂ x x)) ≠ ⊤
   rw [absOp_of_nonneg hpos, posTrace_eq_tsum_ofReal (stdHilbertBasis H) hpos]
   have hsummand : ∀ i, re ⟪stdHilbertBasis H i, rankOne ℂ x x (stdHilbertBasis H i)⟫_ℂ
       = re (⟪x, stdHilbertBasis H i⟫_ℂ * ⟪stdHilbertBasis H i, x⟫_ℂ) := by
@@ -75,8 +77,9 @@ lemma trace_rankOneSelf_comp (x : H) (C : H →L[ℂ] H) :
   rw [mul_def, InnerProductSpace.rankOne_comp, trace_rankOne, adjoint_inner_left]
 
 /-- **Separation of the trace pairing.** If `tr(ρ · C) = 0` for every trace-class `ρ`, then `C = 0`.
-The rank-one operators `|x⟩⟨x|` witness the whole quadratic form `⟪x, C x⟫`, which over `ℂ` determines
-`C`. This is the faithfulness of the pairing `T(H) × B(H) → ℂ` underlying `B(H) = (T(H))*`. -/
+The rank-one operators `|x⟩⟨x|` witness the whole quadratic form `⟪x, C x⟫`, which over `ℂ`
+determines `C`. This is the faithfulness of the pairing `T(H) × B(H) → ℂ` underlying
+`B(H) = (T(H))*`. -/
 theorem eq_zero_of_forall_trace_toOp_mul_eq_zero {C : H →L[ℂ] H}
     (h : ∀ ρ : TraceClass H, trace (ρ.toOp * C) = 0) : C = 0 := by
   have hC : ∀ x : H, ⟪x, C x⟫_ℂ = 0 := by
@@ -91,7 +94,8 @@ theorem eq_zero_of_forall_trace_toOp_mul_eq_zero {C : H →L[ℂ] H}
   exact LinearMap.congr_fun h0 x
 
 /-- **The trace pairing determines a bounded operator.** If `tr(ρ · A) = tr(ρ · B)` for every
-trace-class `ρ`, then `A = B` — the pairing `T(H) × B(H) → ℂ` is nondegenerate on the `B(H)` side. -/
+trace-class `ρ`, then `A = B` — the pairing `T(H) × B(H) → ℂ` is nondegenerate on the `B(H)`
+side. -/
 theorem eq_of_forall_trace_toOp_mul_eq {A B : H →L[ℂ] H}
     (h : ∀ ρ : TraceClass H, trace (ρ.toOp * A) = trace (ρ.toOp * B)) : A = B := by
   have hAB : ∀ x : H, ⟪x, A x⟫_ℂ = ⟪x, B x⟫_ℂ := by

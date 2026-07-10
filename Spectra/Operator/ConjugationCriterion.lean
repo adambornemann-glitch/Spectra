@@ -1,8 +1,7 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
-Filename: Operator/ConjugationCriterion.lean
 -/
 import Spectra.Operator.SelfAdjointExtension
 import Spectra.SpectralTheory.Antilinear.Conjugation
@@ -97,7 +96,7 @@ theorem nonempty_linearIsometryEquiv_of_antiunitary {K L : Type*}
     have hrepr : b.repr (W.symm y) = 0 := by
       refine lp.ext (funext fun i => ?_)
       rw [b.repr_apply_apply]
-      show ⟪b i, W.symm y⟫_ℂ = (0 : ℂ)
+      change ⟪b i, W.symm y⟫_ℂ = (0 : ℂ)
       exact hyi i
     have hsy : W.symm y = 0 := by
       have h := congrArg b.repr.symm hrepr

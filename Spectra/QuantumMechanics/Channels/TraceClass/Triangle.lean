@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
-Author: Adam Bornemann
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Adam Bornemann
 -/
 import Spectra.QuantumMechanics.Channels.TraceClass.Trace
 
@@ -42,8 +42,8 @@ private lemma ofReal_traceNorm {X : H →L[ℂ] H} (hX : IsTraceClass X) :
 
 /-- **`tr |S + T| ≤ tr |S| + tr |T|`** in `ℝ≥0∞`, unconditional.  When either `S` or `T` is not
 trace-class the right-hand side is `∞`; otherwise, with `W = polarIsometry (S + T)`, each diagonal
-`re ⟪eᵢ, |S+T| eᵢ⟫ = re (⟪W eᵢ, S eᵢ⟫ + ⟪W eᵢ, T eᵢ⟫)` is `≤ ‖⟪W eᵢ, S eᵢ⟫‖ + ‖⟪W eᵢ, T eᵢ⟫‖`, and the
-two sums are bounded by `‖S‖₁`, `‖T‖₁` (`tsum_norm_inner_comp_le`, `‖W‖ ≤ 1`). -/
+`re ⟪eᵢ, |S+T| eᵢ⟫ = re (⟪W eᵢ, S eᵢ⟫ + ⟪W eᵢ, T eᵢ⟫)` is `≤ ‖⟪W eᵢ, S eᵢ⟫‖ + ‖⟪W eᵢ, T eᵢ⟫‖`, and
+the two sums are bounded by `‖S‖₁`, `‖T‖₁` (`tsum_norm_inner_comp_le`, `‖W‖ ≤ 1`). -/
 theorem posTrace_absOp_add_le (S T : H →L[ℂ] H) :
     posTrace (stdHilbertBasis H) (absOp (S + T))
       ≤ posTrace (stdHilbertBasis H) (absOp S) + posTrace (stdHilbertBasis H) (absOp T) := by
@@ -64,7 +64,8 @@ theorem posTrace_absOp_add_le (S T : H →L[ℂ] H) :
         rw [hsplit]
         exact (re_le_norm _).trans (norm_add_le _ _)
       calc posTrace (stdHilbertBasis H) (absOp (S + T))
-          = ∑' i, ENNReal.ofReal (re ⟪stdHilbertBasis H i, absOp (S + T) (stdHilbertBasis H i)⟫_ℂ) :=
+          = ∑' i, ENNReal.ofReal
+              (re ⟪stdHilbertBasis H i, absOp (S + T) (stdHilbertBasis H i)⟫_ℂ) :=
             posTrace_eq_tsum_ofReal (stdHilbertBasis H) (absOp_nonneg (S + T))
         _ ≤ ∑' i, ENNReal.ofReal (‖⟪W (stdHilbertBasis H i), S (stdHilbertBasis H i)⟫_ℂ‖
               + ‖⟪W (stdHilbertBasis H i), T (stdHilbertBasis H i)⟫_ℂ‖) :=
@@ -77,8 +78,10 @@ theorem posTrace_absOp_add_le (S T : H →L[ℂ] H) :
             ENNReal.tsum_add
         _ = ENNReal.ofReal (∑' i, ‖⟪W (stdHilbertBasis H i), S (stdHilbertBasis H i)⟫_ℂ‖)
               + ENNReal.ofReal (∑' i, ‖⟪W (stdHilbertBasis H i), T (stdHilbertBasis H i)⟫_ℂ‖) := by
-            rw [ENNReal.ofReal_tsum_of_nonneg (fun i => norm_nonneg _) (summable_norm_inner_comp W hS),
-              ENNReal.ofReal_tsum_of_nonneg (fun i => norm_nonneg _) (summable_norm_inner_comp W hT)]
+            rw [ENNReal.ofReal_tsum_of_nonneg (fun i => norm_nonneg _)
+                (summable_norm_inner_comp W hS),
+              ENNReal.ofReal_tsum_of_nonneg (fun i => norm_nonneg _)
+                (summable_norm_inner_comp W hT)]
         _ ≤ ENNReal.ofReal (traceNorm S) + ENNReal.ofReal (traceNorm T) :=
             add_le_add (ENNReal.ofReal_le_ofReal (tsum_norm_inner_comp_le hW1 hS))
               (ENNReal.ofReal_le_ofReal (tsum_norm_inner_comp_le hW1 hT))
@@ -96,8 +99,8 @@ theorem isTraceClass_add {S T : H →L[ℂ] H} (hS : IsTraceClass S) (hT : IsTra
     IsTraceClass (S + T) :=
   ne_top_of_le_ne_top (ENNReal.add_ne_top.mpr ⟨hS, hT⟩) (posTrace_absOp_add_le S T)
 
-/-- **The triangle inequality** `‖S + T‖₁ ≤ ‖S‖₁ + ‖T‖₁` (for trace-class `S, T`; both hypotheses are
-needed — off the trace-class world the junk value `0` of `‖·‖₁` breaks subadditivity). -/
+/-- **The triangle inequality** `‖S + T‖₁ ≤ ‖S‖₁ + ‖T‖₁` (for trace-class `S, T`; both hypotheses
+are needed — off the trace-class world the junk value `0` of `‖·‖₁` breaks subadditivity). -/
 theorem traceNorm_add_le {S T : H →L[ℂ] H} (hS : IsTraceClass S) (hT : IsTraceClass T) :
     traceNorm (S + T) ≤ traceNorm S + traceNorm T := by
   have hfin : posTrace (stdHilbertBasis H) (absOp S) + posTrace (stdHilbertBasis H) (absOp T) ≠ ⊤ :=

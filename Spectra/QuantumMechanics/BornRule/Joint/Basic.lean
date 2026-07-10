@@ -1,6 +1,6 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Spectra.QuantumMechanics.BornRule.Joint.Defs
@@ -227,8 +227,9 @@ lemma mem_signAtom {S : ι → Set ℝ} (x : ℝ) (c : ι → Bool) :
   refine forall_congr' fun i => ?_
   by_cases hc : c i = true <;> simp [hc, Set.mem_compl_iff]
 
-omit [DecidableEq ι] in
-lemma signAtom_measurableSet {S : ι → Set ℝ} (hS : ∀ i, MeasurableSet (S i)) (c : ι → Bool) :
+omit [Fintype ι] [DecidableEq ι] in
+lemma signAtom_measurableSet [Finite ι] {S : ι → Set ℝ} (hS : ∀ i, MeasurableSet (S i))
+    (c : ι → Bool) :
     MeasurableSet (signAtom S c) := by
   refine MeasurableSet.iInter fun i => ?_
   by_cases hc : c i = true

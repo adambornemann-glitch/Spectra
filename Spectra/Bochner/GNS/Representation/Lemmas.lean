@@ -1,6 +1,6 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Spectra.Bochner.GNS.Representation.UnitaryGroup
@@ -124,7 +124,7 @@ lemma quotientTranslate_norm {f : ℝ → ℂ}
       (quotientTranslate hPD hH t x) (quotientTranslate hPD hH t x) =
       @inner ℂ _ ipsV.toInner x x := by
     induction x using Submodule.Quotient.induction_on with | _ a =>
-    show quotientInner hPD hH _ _ = quotientInner hPD hH _ _
+    change quotientInner hPD hH _ _ = quotientInner hPD hH _ _
     simp only [quotientTranslate_mk, quotientInner_mk]
     exact pdInner_translate t a a
   have h_sq : ‖quotientTranslate hPD hH t x‖ ^ 2 = ‖x‖ ^ 2 := by
@@ -156,6 +156,19 @@ lemma quotientTranslate_uniformContinuous {f : ℝ → ℂ}
   letI := gnsQuotientIPS hPD hH
   exact (quotientTranslateLI hPD hH t).isometry.uniformContinuous
 
+/-- `ContinuousAdd` on the completion of the GNS quotient, packaged once for reuse: every
+proof that needs it would otherwise re-derive it from `IsUniformAddGroup` by hand. -/
+lemma gnsCompletion_continuousAdd {f : ℝ → ℂ}
+    (hPD : IsPositiveDefinite f) (hH : IsHermitian f) :
+    letI := gnsQuotientNACG hPD hH
+    letI := gnsQuotientIPS hPD hH
+    ContinuousAdd (UniformSpace.Completion (GNSQuotient hPD hH)) := by
+  letI := gnsQuotientNACG hPD hH
+  letI := gnsQuotientIPS hPD hH
+  letI : AddGroup (UniformSpace.Completion (GNSQuotient hPD hH)) := inferInstance
+  letI : IsUniformAddGroup (UniformSpace.Completion (GNSQuotient hPD hH)) := inferInstance
+  exact IsTopologicalAddGroup.toContinuousAdd
+
 /-- Translation extended to the GNS completion as a ℂ-linear map.
     Linearity proved by density: `Completion.map` preserves add/smul
     because it agrees with the linear `quotientTranslate` on the dense image. -/
@@ -173,19 +186,15 @@ noncomputable def completionTranslate {f : ℝ → ℂ}
     gnsQuotient_uniformContinuousConstSMul hPD hH
   have huc : UniformContinuous (quotientTranslate hPD hH t) :=
     quotientTranslate_uniformContinuous hPD hH t
-  -- Pre-wire completion-level instances at outer scope so nested by-blocks see them
-  letI : AddGroup (UniformSpace.Completion (GNSQuotient hPD hH)) := inferInstance
-  letI : IsUniformAddGroup (UniformSpace.Completion (GNSQuotient hPD hH)) := inferInstance
-  haveI : ContinuousAdd (UniformSpace.Completion (GNSQuotient hPD hH)) :=
-    IsTopologicalAddGroup.toContinuousAdd
+  -- Pre-wire the completion-level `ContinuousAdd` instance so nested by-blocks see it
+  haveI := gnsCompletion_continuousAdd hPD hH
   exact {
     toFun := UniformSpace.Completion.map (quotientTranslate hPD hH t)
     map_add' := fun x y => by
       refine UniformSpace.Completion.induction_on₂ x y ?_ ?_
       · apply isClosed_eq
         · exact UniformSpace.Completion.continuous_map.comp continuous_add
-        · haveI : ContinuousAdd (UniformSpace.Completion (GNSQuotient hPD hH)) :=
-            IsTopologicalAddGroup.toContinuousAdd
+        · haveI := gnsCompletion_continuousAdd hPD hH
           exact continuous_add.comp
             ((UniformSpace.Completion.continuous_map.comp continuous_fst).prodMk
              (UniformSpace.Completion.continuous_map.comp continuous_snd))
@@ -218,9 +227,24 @@ lemma completionTranslate_coe {f : ℝ → ℂ}
   letI := gnsQuotientIPS hPD hH
   haveI : UniformContinuousConstSMul ℂ (GNSQuotient hPD hH) :=
     gnsQuotient_uniformContinuousConstSMul hPD hH
-  show UniformSpace.Completion.map (quotientTranslate hPD hH t) ↑a = _
+  change UniformSpace.Completion.map (quotientTranslate hPD hH t) ↑a = _
   exact UniformSpace.Completion.map_coe
     (quotientTranslate_uniformContinuous hPD hH t) a
+
+/-- `completionTranslate t` is continuous, directly from `Completion.map`'s unconditional
+continuity — packaged for reuse wherever a continuity side-goal needs it by name. -/
+lemma completionTranslate_continuous {f : ℝ → ℂ}
+    (hPD : IsPositiveDefinite f) (hH : IsHermitian f) (t : ℝ) :
+    letI := gnsQuotientNACG hPD hH
+    letI := gnsQuotientIPS hPD hH
+    letI : UniformContinuousConstSMul ℂ (GNSQuotient hPD hH) :=
+      gnsQuotient_uniformContinuousConstSMul hPD hH
+    Continuous (completionTranslate hPD hH t) := by
+  letI := gnsQuotientNACG hPD hH
+  letI := gnsQuotientIPS hPD hH
+  haveI : UniformContinuousConstSMul ℂ (GNSQuotient hPD hH) :=
+    gnsQuotient_uniformContinuousConstSMul hPD hH
+  exact UniformSpace.Completion.continuous_map
 
 /-- Group law on the completion: U(s)(U(t)(ψ)) = U(s+t)(ψ). -/
 lemma completionTranslate_comp {f : ℝ → ℂ}
@@ -286,14 +310,13 @@ lemma completionTranslate_inner {f : ℝ → ℂ}
   intro ψ φ
   refine UniformSpace.Completion.induction_on₂ ψ φ ?_ ?_
   · apply isClosed_eq
-    haveI : ContinuousAdd (UniformSpace.Completion (GNSQuotient hPD hH)) :=
-      IsTopologicalAddGroup.toContinuousAdd
-    have hcont_map : Continuous (completionTranslate hPD hH t) :=
-      UniformSpace.Completion.continuous_map
-    have hcont_pair : Continuous (fun (p : UniformSpace.Completion _ × UniformSpace.Completion _) =>
-        (completionTranslate hPD hH t p.1, completionTranslate hPD hH t p.2)) :=
-      (hcont_map.comp continuous_fst).prodMk (hcont_map.comp continuous_snd)
-    · exact (@continuous_inner ℂ _ _ _ _).comp hcont_pair
+    · haveI := gnsCompletion_continuousAdd hPD hH
+      have hcont_pair :
+          Continuous (fun (p : UniformSpace.Completion _ × UniformSpace.Completion _) =>
+            (completionTranslate hPD hH t p.1, completionTranslate hPD hH t p.2)) :=
+        ((completionTranslate_continuous hPD hH t).comp continuous_fst).prodMk
+          ((completionTranslate_continuous hPD hH t).comp continuous_snd)
+      exact (@continuous_inner ℂ _ _ _ _).comp hcont_pair
     · exact @continuous_inner ℂ _ _ _ _
   · intro a b
     rw [completionTranslate_coe, completionTranslate_coe]
@@ -314,7 +337,7 @@ lemma completionTranslate_compat {f : ℝ → ℂ}
   letI := gnsQuotientIPS hPD hH
   haveI : UniformContinuousConstSMul ℂ (GNSQuotient hPD hH) :=
     gnsQuotient_uniformContinuousConstSMul hPD hH
-  show completionTranslate hPD hH t
+  change completionTranslate hPD hH t
     (↑(Submodule.Quotient.mk (p := pdNullSubmodule hPD hH) α)) =
     ↑(Submodule.Quotient.mk (p := pdNullSubmodule hPD hH) (translate t α))
   rw [completionTranslate_coe, quotientTranslate_mk]

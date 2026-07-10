@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
-Author: Adam Bornemann
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Adam Bornemann
 -/
 import Spectra.Modular.Cocycle.ModularSqrtSquare
 import Spectra.Modular.Cocycle.PolarIsometry
@@ -251,7 +251,7 @@ private theorem mem_tomitaClosure_graph_of_modularSqrt (y : (modularSqrt hcyc hs
     have hzS : (z : H) ∈ (modularSqrt hcyc hsep).domain := (Submodule.mem_inf.mp z.2).2
     rw [SetLike.mem_coe, LinearPMap.mem_graph_iff]
     refine ⟨⟨(z : H), modularOp_domain_le_tomita hzΔ⟩, hz1, ?_⟩
-    show tomitaClosure M Ω ⟨(z : H), modularOp_domain_le_tomita hzΔ⟩
+    change tomitaClosure M Ω ⟨(z : H), modularOp_domain_le_tomita hzΔ⟩
       = modularW hcyc hsep p.2
     have h1 : ((modularSqrt hcyc hsep).domRestrict (modularOp M Ω).domain) z
         = modularSqrt hcyc hsep ⟨(z : H), hzS⟩ := LinearPMap.domRestrict_apply rfl
@@ -314,7 +314,7 @@ theorem tomitaClosure_domain_le_modularSqrt_domain :
     rw [SetLike.mem_coe, LinearPMap.mem_graph_iff]
     refine ⟨⟨(x : H), modularOp_domain_le_modularSqrt_domain hcyc hsep x.2⟩, ?_, ?_⟩
     · simp [modularPairing_apply]
-    · show modularSqrt hcyc hsep ⟨(x : H), modularOp_domain_le_modularSqrt_domain hcyc hsep x.2⟩
+    · change modularSqrt hcyc hsep ⟨(x : H), modularOp_domain_le_modularSqrt_domain hcyc hsep x.2⟩
         = (modularW hcyc hsep).symm (tomitaOnModularDomain M Ω x)
       rw [← modularW_apply_modularSqrt hcyc hsep x, LinearIsometryEquiv.symm_apply_apply]
       rfl
@@ -338,8 +338,8 @@ theorem tomitaClosure_domain_eq_modularSqrt_domain :
 `norm_modularSqrt_eq_norm_tomita` upgraded from `D(Δ)` (immediate, since `W` is an isometry). -/
 theorem norm_modularSqrt_eq_norm_tomitaClosure (y : (modularSqrt hcyc hsep).domain) :
     ‖modularSqrt hcyc hsep y‖
-      = ‖tomitaClosure M Ω ⟨(y : H), modularSqrt_domain_le_tomitaClosure_domain hcyc hsep y.2⟩‖ := by
-  rw [tomitaClosure_eq_modularW_modularSqrt hcyc hsep y, LinearIsometryEquiv.norm_map]
+      = ‖tomitaClosure M Ω ⟨(y : H), modularSqrt_domain_le_tomitaClosure_domain hcyc hsep y.2⟩‖ :=
+  by rw [tomitaClosure_eq_modularW_modularSqrt hcyc hsep y, LinearIsometryEquiv.norm_map]
 
 /-- **The extended polar decomposition in `J`-form**: `toConj (J (Δ^{½} y)) = S y` on **all** of
 `D(Δ^{½})` — `tomita_eq_modularConjugation_modularSqrt` upgraded from `D(Δ)`. -/

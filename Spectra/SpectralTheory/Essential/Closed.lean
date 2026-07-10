@@ -1,6 +1,6 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Spectra.SpectralTheory.Essential.Defs
@@ -110,7 +110,8 @@ theorem isClosed_essSpectrum {A : H →ₗ.[ℂ] H} (hA : IsSelfAdjoint A) :
     rw [hd] at hyD
     obtain ⟨jj, rfl⟩ := hyD
     obtain ⟨N₁, hN₁⟩ := (tendsto_one_div_add_atTop_nhds_zero_nat.eventually
-      (isOpen_Iio.mem_nhds (Set.mem_Iio.mpr (show (0 : ℝ) < ε / 2 by positivity)))).exists_forall_of_atTop
+      (isOpen_Iio.mem_nhds
+      (Set.mem_Iio.mpr (show (0 : ℝ) < ε / 2 by positivity)))).exists_forall_of_atTop
     refine ⟨max jj N₁, fun k hk => ?_⟩
     have hkj : jj ≤ k := le_of_max_le_left hk
     have hkN : N₁ ≤ k := le_of_max_le_right hk

@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
-Author: Adam Bornemann
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Adam Bornemann
 -/
 import Spectra.Modular.KMS.Condition
 import Mathlib.Analysis.Normed.Module.WeakDual
@@ -184,7 +184,8 @@ lemma stateSet_isCompact : IsCompact (stateSet A) := by
 /-! ### Pure states (Krein–Milman)
 
 `stateSet A` is convex (`stateSet_convex`) and weak-*-compact (`stateSet_isCompact`). Krein–Milman
-is stated over `ℝ`, so we equip the **complex** weak dual with its **real** locally-convex structure:
+is stated over `ℝ`, so we equip the **complex** weak dual with its **real**
+locally-convex structure:
 `ℝ` acts through `ℂ`, keeping scalar multiplication weak-*-continuous, and the weak topology is
 `ℝ`-locally-convex (`WeakBilin.locallyConvexSpace`). The two instances below supply exactly the
 real-LCTVS structure on `WeakDual ℂ A` that Mathlib does not register for a complex weak dual; with

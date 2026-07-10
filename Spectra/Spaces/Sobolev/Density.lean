@@ -1,11 +1,11 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
-File: Spectra/Spaces/Sobolev/Density.lean
 -/
 import Spectra.Spaces.Sobolev.WeakDerivative
 import Mathlib.MeasureTheory.Function.ContinuousMapDense
+import Mathlib.Analysis.Normed.Lp.SmoothApprox
 /-!
 # Density of Test Functions in L²(ℝ³)
 
@@ -135,7 +135,8 @@ private lemma exists_smooth_uniform_approx
               _ ≤ 2 * radius := by linarith, by abel⟩
         have hy₂ : y ∈ K₂ := Set.mem_add.mpr
           ⟨y, hyK, 0, Metric.mem_closedBall.mpr (by
-            simp; exact le_of_lt hradius), by simp⟩
+            simp only [dist_self, Nat.ofNat_pos, mul_nonneg_iff_of_pos_left];
+            exact le_of_lt hradius), by simp only [add_zero]⟩
         calc ‖φ y‖ = ‖φ y - φ x‖ := by rw [hφx, sub_zero]
           _ = ‖φ x - φ y‖ := by rw [norm_sub_rev]
           _ ≤ δ / 2 := by
@@ -172,7 +173,7 @@ private lemma exists_smooth_uniform_approx
     have hsmooth_im : ContDiff ℝ ∞ ψ_im :=
       HasCompactSupport.contDiff_convolution_left (ContinuousLinearMap.lsmul ℝ ℝ)
         ρ.hasCompactSupport_normed ρ.contDiff_normed hli_im
-    show ContDiff ℝ ∞ ψ
+    change ContDiff ℝ ∞ ψ
     have hrw : ψ = fun x => ((ψ_re x : ℂ) + (ψ_im x : ℂ) * Complex.I) := by
       ext x; apply Complex.ext
       · simp [ψ, Complex.add_re, Complex.ofReal_re, Complex.mul_re,
@@ -200,7 +201,7 @@ private lemma exists_smooth_uniform_approx
         apply hx
         have hre0 : ψ_re x = 0 := image_eq_zero_of_notMem_tsupport h.1
         have him0 : ψ_im x = 0 := image_eq_zero_of_notMem_tsupport h.2
-        show (⟨ψ_re x, ψ_im x⟩ : ℂ) = 0
+        change (⟨ψ_re x, ψ_im x⟩ : ℂ) = 0
         rw [hre0, him0]; rfl
       · exact (isClosed_tsupport _).union (isClosed_tsupport _)
     exact (hcs_re.isCompact.union hcs_im.isCompact).of_isClosed_subset
@@ -256,7 +257,7 @@ private lemma exists_smooth_uniform_approx
         exact Real.ext_cauchy rfl
       · rw [hρ_zero t ht, zero_mul]
         exact Real.ext_cauchy rfl
-    show (⟨ψ_re x, ψ_im x⟩ : ℂ) = 0
+    change (⟨ψ_re x, ψ_im x⟩ : ℂ) = 0
     rw [h_re, h_im]; rfl
   case unif_bound =>
     intro x₀
@@ -307,7 +308,7 @@ private lemma exists_smooth_uniform_approx
       _ = δ := add_halves δ
 
 /-- The eLpNorm of a compactly supported bounded function is controlled by
-    the sup-norm times a power of the support measure  -/
+    the sup-norm times a power of the support measure -/
 lemma eLpNorm_le_of_compactSupport_bound
     (f : R3 → ℂ) (hf_supp : HasCompactSupport f)
     (C : ℝ) (hfC : ∀ x, ‖f x‖ ≤ C) :
@@ -366,7 +367,7 @@ lemma smooth_approx_continuous_compactSupport
           gcongr; exact min_le_right _ _
       _ < ε := by
           have hsM := Real.sqrt_nonneg M
-          simp [div_mul_eq_mul_div]
+          simp only [div_mul_eq_mul_div]
           rw [propext (div_lt_iff₀ hdenom)]
           nlinarith
   have h_approx := exists_smooth_uniform_approx φ hcont hsupp δ hδ_pos (1 : ℝ) (by norm_num)
@@ -422,37 +423,15 @@ lemma smooth_approx_continuous_compactSupport
 
 /-- **Density**: C_c^∞(ℝ³) is dense in L²(ℝ³).
     Chain: L² ←ε/2— C_c ←ε/2— C_c^∞. -/
-lemma dense_test_functions_L2 :
-    Dense {g : l2R3 | ∃ (φ : R3 → ℂ),
+lemma dense_test_functions_L2 {d : ℕ} :
+    Dense {g : l2Rn d | ∃ (φ : Rn d → ℂ),
       ContDiff ℝ ∞ φ ∧ HasCompactSupport φ ∧
-      (g : R3 → ℂ) =ᵐ[volume] φ} := by
-  rw [Metric.dense_iff]
-  intro g ε hε
-  have hε2 : (0 : ℝ) < ε / 2 := half_pos hε
-  -- Step 1: approximate g by continuous compactly supported (within ε/2)
-  obtain ⟨g₁, hg₁_dist, φ₁, hcont₁, hsupp₁, hae₁⟩ :=
-    Metric.dense_iff.mp dense_continuous_compactSupport_L2 g (ε / 2) hε2
-  -- Step 2: φ₁ ∈ L² (continuous + compact support on a locally finite measure)
-  have hφ₁_Lp : MemLp φ₁ 2 (volume : Measure R3) := by
-    haveI : IsFiniteMeasureOnCompacts (volume : Measure R3) := by
-      infer_instance
-    obtain ⟨C, hC⟩ := hcont₁.bounded_above_of_compact_support hsupp₁
-    exact hsupp₁.memLp_of_bound hcont₁.aestronglyMeasurable C (ae_of_all _ hC)
-  -- Step 3: g₁ = toLp φ₁ (both represent φ₁ a.e., hence equal as Lp elements)
-  have hg₁_eq : g₁ = hφ₁_Lp.toLp φ₁ :=
-    Subtype.ext (AEEqFun.ext (hae₁.trans hφ₁_Lp.coeFn_toLp.symm))
-  -- Step 4: smooth approximation of φ₁ (within ε/2); ψ ∈ L² comes bundled with the bound.
-  obtain ⟨ψ, hψ_smooth, hψ_supp, hψ_Lp, hψ_close⟩ :=
-    smooth_approx_continuous_compactSupport φ₁ hcont₁ hsupp₁ hφ₁_Lp hε2
-  -- Step 5: toLp ψ is in the target set and ε-close to g
-  exact ⟨hψ_Lp.toLp ψ,
-    calc dist (hψ_Lp.toLp ψ) g
-        ≤ dist (hψ_Lp.toLp ψ) g₁ + dist g₁ g := dist_triangle _ _ _
-      _ < ε / 2 + ε / 2 :=
-          add_lt_add
-            (by rw [hg₁_eq, dist_comm, dist_eq_norm]; exact hψ_close)
-            hg₁_dist
-      _ = ε := add_halves ε,
-    ⟨ψ, hψ_smooth, hψ_supp, hψ_Lp.coeFn_toLp⟩⟩
+      (g : Rn d → ℂ) =ᵐ[volume] φ} := by
+  -- Re-pointed at mathlib's general-dimension density theorem; the two sets differ only in the
+  -- order of the ∃-body conjuncts, so `Dense.mono` closes it.
+  refine Dense.mono ?_ (MeasureTheory.Lp.dense_hasCompactSupport_contDiff (F := ℂ)
+    (μ := (volume : Measure (Rn d))) (p := 2) (by norm_num))
+  rintro f ⟨g, h1, h2, h3⟩
+  exact ⟨g, h3, h2, h1⟩
 
 end Spectra.Sobolev

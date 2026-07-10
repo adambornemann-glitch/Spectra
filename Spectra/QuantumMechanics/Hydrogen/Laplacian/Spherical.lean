@@ -1,6 +1,6 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Mathlib.Analysis.InnerProductSpace.Laplacian
@@ -431,7 +431,7 @@ lemma curve_jet (f : R3 → ℂ) (hf : ContDiff ℝ 2 f) {γ : ℝ → R3} {t₀
     iteratedDeriv 2 (fun u => f (γ u)) t₀
       = iteratedFDeriv ℝ 2 f (γ t₀) ![deriv γ t₀, deriv γ t₀]
         + fderiv ℝ f (γ t₀) (iteratedDeriv 2 γ t₀) := by
-  show iteratedDeriv 2 (f ∘ γ) t₀ = _
+  change iteratedDeriv 2 (f ∘ γ) t₀ = _
   rw [iteratedDeriv_vcomp_two hf.contDiffAt hγ, const_fin2]
 
 /-- First-order chain rule along a curve: `(f ∘ γ)′ = Df[γ′]`. -/
@@ -583,7 +583,8 @@ lemma jet_radial (f : R3 → ℂ) (hf : ContDiff ℝ 2 f) (r θ φ : ℝ) :
 
 /-- Radial first jet: `∂_r (f ∘ chart) = Df[ê_r]`. -/
 lemma fst_radial (f : R3 → ℂ) (hf : ContDiff ℝ 2 f) (r θ φ : ℝ) :
-    deriv (fun u => f (sphereChart u θ φ)) r = fderiv ℝ f (sphereChart r θ φ) (sphereFrameR θ φ) := by
+    deriv (fun u => f (sphereChart u θ φ)) r
+      = fderiv ℝ f (sphereChart r θ φ) (sphereFrameR θ φ) := by
   rw [curve_deriv f hf (chart_radial_contDiffAt θ φ r), chart_radial_deriv]
 
 /-- Polar first jet: `∂_θ (f ∘ chart) = r · Df[ê_θ]`. -/
@@ -643,7 +644,8 @@ lemma jet_polar (f : R3 → ℂ) (hf : ContDiff ℝ 2 f) (r θ φ : ℝ) :
     combining the velocity `(r sinθ) ê_φ` (Hessian term) with the acceleration `-(r sinθ) v_ρ`. -/
 lemma jet_azim (f : R3 → ℂ) (hf : ContDiff ℝ 2 f) (r θ φ : ℝ) :
     iteratedDeriv 2 (fun u => f (sphereChart r θ u)) φ
-      = ((r * sin θ) ^ 2 : ℝ) • iteratedFDeriv ℝ 2 f (sphereChart r θ φ) ![sphereFrameφ φ, sphereFrameφ φ]
+      = ((r * sin θ) ^ 2 : ℝ) • iteratedFDeriv ℝ 2 f (sphereChart r θ φ)
+          ![sphereFrameφ φ, sphereFrameφ φ]
         + fderiv ℝ f (sphereChart r θ φ) ((-(r * sin θ)) • vρ φ) := by
   rw [curve_jet f hf (chart_azim_contDiffAt r θ φ), chart_azim_deriv, chart_azim_iteratedDeriv,
     iFD2_smul_diag]

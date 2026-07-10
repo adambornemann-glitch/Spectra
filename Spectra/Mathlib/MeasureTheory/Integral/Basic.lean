@@ -1,8 +1,7 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
-Filename: Mathlib/MeasureTheory/Integral/Basic.lean
 -/
 import Mathlib.Probability.Distributions.Gaussian.Real
 /-!
@@ -46,7 +45,8 @@ lemma integral_exp_neg_Ioc (n : ℕ) : ∫ x in (0 : ℝ)..n, Real.exp (-x) = 1 
   · have hn' : n = 0 := Nat.cast_eq_zero.mp (le_antisymm hn (Nat.cast_nonneg n))
     simp [hn', intervalIntegral.integral_same]
   · push Not at hn
-    have hderiv : ∀ x ∈ Set.Ioo (0 : ℝ) n, HasDerivAt (fun t => -Real.exp (-t)) (Real.exp (-x)) x := by
+    have hderiv : ∀ x ∈ Set.Ioo (0 : ℝ) n,
+        HasDerivAt (fun t => -Real.exp (-t)) (Real.exp (-x)) x := by
       intro x _
       have h1 : HasDerivAt (fun t => -t) (-1) x := hasDerivAt_neg x
       have h2 : HasDerivAt Real.exp (Real.exp (-x)) (-x) := Real.hasDerivAt_exp (-x)
@@ -125,7 +125,8 @@ lemma norm_integral_exp_decay_le
         calc Real.exp (-t) * ‖f t‖
             ≤ Real.exp (-t) * C := mul_le_mul_of_nonneg_left (hC t ht) (Real.exp_pos _).le
           _ = C * Real.exp (-t) := mul_comm _ _
-    _ = C * ∫ t in Set.Ici 0, Real.exp (-t) := MeasureTheory.integral_const_mul C fun a => Real.exp (-a)
+    _ = C * ∫ t in Set.Ici 0, Real.exp (-t) :=
+        MeasureTheory.integral_const_mul C fun a => Real.exp (-a)
     _ = C * 1 := by rw [integral_exp_neg_eq_one]
     _ = C := mul_one C
 
@@ -155,7 +156,6 @@ lemma hasDerivAt_integral_of_exp_decay
     (bound := fun s => M * Real.exp (-s))
     (Metric.ball_mem_nhds t one_pos)  -- was: (ε := 1) one_pos
     ?hF_meas ?hF_int ?hF'_meas ?hF'_bound ?hbound_int ?hF_deriv
-  exact h.2
   case hF_meas =>
     filter_upwards with τ
     apply AEStronglyMeasurable.smul
@@ -174,16 +174,17 @@ lemma hasDerivAt_integral_of_exp_decay
     filter_upwards [ae_restrict_mem measurableSet_Ici] with s hs τ _
     rw [norm_smul, Real.norm_of_nonneg (le_of_lt (Real.exp_pos _))]
     calc Real.exp (-s) * ‖deriv (f · s) τ‖
-        ≤ Real.exp (-s) * M := by
-          apply mul_le_mul_of_nonneg_left
-          exact (hC' τ s hs).trans ((le_abs_self C).trans hC_le_M)
-          exact le_of_lt (Real.exp_pos _)
+        ≤ Real.exp (-s) * M :=
+          mul_le_mul_of_nonneg_left
+            ((hC' τ s hs).trans ((le_abs_self C).trans hC_le_M))
+            (le_of_lt (Real.exp_pos _))
       _ = M * Real.exp (-s) := mul_comm _ _
   case hbound_int =>
     exact integrableOn_exp_neg.const_mul M
   case hF_deriv =>
     filter_upwards [ae_restrict_mem measurableSet_Ici] with s _ τ _
     exact (hf_deriv τ s).const_smul (Real.exp (-s))
+  exact h.2
 
 end BasicBochner
 

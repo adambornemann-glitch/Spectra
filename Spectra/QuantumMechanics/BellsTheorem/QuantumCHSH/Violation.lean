@@ -1,9 +1,10 @@
 /-
-Copyright (c) 2025 Bell Theorem Formalization Project
+Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Ported from Isabelle/HOL formalization by Echenim & Mhalla
-Ported by: Adam Bornemann
-
+Authors: Ported from Isabelle/HOL formalization by Echenim & Mhalla, by Adam Bornemann
+-/
+import Spectra.QuantumMechanics.BellsTheorem.QuantumCHSH.Correlations
+/-!
 # Quantum CHSH Violation for the Bell State
 
 Assembles the CHSH observables and correlators from `Q_CHSH_Basic.lean`/`Correlations.lean` into
@@ -39,8 +40,6 @@ expectation value.
 
 chsh, bell state, tsirelson bound, quantum information
 -/
-import Spectra.QuantumMechanics.BellsTheorem.QuantumCHSH.Correlations
-
 open Matrix
 namespace Spectra.QuantumCHSH
 

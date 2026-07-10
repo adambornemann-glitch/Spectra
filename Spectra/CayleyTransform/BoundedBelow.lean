@@ -1,9 +1,33 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Spectra.CayleyTransform.MapsResolvent
+
+/-!
+# Boundedness below through the Cayley transform
+
+For a symmetric operator pencil `A`, `μ` fails to be an approximate eigenvalue exactly when
+`A - μ` is bounded below. This file transfers that property across the Cayley transform: if the
+bounded shift `U - w` is bounded below (equivalently a unit), where `w = (μ - i)/(μ + i)` is the
+Möbius image of the real point `μ`, then `A - μ` is bounded below, with an explicit constant.
+
+## Main definitions
+
+* `HasEigenvalue`: `μ` is an eigenvalue of `A`, i.e. `A` fixes some nonzero domain vector up to
+  scaling by `μ`.
+* `IsBoundedBelow`: `A - μ` is bounded below on its domain.
+
+## Main results
+
+* `isBoundedBelow_of_cayleyTransform_sub_smul_boundedBelow`: boundedness below of `U - w`
+  transfers to boundedness below of `A - μ`.
+* `isBoundedBelow_of_isUnit_cayleyTransform_sub_smul`: the same transfer stated from invertibility
+  of `U - w`.
+* `norm_lower_bound_of_approx_eigenvalue_of_unit`: a quantitative lower bound on `‖ψ‖` for an
+  approximate eigenvector, in terms of `μ` and the approximation error `δ`.
+-/
 
 open InnerProductSpace MeasureTheory Complex Filter Topology
 open Spectra.Operator

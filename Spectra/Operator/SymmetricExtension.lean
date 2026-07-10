@@ -1,8 +1,7 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
-Filename: Operator/SymmetricExtension.lean
 -/
 import Spectra.Operator.VonNeumannFormula
 
@@ -293,3 +292,5 @@ theorem vonNeumannExtensionOn_toLinearIsometry (hsym : A.IsFormalAdjoint A)
     vonNeumannExtensionOn A hsym hdense le_rfl W.toLinearIsometry
       = vonNeumannExtension A hsym hdense W :=
   rfl
+
+end Spectra.Operator

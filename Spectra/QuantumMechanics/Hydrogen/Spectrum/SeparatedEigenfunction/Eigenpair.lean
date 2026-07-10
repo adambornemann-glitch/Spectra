@@ -1,6 +1,6 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Spectra.QuantumMechanics.Hydrogen.Spectrum.SeparatedEigenfunction.Profile
@@ -318,7 +318,8 @@ theorem hydrogen_bound_state_separated (n ℓ m : ℕ) (hn : ℓ + 1 ≤ n) (hm 
         simp
       rw [radial_wavefunction_norm] at hz; exact one_ne_zero hz
     -- hence `Y ≡ 0` on the open box `θ ∈ (0,π)`
-    have hYzero : ∀ θ φ : ℝ, θ ∈ Set.Ioo 0 Real.pi → SphericalHarmonic ℓ (m : ℤ) hm' (θ, φ) = 0 := by
+    have hYzero : ∀ θ φ : ℝ, θ ∈ Set.Ioo 0 Real.pi →
+      SphericalHarmonic ℓ (m : ℤ) hm' (θ, φ) = 0 := by
       intro θ φ hθ
       have := hRY r₀ θ φ hr₀pos hθ
       rcases mul_eq_zero.mp this with h | h
@@ -438,11 +439,12 @@ lemma chartRealization_symm_sstate_eigenpair (n : ℕ) (hn : 1 ≤ n) (hm : |(0 
   obtain ⟨C₁, _, hC₁⟩ := exp_bound_of_tendsto
     ((contDiff_hydrogenRadial n 0 hn0).continuous_deriv (by norm_num))
     (tendsto_deriv_hydrogenRadial_mul_exp n 0 hn0 hε)
-  -- `deriv g = c · deriv Rc`, `deriv (deriv g) = c · deriv (deriv Rc)`, both reduced to `R'`, `R''`.
+  -- `deriv g = c · deriv Rc`, `deriv (deriv g) = c · deriv (deriv Rc)`, both reduced to `R'`, `R''`
   have hg_eq : g = fun s => c * Rc n 0 hn0 s := rfl
   have hderiv_g : deriv g = fun s => c * deriv (Rc n 0 hn0) s := by
     funext s
-    rw [hg_eq, deriv_const_mul _ ((contDiff_Rc n 0 hn0).differentiable (by norm_num)).differentiableAt]
+    rw [hg_eq, deriv_const_mul _
+      ((contDiff_Rc n 0 hn0).differentiable (by norm_num)).differentiableAt]
   have hderiv2_g : deriv (deriv g)
       = fun s => c * ((deriv (deriv (hydrogenRadialWavefunction n 0 hn0)) s : ℝ) : ℂ) := by
     funext s
@@ -450,7 +452,8 @@ lemma chartRealization_symm_sstate_eigenpair (n : ℕ) (hn : 1 ≤ n) (hm : |(0 
       deriv_const_mul _ ((contDiff_Rc n 0 hn0).differentiable_deriv_two).differentiableAt,
       deriv2_Rc n 0 hn0]
   -- rewrite `deriv g` into the `ℝ→ℂ`-cast form (for the norm bound)
-  have hderiv_g' : deriv g = fun s => c * ((deriv (hydrogenRadialWavefunction n 0 hn0) s : ℝ) : ℂ) := by
+  have hderiv_g' : deriv g = fun s => c *
+    ((deriv (hydrogenRadialWavefunction n 0 hn0) s : ℝ) : ℂ) := by
     rw [hderiv_g]; funext s; rw [deriv_Rc n 0 hn0]
   have hbd1 : ∀ r : ℝ, 0 ≤ r → ‖deriv g r‖ ≤ (|sphericalNorm 0 0| * C₁) * Real.exp (-a * r) := by
     intro r hr
@@ -509,7 +512,7 @@ lemma chartRealization_symm_sstate_eigenpair (n : ℕ) (hn : 1 ≤ n) (hm : |(0 
     have h := sum_second_deriv_eigen n hn0 hx
     simp only [hg_def, hc]
     rw [h]
-  -- assemble `Ψ ∈ H²` and the eigenpair *for the explicit `Ψ`* (mirrors `bound_state_of_radial_profile`)
+  -- assemble `Ψ ∈ H²` & eigenpair *for the explicit `Ψ`* (mirrors `bound_state_of_radial_profile`)
   set p : CoulombParams := ⟨1, one_pos⟩ with hp
   set E : ℝ := hydrogenEigenvalue n hn with hE_def
   have heigen' : ∀ x : R3, x ≠ 0 →
@@ -547,7 +550,7 @@ lemma chartRealization_symm_sstate_eigenpair (n : ℕ) (hn : 1 ≤ n) (hm : |(0 
       Lp.coeFn_add (d2 0 0 + d2 1 1) (d2 2 2), Lp.coeFn_add (d2 0 0) (d2 1 1),
       hc' 0, hc' 1, hc' 2] with x hneg hadd2 hadd1 h0 h1 h2
     simp only [Fin.sum_univ_three, hneg, Pi.neg_apply, hadd2, hadd1, Pi.add_apply, h0, h1, h2]
-  show hydrogenHamiltonian p ⟨Ψ, hH2⟩ = ((E : ℝ) : ℂ) • Ψ
+  change hydrogenHamiltonian p ⟨Ψ, hH2⟩ = ((E : ℝ) : ℂ) • Ψ
   refine Lp.ext ?_
   have hae0 : ∀ᵐ x : R3, x ≠ 0 := by
     rw [ae_iff]; simp only [ne_eq, not_not, Set.setOf_eq_eq_singleton]; exact measure_singleton 0
@@ -658,7 +661,8 @@ lemma chartRealization_symm_star (v : Decomposition.l2R3) :
   have hL := chartRealization_symm_coeFn (star v)
   have hstarv := Lp.coeFn_star v
   have hstarv' := (measurePreserving_sphereChartInv.quasiMeasurePreserving).ae_eq_comp hstarv
-  -- RHS coeFn: `star (⇑(chartRealization.symm v))`, and `⇑(chartRealization.symm v) = v ∘ sphereChartInv`
+  -- RHS coeFn: `star (⇑(chartRealization.symm v))`,
+  -- and `⇑(chartRealization.symm v) = v ∘ sphereChartInv`
   have hR := Lp.coeFn_star (chartRealization.symm v)
   have hRv := chartRealization_symm_coeFn v
   filter_upwards [hL, hstarv', hR, hRv] with x hLx hsx hRx hRvx
@@ -710,11 +714,13 @@ lemma chartRealization_symm_eigenfunction_eigenpair (n ℓ : ℕ) (M : ℤ) (hn 
       exact_mod_cast hle
     have hm' : |(m : ℤ)| ≤ (ℓ : ℤ) := by rw [← abs_neg]; exact hM
     -- the `+m` transported eigenfunction is a genuine eigenvector (non-negative case)
-    obtain ⟨hmemPos, heigPos⟩ := chartRealization_symm_eigenfunction_eigenpair_nat n ℓ m hn hmℓ hn1 hm'
+    obtain ⟨hmemPos, heigPos⟩ :=
+      chartRealization_symm_eigenfunction_eigenpair_nat n ℓ m hn hmℓ hn1 hm'
     set psiPos : (hydrogenHamiltonian ⟨1, one_pos⟩).domain :=
       ⟨chartRealization.symm (hydrogenEigenfunction n ℓ (m : ℤ) hn hm'), hmemPos⟩ with hpsiPos_def
     -- `star psiPos` is an eigenvector at the (real) eigenvalue `Eₙ`
-    have hstar_eig := hydrogenHamiltonian_star ⟨1, one_pos⟩ (hydrogenEigenvalue n hn1) psiPos heigPos
+    have hstar_eig :=
+      hydrogenHamiltonian_star ⟨1, one_pos⟩ (hydrogenEigenvalue n hn1) psiPos heigPos
     set χ : (hydrogenHamiltonian ⟨1, one_pos⟩).domain :=
       ⟨star (psiPos : Spectra.Sobolev.l2R3), memSobolevH2_star _ psiPos.2⟩ with hχ_def
     -- the Condon–Shortley constant `κ ≠ 0`

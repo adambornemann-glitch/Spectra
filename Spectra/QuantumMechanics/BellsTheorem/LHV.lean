@@ -1,8 +1,7 @@
 /-
-Copyright (c) 2025 Bell Theorem Formalization Project
+Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Ported from Isabelle/HOL formalization by Echenim & Mhalla
-Ported by: Adam Bornemann
+Authors: Ported from Isabelle/HOL formalization by Echenim & Mhalla, by Adam Bornemann
 -/
 import Mathlib.MeasureTheory.Integral.Bochner.Basic
 import Mathlib.MeasureTheory.Measure.ProbabilityMeasure
@@ -199,11 +198,11 @@ lemma lhv_chsh_bound (M : LHVModel Λ) : |M.CHSH| ≤ 2 := by
   have chsh_integrable : Integrable (fun ω => M.A₀ ω * M.B₁ ω - M.A₀ ω * M.B₀ ω +
       M.A₁ ω * M.B₀ ω + M.A₁ ω * M.B₁ ω) (M.μ : Measure Λ) := by
     apply Integrable.add
-    apply Integrable.add
-    apply Integrable.sub
-    · exact responseProd_integrable M.A₀ M.B₁
-    · exact responseProd_integrable M.A₀ M.B₀
-    · exact responseProd_integrable M.A₁ M.B₀
+    · apply Integrable.add
+      · apply Integrable.sub
+        · exact responseProd_integrable M.A₀ M.B₁
+        · exact responseProd_integrable M.A₀ M.B₀
+      · exact responseProd_integrable M.A₁ M.B₀
     · exact responseProd_integrable M.A₁ M.B₁
   calc |∫ ω, (M.A₀ ω * M.B₁ ω - M.A₀ ω * M.B₀ ω +
               M.A₁ ω * M.B₀ ω + M.A₁ ω * M.B₁ ω) ∂(M.μ : Measure Λ)|

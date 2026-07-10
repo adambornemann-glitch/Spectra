@@ -1,6 +1,6 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Spectra.QuantumMechanics.Uncertainty.SchrodingerRobertson
@@ -198,7 +198,7 @@ lemma compositeApply_mem_commonDomain (w : Fin n → ℝ) :
   exact Submodule.smul_mem _ _ (D.hOψ_all i j)
 
 /-- `DomainConditions` for `[O_v, O_w]ψ`, derived from `QuantumRLDData`. (Currently unused.) -/
-def composites_domainConditions (v w : Fin n → ℝ) :
+theorem composites_domainConditions (v w : Fin n → ℝ) :
     DomainConditions (compositeSymmetric D.O v D.h_dense)
                      (compositeSymmetric D.O w D.h_dense) D.ψ where
   hψ_A := D.ψ_mem_commonDomain
@@ -208,7 +208,7 @@ def composites_domainConditions (v w : Fin n → ℝ) :
 
 /-- `ShiftedDomainConditions` for `O_v, O_w` — ready to feed
 into `schrodinger_uncertainty`. -/
-def composites_shiftedDC (v w : Fin n → ℝ) :
+theorem composites_shiftedDC (v w : Fin n → ℝ) :
     ShiftedDomainConditions
       (compositeSymmetric D.O v D.h_dense)
       (compositeSymmetric D.O w D.h_dense) D.ψ where
@@ -219,7 +219,7 @@ def composites_shiftedDC (v w : Fin n → ℝ) :
   h_norm := D.h_norm
 
 /-- Pairwise `DomainConditions` for `[Oᵢ, Oⱼ]ψ`. (Currently unused.) -/
-def pairwise_domainConditions (i j : Fin n) :
+theorem pairwise_domainConditions (i j : Fin n) :
     DomainConditions (D.O i) (D.O j) D.ψ where
   hψ_A := D.hψ_all i
   hψ_B := D.hψ_all j
@@ -259,7 +259,7 @@ lemma shiftedApply_composite (D : QuantumRLDData n H) (v : Fin n → ℝ) :
   simp only [Complex.ofReal_sum, Complex.ofReal_mul, Complex.coe_smul]
   rw [Finset.sum_smul]
   congr 1; ext i
-  simp [smul_smul]
+  simp only [smul_smul]
   rw [← Complex.ofReal_mul]
   exact Complex.coe_smul (v i * (D.O i).expectation D.ψ D.h_norm (D.hψ_all i)) D.ψ
 
@@ -285,7 +285,7 @@ lemma inner_shifted_composite (D : QuantumRLDData n H) (v w : Fin n → ℝ) :
 
 /-- Pairwise `ShiftedDomainConditions` for `Oᵢ, Oⱼ` — ready to feed
 into the Schrödinger inequality. -/
-def pairwise_shiftedDC (D : QuantumRLDData n H) (i j : Fin n) :
+theorem pairwise_shiftedDC (D : QuantumRLDData n H) (i j : Fin n) :
     ShiftedDomainConditions (D.O i) (D.O j) D.ψ where
   hψ_A := D.hψ_all i
   hψ_B := D.hψ_all j

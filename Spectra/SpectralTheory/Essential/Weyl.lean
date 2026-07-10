@@ -1,6 +1,6 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Spectra.SpectralTheory.Essential.Defs
@@ -14,9 +14,9 @@ import Spectra.SpectralTheory.StoneFormula.Identities
 If `A`, `B` are self-adjoint operators whose resolvents at `i` differ by a **compact** operator,
 then `essSpectrum hA = essSpectrum hB`.
 
-The hypothesis is purely about the *bounded* operators: `IsCompactOperator (R_B(i) − R_A(i))`.  It is
-symmetric in `A` and `B` (via `IsCompactOperator.neg`), so the equality follows from a single
-inclusion proved twice.
+The hypothesis is purely about the *bounded* operators: `IsCompactOperator (R_B(i) − R_A(i))`.
+It is symmetric in `A` and `B` (via `IsCompactOperator.neg`), so the equality follows from a
+single inclusion proved twice.
 
 ## The proof (one inclusion)
 

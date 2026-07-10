@@ -19,6 +19,10 @@ SUITES = [
     "check_cocycle.py",
     "check_spectral.py",
     "check_uncertainty.py",
+    "check_entropy.py",
+    "check_traceclass.py",
+    "check_fock.py",
+    "check_krein_gauge.py",
 ]
 
 

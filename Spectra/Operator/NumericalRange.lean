@@ -1,8 +1,7 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
-Filename: Operator/NumericalRange.lean
 -/
 import Spectra.Resolvent.NormExpansion
 /-!
@@ -67,12 +66,12 @@ lemma rayleighQuotient_mem_numericalRange {A : H →ₗ.[ℂ] H} {ψ : H} (hψ :
   have hnorm_pos : (0 : ℝ) < ‖ψ‖ := norm_pos_iff.mpr hne
   have hmemφ : (‖ψ‖ : ℂ)⁻¹ • ψ ∈ A.domain := A.domain.smul_mem _ hψ
   refine ⟨⟨(‖ψ‖ : ℂ)⁻¹ • ψ, hmemφ⟩, ?_, ?_⟩
-  · show ‖(‖ψ‖ : ℂ)⁻¹ • ψ‖ = 1
+  · change ‖(‖ψ‖ : ℂ)⁻¹ • ψ‖ = 1
     rw [norm_smul]
     simp [hnorm_pos.ne']
   · have hcast : (⟨(‖ψ‖ : ℂ)⁻¹ • ψ, hmemφ⟩ : A.domain)
         = (‖ψ‖ : ℂ)⁻¹ • (⟨ψ, hψ⟩ : A.domain) := rfl
-    show ⟪(‖ψ‖ : ℂ)⁻¹ • ψ, A ⟨(‖ψ‖ : ℂ)⁻¹ • ψ, hmemφ⟩⟫_ℂ = ⟪ψ, A ⟨ψ, hψ⟩⟫_ℂ / (‖ψ‖ : ℂ) ^ 2
+    change ⟪(‖ψ‖ : ℂ)⁻¹ • ψ, A ⟨(‖ψ‖ : ℂ)⁻¹ • ψ, hmemφ⟩⟫_ℂ = ⟪ψ, A ⟨ψ, hψ⟩⟫_ℂ / (‖ψ‖ : ℂ) ^ 2
     rw [hcast, A.map_smul, inner_smul_left, inner_smul_right]
     have hconj : (starRingEnd ℂ) ((‖ψ‖ : ℂ)⁻¹) = (‖ψ‖ : ℂ)⁻¹ := by
       have : ((‖ψ‖ : ℂ))⁻¹ = ((‖ψ‖⁻¹ : ℝ) : ℂ) := by norm_cast

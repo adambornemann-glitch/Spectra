@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
-Author: Adam Bornemann
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Adam Bornemann
 -/
 import Spectra.Modular.Cocycle.ModularPolarUniqueness
 import Spectra.Modular.Cocycle.ModularSqrtInverse
@@ -467,7 +467,7 @@ theorem modularSqrtInv_apply_conj (v : (modularSqrt hcyc hsep).domain) :
   have hhalf : conjModularSqrt hcyc hsep = modularSqrtInv hcyc hsep :=
     conjModularSqrt_eq_modularSqrtInv hcyc hsep
   have hmemC : modularConjugation hcyc hsep (v : H) ∈ (conjModularSqrt hcyc hsep).domain := by
-    show (modularConjugation hcyc hsep).symm (modularConjugation hcyc hsep (v : H))
+    change (modularConjugation hcyc hsep).symm (modularConjugation hcyc hsep (v : H))
         ∈ (modularSqrt hcyc hsep).domain
     rw [LinearIsometryEquiv.symm_apply_apply]
     exact v.2

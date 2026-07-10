@@ -1,6 +1,6 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Spectra.QuantumMechanics.DiracEquation.ConcreteSpectrum
@@ -274,7 +274,7 @@ def wpSpinor (mc2 R : ℝ) : DiracSpinorL2 :=
 /-- The Fourier transform of `ψ`'s `a`-component agrees a.e. with `ψ̂_a`. -/
 lemma wpSpinor_fourier (mc2 R : ℝ) (a : Fin 4) :
     (fourierL2 ((wpSpinor mc2 R) a) : R3 → ℂ) =ᵐ[volume] wpFn mc2 R a := by
-  show (fourierL2 (fourierL2.symm ((wpFn_memLp mc2 R a).toLp (wpFn mc2 R a))) : R3 → ℂ)
+  change (fourierL2 (fourierL2.symm ((wpFn_memLp mc2 R a).toLp (wpFn mc2 R a))) : R3 → ℂ)
       =ᵐ[volume] wpFn mc2 R a
   rw [LinearIsometryEquiv.apply_symm_apply]
   exact (wpFn_memLp mc2 R a).coeFn_toLp
@@ -292,7 +292,7 @@ lemma wpSpinor_memH1 (mc2 R : ℝ) : MemSobolevDiracH1 (wpSpinor mc2 R) := by
         (continuous_negEnergyVec_apply mc2 (Pi.single 0 1) a))
   refine hbase.ae_eq ?_
   filter_upwards [wpSpinor_fourier mc2 R a] with ξ hξ
-  show (derivSymbol k ξ * negEnergyVec mc2 (Pi.single 0 1) ξ a) * bumpFn R ξ
+  change (derivSymbol k ξ * negEnergyVec mc2 (Pi.single 0 1) ξ a) * bumpFn R ξ
       = derivSymbol k ξ * (fourierL2 ((wpSpinor mc2 R) a) : R3 → ℂ) ξ
   rw [hξ]; simp only [wpFn]; ring
 
@@ -337,7 +337,7 @@ lemma wpSpinor_ne_zero (mc2 R : ℝ) (hR : 1 < R) : wpSpinor mc2 R ≠ 0 := by
       have hz : MemLp (0 : R3 → ℂ) 2 volume := MemLp.zero
       rw [← hz.toLp_zero] at h
       exact (MemLp.toLp_eq_toLp_iff (wpFn_memLp mc2 R 0) hz).1 h
-    show fourierL2.symm ((wpFn_memLp mc2 R 0).toLp (wpFn mc2 R 0)) ≠ 0
+    change fourierL2.symm ((wpFn_memLp mc2 R 0).toLp (wpFn mc2 R 0)) ≠ 0
     intro h
     exact htoLp (by simpa using congrArg fourierL2 h)
   intro h
@@ -484,7 +484,7 @@ theorem dirac_energy_witness (mc2 : ℝ) (N : ℝ) :
       = diracHamiltonian mc2 ⟨wpSpinor mc2 R, wpSpinor_memH1 mc2 R⟩ :=
     (LinearPMap.ext_iff.mp (generator_diracUnitaryGroup mc2)).2
       (hf := hmem) (hg := wpSpinor_memH1 mc2 R)
-  show (⟪generator (diracUnitaryGroup mc2) ⟨wpSpinor mc2 R, hmem⟩, wpSpinor mc2 R⟫_ℂ).re
+  change (⟪generator (diracUnitaryGroup mc2) ⟨wpSpinor mc2 R, hmem⟩, wpSpinor mc2 R⟫_ℂ).re
       < N * ‖wpSpinor mc2 R‖ ^ 2
   rw [htrans]
   have hpos : (0 : ℝ) < ‖wpSpinor mc2 R‖ ^ 2 :=

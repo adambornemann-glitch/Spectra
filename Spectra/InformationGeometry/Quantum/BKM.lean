@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
-Author: Adam Bornemann
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Adam Bornemann
 -/
 import Spectra.QuantumMechanics.Channels.TraceClass.Product
 import Spectra.QuantumMechanics.Channels.TraceClass.Cyclic
@@ -21,18 +21,19 @@ on the (trace-class, self-adjoint) tangent operators `A, B`.  It is the Hessian 
 relative entropy `D(ρ‖σ)` and the smallest monotone metric — the crown of the information-geometric
 "second view" of the Petz recovery map.
 
-This file builds the **object and its algebraic well-definedness**, the part that requires no operator
-differentiation.  The full identity `g^BKM = Hessian(D)` needs a derivative-of-CFC / resolvent
-integral-representation theory that is a separate (much larger) undertaking; here we land the metric as
-a genuine, kernel-checked object.
+This file builds the **object and its algebraic well-definedness**, the part that requires no
+operator differentiation.  The full identity `g^BKM = Hessian(D)` needs a derivative-of-CFC /
+resolvent integral-representation theory that is a separate (much larger) undertaking; here we
+land the metric as a genuine, kernel-checked object.
 
 For a strictly-positive operator `τ` (in the application `τ = ρ + s`, so `τ⁻¹` is bounded) and
 trace-class `A, B`, the **BKM integrand kernel** `K_τ(A,B) = tr(A τ⁻¹ B τ⁻¹)` is:
 
-* **well-defined** — the argument `A τ⁻¹ B τ⁻¹` is trace class (`A` trace class, the rest bounded), so
-  the trace is honest (`IsHilbertSchmidt.isTraceClass_comp`-era trace-class *ideal*);
+* **well-defined** — the argument `A τ⁻¹ B τ⁻¹` is trace class (`A` trace class, the rest bounded),
+  so the trace is honest (`IsHilbertSchmidt.isTraceClass_comp`-era trace-class *ideal*);
 * **bilinear** in `A, B` (linearity of the trace);
-* **symmetric** `K_τ(A,B) = K_τ(B,A)` — a single cyclicity step, `tr((Aτ⁻¹)(Bτ⁻¹)) = tr((Bτ⁻¹)(Aτ⁻¹))`;
+* **symmetric** `K_τ(A,B) = K_τ(B,A)` — a single cyclicity step,
+  `tr((Aτ⁻¹)(Bτ⁻¹)) = tr((Bτ⁻¹)(Aτ⁻¹))`;
 * **positive semidefinite** `0 ≤ re K_τ(A,A)` for self-adjoint `A` — since
   `tr(A τ⁻¹ A τ⁻¹) = tr(C⋆ C)` with `C = τ^{-1/2} A τ^{-1/2}` self-adjoint.
 
@@ -95,7 +96,7 @@ lemma bkmKernel_add_right (τ : H →L[ℂ] H) {A : H →L[ℂ] H} (hA : IsTrace
 `tr((A τ⁻¹)(B τ⁻¹)) = tr((B τ⁻¹)(A τ⁻¹))`. -/
 lemma bkmKernel_comm (τ B : H →L[ℂ] H) {A : H →L[ℂ] H} (hA : IsTraceClass A) :
     bkmKernel τ A B = bkmKernel τ B A := by
-  show trace (A ∘L Ring.inverse τ ∘L B ∘L Ring.inverse τ)
+  change trace (A ∘L Ring.inverse τ ∘L B ∘L Ring.inverse τ)
       = trace (B ∘L Ring.inverse τ ∘L A ∘L Ring.inverse τ)
   rw [← ContinuousLinearMap.comp_assoc A, ← ContinuousLinearMap.comp_assoc B,
     trace_comp_comm (IsTraceClass.comp_right hA (Ring.inverse τ)) (B ∘L Ring.inverse τ)]
@@ -136,7 +137,7 @@ lemma bkmKernel_self_re_nonneg {τ A : H →L[ℂ] H} (hτ : IsStrictlyPositive 
   have hassoc₂ : T ∘L (A ∘L T ∘L T ∘L A ∘L T) = (T ∘L A ∘L T) ∘L (T ∘L A ∘L T) := by
     simp only [ContinuousLinearMap.comp_assoc]
   have hkey : bkmKernel τ A A = trace ((T ∘L A ∘L T) ∘L (T ∘L A ∘L T)) := by
-    show trace (A ∘L Ring.inverse τ ∘L A ∘L Ring.inverse τ)
+    change trace (A ∘L Ring.inverse τ ∘L A ∘L Ring.inverse τ)
         = trace ((T ∘L A ∘L T) ∘L (T ∘L A ∘L T))
     rw [← hTT, hassoc₁, trace_comp_comm hATTAT T, hassoc₂]
   rw [hkey]

@@ -1,6 +1,6 @@
 /-
-Copyright (c) 2026 Spectra Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Spectra.SphericalHarmonics.Basic
@@ -220,7 +220,7 @@ lemma sepFun_bound (m : ℤ) (q : Polynomial ℝ) :
     rwa [Real.norm_eq_abs] at h
   calc ‖sepFun m q p‖
       = |Real.sin p.1 ^ m.natAbs * q.eval (Real.cos p.1)| := by
-        show ‖((Real.sin p.1 ^ m.natAbs * q.eval (Real.cos p.1) : ℝ) : ℂ) *
+        change ‖((Real.sin p.1 ^ m.natAbs * q.eval (Real.cos p.1) : ℝ) : ℂ) *
             Complex.exp (I * m * p.2)‖ = _
         rw [norm_mul, hexp, mul_one, Complex.norm_real, Real.norm_eq_abs]
     _ = |Real.sin p.1 ^ m.natAbs| * |q.eval (Real.cos p.1)| := abs_mul _ _
@@ -632,7 +632,7 @@ theorem sphericalHarmonic_complete :
       {g : L2_S2 | ∃ (ℓ : ℕ) (m : ℤ) (hm : |m| ≤ (ℓ : ℤ)),
         g = (memLp_sphericalHarmonic ℓ m hm).toLp
           (SphericalHarmonic ℓ m hm)}).topologicalClosure = ⊤ := by
-  show (Submodule.span ℂ harmonicSet).topologicalClosure = ⊤
+  change (Submodule.span ℂ harmonicSet).topologicalClosure = ⊤
   rw [Submodule.topologicalClosure_eq_top_iff, Submodule.eq_bot_iff]
   intro f hf
   -- Step 0: orthogonality to the span transfers to every separated function.
@@ -719,7 +719,7 @@ theorem sphericalHarmonic_complete :
           _ = ∫ φ, ‖f (θ, φ)‖ ∂phiMeasure := by
               refine integral_congr_ae (Filter.Eventually.of_forall fun φ => ?_)
               simp only [norm_mul, norm_exp_I_int_mul, one_mul]
-      show ‖((Real.sin θ ^ k.natAbs : ℝ) : ℂ) *
+      change ‖((Real.sin θ ^ k.natAbs : ℝ) : ℂ) *
           ∫ φ, Complex.exp (I * k * φ) * f (θ, φ) ∂phiMeasure‖
         ≤ ∫ φ, ‖f (θ, φ)‖ ∂phiMeasure
       calc ‖((Real.sin θ ^ k.natAbs : ℝ) : ℂ) *
@@ -735,7 +735,7 @@ theorem sphericalHarmonic_complete :
       intro q
       rw [← hmoment k q]
       refine integral_congr_ae (Filter.Eventually.of_forall fun θ => ?_)
-      show ((q.eval (Real.cos θ) : ℝ) : ℂ) *
+      change ((q.eval (Real.cos θ) : ℝ) : ℂ) *
           (((Real.sin θ ^ k.natAbs : ℝ) : ℂ) *
             ∫ φ, Complex.exp (I * k * φ) * f (θ, φ) ∂phiMeasure) =
         ((Real.sin θ ^ k.natAbs * q.eval (Real.cos θ) : ℝ) : ℂ) *
@@ -774,7 +774,7 @@ theorem sphericalHarmonic_complete :
   have hnull : (thetaMeasure.prod phiMeasure) {p : ℝ × ℝ | f p ≠ 0} = 0 := by
     refine MeasureTheory.Measure.measure_prod_null_of_ae_null hms ?_
     filter_upwards [hslices] with θ hθ
-    show phiMeasure (Prod.mk θ ⁻¹' {p : ℝ × ℝ | f p ≠ 0}) = 0
+    change phiMeasure (Prod.mk θ ⁻¹' {p : ℝ × ℝ | f p ≠ 0}) = 0
     exact ae_iff.mp hθ
   have h0 : ∀ᵐ p ∂(thetaMeasure.prod phiMeasure), f p = 0 := by
     rw [ae_iff]

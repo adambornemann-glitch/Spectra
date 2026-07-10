@@ -1,15 +1,16 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
-Author: Adam Bornemann
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Adam Bornemann
 -/
 import Spectra.SpectralTheory.Calculus.MixedProduct
 /-!
 # Self-adjointness of the unbounded calculus of a real symbol
 
-For a strongly-continuous one-parameter unitary group `U_grp` with generator `A` and a **real-valued**
-measurable symbol `f : ℝ → ℂ` (`conj (f s) = f s`), the unbounded functional-calculus operator
-`pmapOfPVM U_grp f = ∫ f dP` is **self-adjoint whenever its natural `L²` domain is dense**.
+For a strongly-continuous one-parameter unitary group `U_grp` with generator `A` and a
+**real-valued** measurable symbol `f : ℝ → ℂ` (`conj (f s) = f s`), the unbounded
+functional-calculus operator `pmapOfPVM U_grp f = ∫ f dP` is **self-adjoint whenever its natural
+`L²` domain is dense**.
 
 The point is that everything except density is *unconditional*:
 
@@ -21,13 +22,14 @@ The point is that everything except density is *unconditional*:
   `(A_f ± i)(R_± h) = Φ((f±i)/(f±i)) h = Φ(1) h = h`.
 
 So `pmapOfPVM_isSelfAdjoint_of_real` reduces self-adjointness of *any* real-symbol calculus to the
-single obligation `Dense (D(A_f))`.  This J-free engine subsumes the bespoke `modularSqrt_isSelfAdjoint`
-(symbol `√`) and, in `ModularReciprocal.lean`, delivers `Δ⁻¹` (symbol `1/s`) and `Δ^{-½}` (symbol
-`1/√s`) from their respective density lemmas.
+single obligation `Dense (D(A_f))`.  This J-free engine subsumes the bespoke
+`modularSqrt_isSelfAdjoint` (symbol `√`) and, in `ModularReciprocal.lean`, delivers `Δ⁻¹` (symbol
+`1/s`) and `Δ^{-½}` (symbol `1/√s`) from their respective density lemmas.
 
 ## Main statements
 
-* `pmapOfPVM_add_I_surjective` / `pmapOfPVM_sub_I_surjective` — `A_f ± i` surjective (unconditional).
+* `pmapOfPVM_add_I_surjective` / `pmapOfPVM_sub_I_surjective` — `A_f ± i` surjective
+  (unconditional).
 * `pmapOfPVM_isSelfAdjoint_of_real` — real symbol + dense domain ⟹ `A_f` self-adjoint.
 -/
 
@@ -170,7 +172,7 @@ theorem pmapOfPVM_add_I_surjective :
     rw [spectralCalculus_smul U_grp I (fun s => (1 : ℂ) / (f s + I)) (resAddI_meas f hf)
       (resAddI_bdd f hconj) (IResAddI_meas f hf) (IResAddI_bdd f hconj)]
     rfl
-  show _ + I • spectralCalculus U_grp (fun s => (1 : ℂ) / (f s + I)) (resAddI_meas f hf)
+  change _ + I • spectralCalculus U_grp (fun s => (1 : ℂ) / (f s + I)) (resAddI_meas f hf)
     (resAddI_bdd f hconj) h = h
   rw [hIR, ← ContinuousLinearMap.add_apply,
     ← spectralCalculus_add U_grp (fun s => f s * ((1 : ℂ) / (f s + I)))
@@ -210,7 +212,7 @@ theorem pmapOfPVM_sub_I_surjective :
     rw [spectralCalculus_smul U_grp I (fun s => (1 : ℂ) / (f s - I)) (resSubI_meas f hf)
       (resSubI_bdd f hconj) (IResSubI_meas f hf) (IResSubI_bdd f hconj)]
     rfl
-  show _ - I • spectralCalculus U_grp (fun s => (1 : ℂ) / (f s - I)) (resSubI_meas f hf)
+  change _ - I • spectralCalculus U_grp (fun s => (1 : ℂ) / (f s - I)) (resSubI_meas f hf)
     (resSubI_bdd f hconj) h = h
   rw [hIR, ← ContinuousLinearMap.sub_apply,
     ← spectralCalculus_sub U_grp (fun s => f s * ((1 : ℂ) / (f s - I)))

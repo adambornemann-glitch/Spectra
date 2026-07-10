@@ -1,6 +1,6 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Spectra.QuantumMechanics.DiracEquation.Current
@@ -346,7 +346,7 @@ lemma integral_deriv_update_eq_zero (F : (Fin 3 → ℝ) → ℝ) (i : Fin 3)
       = ∫ x : Fin 3 → ℝ, deriv (fun s => F (Function.update x i s)) (x i) ∂volume := by
     rw [← hmp.map_eq, MeasureTheory.integral_map_equiv]
     refine integral_congr_ae (Eventually.of_forall fun x => ?_)
-    show deriv (fun u => F (i.insertNth u ((e x).2))) ((e x).1)
+    change deriv (fun u => F (i.insertNth u ((e x).2))) ((e x).1)
         = deriv (fun s => F (Function.update x i s)) (x i)
     have h1 : (e x).1 = x i := rfl
     have h2 : (e x).2 = fun j => x (i.succAbove j) := rfl
@@ -356,7 +356,7 @@ lemma integral_deriv_update_eq_zero (F : (Fin 3 → ℝ) → ℝ) (i : Fin 3)
       (fun p : ℝ × (Fin 2 → ℝ) => deriv (fun u => F (i.insertNth u p.2)) p.1) volume := by
     rw [← hmp.map_eq, MeasureTheory.integrable_map_equiv]
     refine h_int.congr (Eventually.of_forall fun x => ?_)
-    show deriv (fun s => F (Function.update x i s)) (x i)
+    change deriv (fun s => F (Function.update x i s)) (x i)
         = deriv (fun u => F (i.insertNth u ((e x).2))) ((e x).1)
     have h1 : (e x).1 = x i := rfl
     have h2 : (e x).2 = fun j => x (i.succAbove j) := rfl

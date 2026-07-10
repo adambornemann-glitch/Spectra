@@ -1,6 +1,6 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Spectra.Resolvent.Integral.GroupIntegration
@@ -74,4 +74,4 @@ lemma integral_Ici_split_of {f : ℝ → H} (hcont : Continuous f)
         ((integrableOn_Ici_of_Ici_zero hcont h0 b).mono_set Set.Ioi_subset_Ici_self),
       h_ae_eqb.symm]
 
-end Helpers
+end Spectra.Resolvent.Helpers

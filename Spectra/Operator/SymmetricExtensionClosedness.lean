@@ -1,8 +1,7 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
-Filename: Operator/SymmetricExtensionClosedness.lean
 -/
 import Spectra.Operator.SymmetricExtension
 import Spectra.Operator.ConjugationCriterion
@@ -325,7 +324,7 @@ theorem isClosed_of_vonNeumannExtensionOn_isClosed (hsym : A.IsFormalAdjoint A)
   have h1 : η - ξ = ((0 : A.domain) : H) + ((⟨η, hηN⟩ :
       deficiencySubspacePlus A) : H) + ((-(⟨ξ, hξN⟩ : deficiencySubspaceMinus A) :
         deficiencySubspaceMinus A) : H) := by
-    show η - ξ = 0 + η + (-ξ)
+    change η - ξ = 0 + η + (-ξ)
     rw [zero_add, sub_eq_add_neg]
   have h2 : η - ξ = ((x : H)) + ((⟨(η' : H), hF η'.2⟩ : deficiencySubspacePlus A) : H)
       + ((-(V η') : deficiencySubspaceMinus A) : H) := by

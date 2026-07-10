@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
-Author: Adam Bornemann
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Adam Bornemann
 -/
 import Spectra.QuantumMechanics.Channels.TraceClass.Trace
 import Spectra.QuantumMechanics.Channels.TraceClass.HilbertSchmidt
@@ -11,12 +11,12 @@ import Mathlib.Topology.Algebra.InfiniteSum.Constructions
 /-!
 # Stage D — cyclicity of the trace `tr (A B) = tr (B A)`
 
-For a trace-class operator `A` and a bounded operator `B` the trace is cyclic: `tr (A B) = tr (B A)`.
-The engine is the Hilbert–Schmidt case: if `X, Y` are both Hilbert–Schmidt then
-`tr (X Y) = tr (Y X)`, proved by expanding both diagonals in the basis, inserting a resolution of the
-identity, and swapping the resulting absolutely-convergent double sum (Fubini).  The general case
-factors `A = (U |A|^{1/2}) · |A|^{1/2}` into two Hilbert–Schmidt operators and rearranges through the
-Hilbert–Schmidt case using that the Hilbert–Schmidt operators form a two-sided ideal.
+For a trace-class operator `A` and a bounded operator `B` the trace is cyclic:
+`tr (A B) = tr (B A)`. The engine is the Hilbert–Schmidt case: if `X, Y` are both Hilbert–Schmidt
+then `tr (X Y) = tr (Y X)`, proved by expanding both diagonals in the basis, inserting a resolution
+of the identity, and swapping the resulting absolutely-convergent double sum (Fubini).  The general
+case factors `A = (U |A|^{1/2}) · |A|^{1/2}` into two Hilbert–Schmidt operators and rearranges
+through the Hilbert–Schmidt case using that the Hilbert–Schmidt operators form a two-sided ideal.
 
 ## Main results
 
@@ -53,8 +53,8 @@ private lemma summable_prod_norm_inner_sq {ι : Type*} (b : HilbertBasis ι ℂ 
 
 /-- **`C4`.** For `X, Y` Hilbert–Schmidt, the trace double-sum family
 `(i, j) ↦ ⟪X⋆ eᵢ, eⱼ⟫ ⟪eⱼ, Y eᵢ⟫` is (absolutely) summable over `ι × ι`.  Each of the two factor
-families is `ℓ²` (Parseval + Hilbert–Schmidt), so the product is summable by the arithmetic–geometric
-comparison `|ab| ≤ (a² + b²)/2`. -/
+families is `ℓ²` (Parseval + Hilbert–Schmidt), so the product is summable by the
+arithmetic–geometric comparison `|ab| ≤ (a² + b²)/2`. -/
 private lemma summable_uncurry_trace_family {ι : Type*} (b : HilbertBasis ι ℂ H)
     {X Y : H →L[ℂ] H} (hX : IsHilbertSchmidt X) (hY : IsHilbertSchmidt Y) :
     Summable (Function.uncurry (fun i j => ⟪(X†) (b i), b j⟫_ℂ * ⟪b j, Y (b i)⟫_ℂ)) := by
@@ -65,7 +65,7 @@ private lemma summable_uncurry_trace_family {ι : Type*} (b : HilbertBasis ι �
   have hB : Summable (fun p : ι × ι => ‖⟪b p.2, Y (b p.1)⟫_ℂ‖ ^ 2) :=
     summable_prod_norm_inner_sq b hY
   refine Summable.of_nonneg_of_le (fun p => norm_nonneg _) (fun p => ?_) ((hA.add hB).div_const 2)
-  show ‖⟪(X†) (b p.1), b p.2⟫_ℂ * ⟪b p.2, Y (b p.1)⟫_ℂ‖
+  change ‖⟪(X†) (b p.1), b p.2⟫_ℂ * ⟪b p.2, Y (b p.1)⟫_ℂ‖
       ≤ (‖⟪(X†) (b p.1), b p.2⟫_ℂ‖ ^ 2 + ‖⟪b p.2, Y (b p.1)⟫_ℂ‖ ^ 2) / 2
   rw [norm_mul]
   nlinarith [sq_nonneg (‖⟪(X†) (b p.1), b p.2⟫_ℂ‖ - ‖⟪b p.2, Y (b p.1)⟫_ℂ‖),
@@ -92,7 +92,8 @@ theorem trace_comp_comm_hs {X Y : H →L[ℂ] H} (hX : IsHilbertSchmidt X) (hY :
     refine tsum_congr fun j => ?_
     rw [ContinuousLinearMap.comp_apply,
       ← adjoint_inner_left Y (X (stdHilbertBasis H j)) (stdHilbertBasis H j),
-      ← (stdHilbertBasis H).tsum_inner_mul_inner ((Y†) (stdHilbertBasis H j)) (X (stdHilbertBasis H j))]
+      ← (stdHilbertBasis H).tsum_inner_mul_inner ((Y†) (stdHilbertBasis H j))
+        (X (stdHilbertBasis H j))]
     refine tsum_congr fun i => ?_
     rw [adjoint_inner_left X (stdHilbertBasis H j) (stdHilbertBasis H i),
       ← adjoint_inner_left Y (stdHilbertBasis H i) (stdHilbertBasis H j), mul_comm]

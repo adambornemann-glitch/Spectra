@@ -1,9 +1,32 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
-Author: Adam Bornemann
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Adam Bornemann
 -/
 import Spectra.Modular.KMS.PeriodicStrip.Defs
+
+/-!
+# The strip index and the fundamental-strip reduction
+
+This file develops the basic properties of `stripIndex` and `toFundamentalStrip`: the
+floor-based integer `stripIndex β z` picking out which horizontal copy `[n·β, (n+1)·β)` of the
+strip `z.im` falls into (`stripIndex_spec`), and the reduction map `toFundamentalStrip β z` that
+shifts `z` down into the fundamental strip `{0 ≤ Im z < β}` (`toFundamentalStrip_im`,
+`toFundamentalStrip_mem_closedStrip`, `toFundamentalStrip_of_mem_strip`).
+
+It then proves the key seam-continuity lemma `periodicExtension_continuous_at_boundary`: at a
+boundary point `Im z = n·β`, the periodic extension is continuous, because the periodicity
+hypothesis `F(t) = F(t + iβ)` glues the value approached from below to the value approached from
+above. Finally, `interior_closedStrip` identifies the interior of the closed strip with the open
+strip.
+
+## Main results
+
+* `stripIndex_spec`, `toFundamentalStrip_im`, `toFundamentalStrip_mem_closedStrip`
+* `periodicExtension_continuous_at_boundary`
+* `interior_closedStrip`
+-/
+
 open Complex Set Filter Topology Int MeasureTheory
 namespace Spectra.PeriodicHolomorphic
 
@@ -75,7 +98,6 @@ lemma periodicExtension_continuous_at_boundary
     simp only [stripIndex, hz]
     rw [mul_div_assoc, div_self (ne_of_gt hβ)]
     simp only [mul_one, floor_intCast]
-
   -- The fundamental strip image of z is on the lower boundary
   have hz_fund : toFundamentalStrip β z = realToLower z.re := by
     simp only [toFundamentalStrip, realToLower, hstrip_z]
@@ -83,36 +105,29 @@ lemma periodicExtension_continuous_at_boundary
     constructor
     · simp
     · simp [hz]
-
   -- So the value at z is F(realToLower z.re)
   have hz_val : periodicExtension F β z = F (realToLower z.re) := by
     simp only [periodicExtension, hz_fund]
-
   -- Key points in the fundamental strip
   have hmem_lower : realToLower z.re ∈ ClosedStrip β := by
     simp only [ClosedStrip, realToLower, Set.mem_setOf_eq, ofReal_im]
     exact ⟨le_refl 0, le_of_lt hβ⟩
-
   have hmem_upper : realToUpper β z.re ∈ ClosedStrip β := by
     simp only [ClosedStrip, realToUpper, Set.mem_setOf_eq, add_im, ofReal_im,
                mul_im, ofReal_re, I_im, mul_one, I_re, mul_zero]
     simp only [add_zero, zero_add, le_refl, and_true]
     exact le_of_lt hβ
-
   -- Use metric characterization of continuity
   rw [Metric.continuousAt_iff]
   intro ε hε
-
   -- Get δ's from continuity of F at both boundary points
   rw [Metric.continuousOn_iff] at hcont
   obtain ⟨δ₁, hδ₁_pos, hδ₁⟩ := hcont (realToLower z.re) hmem_lower ε hε
   obtain ⟨δ₂, hδ₂_pos, hδ₂⟩ := hcont (realToUpper β z.re) hmem_upper ε hε
-
   -- Choose δ to also be at most β, so stripIndex doesn't jump more than 1
   use min (min δ₁ δ₂) β
   refine ⟨lt_min (lt_min hδ₁_pos hδ₂_pos) hβ, ?_⟩
   intro w hw
-
   -- Key fact: |w.im - z.im| < β, so stripIndex w ∈ {n-1, n}
   have him_dist : |w.im - z.im| < β := by
     calc |w.im - z.im| = |w.im - z.im| := rfl
@@ -121,18 +136,14 @@ lemma periodicExtension_continuous_at_boundary
       _ = dist w z := by rw [dist_eq_norm];
       _ < min (min δ₁ δ₂) β := hw
       _ ≤ β := min_le_right _ _
-
   have him_upper : w.im < (n + 1) * β := by
     have : w.im - z.im < β := (abs_lt.mp him_dist).2
     linarith [hz.symm ▸ this]
-
   have him_lower : (n - 1) * β < w.im := by
     have : -(β) < w.im - z.im := (abs_lt.mp him_dist).1
     calc (n - 1) * β = n * β - β := by ring
       _ < w.im := by linarith [hz.symm ▸ this]
-
   rw [hz_val]
-
   by_cases hwn : n * β ≤ w.im
   · -- Case 1: w.im ≥ n*β (at or above the boundary)
     -- stripIndex β w = n
@@ -142,9 +153,7 @@ lemma periodicExtension_continuous_at_boundary
       constructor
       · exact (le_div_iff₀ hβ).mpr hwn
       · exact (div_lt_iff₀ hβ).mpr him_upper
-
     simp only [periodicExtension, toFundamentalStrip, hw_strip]
-
     -- Need to show: dist (F (w - n*β*I)) (F (realToLower z.re)) < ε
     apply hδ₁
     · -- w - n*β*I ∈ ClosedStrip β
@@ -173,7 +182,6 @@ lemma periodicExtension_continuous_at_boundary
       calc dist w z < min (min δ₁ δ₂) β := hw
         _ ≤ min δ₁ δ₂ := min_le_left _ _
         _ ≤ δ₁ := min_le_left _ _
-
   · -- Case 2: w.im < n*β (below the boundary)
     push Not at hwn
     -- stripIndex β w = n - 1
@@ -194,14 +202,11 @@ lemma periodicExtension_continuous_at_boundary
         rw [div_lt_iff₀ hβ]
         simp only [cast_sub, cast_one, sub_add_cancel]
         exact hwn
-
     simp only [periodicExtension, toFundamentalStrip, hw_strip]
-
     -- The shifted point is w - (n-1)*β*I
     -- This is close to z - (n-1)*β*I = z.re + (n*β - (n-1)*β)*I = z.re + β*I = realToUpper β z.re
     -- By periodicity, F(realToUpper β z.re) = F(realToLower z.re)
     rw [hperiod z.re]
-
     apply hδ₂
     · -- w - (n-1)*β*I ∈ ClosedStrip β
       simp only [ClosedStrip, Set.mem_setOf_eq, sub_im, mul_im,

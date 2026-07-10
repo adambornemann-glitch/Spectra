@@ -1,8 +1,7 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
-File: Spectra/Spaces/Sobolev/MeyersCommon.lean
 -/
 import Spectra.Spaces.Sobolev.Mollification
 
@@ -26,7 +25,7 @@ both files can import them rather than each carrying its own copy.
   are `1` on `closedBall 0 R`, supported in `closedBall 0 (2R)`, and whose derivative is bounded
   by `M / R` for a single constant `M` independent of `R`.
 * `truncation_approx_family`: the shared cutoff-truncation construction itself, parametrized by
-  an arbitrary nonempty `Fintype` index `ι` of directions. Truncates `f` (once, shared across all
+  an arbitrary nonempty `Finite` index `ι` of directions. Truncates `f` (once, shared across all
   directions) and, for every `j : ι`, a weak derivative `dg j` in direction `dir j`, using a
   single common cutoff. `MeyersSerrin.lean`'s `truncation_approx` (`ι := Unit`) and
   `MeyersMulti.lean`'s `truncation_approx_multi` (`ι := Fin 3`, `dir := id`) are both thin
@@ -218,7 +217,7 @@ lemma exists_smooth_cutoff_scaled :
     exact hx ⟨R⁻¹ • x, hmem, by simp [smul_smul, mul_inv_cancel₀ hR.ne', one_smul]⟩
   -- 3. χ ≡ 1 on closedBall 0 R.
   · intro x hx
-    show (ρ : R3 → ℝ) (R⁻¹ • x) = 1
+    change (ρ : R3 → ℝ) (R⁻¹ • x) = 1
     apply ρ.one_of_mem_closedBall
     rw [Metric.mem_closedBall, dist_zero_right] at hx
     rw [Metric.mem_closedBall, dist_zero_right, norm_smul]
@@ -262,7 +261,7 @@ lemma exists_smooth_cutoff_scaled :
       ContinuousLinearMap.opNorm_comp_le _ _
     have h_σ_norm : ‖R⁻¹ • ContinuousLinearMap.id ℝ R3‖ = R⁻¹ := by
       rw [norm_smul, ContinuousLinearMap.norm_id]
-      simp [Real.norm_eq_abs]
+      simp only [Real.norm_eq_abs, abs_inv, mul_one, inv_inj, abs_eq_self]
       exact le_of_lt hR
     calc ‖(fderiv ℝ (ρ : R3 → ℝ) (R⁻¹ • x)).comp
             (R⁻¹ • ContinuousLinearMap.id ℝ R3)‖
@@ -276,7 +275,7 @@ lemma exists_smooth_cutoff_scaled :
       _ = max M₀ 0 / R := by rw [← div_eq_mul_inv]
 
 /-- **Shared cutoff-truncation construction**, parametrized by an arbitrary nonempty
-    `Fintype` index `ι` of directions to control simultaneously. Given `f` and, for
+    `Finite` index `ι` of directions to control simultaneously. Given `f` and, for
     every `j : ι`, a weak derivative `dg j` in direction `dir j`, produces a single
     truncation `h_R` of `f` (shared across all `j`) together with per-`j` truncated
     derivatives `dh_R j`, using one common cutoff `χ` whose radius `R` is chosen large
@@ -285,7 +284,7 @@ lemma exists_smooth_cutoff_scaled :
     `truncation_approx` (`ι := Unit`) and `truncation_approx_multi` (`ι := Fin 3`,
     `dir := id`) both specialize this lemma; it exists so the cutoff/budget argument
     is maintained in exactly one place. -/
-lemma truncation_approx_family {ι : Type*} [Fintype ι] [Nonempty ι]
+lemma truncation_approx_family {ι : Type*} [Finite ι] [Nonempty ι]
     (dir : ι → Fin 3) (f : l2R3) (dg : ι → l2R3)
     (h_dg : ∀ j, HasWeakDerivative f (dir j) (dg j)) (ε : ℝ) (hε : 0 < ε) :
     ∃ (h_R : R3 → ℂ) (dh_R : ι → R3 → ℂ)
@@ -293,6 +292,7 @@ lemma truncation_approx_family {ι : Type*} [Fintype ι] [Nonempty ι]
       HasCompactSupport h_R ∧ (∀ j, HasCompactSupport (dh_R j)) ∧
       (∀ j, HasWeakDerivative (hh.toLp h_R) (dir j) ((hdh j).toLp (dh_R j))) ∧
       ‖f - hh.toLp h_R‖ < ε ∧ ∀ j, ‖dg j - (hdh j).toLp (dh_R j)‖ < ε := by
+  haveI : Fintype ι := Fintype.ofFinite ι
   have hε4 : 0 < ε / 4 := by linarith
   -- Universal derivative bound M for the cutoff.
   obtain ⟨M, hM_nn, h_cutoff⟩ := exists_smooth_cutoff_scaled
@@ -326,7 +326,7 @@ lemma truncation_approx_family {ι : Type*} [Fintype ι] [Nonempty ι]
   have hχℂ_supp : HasCompactSupport χℂ := hχ_supp.comp_left Complex.ofReal_zero
   have hχℂ_le_one : ∀ x, ‖χℂ x‖ ≤ 1 := by
     intro x
-    show ‖((χ x : ℝ) : ℂ)‖ ≤ 1
+    change ‖((χ x : ℝ) : ℂ)‖ ≤ 1
     rw [Complex.norm_real, Real.norm_eq_abs]
     have h := hχ_bound x
     rw [Set.mem_Icc] at h
@@ -340,7 +340,7 @@ lemma truncation_approx_family {ι : Type*} [Fintype ι] [Nonempty ι]
     fun j => hasCompactSupport_partialDeriv χℂ (dir j) hχℂ_supp
   have hdχℂ_bound : ∀ j x, ‖dχℂ j x‖ ≤ M / R := by
     intro j x
-    show ‖fderiv ℝ χℂ x (EuclideanSpace.single (dir j) 1)‖ ≤ M / R
+    change ‖fderiv ℝ χℂ x (EuclideanSpace.single (dir j) 1)‖ ≤ M / R
     have hχ_diff_at : DifferentiableAt ℝ χ x :=
       (hχ_smooth.differentiable
         (by exact_mod_cast ENat.top_ne_zero)).differentiableAt
@@ -420,9 +420,9 @@ lemma truncation_approx_family {ι : Type*} [Fintype ι] [Nonempty ι]
     have hae : ((f : R3 → ℂ) - (hh_R_MemLp.toLp h_R : R3 → ℂ)) =ᵐ[volume]
         fun x => (1 - (χ x : ℂ)) * (f : R3 → ℂ) x := by
       filter_upwards [hh_R_MemLp.coeFn_toLp] with x hx
-      show (f : R3 → ℂ) x - (hh_R_MemLp.toLp h_R : R3 → ℂ) x = _
+      change (f : R3 → ℂ) x - (hh_R_MemLp.toLp h_R : R3 → ℂ) x = _
       rw [hx]
-      show (f : R3 → ℂ) x - χℂ x * (f : R3 → ℂ) x =
+      change (f : R3 → ℂ) x - χℂ x * (f : R3 → ℂ) x =
         (1 - (χ x : ℂ)) * (f : R3 → ℂ) x
       ring
     rw [eLpNorm_congr_ae hae]
@@ -448,10 +448,10 @@ lemma truncation_approx_family {ι : Type*} [Fintype ι] [Nonempty ι]
         fun x => (1 - (χ x : ℂ)) * (dg j : R3 → ℂ) x -
           (f : R3 → ℂ) x * dχℂ j x := by
       filter_upwards [(hdh_R_MemLp j).coeFn_toLp] with x hx
-      show (dg j : R3 → ℂ) x -
+      change (dg j : R3 → ℂ) x -
             ((hdh_R_MemLp j).toLp (dh_R j) : R3 → ℂ) x = _
       rw [hx]
-      show (dg j : R3 → ℂ) x -
+      change (dg j : R3 → ℂ) x -
             (χℂ x * (dg j : R3 → ℂ) x + (f : R3 → ℂ) x * dχℂ j x) =
         (1 - (χ x : ℂ)) * (dg j : R3 → ℂ) x - (f : R3 → ℂ) x * dχℂ j x
       ring

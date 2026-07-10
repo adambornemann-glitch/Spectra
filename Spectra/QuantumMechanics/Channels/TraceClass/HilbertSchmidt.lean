@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
-Author: Adam Bornemann
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Adam Bornemann
 -/
 import Spectra.QuantumMechanics.Channels.TraceClass.Norm
 import Spectra.QuantumMechanics.Channels.TraceClass.PartialIsometry
@@ -11,19 +11,21 @@ import Spectra.QuantumMechanics.Channels.TraceClass.PartialIsometry
 
 A minimal Hilbert–Schmidt toolkit for the trace-class hard core: the predicate `IsHilbertSchmidt`
 (`∑ᵢ ‖A eᵢ‖² < ∞`), its basis-independence, and the two-sided-ideal structure.  This is **not** a
-packaged Hilbert-space structure (no HS inner product, no completeness) — only the predicate and the
-summability facts needed for cyclicity `tr (AB) = tr (BA)` (Stage D), where `A` trace-class factors as
-`A = (U |A|^{1/2})·(|A|^{1/2})` with both factors Hilbert–Schmidt.
+packaged Hilbert-space structure (no HS inner product, no completeness) — only the predicate and
+the summability facts needed for cyclicity `tr (AB) = tr (BA)` (Stage D), where `A` trace-class
+factors as `A = (U |A|^{1/2})·(|A|^{1/2})` with both factors Hilbert–Schmidt.
 
 ## Main results
 
 * `IsHilbertSchmidt A` — `∑ᵢ ‖A eᵢ‖² ≠ ∞`, packaged over `stdHilbertBasis` but basis-independent.
-* `hsSum_adjoint_swap` / `hsSum_indep` — the adjoint cross-swap and basis-independence of `∑ᵢ ‖A eᵢ‖²`.
+* `hsSum_adjoint_swap` / `hsSum_indep` — the adjoint cross-swap and basis-independence of
+  `∑ᵢ ‖A eᵢ‖²`.
 * `isHilbertSchmidt_iff` / `isHilbertSchmidt_iff_summable` — basis-independence.
 * `isHilbertSchmidt_adjoint` — `A⋆` is Hilbert–Schmidt iff `A` is.
 * `isHilbertSchmidt_sqrtOp_absOp` — `|A|^{1/2}` is Hilbert–Schmidt iff `A` is **trace-class**
   (definitionally `tr |A|`); the factorization input for cyclicity.
-* `IsHilbertSchmidt.comp_left` / `comp_right` — the Hilbert–Schmidt operators form a two-sided ideal.
+* `IsHilbertSchmidt.comp_left` / `comp_right` — the Hilbert–Schmidt operators form a two-sided
+  ideal.
 -/
 
 open ContinuousLinearMap RCLike
@@ -34,8 +36,8 @@ namespace Spectra.QuantumMechanics.Channels
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
 variable {ι κ : Type*}
 
-/-- **Adjoint cross-swap** of the Hilbert–Schmidt sum: `∑ᵢ ‖A cᵢ‖² = ∑ⱼ ‖A⋆ c'ⱼ‖²` for any two Hilbert
-bases (Parseval + Tonelli + `⟪c'ⱼ, A cᵢ⟫ = conj ⟪cᵢ, A⋆ c'ⱼ⟫`). -/
+/-- **Adjoint cross-swap** of the Hilbert–Schmidt sum: `∑ᵢ ‖A cᵢ‖² = ∑ⱼ ‖A⋆ c'ⱼ‖²` for any two
+Hilbert bases (Parseval + Tonelli + `⟪c'ⱼ, A cᵢ⟫ = conj ⟪cᵢ, A⋆ c'ⱼ⟫`). -/
 theorem hsSum_adjoint_swap (A : H →L[ℂ] H) (b : HilbertBasis ι ℂ H) (b' : HilbertBasis κ ℂ H) :
     ∑' i, (‖A (b i)‖₊ : ℝ≥0∞) ^ 2 = ∑' j, (‖(A†) (b' j)‖₊ : ℝ≥0∞) ^ 2 := by
   have h_sym : ∀ i j, ‖⟪b' j, A (b i)⟫_ℂ‖₊ = ‖⟪b i, (A†) (b' j)⟫_ℂ‖₊ := by
@@ -56,8 +58,8 @@ theorem hsSum_indep (A : H →L[ℂ] H) (b : HilbertBasis ι ℂ H) (b' : Hilber
     ∑' i, (‖A (b i)‖₊ : ℝ≥0∞) ^ 2 = ∑' j, (‖A (b' j)‖₊ : ℝ≥0∞) ^ 2 := by
   rw [hsSum_adjoint_swap A b b', ← hsSum_adjoint_swap A b' b']
 
-/-- `A` is **Hilbert–Schmidt** when `∑ᵢ ‖A eᵢ‖² < ∞`.  Packaged over `stdHilbertBasis`; basis-free by
-`isHilbertSchmidt_iff`. -/
+/-- `A` is **Hilbert–Schmidt** when `∑ᵢ ‖A eᵢ‖² < ∞`.  Packaged over `stdHilbertBasis`; basis-free
+by `isHilbertSchmidt_iff`. -/
 def IsHilbertSchmidt (A : H →L[ℂ] H) : Prop :=
   ∑' i, (‖A (stdHilbertBasis H i)‖₊ : ℝ≥0∞) ^ 2 ≠ ⊤
 
@@ -80,7 +82,8 @@ lemma isHilbertSchmidt_iff_summable (b : HilbertBasis ι ℂ H) (A : H →L[ℂ]
   rw [← tsum_enorm_apply_sq_adjoint A (stdHilbertBasis H)]
 
 /-- **`|A|^{1/2}` is Hilbert–Schmidt iff `A` is trace-class** — definitionally, since
-`∑ᵢ ‖|A|^{1/2} eᵢ‖² = tr |A|`.  The factorization input for cyclicity (`A = (U |A|^{1/2})·(|A|^{1/2})`). -/
+`∑ᵢ ‖|A|^{1/2} eᵢ‖² = tr |A|`.  The factorization input for cyclicity
+(`A = (U |A|^{1/2})·(|A|^{1/2})`). -/
 lemma isHilbertSchmidt_sqrtOp_absOp (A : H →L[ℂ] H) :
     IsHilbertSchmidt (sqrtOp (absOp A)) ↔ IsTraceClass A := Iff.rfl
 

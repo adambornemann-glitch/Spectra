@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
-Author: Adam Bornemann
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Adam Bornemann
 -/
 import Spectra.Modular.KMS.Condition
 import Mathlib.Analysis.CStarAlgebra.Spectrum
@@ -26,17 +26,19 @@ is the substrate for the imaginary-time KMS condition (A2) and the Tomita–Take
 ## The isometry of the dynamics, for free
 
 A `*`-automorphism of a C*-algebra is automatically **isometric**. We never assume this — we *prove*
-it. `Dynamics.evolve t` bundles as a unital `*`-homomorphism `Dynamics.evolveStarAlgHom`, and Mathlib's
-`NonUnitalStarAlgHom.norm_apply_le` / `NonUnitalStarAlgHom.norm_map` (the latter via injectivity from
-the two-sided inverse `α_{-t}`) give `‖α_t a‖ ≤ ‖a‖` and then `‖α_t a‖ = ‖a‖`. Keeping the isometry a
-*lemma*, not a `Dynamics` field, keeps the structure minimal — the same discipline that the
-conjugate-linear-`evolve` soundness bug taught.
+it. `Dynamics.evolve t` bundles as a unital `*`-homomorphism `Dynamics.evolveStarAlgHom`, and
+Mathlib's `NonUnitalStarAlgHom.norm_apply_le` / `NonUnitalStarAlgHom.norm_map` (the latter via
+injectivity from the two-sided inverse `α_{-t}`) give `‖α_t a‖ ≤ ‖a‖` and then `‖α_t a‖ = ‖a‖`.
+Keeping the isometry a *lemma*, not a `Dynamics` field, keeps the structure minimal — the same
+discipline that the conjugate-linear-`evolve` soundness bug taught.
 
 ## Main definitions
 
-* `Dynamics.evolveStarAlgHom`, `Dynamics.evolveL` — `α_t` as a `*`-algebra hom / continuous linear map.
+* `Dynamics.evolveStarAlgHom`, `Dynamics.evolveL` — `α_t` as a `*`-algebra hom / continuous linear
+  map.
 * `Dynamics.IsAnalyticElement` — `a` whose orbit extends to an entire `ℂ → A` map.
-* `Dynamics.analyticExtend`, `Dynamics.sigma` — the (proof-carrying) entire extension and the flow `σ_z`.
+* `Dynamics.analyticExtend`, `Dynamics.sigma` — the (proof-carrying) entire extension and the flow
+  `σ_z`.
 * `Dynamics.analyticElements` — the set of analytic elements.
 
 ## Main statements
@@ -139,13 +141,15 @@ noncomputable def Dynamics.analyticExtend (α : Dynamics A) {a : A} (ha : α.IsA
 lemma Dynamics.analyticExtend_differentiable (α : Dynamics A) {a : A}
     (ha : α.IsAnalyticElement a) : Differentiable ℂ (α.analyticExtend ha) := ha.choose_spec.1
 
-/-- On the real axis the entire extension recovers the orbit: `α.analyticExtend ha t = α.evolve t a`. -/
+/-- On the real axis the entire extension recovers the orbit:
+`α.analyticExtend ha t = α.evolve t a`. -/
 @[simp] lemma Dynamics.analyticExtend_real (α : Dynamics A) {a : A} (ha : α.IsAnalyticElement a)
     (t : ℝ) : α.analyticExtend ha (t : ℂ) = α.evolve t a := ha.choose_spec.2 t
 
 /-- The **complexified flow** `σ_z` on an analytic element, i.e. the analytic continuation of the
 orbit evaluated at the complex time `z`. -/
-noncomputable def Dynamics.sigma (α : Dynamics A) {a : A} (ha : α.IsAnalyticElement a) (z : ℂ) : A :=
+noncomputable def Dynamics.sigma (α : Dynamics A) {a : A} (ha : α.IsAnalyticElement a) (z : ℂ) :
+    A :=
   α.analyticExtend ha z
 
 /-- At real time `t` the complexified flow agrees with the real flow: `σ_t(a) = α_t(a)`. -/
@@ -226,10 +230,10 @@ lemma Dynamics.ext_add_real (α : Dynamics A) {a : A} (ha : α.IsAnalyticElement
 
 /-! ## Closure under the complexified flow and the group law
 
-The analytic elements are closed under `σ_w` for **complex** `w`, and the complexified flow satisfies
-the group law `σ_z ∘ σ_w = σ_{z+w}`. The witness for `σ_w(b)` being analytic is `z ↦ σ_{z+w}(b)`,
-whose real boundary is `α_t(σ_w b)` by the real-shift cocycle `ext_add_real`; the group law then
-follows from the identity theorem `analyticExtend_unique`. -/
+The analytic elements are closed under `σ_w` for **complex** `w`, and the complexified flow
+satisfies the group law `σ_z ∘ σ_w = σ_{z+w}`. The witness for `σ_w(b)` being analytic is
+`z ↦ σ_{z+w}(b)`, whose real boundary is `α_t(σ_w b)` by the real-shift cocycle `ext_add_real`; the
+group law then follows from the identity theorem `analyticExtend_unique`. -/
 
 /-- **Closure under the complexified flow.** If `a` is an analytic element then so is `σ_w(a)` for
 every complex time `w` — its entire orbit extension is `z ↦ σ_{z+w}(a)`. -/
@@ -237,12 +241,12 @@ lemma Dynamics.isAnalyticElement_sigma (α : Dynamics A) {a : A}
     (ha : α.IsAnalyticElement a) (w : ℂ) : α.IsAnalyticElement (α.sigma ha w) := by
   refine ⟨fun z => α.analyticExtend ha (z + w), ?_, fun t => ?_⟩
   · exact (α.analyticExtend_differentiable ha).comp (differentiable_id.add_const w)
-  · show α.analyticExtend ha ((t : ℂ) + w) = α.evolve t (α.analyticExtend ha w)
+  · change α.analyticExtend ha ((t : ℂ) + w) = α.evolve t (α.analyticExtend ha w)
     rw [α.ext_add_real ha t w]
 
 /-- **The complexified flow is a group action: `σ_z ∘ σ_w = σ_{z+w}`.** For an analytic element `a`,
-`σ_z(σ_w(a)) = σ_{z+w}(a)`. Proved by the identity theorem: both sides are entire in `z` and agree on
-the real axis (where they equal `α_t(σ_w a)` via the real-shift cocycle). -/
+`σ_z(σ_w(a)) = σ_{z+w}(a)`. Proved by the identity theorem: both sides are entire in `z` and
+agree on the real axis (where they equal `α_t(σ_w a)` via the real-shift cocycle). -/
 lemma Dynamics.sigma_sigma (α : Dynamics A) {a : A} (ha : α.IsAnalyticElement a) (z w : ℂ) :
     α.sigma (α.isAnalyticElement_sigma ha w) z = α.sigma ha (z + w) := by
   have key : α.analyticExtend (α.isAnalyticElement_sigma ha w)
@@ -252,16 +256,16 @@ lemma Dynamics.sigma_sigma (α : Dynamics A) {a : A} (ha : α.IsAnalyticElement 
       ((α.analyticExtend_differentiable ha).comp (differentiable_id.add_const w)) (fun t => ?_)
     rw [α.analyticExtend_real (α.isAnalyticElement_sigma ha w) t, α.ext_add_real ha t w]
     simp only [Dynamics.sigma]
-  show α.analyticExtend (α.isAnalyticElement_sigma ha w) z = α.analyticExtend ha (z + w)
+  change α.analyticExtend (α.isAnalyticElement_sigma ha w) z = α.analyticExtend ha (z + w)
   rw [key]
 
 /-! ## Gaussian smoothing (toward density)
 
 The Gaussian-smoothed elements `a_n := √(n/π) ∫ e^{-n t²} α_t(a) dt` are the Bratteli–Robinson
 approximation: each `a_n` is an analytic element and `a_n → a`, so the analytic elements are dense.
-This section lands the **integrability gateway** on which both hard limbs rest; the entirety of `a_n`
-(differentiation under the integral) and the limit `a_n → a` (Gaussian approximate identity) are the
-remaining work. -/
+This section lands the **integrability gateway** on which both hard limbs rest; the entirety of
+`a_n` (differentiation under the integral) and the limit `a_n → a` (Gaussian approximate identity)
+are the remaining work. -/
 
 /-- The orbit smoothed against a Gaussian is **integrable**: `‖α_t a‖ = ‖a‖` is bounded, so the
 Gaussian weight dominates `t ↦ e^{-b t²} • α_t(a)`. The gateway for the density argument. -/
@@ -286,7 +290,8 @@ shows `aₙ` extends to an entire `ℂ → A` map (differentiation under the int
 Gaussian×linear dominating bound). `gaussianSmooth_tendsto` shows `aₙ → a` (rescale `s = √n·t`, then
 dominated convergence with strong continuity). Together: the analytic elements are dense. -/
 
-/-- The complexified Gaussian kernel `e^{-n(u - z)²} • α_u(a)` integrated over `u` to extend `aₙ`. -/
+/-- The complexified Gaussian kernel `e^{-n(u - z)²} • α_u(a)` integrated over `u` to extend
+`aₙ`. -/
 private noncomputable def gsKern (α : Dynamics A) (a : A) (n : ℕ) (z : ℂ) (u : ℝ) : A :=
   Complex.exp (-(n : ℂ) * (((u : ℂ)) - z) ^ 2) • α.evolve u a
 
@@ -410,7 +415,8 @@ private theorem norm_gsKernDer_le (α : Dynamics A) (a : A) (n : ℕ) (hn : 0 < 
     _ = (2 * (n:ℝ) * Real.exp (2 * (n:ℝ) * R^2) * ‖a‖) * (|u| + R)
           * Real.exp (-(n / 2 : ℝ) * u ^ 2) := by ring
 
-/-- Differentiation under the integral: `z ↦ ∫ gsKern` is differentiable, derivative `∫ gsKernDer`. -/
+/-- Differentiation under the integral: `z ↦ ∫ gsKern` is differentiable, derivative
+`∫ gsKernDer`. -/
 private theorem hasDerivAt_integral_gsKern (α : Dynamics A) (a : A) (n : ℕ) (hn : 0 < (n : ℝ))
     (z0 : ℂ) :
     HasDerivAt (fun z => ∫ u : ℝ, gsKern α a n z u)
@@ -452,7 +458,7 @@ theorem Dynamics.gaussianSmooth_isAnalyticElement (α : Dynamics A) (a : A) (n :
     apply DifferentiableAt.const_smul
     exact (hasDerivAt_integral_gsKern α a n hn z0).differentiableAt
   · intro s
-    show Real.sqrt ((n : ℝ) / Real.pi) • ∫ u : ℝ, gsKern α a n (s : ℂ) u
+    change Real.sqrt ((n : ℝ) / Real.pi) • ∫ u : ℝ, gsKern α a n (s : ℂ) u
       = α.evolve s (α.gaussianSmooth a n)
     unfold Dynamics.gaussianSmooth
     have hker : ∀ u : ℝ, gsKern α a n (s : ℂ) u
@@ -604,8 +610,9 @@ theorem Dynamics.gaussianSmooth_tendsto (α : Dynamics A) (a : A) :
   · exact hsq
 
 /-- **Density of the analytic elements** (Bratteli–Robinson). Every `a : A` is the limit of the
-analytic sequence `a_n := α.gaussianSmooth a n` — each analytic by `gaussianSmooth_isAnalyticElement`,
-converging to `a` by `gaussianSmooth_tendsto` — so the analytic elements are norm-dense in `A`. -/
+analytic sequence `a_n := α.gaussianSmooth a n` — each analytic by
+`gaussianSmooth_isAnalyticElement`, converging to `a` by `gaussianSmooth_tendsto` — so the
+analytic elements are norm-dense in `A`. -/
 theorem Dynamics.analyticElements_dense (α : Dynamics A) : Dense (α.analyticElements) := by
   intro a
   refine mem_closure_of_tendsto (α.gaussianSmooth_tendsto a) ?_

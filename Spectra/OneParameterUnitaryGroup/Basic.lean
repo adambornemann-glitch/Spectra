@@ -1,7 +1,7 @@
 /-
-Copyright (c) 2026. Released under MIT license.
-Filename: OneParameterUnitaryGroup/Basic.lean
-Target: Mathlib v4.31.0-rc1
+Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Adam Bornemann
 -/
 import Mathlib.Analysis.InnerProductSpace.Adjoint
 import Mathlib.Analysis.InnerProductSpace.LinearPMap
@@ -227,7 +227,7 @@ lemma generator_domain_invariant (U : OneParameterUnitaryGroup (H := H))
 lemma isSelfAdjoint_of_surjective_addSub
     (A : H →ₗ.[ℂ] H) (hsym : A.IsFormalAdjoint A)
     (hdense : Dense (A.domain : Set H))
-    (hplus  : ∀ φ : H, ∃ ψ : A.domain, A ψ + I • (ψ : H) = φ)
+    (hplus : ∀ φ : H, ∃ ψ : A.domain, A ψ + I • (ψ : H) = φ)
     (hminus : ∀ φ : H, ∃ ψ : A.domain, A ψ - I • (ψ : H) = φ) :
     IsSelfAdjoint A := by
   rw [LinearPMap.isSelfAdjoint_def]

@@ -1,6 +1,6 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Spectra.QuantumMechanics.BornRule.Joint.Basic
@@ -137,7 +137,7 @@ theorem jointVector_grid_collapse (A B : Spectra.Operator.SelfAdjointOperator H)
 — immediate from `jointRect_orthogonal_general`, since distinct cells differ in some axis atom, and
 distinct atoms are disjoint, so the rectangles are disjoint. -/
 theorem jointGridCell_orthogonal (A B : Spectra.Operator.SelfAdjointOperator H)
-    (hSC : StronglyCommute A B) {α β : Type*} [Fintype α] [Fintype β]
+    (hSC : StronglyCommute A B) {α β : Type*}
     (σ : α → Set ℝ) (τ : β → Set ℝ)
     (hσ : ∀ a, MeasurableSet (σ a)) (hτ : ∀ b, MeasurableSet (τ b))
     (hσd : Pairwise (Function.onFun Disjoint σ)) (hτd : Pairwise (Function.onFun Disjoint τ))
@@ -161,7 +161,7 @@ in exactly one cover rectangle (`card_filter_mem_eq_ite` + `hcover`), matching t
 the whole rectangle assigns.  This is the grid/atom refinement feeding the `AddContent.sUnion'`
 finite additivity (G2.2). -/
 theorem jointVector_sUnion (A B : Spectra.Operator.SelfAdjointOperator H)
-    {κ : Type*} [Fintype κ] [DecidableEq κ] (Sp Tp : κ → Set ℝ)
+    {κ : Type*} [Fintype κ] (Sp Tp : κ → Set ℝ)
     (hSp : ∀ k, MeasurableSet (Sp k)) (hTp : ∀ k, MeasurableSet (Tp k))
     {S₀ T₀ : Set ℝ} (hS₀ : MeasurableSet S₀) (hT₀ : MeasurableSet T₀)
     (hdisj : Pairwise (Function.onFun Disjoint (fun k => Sp k ×ˢ Tp k)))
@@ -288,7 +288,7 @@ orthogonality: over a disjoint rectangle cover of `S₀ ×ˢ T₀`, the whole-re
 norm splits as the sum of the cell effects' squared norms.  This is the Pythagoras identity the
 `AddContent.sUnion'` finite-additivity obligation (G2.2) consumes. -/
 theorem jointRect_sUnion_norm_sq (A B : Spectra.Operator.SelfAdjointOperator H)
-    (hSC : StronglyCommute A B) {κ : Type*} [Fintype κ] [DecidableEq κ] (Sp Tp : κ → Set ℝ)
+    (hSC : StronglyCommute A B) {κ : Type*} [Fintype κ] (Sp Tp : κ → Set ℝ)
     (hSp : ∀ k, MeasurableSet (Sp k)) (hTp : ∀ k, MeasurableSet (Tp k))
     {S₀ T₀ : Set ℝ} (hS₀ : MeasurableSet S₀) (hT₀ : MeasurableSet T₀)
     (hdisj : Pairwise (Function.onFun Disjoint (fun k => Sp k ×ˢ Tp k)))
@@ -408,7 +408,7 @@ noncomputable def jointContent (A B : Spectra.Operator.SelfAdjointOperator H)
     -- the Pythagoras payload
     have hpyth := jointRect_sUnion_norm_sq A B hSC Sp Tp hSp hTp hS₀ hT₀ hdisj hcover ξ
     -- lift to `ℝ≥0∞`
-    show jointRectVal A B ξ (⋃₀ ↑I) = ∑ u ∈ I, jointRectVal A B ξ u
+    change jointRectVal A B ξ (⋃₀ ↑I) = ∑ u ∈ I, jointRectVal A B ξ u
     rw [hST₀, jointRectVal_prod A B ξ hS₀ hT₀, hpyth,
       ENNReal.ofReal_sum_of_nonneg (fun R _ => sq_nonneg _)]
     -- `∑ R : κ, ofReal ‖..‖² = ∑ R : κ, jointRectVal R.1 = ∑ u ∈ I, jointRectVal u`
@@ -423,7 +423,7 @@ theorem jointContent_ne_top (A B : Spectra.Operator.SelfAdjointOperator H)
     (hSC : StronglyCommute A B) (ξ : H) {R : Set (ℝ × ℝ)} (hR : R ∈ jointRectangles) :
     jointContent A B hSC ξ R ≠ ⊤ := by
   obtain ⟨S, T, hS, hT, rfl⟩ := hR
-  show jointRectVal A B ξ (S ×ˢ T) ≠ ⊤
+  change jointRectVal A B ξ (S ×ˢ T) ≠ ⊤
   rw [jointRectVal_prod A B ξ hS hT]
   exact ENNReal.ofReal_ne_top
 
@@ -431,7 +431,7 @@ theorem jointContent_ne_top (A B : Spectra.Operator.SelfAdjointOperator H)
 are the identity (`proj_univ`), so the rectangle effect is the identity and `‖id ξ‖² = ‖ξ‖²`. -/
 theorem jointContent_univ (A B : Spectra.Operator.SelfAdjointOperator H) (hSC : StronglyCommute A B)
     (ξ : H) : jointContent A B hSC ξ (Set.univ ×ˢ Set.univ) = ENNReal.ofReal (‖ξ‖ ^ 2) := by
-  show jointRectVal A B ξ (Set.univ ×ˢ Set.univ) = ENNReal.ofReal (‖ξ‖ ^ 2)
+  change jointRectVal A B ξ (Set.univ ×ˢ Set.univ) = ENNReal.ofReal (‖ξ‖ ^ 2)
   rw [jointRectVal_prod A B ξ MeasurableSet.univ MeasurableSet.univ,
     ContinuousLinearMap.mul_apply, A.spectralPVM.proj_univ, B.spectralPVM.proj_univ,
     ContinuousLinearMap.id_apply, ContinuousLinearMap.id_apply]
@@ -631,7 +631,7 @@ theorem jointContent_rectVec (A B : Spectra.Operator.SelfAdjointOperator H)
     (hSC : StronglyCommute A B) (ξ : H) {R : Set (ℝ × ℝ)} (hR : R ∈ jointRectangles) :
     jointContent A B hSC ξ R = ENNReal.ofReal (‖rectVec A B ξ R‖ ^ 2) := by
   obtain ⟨S, T, hS, hT, rfl⟩ := hR
-  show jointRectVal A B ξ (S ×ˢ T) = _
+  change jointRectVal A B ξ (S ×ˢ T) = _
   rw [jointRectVal_prod A B ξ hS hT, rectVec_prod A B ξ hS hT]
 
 /-- **The squared norm of the vector content is the ring content.**
@@ -650,7 +650,8 @@ theorem jointVectorContent_norm_sq (A B : Spectra.Operator.SelfAdjointOperator H
   -- ring content over `K`
   rw [(jointContent A B hSC ξ).supClosure_apply_finpartition isSetSemiring_jointRectangles hKC]
   -- each summand is `ofReal ‖rectVec‖²`
-  have hsummand : ∀ R ∈ K.parts, jointContent A B hSC ξ R = ENNReal.ofReal (‖rectVec A B ξ R‖ ^ 2) :=
+  have hsummand : ∀ R ∈ K.parts,
+      jointContent A B hSC ξ R = ENNReal.ofReal (‖rectVec A B ξ R‖ ^ 2) :=
     fun R hR => jointContent_rectVec A B hSC ξ (hKC hR)
   rw [Finset.sum_congr rfl hsummand,
     ← ENNReal.ofReal_sum_of_nonneg (fun R _ => sq_nonneg _), ENNReal.toReal_ofReal
@@ -698,11 +699,13 @@ theorem jointVectorContent_add (A B : Spectra.Operator.SelfAdjointOperator H) (�
   have hJbs : b = ⋃₀ ↑Jb.parts := by
     have h := Jb.sup_parts; rw [Finset.sup_set_eq_biUnion] at h
     rw [Set.sUnion_eq_biUnion]; exact h.symm
-  -- the part-sets are disjoint as Finsets (members of `Ja` ⊆ `a`, of `Jb` ⊆ `b`, and `a, b` disjoint)
+  -- the part-sets are disjoint as Finsets (members of `Ja` ⊆ `a`, of `Jb` ⊆ `b`, and `a, b`
+  -- disjoint)
   have hpartDisjoint : Disjoint Ja.parts Jb.parts := by
     rw [Finset.disjoint_left]
     intro R hRa hRb
-    -- `R ⊆ a` and `R ⊆ b`, but each `R` is nonempty in a Finpartition (⊥ ∉ parts)... handle empty too
+    -- `R ⊆ a` and `R ⊆ b`, but each `R` is nonempty in a Finpartition (⊥ ∉ parts)... handle empty
+    -- too
     have hRsuba : R ⊆ a := by rw [hJas]; exact Set.subset_sUnion_of_mem hRa
     have hRsubb : R ⊆ b := by rw [hJbs]; exact Set.subset_sUnion_of_mem hRb
     have hRempty : R = ⊥ := by
@@ -870,7 +873,8 @@ theorem jointElem_inner_compact (A B : Spectra.Operator.SelfAdjointOperator H)
                   (hRing.union_mem (hRing.diff_mem hSTmem hKRring) (hRing.diff_mem hB'mem hKJmem))
                   hsub
             _ ≤ (jointContent A B hSC ξ).supClosure isSetSemiring_jointRectangles ((S ×ˢ T) \ KR)
-                  + (jointContent A B hSC ξ).supClosure isSetSemiring_jointRectangles (⋃₀ ↑J \ KJ) :=
+                  + (jointContent A B hSC ξ).supClosure isSetSemiring_jointRectangles
+                    (⋃₀ ↑J \ KJ) :=
                 addContent_union_le hRing (hRing.diff_mem hSTmem hKRring)
                   (hRing.diff_mem hB'mem hKJmem)
             _ ≤ δ / 2 + δ / 2 := add_le_add hKRlt.le hKJle
@@ -901,7 +905,8 @@ forces `w = 0`.  `sorry`-free and axiom-clean. -/
 theorem jointContentRing_tendsto_empty (A B : Spectra.Operator.SelfAdjointOperator H)
     (hSC : StronglyCommute A B) (ξ : H) ⦃s : ℕ → Set (ℝ × ℝ)⦄
     (hs : ∀ n, s n ∈ supClosure jointRectangles) (hanti : Antitone s) (hempty : (⋂ n, s n) = ∅) :
-    Filter.Tendsto (fun n => (jointContent A B hSC ξ).supClosure isSetSemiring_jointRectangles (s n))
+    Filter.Tendsto
+      (fun n => (jointContent A B hSC ξ).supClosure isSetSemiring_jointRectangles (s n))
       Filter.atTop (nhds 0) := by
   classical
   set mR := (jointContent A B hSC ξ).supClosure isSetSemiring_jointRectangles with hmRdef
@@ -1164,7 +1169,7 @@ theorem jointScalarMeasure_prod (A B : Spectra.Operator.SelfAdjointOperator H)
   have hmem : (S ×ˢ T) ∈ jointRectangles := ⟨S, T, hS, hT, rfl⟩
   rw [jointScalarMeasure, (jointContent A B hSC ξ).measure_eq isSetSemiring_jointRectangles
     generateFrom_jointRectangles (jointContent_isSigmaSubadditive A B hSC ξ) hmem]
-  show jointRectVal A B ξ (S ×ˢ T) = _
+  change jointRectVal A B ξ (S ×ˢ T) = _
   rw [jointRectVal_prod_diag A B hSC ξ hS hT]
 
 /-- **`μ_ξ` on a rectangle, in norm² form.**  `μ_ξ(S ×ˢ T).toReal = ‖E_A(S)E_B(T)ξ‖²`. -/

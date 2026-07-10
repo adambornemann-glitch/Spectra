@@ -1,6 +1,6 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Spectra.Resolvent.Diagonal.IntegralZ.Basic
@@ -48,7 +48,7 @@ variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteS
 namespace Spectra.Resolvent
 variable (U_grp : OneParameterUnitaryGroup (H := H))
 variable {A : H →ₗ.[ℂ] H} (hsym : A.IsFormalAdjoint A)
-  (hplus  : ∀ φ : H, ∃ ψ : A.domain, A ψ + I • (ψ : H) = φ)
+  (hplus : ∀ φ : H, ∃ ψ : A.domain, A ψ + I • (ψ : H) = φ)
   (hminus : ∀ φ : H, ∃ ψ : A.domain, A ψ - I • (ψ : H) = φ)
 
 /-- The **resolvent diagonal Laplace representation**: `⟪ξ, R(z)ξ⟫` is `(-i)` times the
@@ -183,7 +183,7 @@ lemma resolvent_continuous_at_height {ε : ℝ} (hε : 0 < ε) (ξ : H) :
 `⟨ξ, R(λ - iε)ξ⟩ = -i ∫₀^∞ e^{-iλt} e^{-εt} f(t) dt`. -/
 lemma resolvent_diag_lower_laplace (ξ : H) {ε : ℝ} (hε : 0 < ε) (lambda : ℝ) :
     ⟪ξ, resolvent (⟨lambda, -ε⟩ : ℂ)
-            (by show (-ε : ℝ) ≠ 0; exact neg_ne_zero.mpr hε.ne')
+            (by change (-ε : ℝ) ≠ 0; exact neg_ne_zero.mpr hε.ne')
             (generator_isFormalAdjoint U_grp)
             (range_plus_i_eq_top U_grp)
             (range_minus_i_eq_top U_grp) ξ⟫_ℂ
@@ -193,7 +193,7 @@ lemma resolvent_diag_lower_laplace (ξ : H) {ε : ℝ} (hε : 0 < ε) (lambda : 
               ⟪ξ, U_grp.U t ξ⟫_ℂ := by
   -- z = λ - iε, so z.im = -ε < 0
   set z : ℂ := ⟨lambda, -ε⟩ with hz_def
-  have hz_lt : z.im < 0 := by show (-ε : ℝ) < 0; linarith
+  have hz_lt : z.im < 0 := by change (-ε : ℝ) < 0; linarith
   -- Step 1: replace R(z) ξ by its Laplace integral form.
   rw [← resolventIntegralZ_eq_resolvent (U_grp := U_grp) hz_lt]
   unfold resolventIntegralZ

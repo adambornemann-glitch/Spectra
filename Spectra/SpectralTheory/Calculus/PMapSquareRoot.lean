@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
-Author: Adam Bornemann
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Adam Bornemann
 -/
 import Spectra.SpectralTheory.Calculus.PMapOfPVM
 import Spectra.SpectralTheory.Weak
@@ -136,7 +136,7 @@ theorem borelMeasure_Iio_zero_eq_zero_of_dense
     intro z hz
     have hμ : borelMeasure U_grp z (Set.Iio 0) = 0 :=
       borelMeasure_Iio_zero_eq_zero U_grp hpos ⟨z, hz⟩
-    show spectralProjection U_grp (Set.Iio 0) measurableSet_Iio z = 0
+    change spectralProjection U_grp (Set.Iio 0) measurableSet_Iio z = 0
     rw [← norm_eq_zero, ← sq_eq_zero_iff,
       norm_sq_spectralProjection U_grp (Set.Iio 0) measurableSet_Iio z, hμ]
     simp

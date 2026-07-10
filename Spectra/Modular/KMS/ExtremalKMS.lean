@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
-Author: Adam Bornemann
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Adam Bornemann
 -/
 import Spectra.Modular.KMS.StateTopology
 import Spectra.Modular.KMS.Equivalence
@@ -33,8 +33,8 @@ namespace Spectra.KMS
 
 variable {A : Type*} [CStarAlgebra A] {α : Dynamics A} {β : ℝ}
 
-/-- The `(a, b)`-imaginary-time condition `φ(a · σ_{iβ}(b)) = φ(b · a)` as a subset of the weak dual,
-for an analytic element `b`. Weak-*-closed (equality of continuous evaluations). -/
+/-- The `(a, b)`-imaginary-time condition `φ(a · σ_{iβ}(b)) = φ(b · a)` as a subset of the weak
+dual, for an analytic element `b`. Weak-*-closed (equality of continuous evaluations). -/
 def imaginaryTimeCond (α : Dynamics A) (β : ℝ) (a b : A) (hb : α.IsAnalyticElement b) :
     Set (WeakDual ℂ A) :=
   {φ : WeakDual ℂ A | φ (a * α.sigma hb ((β : ℂ) * I)) = φ (b * a)}
@@ -68,7 +68,7 @@ lemma kmsStateSet_isClosed : IsClosed (kmsStateSet α β) :=
 lemma convex_imaginaryTimeCond (a b : A) (hb : α.IsAnalyticElement b) :
     Convex ℝ (imaginaryTimeCond α β a b hb) := by
   intro φ hφ ψ hψ s t _ _ _
-  show (s • φ + t • ψ) (a * α.sigma hb ((β : ℂ) * I)) = (s • φ + t • ψ) (b * a)
+  change (s • φ + t • ψ) (a * α.sigma hb ((β : ℂ) * I)) = (s • φ + t • ψ) (b * a)
   have hx : (s • φ + t • ψ) (a * α.sigma hb ((β : ℂ) * I))
       = s • φ (a * α.sigma hb ((β : ℂ) * I)) + t • ψ (a * α.sigma hb ((β : ℂ) * I)) := rfl
   have hy : (s • φ + t • ψ) (b * a) = s • φ (b * a) + t • ψ (b * a) := rfl
@@ -90,7 +90,7 @@ lemma IsKMSState.toWeakDual_mem_kmsStateSet {ω : State A} (hβ : 0 < β)
   refine ⟨ω.toWeakDual_mem, ?_⟩
   simp only [Set.mem_iInter]
   intro a b hb
-  show ω.toWeakDual (a * α.sigma hb ((β : ℂ) * I)) = ω.toWeakDual (b * a)
+  change ω.toWeakDual (a * α.sigma hb ((β : ℂ) * I)) = ω.toWeakDual (b * a)
   rw [State.toWeakDual_apply, State.toWeakDual_apply]
   exact hkms.imaginaryTime hβ hb a
 

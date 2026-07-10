@@ -1,6 +1,6 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Spectra.Operator.SelfAdjoint
@@ -114,7 +114,7 @@ Proof: `P.diag_univ_toReal ψ` gives total mass `‖ψ‖² = 1`; with `P.diag_f
 lemma isProbabilityMeasure_bornMeasure (P : ProjValMeasure H) {ψ : H}
     (hψ : ‖ψ‖ = 1) : IsProbabilityMeasure (bornMeasure P ψ) := by
   refine ⟨(ENNReal.toReal_eq_one_iff _).mp ?_⟩
-  show ((P.diag ψ) Set.univ).toReal = 1
+  change ((P.diag ψ) Set.univ).toReal = 1
   rw [P.diag_univ_toReal, hψ, one_pow]
 
 /-- **The Born rule (projection form).**  The probability that a measurement
@@ -130,7 +130,7 @@ directly.  Proof: `born_rule` plus `ENNReal.ofReal_toReal (measure_ne_top _ _)`.
 lemma born_rule_ennreal (P : ProjValMeasure H) (ψ : H)
     {B : Set ℝ} (hB : MeasurableSet B) :
     (bornMeasure P ψ) B = ENNReal.ofReal (‖P.proj B hB ψ‖ ^ 2) := by
-  show (P.diag ψ) B = ENNReal.ofReal (‖P.proj B hB ψ‖ ^ 2)
+  change (P.diag ψ) B = ENNReal.ofReal (‖P.proj B hB ψ‖ ^ 2)
   rw [P.norm_sq_proj_apply B hB ψ, ENNReal.ofReal_toReal (measure_ne_top _ _)]
 
 /-- Born probabilities are bounded by `‖ψ‖²` (by `1` for a unit vector).

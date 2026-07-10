@@ -1,8 +1,7 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
-File: Spectra/Spaces/Tensor/Basis.lean
 -/
 import Spectra.Spaces.Tensor.Hilbert
 import Mathlib.Analysis.InnerProductSpace.l2Space

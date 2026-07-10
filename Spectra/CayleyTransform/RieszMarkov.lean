@@ -1,7 +1,39 @@
+/-
+Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Adam Bornemann
+-/
 import Mathlib.Analysis.CStarAlgebra.ContinuousFunctionalCalculus.Basic
 import Mathlib.Analysis.CStarAlgebra.ContinuousLinearMap
 import Mathlib.Analysis.CStarAlgebra.ContinuousFunctionalCalculus.Isometric
 import Mathlib.MeasureTheory.Integral.RieszMarkovKakutani.Real
+
+/-!
+# The scalar spectral measure, via Riesz–Markov–Kakutani
+
+For a bounded star-normal operator `U` and a vector `ξ`, this file constructs the scalar spectral
+measure `μ_ξ` on `σ(U)` by applying the Riesz–Markov–Kakutani representation theorem
+(`RealRMK.rieszMeasure`) to the positive linear functional `ψ ↦ Re⟪ξ, ψ(U)ξ⟫` on `C(σ(U), ℝ)`.
+Positivity of this functional is the C*-identity `star T * T ≥ 0` read through the continuous
+functional calculus (`cfc_re_inner_ofReal_nonneg`).
+
+It then develops the basic calculus of `μ_ξ`: the defining integral identity, total mass
+`μ_ξ(σ(U)) = ‖ξ‖²`, the complex-valued extension `∫ f dμ_ξ = ⟪ξ, f(U) ξ⟫`, and polarization to the
+off-diagonal measures `μ_{ξ,η}`, expressing `⟪ξ, f(U) η⟫` as a combination of four diagonal
+integrals, together with a Cauchy–Schwarz-derived boundedness estimate for that form.
+
+## Main definitions
+
+* `spectralMeasure U hn ξ` : the scalar spectral measure `μ_ξ` on `σ(U)`.
+
+## Main results
+
+* `integral_spectralMeasure_complex` : `∫ z, f z ∂μ_ξ = ⟪ξ, cfcHom hn f ξ⟫_ℂ`.
+* `spectralMeasure_real_univ` : `μ_ξ(σ(U)) = ‖ξ‖²`.
+* `inner_cfcHom_polarized` : the off-diagonal form `⟪ξ, f(U) η⟫` via the four polarized diagonal
+  integrals.
+* `norm_inner_cfcHom_le` : `‖⟪ξ, f(U) η⟫‖ ≤ ‖f‖ * ‖ξ‖ * ‖η‖`.
+-/
 
 open scoped InnerProductSpace
 open TopologicalSpace Filter Complex
@@ -36,7 +68,7 @@ lemma cfc_re_inner_ofReal_nonneg
   have hcongr : (spectrum ℂ U).EqOn (fun z => (f z : ℂ))
       (fun z => star ((Real.sqrt (f z) : ℂ)) * (Real.sqrt (f z) : ℂ)) := by
     intro z hz
-    show (f z : ℂ) = (starRingEnd ℂ) (Real.sqrt (f z) : ℂ) * (Real.sqrt (f z) : ℂ)
+    change (f z : ℂ) = (starRingEnd ℂ) (Real.sqrt (f z) : ℂ) * (Real.sqrt (f z) : ℂ)
     rw [Complex.conj_ofReal, ← Complex.ofReal_mul, Real.mul_self_sqrt (hf0 z hz)]
   rw [cfc_congr hcongr,
       cfc_conjMul_inner_eq_normSq U hn (fun z => (Real.sqrt (f z) : ℂ)) hgc ξ,
@@ -91,9 +123,9 @@ lemma rieszFunctional_nonneg (U : H →L[ℂ] H) (hn : IsStarNormal U) (ξ : H)
   let s : C(spectrum ℂ U, ℝ) := ⟨fun z => Real.sqrt (ψ z), by fun_prop⟩
   have key : complexify U ψ = star (complexify U s) * complexify U s := by
     ext z
-    show (ψ z : ℂ) = (starRingEnd ℂ) ((Real.sqrt (ψ z) : ℝ) : ℂ) * ((Real.sqrt (ψ z) : ℝ) : ℂ)
+    change (ψ z : ℂ) = (starRingEnd ℂ) ((Real.sqrt (ψ z) : ℝ) : ℂ) * ((Real.sqrt (ψ z) : ℝ) : ℂ)
     rw [Complex.conj_ofReal, ← Complex.ofReal_mul, Real.mul_self_sqrt (hψ' z)]
-  show 0 ≤ (⟪ξ, cfcHom hn (complexify U ψ) ξ⟫_ℂ).re
+  change 0 ≤ (⟪ξ, cfcHom hn (complexify U ψ) ξ⟫_ℂ).re
   rw [key, cfcHom_conjMul_inner_eq_normSq U hn (complexify U s) ξ,
       ← Complex.ofReal_pow, Complex.ofReal_re]
   positivity
@@ -154,7 +186,7 @@ lemma inner_cfcHom_complexify_real
   set T := cfcHom hn (complexify U g) with hT
   have hφ : star (complexify U g) = complexify U g := by
     ext z
-    show star ((g z : ℂ)) = ((g z : ℂ))
+    change star ((g z : ℂ)) = ((g z : ℂ))
     rw [show star ((g z : ℂ)) = (starRingEnd ℂ) (g z : ℂ) from rfl, Complex.conj_ofReal]
   have hsa : IsSelfAdjoint T := by
     rw [hT, isSelfAdjoint_iff, ← map_star, hφ]
@@ -198,7 +230,7 @@ lemma integral_spectralMeasure_complex
   have hsplit : f = complexify U fr + Complex.I • complexify U fi := by
     ext z
     simp only [ContinuousMap.add_apply, ContinuousMap.smul_apply, complexify_apply, smul_eq_mul]
-    show f z = ((f z).re : ℂ) + Complex.I * ((f z).im : ℂ)
+    change f z = ((f z).re : ℂ) + Complex.I * ((f z).im : ℂ)
     rw [mul_comm]; exact (Complex.re_add_im (f z)).symm
   have hint_r := spectral_integrable_real U hn ξ fr
   have hint_i := spectral_integrable_real U hn ξ fi

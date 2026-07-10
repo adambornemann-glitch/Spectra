@@ -1,6 +1,6 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Spectra.PositiveDefinite.Unitary
@@ -173,7 +173,7 @@ private lemma double_sum_eq_weighted (g : ℤ → ℂ) (N : ℕ) :
     rw [← Finset.sum_product']; rfl
   -- Fiberwise decomposition
   rw [h1, ← Finset.univ_product_univ]
-  simp [← Finset.sum_fiberwise_of_maps_to hπ]
+  simp only [Finset.univ_product_univ, ← Finset.sum_fiberwise_of_maps_to hπ]
   apply Finset.sum_congr rfl
   intro n hn
   -- On the fiber, g(π p) = g(n), so sum = card • g(n)

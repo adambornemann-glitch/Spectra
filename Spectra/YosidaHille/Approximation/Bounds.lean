@@ -1,6 +1,6 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Spectra.YosidaHille.Approximation.Defs
@@ -63,7 +63,8 @@ lemma yosidaJ_norm_bound {A : H →ₗ.[ℂ] H}
   unfold yosidaJ resolventAtIn
   have h_coeff : ‖(-I * (n : ℂ))‖ = (n : ℝ) := by
     rw [neg_mul, norm_neg, norm_I_mul_pnat]
-  have h_res : ‖resolvent (I * (n : ℂ)) (I_mul_pnat_im_ne_zero n) hsym hplus hminus‖ ≤ 1 / (n : ℝ) := by
+  have h_res : ‖resolvent (I * (n : ℂ)) (I_mul_pnat_im_ne_zero n) hsym hplus hminus‖
+      ≤ 1 / (n : ℝ) := by
     calc ‖resolvent (I * (n : ℂ)) (I_mul_pnat_im_ne_zero n) hsym hplus hminus‖
         ≤ 1 / |(I * (n : ℂ)).im| := resolvent_bound _ _ hsym hplus hminus
       _ = 1 / (n : ℝ) := by rw [abs_I_mul_pnat_im]
@@ -85,7 +86,8 @@ lemma yosidaJNeg_norm_bound {A : H →ₗ.[ℂ] H}
     ‖yosidaJNeg hsym hplus hminus n‖ ≤ 1 := by
   unfold yosidaJNeg resolventAtNegIn
   have h_coeff : ‖I * (n : ℂ)‖ = (n : ℝ) := norm_I_mul_pnat n
-  have h_res : ‖resolvent (-I * (n : ℂ)) (neg_I_mul_pnat_im_ne_zero n) hsym hplus hminus‖ ≤ 1 / (n : ℝ) := by
+  have h_res : ‖resolvent (-I * (n : ℂ)) (neg_I_mul_pnat_im_ne_zero n) hsym hplus hminus‖
+      ≤ 1 / (n : ℝ) := by
     calc ‖resolvent (-I * (n : ℂ)) (neg_I_mul_pnat_im_ne_zero n) hsym hplus hminus‖
         ≤ 1 / |(-I * (n : ℂ)).im| := resolvent_bound _ _ hsym hplus hminus
       _ = 1 / (n : ℝ) := by
@@ -93,7 +95,8 @@ lemma yosidaJNeg_norm_bound {A : H →ₗ.[ℂ] H}
           rw [@abs_neg, natCast_re, abs_of_pos (Nat.cast_pos.mpr n.pos)]
   have hn_pos : (0 : ℝ) < n := Nat.cast_pos.mpr n.pos
   calc ‖(I * (n : ℂ)) • resolvent (-I * (n : ℂ)) (neg_I_mul_pnat_im_ne_zero n) hsym hplus hminus‖
-      = ‖I * (n : ℂ)‖ * ‖resolvent (-I * (n : ℂ)) (neg_I_mul_pnat_im_ne_zero n) hsym hplus hminus‖ :=
+      = ‖I * (n : ℂ)‖
+        * ‖resolvent (-I * (n : ℂ)) (neg_I_mul_pnat_im_ne_zero n) hsym hplus hminus‖ :=
           norm_smul _ _
     _ = (n : ℝ) * ‖resolvent (-I * (n : ℂ)) (neg_I_mul_pnat_im_ne_zero n) hsym hplus hminus‖ := by
           rw [h_coeff]

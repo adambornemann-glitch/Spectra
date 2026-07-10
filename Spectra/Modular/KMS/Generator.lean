@@ -1,23 +1,23 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
-Author: Adam Bornemann
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Adam Bornemann
 -/
 import Spectra.Modular.KMS.AnalyticElements
 import Mathlib.Analysis.Calculus.Deriv.Mul
 /-!
 # The Infinitesimal Generator of the Dynamics
 
-On the analytic elements (A1) the one-parameter group `α` has a genuine **infinitesimal generator** —
-the `*`-derivation `δ(a) = (d/dz) σ_z(a)|_{z=0}`, defined as the (complex) derivative at `0` of the
-entire orbit extension `σ_z(a)`. We prove it is a `ℂ`-linear `*`-derivation. This is the
+On the analytic elements (A1) the one-parameter group `α` has a genuine **infinitesimal generator**
+— the `*`-derivation `δ(a) = (d/dz) σ_z(a)|_{z=0}`, defined as the (complex) derivative at `0` of
+the entire orbit extension `σ_z(a)`. We prove it is a `ℂ`-linear `*`-derivation. This is the
 C*-algebraic generator of `Dynamics`; the Hilbert-space GNS Liouvillian is a separate
 (modular-theory) development.
 
 Each derivation law is obtained by pinning the entire extension of the combined element via the
 identity theorem `analyticExtend_unique` (so `σ_z(a+b) = σ_z a + σ_z b`, etc.) and then applying the
-corresponding `HasDerivAt` law (`add`, `const_smul`, `mul`, `star_conj`) at `z = 0`. Working with the
-**complex** derivative keeps everything over `ℂ`, avoiding the `ℝ`-vs-`ℂ` module diamonds that a
+corresponding `HasDerivAt` law (`add`, `const_smul`, `mul`, `star_conj`) at `z = 0`. Working with
+the **complex** derivative keeps everything over `ℂ`, avoiding the `ℝ`-vs-`ℂ` module diamonds that a
 real-parameter formulation would hit.
 
 ## Main definitions / results
@@ -103,13 +103,15 @@ lemma Dynamics.generator_star (α : Dynamics A) {a : A} (ha : α.IsAnalyticEleme
     α.generator (α.analyticElements_star ha) = star (α.generator ha) := by
   have hdiff : Differentiable ℂ (fun z => star (α.analyticExtend ha (starRingEnd ℂ z))) := by
     intro z
-    have hd := differentiableAt_star_conj_iff.mpr (α.analyticExtend_differentiable ha (starRingEnd ℂ z))
+    have hd := differentiableAt_star_conj_iff.mpr
+      (α.analyticExtend_differentiable ha (starRingEnd ℂ z))
     simpa [Function.comp_def] using hd
   have heq : α.analyticExtend (α.analyticElements_star ha)
       = fun z => star (α.analyticExtend ha (starRingEnd ℂ z)) := by
     refine analyticExtend_unique _ _ (α.analyticExtend_differentiable _) hdiff (fun t => ?_)
     simp only [Complex.conj_ofReal, α.analyticExtend_real, α.map_star]
-  have h2 : HasDerivAt (α.analyticExtend (α.analyticElements_star ha)) (star (α.generator ha)) 0 := by
+  have h2 : HasDerivAt (α.analyticExtend (α.analyticElements_star ha))
+      (star (α.generator ha)) 0 := by
     rw [heq]
     simpa [Function.comp_def] using (α.hasDerivAt_analyticExtend ha).star_conj
   exact (α.hasDerivAt_analyticExtend (α.analyticElements_star ha)).unique h2
@@ -129,7 +131,8 @@ lemma Dynamics.generator_one (α : Dynamics A) :
 /-! ## Generator action on invariant states -/
 
 /-- **An invariant state is annihilated by the generator:** `ω(δ a) = 0`. The orbit average
-`z ↦ ω(σ_z a)` is entire and constant on `ℝ` (invariance), hence constant; its derivative vanishes. -/
+`z ↦ ω(σ_z a)` is entire and constant on `ℝ` (invariance), hence constant; its derivative vanishes.
+-/
 lemma IsInvariant.generator_apply {ω : State A} {α : Dynamics A} (hinv : IsInvariant ω α)
     {a : A} (ha : α.IsAnalyticElement a) : ω (α.generator ha) = 0 := by
   set ωL : A →L[ℂ] ℂ := ⟨ω.toFun, ω.continuous⟩ with hωL
@@ -142,7 +145,7 @@ lemma IsInvariant.generator_apply {ω : State A} {α : Dynamics A} (hinv : IsInv
     funext z
     refine hFa.eqOn_of_preconnected_of_frequently_eq hGa isPreconnected_univ (Set.mem_univ 0)
       (frequently_ofReal_eq fun t => ?_) (Set.mem_univ z)
-    show ω (α.analyticExtend ha (t : ℂ)) = ω a
+    change ω (α.analyticExtend ha (t : ℂ)) = ω a
     rw [α.analyticExtend_real]; exact hinv t a
   -- Differentiating: `ω(δ a)` is the derivative at `0`, which is `0`.
   have h1 : HasDerivAt (fun z : ℂ => ω (α.analyticExtend ha z)) (ω (α.generator ha)) 0 := by

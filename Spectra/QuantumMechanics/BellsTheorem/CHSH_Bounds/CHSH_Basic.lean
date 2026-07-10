@@ -1,9 +1,12 @@
 /-
-Copyright (c) 2025 Bell Theorem Formalization Project
+Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Ported from Isabelle/HOL formalization by Echenim & Mhalla
-Ported by: Adam Bornemann
-
+Authors: Ported from Isabelle/HOL formalization by Echenim & Mhalla, by Adam Bornemann
+-/
+import Spectra.QuantumMechanics.BellsTheorem.Basic
+import Mathlib.Analysis.Matrix.Order
+import Mathlib.LinearAlgebra.Matrix.Hermitian
+/-!
 # The Dichotomic-Observable Bound and the CHSH Algebraic Bound
 
 The spectral-projection route to `|Tr(Aρ)| ≤ 1` for any dichotomic observable `A` (Hermitian,
@@ -41,10 +44,6 @@ are the general-purpose bridge from this file's `IsPosSemidefComplex` predicate 
 
 chsh, dichotomic observable, spectral projection, positive semidefinite, quantum information
 -/
-import Spectra.QuantumMechanics.BellsTheorem.Basic
-import Mathlib.Analysis.Matrix.Order
-import Mathlib.LinearAlgebra.Matrix.Hermitian
-
 open scoped Matrix ComplexConjugate
 open Matrix Complex
 
@@ -334,7 +333,8 @@ lemma dichotomic_expectation_bound {n : ℕ} [NeZero n]
     simp only [P_plus, P_minus, ← smul_sub, add_sub_sub_cancel, ← two_smul ℂ A, smul_smul]
     norm_num
   -- Step 5: Rewrite trace using decomposition
-  have h_trace : (A * ρ.toMatrix).trace = (P_plus * ρ.toMatrix).trace - (P_minus * ρ.toMatrix).trace := by
+  have h_trace : (A * ρ.toMatrix).trace
+      = (P_plus * ρ.toMatrix).trace - (P_minus * ρ.toMatrix).trace := by
     rw [hA_decomp, sub_mul, Matrix.trace_sub]
   -- Step 6: Show Tr(P_plusρ) + Tr(P_minusρ) = 1
   have h_sum : (P_plus * ρ.toMatrix).trace + (P_minus * ρ.toMatrix).trace = 1 := by
@@ -349,7 +349,7 @@ lemma dichotomic_expectation_bound {n : ℕ} [NeZero n]
     exact ρ.trace_one
   -- Step 7: Show P_plus, P_minus are Hermitian (for real traces)
   have h_P_plus_proj : P_plus * P_plus = P_plus := by
-    show (1/2 : ℂ) • (1 + A) * ((1/2 : ℂ) • (1 + A)) = (1/2 : ℂ) • (1 + A)
+    change (1/2 : ℂ) • (1 + A) * ((1/2 : ℂ) • (1 + A)) = (1/2 : ℂ) • (1 + A)
     rw [mul_smul_comm, smul_mul_assoc, smul_smul]
     have h_sq : (1 + A) * (1 + A) = (2 : ℂ) • (1 + A) := by
       rw [mul_add, add_mul, add_mul, Matrix.mul_one, Matrix.one_mul, hA_sq]
@@ -357,7 +357,7 @@ lemma dichotomic_expectation_bound {n : ℕ} [NeZero n]
     rw [h_sq, smul_smul]
     norm_num
   have h_P_minus_proj : P_minus * P_minus = P_minus := by
-    show (1/2 : ℂ) • (1 - A) * ((1/2 : ℂ) • (1 - A)) = (1/2 : ℂ) • (1 - A)
+    change (1/2 : ℂ) • (1 - A) * ((1/2 : ℂ) • (1 - A)) = (1/2 : ℂ) • (1 - A)
     rw [mul_smul_comm, smul_mul_assoc, smul_smul]
     have h_sq : (1 - A) * (1 - A) = (2 : ℂ) • (1 - A) := by
       rw [mul_sub, sub_mul, sub_mul, Matrix.mul_one, Matrix.one_mul, hA_sq]
@@ -424,7 +424,7 @@ lemma chsh_expectation_algebraic_bound (a a' b b' : ℝ)
         rw [h1, h2] <;> linarith
 
 /-- Mixed product property for kroneckerMap with multiplication -/
-lemma kronecker_mul_mul {m n : Type*} [Fintype m] [Fintype n] [DecidableEq m] [DecidableEq n]
+lemma kronecker_mul_mul {m n : Type*} [Fintype m] [Fintype n]
     (A C : Matrix m m ℂ) (B D : Matrix n n ℂ) :
     kroneckerMap (· * ·) A B * kroneckerMap (· * ·) C D =
     kroneckerMap (· * ·) (A * C) (B * D) :=

@@ -1,6 +1,6 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Mathlib.Analysis.Normed.Operator.Compact.Basic
@@ -209,7 +209,8 @@ noncomputable def integralOperator : Lp ℂ 2 ν →L[ℂ] Lp ℂ 2 μ :=
   LinearMap.mkContinuous (integralOperatorLM K) ‖K‖ (integralOperatorLM_norm_le K)
 
 theorem norm_integralOperator_le : ‖integralOperator K‖ ≤ ‖K‖ :=
-  LinearMap.mkContinuous_norm_le (integralOperatorLM K) (norm_nonneg K) (integralOperatorLM_norm_le K)
+  LinearMap.mkContinuous_norm_le (integralOperatorLM K) (norm_nonneg K)
+    (integralOperatorLM_norm_le K)
 
 /-- The representative of `integralOperator K f` is the kernel integral. -/
 theorem integralOperator_coeFn (f : Lp ℂ 2 ν) :
@@ -228,12 +229,13 @@ theorem integralOperator_add (K₁ K₂ : Lp ℂ 2 (μ.prod ν)) :
         + fun x => ∫ y, (K₂ : α × β → ℂ) (x, y) * (f : β → ℂ) y ∂ν := by
     filter_upwards [integrable_kernel_mul K₁ f, integrable_kernel_mul K₂ f,
       Measure.ae_ae_of_ae_prod (Lp.coeFn_add K₁ K₂)] with x hi1 hi2 hsec
-    show (∫ y, (↑(K₁ + K₂) : α × β → ℂ) (x, y) * (f : β → ℂ) y ∂ν)
+    change (∫ y, (↑(K₁ + K₂) : α × β → ℂ) (x, y) * (f : β → ℂ) y ∂ν)
         = (∫ y, _ ∂ν) + ∫ y, _ ∂ν
     rw [← integral_add hi1 hi2]
     refine integral_congr_ae ?_
     filter_upwards [hsec] with y hy
-    rw [show (↑(K₁ + K₂) : α × β → ℂ) (x, y) = (K₁ : α × β → ℂ) (x, y) + (K₂ : α × β → ℂ) (x, y) from
+    rw [show (↑(K₁ + K₂) : α × β → ℂ) (x, y)
+        = (K₁ : α × β → ℂ) (x, y) + (K₂ : α × β → ℂ) (x, y) from
       by simpa using hy]; ring
   exact ((integralOperator_coeFn (K₁ + K₂) f).trans (heq.trans
     ((integralOperator_coeFn K₁ f).add (integralOperator_coeFn K₂ f)).symm)).trans
@@ -246,11 +248,12 @@ theorem integralOperator_smul (c : ℂ) (K : Lp ℂ 2 (μ.prod ν)) :
   have heq : (fun x => ∫ y, (↑(c • K) : α × β → ℂ) (x, y) * (f : β → ℂ) y ∂ν) =ᵐ[μ]
       c • fun x => ∫ y, (K : α × β → ℂ) (x, y) * (f : β → ℂ) y ∂ν := by
     filter_upwards [Measure.ae_ae_of_ae_prod (Lp.coeFn_smul c K)] with x hsec
-    show (∫ y, (↑(c • K) : α × β → ℂ) (x, y) * (f : β → ℂ) y ∂ν) = c • ∫ y, _ ∂ν
+    change (∫ y, (↑(c • K) : α × β → ℂ) (x, y) * (f : β → ℂ) y ∂ν) = c • ∫ y, _ ∂ν
     rw [smul_eq_mul, ← integral_const_mul]
     refine integral_congr_ae ?_
     filter_upwards [hsec] with y hy
-    rw [show (↑(c • K) : α × β → ℂ) (x, y) = c * (K : α × β → ℂ) (x, y) from by simpa using hy]; ring
+    rw [show (↑(c • K) : α × β → ℂ) (x, y) = c * (K : α × β → ℂ) (x, y) from
+      by simpa using hy]; ring
   exact ((integralOperator_coeFn (c • K) f).trans
     (heq.trans ((integralOperator_coeFn K f).symm.const_smul c))).trans
     (Lp.coeFn_smul c (integralOperator K f)).symm
@@ -319,7 +322,8 @@ theorem isCompactOperator_integralOperator_indicatorRect
     filter_upwards [Measure.ae_ae_of_ae_prod
       (indicatorConstLp_coeFn (μ := μ.prod ν) (hs := hA.prod hB) (hμs := hAB) (c := (1 : ℂ)))]
       with x hx
-    show (∫ y, (↑(indicatorConstLp 2 (hA.prod hB) hAB (1 : ℂ)) : α × β → ℂ) (x, y) * (f : β → ℂ) y ∂ν)
+    change (∫ y, (↑(indicatorConstLp 2 (hA.prod hB) hAB (1 : ℂ)) : α × β → ℂ) (x, y)
+        * (f : β → ℂ) y ∂ν)
         = (∫ y, B.indicator (fun _ => (1 : ℂ)) y * (f : β → ℂ) y ∂ν) * A.indicator (fun _ => 1) x
     rw [← integral_mul_const]
     refine integral_congr_ae ?_

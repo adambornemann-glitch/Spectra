@@ -1,6 +1,6 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Spectra.SpectralTheory.Spectrum
@@ -95,7 +95,8 @@ lemma proj_apply_eq_zero_of_diag_apply_eq_zero (P : Spectra.ProjValMeasure H)
   have : ‖P.proj B hB y‖ = 0 := by nlinarith [norm_nonneg (P.proj B hB y), hh]
   exact norm_eq_zero.mp this
 
-/-- A vector orthogonal to the range of the (self-adjoint) projection `E(B)` is annihilated by it. -/
+/-- A vector orthogonal to the range of the (self-adjoint) projection `E(B)` is annihilated
+by it. -/
 lemma proj_apply_eq_zero_of_mem_orthogonal (P : Spectra.ProjValMeasure H)
     {B : Set ℝ} (hB : MeasurableSet B) {y : H}
     (hy : y ∈ (LinearMap.range (P.proj B hB : H →ₗ[ℂ] H))ᗮ) : P.proj B hB y = 0 := by
@@ -183,7 +184,8 @@ theorem mem_essSpectrum_of_proj_singleton_eq_zero {A : H →ₗ.[ℂ] H} (hA : I
       exact hm₀spec (hDanti hle hxD)
     have hxprev : x ∈ D (Nat.find hex - 1) := by
       by_contra hno
-      exact absurd (Nat.find_min hex (show Nat.find hex - 1 < Nat.find hex by omega)) (by simpa using hno)
+      exact absurd (Nat.find_min hex (show Nat.find hex - 1 < Nat.find hex by omega))
+        (by simpa using hno)
     refine Set.mem_iUnion.mpr ⟨Nat.find hex - 1 - N, ?_⟩
     have hidx : N + (Nat.find hex - 1 - N) = Nat.find hex - 1 := by omega
     rw [hidx]
@@ -233,7 +235,8 @@ theorem mem_essSpectrum_of_proj_singleton_eq_zero {A : H →ₗ.[ℂ] H} (hA : I
     obtain ⟨k, hk, hpk⟩ := hstep (B + 1)
     exact absurd (hB hpk) (by omega)
   set kn : ℕ → ℕ := Nat.nth p with hkn
-  have hkn_mem : ∀ n, P.proj (C (kn n)) (hCm (kn n)) ≠ 0 := fun n => Nat.nth_mem_of_infinite hp_inf n
+  have hkn_mem : ∀ n, P.proj (C (kn n)) (hCm (kn n)) ≠ 0 :=
+    fun n => Nat.nth_mem_of_infinite hp_inf n
   have hkn_mono : StrictMono kn := Nat.nth_strictMono hp_inf
   have hkn_tendsto : Tendsto kn atTop atTop := hkn_mono.tendsto_atTop
   have hexφ : ∀ n, ∃ x, P.proj (C (kn n)) (hCm (kn n)) x ≠ 0 := fun n => by

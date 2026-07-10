@@ -1,6 +1,6 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Spectra.YosidaHille.Approximation.Symmetry
@@ -28,8 +28,10 @@ lemma yosidaJ_eq_sub_resolvent_A {A : H →ₗ.[ℂ] H}
     (hplus : ∀ φ : H, ∃ ψ : A.domain, A ψ + I • (ψ : H) = φ)
     (hminus : ∀ φ : H, ∃ ψ : A.domain, A ψ - I • (ψ : H) = φ)
     (n : ℕ+) (φ : H) (hφ : φ ∈ A.domain) :
-    (-I * (n : ℂ)) • Resolvent.resolvent (I * (n : ℂ)) (I_mul_pnat_im_ne_zero n) hsym hplus hminus φ =
-      φ - Resolvent.resolvent (I * (n : ℂ)) (I_mul_pnat_im_ne_zero n) hsym hplus hminus (A ⟨φ, hφ⟩) := by
+    (-I * (n : ℂ)) • Resolvent.resolvent (I * (n : ℂ)) (I_mul_pnat_im_ne_zero n)
+        hsym hplus hminus φ =
+      φ - Resolvent.resolvent (I * (n : ℂ)) (I_mul_pnat_im_ne_zero n) hsym hplus hminus
+        (A ⟨φ, hφ⟩) := by
   set z := I * (n : ℂ) with hz_def
   set R := Resolvent.resolvent z (I_mul_pnat_im_ne_zero n) hsym hplus hminus with hR_def
   have h_R_AzI : R (A ⟨φ, hφ⟩ - z • φ) = φ := by

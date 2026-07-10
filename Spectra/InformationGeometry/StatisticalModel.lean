@@ -1,6 +1,6 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Mathlib.MeasureTheory.Measure.MeasureSpace
@@ -162,7 +162,7 @@ lemma isProbabilityMeasure {θ : ParamSpace n}
     (hθ : θ ∈ M.paramDomain) :
     IsProbabilityMeasure (M.measure θ) := by
   constructor
-  show M.refMeasure.withDensity
+  change M.refMeasure.withDensity
     (fun ω => ENNReal.ofReal (M.density θ ω))
     Set.univ = 1
   rw [withDensity_apply _ MeasurableSet.univ,

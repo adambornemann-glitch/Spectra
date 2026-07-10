@@ -1,8 +1,7 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
-File: Spectra/Spaces/Fock/Symmetrizer.lean
 -/
 import Spectra.Spaces.Tensor.Power
 import Mathlib.Analysis.InnerProductSpace.Adjoint
@@ -293,7 +292,7 @@ theorem symProj_idem : symProj 𝕜 n H ∘L symProj 𝕜 n H = symProj 𝕜 n H
 
 /-- The bosonic symmetrizer is an idempotent element of the operator algebra. -/
 theorem isIdempotentElem_symProj : IsIdempotentElem (symProj 𝕜 n H) := by
-  show symProj 𝕜 n H * symProj 𝕜 n H = symProj 𝕜 n H
+  change symProj 𝕜 n H * symProj 𝕜 n H = symProj 𝕜 n H
   rw [ContinuousLinearMap.mul_def]
   exact symProj_idem
 
@@ -312,7 +311,7 @@ theorem altProj_idem : altProj 𝕜 n H ∘L altProj 𝕜 n H = altProj 𝕜 n H
 
 /-- The fermionic antisymmetrizer is an idempotent element of the operator algebra. -/
 theorem isIdempotentElem_altProj : IsIdempotentElem (altProj 𝕜 n H) := by
-  show altProj 𝕜 n H * altProj 𝕜 n H = altProj 𝕜 n H
+  change altProj 𝕜 n H * altProj 𝕜 n H = altProj 𝕜 n H
   rw [ContinuousLinearMap.mul_def]
   exact altProj_idem
 
@@ -424,7 +423,7 @@ theorem sum_permSign_eq_zero (hn : 2 ≤ n) :
 theorem symProj_comp_altProj (hn : 2 ≤ n) :
     symProj 𝕜 n H ∘L altProj 𝕜 n H = 0 := by
   refine ContinuousLinearMap.ext fun x => ?_
-  show symProj 𝕜 n H (altProj 𝕜 n H x) = 0
+  change symProj 𝕜 n H (altProj 𝕜 n H x) = 0
   rw [symProj_apply]
   simp only [permUnitary_altProj]
   rw [← Finset.sum_smul, sum_permSign_eq_zero hn, zero_smul, smul_zero]
@@ -433,7 +432,7 @@ theorem symProj_comp_altProj (hn : 2 ≤ n) :
 theorem altProj_comp_symProj (hn : 2 ≤ n) :
     altProj 𝕜 n H ∘L symProj 𝕜 n H = 0 := by
   refine ContinuousLinearMap.ext fun x => ?_
-  show altProj 𝕜 n H (symProj 𝕜 n H x) = 0
+  change altProj 𝕜 n H (symProj 𝕜 n H x) = 0
   rw [altProj_apply]
   simp only [permUnitary_symProj]
   rw [← Finset.sum_smul, sum_permSign_eq_zero hn, zero_smul, smul_zero]

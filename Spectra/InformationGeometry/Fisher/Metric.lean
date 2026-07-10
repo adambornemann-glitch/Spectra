@@ -1,6 +1,6 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Spectra.InformationGeometry.Fisher.Information
@@ -177,7 +177,8 @@ lemma fisherBilinForm_nonneg {θ : ParamSpace n}
     (hSq : M.ScoreSqIntegrableModel θ)
     (v : ParamSpace n) :
     0 ≤ M.fisherBilinForm hθ hSq v v := by
-  simp; exact M.fisherBilin_self_nonneg hθ v
+  simp only [fisherBilinForm_apply]
+  exact M.fisherBilin_self_nonneg hθ v
 
 /-- Under score-injectivity + integrability, the Fisher bilinear
 form is positive definite: `g_θ(v, v) = 0 ⟹ v = 0`. -/
@@ -192,7 +193,7 @@ lemma fisherBilinForm_pos_def {θ : ParamSpace n}
     {v : ParamSpace n}
     (hzero : M.fisherBilinForm hθ hSq v v = 0) :
     v = 0 := by
-  simp at hzero
+  simp only [fisherBilinForm_apply] at hzero
   exact M.fisherBilin_pos_def hθ hInj hInt hzero
 
 /-- Strict positivity for `v ≠ 0`. -/
@@ -206,7 +207,8 @@ lemma fisherBilinForm_pos {θ : ParamSpace n}
         M.density θ ω) M.refMeasure)
     {v : ParamSpace n} (hv : v ≠ 0) :
     0 < M.fisherBilinForm hθ hSq v v := by
-  simp; exact M.fisherBilin_pos_of_ne_zero hθ hInj hInt hv
+  simp only [fisherBilinForm_apply]
+  exact M.fisherBilin_pos_of_ne_zero hθ hInj hInt hv
 
 /-! ### Fisher matrix as a linear map
 
@@ -221,12 +223,12 @@ def fisherLinearMap (θ : ParamSpace n) :
   toFun v := WithLp.toLp 2 (fun j =>
     ∑ i : Fin n, M.fisherMatrix θ j i * v.ofLp i)
   map_add' v w := by
-    show WithLp.toLp 2 _ = WithLp.toLp 2 _
+    change WithLp.toLp 2 _ = WithLp.toLp 2 _
     congr 1
     ext j
     simp [Finset.sum_add_distrib, mul_add]
   map_smul' c v := by
-    show WithLp.toLp 2 _ = WithLp.toLp 2 _
+    change WithLp.toLp 2 _ = WithLp.toLp 2 _
     congr 1
     ext j
     simp only [RingHom.id_apply]

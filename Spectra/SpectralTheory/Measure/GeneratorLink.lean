@@ -1,9 +1,14 @@
 /-
+Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Adam Bornemann
+-/
+
+/-
 Spectra: GeneratorLink.lean
 The generator of a one-parameter unitary group acts through the bounded functional
 calculus on spectrally bounded vectors.
 
-Filename: SpectralTheory/Measure/GeneratorLink.lean
 -/
 import Spectra.SpectralTheory.Measure.Convergence
 /-!

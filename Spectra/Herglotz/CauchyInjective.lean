@@ -1,16 +1,13 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
-
-The second stone: no two finite measures can hide behind one Herglotz function.
 -/
 import Spectra.Kernel.Poisson.Lemmas          -- fourier_two_sided_exp, integrable_two_sided_exp
 import Spectra.Kernel.Resolvent               -- resolvent_kernel_im, resolvent_integrand_bound
 import Spectra.Fourier.Inversion              -- eq_of_fourier_decay_eq
 import Spectra.Mathlib.CharFunBridge          -- measure_ext_of_fourier
 import Spectra.SpectralTheory.Measure.Polarized -- char_measurable, char_norm_le_one, integrable_of_bounded
-
 /-!
 # Injectivity of the Cauchy transform on finite measures
 

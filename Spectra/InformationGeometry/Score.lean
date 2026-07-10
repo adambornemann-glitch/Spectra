@@ -1,6 +1,6 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Spectra.InformationGeometry.StatisticalModel
@@ -334,6 +334,5 @@ lemma scoreVec_expectation_eq_zero
   simp only [scoreVec]
   exact M.score_expectation_eq_zero hθ₀ i
 
-end RegularStatisticalModel
 
-end InformationGeometry
+end Spectra.InformationGeometry.RegularStatisticalModel

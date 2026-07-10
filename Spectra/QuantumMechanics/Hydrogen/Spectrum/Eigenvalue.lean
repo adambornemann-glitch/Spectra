@@ -1,6 +1,6 @@
 /-
-Copyright (c) 2026 Logos Library Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Spectra.QuantumMechanics.Hydrogen.RadialProblem.TensorDecomp.Basic
@@ -306,7 +306,7 @@ lemma memLp_reducedLp (n ℓ : ℕ) (hn : ℓ + 1 ≤ n) :
   have hL2 : Integrable (fun r => hydrogenRadialWavefunction n ℓ hn r ^ 2 * r ^ 2)
       ((volume : Measure ℝ).restrict (Set.Ioi 0)) := radial_wavefunction_L2 n ℓ hn
   refine hL2.congr (Filter.Eventually.of_forall fun r => ?_)
-  show hydrogenRadialWavefunction n ℓ hn r ^ 2 * r ^ 2
+  change hydrogenRadialWavefunction n ℓ hn r ^ 2 * r ^ 2
       = ‖((hydrogenReducedWavefunction n ℓ hn r : ℝ) : ℂ)‖ ^ 2
   rw [Complex.norm_real, Real.norm_eq_abs, sq_abs]
   simp only [hydrogenReducedWavefunction]
@@ -413,7 +413,9 @@ lemma deriv2_Rc (n ℓ : ℕ) (hn : ℓ + 1 ≤ n) :
       ((deriv (deriv (hydrogenRadialWavefunction n ℓ hn)) r : ℝ) : ℂ) := by
   rw [deriv_Rc n ℓ hn]
   funext r
-  exact ((((contDiff_hydrogenRadial n ℓ hn).differentiable_deriv_two).differentiableAt).hasDerivAt.ofReal_comp).deriv
+  have h1 : Differentiable ℝ (deriv (hydrogenRadialWavefunction n ℓ hn)) :=
+    (contDiff_hydrogenRadial n ℓ hn).differentiable_deriv_two
+  exact (((h1.differentiableAt).hasDerivAt).ofReal_comp).deriv
 
 /-- The complex lift `R_{nℓ} : ℝ → ℂ` is `C²`. -/
 lemma contDiff_Rc (n ℓ : ℕ) (hn : ℓ + 1 ≤ n) : ContDiff ℝ 2 (Rc n ℓ hn) :=
@@ -466,7 +468,7 @@ theorem hydrogen_eigenfunction_eq (p : CoulombParams)
 
 /-- **Orthonormality of hydrogen eigenfunctions.**
 
-    ⟨ψ_{nℓm}, ψ_{n'ℓ'm'}⟩ = δ_{nn'} δ_{ℓℓ'} δ_{mm'}-/
+    ⟨ψ_{nℓm}, ψ_{n'ℓ'm'}⟩ = δ_{nn'} δ_{ℓℓ'} δ_{mm'} -/
 theorem hydrogen_eigenfunction_orthonormal
     (n n' : ℕ) (ℓ ℓ' : ℕ) (m m' : ℤ)
     (hn : ℓ + 1 ≤ n) (hn' : ℓ' + 1 ≤ n')

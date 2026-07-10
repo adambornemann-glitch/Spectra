@@ -1,6 +1,6 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Spectra.CayleyTransform.Generator.InverseAction   -- cayley, stoneExp, stoneGroup, resolventSymbol
@@ -9,7 +9,6 @@ import Spectra.CayleyTransform.Generator.Pushforward   -- the group-free helpers
 import Spectra.Resolvent.SpectralRepresentation       -- inner_resolvent_diag_eq_integral
 import Spectra.SpectralTheory.StoneFormula.Identities -- resolvent_left_inverse / _mem_domain / _solves
 import Spectra.Resolvent.Integral.Domain              -- generator, generator_isSelfAdjoint, ranges
-import Mathlib.Tactic
 /-!
 # `generator (stoneGroup hA) = A`, proved without the Yosida group
 
@@ -42,7 +41,8 @@ namespace Spectra.Cayley
 
 /-- **The keystone of this file.**  The group-theoretic resolvent of `generator (stoneGroup hA)`
 coincides with the operator-theoretic `selfAdjointResolvent hA`.  Both diagonals are integrals of
-the Cauchy kernel: the left against the group's spectral measure (`inner_resolvent_diag_eq_integral`),
+the Cauchy kernel: the left against the group's spectral measure
+(`inner_resolvent_diag_eq_integral`),
 the right against the Cayley spectral measure (`selfAdjointResolvent_eq_borelCalculus` +
 `inner_borelCalculus_self`), and the two measures are pushforwards under `inverseMobius`. -/
 theorem generator_resolvent_eq_selfAdjoint [Nontrivial H] (hA : IsSelfAdjoint A)

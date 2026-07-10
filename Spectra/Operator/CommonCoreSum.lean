@@ -1,8 +1,7 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
-Filename: Operator/CommonCoreSum.lean
 -/
 import Spectra.Operator.EssentialSelfAdjointness
 
@@ -76,7 +75,7 @@ individually nice: see the module docstring (Nelson's counterexample). -/
 theorem isEssentiallySelfAdjoint_sumOp_of_denseRange_addSub {A B : H →ₗ.[ℂ] H}
     (hA : A.IsFormalAdjoint A) (hB : B.IsFormalAdjoint B)
     (hdense : Dense ((sumOp A B).domain : Set H))
-    (hplus  : Dense (Set.range fun x : (sumOp A B).domain => sumOp A B x + I • (x : H)))
+    (hplus : Dense (Set.range fun x : (sumOp A B).domain => sumOp A B x + I • (x : H)))
     (hminus : Dense (Set.range fun x : (sumOp A B).domain => sumOp A B x - I • (x : H))) :
     IsEssentiallySelfAdjoint (sumOp A B) :=
   isEssentiallySelfAdjoint_of_denseRange_addSub (sumOp_isFormalAdjoint hA hB) hdense hplus hminus

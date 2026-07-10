@@ -1,6 +1,6 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Spectra.SpectralTheory.Algebra
@@ -92,7 +92,8 @@ theorem tendsto_spectralProjection_Icc_univ (ξ : H) :
       ‖spectralProjection U_grp (Set.Icc (-(N : ℝ)) (N : ℝ)) measurableSet_Icc ξ - ξ‖
         = Real.sqrt (((borelMeasure U_grp ξ) ((Set.Icc (-(N : ℝ)) (N : ℝ))ᶜ)).toReal) := by
     intro N
-    have hsq : ‖spectralProjection U_grp (Set.Icc (-(N : ℝ)) (N : ℝ))ᶜ measurableSet_Icc.compl ξ‖ ^ 2
+    have hsq :
+        ‖spectralProjection U_grp (Set.Icc (-(N : ℝ)) (N : ℝ))ᶜ measurableSet_Icc.compl ξ‖ ^ 2
         = ((borelMeasure U_grp ξ) ((Set.Icc (-(N : ℝ)) (N : ℝ))ᶜ)).toReal :=
       norm_sq_spectralProjection U_grp ((Set.Icc (-(N : ℝ)) (N : ℝ))ᶜ) measurableSet_Icc.compl ξ
     have hc : spectralProjection U_grp (Set.Icc (-(N : ℝ)) (N : ℝ)) measurableSet_Icc ξ - ξ
@@ -276,7 +277,8 @@ theorem weak_first_moment (φ : (generator U_grp).domain) :
     nlinarith [sq_nonneg (|s| - 1), sq_abs s, abs_nonneg s]
   refine ⟨hint_id, ?_⟩
   -- left side: dominated convergence
-  have hDCT : Tendsto (fun N : ℕ => ∫ l in Set.Icc (-(N : ℝ)) (N : ℝ), l ∂(borelMeasure U_grp (φ : H)))
+  have hDCT : Tendsto (fun N : ℕ =>
+      ∫ l in Set.Icc (-(N : ℝ)) (N : ℝ), l ∂(borelMeasure U_grp (φ : H)))
       atTop (𝓝 (∫ s, s ∂(borelMeasure U_grp (φ : H)))) := by
     have hd := tendsto_integral_of_dominated_convergence (μ := borelMeasure U_grp (φ : H))
       (F := fun N l => Set.indicator (Set.Icc (-(N : ℝ)) (N : ℝ)) (fun l => l) l)

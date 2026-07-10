@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
-Author: Adam Bornemann
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Adam Bornemann
 -/
 import Spectra.SpectralTheory.Calculus.SquareSpectralMap
 import Spectra.SpectralTheory.Calculus.PMapRealSelfAdjoint
@@ -71,7 +71,8 @@ lemma flowSymbol_bdd (φ : ℝ → ℂ) (hconj : ∀ s, (starRingEnd ℂ) (φ s)
 
 /-- A real complex number is its own real-coercion: `((φ s).re : ℂ) = φ s`. -/
 lemma ofReal_re_of_conj {c : ℂ} (hc : (starRingEnd ℂ) c = c) : ((c.re : ℝ) : ℂ) = c :=
-  Complex.ext (Complex.ofReal_re _) (by rw [Complex.ofReal_im]; exact (Complex.conj_eq_iff_im.mp hc).symm)
+  Complex.ext (Complex.ofReal_re _)
+    (by rw [Complex.ofReal_im]; exact (Complex.conj_eq_iff_im.mp hc).symm)
 
 /-! ## Resolvent-symbol arithmetic for a real symbol `φ` (`Im z ≠ 0`)
 
@@ -128,7 +129,8 @@ lemma bdd_f_mul_inv (hconj : ∀ s, (starRingEnd ℂ) (f s) = f s) {z : ℂ} (hz
     _ = 1 + ‖z‖ * ‖(f s - z)⁻¹‖ := by rw [norm_mul, NormOneClass.norm_one]
     _ ≤ 1 + ‖z‖ * |z.im|⁻¹ := by gcongr; exact norm_inv_real_sub_le f hconj hz s
 
-lemma bdd_const_mul_inv_real_sub (hconj : ∀ s, (starRingEnd ℂ) (f s) = f s) {z : ℂ} (hz : z.im ≠ 0) :
+lemma bdd_const_mul_inv_real_sub (hconj : ∀ s, (starRingEnd ℂ) (f s) = f s) {z : ℂ}
+    (hz : z.im ≠ 0) :
     ∃ C, ∀ s : ℝ, ‖z * (f s - z)⁻¹‖ ≤ C := by
   refine ⟨‖z‖ * |z.im|⁻¹, fun s => ?_⟩
   rw [norm_mul]; gcongr; exact norm_inv_real_sub_le f hconj hz s
@@ -192,7 +194,8 @@ theorem selfAdjointResolvent_pmapOfPVM_real_eq (hf : Measurable f)
     selfAdjointResolvent (pmapOfPVM_isSelfAdjoint_of_real U f hf hconj hdense) z hz ξ
       = spectralCalculus U (fun s => (f s - z)⁻¹) (measurable_inv_real_sub f hf z)
           (bdd_inv_real_sub f hconj hz) ξ := by
-  have hli := selfAdjointResolvent_left_inverse (pmapOfPVM_isSelfAdjoint_of_real U f hf hconj hdense)
+  have hli := selfAdjointResolvent_left_inverse
+    (pmapOfPVM_isSelfAdjoint_of_real U f hf hconj hdense)
     z hz ⟨spectralCalculus U (fun s => (f s - z)⁻¹) (measurable_inv_real_sub f hf z)
       (bdd_inv_real_sub f hconj hz) ξ, resolvent_real_mem f U hf hconj hz ξ⟩
   rw [resolvent_real_identity f U hf hconj hz ξ] at hli
@@ -282,11 +285,12 @@ theorem generator_eq_pmapOfPVM_of_flowSymbol (V : OneParameterUnitaryGroup (H :=
     rw [spectralPVM_resolvent_formula hK I I_im_ne_zero ξ, spectralPVM_diag]
     exact congrArg (fun W => ∫ s, ((s : ℂ) - I)⁻¹ ∂(borelMeasure W ξ)) hround
   rw [hLHS, hRHS, borelMeasure_flowSymbol_eq_map f U V hf hconj hflow ξ,
-    integral_map (show Measurable (fun s : ℝ => (f s).re) from Complex.measurable_re.comp hf).aemeasurable
+    integral_map
+      (show Measurable (fun s : ℝ => (f s).re) from Complex.measurable_re.comp hf).aemeasurable
       (show Measurable (fun s : ℝ => ((s : ℂ) - I)⁻¹) from
         (Complex.measurable_ofReal.sub measurable_const).inv).aestronglyMeasurable]
   refine integral_congr_ae (Filter.Eventually.of_forall fun s => ?_)
-  show ((((f s).re : ℝ) : ℂ) - I)⁻¹ = (f s - I)⁻¹
+  change ((((f s).re : ℝ) : ℂ) - I)⁻¹ = (f s - I)⁻¹
   rw [ofReal_re_of_conj (hconj s)]
 
 end Spectra.QuantumMechanics.SpectralTheory

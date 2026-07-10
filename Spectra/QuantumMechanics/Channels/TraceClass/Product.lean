@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
-Author: Adam Bornemann
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Adam Bornemann
 -/
 import Spectra.QuantumMechanics.Channels.TraceClass.HilbertSchmidt
 
@@ -20,8 +20,8 @@ arithmetic–geometric estimate `re ⟪X⋆ U eᵢ, Y eᵢ⟫ ≤ ‖X⋆ U eᵢ
   `tr |T| = ∑ᵢ ⟪eᵢ, |T| eᵢ⟫ ≤ ∑ᵢ ‖X⋆ U eᵢ‖² + ∑ᵢ ‖Y eᵢ‖² < ∞`,
 
 where `X⋆ U` is Hilbert–Schmidt because the Hilbert–Schmidt operators are a two-sided ideal
-(`isHilbertSchmidt_adjoint` + `IsHilbertSchmidt.comp_right`).  This is *membership* in the trace class
-(the qualitative Schatten–Hölder statement); the sharp norm bound `‖XY‖₁ ≤ ‖X‖₂ ‖Y‖₂` would in
+(`isHilbertSchmidt_adjoint` + `IsHilbertSchmidt.comp_right`).  This is *membership* in the trace
+class (the qualitative Schatten–Hölder statement); the sharp norm bound `‖XY‖₁ ≤ ‖X‖₂ ‖Y‖₂` would in
 addition require an `ℓ²`-Cauchy–Schwarz on the diagonal and a Hilbert–Schmidt norm.
 
 ## Main results
@@ -60,8 +60,8 @@ lemma enorm_sq_eq_ofReal_norm_sq (v : H) :
 Diagonal estimate (no sup-over-bases characterization): with `T = X ∘L Y` and polar factor
 `U = polarIsometry T`, the identity `U⋆ T = |T|` gives
 `⟪eᵢ, |T| eᵢ⟫ = ⟪X⋆ U eᵢ, Y eᵢ⟫`, hence `re ⟪eᵢ, |T| eᵢ⟫ ≤ ‖X⋆ U eᵢ‖² + ‖Y eᵢ‖²`.  Summing, the
-positive trace of `|T|` is bounded by `‖X⋆ U‖₂² + ‖Y‖₂² < ∞`, with `X⋆ U` Hilbert–Schmidt by the ideal
-property. -/
+positive trace of `|T|` is bounded by `‖X⋆ U‖₂² + ‖Y‖₂² < ∞`, with `X⋆ U` Hilbert–Schmidt by the
+ideal property. -/
 theorem IsHilbertSchmidt.isTraceClass_comp {X Y : H →L[ℂ] H}
     (hX : IsHilbertSchmidt X) (hY : IsHilbertSchmidt Y) : IsTraceClass (X ∘L Y) := by
   set e := stdHilbertBasis H with he
@@ -87,7 +87,7 @@ theorem IsHilbertSchmidt.isTraceClass_comp {X Y : H →L[ℂ] H}
     have h2 : ‖⟪u, Y (e i)⟫_ℂ‖ ≤ ‖u‖ * ‖Y (e i)‖ := norm_inner_le_norm _ _
     nlinarith [sq_nonneg (‖u‖ - ‖Y (e i)‖), norm_nonneg u, norm_nonneg (Y (e i)), h1, h2]
   -- Sum: `tr |T| ≤ ‖X⋆ U‖₂² + ‖Y‖₂² ≠ ∞`.
-  show posTrace e (absOp (X ∘L Y)) ≠ ⊤
+  change posTrace e (absOp (X ∘L Y)) ≠ ⊤
   rw [posTrace_eq_tsum_ofReal e (absOp_nonneg (X ∘L Y))]
   refine ne_top_of_le_ne_top ?_ (ENNReal.tsum_le_tsum hterm)
   rw [ENNReal.tsum_add]
@@ -131,10 +131,10 @@ theorem IsTraceClass.comp_right {T : H →L[ℂ] H} (hT : IsTraceClass T) (B : H
   exact hC_hs.isTraceClass_comp (hD_hs.comp_right B)
 
 /-- **The fidelity / Bures substrate.**  For trace-class `ρ` and `σ`, the operator
-`|ρ|^{1/2} ∘L |σ|^{1/2}` is trace class — for positive `ρ, σ` this is `√ρ √σ`, the operator inside the
-Uhlmann fidelity `F(ρ, σ) = ‖√ρ √σ‖₁`.  Each square-root factor is Hilbert–Schmidt exactly because
-its argument is trace class (`isHilbertSchmidt_sqrtOp_absOp`), so the product is trace class by
-`IsHilbertSchmidt.isTraceClass_comp`. -/
+`|ρ|^{1/2} ∘L |σ|^{1/2}` is trace class — for positive `ρ, σ` this is `√ρ √σ`, the operator inside
+the Uhlmann fidelity `F(ρ, σ) = ‖√ρ √σ‖₁`.  Each square-root factor is Hilbert–Schmidt exactly
+because its argument is trace class (`isHilbertSchmidt_sqrtOp_absOp`), so the product is trace class
+by `IsHilbertSchmidt.isTraceClass_comp`. -/
 theorem isTraceClass_sqrtOp_absOp_comp {ρ σ : H →L[ℂ] H}
     (hρ : IsTraceClass ρ) (hσ : IsTraceClass σ) :
     IsTraceClass (sqrtOp (absOp ρ) ∘L sqrtOp (absOp σ)) :=

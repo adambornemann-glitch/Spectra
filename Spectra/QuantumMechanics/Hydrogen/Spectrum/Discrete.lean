@@ -1,6 +1,6 @@
 /-
-Copyright (c) 2026 Logos Library Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Spectra.QuantumMechanics.Hydrogen.RadialProblem.TensorDecomp.Basic
@@ -78,7 +78,7 @@ open Spectra.QuantumMechanics.Hydrogen.Radial (laguerrePolynomial laguerre_smoot
        radial solution `ψ_rad = c₀ ∘ log`.
     3. Its side data: `sector_radialL2` (square-integrability), `sector_radial_pt_nonzero`
        (nondegeneracy), and `radial_bc_of_logCoord` (the Dirichlet boundary condition `r·ψ_rad → 0`
-       — an embedding-free dichotomy: `(Z/r)·ψ ∈ L²` via `coulomb_mul_memLp_H2` forces the unweighted
+       an embedding-free dichotomy: `(Z/r)·ψ ∈ L²` via `coulomb_mul_memLp_H2` forces the unweighted
        `L²` of the coefficient, whose convexity near the origin kills the singular `r^{−ℓ}` branch).
     4. `RadialEq.radial_quantization_Z` then forces `E = E_n`; its analytic core
        `RadialEq.reduced_radial_L2_quantized` is discharged via the `₁F₁`/Kummer machinery of
@@ -93,7 +93,7 @@ theorem hydrogen_discrete_spectrum (p : CoulombParams) :
   constructor
   · -- `→` (eigenpair ⟹ `E = E_n`): push `ψ` through `chartRealization`/`sphericalDecomposition`
     -- to a nonzero angular sector, run the weak-eigen ⟹ classical-`C²`-radial elliptic-regularity
-    -- bootstrap, and finish with `RadialEq.radial_quantization`.  Assembled in `forward_eigenvalue`.
+    -- bootstrap, and finish with `RadialEq.radial_quantization`.  Assembled in `forward_eigenvalue`
     rintro ⟨ψ, hψ0, heig⟩
     exact forward_eigenvalue p E _hE ψ hψ0 heig
   · -- `←` (`E = E_n` ⟹ eigenpair exists): **proved for every charge `Z`**, via

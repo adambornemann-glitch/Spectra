@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
-Author: Adam Bornemann
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Adam Bornemann
 -/
 import Spectra.QuantumMechanics.Channels.TraceClass.Basic
 import Mathlib.Analysis.InnerProductSpace.Subspace
@@ -11,21 +11,22 @@ import Mathlib.Topology.DenseEmbedding
 /-!
 # Stage A — partial-isometry properties of the polar decomposition, and the Hilbert–Schmidt swap
 
-Infrastructure for the trace-class hard core (`tr`, cyclicity, triangle, completeness), building on the
-bounded polar decomposition `T = U |T|` (`PolarDecomp.lean`).
+Infrastructure for the trace-class hard core (`tr`, cyclicity, triangle, completeness), building
+on the bounded polar decomposition `T = U |T|` (`PolarDecomp.lean`).
 
 ## Main results
 
 * `norm_polarPartial_eq` — `polarPartial T` is an **isometry on all of** `K = closure (range |T|)`
-  (Mathlib's `extendOfNorm` only supplies the `≤` bound; the reverse is proved here by continuity from
-  the dense range).
+  (Mathlib's `extendOfNorm` only supplies the `≤` bound; the reverse is proved here by continuity
+  from the dense range).
 * `norm_polarIsometry_apply_le` / `norm_polarIsometry_le_one` — the partial isometry `U` is a
   contraction.
 * `polarIsometry_adjoint_comp_self` — `U⋆ U = P_K`, the orthogonal projection onto `K`.
 * `polarIsometry_adjoint_comp` — **`U⋆ T = |T|`**, the initial-space identity (load-bearing for the
   trace-norm duality attainment `tr (U⋆ T) = tr |T|` and the triangle inequality).
-* `tsum_enorm_apply_sq_adjoint` — the Hilbert–Schmidt sum is adjoint-invariant: `∑ᵢ ‖A eᵢ‖² = ∑ᵢ ‖A⋆ eᵢ‖²`
-  for any bounded `A` (drops the self-adjointness of `tsum_enorm_apply_sq_comm`).
+* `tsum_enorm_apply_sq_adjoint` — the Hilbert–Schmidt sum is adjoint-invariant:
+  `∑ᵢ ‖A eᵢ‖² = ∑ᵢ ‖A⋆ eᵢ‖²` for any bounded `A` (drops the self-adjointness of
+  `tsum_enorm_apply_sq_comm`).
 -/
 
 open ContinuousLinearMap RCLike
@@ -41,7 +42,8 @@ variable {ι : Type*}
 
 /-- **Adjoint-invariance of the Hilbert–Schmidt sum.** For any bounded `A`,
 `∑ᵢ ‖A eᵢ‖² = ∑ᵢ ‖A⋆ eᵢ‖²` (same basis). Generalizes `tsum_enorm_apply_sq_comm` by dropping
-self-adjointness and relating `A` to `A⋆` in one basis (Parseval + Tonelli + `⟪eⱼ, A eᵢ⟫ = conj ⟪eᵢ, A⋆ eⱼ⟫`). -/
+self-adjointness and relating `A` to `A⋆` in one basis
+(Parseval + Tonelli + `⟪eⱼ, A eᵢ⟫ = conj ⟪eᵢ, A⋆ eⱼ⟫`). -/
 theorem tsum_enorm_apply_sq_adjoint (A : H →L[ℂ] H) (b : HilbertBasis ι ℂ H) :
     ∑' i, (‖A (b i)‖₊ : ℝ≥0∞) ^ 2 = ∑' i, (‖(A†) (b i)‖₊ : ℝ≥0∞) ^ 2 := by
   have h_sym : ∀ i j, ‖⟪b j, A (b i)⟫_ℂ‖₊ = ‖⟪b i, (A†) (b j)⟫_ℂ‖₊ := by
@@ -101,8 +103,8 @@ lemma norm_polarIsometry_le_one (T : H →L[ℂ] H) : ‖polarIsometry T‖ ≤ 
 /-! ## The initial-space identities `U⋆ U = P_K` and `U⋆ T = |T|` -/
 
 /-- **`U⋆ U = P_K`**, the orthogonal (star) projection onto `K = closure (range |T|)`. Proof: `U`
-preserves inner products on `K` (isometry `inner_map_map`), so `⟪U z, U x⟫ = ⟪P_K z, P_K x⟫ = ⟪z, P_K x⟫`
-by self-adjointness + idempotence of `P_K`. -/
+preserves inner products on `K` (isometry `inner_map_map`), so
+`⟪U z, U x⟫ = ⟪P_K z, P_K x⟫ = ⟪z, P_K x⟫` by self-adjointness + idempotence of `P_K`. -/
 lemma polarIsometry_adjoint_comp_self (T : H →L[ℂ] H) :
     (polarIsometry T)† ∘L polarIsometry T = (polarRange T).starProjection := by
   have hsa : ((polarRange T).starProjection)† = (polarRange T).starProjection := by

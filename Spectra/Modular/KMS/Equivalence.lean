@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
-Author: Adam Bornemann
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Adam Bornemann
 -/
 import Spectra.Modular.KMS.AnalyticElements
 import Spectra.Modular.KMS.ImaginaryTime
@@ -103,7 +103,7 @@ private lemma diff_bound (hβ : 0 < β) (hkmsIT : IsImaginaryTimeKMS ω α β) (
   have hlow : ∀ t : ℝ, ‖D (realToLower t)‖ ≤ X := by
     intro t
     have heq : D (realToLower t) = ω (a * α.evolve t (bn - bm)) := by
-      show Fn.toFun (realToLower t) - Fm.toFun (realToLower t) = _
+      change Fn.toFun (realToLower t) - Fm.toFun (realToLower t) = _
       rw [Fn.lower_boundary, Fm.lower_boundary, map_sub (α.evolve t), mul_sub, map_sub]
     rw [heq]
     calc ‖ω (a * α.evolve t (bn - bm))‖
@@ -117,7 +117,7 @@ private lemma diff_bound (hβ : 0 < β) (hkmsIT : IsImaginaryTimeKMS ω α β) (
   have hup : ∀ t : ℝ, ‖D (realToUpper β t)‖ ≤ X := by
     intro t
     have heq : D (realToUpper β t) = ω (α.evolve t (bn - bm) * a) := by
-      show Fn.toFun (realToUpper β t) - Fm.toFun (realToUpper β t) = _
+      change Fn.toFun (realToUpper β t) - Fm.toFun (realToUpper β t) = _
       rw [Fn.upper_boundary, Fm.upper_boundary, map_sub (α.evolve t), sub_mul, map_sub]
     rw [heq]
     calc ‖ω (α.evolve t (bn - bm) * a)‖
@@ -139,7 +139,7 @@ private lemma diff_bound (hβ : 0 < β) (hkmsIT : IsImaginaryTimeKMS ω α β) (
       exact norm_eq_zero.mp (le_antisymm this (norm_nonneg _))
     have hDz : D z = 0 :=
       eqZero_of_strip_boundary_zero D hβ hDholo hDcont hDbdd hlow0 hup0 z hz
-    show ‖D z‖ ≤ X
+    change ‖D z‖ ≤ X
     rw [hDz, hX0']; simp
   · -- X > 0: Hadamard three-lines.
     set S0 : ℝ := sSup ((norm ∘ D) '' (Complex.im ⁻¹' {(0 : ℝ)})) with hS0
@@ -171,14 +171,14 @@ private lemma diff_bound (hβ : 0 < β) (hkmsIT : IsImaginaryTimeKMS ω α β) (
       rintro y ⟨w, hw, rfl⟩
       simp only [Set.mem_preimage, Set.mem_singleton_iff] at hw
       have hwre : w = realToLower w.re := by apply Complex.ext <;> simp [realToLower, hw]
-      show ‖D w‖ ≤ X
+      change ‖D w‖ ≤ X
       rw [hwre]; exact hlow w.re
     have hSble : Sb ≤ X := by
       apply csSup_le ⟨_, hmemb⟩
       rintro y ⟨w, hw, rfl⟩
       simp only [Set.mem_preimage, Set.mem_singleton_iff] at hw
       have hwre : w = realToUpper β w.re := by apply Complex.ext <;> simp [realToUpper, hw]
-      show ‖D w‖ ≤ X
+      change ‖D w‖ ≤ X
       rw [hwre]; exact hup w.re
     -- Hadamard interpolation bound.
     have hbound := Spectra.ThreeLines.hadamard_three_lines_horizontal D hβ hDholo hDcont hDbdd z hz
@@ -202,8 +202,8 @@ private lemma diff_bound (hβ : 0 < β) (hkmsIT : IsImaginaryTimeKMS ω α β) (
       _ = X := by rw [show (1 - th) + th = 1 by ring, Real.rpow_one]
 
 /-- **A3b: the limit KMS function for a general element `b`.** Approximate `b` by analytic elements
-`bₙ → b`; the `kmsFunctionOfAnalytic`s `Fₙ` are uniformly Cauchy on the closed strip (by `diff_bound`
-+ Hadamard), so their limit is a KMS function for `(a, b)`. -/
+`bₙ → b`; the `kmsFunctionOfAnalytic`s `Fₙ` are uniformly Cauchy on the closed strip (by
+`diff_bound` + Hadamard), so their limit is a KMS function for `(a, b)`. -/
 noncomputable def limitKMSFunction (hβ : 0 < β) (hkmsIT : IsImaginaryTimeKMS ω α β) (a b : A) :
     KMSFunction ω α β a b := by
   -- 1. Analytic approximating sequence bₙ → b.
@@ -298,7 +298,7 @@ noncomputable def limitKMSFunction (hβ : 0 < β) (hkmsIT : IsImaginaryTimeKMS �
   · -- lower boundary
     intro t
     have hmem : realToLower t ∈ ClosedStrip β := by
-      refine ⟨?_, ?_⟩ <;> simp [realToLower]
+      refine ⟨?_, ?_⟩ <;> simp only [realToLower, ofReal_im, le_refl]
       · exact hβ.le
     have h1 : Tendsto (fun n => F n (realToLower t)) atTop (nhds (f (realToLower t))) :=
       hf' (realToLower t) hmem
@@ -318,8 +318,10 @@ noncomputable def limitKMSFunction (hβ : 0 < β) (hkmsIT : IsImaginaryTimeKMS �
   · -- upper boundary
     intro t
     have hmem : realToUpper β t ∈ ClosedStrip β := by
-      refine ⟨?_, ?_⟩ <;> simp [realToUpper]
-      · exact hβ.le
+      refine ⟨?_, ?_⟩ <;> simp only [realToUpper, add_im, ofReal_im, mul_im, ofReal_re,
+        I_im, mul_one, I_re, mul_zero, add_zero, zero_add]
+      · exact le_of_lt hβ
+      · rfl
     have h1 : Tendsto (fun n => F n (realToUpper β t)) atTop (nhds (f (realToUpper β t))) :=
       hf' (realToUpper β t) hmem
     have hFeq : ∀ n, F n (realToUpper β t) = ω (α.evolve t (bn n) * a) := fun n =>

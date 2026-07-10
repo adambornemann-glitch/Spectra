@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
-Author: Adam Bornemann
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Adam Bornemann
 -/
 import Spectra.Modular.Cocycle.ModularVacuum
 import Spectra.Modular.TomitaTakesaki.ModularFlow
@@ -16,19 +16,20 @@ This file discharges the remaining structural vacuum-fixing field of `ModularDat
 
 ## The route (Stone/genToGroup bridge, not the Cayley eigenvector)
 
-`modularFlow = borelModularGroup (cayleyTransform Δ)` acts through the **Borel calculus of the Cayley
-transform** `V = cayley Δ` (symbol `modularSymbol V t = λ^{it}`, generator `log Δ`), not through `Δ`'s
-own spectral projections. Rather than build a fresh "spectral measure of a `V`-eigenvector is a Dirac
-mass" lemma, we route through the already-proven, **unconditional** bridge
-`spectralCalculus_stoneGroup_eq_borelCalculus`: it rewrites the `borelCalculus (cayley Δ)` object as a
-`spectralCalculus (stoneGroup Δ)` of the *base* symbol `logExpSym t s = exp(i t · log s)`, whose
-Möbius-pullback `s ↦ (inverseMobius ·).re` reproduces `modularSymbol` on the nose. Composed with
-`stoneGroup_eq_genToGroup` (Stone's theorem: the Cayley–Borel and Hille–Yosida constructions of
-`e^{itA}` coincide), the modular flow becomes `spectralCalculus (genToGroup Δ) (logExpSym t)` — an
-object built on `Δ`'s own group, on which the atom fact `E_Δ({1}) Ω = Ω`
-(`spectralProjection_singleton_one_vacuum`, from `Δ Ω = Ω`) collapses everything: since
-`logExpSym t 1 = 1`, `spectralCalculus (genToGroup Δ) (logExpSym t) (E({1})Ω) = E({1})Ω`, a limit-free
-clone of `modularSqrt_atom_apply`.
+`modularFlow = borelModularGroup (cayleyTransform Δ)` acts through the **Borel calculus of the
+Cayley transform** `V = cayley Δ` (symbol `modularSymbol V t = λ^{it}`, generator `log Δ`), not
+through `Δ`'s own spectral projections. Rather than build a fresh "spectral measure of a
+`V`-eigenvector is a Dirac mass" lemma, we route through the already-proven, **unconditional**
+bridge `spectralCalculus_stoneGroup_eq_borelCalculus`: it rewrites the `borelCalculus (cayley Δ)`
+object as a `spectralCalculus (stoneGroup Δ)` of the *base* symbol
+`logExpSym t s = exp(i t · log s)`, whose Möbius-pullback `s ↦ (inverseMobius ·).re` reproduces
+`modularSymbol` on the nose. Composed with `stoneGroup_eq_genToGroup` (Stone's theorem: the
+Cayley–Borel and Hille–Yosida constructions of `e^{itA}` coincide), the modular flow becomes
+`spectralCalculus (genToGroup Δ) (logExpSym t)` — an object built on `Δ`'s own group, on which the
+atom fact `E_Δ({1}) Ω = Ω` (`spectralProjection_singleton_one_vacuum`, from `Δ Ω = Ω`) collapses
+everything: since `logExpSym t 1 = 1`,
+`spectralCalculus (genToGroup Δ) (logExpSym t) (E({1})Ω) = E({1})Ω`, a limit-free clone of
+`modularSqrt_atom_apply`.
 
 `Δ^{it} Ω = Ω` is stated **unconditionally** (no `[Nontrivial H]`): the degenerate `Subsingleton H`
 case is dispatched by `Subsingleton.elim`, and the `Nontrivial H` branch supplies the instance the
@@ -49,9 +50,9 @@ variable {M : VonNeumannAlgebra H} {Ω : H}
 
 /-! ## The base symbol `logExpSym t s = exp(i t · log s)`
 
-This is the `ℝ → ℂ` symbol whose Möbius pullback `s ↦ (inverseMobius ·).re` is `modularSymbol`. It is
-the `log`-free counterpart of the Cayley `modularSymbol`; `logExpSym t (inverseMobiusReal Δ z)` is
-*definitionally* `modularSymbol (cayley Δ) t z`. -/
+This is the `ℝ → ℂ` symbol whose Möbius pullback `s ↦ (inverseMobius ·).re` is `modularSymbol`. It
+is the `log`-free counterpart of the Cayley `modularSymbol`; `logExpSym t (inverseMobiusReal Δ z)`
+is *definitionally* `modularSymbol (cayley Δ) t z`. -/
 
 /-- The base modular symbol on `ℝ`: `s ↦ exp(i t · log s)`. -/
 noncomputable def logExpSym (t : ℝ) : ℝ → ℂ :=
@@ -77,10 +78,12 @@ lemma logExpSym_one (t : ℝ) : logExpSym t 1 = 1 := by
 
 /-! ## The bridge step
 
-`(modularFlow …).U t = spectralCalculus (genToGroup Δ) (logExpSym t)`, in the `Nontrivial H` case. -/
+`(modularFlow …).U t = spectralCalculus (genToGroup Δ) (logExpSym t)`, in the `Nontrivial H`
+case. -/
 
 /-- The modular operator `Δ = modularOp M Ω`, self-adjoint (`modularOp_isSelfAdjoint`). -/
-private noncomputable abbrev modΔ (hcyc : IsCyclic M Ω) (hsep : IsSeparating M Ω) :=
+private theorem modΔ (hcyc : IsCyclic M Ω) (hsep : IsSeparating M Ω) :
+    IsSelfAdjoint (modularOp M Ω) :=
   modularOp_isSelfAdjoint hcyc hsep
 
 /-- **The bridge.** The modular flow, on a nondegenerate space, is `spectralCalculus (genToGroup Δ)`
@@ -94,7 +97,8 @@ theorem modularFlow_U_eq_spectralCalculus [Nontrivial H]
       = spectralCalculus (genToGroup (modΔ hcyc hsep)) (logExpSym t)
           (measurable_logExpSym t) (logExpSym_bdd t) := by
   set hA := modΔ hcyc hsep with hAdef
-  -- The flow `borelCalculus (cayley Δ) (modularSymbol …)` rewritten with the Möbius-pullback symbol.
+  -- The flow `borelCalculus (cayley Δ) (modularSymbol …)` rewritten with
+  -- the Möbius-pullback symbol.
   have hLHS : (modularFlow hcyc hsep).U t
       = borelCalculus (cayley hA) (cayley_isStarNormal hA)
           (fun z => logExpSym t (inverseMobiusReal hA z))
@@ -113,8 +117,9 @@ theorem modularFlow_U_eq_spectralCalculus [Nontrivial H]
 `spectralCalculus (genToGroup Δ) (logExpSym t) (E({1})Ω) = E({1})Ω`: on the spectral atom `{1}` the
 base symbol acts as its value `logExpSym t 1 = 1`. Limit-free clone of `modularSqrt_atom_apply`. -/
 
-/-- **Atom collapse.** On the spectral atom `E_Δ({1})Ω`, `spectralCalculus (genToGroup Δ) (logExpSym t)`
-acts as the identity, because `logExpSym t · 1_{{1}} = 1_{{1}}` (as `logExpSym t 1 = 1`). -/
+/-- **Atom collapse.** On the spectral atom `E_Δ({1})Ω`,
+`spectralCalculus (genToGroup Δ) (logExpSym t)` acts as the identity, because
+`logExpSym t · 1_{{1}} = 1_{{1}}` (as `logExpSym t 1 = 1`). -/
 theorem logExpSym_atom_apply (hcyc : IsCyclic M Ω) (hsep : IsSeparating M Ω) (t : ℝ) :
     spectralCalculus (genToGroup (modΔ hcyc hsep)) (logExpSym t)
         (measurable_logExpSym t) (logExpSym_bdd t)
@@ -146,8 +151,8 @@ theorem logExpSym_atom_apply (hcyc : IsCyclic M Ω) (hsep : IsSeparating M Ω) (
 
 /-- **`Δ^{it} Ω = Ω`** (`ModularData.modularFlow_fixes_vacuum`, field 5). The modular flow fixes the
 vacuum. Unconditional: `Subsingleton H` is trivial, and on `Nontrivial H` the bridge
-`modularFlow_U_eq_spectralCalculus` reduces to `spectralCalculus (genToGroup Δ) (logExpSym t)`, which
-fixes `Ω = E_Δ({1})Ω` (`spectralProjection_singleton_one_vacuum`) by the atom collapse. -/
+`modularFlow_U_eq_spectralCalculus` reduces to `spectralCalculus (genToGroup Δ) (logExpSym t)`,
+which fixes `Ω = E_Δ({1})Ω` (`spectralProjection_singleton_one_vacuum`) by the atom collapse. -/
 theorem modularFlow_fixes_vacuum (hcyc : IsCyclic M Ω) (hsep : IsSeparating M Ω) (t : ℝ) :
     (modularFlow hcyc hsep).U t Ω = Ω := by
   rcases subsingleton_or_nontrivial H with _ | _
@@ -158,7 +163,8 @@ theorem modularFlow_fixes_vacuum (hcyc : IsCyclic M Ω) (hsep : IsSeparating M �
       spectralProjection_singleton_one_vacuum hcyc hsep
     calc spectralCalculus U (logExpSym t) (measurable_logExpSym t) (logExpSym_bdd t) Ω
         = spectralCalculus U (logExpSym t) (measurable_logExpSym t) (logExpSym_bdd t)
-            (spectralProjection U ({(1 : ℝ)} : Set ℝ) (measurableSet_singleton 1) Ω) := by rw [hEfix]
+            (spectralProjection U ({(1 : ℝ)} : Set ℝ) (measurableSet_singleton 1) Ω) :=
+          by rw [hEfix]
       _ = spectralProjection U ({(1 : ℝ)} : Set ℝ) (measurableSet_singleton 1) Ω :=
             logExpSym_atom_apply hcyc hsep t
       _ = Ω := hEfix

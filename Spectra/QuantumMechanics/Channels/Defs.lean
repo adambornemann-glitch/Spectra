@@ -1,31 +1,33 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
-Author: Adam Bornemann
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Adam Bornemann
 -/
 import Spectra.QuantumMechanics.Channels.TraceClass.Complete
 
 /-!
 # Quantum channels: definition
 
-A **quantum channel** is a completely positive, trace-non-increasing linear map on the trace-class
-operators (the Schrödinger picture): `Φ : TraceClass H →ₗ[ℂ] TraceClass H` such that for every `n`,
-`Φ` applied entrywise to an `n × n` array of trace-class operators sends positive-semidefinite arrays
-to positive-semidefinite arrays (complete positivity), and `Φ` does not increase the trace norm of any
-positive operator (sub-normalization; equality is the distinguished trace-preserving case).
+A **quantum channel** is a completely positive, trace-non-increasing linear map on the
+trace-class operators (the Schrödinger picture): `Φ : TraceClass H →ₗ[ℂ] TraceClass H` such
+that for every `n`, `Φ` applied entrywise to an `n × n` array of trace-class operators sends
+positive-semidefinite arrays to positive-semidefinite arrays (complete positivity), and `Φ`
+does not increase the trace norm of any positive operator (sub-normalization; equality is the
+distinguished trace-preserving case).
 
-Complete positivity is necessary but not sufficient for a map to be physical: an ordinary positive map
-(`n = 1` case) can fail to send positive operators on a *larger* system to positive operators once
-tensored with an ancilla (the transpose map on `M_n(ℂ)` is the classic example). Positivity of the
-finite matrix amplification is the correct, standard fix, and is tested here via the block-quadratic-
-form criterion already used throughout Spectra for operator positivity (`re ⟪ξ, T ξ⟫ ≥ 0`), applied to
-an `n`-tuple of vectors rather than a single one — the same idea as `IsPositiveMatrix`'s single-operator
-special case `n = 1`.
+Complete positivity is necessary but not sufficient for a map to be physical: an ordinary
+positive map (`n = 1` case) can fail to send positive operators on a *larger* system to
+positive operators once tensored with an ancilla (the transpose map on `M_n(ℂ)` is the classic
+example). Positivity of the finite matrix amplification is the correct, standard fix, and is
+tested here via the block-quadratic-form criterion already used throughout Spectra for operator
+positivity (`re ⟪ξ, T ξ⟫ ≥ 0`), applied to an `n`-tuple of vectors rather than a single one — the
+same idea as `IsPositiveMatrix`'s single-operator special case `n = 1`.
 
 ## Main definitions
 
-* `Spectra.QuantumMechanics.Channels.IsPositiveMatrix` — an `n × n` array of trace-class operators is
-  *positive* if `∑ᵢⱼ ⟪ξᵢ, Mᵢⱼ ξⱼ⟫ ≥ 0` for every finite family of vectors `ξ : Fin n → H`.
+* `Spectra.QuantumMechanics.Channels.IsPositiveMatrix` — an `n × n` array of trace-class
+  operators is *positive* if `∑ᵢⱼ ⟪ξᵢ, Mᵢⱼ ξⱼ⟫ ≥ 0` for every finite family of vectors
+  `ξ : Fin n → H`.
 * `Spectra.QuantumMechanics.Channels.IsCompletelyPositive` — `Φ` is completely positive if it sends
   every positive array to a positive array, entrywise, for every `n`.
 * `Spectra.QuantumMechanics.Channels.QuantumChannel` — the bundled structure: a linear map on
@@ -33,8 +35,8 @@ special case `n = 1`.
 
 ## Main results
 
-* `isPositiveMatrix_zero_iff` / `isPositiveMatrix_one_iff` — the `n = 0` case is vacuous, the `n = 1`
-  case recovers ordinary operator positivity `0 ≤ T`.
+* `isPositiveMatrix_zero_iff` / `isPositiveMatrix_one_iff` — the `n = 0` case is vacuous, the
+  `n = 1` case recovers ordinary operator positivity `0 ≤ T`.
 * `QuantumChannel.id` — the identity map is a quantum channel.
 
 ## Context
@@ -108,10 +110,10 @@ theorem IsCompletelyPositive.isPositive {Φ : TraceClass H →ₗ[ℂ] TraceClas
 
 /-! ## Quantum channels -/
 
-/-- A **quantum channel**: a completely positive, trace-non-increasing linear map on the trace-class
-operators (Schrödinger picture). Trace-preservation (`=` rather than `≤`) is the distinguished unital
-case, e.g. the identity channel (`QuantumChannel.id`); genuinely sub-unital channels arise from
-conditioning on a measurement outcome. -/
+/-- A **quantum channel**: a completely positive, trace-non-increasing linear map on the
+trace-class operators (Schrödinger picture). Trace-preservation (`=` rather than `≤`) is the
+distinguished unital case, e.g. the identity channel (`QuantumChannel.id`); genuinely sub-unital
+channels arise from conditioning on a measurement outcome. -/
 structure QuantumChannel (H : Type*) [NormedAddCommGroup H] [InnerProductSpace ℂ H]
     [CompleteSpace H] where
   /-- The underlying linear map on the trace-class operators. -/
@@ -124,8 +126,8 @@ structure QuantumChannel (H : Type*) [NormedAddCommGroup H] [InnerProductSpace �
 namespace QuantumChannel
 
 variable (H) in
-/-- **The identity channel.** Trivially completely positive (it changes nothing) and trace-preserving
-(hence, in particular, trace-non-increasing). -/
+/-- **The identity channel.** Trivially completely positive (it changes nothing) and
+trace-preserving (hence, in particular, trace-non-increasing). -/
 def id : QuantumChannel H where
   toFun := LinearMap.id
   cp := fun _n _M hM => hM

@@ -1,21 +1,10 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Spectra.QuantumMechanics.Hydrogen.Laplacian.Basic
 import Spectra.SpectralTheory.Essential.Weyl
-
-open MeasureTheory Complex
-open Spectra.Sobolev
-open Spectra.Resolvent
-open Spectra.Essential
-open Spectra.Operator
-open Spectra.QuantumMechanics.SpectralTheory
-open FourierTransform
-open scoped Topology NNReal ENNReal SchwartzMap ContDiff
-
-namespace Spectra.QuantumMechanics.Hydrogen
 /-! ## The free Green's function
 
 For explicit spectral computations we record the free Green's function
@@ -29,6 +18,16 @@ Fourier computation. What remains future work (not attempted here) is tying the
 `R_z f =ᵐ G_z ⋆ f`; the Track-A route to the essential spectrum of the hydrogen
 Laplacian bypasses that identity entirely (see `SpectralTheory.Essential.Weyl`),
 so it is banked here but not needed downstream. -/
+open MeasureTheory Complex
+open Spectra.Sobolev
+open Spectra.Resolvent
+open Spectra.Essential
+open Spectra.Operator
+open Spectra.QuantumMechanics.SpectralTheory
+open FourierTransform
+open scoped Topology NNReal ENNReal SchwartzMap ContDiff
+
+namespace Spectra.QuantumMechanics.Hydrogen
 
 /-- **A Laplace-type integral** `∫₀^∞ e^{−w r} sin(a r) dr = a / (w² + a²)` for `Re w > 0`.
 

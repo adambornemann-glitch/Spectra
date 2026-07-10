@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
-Author: Adam Bornemann
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Adam Bornemann
 -/
 import Spectra.QuantumMechanics.Channels.TraceClass.Complete
 import Spectra.QuantumMechanics.Channels.TraceClass.Trace
@@ -103,9 +103,9 @@ end QState
 /-! ## The trace as a bounded linear functional -/
 
 /-- The **trace as a continuous linear functional** on trace-class operators, `T ↦ tr T`, bounded by
-`|tr T| ≤ ‖T‖₁ = ‖T‖`. This is the pairing underlying expectation values, and — differentiated along a
-`QuantumStatisticalModel` — it produces the vanishing-first-moment (traceless-tangent) constraint that
-is the quantum analogue of `score_expectation_eq_zero`. -/
+`|tr T| ≤ ‖T‖₁ = ‖T‖`. This is the pairing underlying expectation values, and — differentiated along
+a `QuantumStatisticalModel` — it produces the vanishing-first-moment (traceless-tangent) constraint
+that is the quantum analogue of `score_expectation_eq_zero`. -/
 noncomputable def traceCLM : TraceClass H →L[ℂ] ℂ :=
   LinearMap.mkContinuous
     { toFun := fun T => trace T.toOp

@@ -1,6 +1,6 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Spectra.PositiveDefinite.Unitary
@@ -222,7 +222,8 @@ private lemma inv_add_conj_inv {ε ξ : ℝ} (hε : 0 < ε) :
     intro h; have := congr_arg Complex.re h; simp at this; linarith
   have h2 : (↑ε + ↑ξ * I : ℂ) ≠ 0 := by
     intro h; have := congr_arg Complex.re h; simp at this; linarith
-  have h3 : (ξ ^ 2 + ε ^ 2 : ℝ) ≠ 0 := ne_of_gt (add_pos_of_nonneg_of_pos (sq_nonneg ξ) (sq_pos_of_pos hε))
+  have h3 : (ξ ^ 2 + ε ^ 2 : ℝ) ≠ 0 :=
+    ne_of_gt (add_pos_of_nonneg_of_pos (sq_nonneg ξ) (sq_pos_of_pos hε))
   rw [inv_eq_one_div, inv_eq_one_div, div_add_div _ _ h1 h2]
   rw [show (↑ε - ↑ξ * I) * (↑ε + ↑ξ * I) = ↑(ξ ^ 2 + ε ^ 2) from by
     push_cast; ring_nf; simp only [I_sq, mul_neg, mul_one, sub_neg_eq_add]]

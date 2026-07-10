@@ -1,10 +1,10 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
-Filename: QuantumMechanics/Uncertainty/Heisenberg.lean
 -/
 import Spectra.QuantumMechanics.Uncertainty.SchrodingerRobertson
+
 /-!
 # The Heisenberg Uncertainty Relation
 
@@ -77,7 +77,8 @@ lemma norm_inner_commutator_of_ccr (A B : SelfAdjointOperator H) (ψ : H)
     (ℏ : ℝ) (hℏ : 0 ≤ ℏ)
     (hccr : commutatorAt A.toSymmetricOperator B.toSymmetricOperator ψ h.toDomainConditions
             = (Complex.I * (ℏ : ℂ)) • ψ) :
-    ‖⟪ψ, commutatorAt A.toSymmetricOperator B.toSymmetricOperator ψ h.toDomainConditions⟫_ℂ‖ = ℏ := by
+    ‖⟪ψ, commutatorAt A.toSymmetricOperator B.toSymmetricOperator ψ h.toDomainConditions⟫_ℂ‖
+    = ℏ := by
   have hself : ⟪ψ, ψ⟫_ℂ = 1 := by
     rw [inner_self_eq_norm_sq_to_K, h.h_norm]; simp
   rw [hccr, inner_smul_right, hself, mul_one, norm_mul, Complex.norm_I, one_mul,
@@ -105,4 +106,5 @@ theorem heisenberg_variance (A B : SelfAdjointOperator H) (ψ : H)
   rw [norm_inner_commutator_of_ccr A B ψ h ℏ hℏ hccr] at hrob
   linarith
 
-end QuantumMechanics.Heisenberg
+
+end Spectra.QuantumMechanics.Heisenberg

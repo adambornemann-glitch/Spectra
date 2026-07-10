@@ -1,6 +1,6 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Spectra.Resolvent.Diagonal.IntegralZ.GeneratorLim
@@ -107,7 +107,7 @@ lemma range_plus_i_eq_top :
             = φ - I • resolventIntegralPlus U_grp φ :=
     tendsto_nhds_unique (generator_tendsto U_grp ⟨resolventIntegralPlus U_grp φ, hmem⟩) hlim
   refine ⟨⟨resolventIntegralPlus U_grp φ, hmem⟩, ?_⟩
-  show generator U_grp ⟨resolventIntegralPlus U_grp φ, hmem⟩
+  change generator U_grp ⟨resolventIntegralPlus U_grp φ, hmem⟩
         + I • resolventIntegralPlus U_grp φ = φ
   rw [hval]; abel
 
@@ -168,7 +168,7 @@ lemma range_minus_i_eq_top :
             = φ + I • resolventIntegralMinus U_grp φ :=
     tendsto_nhds_unique (generator_tendsto U_grp ⟨resolventIntegralMinus U_grp φ, hmem⟩) hlim
   refine ⟨⟨resolventIntegralMinus U_grp φ, hmem⟩, ?_⟩
-  show generator U_grp ⟨resolventIntegralMinus U_grp φ, hmem⟩
+  change generator U_grp ⟨resolventIntegralMinus U_grp φ, hmem⟩
         - I • resolventIntegralMinus U_grp φ = φ
   rw [hval]; abel
 
@@ -226,13 +226,14 @@ lemma averagedVector_orbit_shift_integral (s h : ℝ) (φ : H) :
     have h_meas : Measure.map (fun t => t - s) volume = volume :=
       (measurePreserving_sub_right volume s).map_eq
     rw [← h_meas, MeasureTheory.setIntegral_map measurableSet_Ioc]
-    simp only [h_preimage]; congr 1
-    · exact
-        Measure.ext_iff'.mpr
-          (congrFun
-            (congrArg DFunLike.coe
-              (congrFun (congrArg Measure.restrict (id (Eq.symm h_meas))) (Set.Ioc s (s + h)))))
-    simp only [add_sub_cancel]
+    · simp only [h_preimage]
+      congr 1
+      · exact
+          Measure.ext_iff'.mpr
+            (congrFun
+              (congrArg DFunLike.coe
+                (congrFun (congrArg Measure.restrict (id (Eq.symm h_meas))) (Set.Ioc s (s + h)))))
+      · simp only [add_sub_cancel]
     · exact h_cont.aestronglyMeasurable.comp_measurable (measurable_const_add s)
     · exact (measurable_sub_const s).aemeasurable
   exact h_shift_int

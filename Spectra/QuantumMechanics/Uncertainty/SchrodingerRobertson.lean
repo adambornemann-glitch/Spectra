@@ -1,8 +1,7 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
-Filename: QuantumMechanics/Uncertainty/SchrodingerRobertson.lean
 -/
 import Spectra.Operator.SelfAdjoint
 /-!
@@ -28,8 +27,9 @@ standard-deviation forms) follow from it. It supersedes the earlier separate
 * `schrodinger_stddev`: standard-deviation form
 * `robertson_uncertainty`: Robertson's variance bound, a corollary (drop covariance)
 * `robertson_stddev`: Robertson's standard-deviation bound
-* `observable_schrodinger_uncertainty`, `observable_robertson_uncertainty`:
-  the same bounds stated for self-adjoint `SelfAdjointOperator`s
+* `observable_schrodinger_uncertainty`, `observable_robertson_uncertainty`,
+  `observable_schrodinger_stddev`, `observable_robertson_stddev`: the same bounds
+  (variance and standard-deviation forms) stated for `SelfAdjointOperator`s
 
 
 ## Generality note
@@ -57,14 +57,6 @@ namespace Spectra.QuantumMechanics.Schrodinger
 
 /-! ### Real/complex helper lemmas -/
 
-/-- Monotonicity of squaring for nonnegative reals. (Named to avoid shadowing
-Mathlib's `sq_le_sq'`, which has a different hypothesis shape.) -/
-lemma sq_le_sq_of_nonneg {x y : ℝ} (hx : 0 ≤ x) (hxy : x ≤ y) : x^2 ≤ y^2 := by
-  calc x^2 = x * x := sq x
-    _ ≤ x * y := by exact mul_le_mul_of_nonneg_left hxy hx
-    _ ≤ y * y := by exact mul_le_mul_of_nonneg_right hxy (le_trans hx hxy)
-    _ = y^2 := (sq y).symm
-
 /-- `‖z‖² = z.im²` when `z.re = 0`. -/
 lemma normSq_of_re_zero {z : ℂ} (h : z.re = 0) : Complex.normSq z = z.im^2 := by
   rw [Complex.normSq_apply, h]
@@ -75,6 +67,19 @@ lemma normSq_eq_re_sq_add_im_sq (z : ℂ) : Complex.normSq z = z.re^2 + z.im^2 :
   rw [Complex.normSq_apply]
   ring
 
+/-- Move the shifted operator `Ã := A - ⟨A⟩` across the inner product, using that `Ã` is
+symmetric: `⟪Ãψ, B̃ψ⟫ = ⟪ψ, Ã(B̃ψ)⟫`. The `A`-side of the shifted-symmetry rewrite shared by
+the real- and imaginary-part identities below. -/
+lemma inner_A'ψ_B'ψ_eq (A B : SymmetricOperator H) (ψ : H) (h : ShiftedDomainConditions A B ψ) :
+    ⟪h.A'ψ, h.B'ψ⟫_ℂ = ⟪ψ, A.shiftedApply ψ h.B'ψ h.h_norm h.hψ_A h.B'ψ_in_A_domain⟫_ℂ :=
+  A.shifted_symmetric ψ h.h_norm h.hψ_A h.hψ_A h.B'ψ_in_A_domain
+
+/-- Move the shifted operator `B̃ := B - ⟨B⟩` across the inner product, using that `B̃` is
+symmetric: `⟪B̃ψ, Ãψ⟫ = ⟪ψ, B̃(Ãψ)⟫`. The `B`-side mirror of `inner_A'ψ_B'ψ_eq`. -/
+lemma inner_B'ψ_A'ψ_eq (A B : SymmetricOperator H) (ψ : H) (h : ShiftedDomainConditions A B ψ) :
+    ⟪h.B'ψ, h.A'ψ⟫_ℂ = ⟪ψ, B.shiftedApply ψ h.A'ψ h.h_norm h.hψ_B h.A'ψ_in_B_domain⟫_ℂ :=
+  B.shifted_symmetric ψ h.h_norm h.hψ_B h.hψ_B h.A'ψ_in_B_domain
+
 /-! ### The imaginary part identity -/
 
 /-- The key identity: `Im⟨Ãψ, B̃ψ⟩ = ½ Im⟨ψ, [A,B]ψ⟩`. -/
@@ -82,19 +87,15 @@ lemma im_inner_shifted_eq_half_commutator (A B : SymmetricOperator H) (ψ : H)
     (h : ShiftedDomainConditions A B ψ) :
     (⟪h.A'ψ, h.B'ψ⟫_ℂ).im =
     (1/2) * (⟪ψ, commutatorAt A B ψ h.toDomainConditions⟫_ℂ).im := by
-  have h_sym1 : ⟪h.A'ψ, h.B'ψ⟫_ℂ = ⟪ψ, A.shiftedApply ψ h.B'ψ h.h_norm h.hψ_A h.B'ψ_in_A_domain⟫_ℂ :=
-    A.shifted_symmetric ψ h.h_norm h.hψ_A h.hψ_A h.B'ψ_in_A_domain
-  have h_sym2 : ⟪h.B'ψ, h.A'ψ⟫_ℂ = ⟪ψ, B.shiftedApply ψ h.A'ψ h.h_norm h.hψ_B h.A'ψ_in_B_domain⟫_ℂ :=
-    B.shifted_symmetric ψ h.h_norm h.hψ_B h.hψ_B h.A'ψ_in_B_domain
   have h_im_formula : (⟪h.A'ψ, h.B'ψ⟫_ℂ).im = (⟪h.A'ψ, h.B'ψ⟫_ℂ - ⟪h.B'ψ, h.A'ψ⟫_ℂ).im / 2 := by
     rw [← inner_conj_symm h.B'ψ h.A'ψ]
     simp only [Complex.sub_im, Complex.conj_im]
     ring
-  rw [h_im_formula, h_sym1, h_sym2]
+  rw [h_im_formula, inner_A'ψ_B'ψ_eq A B ψ h, inner_B'ψ_A'ψ_eq A B ψ h]
   have h_expand : A.shiftedApply ψ h.B'ψ h.h_norm h.hψ_A h.B'ψ_in_A_domain -
                   B.shiftedApply ψ h.A'ψ h.h_norm h.hψ_B h.A'ψ_in_B_domain =
                   commutatorAt A B ψ h.toDomainConditions := by
-    unfold shiftedApply ShiftedDomainConditions.A'ψ ShiftedDomainConditions.B'ψ
+    unfold ShiftedDomainConditions.A'ψ ShiftedDomainConditions.B'ψ
     unfold commutatorAt DomainConditions.ABψ DomainConditions.BAψ
     simp only [shiftedApply]
     rw [A.apply_sub h.hBψ_A (A.domain.smul_mem _ h.hψ_A)]
@@ -133,17 +134,13 @@ lemma re_inner_shifted_eq_covariance (A B : SymmetricOperator H) (ψ : H)
     rw [← inner_conj_symm h.B'ψ h.A'ψ]
     simp only [Complex.add_re, Complex.conj_re]
     ring
-  have h_sym1 : ⟪h.A'ψ, h.B'ψ⟫_ℂ = ⟪ψ, A.shiftedApply ψ h.B'ψ h.h_norm h.hψ_A h.B'ψ_in_A_domain⟫_ℂ :=
-    A.shifted_symmetric ψ h.h_norm h.hψ_A h.hψ_A h.B'ψ_in_A_domain
-  have h_sym2 : ⟪h.B'ψ, h.A'ψ⟫_ℂ = ⟪ψ, B.shiftedApply ψ h.A'ψ h.h_norm h.hψ_B h.A'ψ_in_B_domain⟫_ℂ :=
-    B.shifted_symmetric ψ h.h_norm h.hψ_B h.hψ_B h.A'ψ_in_B_domain
-  rw [h_re_formula, h_sym1, h_sym2]
+  rw [h_re_formula, inner_A'ψ_B'ψ_eq A B ψ h, inner_B'ψ_A'ψ_eq A B ψ h]
   have h_expand_sum : A.shiftedApply ψ h.B'ψ h.h_norm h.hψ_A h.B'ψ_in_A_domain +
                       B.shiftedApply ψ h.A'ψ h.h_norm h.hψ_B h.A'ψ_in_B_domain =
                       anticommutatorAt A B ψ h.toDomainConditions -
                       (2 * μ_B : ℂ) • h.Aψ - (2 * μ_A : ℂ) • h.Bψ +
                       (2 * μ_A * μ_B : ℂ) • ψ := by
-    unfold shiftedApply ShiftedDomainConditions.A'ψ ShiftedDomainConditions.B'ψ
+    unfold ShiftedDomainConditions.A'ψ ShiftedDomainConditions.B'ψ
     unfold anticommutatorAt DomainConditions.ABψ DomainConditions.BAψ
     unfold DomainConditions.Aψ DomainConditions.Bψ
     simp only [shiftedApply]
@@ -153,9 +150,12 @@ lemma re_inner_shifted_eq_covariance (A B : SymmetricOperator H) (ψ : H)
     rw [B.apply_smul _ h.hψ_B]
     field_simp
     match_scalars <;> ring_nf
-    · rfl
-    · rfl
-    · ring
+    · -- -(↑(B.expectation ψ ⋯ ⋯) * 2) = -(↑μ_B * 2)
+      rfl
+    · -- -(↑(A.expectation ψ ⋯ ⋯) * 2) = -(↑μ_A * 2)
+      rfl
+    · -- ↑(A.expectation ψ ⋯ ⋯) * ↑(B.expectation ψ ⋯ ⋯) * 2 = ↑μ_B * ↑μ_A * 2
+      ring
   have h_inner_Aψ : ⟪ψ, h.Aψ⟫_ℂ = μ_A := by
     unfold DomainConditions.Aψ
     rw [A.inner_self_eq_re h.hψ_A]
@@ -173,8 +173,8 @@ lemma re_inner_shifted_eq_covariance (A B : SymmetricOperator H) (ψ : H)
     rw [h_inner_Aψ, h_inner_Bψ, h_norm_sq]
     ring
   have h_add_re : (⟪ψ, A.shiftedApply ψ h.B'ψ h.h_norm h.hψ_A h.B'ψ_in_A_domain⟫_ℂ +
-                  ⟪ψ, B.shiftedApply ψ h.A'ψ h.h_norm h.hψ_B h.A'ψ_in_B_domain⟫_ℂ).re =
-                  (⟪ψ, anticommutatorAt A B ψ h.toDomainConditions⟫_ℂ - (2 * μ_A * μ_B : ℂ)).re := by
+                ⟪ψ, B.shiftedApply ψ h.A'ψ h.h_norm h.hψ_B h.A'ψ_in_B_domain⟫_ℂ).re =
+                (⟪ψ, anticommutatorAt A B ψ h.toDomainConditions⟫_ℂ - (2 * μ_A * μ_B : ℂ)).re := by
     congr 1
     rw [← inner_add_right, h_inner_sum]
   rw [h_add_re]
@@ -198,7 +198,7 @@ lemma schrodinger_uncertainty (A B : SymmetricOperator H) (ψ : H)
     (covariance A B ψ h)^2 := by
   have h_cs_sq : ‖⟪h.A'ψ, h.B'ψ⟫_ℂ‖^2 ≤ ‖h.A'ψ‖^2 * ‖h.B'ψ‖^2 := by
     have h_cs : ‖⟪h.A'ψ, h.B'ψ⟫_ℂ‖ ≤ ‖h.A'ψ‖ * ‖h.B'ψ‖ := norm_inner_le_norm h.A'ψ h.B'ψ
-    have := sq_le_sq_of_nonneg (norm_nonneg _) h_cs
+    have := pow_le_pow_left₀ (norm_nonneg _) h_cs 2
     rwa [mul_pow] at this
   have h_var_eq : ‖h.A'ψ‖^2 * ‖h.B'ψ‖^2 =
                   A.variance ψ h.h_norm h.hψ_A * B.variance ψ h.h_norm h.hψ_B := by
@@ -323,4 +323,4 @@ lemma observable_robertson_stddev (A B : SelfAdjointOperator H) (ψ : H)
         h.toDomainConditions⟫_ℂ‖ :=
   robertson_stddev A.toSymmetricOperator B.toSymmetricOperator ψ h
 
-end QuantumMechanics.Schrodinger
+end Spectra.QuantumMechanics.Schrodinger

@@ -1,6 +1,6 @@
 /-
-Copyright (c) 2026 Logos Library Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Spectra.QuantumMechanics.Hydrogen.Laplacian.Spherical
@@ -109,7 +109,8 @@ lemma solidHarmonicNat_contDiffOn (ℓ m : ℕ) :
     (hnorm.continuousLinearMap_comp Complex.ofRealCLM).pow (ℓ - m)
   have hC : ContDiffAt ℝ ∞
       (fun y : Spectra.Sobolev.R3 => (((rodriguesDeriv ℓ (ℓ + m)).eval (y 2 / ‖y‖) : ℝ) : ℂ)) x :=
-    ((hQ.contDiffAt.comp x ((hcoord 2).div hnorm hnorm0)).continuousLinearMap_comp Complex.ofRealCLM)
+    ((hQ.contDiffAt.comp x ((hcoord 2).div hnorm hnorm0)).continuousLinearMap_comp
+      Complex.ofRealCLM)
   exact (((contDiffAt_const.mul hA).mul hB).mul hC).contDiffWithinAt
 
 end Spectra.SphericalHarmonics

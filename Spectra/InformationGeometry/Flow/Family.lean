@@ -1,6 +1,6 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Spectra.InformationGeometry.Connection.AmariChentsov
@@ -475,7 +475,7 @@ lemma preserves_fisher {θ : ParamSpace n} (hθ : θ ∈ M.paramDomain)
             (fderiv ℝ (F.φ t) θ₂ (EuclideanSpace.single b 1)) := by
         filter_upwards [hφ_smooth.continuous.continuousAt.preimage_mem_nhds
           (M.isOpen_paramDomain.mem_nhds hα)] with θ₂ hθ₂
-        show fderiv ℝ (M.klDiv α ∘ F.φ t) θ₂ (EuclideanSpace.single b 1) = _
+        change fderiv ℝ (M.klDiv α ∘ F.φ t) θ₂ (EuclideanSpace.single b 1) = _
         have hcomp := ((M.klDiv_differentiableAt hα hθ₂).hasFDerivAt.comp θ₂
           (hφ_diff_at θ₂).hasFDerivAt).fderiv
         rw [hcomp, ContinuousLinearMap.comp_apply]
@@ -489,10 +489,10 @@ lemma preserves_fisher {θ : ParamSpace n} (hθ : θ ∈ M.paramDomain)
       rw [DFunLike.congr_fun h_fderiv_eq (EuclideanSpace.single a 1)]
       have hV : DifferentiableAt ℝ
           (fun θ₂ => fderiv ℝ (F.φ t) θ₂ (EuclideanSpace.single b 1)) θ := by
-        exact ((hφ_smooth.fderiv_right (m := (⊤ : ℕ∞)) (by exact_mod_cast le_top)).differentiable (by simp)
+        exact ((hφ_smooth.fderiv_right (m := (⊤ : ℕ∞))
+          (by exact_mod_cast le_top)).differentiable (by simp)
           ).differentiableAt.clm_apply (differentiableAt_const _)
       exact F.fderiv_klDiv_phi_apply_live hθ t a hV
-
   -- ── Step 7: Combine ──
   rw [h_LHS.symm, h_second_eq, h_RHS]
 

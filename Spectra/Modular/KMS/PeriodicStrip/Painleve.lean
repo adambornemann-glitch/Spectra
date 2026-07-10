@@ -1,27 +1,43 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
-Author: Adam Bornemann
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Adam Bornemann
 -/
 import Mathlib.Analysis.Complex.CauchyIntegral
 import Mathlib.MeasureTheory.Integral.IntervalIntegral.FundThmCalculus
 import Spectra.Modular.KMS.PeriodicStrip.Defs
 
+/-!
+# Cauchy–Goursat with one horizontal line excluded
+
+This file supplies the geometric and integral-theoretic groundwork for the local Painlevé
+line-removal theorem completed in `PeriodicStrip/LineRemove.lean`.
+
+* `integral_boundary_rect_eq_zero_off_horizLine`: Cauchy–Goursat for a rectangle that may straddle
+  one horizontal singular line `{Im = a}` — proved by splitting the rectangle at height `a` and
+  gluing two applications of Mathlib's standard Cauchy–Goursat theorem.
+* `rect_in_ball_of_corners_in_ball`, `horiz_seg_in_ball`, `vert_seg_in_ball`: elementary geometric
+  facts placing rectangles and axis-aligned segments inside a ball from their corner/endpoint
+  memberships.
+* `F_eq_F₁`, `F_diff_eq_Lpath`: path-independence of the "L-shaped" primitive candidate built from
+  the rectangle identity above, expressing a difference `F(z + h) - F(z)` as a single L-path
+  integral.
+
+Together with the vanishing rectangle integrals, `F_diff_eq_Lpath` is exactly what
+`LineRemove.lean`'s `exists_primitive_of_continuousOn_of_rect_integral_zero` needs to construct a
+primitive `F` with `F' = g` on the ball, which that file then upgrades to the full local Painlevé
+theorem (`differentiableOn_of_continuousOn_of_differentiableOn_off_horizLine`).
+
+## Main results
+
+* `integral_boundary_rect_eq_zero_off_horizLine`
+* `F_diff_eq_Lpath`
+-/
+
 open Complex Set Filter MeasureTheory intervalIntegral
 open scoped Topology
 
 namespace Spectra.PeriodicHolomorphic
-
-/-! ## Local Painlevé: removing a horizontal line as a singular set
-
-The three lemmas in this file build up to a local Painlevé theorem: a function
-continuous on a ball and complex-differentiable off a single horizontal line is
-complex-differentiable on the whole ball.
-
-* `integral_boundary_rect_eq_zero_off_horizLine` -- Cauchy–Goursat with one line excluded
-* `exists_primitive_of_continuousOn_of_rect_integral_zero`           (Lemma 2, todo)
-* `differentiableOn_of_continuousOn_of_differentiableOn_off_horizLine` (Lemma 3, todo)
--/
 
 /-- **Cauchy–Goursat across a horizontal line.**
 
@@ -185,8 +201,8 @@ contained in the ball. (Stated for the two-diagonal-corner presentation that the
 Painlevé proof actually consumes — the two off-diagonal corners are passed
 explicitly so we avoid an ad-hoc convex-hull argument.) -/
 lemma rect_in_ball_of_corners_in_ball {c : ℂ} {R : ℝ} {z w : ℂ} (hR : 0 < R)
-    (hz  : z ∈ Metric.ball c R)
-    (hw  : w ∈ Metric.ball c R)
+    (hz : z ∈ Metric.ball c R)
+    (hw : w ∈ Metric.ball c R)
     (hzw : (↑z.re + ↑w.im * I : ℂ) ∈ Metric.ball c R)
     (hwz : (↑w.re + ↑z.im * I : ℂ) ∈ Metric.ball c R) :
     Set.uIcc z.re w.re ×ℂ Set.uIcc z.im w.im ⊆ Metric.ball c R := by
@@ -310,11 +326,11 @@ lemma horiz_seg_in_ball {c : ℂ} {R : ℝ} (hR : 0 < R) {x₁ x₂ y : ℝ}
   have h_rect := rect_in_ball_of_corners_in_ball hR h₁ h₂ (h_off x₁ x₂ h₁) (h_off x₂ x₁ h₂)
   apply h_rect
   refine ⟨?_, ?_⟩
-  · show (↑t + ↑y * I : ℂ).re ∈ Set.uIcc (↑x₁ + ↑y * I : ℂ).re (↑x₂ + ↑y * I : ℂ).re
+  · change (↑t + ↑y * I : ℂ).re ∈ Set.uIcc (↑x₁ + ↑y * I : ℂ).re (↑x₂ + ↑y * I : ℂ).re
     simp only [Complex.add_re, Complex.ofReal_re, Complex.mul_re, Complex.I_re, Complex.I_im,
                Complex.ofReal_im, mul_zero, zero_mul, sub_zero, add_zero]
     exact ht
-  · show (↑t + ↑y * I : ℂ).im ∈ Set.uIcc (↑x₁ + ↑y * I : ℂ).im (↑x₂ + ↑y * I : ℂ).im
+  · change (↑t + ↑y * I : ℂ).im ∈ Set.uIcc (↑x₁ + ↑y * I : ℂ).im (↑x₂ + ↑y * I : ℂ).im
     simp only [Complex.add_im, Complex.ofReal_im, Complex.mul_im, Complex.I_re, Complex.I_im,
                Complex.ofReal_re, mul_one, zero_mul, add_zero, zero_add]
     exact Set.left_mem_uIcc
@@ -340,11 +356,11 @@ lemma vert_seg_in_ball {c : ℂ} {R : ℝ} (hR : 0 < R) {x y₁ y₂ : ℝ}
   have h_rect := rect_in_ball_of_corners_in_ball hR h₁ h₂ h_off1 h_off2
   apply h_rect
   refine ⟨?_, ?_⟩
-  · show (↑x + ↑s * I : ℂ).re ∈ Set.uIcc (↑x + ↑y₁ * I : ℂ).re (↑x + ↑y₂ * I : ℂ).re
+  · change (↑x + ↑s * I : ℂ).re ∈ Set.uIcc (↑x + ↑y₁ * I : ℂ).re (↑x + ↑y₂ * I : ℂ).re
     simp only [Complex.add_re, Complex.ofReal_re, Complex.mul_re, Complex.I_re, Complex.I_im,
                Complex.ofReal_im, mul_zero, zero_mul, sub_zero, add_zero]
     exact Set.left_mem_uIcc
-  · show (↑x + ↑s * I : ℂ).im ∈ Set.uIcc (↑x + ↑y₁ * I : ℂ).im (↑x + ↑y₂ * I : ℂ).im
+  · change (↑x + ↑s * I : ℂ).im ∈ Set.uIcc (↑x + ↑y₁ * I : ℂ).im (↑x + ↑y₂ * I : ℂ).im
     simp only [Complex.add_im, Complex.ofReal_im, Complex.mul_im, Complex.I_re, Complex.I_im,
                Complex.ofReal_re, mul_one, zero_mul, add_zero, zero_add]
     exact hs

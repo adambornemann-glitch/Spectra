@@ -1,8 +1,7 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
-Filename: Operator/SymmetricExtensionClassification.lean
 -/
 import Spectra.Operator.SymmetricExtension
 
@@ -374,7 +373,7 @@ theorem inducedDefectDomain_vonNeumannExtensionOn (hsym : A.IsFormalAdjoint A)
     have huniq := existsUnique_deficiency_decomposition A hsym hdense hclosed huadj
     have h1 : η' + ξ = ((0 : A.domain) : H) + ((⟨η', hη'N⟩ :
         deficiencySubspacePlus A) : H) + ((⟨ξ, hξN⟩ : deficiencySubspaceMinus A) : H) := by
-      show η' + ξ = 0 + η' + ξ
+      change η' + ξ = 0 + η' + ξ
       rw [zero_add]
     have h2 : η' + ξ = ((x : H)) + ((⟨(η : H), hF η.2⟩ : deficiencySubspacePlus A) : H)
         + ((-(V η) : deficiencySubspaceMinus A) : H) := by

@@ -1,5 +1,5 @@
 /-
-Copyright (c) 2026 Bell Theorem Formalization Project
+Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/

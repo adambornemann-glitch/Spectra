@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
-Author: Adam Bornemann
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Adam Bornemann
 -/
 import Spectra.Modular.KMS.UnitaryGroup
 import Spectra.Modular.KMS.Modular
@@ -115,7 +115,7 @@ theorem State.isCyclic_gnsVonNeumann (ω : State A) :
     rintro _ ⟨x, rfl⟩
     refine Submodule.subset_span ⟨ω.toPLM.gnsStarAlgHom (ω.toPLM.ofPreGNS x),
       ω.gnsStarAlgHom_mem_gnsVonNeumann (ω.toPLM.ofPreGNS x), ?_⟩
-    show ω.toPLM.gnsStarAlgHom (ω.toPLM.ofPreGNS x) ω.cyclicVector = (↑x : ω.gnsSpace)
+    change ω.toPLM.gnsStarAlgHom (ω.toPLM.ofPreGNS x) ω.cyclicVector = (↑x : ω.gnsSpace)
     rw [ω.gnsStarAlgHom_cyclicVector, toPreGNS_ofPreGNS]
   exact Dense.mono hsub (UniformSpace.Completion.denseRange_coe (α := ω.toPLM.PreGNS))
 

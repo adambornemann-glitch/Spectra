@@ -1,6 +1,6 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Spectra.Kernel.Defs
@@ -151,7 +151,8 @@ private lemma lorentzian_concentration (t δ : ℝ) (hδ : δ > 0) :
 /-- The Lorentzian kernel smeared against an integrable function is integrable.
     This is the basic integrability input for Stone's formula and the
     resolvent functional calculus: if `f ∈ L¹(ℝ)` then `s ↦ ε/((s-t)²+ε²) · f(s)` is in `L¹(ℝ)`,
-    with the bound `‖K·f‖_{L¹} ≤ (1/ε)‖f‖_{L¹}` following from `lorentzian_bound`. (Currently unused.) -/
+    with the bound `‖K·f‖_{L¹} ≤ (1/ε)‖f‖_{L¹}` following from `lorentzian_bound`.
+    (Currently unused.) -/
 private lemma lorentzian_smul_integrable (f : ℝ → ℂ) (hf_int : Integrable f)
     (t : ℝ) (ε : ℝ) (hε : ε > 0) :
     Integrable (fun s => (ε / ((s - t)^2 + ε^2)) • f s) := by
@@ -284,7 +285,8 @@ lemma lorentzian_approx_delta (f : ℝ → ℂ) (hf_cont : Continuous f)
         ((poissonKernel_continuous hε_pos).comp (continuous_id.sub continuous_const))
         |>.aestronglyMeasurable.mul hf_int.aestronglyMeasurable)
     · filter_upwards with s
-      simp [Real.norm_eq_abs, abs_of_nonneg (hK_nonneg ε hε_pos s)]
+      simp only [Complex.norm_mul, norm_real, Real.norm_eq_abs, one_div,
+        mul_inv_rev, abs_of_nonneg (hK_nonneg ε hε_pos s)]
       apply mul_le_mul_of_nonneg_right _ (norm_nonneg _)
       simp only [K]
       calc (1 / Real.pi) * (ε / ((s - t) ^ 2 + ε ^ 2))

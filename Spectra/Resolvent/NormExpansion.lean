@@ -1,6 +1,6 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Spectra.Resolvent.Defs
@@ -93,7 +93,7 @@ omit [InnerProductSpace ℂ H] in
 /-- Private helper shared by `norm_le_norm_sub_I_smul` and `norm_le_norm_add_I_smul`: given the
 `‖v‖² = ‖x‖² + ‖w‖²` norm-expansion identity for vectors `v`, `x`, `w`, conclude `‖w‖ ≤ ‖v‖`. -/
 private lemma norm_le_of_norm_sq_eq_add {x v w : H}
-    (h_sq : ‖v‖^2 = ‖x‖^2 + ‖w‖^2) :
+    (h_sq : ‖v‖ ^ 2 = ‖x‖ ^ 2 + ‖w‖ ^ 2) :
     ‖w‖ ≤ ‖v‖ := by
   have : ‖w‖^2 ≤ ‖v‖^2 := by nlinarith [sq_nonneg ‖x‖]
   exact le_of_sq_le_sq this (norm_nonneg _)

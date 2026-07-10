@@ -1,8 +1,7 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
-Filename: Operator/WeylCriterion.lean
 -/
 import Spectra.Resolvent.BoundedBelow
 /-!
@@ -64,7 +63,7 @@ private lemma exists_weylSequence_of_not_boundedBelow {A : H →ₗ.[ℂ] H} {la
   set φn : ℕ → A.domain := fun n => (‖(ψ0 n : H)‖ : ℂ)⁻¹ • ψ0 n with hφn
   have hφnorm : ∀ n, ‖(φn n : H)‖ = 1 := by
     intro n
-    show ‖(‖(ψ0 n : H)‖ : ℂ)⁻¹ • (ψ0 n : H)‖ = 1
+    change ‖(‖(ψ0 n : H)‖ : ℂ)⁻¹ • (ψ0 n : H)‖ = 1
     rw [norm_smul]
     simp [(hne n).ne']
   have hφeig : ∀ n, ‖A (φn n) - (lam : ℂ) • (φn n : H)‖ < 1 / ((n : ℝ) + 1) := by

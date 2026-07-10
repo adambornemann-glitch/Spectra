@@ -1,6 +1,6 @@
 /-
-Copyright (c) 2026 Logos Library Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Mathlib.Analysis.Distribution.AEEqOfIntegralContDiff
@@ -70,7 +70,7 @@ lemma exists_contDiff_hasCompactSupport_deriv_eq {k : ℝ → ℝ}
   · apply HasCompactSupport.intro (isCompact_Icc (a := a₀) (b := R))
     intro x hx
     rw [mem_Icc, not_and_or, not_le, not_le] at hx
-    show (∫ t in a₀..x, k t) = 0
+    change (∫ t in a₀..x, k t) = 0
     rcases hx with hlt | hgt
     · -- x < a₀ : integrate over a region left of the support
       rw [intervalIntegral.integral_of_ge hlt.le, neg_eq_zero]
@@ -208,7 +208,8 @@ theorem ae_eq_affine_of_integral_deriv2_mul_eq_zero (f : ℝ → ℝ)
       simp only [id_eq, mul_one] at h
       exact h
     have hint1 : Integrable (fun x => deriv g x * x) volume :=
-      ((contDiff_infty_iff_deriv.mp hg).2.continuous.mul continuous_id').integrable_of_hasCompactSupport
+      ((contDiff_infty_iff_deriv.mp hg).2.continuous.mul
+        continuous_id').integrable_of_hasCompactSupport
         (hg0.deriv.mul_right)
     rw [show (fun x => deriv (fun y => g y * y) x) = (fun x => deriv g x * x + g x) from
         funext hde, integral_add hint1 (hg.continuous.integrable_of_hasCompactSupport hg0)] at hz
@@ -217,7 +218,8 @@ theorem ae_eq_affine_of_integral_deriv2_mul_eq_zero (f : ℝ → ℝ)
   obtain ⟨b, hb⟩ := ae_eq_const_of_integral_deriv_mul_eq_zero (fun x => f x - a * x)
     (hf.sub ((continuous_const.mul continuous_id').locallyIntegrable)) (fun g hg hg0 => by
       have hdgx : Integrable (fun x => deriv g x * x) volume :=
-        ((contDiff_infty_iff_deriv.mp hg).2.continuous.mul continuous_id').integrable_of_hasCompactSupport
+        ((contDiff_infty_iff_deriv.mp hg).2.continuous.mul
+          continuous_id').integrable_of_hasCompactSupport
           (hg0.deriv.mul_right)
       have e1 : ∫ x, deriv g x * (f x - a * x)
           = (∫ x, deriv g x * f x) - a * ∫ x, deriv g x * x := by
@@ -261,7 +263,8 @@ theorem integral_primitive_mul_deriv {h : ℝ → ℝ} (hh : LocallyIntegrable h
     rw [abs_le] at hx0M; constructor <;> linarith [hx0M.1, hx0M.2]
   -- absolute continuity of the primitive and the test function
   have hii : IntervalIntegrable h volume (-M) M :=
-    intervalIntegrable_iff.mpr ((hh.integrableOn_isCompact isCompact_uIcc).mono_set Set.uIoc_subset_uIcc)
+    intervalIntegrable_iff.mpr ((hh.integrableOn_isCompact isCompact_uIcc).mono_set
+      Set.uIoc_subset_uIcc)
   have hFac : AbsolutelyContinuousOnInterval F (-M) M :=
     hii.absolutelyContinuousOnInterval_intervalIntegral hx₀mem
   have hψac : AbsolutelyContinuousOnInterval ψ (-M) M :=
@@ -320,12 +323,15 @@ theorem classical_of_weak_ode {c : ℝ → ℝ} (hc : LocallyIntegrable c volume
       (∀ x, deriv^[2] c₀ x + deriv c₀ x - b x * c₀ x = 0) := by
   -- interval integrability of `c` and `b·c`
   have hcII : ∀ p q : ℝ, IntervalIntegrable c volume p q := fun p q =>
-    intervalIntegrable_iff.mpr ((hc.integrableOn_isCompact isCompact_uIcc).mono_set Set.uIoc_subset_uIcc)
+    intervalIntegrable_iff.mpr ((hc.integrableOn_isCompact isCompact_uIcc).mono_set
+      Set.uIoc_subset_uIcc)
   have hbc : LocallyIntegrable (fun x => b x * c x) volume :=
     locallyIntegrableOn_univ.mp
-      ((locallyIntegrableOn_univ.mpr hc).continuousOn_mul hb.continuousOn isOpen_univ.isLocallyClosed)
+      ((locallyIntegrableOn_univ.mpr hc).continuousOn_mul hb.continuousOn
+        isOpen_univ.isLocallyClosed)
   have hbcII : ∀ p q : ℝ, IntervalIntegrable (fun x => b x * c x) volume p q := fun p q =>
-    intervalIntegrable_iff.mpr ((hbc.integrableOn_isCompact isCompact_uIcc).mono_set Set.uIoc_subset_uIcc)
+    intervalIntegrable_iff.mpr ((hbc.integrableOn_isCompact isCompact_uIcc).mono_set
+      Set.uIoc_subset_uIcc)
   -- primitives `G₁ = ∫c`, `g = ∫bc`, `G₂ = ∫g`
   set G₁ : ℝ → ℝ := fun x => ∫ t in (0:ℝ)..x, c t with hG₁
   set g : ℝ → ℝ := fun x => ∫ t in (0:ℝ)..x, b t * c t with hg
@@ -404,7 +410,7 @@ theorem classical_of_weak_ode {c : ℝ → ℝ} (hc : LocallyIntegrable c volume
   have hae : c =ᵐ[volume] c₀ := by
     filter_upwards [hαβ] with x hx
     simp only [hf] at hx
-    show c x = α * x + β - G₁ x + G₂ x
+    change c x = α * x + β - G₁ x + G₂ x
     linarith [hx]
   -- FTC for the three primitives, re-expressed through the continuous representative
   have hbc₀cont : Continuous (fun x => b x * c₀ x) := hb.mul hc₀cont
@@ -439,7 +445,7 @@ theorem classical_of_weak_ode {c : ℝ → ℝ} (hc : LocallyIntegrable c volume
     rw [hderiv1_eq]
     exact ((hc₀d1 x).const_sub α).add (hgd x)
   have hderiv2 : ∀ x, deriv^[2] c₀ x = -(α - c₀ x + g x) + b x * c₀ x := fun x => by
-    show deriv (deriv c₀) x = -(α - c₀ x + g x) + b x * c₀ x
+    change deriv (deriv c₀) x = -(α - c₀ x + g x) + b x * c₀ x
     exact (hc₀d2 x).deriv
   refine ⟨c₀, hae, ?_, ?_, ?_⟩
   · intro x; rw [hderiv1 x]; exact hc₀d1 x

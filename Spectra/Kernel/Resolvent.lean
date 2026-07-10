@@ -1,6 +1,6 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Spectra.Kernel.Defs
@@ -81,7 +81,7 @@ lemma resolvent_kernel_im (s t ε : ℝ) (hε : ε > 0) :
   simp [Complex.add_im, Complex.mul_im]
 
 /-- Key identity: difference of resolvent kernels at conjugate points.
-`(s - (t + iε))⁻¹ - (s - (t - iε))⁻¹ = 2iε / ((s-t)² + ε²)`-/
+`(s - (t + iε))⁻¹ - (s - (t - iε))⁻¹ = 2iε / ((s-t)² + ε²)` -/
 lemma resolvent_kernel_diff (s t ε : ℝ) (hε : ε > 0) :
     ((s : ℂ) - (↑t + ↑ε * I))⁻¹ - ((s : ℂ) - (↑t - ↑ε * I))⁻¹ =
     (2 * ε * I) / ((s - t)^2 + ε^2 : ℂ) := by

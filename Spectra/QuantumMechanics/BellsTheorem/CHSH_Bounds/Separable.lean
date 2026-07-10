@@ -1,9 +1,10 @@
 /-
-Copyright (c) 2025 Bell Theorem Formalization Project
+Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Ported from Isabelle/HOL formalization by Echenim & Mhalla
-Ported by: Adam Bornemann
-
+Authors: Ported from Isabelle/HOL formalization by Echenim & Mhalla, by Adam Bornemann
+-/
+import Spectra.QuantumMechanics.BellsTheorem.CHSH_Bounds.CHSH_Basic
+/-!
 # Product States Cannot Violate CHSH
 
 The CHSH bound for a pure product state `ρ_A ⊗ ρ_B`: expand the CHSH operator on the Kronecker
@@ -32,8 +33,6 @@ here.
 
 chsh, product state, separable state, quantum information
 -/
-import Spectra.QuantumMechanics.BellsTheorem.CHSH_Bounds.CHSH_Basic
-
 open Matrix Complex
 
 namespace Spectra.QuantumInfo

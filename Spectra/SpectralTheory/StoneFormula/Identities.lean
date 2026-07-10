@@ -1,8 +1,7 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
-Filename: SpectralTheory/StoneFormula/Identities.lean
 -/
 import Spectra.Resolvent.SpectralRepresentation
 import Spectra.Kernel.Lorentzian
@@ -18,12 +17,15 @@ stack, the rest collapse onto `solution_unique` and the constructed calculus:
 
 | old                                       | new                                          |
 | ------------------------------------------ | -------------------------------------------- |
-| `resolvent_kernel_identity`, product lemmas | dropped — `resolvent_identity` is proved at the operator level upstream |
+| `resolvent_kernel_identity`, product lemmas | dropped — `resolvent_identity` is proved at the |
+|                                              | operator level upstream |
 | `first_resolvent_identity`                 | upstream: `resolvent_identity`               |
 | `resolvent_opNorm_bound`                   | upstream: `resolvent_bound`                  |
-| `resolvent_comm`                           | `resolvent_comm` (two lines via `spectralCalculus_comm`) |
+| `resolvent_comm`                           | `resolvent_comm` (two lines via |
+|                                              | `spectralCalculus_comm`) |
 | `resolvent_maps_to_domain`                 | `resolvent_mem_domain` (definitional)        |
-| `resolventFun_left_inverse` (private, ~60 lines) | `resolvent_left_inverse` (via `solution_unique`) |
+| `resolventFun_left_inverse` (private, | `resolvent_left_inverse` (via `solution_unique`) |
+| ~60 lines) | |
 | `second_resolvent_identity`                | same statement, abstract operators           |
 | `born_series` (custom `neumannSeries`)     | `born_series` via Mathlib's `Units.oneSub`   |
 | `resolvent_norm_blowup_at_spectrum`        | ported to `spectralProjection`/`borelMeasure` |
@@ -51,7 +53,7 @@ variable (U_grp : OneParameterUnitaryGroup (H := H))
 `Classical.choose` witness of `self_adjoint_range_all_z`. -/
 lemma resolvent_mem_domain
     {A : H →ₗ.[ℂ] H} (hsym : A.IsFormalAdjoint A)
-    (hplus  : ∀ φ : H, ∃ ψ : A.domain, A ψ + I • (ψ : H) = φ)
+    (hplus : ∀ φ : H, ∃ ψ : A.domain, A ψ + I • (ψ : H) = φ)
     (hminus : ∀ φ : H, ∃ ψ : A.domain, A ψ - I • (ψ : H) = φ)
     (z : ℂ) (hz : z.im ≠ 0) (φ : H) :
     resolvent z hz hsym hplus hminus φ ∈ A.domain :=
@@ -60,7 +62,7 @@ lemma resolvent_mem_domain
 /-- The defining equation of the resolvent: `(A − z)(R(z)φ) = φ`. -/
 lemma resolvent_solves
     {A : H →ₗ.[ℂ] H} (hsym : A.IsFormalAdjoint A)
-    (hplus  : ∀ φ : H, ∃ ψ : A.domain, A ψ + I • (ψ : H) = φ)
+    (hplus : ∀ φ : H, ∃ ψ : A.domain, A ψ + I • (ψ : H) = φ)
     (hminus : ∀ φ : H, ∃ ψ : A.domain, A ψ - I • (ψ : H) = φ)
     (z : ℂ) (hz : z.im ≠ 0) (φ : H) :
     A ⟨resolvent z hz hsym hplus hminus φ, resolvent_mem_domain hsym hplus hminus z hz φ⟩
@@ -71,7 +73,7 @@ lemma resolvent_solves
 more — the old proof re-derived injectivity of `A − z` by hand. -/
 lemma resolvent_left_inverse
     {A : H →ₗ.[ℂ] H} (hsym : A.IsFormalAdjoint A)
-    (hplus  : ∀ φ : H, ∃ ψ : A.domain, A ψ + I • (ψ : H) = φ)
+    (hplus : ∀ φ : H, ∃ ψ : A.domain, A ψ + I • (ψ : H) = φ)
     (hminus : ∀ φ : H, ∃ ψ : A.domain, A ψ - I • (ψ : H) = φ)
     (z : ℂ) (hz : z.im ≠ 0) (ψ : A.domain) :
     resolvent z hz hsym hplus hminus (A ψ - z • (ψ : H)) = (ψ : H) := by
@@ -114,7 +116,7 @@ stated pointwise with the single domain hypothesis `R_B(z)ψ ∈ D(A)` (membersh
 theorem second_resolvent_identity
     {A B : H →ₗ.[ℂ] H}
     (hsymA : A.IsFormalAdjoint A)
-    (hplusA  : ∀ φ : H, ∃ ψ : A.domain, A ψ + I • (ψ : H) = φ)
+    (hplusA : ∀ φ : H, ∃ ψ : A.domain, A ψ + I • (ψ : H) = φ)
     (hminusA : ∀ φ : H, ∃ ψ : A.domain, A ψ - I • (ψ : H) = φ)
     (hsymB : B.IsFormalAdjoint B)
     (hplusB  : ∀ φ : H, ∃ ψ : B.domain, B ψ + I • (ψ : H) = φ)
@@ -156,7 +158,7 @@ content is the algebraic identity `R_A(z)·(1 + V·R_B(z)) = R_B(z)`, which is
 theorem born_series
     {A B : H →ₗ.[ℂ] H}
     (hsymA : A.IsFormalAdjoint A)
-    (hplusA  : ∀ φ : H, ∃ ψ : A.domain, A ψ + I • (ψ : H) = φ)
+    (hplusA : ∀ φ : H, ∃ ψ : A.domain, A ψ + I • (ψ : H) = φ)
     (hminusA : ∀ φ : H, ∃ ψ : A.domain, A ψ - I • (ψ : H) = φ)
     (hsymB : B.IsFormalAdjoint B)
     (hplusB  : ∀ φ : H, ∃ ψ : B.domain, B ψ + I • (ψ : H) = φ)

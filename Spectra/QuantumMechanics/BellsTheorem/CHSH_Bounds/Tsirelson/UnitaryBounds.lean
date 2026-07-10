@@ -1,8 +1,7 @@
 /-
-Copyright (c) 2025 Bell Theorem Formalization Project
+Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Ported from Isabelle/HOL formalization by Echenim & Mhalla
-Ported by: Adam Bornemann
+Authors: Ported from Isabelle/HOL formalization by Echenim & Mhalla, by Adam Bornemann
 -/
 import Spectra.QuantumMechanics.BellsTheorem.CHSH_Bounds.Commuting
 
@@ -122,7 +121,6 @@ lemma unitary_add_conjTranspose_le_two {n : ℕ} [NeZero n]
     simp only [nsmul_eq_mul, Nat.cast_ofNat, mul_re, re_ofNat, im_ofNat, zero_mul, sub_zero]
   -- ⊢ 0 ≤ (star x ⬝ᵥ 2 • x).re - 2 * (star x ⬝ᵥ U *ᵥ x).re
   rw [h_self_eq]
-
   -- Goal: 0 ≤ 2 * ∑ i, ‖x i‖^2 - 2 * (star x ⬝ᵥ U.mulVec x).re
   have h_bound := inner_mulVec_self_bound_unitary U hU x
   rw [norm_star_dotProduct_self] at h_bound
@@ -227,7 +225,8 @@ lemma norm_unitary_add_conjTranspose_mulVec {n : ℕ} [NeZero n]
     congr 1
     rw [h_norm_UHx, h_UH_norm, ← h_norm_x]
   calc ‖WithLp.toLp 2 (U.mulVec x + Uᴴ.mulVec x)‖^2
-      ≤ (‖Ux'‖ + ‖UHx'‖)^2 := sq_le_sq' (by linarith [norm_nonneg (WithLp.toLp 2 (U.mulVec x + Uᴴ.mulVec x))]) h_triangle
+      ≤ (‖Ux'‖ + ‖UHx'‖)^2 :=
+        sq_le_sq' (by linarith [norm_nonneg (WithLp.toLp 2 (U.mulVec x + Uᴴ.mulVec x))]) h_triangle
     _ = (‖x'‖ + ‖x'‖)^2 := by rw [h_Ux_eq, h_UHx_eq]
     _ = 4 * ‖x'‖^2 := by ring
     _ = 4 * ∑ i, ‖x i‖^2 := by rw [h_norm_x]

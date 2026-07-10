@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
-Author: Adam Bornemann
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Adam Bornemann
 -/
 import Spectra.QuantumMechanics.Channels.TraceClass.HilbertSchmidtNorm
 import Spectra.QuantumMechanics.Channels.TraceClass.Cyclic
@@ -29,7 +29,8 @@ The square-root factors `√ρ, √σ` are Hilbert–Schmidt exactly because `ρ
 
 * `hsNorm_sqrtOp_of_nonneg` — `‖√ρ‖₂ = √(tr ρ)` for `0 ≤ ρ`.
 * `fidelity_self` — `F(ρ, ρ) = tr ρ`.
-* `fidelity_le_sqrt_mul` — **`F(ρ, σ) ≤ √(tr ρ · tr σ)`** (the Schatten–Hölder / Cauchy–Schwarz bound).
+* `fidelity_le_sqrt_mul` — **`F(ρ, σ) ≤ √(tr ρ · tr σ)`** (the Schatten–Hölder / Cauchy–Schwarz
+  bound).
 * `fidelity_le_one` — `F(ρ, σ) ≤ 1` for normalized states.
 
 ## Context
@@ -48,8 +49,8 @@ variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteS
 
 /-! ## The Hilbert–Schmidt norm of a square root -/
 
-/-- **`‖√ρ‖₂ = √(tr ρ)`** for a positive operator `ρ`.  Definitional: the Hilbert–Schmidt sum of `√ρ`
-is `∑ᵢ ‖√ρ eᵢ‖² = ∑ᵢ ⟪eᵢ, ρ eᵢ⟫ = tr ρ` (the positive trace of `ρ`). -/
+/-- **`‖√ρ‖₂ = √(tr ρ)`** for a positive operator `ρ`.  Definitional: the Hilbert–Schmidt sum of
+`√ρ` is `∑ᵢ ‖√ρ eᵢ‖² = ∑ᵢ ⟪eᵢ, ρ eᵢ⟫ = tr ρ` (the positive trace of `ρ`). -/
 lemma hsNorm_sqrtOp_of_nonneg {ρ : H →L[ℂ] H} (hρ : 0 ≤ ρ) :
     hsNorm (sqrtOp ρ) = Real.sqrt (traceNorm ρ) := by
   rw [traceNorm_of_nonneg hρ (stdHilbertBasis H)]; rfl
@@ -106,7 +107,8 @@ lemma isTraceClass_adjoint (A : H →L[ℂ] H) : IsTraceClass (A†) ↔ IsTrace
   have fwd : ∀ B : H →L[ℂ] H, IsTraceClass B → IsTraceClass (B†) := by
     intro B hB
     rw [← isTraceClass_absOp, absOp_adjoint_eq B]
-    exact (((isTraceClass_absOp _).mpr hB).comp_right ((polarIsometry B)†)).comp_left (polarIsometry B)
+    exact (((isTraceClass_absOp _).mpr hB).comp_right ((polarIsometry B)†)).comp_left
+      (polarIsometry B)
   refine ⟨fun h => ?_, fwd A⟩
   have h2 := fwd (A†) h
   rwa [ContinuousLinearMap.adjoint_adjoint] at h2
@@ -127,21 +129,22 @@ lemma isTraceClass_adjoint (A : H →L[ℂ] H) : IsTraceClass (A†) ↔ IsTrace
     have h1 : posTrace (stdHilbertBasis H) (absOp (A†)) = ⊤ := by
       by_contra h; exact hA ((isTraceClass_adjoint A).mp h)
     have h2 : posTrace (stdHilbertBasis H) (absOp A) = ⊤ := by by_contra h; exact hA h
-    show (posTrace (stdHilbertBasis H) (absOp (A†))).toReal
+    change (posTrace (stdHilbertBasis H) (absOp (A†))).toReal
         = (posTrace (stdHilbertBasis H) (absOp A)).toReal
     rw [h1, h2]
 
 /-! ## The fidelity and its elementary bounds -/
 
 /-- The **Uhlmann–Jozsa fidelity** `F(ρ, σ) = ‖√ρ √σ‖₁` of two positive trace-class operators.
-Total function (junk value off the positive operators, where `√·` is the continuous-functional-calculus
-square root of a non-positive operator). -/
+Total function (junk value off the positive operators, where `√·` is the
+continuous-functional-calculus square root of a non-positive operator). -/
 noncomputable def fidelity (ρ σ : H →L[ℂ] H) : ℝ := traceNorm (sqrtOp ρ ∘L sqrtOp σ)
 
 /-- The fidelity is nonnegative. -/
 lemma fidelity_nonneg (ρ σ : H →L[ℂ] H) : 0 ≤ fidelity ρ σ := traceNorm_nonneg _
 
-/-- `√ρ √σ` is trace class (so `F(ρ, σ)` is the honest trace norm) for positive trace-class `ρ, σ`. -/
+/-- `√ρ √σ` is trace class (so `F(ρ, σ)` is the honest trace norm) for positive trace-class
+`ρ, σ`. -/
 lemma isTraceClass_sqrtOp_comp_sqrtOp {ρ σ : H →L[ℂ] H} (hρ : 0 ≤ ρ) (hσ : 0 ≤ σ)
     (hTCρ : IsTraceClass ρ) (hTCσ : IsTraceClass σ) : IsTraceClass (sqrtOp ρ ∘L sqrtOp σ) :=
   (isHilbertSchmidt_sqrtOp_of_nonneg hρ hTCρ).isTraceClass_comp
@@ -149,16 +152,16 @@ lemma isTraceClass_sqrtOp_comp_sqrtOp {ρ σ : H →L[ℂ] H} (hρ : 0 ≤ ρ) (
 
 /-- **`F(ρ, ρ) = tr ρ`.**  Since `√ρ √ρ = ρ` for `0 ≤ ρ`. -/
 lemma fidelity_self {ρ : H →L[ℂ] H} (hρ : 0 ≤ ρ) : fidelity ρ ρ = traceNorm ρ := by
-  show traceNorm (sqrtOp ρ ∘L sqrtOp ρ) = traceNorm ρ
+  change traceNorm (sqrtOp ρ ∘L sqrtOp ρ) = traceNorm ρ
   rw [← ContinuousLinearMap.mul_def, sqrtOp_mul_self ρ hρ]
 
-/-- **The fidelity is symmetric:** `F(ρ, σ) = F(σ, ρ)`.  Since `(√σ √ρ)⋆ = √ρ √σ` (the square roots are
-self-adjoint) and the trace norm is adjoint-invariant (`traceNorm_adjoint`). -/
+/-- **The fidelity is symmetric:** `F(ρ, σ) = F(σ, ρ)`.  Since `(√σ √ρ)⋆ = √ρ √σ` (the square
+roots are self-adjoint) and the trace norm is adjoint-invariant (`traceNorm_adjoint`). -/
 lemma fidelity_comm (ρ σ : H →L[ℂ] H) : fidelity ρ σ = fidelity σ ρ := by
   have hcomp : (sqrtOp σ ∘L sqrtOp ρ)† = sqrtOp ρ ∘L sqrtOp σ := by
     rw [ContinuousLinearMap.adjoint_comp, ← star_eq_adjoint, ← star_eq_adjoint,
       (sqrtOp_isSelfAdjoint ρ).star_eq, (sqrtOp_isSelfAdjoint σ).star_eq]
-  show traceNorm (sqrtOp ρ ∘L sqrtOp σ) = traceNorm (sqrtOp σ ∘L sqrtOp ρ)
+  change traceNorm (sqrtOp ρ ∘L sqrtOp σ) = traceNorm (sqrtOp σ ∘L sqrtOp ρ)
   rw [← hcomp, traceNorm_adjoint]
 
 /-- **The Schatten–Hölder / Cauchy–Schwarz bound on the fidelity:** `F(ρ, σ) ≤ √(tr ρ · tr σ)`.
@@ -166,7 +169,7 @@ Directly from `‖√ρ √σ‖₁ ≤ ‖√ρ‖₂ ‖√σ‖₂` (`traceNo
 theorem fidelity_le_sqrt_mul {ρ σ : H →L[ℂ] H} (hρ : 0 ≤ ρ) (hσ : 0 ≤ σ)
     (hTCρ : IsTraceClass ρ) (hTCσ : IsTraceClass σ) :
     fidelity ρ σ ≤ Real.sqrt (traceNorm ρ * traceNorm σ) := by
-  show traceNorm (sqrtOp ρ ∘L sqrtOp σ) ≤ Real.sqrt (traceNorm ρ * traceNorm σ)
+  change traceNorm (sqrtOp ρ ∘L sqrtOp σ) ≤ Real.sqrt (traceNorm ρ * traceNorm σ)
   calc traceNorm (sqrtOp ρ ∘L sqrtOp σ)
       ≤ hsNorm (sqrtOp ρ) * hsNorm (sqrtOp σ) :=
         traceNorm_comp_le (isHilbertSchmidt_sqrtOp_of_nonneg hρ hTCρ)
@@ -177,7 +180,8 @@ theorem fidelity_le_sqrt_mul {ρ σ : H →L[ℂ] H} (hρ : 0 ≤ ρ) (hσ : 0 �
 
 /-- **`F(ρ, σ) ≤ 1`** for normalized states (`tr ρ = tr σ = 1`). -/
 theorem fidelity_le_one {ρ σ : H →L[ℂ] H} (hρ : 0 ≤ ρ) (hσ : 0 ≤ σ)
-    (hTCρ : IsTraceClass ρ) (hTCσ : IsTraceClass σ) (hnρ : traceNorm ρ = 1) (hnσ : traceNorm σ = 1) :
+    (hTCρ : IsTraceClass ρ) (hTCσ : IsTraceClass σ) (hnρ : traceNorm ρ = 1)
+    (hnσ : traceNorm σ = 1) :
     fidelity ρ σ ≤ 1 := by
   have h := fidelity_le_sqrt_mul hρ hσ hTCρ hTCσ
   rwa [hnρ, hnσ, mul_one, Real.sqrt_one] at h

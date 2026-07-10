@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
-Author: Adam Bornemann
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Adam Bornemann
 -/
 import Spectra.Modular.Cocycle.ModularInvolution
 import Spectra.SpectralTheory.Calculus.MixedProduct
@@ -159,7 +159,7 @@ theorem modularSqrt_add_I_surjective (hcyc : IsCyclic M Ω) (hsep : IsSeparating
     rw [spectralCalculus_smul U I (fun s => (1 : ℂ) / ((Real.sqrt s : ℂ) + I)) measurable_resPlus
       resPlus_bdd (measurable_const.mul measurable_resPlus) IResPlus_bdd]
     rfl
-  show _ + I • spectralCalculus U (fun s => (1 : ℂ) / ((Real.sqrt s : ℂ) + I))
+  change _ + I • spectralCalculus U (fun s => (1 : ℂ) / ((Real.sqrt s : ℂ) + I))
     measurable_resPlus resPlus_bdd h = h
   rw [hIR, ← ContinuousLinearMap.add_apply,
     ← spectralCalculus_add U (fun s => (Real.sqrt s : ℂ) * ((1 : ℂ) / ((Real.sqrt s : ℂ) + I)))
@@ -205,7 +205,7 @@ theorem modularSqrt_sub_I_surjective (hcyc : IsCyclic M Ω) (hsep : IsSeparating
     rw [spectralCalculus_smul U I (fun s => (1 : ℂ) / ((Real.sqrt s : ℂ) - I)) measurable_resMinus
       resMinus_bdd (measurable_const.mul measurable_resMinus) IResMinus_bdd]
     rfl
-  show _ - I • spectralCalculus U (fun s => (1 : ℂ) / ((Real.sqrt s : ℂ) - I))
+  change _ - I • spectralCalculus U (fun s => (1 : ℂ) / ((Real.sqrt s : ℂ) - I))
     measurable_resMinus resMinus_bdd h = h
   rw [hIR, ← ContinuousLinearMap.sub_apply,
     ← spectralCalculus_sub U (fun s => (Real.sqrt s : ℂ) * ((1 : ℂ) / ((Real.sqrt s : ℂ) - I)))

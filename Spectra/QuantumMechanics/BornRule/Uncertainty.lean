@@ -1,17 +1,10 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Spectra.QuantumMechanics.Uncertainty.SchrodingerRobertson
 import Spectra.QuantumMechanics.BornRule.Observable
-
-open scoped InnerProductSpace
-open Spectra.Operator
-variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
-namespace Spectra.QuantumMechanics.BornRule
-namespace Uncertainty
-open PVM Moments
 
 /-!
 # Uncertainty, as a Born-rule statement
@@ -50,6 +43,13 @@ its docstring for why it is aliased here.
 * [Reed, Simon, *Methods of Modern Mathematical Physics I: Functional Analysis*], §VIII
   (self-adjoint operators and their spectral/variance calculus).
 -/
+
+open scoped InnerProductSpace
+open Spectra.Operator
+variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
+namespace Spectra.QuantumMechanics.BornRule
+namespace Uncertainty
+open PVM Moments
 
 /-! ## §4  Uncertainty, as a Born-rule statement
 

@@ -1,6 +1,6 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Spectra.SpectralTheory.Spectrum
@@ -13,7 +13,7 @@ For a self-adjoint operator `A = generator U_grp` with an **isolated** real spec
 (a punctured disk around `lam` lies in the resolvent set), the resolvent `resolventOf A` is
 *meromorphic at `lam`*, with a simple pole and residue `−E({lam})`.
 
-The construction mirrors the spectral-gap resolvent `mem_resolventSet_of_spectralProjection_Ioo_eq_zero`
+The construction mirrors spectral-gap resolvent `mem_resolventSet_of_spectralProjection_Ioo_eq_zero`
 (`SpectralTheory/Spectrum.lean`): build the bounded operator `Φ(g)` where `g` is the resolvent
 symbol `(·−z)⁻¹` **truncated to remove the punctured gap** `J = (lam−δ', lam+δ') ∖ {lam}` — the
 truncation removes exactly the spectrally-null interval where the symbol would be unbounded (the
@@ -29,7 +29,7 @@ This file (C3-sym): measurability and the two global bounds (`g` and `s·g`, the
 `generator_spectralCalculus`).
 -/
 open Complex MeasureTheory Filter Topology
-open scoped InnerProductSpace Classical
+open scoped InnerProductSpace
 open Spectra.OneParameterUnitaryGroup
 open Spectra.Resolvent
 
@@ -84,6 +84,7 @@ lemma simplePole_sep {lam δ' : ℝ} {z : ℂ} (hz : dist z (lam : ℂ) < δ' / 
   have htri : |s - lam| ≤ |s - z.re| + |z.re - lam| := abs_sub_le s z.re lam
   linarith
 
+open scoped Classical in
 /-- **Global bound** `‖g(s)‖ ≤ 2/δ' + (dist z lam)⁻¹` (the `(dist z lam)⁻¹` is the residue/pole
 contribution at the lone point `{lam}`). -/
 lemma norm_simplePoleSymbol_le {lam δ' : ℝ} (hδ' : 0 < δ') {z : ℂ}
@@ -103,6 +104,7 @@ lemma norm_simplePoleSymbol_le {lam δ' : ℝ} (hδ' : 0 < δ') {z : ℂ}
       linarith [show (0 : ℝ) ≤ 2 / δ' from by positivity]
   · rw [norm_zero]; positivity
 
+open scoped Classical in
 /-- **Fix-A** — the *spectral* boundedness `‖s·g(s)‖ ≤ C` that `generator_spectralCalculus`
 requires (`s·g = 1_{Jᶜ}(1 + z(s−z)⁻¹)`). -/
 lemma id_mul_simplePoleSymbol_bdd {lam δ' : ℝ} (hδ' : 0 < δ') {z : ℂ}
@@ -294,6 +296,7 @@ theorem meromorphicAt_resolventOf_of_isolated {lam δ' : ℝ} (hδ' : 0 < δ')
 
 /-! ## The residue is `−E({lam})` (C5) -/
 
+open scoped Classical in
 /-- Bound on the **residue symbol** `(z−lam)·g_z(s) + 1_{{lam}}(s)`: it is `≤ ‖z−lam‖·(2/δ')`
 (it vanishes at `s=lam` because `(z−lam)(lam−z)⁻¹ = −1`). -/
 lemma norm_residueSymbol_le {lam δ' : ℝ} (hδ' : 0 < δ') {z : ℂ}

@@ -1,8 +1,7 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
-Filename: StoneBridge/Basic.lean
 -/
 import Spectra.CayleyTransform.Generator.Stone   -- stoneGroup, stoneExp, generator_stoneGroup
 import Spectra.YosidaHille.Basic                 -- genToGroup, generator_genToGroup, stoneEquiv

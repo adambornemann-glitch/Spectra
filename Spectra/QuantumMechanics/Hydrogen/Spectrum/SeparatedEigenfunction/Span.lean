@@ -1,6 +1,6 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Spectra.QuantumMechanics.Hydrogen.Spectrum.SeparatedEigenfunction.Eigenpair
@@ -93,7 +93,8 @@ lemma radial_bound_state_dichotomy_at (ℓ n : ℕ) (hn1 : 1 ≤ n) (ψ : ℝ �
     (hψ0 : Filter.Tendsto (fun r => r * ψ r) (nhdsWithin 0 (Set.Ioi 0)) (nhds 0))
     (heq : ∀ r, 0 < r → RadialEq.radialHamiltonian ℓ ψ r = hydrogenEigenvalue n hn1 * ψ r) :
     (∀ r, 0 < r → ψ r = 0) ∨
-      (∃ (hℓn : ℓ + 1 ≤ n) (c : ℝ), ∀ r, 0 < r → ψ r = c * hydrogenRadialWavefunction n ℓ hℓn r) := by
+      (∃ (hℓn : ℓ + 1 ≤ n) (c : ℝ), ∀ r, 0 < r → ψ r = c *
+        hydrogenRadialWavefunction n ℓ hℓn r) := by
   rcases RadialEq.radial_bound_state_unique ℓ (hydrogenEigenvalue n hn1)
       (hydrogenEigenvalue_neg n hn1) ψ hL2 hψ1 hψ2 hψ0 heq with hzero | ⟨n', hn', c, hEeq, hc⟩
   · exact Or.inl hzero
@@ -108,7 +109,7 @@ decomposition of `Φ` is the radial `L²` element built from the angular coeffic
 Proved by `ext_inner_left`: pairing the `i`-component against an arbitrary `R` reduces, through
 the unitary `sphericalDecomposition` (`lp.inner_single_left`, `inner_map_map`,
 `sphericalDecomposition_symm_single`) and the Fubini identity
-`inner_sectorEmbedding_eq_integral_coeffFun`, to the radial pairing of `R` against `coeffFun i Φ`. -/
+`inner_sectorEmbedding_eq_integral_coeffFun`, to the radial pairing of `R` against `coeffFun i Φ` -/
 lemma sphericalDecomposition_eq_toLp_coeffFun (Φ : Decomposition.l2R3) (i : HarmonicIdx) :
     sphericalDecomposition Φ i = (memLp_coeffFun i Φ).toLp (coeffFun i Φ) := by
   refine ext_inner_left ℂ (fun R => ?_)
@@ -316,7 +317,8 @@ lemma coeffFun_dichotomy (n : ℕ) (hn1 : 1 ≤ n)
     · -- the `-(m:ℤ)` coefficient of `star ψ` is `c·Rc`; conjugate back
       right
       refine ⟨hℓn, (κ : ℂ)⁻¹ * starRingEnd ℂ c, ?_⟩
-      -- from `hcs` and `hc`: `κ·conj(coeffFun⟨ℓ,m⟩ Φ) =ᵐ c·Rc`, so `coeffFun⟨ℓ,m⟩ Φ =ᵐ conj(κ⁻¹c)·Rc`
+      -- from `hcs` and `hc`: `κ·conj(coeffFun⟨ℓ,m⟩ Φ) =ᵐ c·Rc`
+      -- so `coeffFun⟨ℓ,m⟩ Φ =ᵐ conj(κ⁻¹c)·Rc`
       have hcomb : (fun r => (κ : ℂ) *
           starRingEnd ℂ (coeffFun ⟨ℓ, (m : ℤ), hmI⟩
             (chartRealization (ψ : Spectra.Sobolev.l2R3)) r))
@@ -337,7 +339,7 @@ lemma coeffFun_dichotomy (n : ℕ) (hn1 : 1 ≤ n)
       ring
 
 /-- **Index map into the degeneracy family.**  For `ℓ < n` and `|M| ≤ ℓ`, the named eigenfunction
-`ψ_{nℓM}` is literally a member of `degenFamily n` (at the index `⟨⟨ℓ, (M+ℓ).toNat⟩, _⟩`), hence lies
+`ψ_{nℓM}` is literally a member of `degenFamily n` (at index `⟨⟨ℓ, (M+ℓ).toNat⟩, _⟩`), hence lies
 in the span of its range. -/
 lemma hydrogenEigenfunction_mem_span (n ℓ : ℕ) (M : ℤ) (hℓn : ℓ + 1 ≤ n) (hM : |M| ≤ (ℓ : ℤ)) :
     hydrogenEigenfunction n ℓ M hℓn hM ∈ Submodule.span ℂ (Set.range (degenFamily n)) := by
@@ -390,7 +392,8 @@ lemma sectorEmbedding_w_mem_span (n : ℕ) (hn1 : 1 ≤ n)
     have hw0 : sphericalDecomposition Φ ⟨ℓ, M, hM⟩ = 0 := by
       rw [hA]
       refine Lp.ext ?_
-      filter_upwards [(memLp_coeffFun ⟨ℓ, M, hM⟩ Φ).coeFn_toLp, hzero, Lp.coeFn_zero ℂ 2 radialMeasure]
+      filter_upwards [(memLp_coeffFun ⟨ℓ, M, hM⟩ Φ).coeFn_toLp, hzero,
+        Lp.coeFn_zero ℂ 2 radialMeasure]
         with r h1 h2 h3
       rw [h1, h2, h3]
     refine ⟨?_, fun _ => hw0⟩

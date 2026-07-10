@@ -1,6 +1,6 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Spectra.QuantumMechanics.Hydrogen.RadialProblem.Equation.Eigenfunctions
@@ -102,7 +102,7 @@ lemma deriv2_reducedMul (ψ : ℝ → ℝ)
     (hψ2 : ∀ r, 0 < r → HasDerivAt (deriv ψ) (deriv^[2] ψ r) r)
     {r : ℝ} (hr : 0 < r) :
     deriv^[2] (fun s => s * ψ s) r = 2 * deriv ψ r + r * deriv^[2] ψ r := by
-  show deriv (deriv (fun s => s * ψ s)) r = _
+  change deriv (deriv (fun s => s * ψ s)) r = _
   exact (hasDerivAt_deriv_reducedMul ψ hψ1 hψ2 hr).deriv
 
 /-- **The reduced radial equation.** If `ψ` is a `C²` classical solution of
@@ -224,7 +224,7 @@ private lemma deriv2_ansatz (ℓ : ℕ) (κ : ℝ) (w : ℝ → ℝ)
     ((((hpowℓ.const_mul ((ℓ : ℝ) + 1)).mul hexp).mul hw).sub
       (((hpowℓ1.const_mul κ).mul hexp).mul hw)).add
       ((hpowℓ1.mul hexp).mul hw2')
-  show deriv (deriv (fun s => s ^ (ℓ + 1) * Real.exp (-κ * s) * w s)) r = _
+  change deriv (deriv (fun s => s ^ (ℓ + 1) * Real.exp (-κ * s) * w s)) r = _
   rw [hD1eq.deriv_eq, hD1.deriv]
   simp only [Pi.mul_apply]
   ring
@@ -279,7 +279,8 @@ lemma laguerre_ansatz_reduced_iff (ℓ : ℕ) (κ : ℝ) (w : ℝ → ℝ)
 /-- **Non-`L²` from a positive lower bound at infinity.** If `|χ(r)| ≥ A > 0` for all large `r`,
     then `χ` is not square-integrable on `(0,∞)`: `χ(r)² ≥ A² > 0` on the infinite-measure set
     `(max R 1, ∞)`. This is the mechanism by which exponential growth of the Kummer factor
-    (`Spectra.Kummer.kummerM_abs_exp_lower`) breaks normalisability of a non-terminating solution. -/
+    (`Spectra.Kummer.kummerM_abs_exp_lower`) breaks normalisability of a
+    non-terminating solution. -/
 lemma not_radialL2_of_eventually_ge (χ : ℝ → ℝ) {A R : ℝ} (hA : 0 < A)
     (hlb : ∀ r, R ≤ r → A ≤ |χ r|) :
     ¬ IntegrableOn (fun r => χ r ^ 2) (Set.Ioi 0) := by
@@ -342,7 +343,8 @@ private lemma kummerComp_hasDerivAt2 (a b κ : ℝ) (hb : 0 < b) (r : ℝ) :
       = fun s => 2 * κ * deriv (kummerM a b) (2 * κ * s) :=
     funext (fun s => kummerComp_deriv a b κ hb s)
   rw [hfun]
-  have h1 : HasDerivAt (deriv (kummerM a b)) (deriv (deriv (kummerM a b)) (2 * κ * r)) (2 * κ * r) :=
+  have h1 : HasDerivAt (deriv (kummerM a b))
+      (deriv (deriv (kummerM a b)) (2 * κ * r)) (2 * κ * r) :=
     (kummerM_hasDerivAt2 a b hb (2 * κ * r)).differentiableAt.hasDerivAt
   have h2 : HasDerivAt (fun s : ℝ => 2 * κ * s) (2 * κ) r := by
     simpa using (hasDerivAt_id r).const_mul (2 * κ)
@@ -356,7 +358,7 @@ private lemma kummerComp_hasDerivAt2 (a b κ : ℝ) (hb : 0 < b) (r : ℝ) :
 private lemma kummerComp_deriv2 (a b κ : ℝ) (hb : 0 < b) (r : ℝ) :
     deriv^[2] (fun s => kummerM a b (2 * κ * s)) r
       = 4 * κ ^ 2 * deriv (deriv (kummerM a b)) (2 * κ * r) := by
-  show deriv (deriv (fun s => kummerM a b (2 * κ * s))) r = _
+  change deriv (deriv (fun s => kummerM a b (2 * κ * s))) r = _
   exact (kummerComp_hasDerivAt2 a b κ hb r).deriv
 
 /-! ### Part A: `φ` solves the reduced radial ODE -/
@@ -567,7 +569,8 @@ private lemma wronskian_hasDerivAt_zero (ℓ : ℕ) (κ : ℝ) (hκ : 0 < κ) (�
     (hode : ∀ r, 0 < r → deriv^[2] χ r
       = ((ℓ : ℝ) * ((ℓ : ℝ) + 1) / r ^ 2 - 2 / r + κ ^ 2) * χ r)
     {r : ℝ} (hr : 0 < r) :
-    HasDerivAt (fun s => χ s * deriv (kummerRadial ℓ κ) s - deriv χ s * kummerRadial ℓ κ s) 0 r := by
+    HasDerivAt (fun s => χ s * deriv (kummerRadial ℓ κ) s - deriv χ s * kummerRadial ℓ κ s)
+      0 r := by
   have hχd : HasDerivAt χ (deriv χ r) r := hχ1 r hr
   have hχd2 : HasDerivAt (deriv χ) (deriv^[2] χ r) r := hχ2 r hr
   have hφd : HasDerivAt (kummerRadial ℓ κ) (deriv (kummerRadial ℓ κ) r) r :=
@@ -629,7 +632,8 @@ private lemma reduction_order_lower (ℓ : ℕ) (κ : ℝ) {d : ℝ}
   have hii_2 : IntervalIntegrable f volume (2 * r) d := (hcont.mono hsub2).intervalIntegrable
   have hsplit : (∫ s in r..(2 * r), f s) + ∫ s in (2 * r)..d, f s = ∫ s in r..d, f s :=
     intervalIntegral.integral_add_adjacent_intervals hii_1 hii_2
-  have htail : 0 ≤ ∫ s in (2 * r)..d, f s := intervalIntegral.integral_nonneg h2r (fun s _ => hfnn s)
+  have htail : 0 ≤ ∫ s in (2 * r)..d, f s :=
+    intervalIntegral.integral_nonneg h2r (fun s _ => hfnn s)
   have hΦ1 : (∫ s in r..(2 * r), f s) ≤ ∫ s in r..d, f s := by rw [← hsplit]; linarith
   set c₁ := 1 / (4 * (2 * r) ^ (2 * ℓ + 2)) with hc₁
   have hc₁pos : 0 < c₁ := by rw [hc₁]; positivity

@@ -1,6 +1,6 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Spectra.YosidaHille.Basic
@@ -60,7 +60,7 @@ theorem cayleyTransform_isometry
 /-- The Cayley transform is surjective (full lower deficiency). -/
 theorem cayleyTransform_surjective
     {A : H →ₗ.[ℂ] H} (hsym : A.IsFormalAdjoint A)
-    (hplus  : ∀ φ : H, ∃ ψ : A.domain, A ψ + I • (ψ : H) = φ)
+    (hplus : ∀ φ : H, ∃ ψ : A.domain, A ψ + I • (ψ : H) = φ)
     (hminus : ∀ φ : H, ∃ ψ : A.domain, A ψ - I • (ψ : H) = φ) :
     Function.Surjective (cayleyTransform hsym hplus) := by
   intro χ
@@ -71,7 +71,7 @@ open InnerProductSpace in
 /-- The Cayley transform of a self-adjoint operator is unitary. -/
 theorem cayleyTransform_unitary [CompleteSpace H]
     {A : H →ₗ.[ℂ] H} (hsym : A.IsFormalAdjoint A)
-    (hplus  : ∀ φ : H, ∃ ψ : A.domain, A ψ + I • (ψ : H) = φ)
+    (hplus : ∀ φ : H, ∃ ψ : A.domain, A ψ + I • (ψ : H) = φ)
     (hminus : ∀ φ : H, ∃ ψ : A.domain, A ψ - I • (ψ : H) = φ) :
     Unitary (cayleyTransform hsym hplus) := by
   set U := cayleyTransform hsym hplus with hU
@@ -105,15 +105,16 @@ theorem cayleyTransform_unitary [CompleteSpace H]
 /-- The Cayley transform of a self-adjoint operator, as an element of Mathlib's `unitary`. -/
 theorem cayleyTransform_mem_unitary [CompleteSpace H]
     {A : H →ₗ.[ℂ] H} (hsym : A.IsFormalAdjoint A)
-    (hplus  : ∀ φ : H, ∃ ψ : A.domain, A ψ + I • (ψ : H) = φ)
+    (hplus : ∀ φ : H, ∃ ψ : A.domain, A ψ + I • (ψ : H) = φ)
     (hminus : ∀ φ : H, ∃ ψ : A.domain, A ψ - I • (ψ : H) = φ) :
     cayleyTransform hsym hplus ∈ unitary (H →L[ℂ] H) :=
   (mem_unitary_iff_Unitary _).mpr (cayleyTransform_unitary hsym hplus hminus)
 
-/-- The spectrum of the Cayley transform of `A` lies on the unit circle, since the transform is unitary. -/
+/-- The spectrum of the Cayley transform of `A` lies on the unit circle, since the transform is
+unitary. -/
 lemma cayleyTransform_spectrum_subset_circle [CompleteSpace H]
     {A : H →ₗ.[ℂ] H} (hsym : A.IsFormalAdjoint A)
-    (hplus  : ∀ φ : H, ∃ ψ : A.domain, A ψ + I • (ψ : H) = φ)
+    (hplus : ∀ φ : H, ∃ ψ : A.domain, A ψ + I • (ψ : H) = φ)
     (hminus : ∀ φ : H, ∃ ψ : A.domain, A ψ - I • (ψ : H) = φ) :
     spectrum ℂ (cayleyTransform hsym hplus) ⊆ Metric.sphere (0 : ℂ) 1 :=
   spectrum.subset_circle_of_unitary (cayleyTransform_mem_unitary hsym hplus hminus)
@@ -121,7 +122,7 @@ lemma cayleyTransform_spectrum_subset_circle [CompleteSpace H]
 /-- `U U⋆ = I` for the Cayley transform. -/
 lemma cayleyTransform_comp_adjoint [CompleteSpace H]
     {A : H →ₗ.[ℂ] H} (hsym : A.IsFormalAdjoint A)
-    (hplus  : ∀ φ : H, ∃ ψ : A.domain, A ψ + I • (ψ : H) = φ)
+    (hplus : ∀ φ : H, ∃ ψ : A.domain, A ψ + I • (ψ : H) = φ)
     (hminus : ∀ φ : H, ∃ ψ : A.domain, A ψ - I • (ψ : H) = φ) :
     (cayleyTransform hsym hplus).comp (cayleyTransform hsym hplus).adjoint =
       ContinuousLinearMap.id ℂ H :=
@@ -130,7 +131,7 @@ lemma cayleyTransform_comp_adjoint [CompleteSpace H]
 /-- `U⋆ U = I` for the Cayley transform. -/
 lemma cayleyTransform_adjoint_comp [CompleteSpace H]
     {A : H →ₗ.[ℂ] H} (hsym : A.IsFormalAdjoint A)
-    (hplus  : ∀ φ : H, ∃ ψ : A.domain, A ψ + I • (ψ : H) = φ)
+    (hplus : ∀ φ : H, ∃ ψ : A.domain, A ψ + I • (ψ : H) = φ)
     (hminus : ∀ φ : H, ∃ ψ : A.domain, A ψ - I • (ψ : H) = φ) :
     (cayleyTransform hsym hplus).adjoint.comp (cayleyTransform hsym hplus) =
       ContinuousLinearMap.id ℂ H :=
@@ -139,7 +140,7 @@ lemma cayleyTransform_adjoint_comp [CompleteSpace H]
 /-- The Cayley transform is invertible. -/
 lemma cayleyTransform_isUnit [CompleteSpace H]
     {A : H →ₗ.[ℂ] H} (hsym : A.IsFormalAdjoint A)
-    (hplus  : ∀ φ : H, ∃ ψ : A.domain, A ψ + I • (ψ : H) = φ)
+    (hplus : ∀ φ : H, ∃ ψ : A.domain, A ψ + I • (ψ : H) = φ)
     (hminus : ∀ φ : H, ∃ ψ : A.domain, A ψ - I • (ψ : H) = φ) :
     IsUnit (cayleyTransform hsym hplus) := by
   refine ⟨⟨cayleyTransform hsym hplus, (cayleyTransform hsym hplus).adjoint, ?_, ?_⟩, rfl⟩
@@ -172,12 +173,12 @@ lemma symmetric_norm_sq_add
 C⋆-algebra `H →L[ℂ] H`. This is the gate to Mathlib's `cfc`. -/
 lemma cayleyTransform_isStarNormal [CompleteSpace H]
     {A : H →ₗ.[ℂ] H} (hsym : A.IsFormalAdjoint A)
-    (hplus  : ∀ φ : H, ∃ ψ : A.domain, A ψ + I • (ψ : H) = φ)
+    (hplus : ∀ φ : H, ∃ ψ : A.domain, A ψ + I • (ψ : H) = φ)
     (hminus : ∀ φ : H, ∃ ψ : A.domain, A ψ - I • (ψ : H) = φ) :
     IsStarNormal (cayleyTransform hsym hplus) := by
   have hU := cayleyTransform_unitary hsym hplus hminus
   refine ⟨?_⟩
-  show star (cayleyTransform hsym hplus) * cayleyTransform hsym hplus
+  change star (cayleyTransform hsym hplus) * cayleyTransform hsym hplus
       = cayleyTransform hsym hplus * star (cayleyTransform hsym hplus)
   rw [ContinuousLinearMap.star_eq_adjoint, hU.1, hU.2]
 

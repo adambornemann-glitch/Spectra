@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
-Author: Adam Bornemann
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Adam Bornemann
 -/
 import Spectra.QuantumMechanics.Channels.TraceClass.Product
 import Mathlib.Topology.Algebra.InfiniteSum.Order
@@ -16,8 +16,8 @@ The **Hilbert–Schmidt norm** `‖A‖₂ = (∑ᵢ ‖A eᵢ‖²)^{1/2}` and 
 for Hilbert–Schmidt `X, Y`.  Combined with `Product.lean`'s membership statement (`X ∘L Y` is trace
 class), this is the quantitative half of the Schatten `1 = 2 + 2` duality.
 
-The proof is the diagonal Cauchy–Schwarz.  With `T = X ∘L Y`, polar factor `U = polarIsometry T`, and
-`e` a fixed Hilbert basis, the identity `U⋆ T = |T|` gives `⟪eᵢ, |T| eᵢ⟫ = ⟪X⋆ U eᵢ, Y eᵢ⟫`, so
+The proof is the diagonal Cauchy–Schwarz.  With `T = X ∘L Y`, polar factor `U = polarIsometry T`,
+and `e` a fixed Hilbert basis, the identity `U⋆ T = |T|` gives `⟪eᵢ, |T| eᵢ⟫ = ⟪X⋆ U eᵢ, Y eᵢ⟫`, so
 
   `‖T‖₁ = ∑ᵢ re ⟪X⋆ U eᵢ, Y eᵢ⟫ ≤ ∑ᵢ ‖X⋆ U eᵢ‖ · ‖Y eᵢ‖ ≤ ‖X⋆ U‖₂ · ‖Y‖₂ ≤ ‖X‖₂ · ‖Y‖₂`,
 
@@ -38,9 +38,9 @@ the middle step being the `ℓ²`-Cauchy–Schwarz on the diagonal, and the last
 ## Context
 
 Eighth brick of the trace-class / von Neumann predual development, building on the qualitative
-Schatten–Hölder membership (`Product.lean`).  The Hilbert–Schmidt norm and this bound feed the Bures /
-Uhlmann fidelity `F(ρ, σ) = ‖√ρ √σ‖₁` (with the continuity estimate `≤ ‖√ρ‖₂ ‖√σ‖₂`) and the BKM
-metric.
+Schatten–Hölder membership (`Product.lean`).  The Hilbert–Schmidt norm and this bound feed the
+Bures / Uhlmann fidelity `F(ρ, σ) = ‖√ρ √σ‖₁` (with the continuity estimate `≤ ‖√ρ‖₂ ‖√σ‖₂`) and the
+BKM metric.
 -/
 
 open ContinuousLinearMap RCLike
@@ -52,10 +52,10 @@ variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteS
 
 /-! ## An `ℓ²`-Cauchy–Schwarz for `tsum` -/
 
-/-- **Cauchy–Schwarz for `ℓ²` sums.**  For nonnegative real sequences `a, b` with `a²`, `b²` summable,
-`∑ᵢ aᵢ bᵢ ≤ (∑ᵢ aᵢ²)^{1/2} (∑ᵢ bᵢ²)^{1/2}`.  Each finite partial sum obeys the finite Cauchy–Schwarz
-`Finset.sum_mul_sq_le_sq_mul_sq`, bounded above by the full sums; taking the supremum over finite sets
-(`Real.tsum_le_of_sum_le`) gives the tsum bound. -/
+/-- **Cauchy–Schwarz for `ℓ²` sums.**  For nonnegative real sequences `a, b` with `a²`, `b²`
+summable, `∑ᵢ aᵢ bᵢ ≤ (∑ᵢ aᵢ²)^{1/2} (∑ᵢ bᵢ²)^{1/2}`.  Each finite partial sum obeys the finite
+Cauchy–Schwarz `Finset.sum_mul_sq_le_sq_mul_sq`, bounded above by the full sums; taking the supremum
+over finite sets (`Real.tsum_le_of_sum_le`) gives the tsum bound. -/
 private lemma tsum_mul_le_sqrt_mul_sqrt {ι : Type*} {a b : ι → ℝ} (hna : ∀ i, 0 ≤ a i)
     (hnb : ∀ i, 0 ≤ b i) (ha : Summable (fun i => a i ^ 2)) (hb : Summable (fun i => b i ^ 2)) :
     ∑' i, a i * b i ≤ Real.sqrt (∑' i, a i ^ 2) * Real.sqrt (∑' i, b i ^ 2) := by
@@ -77,8 +77,8 @@ private lemma tsum_mul_le_sqrt_mul_sqrt {ι : Type*} {a b : ι → ℝ} (hna : �
 /-! ## The Hilbert–Schmidt norm -/
 
 /-- The **Hilbert–Schmidt norm** `‖A‖₂ = (∑ᵢ ‖A eᵢ‖²)^{1/2}`, valued in `ℝ` (junk value `0` when `A`
-is not Hilbert–Schmidt).  Defined through the `ℝ≥0∞` sum (so that adjoint-invariance is inherited from
-`tsum_enorm_apply_sq_adjoint`); on Hilbert–Schmidt operators it is the honest square root
+is not Hilbert–Schmidt).  Defined through the `ℝ≥0∞` sum (so that adjoint-invariance is inherited
+from `tsum_enorm_apply_sq_adjoint`); on Hilbert–Schmidt operators it is the honest square root
 (`hsNorm_of_isHilbertSchmidt`). -/
 noncomputable def hsNorm (A : H →L[ℂ] H) : ℝ :=
   Real.sqrt (∑' i, (‖A (stdHilbertBasis H i)‖₊ : ℝ≥0∞) ^ 2).toReal
@@ -164,7 +164,8 @@ theorem traceNorm_comp_le {X Y : H →L[ℂ] H} (hX : IsHilbertSchmidt X) (hY : 
   -- `‖T‖₁` as the honest real sum of the diagonal.
   have htn : traceNorm (X ∘L Y)
       = ∑' i, re ⟪stdHilbertBasis H i, absOp (X ∘L Y) (stdHilbertBasis H i)⟫_ℂ := by
-    rw [traceNorm_eq (stdHilbertBasis H), posTrace_eq_tsum_ofReal (stdHilbertBasis H) (absOp_nonneg _),
+    rw [traceNorm_eq (stdHilbertBasis H),
+      posTrace_eq_tsum_ofReal (stdHilbertBasis H) (absOp_nonneg _),
       ← ENNReal.ofReal_tsum_of_nonneg hc_nonneg hc_summable,
       ENNReal.toReal_ofReal (tsum_nonneg hc_nonneg)]
   -- `X⋆ U` is Hilbert–Schmidt; the two diagonal `ℓ²` sequences are summable.
@@ -174,11 +175,13 @@ theorem traceNorm_comp_le {X Y : H →L[ℂ] H} (hX : IsHilbertSchmidt X) (hY : 
     summable_norm_sq_of_hs hXU
   have hb : Summable (fun i => ‖Y (stdHilbertBasis H i)‖ ^ 2) := summable_norm_sq_of_hs hY
   have hab : Summable
-      (fun i => ‖((X†) ∘L polarIsometry (X ∘L Y)) (stdHilbertBasis H i)‖ * ‖Y (stdHilbertBasis H i)‖) := by
+      (fun i => ‖((X†) ∘L polarIsometry (X ∘L Y)) (stdHilbertBasis H i)‖
+        * ‖Y (stdHilbertBasis H i)‖) := by
     refine Summable.of_nonneg_of_le (fun i => mul_nonneg (norm_nonneg _) (norm_nonneg _))
       (fun i => ?_) ((ha.add hb).div_const 2)
     nlinarith [sq_nonneg (‖((X†) ∘L polarIsometry (X ∘L Y)) (stdHilbertBasis H i)‖
-      - ‖Y (stdHilbertBasis H i)‖), norm_nonneg (((X†) ∘L polarIsometry (X ∘L Y)) (stdHilbertBasis H i)),
+      - ‖Y (stdHilbertBasis H i)‖),
+      norm_nonneg (((X†) ∘L polarIsometry (X ∘L Y)) (stdHilbertBasis H i)),
       norm_nonneg (Y (stdHilbertBasis H i))]
   -- Termwise `re ⟪X⋆ U eᵢ, Y eᵢ⟫ ≤ ‖X⋆ U eᵢ‖ ‖Y eᵢ‖`.
   have hterm : ∀ i, re ⟪stdHilbertBasis H i, absOp (X ∘L Y) (stdHilbertBasis H i)⟫_ℂ
@@ -198,7 +201,8 @@ theorem traceNorm_comp_le {X Y : H →L[ℂ] H} (hX : IsHilbertSchmidt X) (hY : 
   -- Assemble.
   rw [htn]
   calc ∑' i, re ⟪stdHilbertBasis H i, absOp (X ∘L Y) (stdHilbertBasis H i)⟫_ℂ
-      ≤ ∑' i, ‖((X†) ∘L polarIsometry (X ∘L Y)) (stdHilbertBasis H i)‖ * ‖Y (stdHilbertBasis H i)‖ :=
+      ≤ ∑' i, ‖((X†) ∘L polarIsometry (X ∘L Y)) (stdHilbertBasis H i)‖
+          * ‖Y (stdHilbertBasis H i)‖ :=
         Summable.tsum_le_tsum hterm hc_summable hab
     _ ≤ Real.sqrt (∑' i, ‖((X†) ∘L polarIsometry (X ∘L Y)) (stdHilbertBasis H i)‖ ^ 2)
           * Real.sqrt (∑' i, ‖Y (stdHilbertBasis H i)‖ ^ 2) :=

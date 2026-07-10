@@ -1,6 +1,6 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Spectra.YosidaHille.Approximation.ExpBounded.Unitary
@@ -29,7 +29,7 @@ namespace Spectra.YosidaHille.Approximation
 /-- The symmetric Yosida approximants commute: `[Aₘˢʸᵐ, Aₙˢʸᵐ] = 0`. -/
 lemma yosidaApproxSym_commute
     {A : H →ₗ.[ℂ] H} (hsym : A.IsFormalAdjoint A)
-    (hplus  : ∀ φ : H, ∃ ψ : A.domain, A ψ + I • (ψ : H) = φ)
+    (hplus : ∀ φ : H, ∃ ψ : A.domain, A ψ + I • (ψ : H) = φ)
     (hminus : ∀ φ : H, ∃ ψ : A.domain, A ψ - I • (ψ : H) = φ)
     (m n : ℕ+) :
     Commute (yosidaApproxSym hsym hplus hminus m) (yosidaApproxSym hsym hplus hminus n) := by
@@ -140,14 +140,14 @@ lemma norm_expBounded_pairwise_le
 /-- The unitaries `exp(i·Aₙˢʸᵐ·t)ψ` form a Cauchy sequence in `n`, for every `ψ`. -/
 lemma expBounded_yosidaApproxSym_cauchy_intrinsic
     {A : H →ₗ.[ℂ] H} (hsym : A.IsFormalAdjoint A)
-    (hplus  : ∀ φ : H, ∃ ψ : A.domain, A ψ + I • (ψ : H) = φ)
+    (hplus : ∀ φ : H, ∃ ψ : A.domain, A ψ + I • (ψ : H) = φ)
     (hminus : ∀ φ : H, ∃ ψ : A.domain, A ψ - I • (ψ : H) = φ)
     (hdense : Dense (A.domain : Set H)) (t : ℝ) (ψ : H) :
     CauchySeq (fun n : ℕ+ =>
       expBounded (I • yosidaApproxSym hsym hplus hminus n) t ψ) := by
   let E : ℕ+ → (H →L[ℂ] H) :=
     fun n => expBounded (I • yosidaApproxSym hsym hplus hminus n) t
-  show CauchySeq (fun n => E n ψ)
+  change CauchySeq (fun n => E n ψ)
   -- each Eₙ is an isometry, so it preserves distances
   have hiso : ∀ (n : ℕ+) (a b : H), dist (E n a) (E n b) = dist a b := by
     intro n a b

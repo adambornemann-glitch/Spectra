@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
-Author: Adam Bornemann
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Adam Bornemann
 -/
 import Spectra.QuantumMechanics.Channels.TraceClass.Triangle
 
@@ -9,16 +9,17 @@ import Spectra.QuantumMechanics.Channels.TraceClass.Triangle
 # Stage F — the trace-class operators as a normed space (toward Banach)
 
 The trace-class operators form a `ℂ`-submodule of `H →L[ℂ] H` (`traceClassSubmodule`), and the
-trace norm `‖·‖₁` dominates the operator norm: `‖T‖ ≤ ‖T‖₁`.  The latter is the key comparison making
-`‖·‖₁`-Cauchy sequences operator-norm Cauchy, the first step toward Banach completeness.
+trace norm `‖·‖₁` dominates the operator norm: `‖T‖ ≤ ‖T‖₁`.  The latter is the key comparison
+making `‖·‖₁`-Cauchy sequences operator-norm Cauchy, the first step toward Banach completeness.
 
 ## Main results
 
 * `isTraceClass_smul`, `traceNorm_neg` — scalar/negation stability of the trace class and its norm.
 * `traceClassSubmodule` — the trace-class operators as a `Submodule ℂ (H →L[ℂ] H)`.
-* `norm_le_traceNorm` — **`‖T‖ ≤ ‖T‖₁`** (operator norm dominated by trace norm) for trace-class `T`.
-* `TraceClass H` — the trace-class operators as a **type** (a non-reducible synonym of the submodule,
-  to avoid the operator-norm/trace-norm instance diamond), with the trace norm `‖·‖₁`.
+* `norm_le_traceNorm` — **`‖T‖ ≤ ‖T‖₁`** (operator norm dominated by trace norm)
+  for trace-class `T`.
+* `TraceClass H` — the trace-class operators as a **type** (a non-reducible synonym of the
+  submodule, to avoid the operator-norm/trace-norm instance diamond), with the trace norm `‖·‖₁`.
 * `TraceClass.instNormedAddCommGroup`, `TraceClass.instNormedSpace` — **`TraceClass H` is a
   `ℂ`-normed space** in the trace norm (F2), built from a `NormedSpace.Core`.
 * `isTraceClass_and_traceNorm_le_of_tendsto` — **Fatou / lower semicontinuity** of the trace norm:
@@ -42,7 +43,7 @@ variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteS
 
 /-- The trace class is closed under scalar multiplication. -/
 theorem isTraceClass_smul (c : ℂ) {T : H →L[ℂ] H} (hT : IsTraceClass T) : IsTraceClass (c • T) := by
-  show posTrace (stdHilbertBasis H) (absOp (c • T)) ≠ ⊤
+  change posTrace (stdHilbertBasis H) (absOp (c • T)) ≠ ⊤
   rw [posTrace_absOp_smul]
   exact ENNReal.mul_ne_top ENNReal.ofReal_ne_top hT
 
@@ -115,15 +116,16 @@ theorem norm_le_traceNorm {T : H →L[ℂ] H} (hT : IsTraceClass T) : ‖T‖ �
 
 The trace-class operators are packaged as a **non-reducible type synonym** `TraceClass H` of the
 submodule `↥(traceClassSubmodule H)`, carrying the trace norm `‖·‖₁`.  We must NOT put a
-`NormedAddCommGroup` on the submodule directly: a submodule of `B(H)` already inherits the *operator*
-norm, and adding the trace norm would create an instance diamond.  Using a fresh (non-reducible)
-synonym severs that inheritance, so the trace norm is the only norm in scope. -/
+`NormedAddCommGroup` on the submodule directly: a submodule of `B(H)` already inherits the
+*operator* norm, and adding the trace norm would create an instance diamond.  Using a fresh
+(non-reducible) synonym severs that inheritance, so the trace norm is the only norm in scope. -/
 
 /-- The trace class is closed under subtraction (it is a submodule of `B(H)`). -/
 theorem isTraceClass_sub {S T : H →L[ℂ] H} (hS : IsTraceClass S) (hT : IsTraceClass T) :
     IsTraceClass (S - T) :=
   (mem_traceClassSubmodule).1
-    ((traceClassSubmodule H).sub_mem ((mem_traceClassSubmodule).2 hS) ((mem_traceClassSubmodule).2 hT))
+    ((traceClassSubmodule H).sub_mem ((mem_traceClassSubmodule).2 hS)
+      ((mem_traceClassSubmodule).2 hT))
 
 variable (H) in
 /-- The **trace-class operators** as a type, a non-reducible synonym of `↥(traceClassSubmodule H)`.
@@ -167,17 +169,17 @@ noncomputable instance instNorm : Norm (TraceClass H) := ⟨fun T => traceNorm T
 
 /-- The `NormedSpace.Core` for the trace norm: nonnegativity, absolute homogeneity, the triangle
 inequality, and definiteness (definiteness uses `norm_le_traceNorm`: `‖T‖ = 0 ⟹ ‖T.toOp‖ ≤ 0`). -/
-noncomputable def core : NormedSpace.Core ℂ (TraceClass H) where
+theorem core : NormedSpace.Core ℂ (TraceClass H) where
   norm_nonneg T := traceNorm_nonneg T.toOp
   norm_smul c T := by
-    show traceNorm (c • T).toOp = ‖c‖ * traceNorm T.toOp
+    change traceNorm (c • T).toOp = ‖c‖ * traceNorm T.toOp
     rw [toOp_smul, traceNorm_smul]
   norm_triangle S T := by
-    show traceNorm (S + T).toOp ≤ traceNorm S.toOp + traceNorm T.toOp
+    change traceNorm (S + T).toOp ≤ traceNorm S.toOp + traceNorm T.toOp
     rw [toOp_add]
     exact traceNorm_add_le S.isTraceClass T.isTraceClass
   norm_eq_zero_iff T := by
-    show traceNorm T.toOp = 0 ↔ T = 0
+    change traceNorm T.toOp = 0 ↔ T = 0
     constructor
     · intro h
       have hop : ‖T.toOp‖ ≤ 0 := (norm_le_traceNorm T.isTraceClass).trans h.le
@@ -191,9 +193,10 @@ noncomputable instance instNormedAddCommGroup : NormedAddCommGroup (TraceClass H
 noncomputable instance instNormedSpace : NormedSpace ℂ (TraceClass H) :=
   NormedSpace.ofCore core
 
-/-- **The operator norm is dominated by the trace norm** on `TraceClass H`: `‖T.toOp‖ ≤ ‖T‖`.  This is
-`norm_le_traceNorm` restated through the `TraceClass` synonym (`‖T‖ = ‖T.toOp‖₁`); it makes the
-`toOp` map `1`-Lipschitz, hence `‖·‖₁`-Cauchy sequences operator-norm Cauchy — the completeness input. -/
+/-- **The operator norm is dominated by the trace norm** on `TraceClass H`: `‖T.toOp‖ ≤ ‖T‖`.
+This is `norm_le_traceNorm` restated through the `TraceClass` synonym (`‖T‖ = ‖T.toOp‖₁`);
+it makes the `toOp` map `1`-Lipschitz, hence `‖·‖₁`-Cauchy sequences operator-norm Cauchy —
+the completeness input. -/
 theorem norm_toOp_le (T : TraceClass H) : ‖T.toOp‖ ≤ ‖T‖ :=
   norm_le_traceNorm T.isTraceClass
 
@@ -208,16 +211,16 @@ diagonal partial sum `∑_{i∈F} ⟪eᵢ, |X| eᵢ⟫` is operator-norm continu
 stays `≤ C`; taking the supremum over finite `F` (`ENNReal.tsum_eq_iSup_sum`) gives `tr |A| ≤ C`.
 
 Applying this to `Xₙ = Tₙ - Tₘ` for a `‖·‖₁`-Cauchy sequence `Tₙ` (which is operator-norm Cauchy by
-`norm_le_traceNorm`, hence operator-norm convergent to some `A`, `[CompleteSpace H]`) shows both that
-`A` is trace-class and that `Tₘ → A` in trace norm — completeness. -/
+`norm_le_traceNorm`, hence operator-norm convergent to some `A`, `[CompleteSpace H]`) shows both
+that `A` is trace-class and that `Tₘ → A` in trace norm — completeness. -/
 
 /-- Each diagonal entry `re ⟪e, |X| e⟫ = ‖|X|^{1/2} e‖² ≥ 0` is nonnegative. -/
 theorem re_inner_absOp_nonneg (X : H →L[ℂ] H) (e : H) : 0 ≤ re ⟪e, absOp X e⟫_ℂ := by
   rw [← norm_sqrtOp_sq (absOp X) (absOp_nonneg X) e]; positivity
 
 /-- If `Xₙ → A` in operator norm, then the diagonal `re ⟪e, |Xₙ| e⟫ → re ⟪e, |A| e⟫`.  Uses that the
-modulus `X ↦ |X|` is operator-norm continuous (`CFC.continuous_abs`), evaluation at `e` is continuous,
-inner product is continuous, and `RCLike.re` is continuous. -/
+modulus `X ↦ |X|` is operator-norm continuous (`CFC.continuous_abs`), evaluation at `e` is
+continuous, inner product is continuous, and `RCLike.re` is continuous. -/
 theorem tendsto_re_inner_absOp_of_tendsto {ι : Type*} {l : Filter ι} {X : ι → H →L[ℂ] H}
     {A : H →L[ℂ] H} (hX : Filter.Tendsto X l (nhds A)) (e : H) :
     Filter.Tendsto (fun n => re ⟪e, absOp (X n) e⟫_ℂ) l (nhds (re ⟪e, absOp A e⟫_ℂ)) := by
@@ -228,10 +231,10 @@ theorem tendsto_re_inner_absOp_of_tendsto {ι : Type*} {l : Filter ι} {X : ι �
       ((continuous_const.inner ((ContinuousLinearMap.apply ℂ H e).continuous))))
   exact (hcont.tendsto (absOp A)).comp habs
 
-/-- **Fatou / lower semicontinuity of the trace norm.** If `Xₙ → A` in operator norm and every `Xₙ` is
-trace-class with `‖Xₙ‖₁ ≤ C` (`0 ≤ C`), then `A` is trace-class with `‖A‖₁ ≤ C`.  Each finite diagonal
-partial sum is operator-norm continuous, so `≤ C` passes to the limit `A`; the sup over finite sets
-gives `tr |A| ≤ ofReal C < ∞`. -/
+/-- **Fatou / lower semicontinuity of the trace norm.** If `Xₙ → A` in operator norm and every `Xₙ`
+is trace-class with `‖Xₙ‖₁ ≤ C` (`0 ≤ C`), then `A` is trace-class with `‖A‖₁ ≤ C`.  Each finite
+diagonal partial sum is operator-norm continuous, so `≤ C` passes to the limit `A`; the sup over
+finite sets gives `tr |A| ≤ ofReal C < ∞`. -/
 theorem isTraceClass_and_traceNorm_le_of_tendsto {ι : Type*} {l : Filter ι} [l.NeBot]
     {X : ι → H →L[ℂ] H} {A : H →L[ℂ] H} (hX : Filter.Tendsto X l (nhds A))
     {C : ℝ} (hC : 0 ≤ C) (hbound : ∀ᶠ n in l, IsTraceClass (X n) ∧ traceNorm (X n) ≤ C) :
@@ -275,8 +278,9 @@ namespace TraceClass
 
 /-- **`TraceClass H` is complete** — the trace-class operators are a Banach space in `‖·‖₁`.
 
-Given a `‖·‖₁`-Cauchy sequence `Tₙ`, the underlying operators `(Tₙ).toOp` are operator-norm Cauchy
-(`norm_toOp_le`), hence operator-norm convergent to some `A` (`[CompleteSpace H]`).  The Fatou estimate
+Given a `‖·‖₁`-Cauchy sequence `Tₙ`, the underlying operators `(Tₙ).toOp` are
+operator-norm Cauchy (`norm_toOp_le`), hence operator-norm convergent to some `A`
+(`[CompleteSpace H]`).  The Fatou estimate
 `isTraceClass_and_traceNorm_le_of_tendsto` applied to `k ↦ (Tₖ).toOp - (Tₘ).toOp → A - (Tₘ).toOp`
 shows `A - (Tₘ).toOp` is trace-class (so `A` is, taking one `m`) and `‖A - (Tₘ).toOp‖₁ ≤ ε` for
 `m ≥ N`; therefore `Tₘ → ⟨A, _⟩` in trace norm. -/

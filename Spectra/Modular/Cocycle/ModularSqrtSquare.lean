@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
-Author: Adam Bornemann
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Adam Bornemann
 -/
 import Spectra.Modular.Cocycle.ModularSqrtSelfAdjoint
 /-!
@@ -104,7 +104,8 @@ theorem borelMeasure_pmapOfPVM_apply_eq_setLIntegral
         simp
   exact tendsto_nhds_unique hL hR
 
-/-- **Output measure of the unbounded calculus** (full density): `μ_{(∫f dP)ξ} = μ_ξ.withDensity ‖f‖²`. -/
+/-- **Output measure of the unbounded calculus** (full density):
+`μ_{(∫f dP)ξ} = μ_ξ.withDensity ‖f‖²`. -/
 theorem borelMeasure_pmapOfPVM_eq_withDensity
     (f : ℝ → ℂ) (hf : Measurable f) {ξ : H}
     (hξ : Integrable (fun s => ‖f s‖ ^ 2) (borelMeasure U_grp ξ)) :
@@ -196,7 +197,8 @@ theorem tendsto_spectralCalculus_pmapOfPVM_of_dominated
       obtain ⟨Cg, hCg⟩ := hg_bdd m
       refine tendsto_integral_of_dominated_convergence
         (fun s => (‖g m s‖ + ‖f s‖) ^ 2)
-        (fun N => (((hg_meas m).sub (measurable_truncSym hf N)).norm.pow_const 2).aestronglyMeasurable)
+        (fun N =>
+          (((hg_meas m).sub (measurable_truncSym hf N)).norm.pow_const 2).aestronglyMeasurable)
         ?_ (fun N => Eventually.of_forall fun s => ?_) (Eventually.of_forall fun s => ?_)
       · -- majorant integrable: `(‖g m‖+‖f‖)² ≤ 2‖g m‖² + 2‖f‖² ≤ 2Cg² + 2‖f‖²`
         refine Integrable.mono' ((integrable_const (2 * Cg ^ 2)).add (hξ.const_mul 2))
@@ -375,7 +377,8 @@ private lemma sqrtCut_dom (m : ℕ) (s : ℝ) : ‖sqrtCut m s‖ ≤ ‖(Real.s
   · rw [Set.indicator_of_notMem hs, norm_zero, mul_zero]; positivity
 
 /-- `sqrtCut m s → (√s : ℂ)` pointwise. -/
-private lemma sqrtCut_lim (s : ℝ) : Tendsto (fun m => sqrtCut m s) atTop (𝓝 ((Real.sqrt s : ℂ))) := by
+private lemma sqrtCut_lim (s : ℝ) :
+    Tendsto (fun m => sqrtCut m s) atTop (𝓝 ((Real.sqrt s : ℂ))) := by
   refine Tendsto.congr' ?_ tendsto_const_nhds
   filter_upwards [eventually_ge_atTop ⌈s⌉₊] with m hm
   by_cases hs : 0 ≤ s

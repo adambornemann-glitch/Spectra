@@ -1,8 +1,7 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
-Target: Mathlib v4.31.0-rc1
 -/
 import Spectra.InformationGeometry.GeometricData
 /-!
@@ -406,7 +405,7 @@ theorem qubit_generator_azimuthal (G : qubitData.Generator) :
     simp [hmer_def, PiLp.add_apply, PiLp.smul_apply]
   have hmer_mem : ∀ β s, s ∈ Set.Ioo 0 Real.pi → mer β s ∈ qubitData.domain := by
     intro β s hs
-    show 0 < mer β s 0 ∧ mer β s 0 < Real.pi
+    change 0 < mer β s 0 ∧ mer β s 0 < Real.pi
     rw [hmer0]
     exact ⟨hs.1, hs.2⟩
   have hmer_diag : ∀ θ : ParamSpace 2, mer (θ 1) (θ 0) = θ := by

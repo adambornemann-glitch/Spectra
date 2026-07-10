@@ -1,6 +1,6 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Spectra.Resolvent.Spectrum
@@ -59,7 +59,7 @@ so it goes through `Ring.inverse`/`DifferentiableAt.comp` instead.
 * [Reed, Simon, *Methods of Modern Mathematical Physics I*][reed1980], Section VI.5.
 -/
 open Complex Filter Topology
-open scoped Classical
+
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
 namespace Spectra.Resolvent
 
@@ -87,16 +87,18 @@ lemma IsResolvent.unique {A : H →ₗ.[ℂ] H} {z : ℂ} {R R' : H →L[ℂ] H}
   have hh : R (A ⟨R' φ, hmem'⟩ - z • R' φ) = R' φ := h.1 ⟨R' φ, hmem'⟩
   rwa [heq'] at hh
 
+open scoped Classical in
 /-- The resolvent `(A − z)⁻¹` as a total function of `z`: the chosen two-sided inverse on the
 resolvent set, junk `0` off it.  Well-defined regardless of the choice by `IsResolvent.unique`. -/
 noncomputable def resolventOf (A : H →ₗ.[ℂ] H) (z : ℂ) : H →L[ℂ] H :=
   if h : z ∈ resolventSet A then h.choose else 0
 
+open scoped Classical in
 omit [CompleteSpace H] in
 /-- `resolventOf A z` is a two-sided inverse of `A − z` whenever `z` is in the resolvent set. -/
 lemma resolventOf_isResolvent {A : H →ₗ.[ℂ] H} {z : ℂ} (hz : z ∈ resolventSet A) :
     IsResolvent A z (resolventOf A z) := by
-  show IsResolvent A z (if h : z ∈ resolventSet A then h.choose else 0)
+  change IsResolvent A z (if h : z ∈ resolventSet A then h.choose else 0)
   rw [dif_pos hz]
   exact hz.choose_spec
 
@@ -215,7 +217,7 @@ lemma isResolvent_mul_neumann {A : H →ₗ.[ℂ] H} {z₀ : ℂ} {R₀ : H →L
     intro φ
     obtain ⟨hmem, heq⟩ := hR₀ (S φ)
     refine ⟨hmem, ?_⟩
-    show A ⟨R₀ (S φ), hmem⟩ - z • (R₀ (S φ)) = φ
+    change A ⟨R₀ (S φ), hmem⟩ - z • (R₀ (S φ)) = φ
     have hzz : A ⟨R₀ (S φ), hmem⟩ - z • (R₀ (S φ))
         = (A ⟨R₀ (S φ), hmem⟩ - z₀ • R₀ (S φ)) - (z - z₀) • R₀ (S φ) := by
       rw [sub_smul]; abel

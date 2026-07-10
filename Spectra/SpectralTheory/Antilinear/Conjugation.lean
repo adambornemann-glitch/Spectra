@@ -1,9 +1,7 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
-Filename: SpectralTheory/Antilinear/Conjugation.lean
-Target: Mathlib master (2026-06-10)
 -/
 import Mathlib.Analysis.InnerProductSpace.Basic
 import Mathlib.Algebra.Module.LinearMap.Star

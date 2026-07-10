@@ -1,6 +1,6 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Spectra.YosidaHille.Approximation.Convergence.JOperator
@@ -22,14 +22,17 @@ open Complex Filter Topology Spectra.Resolvent
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
 namespace Spectra.YosidaHille.Approximation
 
-/-- On the domain, `Jₙ⁻` splits off the resolvent of `Aφ`: `Jₙ⁻φ = φ - R(-in)(Aφ)` for `φ ∈ D(A)`. -/
+/-- On the domain, `Jₙ⁻` splits off the resolvent of `Aφ`: `Jₙ⁻φ = φ - R(-in)(Aφ)` for
+`φ ∈ D(A)`. -/
 lemma yosidaJNeg_eq_sub_resolvent_A {A : H →ₗ.[ℂ] H}
     (hsym : A.IsFormalAdjoint A)
     (hplus : ∀ φ : H, ∃ ψ : A.domain, A ψ + I • (ψ : H) = φ)
     (hminus : ∀ φ : H, ∃ ψ : A.domain, A ψ - I • (ψ : H) = φ)
     (n : ℕ+) (φ : H) (hφ : φ ∈ A.domain) :
-    (I * (n : ℂ)) • Resolvent.resolvent (-I * (n : ℂ)) (neg_I_mul_pnat_im_ne_zero n) hsym hplus hminus φ =
-      φ - Resolvent.resolvent (-I * (n : ℂ)) (neg_I_mul_pnat_im_ne_zero n) hsym hplus hminus (A ⟨φ, hφ⟩) := by
+    (I * (n : ℂ)) •
+      Resolvent.resolvent (-I * (n : ℂ)) (neg_I_mul_pnat_im_ne_zero n) hsym hplus hminus φ =
+      φ - Resolvent.resolvent (-I * (n : ℂ)) (neg_I_mul_pnat_im_ne_zero n) hsym hplus hminus
+        (A ⟨φ, hφ⟩) := by
   set z := -I * (n : ℂ) with hz_def
   set R := Resolvent.resolvent z (neg_I_mul_pnat_im_ne_zero n) hsym hplus hminus with hR_def
   have h_R_AzI : R (A ⟨φ, hφ⟩ - z • φ) = φ := by
@@ -68,18 +71,26 @@ lemma yosidaJNeg_tendsto_on_domain {A : H →ₗ.[ℂ] H}
     Tendsto (fun n : ℕ+ => yosidaJNeg hsym hplus hminus n φ) atTop (𝓝 φ) := by
   unfold yosidaJNeg resolventAtNegIn
   have h_identity : ∀ n : ℕ+,
-      (I * (n : ℂ)) • Resolvent.resolvent (-I * (n : ℂ)) (neg_I_mul_pnat_im_ne_zero n) hsym hplus hminus φ =
-      φ - Resolvent.resolvent (-I * (n : ℂ)) (neg_I_mul_pnat_im_ne_zero n) hsym hplus hminus (A ⟨φ, hφ⟩) :=
+      (I * (n : ℂ)) •
+        Resolvent.resolvent (-I * (n : ℂ)) (neg_I_mul_pnat_im_ne_zero n) hsym hplus hminus φ =
+      φ - Resolvent.resolvent (-I * (n : ℂ)) (neg_I_mul_pnat_im_ne_zero n) hsym hplus hminus
+        (A ⟨φ, hφ⟩) :=
     fun n => yosidaJNeg_eq_sub_resolvent_A hsym hplus hminus n φ hφ
-  have h_tendsto : Tendsto (fun n : ℕ+ => φ - Resolvent.resolvent (-I * (n : ℂ)) (neg_I_mul_pnat_im_ne_zero n) hsym hplus hminus (A ⟨φ, hφ⟩)) atTop (𝓝 φ) := by
-    have h_to_zero : Tendsto (fun n : ℕ+ => Resolvent.resolvent (-I * (n : ℂ)) (neg_I_mul_pnat_im_ne_zero n) hsym hplus hminus (A ⟨φ, hφ⟩)) atTop (𝓝 0) := by
+  have h_tendsto :
+      Tendsto (fun n : ℕ+ => φ - Resolvent.resolvent (-I * (n : ℂ))
+        (neg_I_mul_pnat_im_ne_zero n) hsym hplus hminus (A ⟨φ, hφ⟩)) atTop (𝓝 φ) := by
+    have h_to_zero :
+        Tendsto (fun n : ℕ+ => Resolvent.resolvent (-I * (n : ℂ))
+          (neg_I_mul_pnat_im_ne_zero n) hsym hplus hminus (A ⟨φ, hφ⟩)) atTop (𝓝 0) := by
       apply Metric.tendsto_atTop.mpr
       intro ε hε
       obtain ⟨N, hN⟩ := exists_nat_gt (‖A ⟨φ, hφ⟩‖ / ε)
       use ⟨N + 1, Nat.succ_pos N⟩
       intro n hn
       rw [dist_eq_norm, sub_zero]
-      have h_res_bound : ‖Resolvent.resolvent (-I * (n : ℂ)) (neg_I_mul_pnat_im_ne_zero n) hsym hplus hminus‖ ≤ 1 / (n : ℝ) := by
+      have h_res_bound :
+          ‖Resolvent.resolvent (-I * (n : ℂ)) (neg_I_mul_pnat_im_ne_zero n) hsym hplus hminus‖ ≤
+            1 / (n : ℝ) := by
         calc ‖Resolvent.resolvent (-I * (n : ℂ)) (neg_I_mul_pnat_im_ne_zero n) hsym hplus hminus‖
             ≤ 1 / |(-I * (n : ℂ)).im| := resolvent_bound _ _ hsym hplus hminus
           _ = 1 / (n : ℝ) := by
@@ -88,8 +99,11 @@ lemma yosidaJNeg_tendsto_on_domain {A : H →ₗ.[ℂ] H}
       have hn_gt : (n : ℝ) > N := by
         have h : (N + 1 : ℕ) ≤ (n : ℕ) := hn
         exact_mod_cast Nat.lt_of_succ_le h
-      calc ‖Resolvent.resolvent (-I * (n : ℂ)) (neg_I_mul_pnat_im_ne_zero n) hsym hplus hminus (A ⟨φ, hφ⟩)‖
-          ≤ ‖Resolvent.resolvent (-I * (n : ℂ)) (neg_I_mul_pnat_im_ne_zero n) hsym hplus hminus‖ * ‖A ⟨φ, hφ⟩‖ :=
+      calc
+          ‖Resolvent.resolvent (-I * (n : ℂ)) (neg_I_mul_pnat_im_ne_zero n) hsym hplus hminus
+            (A ⟨φ, hφ⟩)‖
+          ≤ ‖Resolvent.resolvent (-I * (n : ℂ)) (neg_I_mul_pnat_im_ne_zero n) hsym hplus hminus‖ *
+              ‖A ⟨φ, hφ⟩‖ :=
               ContinuousLinearMap.le_opNorm _ _
         _ ≤ (1 / (n : ℝ)) * ‖A ⟨φ, hφ⟩‖ :=
             mul_le_mul_of_nonneg_right h_res_bound (norm_nonneg _)
@@ -108,7 +122,9 @@ lemma yosidaJNeg_tendsto_on_domain {A : H →ₗ.[ℂ] H}
                       calc ‖A ⟨φ, hφ⟩‖ = (‖A ⟨φ, hφ⟩‖ / ε) * ε := by field_simp
                         _ ≤ N * ε := mul_le_mul_of_nonneg_right (le_of_lt hN) (le_of_lt hε)
                       linarith
-    have h_sub : Tendsto (fun n : ℕ+ => φ - Resolvent.resolvent (-I * (n : ℂ)) (neg_I_mul_pnat_im_ne_zero n) hsym hplus hminus (A ⟨φ, hφ⟩)) atTop (𝓝 (φ - 0)) := by
+    have h_sub :
+        Tendsto (fun n : ℕ+ => φ - Resolvent.resolvent (-I * (n : ℂ))
+          (neg_I_mul_pnat_im_ne_zero n) hsym hplus hminus (A ⟨φ, hφ⟩)) atTop (𝓝 (φ - 0)) := by
       exact Filter.Tendsto.sub tendsto_const_nhds h_to_zero
     simp only [sub_zero] at h_sub
     exact h_sub

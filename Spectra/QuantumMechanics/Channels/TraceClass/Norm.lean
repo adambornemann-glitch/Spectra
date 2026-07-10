@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
-Author: Adam Bornemann
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Adam Bornemann
 -/
 import Spectra.QuantumMechanics.Channels.TraceClass.Basic
 
@@ -17,14 +17,14 @@ package it.
 ## Main definitions
 
 * `Spectra.QuantumMechanics.Channels.stdHilbertBasis H` — a canonical Hilbert basis of `H`.
-* `Spectra.QuantumMechanics.Channels.traceNorm T` — the trace norm `‖T‖₁ = (posTrace |T|).toReal`, valued in
-  `ℝ` (junk value `0` when `T` is not trace-class, i.e. when `posTrace |T| = ∞`).
+* `Spectra.QuantumMechanics.Channels.traceNorm T` — the trace norm `‖T‖₁ = (posTrace |T|).toReal`,
+  valued in `ℝ` (junk value `0` when `T` is not trace-class, i.e. when `posTrace |T| = ∞`).
 * `Spectra.QuantumMechanics.Channels.IsTraceClass T` — the predicate `posTrace |T| ≠ ∞`.
 
 ## Main results
 
-* `traceNorm_eq` / `isTraceClass_iff` — basis-independence: the norm and the predicate agree with the
-  positive trace of `|T|` computed in *any* Hilbert basis.
+* `traceNorm_eq` / `isTraceClass_iff` — basis-independence: the norm and the predicate agree with
+  the positive trace of `|T|` computed in *any* Hilbert basis.
 * `traceNorm_nonneg`, `traceNorm_zero`, `isTraceClass_zero`.
 * `traceNorm_of_nonneg` — for `0 ≤ T` the trace norm is the honest trace `(posTrace T).toReal`.
 * `traceNorm_absOp` — `‖ |T| ‖₁ = ‖T‖₁`.
@@ -93,8 +93,9 @@ lemma posTrace_absOp_smul (b : HilbertBasis ι ℂ H) (c : ℂ) (T : H →L[ℂ]
 /-! ## The canonical basis, the trace norm, and the trace-class predicate -/
 
 variable (H) in
-/-- A canonical Hilbert basis of `H`, chosen via `exists_hilbertBasis`.  Its only role is to package a
-basis-free trace: `posTrace` is basis-independent (`posTrace_indep`), so any choice would do. -/
+/-- A canonical Hilbert basis of `H`, chosen via `exists_hilbertBasis`.  Its only role is to
+package a basis-free trace: `posTrace` is basis-independent (`posTrace_indep`), so any choice
+would do. -/
 noncomputable def stdHilbertBasis : HilbertBasis (exists_hilbertBasis ℂ H).choose ℂ H :=
   (exists_hilbertBasis ℂ H).choose_spec.choose
 

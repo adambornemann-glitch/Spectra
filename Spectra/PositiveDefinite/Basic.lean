@@ -1,8 +1,7 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
-Filename: PositiveDefinite/Basic.lean
 -/
 import Mathlib.Analysis.InnerProductSpace.Basic
 import Mathlib.Data.Matrix.Basic
@@ -173,15 +172,18 @@ lemma hermitian_sum_eq_two_re (hH : IsHermitian f) (t : ℝ) :
     f t + f (-t) = ↑(2 * (f t).re) := by
   rw [hH t]
   apply Complex.ext
-  · simp [Complex.add_re, Complex.conj_re, Complex.ofReal_re]
+  · simp only [Complex.add_re, Complex.conj_re, Complex.ofReal_re]
     exact Eq.symm (two_mul (f t).re)
-  · simp [Complex.add_im, Complex.conj_im, Complex.ofReal_im]
+  · simp only [Complex.add_im, Complex.conj_im, Complex.ofReal_im, add_neg_cancel]
 
 /-- Under Hermitian symmetry, f(t) - f(-t) = 2i·Im(f(t)). -/
 lemma hermitian_diff_eq_two_im (hH : IsHermitian f) (t : ℝ) :
     f t - f (-t) = ↑(2 * (f t).im) * I := by
   rw [hH t]
-  apply Complex.ext <;> simp [mul_comm]
+  apply Complex.ext <;> simp only [mul_comm, sub_re, conj_re, sub_self, ofReal_mul,
+    ofReal_ofNat, mul_re, I_re, ofReal_re, re_ofNat, ofReal_im, im_ofNat, mul_zero, sub_zero,
+    zero_mul, I_im, mul_im, add_zero]
+  simp only [sub_im, conj_im, sub_neg_eq_add, one_mul, zero_add]
   exact Eq.symm (mul_two (f t).im)
 
 /-! ## Section 3: Combined PD + Hermitian — component bounds -/
@@ -244,7 +246,8 @@ lemma pd_hermitian_im_abs_le (hf : IsPositiveDefinite f) (hH : IsHermitian f) (t
 lemma pd_hermitian_norm_bound (hf : IsPositiveDefinite f) (hH : IsHermitian f) (t : ℝ) :
     ‖f t‖ ≤ (f 0).re := by
   by_cases hft : f t = 0
-  · simp [hft]; exact pd_at_zero_nonneg hf
+  · simp only [hft, norm_zero]
+    exact pd_at_zero_nonneg hf
   have h_norm_pos : (0 : ℝ) < ‖f t‖ := norm_pos_iff.mpr hft
   have hpd := hf 2 ![0, t] ![starRingEnd ℂ (f t), -(↑‖f t‖ : ℂ)]
   simp only [Fin.sum_univ_two, Matrix.cons_val_zero, Matrix.cons_val_one,

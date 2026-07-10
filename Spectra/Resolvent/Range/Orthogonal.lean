@@ -1,6 +1,6 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Spectra.Resolvent.SpecialCases
@@ -214,7 +214,7 @@ lemma orthogonal_range_eq_zero {A : H →ₗ.[ℂ] H} (hsym : A.IsFormalAdjoint 
     have h_inner_xi_chi : ⟪ξ, χ⟫_ℂ = ‖χ‖^2 := by
       have h1 : ⟪ξ, χ⟫_ℂ = (starRingEnd ℂ) ⟪χ, ξ⟫_ℂ := (inner_conj_symm ξ χ).symm
       rw [h_inner_chi_xi] at h1
-      simp at h1
+      simp only [map_pow, conj_ofReal] at h1
       exact h1
     have h_final : (z_bar - I) * (‖χ‖^2 : ℂ) = (z - I) * ‖χ‖^2 := by
       calc (z_bar - I) * (‖χ‖^2 : ℂ)

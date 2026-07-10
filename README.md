@@ -13,10 +13,10 @@ along it. Conventions follow [PhysLean / PhysLib](https://physlib.io) and Mathli
 |---|---|
 | **Toolchain** | `leanprover/lean4:v4.31.0-rc1` (pinned in [`lean-toolchain`](lean-toolchain)) |
 | **Depends on** | Mathlib (pinned in [`lake-manifest.json`](lake-manifest.json)) |
-| **License** | MIT — see [`LICENSE`](LICENSE) |
+| **License** | Apache 2.0 — see [`LICENSE`](LICENSE) |
 | **Size** | ~370 source files, ~107,000 lines |
 | **Build status** | `sorry`-free default build, enforced by the [`AxiomCheck`](AxiomCheck.lean) gate (CI runs `lake build`) |
-| **Two trust gates** | *proofs*: the [`AxiomCheck`](AxiomCheck.lean) axiom/`sorry` gate; *statements*: [341 numeric checks](NumericChecks/README.md) that the formalized constants, signs and normalizations match the intended physics |
+| **Trust gates** | *proofs*: the [`AxiomCheck`](AxiomCheck.lean) axiom/`sorry` gate; *statements*: [341 numeric checks](NumericChecks/README.md) that constants, signs and normalizations match the intended physics, plus the [`ForensicCheck`](ForensicCheck.lean) gate against unused / over-strong hypotheses |
 
 ---
 
@@ -249,6 +249,21 @@ Weyl/Stone** conventions, and **Schrödinger–Robertson** uncertainty. The suit
 limitations are documented in [`NumericChecks/README.md`](NumericChecks/README.md). Run it with
 `python3 NumericChecks/run_all.py` (~11 s).
 
+### Hypothesis hygiene — the forensic gate
+
+`NumericChecks` catches a statement that computes the *wrong value*; a complementary failure is a
+statement that assumes *more than it proves*. The [`ForensicCheck`](ForensicCheck.lean) gate — the
+statement-level analogue of `AxiomCheck`, and likewise a `@[default_target]` — scans every theorem
+in `Spectra.*` and fails `lake build` if any carries a normally-named but **unused** hypothesis: a
+declared `Prop`-hypothesis whose proof term never touches it, which makes the statement over-strong
+or (if the hypothesis is unsatisfiable) vacuously true. Hypotheses kept on purpose are exempted by
+the `_`-prefix convention — the author's own signal that an argument is intentionally unused. The
+engine ([`Forensic.lean`](Forensic.lean)) also computes each headline theorem's **transitive
+assumption cone**: the set of `Spectra` lemmas its proof rests on (Mathlib is the trusted boundary),
+the marginal assumptions the whole tower leans on (ambient Hilbert/measure structure quotiented
+out), the base leaves, and the axiom foundation — written to `docs/spectra-forensic.json` by
+`scripts/forensic_report.sh`.
+
 ---
 
 ## Building
@@ -268,7 +283,7 @@ The recommended editor is **VS Code with the Lean 4 extension**.
 ## Contributing
 
 See [`CONTRIBUTING.md`](CONTRIBUTING.md) for the workflow and [`STYLE.md`](STYLE.md) for
-conventions. The non-negotiables: the MIT copyright header, a module docstring, a `/-- … -/`
+conventions. The non-negotiables: the Apache 2.0 copyright header, a module docstring, a `/-- … -/`
 docstring on every declaration, a clean `lake build` with no new `sorry` in finished files, and —
 when you add a headline result — an `assert_no_sorry` line in [`AxiomCheck.lean`](AxiomCheck.lean).
 
@@ -276,7 +291,7 @@ when you add a headline result — an `assert_no_sorry` line in [`AxiomCheck.lea
 
 ## License
 
-MIT — see [`LICENSE`](LICENSE). Copyright © 2026 Spectra Project, Adam Bornemann.
+Apache 2.0 — see [`LICENSE`](LICENSE). Copyright © 2026 Spectra Formalization Project.
 
 ---
 

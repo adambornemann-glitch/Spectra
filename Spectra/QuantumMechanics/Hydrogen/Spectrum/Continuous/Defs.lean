@@ -1,6 +1,6 @@
 /-
-Copyright (c) 2026 Spectra Project, Adam Bornemann. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Spectra.QuantumMechanics.Perturbation.CoulombBound
@@ -18,12 +18,11 @@ import Spectra.SpectralTheory.IntegralOperatorCompact
 This file assembles the continuous-spectrum half of the hydrogen problem via the abstract Weyl
 theorem (`Spectra.Essential.essSpectrum_eq_of_isCompactOperator_perturb`).
 
-**Reduction.** The on-ramp needs a compact `W : L²(ℝ³) →L[ℂ] L²(ℝ³)` with
-`Bχ − Aχ = W(Aχ − i·χ)` for `χ` in the domain. For hydrogen `A = laplacianPMap`,
-`B = hydrogenHamiltonian` and `Bχ − Aχ = V·χ` (Coulomb), so `W = V·R_i` is forced. This file builds
-`coulombResolvent` (`= W`) as a CLM (boundedness from the Hardy relative bound `coulombB_bound` +
-the resolvent estimate), verifies `coulomb_hVW`, and obtains `hydrogen_essSpectrum_eq_Ici_of_compact`
-*given* `W` compact.
+**Reduction.** The on-ramp needs a compact `W : L²(ℝ³) →L[ℂ] L²(ℝ³)` with `Bχ − Aχ = W(Aχ − i·χ)`
+for `χ` in the domain. For hydrogen `A = laplacianPMap`, `B = hydrogenHamiltonian` and
+`Bχ − Aχ = V·χ` (Coulomb), so `W = V·R_i` is forced. This file builds `coulombResolvent` (`= W`) as
+a CLM (boundedness from the Hardy relative bound `coulombB_bound` + the resolvent estimate),
+verifies `coulomb_hVW`, and obtains `hydrogen_essSpectrum_eq_Ici_of_compact` *given* `W` compact.
 
 **Kernel data for compactness.** The compactness of `W` is proved (in the companion file) from a
 *ball* truncation: `truncCoulombBall` keeps the `L²`-integrable `1/|x|` singularity and cuts off
@@ -261,7 +260,8 @@ lemma truncCoulombBall_memLp (p : CoulombParams) (n : ℕ) :
   rw [truncCoulombBall, memLp_indicator_iff_restrict measurableSet_closedBall]
   have haesm : AEStronglyMeasurable (fun x => ((coulombMultiplier p x : ℝ) : ℂ))
       (volume.restrict (closedBall (0:R3) (n+1))) :=
-    ((Complex.measurable_ofReal.comp (coulombMultiplier_measurable p)).aestronglyMeasurable).restrict
+    ((Complex.measurable_ofReal.comp
+      (coulombMultiplier_measurable p)).aestronglyMeasurable).restrict
   refine (memLp_two_iff_integrable_sq_norm haesm).mpr ?_
   have hball : IntegrableOn (fun x => p.Z ^ 2 * inverseRSq x) (ball (0:R3) (n + 2)) volume :=
     (inverseRSq_integrableOn_ball (n + 2)).const_mul (p.Z ^ 2)

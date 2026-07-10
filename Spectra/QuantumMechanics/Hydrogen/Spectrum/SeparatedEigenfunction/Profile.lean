@@ -1,6 +1,6 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Spectra.QuantumMechanics.Hydrogen.Laplacian.SolidHarmonic
@@ -181,7 +181,8 @@ theorem tendsto_deriv_reducedRadial_mul_exp (n ℓ : ℕ) (hn : ℓ + 1 ≤ n) {
           (-(1 / (n : ℝ))) * (r ^ 0 * Real.exp (-r / n) *
             laguerrePolynomial (n - ℓ - 1) (2 * ℓ + 1) (2 * r / n) * Real.exp (ε * r))
           + (2 / (n : ℝ)) * (r ^ 0 * Real.exp (-r / n) *
-            deriv (laguerrePolynomial (n - ℓ - 1) (2 * ℓ + 1)) (2 * r / n) * Real.exp (ε * r))) := by
+            deriv (laguerrePolynomial (n - ℓ - 1) (2 * ℓ + 1)) (2 * r / n) * Real.exp (ε * r)))
+            := by
     funext r
     rw [deriv_reducedRadialProfile n ℓ hn, pow_zero]
     ring
@@ -641,7 +642,8 @@ lemma fderiv2_solidHarmonicNat_norm_mul_le (ℓ m : ℕ) (hm : m ≤ ℓ) (hℓ 
     fun y hy => (hgrad1.contDiffAt (isOpen_compl_singleton.mem_nhds hy)).differentiableAt (by simp)
   have hcont : ContinuousOn (fderiv ℝ (fderiv ℝ (solidHarmonicNat ℓ m)))
       (Metric.sphere (0 : Spectra.Sobolev.R3) 1) := by
-    refine (hgrad1.continuousOn_fderiv_of_isOpen isOpen_compl_singleton le_rfl).mono (fun u hu => ?_)
+    refine (hgrad1.continuousOn_fderiv_of_isOpen
+      isOpen_compl_singleton le_rfl).mono (fun u hu => ?_)
     simp only [Metric.mem_sphere, dist_zero_right] at hu
     exact fun (h : u = 0) => by rw [h, norm_zero] at hu; exact zero_ne_one hu
   exact fderiv_norm_mul_le_of_homogeneous hdiff hcont
@@ -662,7 +664,8 @@ lemma fderiv2_solidHarmonicNat_norm_le (ℓ m : ℕ) (hm : m ≤ ℓ) (hℓ : 2 
     fun y hy => (hgrad1.contDiffAt (isOpen_compl_singleton.mem_nhds hy)).differentiableAt (by simp)
   have hcont : ContinuousOn (fderiv ℝ (fderiv ℝ (solidHarmonicNat ℓ m)))
       (Metric.sphere (0 : Spectra.Sobolev.R3) 1) := by
-    refine (hgrad1.continuousOn_fderiv_of_isOpen isOpen_compl_singleton le_rfl).mono (fun u hu => ?_)
+    refine (hgrad1.continuousOn_fderiv_of_isOpen
+      isOpen_compl_singleton le_rfl).mono (fun u hu => ?_)
     simp only [Metric.mem_sphere, dist_zero_right] at hu
     exact fun (h : u = 0) => by rw [h, norm_zero] at hu; exact zero_ne_one hu
   have hres := fderiv_norm_le_of_homogeneous (d := ℓ - 1) (by omega) hdiff hcont
@@ -1258,7 +1261,8 @@ lemma aestronglyMeasurable_separated_second (n ℓ m : ℕ) (hn : ℓ + 1 ≤ n)
     rw [ae_iff]; simp only [Set.mem_compl_iff, Set.mem_singleton_iff, not_not,
       Set.setOf_eq_eq_singleton]
     exact measure_singleton 0
-  have hcont : ContinuousOn (fun x => fderiv ℝ (fun y => fderiv ℝ (separatedEigenfunction n ℓ m hn) y
+  have hcont : ContinuousOn
+    (fun x => fderiv ℝ (fun y => fderiv ℝ (separatedEigenfunction n ℓ m hn) y
       (EuclideanSpace.single i 1)) x (EuclideanSpace.single j 1))
       {(0 : Spectra.Sobolev.R3)}ᶜ := by
     intro x hx

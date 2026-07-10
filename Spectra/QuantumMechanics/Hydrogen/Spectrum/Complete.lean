@@ -1,6 +1,6 @@
 /-
-Copyright (c) 2026 Logos Library Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Spectra.QuantumMechanics.Hydrogen.Spectrum.Projections
@@ -52,7 +52,8 @@ discrete (the discreteness theorem), and `hydrogen_discrete_spectrum` identifies
 theorem mem_eigenvalues_of_mem_spectrum_neg {E : ℝ}
     (hspec : E ∈ Spectra.Resolvent.spectrum (hydrogenHamiltonian ⟨1, one_pos⟩))
     (hEneg : E < 0) : ∃ (n : ℕ) (hn : 1 ≤ n), E = hydrogenEigenvalue n hn := by
-  have hne : E ∉ Spectra.Essential.essSpectrum (hydrogenHamiltonian_isSelfAdjoint ⟨1, one_pos⟩) := by
+  have hne : E ∉ Spectra.Essential.essSpectrum
+    (hydrogenHamiltonian_isSelfAdjoint ⟨1, one_pos⟩) := by
     rw [show Spectra.Essential.essSpectrum (hydrogenHamiltonian_isSelfAdjoint ⟨1, one_pos⟩)
         = Set.Ici (0 : ℝ) from hydrogen_essSpectrum ⟨1, one_pos⟩]
     simp only [Set.mem_Ici, not_le]; exact hEneg
@@ -109,7 +110,8 @@ theorem hydrogen_eigenfunction_complete :
     intro y hy
     rw [LinearMap.mem_range] at hy ⊢
     obtain ⟨x, rfl⟩ := hy
-    exact ⟨En n x, P.proj_apply_of_subset measurableSet_Iio (measurableSet_singleton _) (hEvsub n) x⟩
+    exact ⟨En n x, P.proj_apply_of_subset measurableSet_Iio
+      (measurableSet_singleton _) (hEvsub n) x⟩
   -- `range EIio` is closed (range of a continuous idempotent = its fixed-point set)
   have hclosed : IsClosed (LinearMap.range (EIio : Spectra.Sobolev.l2R3 →ₗ[ℂ] Spectra.Sobolev.l2R3)
       : Set Spectra.Sobolev.l2R3) := by
@@ -164,7 +166,8 @@ theorem hydrogen_eigenfunction_complete :
         exact le_zero_iff.mp hle
       have hμresolv : (P.diag yv) (Set.Iio 0 \ S) = 0 := by
         have hzero : P.proj (Set.Iio 0 \ S) (measurableSet_Iio.diff hSmeas) = 0 := by
-          refine spectralPVM_proj_eq_zero_of_subset_resolventSet hA (measurableSet_Iio.diff hSmeas) ?_
+          refine spectralPVM_proj_eq_zero_of_subset_resolventSet hA
+            (measurableSet_Iio.diff hSmeas) ?_
           intro lam hlam
           obtain ⟨hlamneg, hlamnotS⟩ := hlam
           by_contra hres

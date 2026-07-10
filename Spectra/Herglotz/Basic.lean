@@ -1,6 +1,6 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Spectra.Herglotz.Stieltjes.IntegralConv
@@ -83,8 +83,8 @@ correlation sequence `c`, Helly selection produces a finite measure `μ` on `[0,
 concentrated there — its complement is null) whose Fourier coefficients are exactly `c`, and whose
 total mass agrees with the boundary value `c 0`. Currently unused — see the module docstring. -/
 lemma herglotz_lemma_stieltjes
-    (c : ℤ → ℂ)  -- the correlation sequence c(n) = ⟪ψ, U ^ n ψ⟫
-    (M : ℝ) (hM : 0 ≤ M)  -- M = ‖ψ‖²
+    (c : ℤ → ℂ) -- the correlation sequence c(n) = ⟪ψ, U ^ n ψ⟫
+    (M : ℝ) (hM : 0 ≤ M) -- M = ‖ψ‖²
     (hc_zero : c 0 = ↑M)
     -- Fejér CDFs and their properties:
     (F : ℕ → ℝ → ℝ)

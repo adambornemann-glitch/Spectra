@@ -1,6 +1,6 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Spectra.InformationGeometry.Flow.Basic
@@ -59,7 +59,7 @@ Schrödinger-equation forms and the unitarity/conservation fact in
 The generator X gives the initial velocity of every parameter
 trajectory. This is the analogue of `schrodingerEquation_zero`:
 
-  d/dt U(t)ψ |_{t=0} = iAψ  -/
+  d/dt U(t)ψ |_{t=0} = iAψ -/
 theorem infoGeometric_schrodinger₁
     (F : M.DivergencePreservingFamily)
     (θ : ParamSpace n) :
@@ -106,7 +106,7 @@ theorem infoGeometric_schrodinger₂
 The infinitesimal form of divergence preservation. This is the
 analogue of unitarity / inner product conservation, not of a Schrödinger equation instance:
 
-  d/dt ⟨U(t)ψ, U(t)φ⟩ = 0      ∀ t  -/
+  d/dt ⟨U(t)ψ, U(t)φ⟩ = 0      ∀ t -/
 theorem infoGeometric_schrodinger₃
     (F : M.DivergencePreservingFamily)
     {θ₁ θ₂ : ParamSpace n} (hθ₁ : θ₁ ∈ M.paramDomain)

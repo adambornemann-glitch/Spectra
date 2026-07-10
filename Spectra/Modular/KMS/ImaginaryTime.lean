@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
-Author: Adam Bornemann
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Adam Bornemann
 -/
 import Spectra.Modular.KMS.AnalyticElements
 import Spectra.Modular.KMS.PeriodicStrip.Basic
@@ -64,7 +64,7 @@ lemma sigmaCorr_bddAbove_closedStrip {ω : State A} {α : Dynamics A} {β : ℝ}
     conv_lhs => rw [← Complex.re_add_im z]
     rw [α.ext_add_real hb z.re ((z.im : ℂ) * I), α.norm_evolve]
   have hzim : ‖α.analyticExtend hb ((z.im : ℂ) * I)‖ ≤ M := hM ⟨z.im, ⟨hz.1, hz.2⟩, rfl⟩
-  show ‖ω (a * α.sigma hb z)‖ ≤ ‖ωL‖ * (‖a‖ * M)
+  change ‖ω (a * α.sigma hb z)‖ ≤ ‖ωL‖ * (‖a‖ * M)
   simp only [Dynamics.sigma]
   calc ‖ω (a * α.analyticExtend hb z)‖
       ≤ ‖ωL‖ * ‖a * α.analyticExtend hb z‖ := ωL.le_opNorm _
@@ -90,7 +90,7 @@ theorem IsKMSState.imaginaryTime {ω : State A} {α : Dynamics A} {β : ℝ} (h�
   have hlowEq : ∀ t : ℝ, F.toFun (realToLower t) = G (realToLower t) := by
     intro t
     have hGt : G (realToLower t) = ω (a * α.evolve t b) := by
-      show ω (a * α.sigma hb (realToLower t)) = ω (a * α.evolve t b)
+      change ω (a * α.sigma hb (realToLower t)) = ω (a * α.evolve t b)
       rw [show α.sigma hb (realToLower t) = α.evolve t b from α.sigma_ofReal hb t]
     rw [F.lower_boundary t, hGt]
   -- One-boundary uniqueness ⇒ they agree on the whole closed strip.

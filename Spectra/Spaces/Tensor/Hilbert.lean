@@ -1,8 +1,7 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
-File: Spectra/Spaces/Tensor/Hilbert.lean
 -/
 import Mathlib.Analysis.InnerProductSpace.TensorProduct
 import Mathlib.Analysis.InnerProductSpace.Completion
@@ -81,7 +80,7 @@ noncomputable def completionMap (f : E →ₗᵢ[𝕜] F) :
     refine Completion.induction_on x
       (isClosed_eq (continuous_norm.comp f.toContinuousLinearMap.completion.continuous)
         continuous_norm) fun a => ?_
-    show ‖f.toContinuousLinearMap.completion (a : Completion E)‖ = ‖(a : Completion E)‖
+    change ‖f.toContinuousLinearMap.completion (a : Completion E)‖ = ‖(a : Completion E)‖
     rw [ContinuousLinearMap.completion_apply_coe, Completion.norm_coe, Completion.norm_coe]
     exact f.norm_map a
 

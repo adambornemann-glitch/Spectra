@@ -1,8 +1,13 @@
 /-
+Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Adam Bornemann
+-/
+
+/-
 Spectra: Convergence.lean
 Strong convergence of the bounded functional calculus, and spectral projections.
 
-Filename: SpectralTheory/Measure/Convergence.lean
 -/
 import Mathlib.MeasureTheory.Integral.DominatedConvergence
 import Spectra.SpectralTheory.Calculus.Bounded

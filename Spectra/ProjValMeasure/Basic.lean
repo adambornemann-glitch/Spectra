@@ -1,6 +1,6 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Mathlib.Analysis.InnerProductSpace.Adjoint
@@ -66,7 +66,7 @@ we merely flip slots by conjugation. -/
 lemma op_ext_of_inner_self {S T : H →L[ℂ] H}
     (h : ∀ ξ : H, ⟪ξ, S ξ⟫_ℂ = ⟪ξ, T ξ⟫_ℂ) : S = T := by
   refine ContinuousLinearMap.coe_injective ((ext_inner_map _ _).mp fun ξ => ?_)
-  show ⟪S ξ, ξ⟫_ℂ = ⟪T ξ, ξ⟫_ℂ
+  change ⟪S ξ, ξ⟫_ℂ = ⟪T ξ, ξ⟫_ℂ
   rw [← inner_conj_symm (S ξ) ξ, ← inner_conj_symm (T ξ) ξ, h ξ]
 
 /-! ## The structure -/

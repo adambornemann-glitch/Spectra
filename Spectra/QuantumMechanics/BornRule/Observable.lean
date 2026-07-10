@@ -1,6 +1,6 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Spectra.QuantumMechanics.BornRule.PVM
@@ -118,7 +118,7 @@ theorem bornMeasure_support_subset_spectrum (A : SelfAdjointOperator H) (ψ : H)
     (bornMeasure A.spectralPVM ψ).support ⊆ Spectra.Resolvent.spectrum A.toLinearPMap := by
   haveI : IsFiniteMeasure (A.spectralPVM.diag ψ) := A.spectralPVM.diag_finite ψ
   intro lam hlam
-  show (lam : ℂ) ∉ Spectra.Resolvent.resolventSet A.toLinearPMap
+  change (lam : ℂ) ∉ Spectra.Resolvent.resolventSet A.toLinearPMap
   intro hres
   obtain ⟨ε, hε, hzero⟩ :=
     SpectralTheory.spectralPVM_proj_Ioo_eq_zero_of_mem_resolventSet A.selfAdjoint hres

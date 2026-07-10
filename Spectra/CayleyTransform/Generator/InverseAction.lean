@@ -1,6 +1,6 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Spectra.CayleyTransform.BorelCalculus
@@ -10,6 +10,38 @@ import Spectra.OneParameterUnitaryGroup.Basic
 import Spectra.YosidaHille.Basic
 import Spectra.Resolvent.Integral.Domain   -- genToGroup, generator_genToGroup, group_unique
 
+/-!
+# Stone's theorem via the Cayley transform
+
+For a self-adjoint operator `A`, this file builds the unitary one-parameter group
+`stoneExp hA t = e^{itA}` spectrally, as the Borel functional calculus of the (bounded,
+star-normal) Cayley transform `cayley hA` applied to the pulled-back exponential symbol
+`w ↦ exp(i t · inverseMobius w)`. It proves the group law, unitarity, and strong continuity, and
+bundles the result into `stoneGroup hA : OneParameterUnitaryGroup`.
+
+Along the way it also assembles the resolvent symbol `w ↦ (inverseMobius w - z)⁻¹` (bounded by
+`|Im z|⁻¹` on the Cayley spectrum) and the diagonal spectral-integral identity for
+`⟪ξ, stoneExp hA t ξ⟫`, plus the concrete inverse Cayley action recovering `A` from its Cayley
+transform (`cayley_one_sub_mem_domain`, `cayley_apply_one_sub`).
+
+The sole remaining analytic gap — identifying `stoneGroup hA` with the Yosida group
+`genToGroup hA`, i.e. `generator (stoneGroup hA) = A` — is closed sorry-free in
+`CayleyTransform/GeneratorStone.lean`, via the resolvent-symbol route sketched in §4 below.
+
+## Main definitions
+
+* `cayley`, `stoneExpSymbol`, `stoneExp`, `stoneGroup`: the Cayley transform, its exponential
+  Borel symbol, the spectrally-defined unitary group, and its `OneParameterUnitaryGroup` bundle.
+* `resolventSymbol`: the Borel symbol of the resolvent `(A - z)⁻¹` in the Cayley calculus.
+
+## Main results
+
+* `stoneExp_group_law`, `stoneExp_inner`, `stoneExp_strong_continuous`: the group law, unitarity,
+  and strong continuity of `stoneExp`.
+* `inner_stoneExp_self_eq_integral`: the diagonal matrix element of `e^{itA}` as a spectral
+  integral over the Cayley spectrum.
+* `cayley_apply_one_sub`: the concrete inverse Cayley transform, `A = i(1+V)(1-V)⁻¹`.
+-/
 
 open Complex MeasureTheory Filter Topology InnerProductSpace
 open scoped InnerProductSpace ComplexConjugate ENNReal NNReal
@@ -65,7 +97,8 @@ lemma inverseMobius_im_eq_zero_of_mem_spectrum (hA : IsSelfAdjoint A)
     have hnorm : ‖(z : ℂ)‖ = 1 := by simpa [Metric.mem_sphere, dist_zero_right] using hmem
     exact inverseMobius_real (z : ℂ) hnorm hz1
 
-/-- The Stone symbol is unimodular: `‖stoneExpSymbol hA t z‖ ≤ 1` (in fact `= 1`) on the spectrum. -/
+/-- The Stone symbol is unimodular: `‖stoneExpSymbol hA t z‖ ≤ 1` (in fact `= 1`) on the
+spectrum. -/
 theorem stoneExpSymbol_norm_le_one (hA : IsSelfAdjoint A) (t : ℝ)
     (z : spectrum ℂ (cayley hA)) : ‖stoneExpSymbol hA t z‖ ≤ 1 := by
   have him : (inverseMobius (z : ℂ)).im = 0 := inverseMobius_im_eq_zero_of_mem_spectrum hA z
@@ -122,7 +155,8 @@ theorem stoneExp_identity (hA : IsSelfAdjoint A) (ψ : H) : stoneExp hA 0 ψ = �
     exact borelCalculus_one (cayley hA) (cayley_isStarNormal hA)
   rw [h, ContinuousLinearMap.id_apply]
 
-/-- The group law: `e^{i(s+t)A} = e^{isA} e^{itA}`, i.e. `stoneExp hA (s + t) = stoneExp hA s ∘ stoneExp hA t`. -/
+/-- The group law: `e^{i(s+t)A} = e^{isA} e^{itA}`, i.e.
+`stoneExp hA (s + t) = stoneExp hA s ∘ stoneExp hA t`. -/
 theorem stoneExp_group_law (hA : IsSelfAdjoint A) (s t : ℝ) (ψ : H) :
     stoneExp hA (s + t) ψ = stoneExp hA s (stoneExp hA t ψ) := by
   have hprodm : Measurable fun z => stoneExpSymbol hA s z * stoneExpSymbol hA t z :=
@@ -141,7 +175,7 @@ theorem stoneExp_group_law (hA : IsSelfAdjoint A) (s t : ℝ) (ψ : H) :
     have hcongr := borelCalculus_congr (cayley hA) (cayley_isStarNormal hA)
       (stoneExpSymbol_mul hA s t) hprodm hprodb
       (stoneExpSymbol_measurable hA (s + t)) (stoneExpSymbol_bdd hA (s + t))
-    show borelCalculus (cayley hA) (cayley_isStarNormal hA) (stoneExpSymbol hA (s + t))
+    change borelCalculus (cayley hA) (cayley_isStarNormal hA) (stoneExpSymbol hA (s + t))
           (stoneExpSymbol_measurable hA (s + t)) (stoneExpSymbol_bdd hA (s + t))
         = (borelCalculus (cayley hA) (cayley_isStarNormal hA) (stoneExpSymbol hA s)
             (stoneExpSymbol_measurable hA s) (stoneExpSymbol_bdd hA s)).comp
@@ -251,7 +285,7 @@ theorem resolventSymbol_measurable (hA : IsSelfAdjoint A) (z : ℂ) :
       (measurable_const.sub measurable_id)
   have hcoe : Measurable (fun w : spectrum ℂ (cayley hA) => (w : ℂ)) :=
     continuous_subtype_val.measurable
-  show Measurable fun w : spectrum ℂ (cayley hA) => (inverseMobius (w : ℂ) - z)⁻¹
+  change Measurable fun w : spectrum ℂ (cayley hA) => (inverseMobius (w : ℂ) - z)⁻¹
   exact ((measurable_id.sub measurable_const).inv).comp (hmob.comp hcoe)
 
 /-- On the Cayley spectrum the resolvent symbol is bounded by `|Im z|⁻¹`: there
@@ -264,7 +298,7 @@ theorem resolventSymbol_bdd (hA : IsSelfAdjoint A) (z : ℂ) (hz : z.im ≠ 0) :
     calc |z.im| = |(inverseMobius (w : ℂ) - z).im| := by
           rw [Complex.sub_im, him, zero_sub, abs_neg]
       _ ≤ ‖inverseMobius (w : ℂ) - z‖ := Complex.abs_im_le_norm _
-  show ‖(inverseMobius (w : ℂ) - z)⁻¹‖ ≤ |z.im|⁻¹
+  change ‖(inverseMobius (w : ℂ) - z)⁻¹‖ ≤ |z.im|⁻¹
   rw [norm_inv, inv_eq_one_div, inv_eq_one_div]
   exact one_div_le_one_div_of_le (abs_pos.mpr hz) hden
 

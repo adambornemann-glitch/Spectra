@@ -1,6 +1,6 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Spectra.SpectralTheory.Essential.Defs
@@ -86,7 +86,7 @@ lemma volume_laplacianShell_pos {lam ε : ℝ} (hlam : 0 ≤ lam) (hε : 0 < ε)
       continuous_const
   have hne : {ξ : R3 | |laplacianSymbol ξ - lam| < ε}.Nonempty :=
     ⟨EuclideanSpace.single (0 : Fin 3) (Real.sqrt lam / (2 * Real.pi)), by
-      show |laplacianSymbol _ - lam| < ε
+      change |laplacianSymbol _ - lam| < ε
       rw [laplacianSymbol_energyPoint hlam, sub_self, abs_zero]; exact hε⟩
   have hsub : {ξ : R3 | |laplacianSymbol ξ - lam| < ε} ⊆ laplacianShell lam ε := by
     intro ξ hξ
@@ -165,7 +165,8 @@ lemma norm_weylSeq (n : ℕ) : ‖weylSeq lam hlam n‖ = 1 := by
 lemma shellFun_coeFn (n : ℕ) :
     (shellFun lam hlam n : R3 → ℂ) =ᵐ[volume]
       (laplacianShell lam (1 / (n + 1))).indicator
-        (fun _ => (((Real.sqrt (volume (laplacianShell lam (1 / (n + 1)))).toReal)⁻¹ : ℝ) : ℂ)) := by
+        (fun _ => (((Real.sqrt (volume (laplacianShell lam (1 / (n + 1)))).toReal)⁻¹ : ℝ) : ℂ))
+      := by
   rw [shellFun]; exact indicatorConstLp_coeFn
 
 /-- The Weyl vector lies in the domain `H²(ℝ³)`: `gₙ` has bounded support, so `(1+‖ξ‖²)·gₙ ∈ L²`. -/
@@ -299,7 +300,7 @@ lemma norm_inner_shellFun_le (h : l2R3) (n : ℕ) :
     _ = c * ∫ x in S, ‖(fourierL2 h : R3 → ℂ) x‖ ∂volume := by
         rw [← integral_const_mul]
         refine integral_congr_ae (Eventually.of_forall fun x => ?_)
-        show ‖⟪(c : ℂ), (fourierL2 h : R3 → ℂ) x⟫_ℂ‖ = c * ‖(fourierL2 h : R3 → ℂ) x‖
+        change ‖⟪(c : ℂ), (fourierL2 h : R3 → ℂ) x⟫_ℂ‖ = c * ‖(fourierL2 h : R3 → ℂ) x‖
         rw [RCLike.inner_apply', norm_mul, RCLike.norm_conj, Complex.norm_real, Real.norm_eq_abs,
           abs_of_nonneg (show (0 : ℝ) ≤ c from inv_nonneg.mpr hsqrtV.le)]
     _ ≤ c * (Real.sqrt (∫ x in S, ‖(fourierL2 h : R3 → ℂ) x‖ ^ 2 ∂volume)
@@ -327,7 +328,8 @@ lemma weaklyNull_weylSeq (h : l2R3) :
 
 include hlam in
 /-- **`[0,∞) ⊆ σ_ess(−Δ)`**: each `λ ≥ 0` carries the Weyl sequence `ψₙ`. -/
-theorem mem_essSpectrum_laplacian : lam ∈ Spectra.Essential.essSpectrum laplacian_isSelfAdjoint := by
+theorem mem_essSpectrum_laplacian :
+    lam ∈ Spectra.Essential.essSpectrum laplacian_isSelfAdjoint := by
   refine Spectra.Essential.mem_essSpectrum_of_seq laplacian_isSelfAdjoint lam
     (fun n => weylSeq lam hlam n) (fun n => memSobolevH2_weylSeq lam hlam n) ?_
     (fun g => weaklyNull_weylSeq lam hlam g) ?_

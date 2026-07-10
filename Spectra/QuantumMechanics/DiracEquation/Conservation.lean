@@ -1,8 +1,7 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
-Filename: QuantumMechanics/DiracEquation/Conservation.lean
 -/
 import Spectra.QuantumMechanics.DiracEquation.Current
 import Mathlib.Analysis.Calculus.Deriv.Basic
@@ -125,7 +124,7 @@ lemma star_dotProduct_conjTranspose_mulVec
 
     This is the identity that lets the adjoint Dirac equation "eat" the
     current: instead of γ⁰γ^μ acting on the right spinor, γ^μ acts on
-    the left spinor under the dagger, leaving only γ⁰.-/
+    the left spinor under the dagger, leaving only γ⁰. -/
 lemma current_adjoint_transfer (Γ : GammaMatrices) (μ : Fin 4) (u v : Fin 4 → ℂ) :
     star u ⬝ᵥ (Γ.gamma 0 * Γ.gamma μ).mulVec v =
     star ((Γ.gamma μ).mulVec u) ⬝ᵥ (Γ.gamma 0).mulVec v := by
@@ -158,7 +157,7 @@ lemma neg_I_mul_ofReal_add_conj (m : ℝ) :
 
     Given w = ∑ γ^μ(∂_μψ) satisfying the Dirac equation I·w = m·ψ (m real),
     the divergence bilinear form vanishes:
-      w† · γ⁰(ψ)  +  ψ† · γ⁰(w)  =  0.-/
+      w† · γ⁰(ψ)  +  ψ† · γ⁰(w)  =  0. -/
 lemma dirac_divergence_bilinear_vanishes (Γ : GammaMatrices) (m : ℝ)
     (ψ w : Fin 4 → ℂ)
     (h : I • w = (↑m : ℂ) • ψ) :
@@ -316,7 +315,7 @@ lemma mulVec_finset_sum {ι : Type*} {s : Finset ι}
     M.mulVec (∑ i ∈ s, f i) = ∑ i ∈ s, M.mulVec (f i) := by
   simpa only [Matrix.mulVecLin_apply] using map_sum M.mulVecLin f s
 
-/-- **Current conservation** (real mass): ∂_μj^μ = 0.-/
+/-- **Current conservation** (real mass): ∂_μj^μ = 0. -/
 theorem dirac_current_conserved (Γ : GammaMatrices) (ψ : SpinorField) (m : ℝ)
     (h_dirac : ∀ x, ∑ μ : Fin 4,
       I • (Γ.gamma μ).mulVec (partialDeriv' μ ψ.ψ x) = (↑m : ℂ) • ψ.ψ x)

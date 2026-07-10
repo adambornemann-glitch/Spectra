@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
-Author: Adam Bornemann
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Adam Bornemann
 -/
 import Spectra.Modular.Cocycle.ModularSqrtSelfAdjoint
 import Spectra.Modular.Cocycle.PolarIsometry
@@ -63,7 +63,7 @@ noncomputable def conjPMap : H →ₗ.[ℂ] H where
         have hsub : (⟨e.symm (c • (x : H)), (c • x).2⟩ : A.domain)
             = (starRingEnd ℂ) c • ⟨e.symm (x : H), x.2⟩ :=
           Subtype.ext (by
-            show e.symm (c • (x : H)) = (starRingEnd ℂ) c • e.symm (x : H)
+            change e.symm (c • (x : H)) = (starRingEnd ℂ) c • e.symm (x : H)
             exact map_smulₛₗ e.symm c (x : H))
         simp only [Submodule.coe_smul]
         rw [hsub, A.map_smul, map_smulₛₗ]

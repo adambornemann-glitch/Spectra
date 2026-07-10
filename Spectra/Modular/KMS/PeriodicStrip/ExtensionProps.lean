@@ -1,9 +1,35 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
-Author: Adam Bornemann
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Adam Bornemann
 -/
 import Spectra.Modular.KMS.PeriodicStrip.IndexProps
+
+/-!
+# Continuity, holomorphicity, and boundedness of the periodic extension
+
+This file establishes the analytic properties of `periodicExtension F β` (the ℤ-periodic-in-`iβ`
+extension of a strip function `F`, defined via `toFundamentalStrip`) that feed into the entirety
+theorem of `PeriodicStrip/Basic.lean`:
+
+* `periodicExtension_continuous`: continuity everywhere, including at the boundary seams
+  `Im z = n·β`, where the periodicity hypothesis `F(t) = F(t + iβ)` glues the two sides together.
+* `periodicExtension_differentiableAt_off_boundaries`: holomorphicity at every point off the
+  boundary lattice, by local agreement with `F` composed with a translation.
+* `periodicExtension_bounded`, `periodicExtension_eq_on_strip`: boundedness of the extension, and
+  agreement with `F` on the closed fundamental strip.
+
+Two topological facts about the off-boundary set (`isOpen_off_boundaryLines`,
+`dense_off_boundaryLines`) are recorded but currently unused.
+
+## Main results
+
+* `periodicExtension_continuous`
+* `periodicExtension_differentiableAt_off_boundaries`
+* `periodicExtension_bounded`
+* `periodicExtension_eq_on_strip`
+-/
+
 open Complex Set Filter Topology Int MeasureTheory
 namespace Spectra.PeriodicHolomorphic
 
@@ -33,16 +59,13 @@ lemma periodicExtension_continuous
                   intCast_re, ofReal_re, I_im, mul_one, I_re, mul_zero, add_zero, sub_zero] at heq
         linarith
     have him_lt : (toFundamentalStrip β z).im < β := (toFundamentalStrip_im hβ z).2
-
     -- toFundamentalStrip β z is in the open strip = interior of closed strip
     have h_in_interior : toFundamentalStrip β z ∈ interior (ClosedStrip β) := by
       rw [interior_closedStrip hβ]
       exact ⟨him_pos, him_lt⟩
-
     -- F is continuous at points in the interior
     have hF_cont : ContinuousAt F (toFundamentalStrip β z) :=
       hcont.continuousAt (mem_interior_iff_mem_nhds.mp h_in_interior)
-
     -- stripIndex is locally constant at z (since z is not on a boundary)
     -- Therefore toFundamentalStrip is continuous at z
     let n := stripIndex β z
@@ -52,7 +75,6 @@ lemma periodicExtension_continuous
       rcases h1.lt_or_eq with hlt | heq
       · exact hlt
       · exfalso; exact h ⟨n, heq⟩
-
     have hfund_cont : ContinuousAt (toFundamentalStrip β) z := by
       -- In a small neighborhood, stripIndex is constant
       let ε := min (z.im - n * β) ((↑(n + 1 : ℤ) : ℝ) * β - z.im)
@@ -93,7 +115,6 @@ lemma periodicExtension_continuous
       rw [this, ← dist_eq_norm]
       calc dist w z < min ε δ := hw
         _ ≤ δ := min_le_right _ _
-
     exact hF_cont.comp hfund_cont
 
 /-! ## Holomorphicity Away from Boundaries -/
@@ -112,15 +133,13 @@ lemma periodicExtension_differentiableAt_off_boundaries
     · exfalso
       apply hz
       refine ⟨stripIndex β z, ?_⟩
-      show ↑(stripIndex β z) * β = z.im
+      change ↑(stripIndex β z) * β = z.im
       simp only [toFundamentalStrip, sub_im, mul_im, mul_re, intCast_im, ofReal_im, mul_zero,
                 intCast_re, ofReal_re, I_im, mul_one, I_re, mul_zero, add_zero, sub_zero] at heq
       linarith
   have him_lt : (toFundamentalStrip β z).im < β := (toFundamentalStrip_im hβ z).2
-
   -- toFundamentalStrip β z ∈ Strip β
   have h_in_strip : toFundamentalStrip β z ∈ Strip β := ⟨him_pos, him_lt⟩
-
   -- F is differentiable at points in the open strip
   have hF_diff : DifferentiableAt ℂ F (toFundamentalStrip β z) := by
     apply hholo.differentiableAt
@@ -132,7 +151,8 @@ lemma periodicExtension_differentiableAt_off_boundaries
     intro w hw
     rw [Metric.mem_ball] at hw
     simp only [Strip, mem_setOf_eq]
-    have him_w : |w.im - (toFundamentalStrip β z).im| < min (toFundamentalStrip β z).im (β - (toFundamentalStrip β z).im) := by
+    have him_w : |w.im - (toFundamentalStrip β z).im|
+        < min (toFundamentalStrip β z).im (β - (toFundamentalStrip β z).im) := by
       calc |w.im - (toFundamentalStrip β z).im|
           = |(w - toFundamentalStrip β z).im| := by simp only [sub_im]
         _ ≤ ‖w - toFundamentalStrip β z‖ := abs_im_le_norm _
@@ -143,11 +163,9 @@ lemma periodicExtension_differentiableAt_off_boundaries
       linarith [min_le_left (toFundamentalStrip β z).im (β - (toFundamentalStrip β z).im)]
     · have := (abs_lt.mp him_w).2
       linarith [min_le_right (toFundamentalStrip β z).im (β - (toFundamentalStrip β z).im)]
-
   -- In a neighborhood of z, periodicExtension F β = F ∘ (· - n*β*I)
   -- where n = stripIndex β z
   let n := stripIndex β z
-
   -- stripIndex is constant near z
   have hz_strict : (n : ℝ) * β < z.im ∧ z.im < (n + 1 : ℤ) * β := by
     obtain ⟨h1, h2⟩ := stripIndex_spec hβ z
@@ -155,7 +173,6 @@ lemma periodicExtension_differentiableAt_off_boundaries
     rcases h1.lt_or_eq with hlt | heq
     · exact hlt
     · exfalso; exact hz ⟨n, heq⟩
-
   let ε := min (z.im - n * β) ((↑(n + 1 : ℤ) : ℝ) * β - z.im)
   have hε_pos : 0 < ε := lt_min (by linarith) (by push_cast; grind only)
   -- On ball z ε, periodicExtension = F ∘ (· - n*β*I)
@@ -181,20 +198,16 @@ lemma periodicExtension_differentiableAt_off_boundaries
         simp only [Int.cast_add, Int.cast_one] at hε_right
         linarith [(abs_lt.mp him_dist).2, hε_right]
     simp [hw_strip]
-
   -- Translation w ↦ w - n*β*I is differentiable
   have htrans_diff : DifferentiableAt ℂ (fun w => w - n * β * I) z :=
     differentiableAt_id.sub (differentiableAt_const _)
-
   -- Use chain rule via the local equality
   have heq_eventually : periodicExtension F β =ᶠ[𝓝 z] fun w => F (w - n * β * I) := by
     rw [Filter.eventuallyEq_iff_exists_mem]
     exact ⟨Metric.ball z ε, Metric.ball_mem_nhds z hε_pos, heq_on⟩
-
   -- F ∘ (translation) is differentiable at z
   have hdiff_comp : DifferentiableAt ℂ (fun w => F (w - n * β * I)) z :=
     DifferentiableAt.fun_comp' z hF_diff htrans_diff
-
   -- Transfer differentiability via local equality
   exact hdiff_comp.congr_of_eventuallyEq heq_eventually
 
@@ -291,13 +304,13 @@ lemma dense_off_boundaryLines (β : ℝ) (hβ : 0 < β) :
     let w := z₀ + δ * I
     refine ⟨w, hball ?_, ?_⟩
     · -- w ∈ ball z₀ r
-      show dist (z₀ + δ * I) z₀ < r
+      change dist (z₀ + δ * I) z₀ < r
       rw [dist_eq_norm, add_sub_cancel_left, norm_mul, norm_I, mul_one,
           Complex.norm_real, Real.norm_eq_abs, abs_of_pos hδ_pos]
       exact hδ_lt_r
     · -- w is not on any boundary line
       intro m
-      show (z₀ + δ * I).im ≠ ↑m * β
+      change (z₀ + δ * I).im ≠ ↑m * β
       simp only [add_im, mul_im, ofReal_re, I_im, mul_one, ofReal_im, I_re, mul_zero, add_zero]
       rw [hn]
       -- Need: n * β + δ ≠ (m : ℝ) * β, i.e., δ ≠ (m - n) * β

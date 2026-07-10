@@ -1,9 +1,37 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
-Author: Adam Bornemann
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Adam Bornemann
 -/
 import Spectra.Modular.KMS.PeriodicStrip.Painleve
+
+/-!
+# The local Painlevé theorem: removing a horizontal line
+
+This file completes the local Painlevé argument begun in `PeriodicStrip/Painleve.lean`: a function
+continuous on an open ball and complex-differentiable everywhere on it except possibly on a single
+horizontal line is in fact complex-differentiable on the whole ball — the line is removable.
+
+The chain is: the vanishing rectangle-boundary integrals from `Painleve.lean`
+(`integral_boundary_rect_eq_zero_off_horizLine`) produce a primitive `F` with `F' = g`
+(`exists_primitive_of_continuousOn_of_rect_integral_zero`); since a primitive of a continuous
+function is itself holomorphic, its derivative `deriv F` is holomorphic, and `g = deriv F` on the
+ball transfers this back to `g`
+(`differentiableOn_of_continuousOn_of_differentiableOn_off_horizLine`). This is the analytic
+content used in `PeriodicStrip/Basic.lean` to upgrade the periodic extension from "holomorphic off
+the boundary lattice" to "entire". An elementary integer-squeeze fact
+(`intMul_eq_of_dist_lt`) closes the argument that a ball of radius `< β` meets at most one
+boundary line `Im = n·β`.
+
+## Main results
+
+* `exists_primitive_of_continuousOn_of_rect_integral_zero` : existence of a primitive from
+  vanishing rectangle-boundary integrals.
+* `differentiableOn_of_continuousOn_of_differentiableOn_off_horizLine` : the local Painlevé
+  line-removal theorem.
+* `intMul_eq_of_dist_lt` : two integer multiples of `β` within distance `< β` coincide.
+-/
+
 open Complex Set Filter MeasureTheory intervalIntegral
 open scoped Topology
 namespace Spectra.PeriodicHolomorphic
@@ -81,7 +109,8 @@ lemma exists_primitive_of_continuousOn_of_rect_integral_zero
   have h_int_vert : IntervalIntegrable (fun s : ℝ => g (↑w.re + ↑s * I))
       MeasureTheory.volume z.im w.im := by
     apply ContinuousOn.intervalIntegrable
-    apply hg_cont.comp ((continuous_const.add (Complex.continuous_ofReal.mul continuous_const)).continuousOn)
+    apply hg_cont.comp
+      ((continuous_const.add (Complex.continuous_ofReal.mul continuous_const)).continuousOn)
     intro s hs
     exact vert_seg_in_ball hR hw_re_lifted hw_im_lifted s hs
   -- G. Integrand norm bounds (ε/2) via continuity at z.
@@ -135,7 +164,7 @@ lemma exists_primitive_of_continuousOn_of_rect_integral_zero
                     = (∫ _ in z.re..w.re, g z) + I • ∫ _ in z.im..w.im, g z := by
     rw [intervalIntegral.integral_const, intervalIntegral.integral_const]
     -- ℝ-smul on ℂ is defeq to ofReal-then-mul; ℂ-smul on ℂ is defeq to mul.
-    show (w - z) * g z = (↑(w.re - z.re) : ℂ) * g z + I * ((↑(w.im - z.im) : ℂ) * g z)
+    change (w - z) * g z = (↑(w.re - z.re) : ℂ) * g z + I * ((↑(w.im - z.im) : ℂ) * g z)
     have hwz_decomp : w - z = (↑(w.re - z.re) : ℂ) + ↑(w.im - z.im) * I := by
       apply Complex.ext <;>
         simp [Complex.sub_re, Complex.sub_im, Complex.add_re, Complex.add_im,

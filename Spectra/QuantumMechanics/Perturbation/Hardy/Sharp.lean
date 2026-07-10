@@ -1,6 +1,6 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Spectra.QuantumMechanics.Perturbation.Hardy.Inequality.Basic
@@ -14,10 +14,12 @@ import Mathlib.MeasureTheory.Constructions.HaarToSphere
 import Mathlib.MeasureTheory.Function.JacobianOneDim
 import Mathlib.MeasureTheory.Integral.IntegralEqImproper
 
+/-! ## Better docstring to go here soon-/
 open MeasureTheory Complex Filter ContinuousLinearMap
 open MeasurableSet ContDiffBump Topology
 open Spectra.Sobolev
-open scoped Topology NNReal ENNReal TopologicalSpace ProbabilityTheory Pointwise ContDiff RealInnerProductSpace
+open scoped Topology NNReal ENNReal TopologicalSpace ProbabilityTheory
+open scoped Pointwise ContDiff RealInnerProductSpace
 
 namespace Spectra.QuantumMechanics.Hydrogen
 
@@ -154,7 +156,7 @@ lemma hardyIntegral_radial {g : ℝ → ℝ}
   apply setIntegral_congr_fun measurableSet_Ioi
   intro r hr
   have hrne : r ≠ 0 := ne_of_gt hr
-  show r ^ 2 * ((if r = 0 then 0 else 1 / r ^ 2) * g r ^ 2) = g r ^ 2
+  change r ^ 2 * ((if r = 0 then 0 else 1 / r ^ 2) * g r ^ 2) = g r ^ 2
   rw [if_neg hrne]
   field_simp
 
@@ -275,7 +277,7 @@ lemma gN_hasDerivAt {n : ℝ} {r : ℝ} (hr : 0 < r) :
   rw [e2]; ring
 
 lemma gN_contDiffAt {n : ℝ} {r : ℝ} (hr : 0 < r) : ContDiffAt ℝ ∞ (gN n) r := by
-  show ContDiffAt ℝ ∞ (fun x => x ^ (-(1:ℝ)/2) * etaFn (Real.log x / n)) r
+  change ContDiffAt ℝ ∞ (fun x => x ^ (-(1:ℝ)/2) * etaFn (Real.log x / n)) r
   exact (Real.contDiffAt_rpow_const_of_ne hr.ne').mul
     (etaFn_contDiff.contDiffAt.comp r ((Real.contDiffAt_log.mpr hr.ne').div_const n))
 
@@ -288,9 +290,9 @@ lemma phiN_contDiff {n : ℝ} (hn : 0 < n) : ContDiff ℝ ∞ (phiN n) := by
     refine h0.congr_of_eventuallyEq ?_
     filter_upwards [Metric.ball_mem_nhds (0 : R3) (Real.exp_pos (-n))] with z hz
     have hzr : ‖z‖ < Real.exp (-n) := by simpa [dist_zero_right] using hz
-    show (gN n ‖z‖ : ℂ) = (0 : ℂ)
+    change (gN n ‖z‖ : ℂ) = (0 : ℂ)
     rw [gN_eq_zero_of_lt hn (norm_nonneg z) hzr, Complex.ofReal_zero]
-  · show ContDiffAt ℝ ∞ (fun y : R3 => (gN n ‖y‖ : ℂ)) y
+  · change ContDiffAt ℝ ∞ (fun y : R3 => (gN n ‖y‖ : ℂ)) y
     exact Complex.ofRealCLM.contDiff.contDiffAt.comp y
       ((gN_contDiffAt (norm_pos_iff.mpr hy)).comp y (contDiffAt_norm (𝕜 := ℝ) hy))
 
@@ -298,7 +300,7 @@ lemma phiN_contDiff {n : ℝ} (hn : 0 < n) : ContDiff ℝ ∞ (phiN n) := by
 lemma phiN_hasCompactSupport {n : ℝ} (hn : 0 < n) : HasCompactSupport (phiN n) := by
   apply HasCompactSupport.intro (isCompact_closedBall (0 : R3) (Real.exp n))
   intro y hy
-  show (gN n ‖y‖ : ℂ) = 0
+  change (gN n ‖y‖ : ℂ) = 0
   have hynorm : Real.exp n < ‖y‖ := by
     simpa [dist_zero_right, Metric.mem_closedBall, not_le] using hy
   rw [gN_eq_zero_of_one_le ?_, Complex.ofReal_zero]

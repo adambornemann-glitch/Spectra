@@ -1,6 +1,6 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Spectra.Herglotz.Stieltjes.Hellys
@@ -9,6 +9,30 @@ import Mathlib.Analysis.SpecialFunctions.Trigonometric.Basic
 import Mathlib.Analysis.InnerProductSpace.Basic
 import Mathlib.MeasureTheory.Integral.Bochner.Set
 import Mathlib.Tactic.IntervalCases
+
+/-!
+# Portmanteau-style convergence of Stieltjes integrals
+
+This file proves the portmanteau-style convergence of integrals against Stieltjes measures needed
+to pass Helly's selection theorem through the Herglotz representation: if a sequence of monotone
+CDFs `F_n` converges pointwise to a monotone limit `G` at every continuity point of `G`, then
+`∫ f dF_n → ∫ f dG` for every bounded continuous `f`.
+
+The proof partitions `[0, 2π]` at continuity points of `G` with mesh below any prescribed `δ`
+(`exists_cont_partition`), approximates each integral by a Riemann–Stieltjes sum tagged at the
+partition's right endpoints (`approx_bound`), and passes to the limit using that the *right
+limits* of the approximating CDFs converge to `G` at continuity points (`rightLim_tendsto`). A
+general-purpose partition lemma avoiding any prescribed countable "bad" set
+(`exists_partition_avoiding_countable`) underlies the construction.
+
+## Main results
+
+* `integral_tendsto_of_cdf_tendsto` : the portmanteau convergence theorem for Stieltjes integrals.
+* `fourier_integral_tendsto_of_cdf_tendsto` : its specialization to Fourier coefficients,
+  `∫ e^{inθ} dF_n → ∫ e^{inθ} dG`.
+* `exists_partition_avoiding_countable` : given a countable `S` and endpoints outside `S`, a
+  partition with prescribed mesh bound and all breakpoints outside `S`.
+-/
 
 open Complex MeasureTheory Filter Topology
 open scoped NNReal ENNReal InnerProductSpace
@@ -46,7 +70,8 @@ private lemma cdf_mass_toReal {F : ℝ → ℝ} (hF : Monotone F)
       hF_rc, hF_rc, ENNReal.toReal_ofReal (sub_nonneg.mpr (hF hab))]
 
 /-- If `F (φ k) → G` at the continuity points `a, b` of `G`, the masses of `(a, b]`
-under the approximating Stieltjes measures converge to the mass under `G`'s measure. (Currently unused.) -/
+under the approximating Stieltjes measures converge to the mass under `G`'s measure. (Currently
+unused.) -/
 private lemma cdf_mass_tendsto {F : ℕ → ℝ → ℝ} {G : ℝ → ℝ} {φ : ℕ → ℕ}
     (h_mono_F : ∀ N, Monotone (F N)) (h_mono_G : Monotone G)
     (hF_rc : ∀ N x, Function.rightLim (F N) x = F N x)
@@ -123,7 +148,7 @@ private lemma exists_cont_partition {G : ℝ → ℝ} (hG : Monotone G) {δ : �
     have ex : ((i : ℝ) + 1) * h = (i : ℝ) * h + h := by ring
     rcases Nat.eq_zero_or_pos i with hi0 | hipos
     · subst hi0
-      show t 0 < t 1
+      change t 0 < t 1
       rw [t0, tmid 1 (by omega) (by omega)]
       have := cL 1; push_cast at this; linarith [hh_pos, this]
     · have hi1 : i + 1 ≤ K := hi
@@ -146,7 +171,7 @@ private lemma exists_cont_partition {G : ℝ → ℝ} (hG : Monotone G) {δ : �
     have ex : ((i : ℝ) + 1) * h = (i : ℝ) * h + h := by ring
     rcases Nat.eq_zero_or_pos i with hi0 | hipos
     · subst hi0
-      show t 1 - t 0 < δ
+      change t 1 - t 0 < δ
       rw [t0, tmid 1 (by omega) (by omega), sub_zero]
       have := cU 1; push_cast at this; linarith [hh_pos, hmesh, this]
     · have hi1 : i + 1 ≤ K := hi
@@ -370,7 +395,7 @@ private lemma rightLim_tendsto {F : ℕ → ℝ → ℝ} {G : ℝ → ℝ} {φ :
 
 /-- **Portmanteau lemma for Stieltjes measures**: if `F_n → G` pointwise
 at all continuity points of `G`, and `f` is bounded and continuous, then
-`∫ f dF_n → ∫ f dG`.-/
+`∫ f dF_n → ∫ f dG`. -/
 lemma integral_tendsto_of_cdf_tendsto
     (F : ℕ → ℝ → ℝ) (G : ℝ → ℝ) (φ : ℕ → ℕ)
     (h_mono_F : ∀ N, Monotone (F N)) (h_mono_G : Monotone G)
@@ -386,7 +411,8 @@ lemma integral_tendsto_of_cdf_tendsto
   -- abbreviate the two integrals (folds them out of the goal)
   set IF : ℕ → ℂ := fun k => ∫ θ in Set.Icc 0 (2 * Real.pi), f θ
       ∂((h_mono_F (φ k)).stieltjesFunction.measure) with hIF_def
-  set IG : ℂ := ∫ θ in Set.Icc 0 (2 * Real.pi), f θ ∂(h_mono_G.stieltjesFunction.measure) with hIG_def
+  set IG : ℂ := ∫ θ in Set.Icc 0 (2 * Real.pi), f θ
+      ∂(h_mono_G.stieltjesFunction.measure) with hIG_def
   -- left-flatness / right-constancy of the CDFs
   have hFzero : ∀ k, ∀ x ≤ (0 : ℝ), F (φ k) x = 0 := by
     intro k x hx

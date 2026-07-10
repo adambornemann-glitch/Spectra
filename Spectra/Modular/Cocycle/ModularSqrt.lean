@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
-Author: Adam Bornemann
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Adam Bornemann
 -/
 import Spectra.SpectralTheory.Calculus.PMapSquareRoot
 import Spectra.Modular.TomitaTakesaki.VonNeumannTstarT
@@ -91,7 +91,8 @@ theorem norm_modularSqrt_eq_norm_tomita (hcyc : IsCyclic M Ω) (hsep : IsSeparat
       = ‖tomitaClosure M Ω ⟨(x : H), hxS⟩‖ := by
   have h := norm_sq_modularSqrt hcyc hsep x hxS
   have h1 : (0 : ℝ) ≤ ‖modularSqrt hcyc hsep ⟨(x : H),
-      (ProjValMeasure.mem_pmapDomain _).mpr (sqrt_integrable_of_mem_generator _ x)⟩‖ := norm_nonneg _
+      (ProjValMeasure.mem_pmapDomain _).mpr (sqrt_integrable_of_mem_generator _ x)⟩‖ :=
+    norm_nonneg _
   have h2 : (0 : ℝ) ≤ ‖tomitaClosure M Ω ⟨(x : H), hxS⟩‖ := norm_nonneg _
   nlinarith [h, h1, h2, sq_nonneg (‖modularSqrt hcyc hsep ⟨(x : H),
     (ProjValMeasure.mem_pmapDomain _).mpr (sqrt_integrable_of_mem_generator _ x)⟩‖

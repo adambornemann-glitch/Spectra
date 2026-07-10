@@ -1,14 +1,16 @@
 /-
-Copyright (c) 2025 Bell Theorem Formalization Project
+Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Ported from Isabelle/HOL formalization by Echenim & Mhalla
-Ported by: Adam Bornemann
-
+Authors: Ported from Isabelle/HOL formalization by Echenim & Mhalla, by Adam Bornemann
+-/
+import Spectra.QuantumMechanics.BellsTheorem.QuantumCHSH.Q_CHSH_Basic
+import Spectra.QuantumMechanics.BellsTheorem.Basic
+/-!
 # CHSH Correlations for the Bell State
 
 The four singlet-state correlators `E(Aᵢ, Bⱼ) = Tr(Aᵢ Bⱼ ρ)` for Alice's/Bob's CHSH observables
 `A₀`, `A₁`, `B₀`, `B₁` (declared below, built from the Pauli matrices in `Q_CHSH_Basic.lean`).
-`A₀`, `A₁`, `B₀`, `B₁`, and `ρΨMinus` here are *definitionally* equal to
+`A₀`, `A₁`, `B₀`, `B₁`, `ρΨMinus` here are *definitionally* equal to
 `Spectra.QuantumInfo.aliceA₀ ⊗ 1`, `aliceA₁ ⊗ 1`, `1 ⊗ bobB₀`, `1 ⊗ bobB₁`, and
 `bellStatePsiMinus` (`BellsTheorem/Basic.lean`), so each correlator is proved by reusing that
 file's `correlation_A*_B*` computation rather than re-deriving the same trace from scratch.
@@ -31,9 +33,6 @@ file's `correlation_A*_B*` computation rather than re-deriving the same trace fr
 * [Echenim, Mhalla, *A formalization of the CHSH inequality and Tsirelson's
   upper-bound in Isabelle/HOL*][echenim2023]
 -/
-import Spectra.QuantumMechanics.BellsTheorem.QuantumCHSH.Q_CHSH_Basic
-import Spectra.QuantumMechanics.BellsTheorem.Basic
-
 open Matrix Complex
 namespace Spectra.QuantumCHSH
 

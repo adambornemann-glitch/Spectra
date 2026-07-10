@@ -1,12 +1,30 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Spectra.Fourier.IsUnique
 import Spectra.Kernel.Poisson.Lemmas
 import Mathlib.Analysis.Fourier.FourierTransform
 import Mathlib.Analysis.Fourier.Inversion
+
+/-!
+# Fourier uniqueness via exponential regularization
+
+This file proves `eq_of_fourier_decay_eq`: if two continuous bounded functions on `ℝ` have
+identical regularized Fourier–Laplace transforms `∫ e^{-ist} e^{-ε|t|} f(t) dt` for every
+regularization parameter `ε > 0` and every frequency `s`, then the functions are equal.
+
+The proof reduces to ordinary Fourier inversion: fixing `ε = 1`, the difference
+`φ(t) = e^{-|t|}(f(t) - g(t))` is continuous and `L¹`, its Fourier transform vanishes identically
+by hypothesis, so continuous-function Fourier inversion forces `φ ≡ 0`; since `e^{-|t|} ≠ 0`, this
+gives `f = g` pointwise.
+
+## Main results
+
+* `eq_of_fourier_decay_eq` : Fourier uniqueness for continuous bounded functions via
+  exponential-decay regularization.
+-/
 
 open Complex MeasureTheory Filter Topology Set FourierTransform
 open scoped InnerProductSpace ComplexConjugate ENNReal NNReal

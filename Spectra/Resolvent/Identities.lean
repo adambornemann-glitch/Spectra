@@ -1,6 +1,6 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Spectra.Resolvent.Range
@@ -205,7 +205,7 @@ goal like `R(z).comp (R(w)) = R(w).comp (R(z))` by `rfl`-unfolding — no additi
 statement required. -/
 lemma resolvent_commute
     {A : H →ₗ.[ℂ] H} (hsym : A.IsFormalAdjoint A)
-    (hplus  : ∀ φ : H, ∃ ψ : A.domain, A ψ + I • (ψ : H) = φ)
+    (hplus : ∀ φ : H, ∃ ψ : A.domain, A ψ + I • (ψ : H) = φ)
     (hminus : ∀ φ : H, ∃ ψ : A.domain, A ψ - I • (ψ : H) = φ)
     (z w : ℂ) (hz : z.im ≠ 0) (hw : w.im ≠ 0) :
     Commute (resolvent z hz hsym hplus hminus) (resolvent w hw hsym hplus hminus) := by

@@ -77,6 +77,33 @@ check("linalg: herm_eigvalues (5±√5)/2", "(toolkit)",
       max(abs(a - b) for a, b in zip(la.herm_eigvalues(_H),
           sorted([(5 - 5 ** .5) / 2, (5 + 5 ** .5) / 2]))), 0.0, abs_tol=1e-10)
 
+# complex Hermitian eigenvectors: reconstruction, orthonormality, eigen-relation
+_Heig = la.mat([[2.0, 1j, 0.0], [-1j, 3.0, 1.0], [0.0, 1.0, 1.5]])
+_evs, _vcs = la.herm_eig(_Heig)
+# ascending eigenvalues match the values-only routine
+check("linalg: herm_eig eigenvalues match herm_eigvalues", "(toolkit)",
+      max(abs(a - b) for a, b in zip(sorted(_evs), la.herm_eigvalues(_Heig))), 0.0, abs_tol=1e-9)
+# orthonormality  ⟨u_i,u_j⟩ = δ_ij
+_ortho = max(abs(sum(_vcs[i][k].conjugate() * _vcs[j][k] for k in range(3))
+                   - (1.0 if i == j else 0.0)) for i in range(3) for j in range(3))
+check("linalg: herm_eig vectors orthonormal", "(toolkit)", _ortho, 0.0, abs_tol=1e-9)
+# eigen-relation  H u_k = λ_k u_k, and spectral reconstruction  H = Σ λ_k |u_k⟩⟨u_k|
+_recon = la.zeros(3)
+for _k in range(3):
+    _Hu = la.matvec(_Heig, _vcs[_k])
+    for _i in range(3):
+        assert abs(_Hu[_i] - _evs[_k] * _vcs[_k][_i]) < 1e-8, "herm_eig eigen-relation"
+        for _j in range(3):
+            _recon[_i][_j] += _evs[_k] * _vcs[_k][_i] * _vcs[_k][_j].conjugate()
+check("linalg: Σ λ_k |u_k⟩⟨u_k| = H (spectral reconstruction)", "(toolkit)",
+      la.max_abs_diff(_recon, _Heig), 0.0, abs_tol=1e-8)
+# degeneracy robustness: repeated eigenvalue (identity-like block) still yields an ON basis
+_Hdeg = la.mat([[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 4.0]])
+_edeg, _vdeg = la.herm_eig(_Hdeg)
+_odeg = max(abs(sum(_vdeg[i][k].conjugate() * _vdeg[j][k] for k in range(3))
+                - (1.0 if i == j else 0.0)) for i in range(3) for j in range(3))
+check("linalg: herm_eig orthonormal under degeneracy", "(toolkit)", _odeg, 0.0, abs_tol=1e-9)
+
 # functional calculus: sqrt squares back, exp∘log = id, and herm_exp vs power series
 check("linalg: (√H)² = H", "(toolkit)", md(la.matmul(la.herm_sqrt(_H), la.herm_sqrt(_H)), _H),
       0.0, abs_tol=1e-9)

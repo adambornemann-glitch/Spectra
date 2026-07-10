@@ -1,6 +1,6 @@
 /-
-Copyright (c) 2026 Spectra Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Mathlib.Analysis.Calculus.ContDiff.Polynomial
@@ -454,7 +454,8 @@ lemma assocLegendreNat_orthogonality (ℓ ℓ' m : ℕ) (hne : ℓ ≠ ℓ') :
       (fun y => ((ℓ : ℝ) * ((ℓ : ℝ) + 1) - (ℓ' : ℝ) * ((ℓ' : ℝ) + 1))
         * (assocLegendreNat ℓ m y * assocLegendreNat ℓ' m y)) volume (-1) 1 :=
     (continuous_const.mul
-      ((assocLegendreNat_continuous ℓ m).mul (assocLegendreNat_continuous ℓ' m))).intervalIntegrable _ _
+      ((assocLegendreNat_continuous ℓ m).mul
+        (assocLegendreNat_continuous ℓ' m))).intervalIntegrable _ _
   have hFTC := intervalIntegral.integral_eq_sub_of_hasDerivAt_of_le
     (by norm_num : (-1:ℝ) ≤ 1) hcont hderiv hint
   rw [intervalIntegral.integral_const_mul] at hFTC
@@ -684,7 +685,7 @@ lemma integral_one_sub_sq_pow (n : ℕ) :
 /-- The squared raising relation: on `1 - x² ≥ 0`,
       `(1-x²) · (P_ℓ^{m+1})² = (S + m·x·P_ℓ^m)²`,  `S = assocLegendreSL ℓ m`.
     (Pointwise; both sides are squares so the Condon–Shortley signs drop out.) -/
-lemma assocLegendreNat_sq_succ (ℓ m : ℕ) {x : ℝ} (hx : (0:ℝ) ≤ 1 - x^2) :
+lemma assocLegendreNat_sq_succ (ℓ m : ℕ) {x : ℝ} (hx : (0 : ℝ) ≤ 1 - x ^ 2) :
     (1 - x^2) * (assocLegendreNat ℓ (m+1) x * assocLegendreNat ℓ (m+1) x)
       = (assocLegendreSL ℓ m x + (m:ℝ) * x * assocLegendreNat ℓ m x)^2 := by
   have hs : Real.sqrt (1 - x^2) ^ 2 = 1 - x^2 := Real.sq_sqrt hx
@@ -740,7 +741,8 @@ lemma assocLegendreNat_ladder (ℓ m : ℕ) :
       (fun y => ((ℓ:ℝ) * ((ℓ:ℝ)+1) - (m:ℝ) * ((m:ℝ)+1))
         * (assocLegendreNat ℓ m y * assocLegendreNat ℓ m y)) volume (-1) 1 :=
     (continuous_const.mul
-      ((assocLegendreNat_continuous ℓ m).mul (assocLegendreNat_continuous ℓ m))).intervalIntegrable _ _
+      ((assocLegendreNat_continuous ℓ m).mul
+        (assocLegendreNat_continuous ℓ m))).intervalIntegrable _ _
   have hFTC := intervalIntegral.integral_eq_sub_of_hasDerivAt_of_le
     (by norm_num : (-1:ℝ) ≤ 1) hcont hderiv (hint1.sub hint2)
   have hb1 : assocLegendreNat ℓ m 1 * assocLegendreSL ℓ m 1
@@ -900,7 +902,7 @@ lemma span_of_natDegree (T : ℕ → Polynomial ℝ)
         (Polynomial.eq_C_of_natDegree_le_zero (hdeg 0)).symm
       have hkey : q = (q.coeff 0 / (T 0).coeff 0) • T 0 := by
         rw [← hT0, Polynomial.smul_C, smul_eq_mul]
-        simp [div_mul_cancel₀ _ (hcoeff 0)]
+        simp only [Polynomial.coeff_C_zero, div_mul_cancel₀ _ (hcoeff 0)]
         exact hqC
       rw [hkey]
       exact Submodule.smul_mem _ _ (Submodule.subset_span ⟨0, rfl⟩)

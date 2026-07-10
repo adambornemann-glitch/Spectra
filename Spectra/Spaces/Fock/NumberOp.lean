@@ -1,8 +1,7 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
-File: Spectra/Spaces/Fock/NumberOp.lean
 -/
 import Spectra.Spaces.Fock.Sector
 import Spectra.Operator.SelfAdjoint
@@ -59,23 +58,23 @@ the diagonal multiplier `ξ ↦ (n • ξₙ)ₙ`. -/
 def numberDomain : Submodule 𝕜 (fullFock 𝕜 H) where
   carrier := {ξ | Memℓp (fun n : ℕ => (n : 𝕜) • ξ n) 2}
   zero_mem' := by
-    show Memℓp (fun n : ℕ => (n : 𝕜) • (0 : fullFock 𝕜 H) n) 2
+    change Memℓp (fun n : ℕ => (n : 𝕜) • (0 : fullFock 𝕜 H) n) 2
     have h : (fun n : ℕ => (n : 𝕜) • (0 : fullFock 𝕜 H) n)
         = (0 : ∀ n, HilbertTensorPower 𝕜 n H) :=
       funext fun n => smul_zero _
     rw [h]; exact zero_memℓp
   add_mem' {ξ η} hξ hη := by
-    show Memℓp (fun n : ℕ => (n : 𝕜) • (ξ + η : fullFock 𝕜 H) n) 2
+    change Memℓp (fun n : ℕ => (n : 𝕜) • (ξ + η : fullFock 𝕜 H) n) 2
     have h : (fun n : ℕ => (n : 𝕜) • (ξ + η : fullFock 𝕜 H) n)
         = (fun n : ℕ => (n : 𝕜) • ξ n) + fun n : ℕ => (n : 𝕜) • η n :=
       funext fun n => smul_add _ _ _
     rw [h]; exact Memℓp.add hξ hη
   smul_mem' c ξ hξ := by
-    show Memℓp (fun n : ℕ => (n : 𝕜) • (c • ξ : fullFock 𝕜 H) n) 2
+    change Memℓp (fun n : ℕ => (n : 𝕜) • (c • ξ : fullFock 𝕜 H) n) 2
     have h : (fun n : ℕ => (n : 𝕜) • (c • ξ : fullFock 𝕜 H) n)
         = c • fun n : ℕ => (n : 𝕜) • ξ n :=
       funext fun n => by
-        show (n : 𝕜) • (c • ξ n) = c • ((n : 𝕜) • ξ n)
+        change (n : 𝕜) • (c • ξ n) = c • ((n : 𝕜) • ξ n)
         exact smul_comm _ _ _
     rw [h]; exact Memℓp.const_smul hξ c
 
@@ -135,12 +134,12 @@ def numberOp : fullFock 𝕜 H →ₗ.[𝕜] fullFock 𝕜 H where
         (mem_numberDomain_iff 𝕜 H).mp ξ.2⟩ : fullFock 𝕜 H)
       map_add' := fun ξ η => by
         refine lp.ext (funext fun n => ?_)
-        show (n : 𝕜) • ((ξ : fullFock 𝕜 H) n + (η : fullFock 𝕜 H) n)
+        change (n : 𝕜) • ((ξ : fullFock 𝕜 H) n + (η : fullFock 𝕜 H) n)
             = (n : 𝕜) • (ξ : fullFock 𝕜 H) n + (n : 𝕜) • (η : fullFock 𝕜 H) n
         exact smul_add _ _ _
       map_smul' := fun c ξ => by
         refine lp.ext (funext fun n => ?_)
-        show (n : 𝕜) • (c • (ξ : fullFock 𝕜 H) n) = c • ((n : 𝕜) • (ξ : fullFock 𝕜 H) n)
+        change (n : 𝕜) • (c • (ξ : fullFock 𝕜 H) n) = c • ((n : 𝕜) • (ξ : fullFock 𝕜 H) n)
         exact smul_comm _ _ _ }
 
 @[simp]
@@ -166,7 +165,7 @@ theorem numberOp_fockSector (n : ℕ) (x : HilbertTensorPower 𝕜 n H) :
     numberOp 𝕜 H ⟨fockSector 𝕜 H n x, fockSector_mem_numberDomain 𝕜 H n x⟩
       = (n : 𝕜) • fockSector 𝕜 H n x := by
   refine lp.ext ?_
-  show (fun m : ℕ => (m : 𝕜) • fockSector 𝕜 H n x m) = ⇑((n : 𝕜) • fockSector 𝕜 H n x)
+  change (fun m : ℕ => (m : 𝕜) • fockSector 𝕜 H n x m) = ⇑((n : 𝕜) • fockSector 𝕜 H n x)
   rw [natCast_smul_fockSector_apply, map_smul]
 
 /-- **The vacuum is the ground state of the number operator**: `N Ω = 0` — the vacuum has

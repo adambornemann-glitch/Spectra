@@ -1,8 +1,13 @@
 /-
+Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Adam Bornemann
+-/
+
+/-
 Spectra: Operators.lean
 Dirac Operator and Hamiltonian, rebuilt on the constructed spectral calculus.
 
-Filename: QuantumMechanics/DiracEquation/Operators.lean
 -/
 import Mathlib.Analysis.InnerProductSpace.PiL2
 import Spectra.SpectralTheory.Measure.GeneratorLink

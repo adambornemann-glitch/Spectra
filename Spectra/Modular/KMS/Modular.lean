@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
-Author: Adam Bornemann
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Adam Bornemann
 -/
 import Spectra.Modular.KMS.Condition
 import Mathlib.Analysis.VonNeumannAlgebra.Basic
@@ -146,7 +146,8 @@ These are now projections from `ModularTheoryData`, not global axioms.
 -/
 
 /-- Trivial accessor: the bundled invariance field of `hmod`. This is a *projection* of the
-hypothesis `ModularTheoryData`, not a proof that invariant modular data exists. (Currently unused.) -/
+hypothesis `ModularTheoryData`, not a proof that invariant modular data exists. (Currently unused.)
+-/
 lemma modularAutomorphismGroup_invariant {A : Type*} [CStarAlgebra A] [WStarAlgebra A]
     [PartialOrder A] [StarOrderedRing A]
     {ω : FaithfulNormalState A} (hmod : ModularTheoryData A ω) :
@@ -274,7 +275,8 @@ noncomputable def KMSFunction.rescaleGeneral {A : Type*} [CStarAlgebra A]
         zero_add]
       constructor
       · exact mul_pos hz.1 (div_pos hβ₁ hβ₂)
-      · calc z.im * (β₁ / β₂) < β₂ * (β₁ / β₂) := by apply mul_lt_mul_of_pos_right hz.2 (div_pos hβ₁ hβ₂)
+      · calc z.im * (β₁ / β₂) < β₂ * (β₁ / β₂) := by
+                apply mul_lt_mul_of_pos_right hz.2 (div_pos hβ₁ hβ₂)
           _ = β₁ := by field_simp
     convert F.holomorphic.comp h1 h2 using 1
   continuousOn := by
@@ -287,7 +289,8 @@ noncomputable def KMSFunction.rescaleGeneral {A : Type*} [CStarAlgebra A]
         zero_add]
       constructor
       · exact mul_nonneg hz.1 (le_of_lt (div_pos hβ₁ hβ₂))
-      · calc z.im * (β₁ / β₂) ≤ β₂ * (β₁ / β₂) := by apply mul_le_mul_of_nonneg_right hz.2 (le_of_lt (div_pos hβ₁ hβ₂))
+      · calc z.im * (β₁ / β₂) ≤ β₂ * (β₁ / β₂) := by
+                apply mul_le_mul_of_nonneg_right hz.2 (le_of_lt (div_pos hβ₁ hβ₂))
           _ = β₁ := by field_simp
     convert F.continuousOn.comp h1 h2 using 1
   bounded := by
@@ -303,7 +306,8 @@ noncomputable def KMSFunction.rescaleGeneral {A : Type*} [CStarAlgebra A]
       zero_add]
     constructor
     · exact mul_nonneg hw.1 (le_of_lt (div_pos hβ₁ hβ₂))
-    · calc w.im * (β₁ / β₂) ≤ β₂ * (β₁ / β₂) := by apply mul_le_mul_of_nonneg_right hw.2 (le_of_lt (div_pos hβ₁ hβ₂))
+    · calc w.im * (β₁ / β₂) ≤ β₂ * (β₁ / β₂) := by
+              apply mul_le_mul_of_nonneg_right hw.2 (le_of_lt (div_pos hβ₁ hβ₂))
         _ = β₁ := by field_simp
   lower_boundary := by
     intro t

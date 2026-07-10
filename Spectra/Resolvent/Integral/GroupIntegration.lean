@@ -1,6 +1,6 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Spectra.OneParameterUnitaryGroup.Basic
@@ -115,4 +115,4 @@ lemma norm_resolventIntegralMinus_le (φ : H) :
         simp [reversedGroup_apply]
     _ ≤ ‖φ‖ := norm_integral_exp_neg_unitary_le (reversedGroup U_grp) φ
 
-end ResolventIntegrals
+end Spectra.Resolvent.ResolventIntegrals

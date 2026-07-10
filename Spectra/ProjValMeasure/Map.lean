@@ -1,6 +1,6 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Spectra.ProjValMeasure.Basic
@@ -15,11 +15,11 @@ preimage and whose diagonal scalar measures push forward:
 * `(P.map φ hφ).diag ξ = (P.diag ξ).map φ`  (`map_diag`).
 
 This is the projection-valued **spectral-mapping** carrier: for a self-adjoint `A`, the spectral
-measure of `f(A)` is `(spectralPVM A).map f`.  It is the constructor that `ProjValMeasure` was missing
-(there was previously no `map`/`comap`/pushforward on PVMs), and the load-bearing prerequisite for the
-`s ↦ s²` spectral pushforward `E^{A²} = (·²)_* E^A` behind positive-square-root uniqueness (Field-3
-polar uniqueness). The PVM axioms transfer because preimage commutes with `∩`, `ᶜ`, `univ`, `∅`, and
-`Measure.map φ` of a finite measure is finite.
+measure of `f(A)` is `(spectralPVM A).map f`. It is the constructor that `ProjValMeasure` was
+missing (there was previously no `map`/`comap`/pushforward on PVMs), and the load-bearing
+prerequisite for the `s ↦ s²` spectral pushforward `E^{A²} = (·²)_* E^A` behind positive-square-root
+uniqueness (Field-3 polar uniqueness). The PVM axioms transfer because preimage commutes with `∩`,
+`ᶜ`, `univ`, `∅`, and `Measure.map φ` of a finite measure is finite.
 -/
 
 open MeasureTheory Complex
@@ -31,8 +31,8 @@ namespace ProjValMeasure
 
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteSpace H]
 
-/-- **Pushforward of a PVM under a measurable map** `φ : ℝ → ℝ`: `proj` precomposes with the preimage
-and `diag` pushes forward. See `map_proj`, `map_diag`. -/
+/-- **Pushforward of a PVM under a measurable map** `φ : ℝ → ℝ`: `proj` precomposes with the
+preimage and `diag` pushes forward. See `map_proj`, `map_diag`. -/
 noncomputable def map (P : ProjValMeasure H) (φ : ℝ → ℝ) (hφ : Measurable φ) :
     ProjValMeasure H where
   proj B hB := P.proj (φ ⁻¹' B) (hφ hB)

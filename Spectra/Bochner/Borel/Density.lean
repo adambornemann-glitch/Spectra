@@ -1,6 +1,6 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 
@@ -365,7 +365,7 @@ lemma fourier_regularized_value
   have hF_int : Integrable (Function.uncurry F) (volume.prod volume) := by
     have h_meas : AEStronglyMeasurable (Function.uncurry F) (volume.prod volume) := by
       apply Continuous.aestronglyMeasurable
-      show Continuous (fun p : ℝ × ℝ =>
+      change Continuous (fun p : ℝ × ℝ =>
         (cexp (I * ↑p.1 * ↑t) * (Real.exp (-(δ * |p.1|)) : ℂ)) *
         (cexp (-(I * ↑p.1 * ↑p.2)) * cexp (-(↑ε * ↑|p.2|)) * ⟪ξ, U_grp.U p.2 ξ⟫_ℂ))
       apply Continuous.mul
@@ -384,7 +384,7 @@ lemma fourier_regularized_value
       (hδ_int.mul_prod hε_int).const_mul _
     refine h_dom.mono' h_meas ?_
     filter_upwards with p
-    show ‖(cexp (I * ↑p.1 * ↑t) * (Real.exp (-(δ * |p.1|)) : ℂ)) *
+    change ‖(cexp (I * ↑p.1 * ↑t) * (Real.exp (-(δ * |p.1|)) : ℂ)) *
           (cexp (-(I * ↑p.1 * ↑p.2)) * cexp (-(↑ε * ↑|p.2|)) *
             ⟪ξ, U_grp.U p.2 ξ⟫_ℂ)‖ ≤
           ‖ξ‖ ^ 2 * (Real.exp (-(δ * |p.1|)) * Real.exp (-(ε * |p.2|)))
@@ -465,9 +465,11 @@ theorem borelDensity_fourier
           have := mul_nonneg hδ'.le (abs_nonneg lambda); linarith
         calc Real.exp (-(δ * |lambda|)) ≤ Real.exp 0 := Real.exp_le_exp.mpr h_nonpos
           _ = 1 := Real.exp_zero
-      simp [Complex.norm_exp, Complex.norm_real, Complex.norm_real,
-        show (I * ↑lambda * ↑t).re = 0 from by simp [Complex.mul_re], Real.exp_zero, one_mul,
-          abs_of_nonneg (borelDensity_nonneg U_grp ξ hε lambda)]
+      simp only [ofReal_exp, ofReal_neg, ofReal_mul, Complex.norm_mul, Complex.norm_exp,
+        Complex.norm_real, norm_real, Real.norm_eq_abs, show (I * ↑lambda * ↑t).re = 0
+        from by simp [Complex.mul_re], Real.exp_zero, one_mul,
+        abs_of_nonneg (borelDensity_nonneg U_grp ξ hε lambda)]
+      simp only [neg_re, mul_re, ofReal_re, ofReal_im, mul_zero, sub_zero, ge_iff_le]
       calc borelDensity U_grp ξ hε lambda * Real.exp (-(δ * |lambda|))
           ≤ borelDensity U_grp ξ hε lambda * 1 :=
             mul_le_mul_of_nonneg_left hexp_le (borelDensity_nonneg U_grp ξ hε lambda)

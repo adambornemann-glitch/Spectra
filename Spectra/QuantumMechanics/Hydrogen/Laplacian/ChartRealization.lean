@@ -1,6 +1,6 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Spectra.QuantumMechanics.Hydrogen.RadialProblem.TensorDecomp.Basic
@@ -275,19 +275,19 @@ private theorem sphereCoordSymmInv_spec_aux (y : Fin 3 → ℝ) (hy : y 1 ≠ 0)
       nlinarith [hrsq, hρsq]
     rw [hsq, Real.sqrt_sq (by positivity)]
   refine ⟨⟨?_, ?_, ?_⟩, ?_⟩
-  · show 0 < r
+  · change 0 < r
     exact hrpos
-  · show Real.arccos (y 2 / r) ∈ Set.Ioo 0 Real.pi
+  · change Real.arccos (y 2 / r) ∈ Set.Ioo 0 Real.pi
     exact ⟨Real.arccos_pos.mpr hyrlt, Real.arccos_lt_pi.mpr hyrgt⟩
-  · show φ ∈ Set.Ioo 0 (2 * Real.pi)
+  · change φ ∈ Set.Ioo 0 (2 * Real.pi)
     exact hφrange
   · funext i
     fin_cases i
-    · show r * Real.sin (Real.arccos (y 2 / r)) * Real.cos φ = y 0
+    · change r * Real.sin (Real.arccos (y 2 / r)) * Real.cos φ = y 0
       rw [hsa, hcosφ]; field_simp
-    · show r * Real.sin (Real.arccos (y 2 / r)) * Real.sin φ = y 1
+    · change r * Real.sin (Real.arccos (y 2 / r)) * Real.sin φ = y 1
       rw [hsa, hsinφ]; field_simp
-    · show r * Real.cos (Real.arccos (y 2 / r)) = y 2
+    · change r * Real.cos (Real.arccos (y 2 / r)) = y 2
       rw [Real.cos_arccos hyrgt.le hyrlt.le]; field_simp
 
 /-- Surjectivity onto the non-slit set: every point with nonzero middle coordinate has a
@@ -344,7 +344,7 @@ theorem lintegral_sphereCoordSymmF (g : (Fin 3 → ℝ) → ℝ≥0∞) :
         have hpos : 0 ≤ (c 0) ^ 2 * Real.sin (c 1) := by
           have := Real.sin_pos_of_pos_of_lt_pi hc.2.1.1 hc.2.1.2
           positivity
-        show ENNReal.ofReal |(sphereCoordCLM c).det| * g (sphereCoordSymmF c)
+        change ENNReal.ofReal |(sphereCoordCLM c).det| * g (sphereCoordSymmF c)
           = ENNReal.ofReal ((c 0) ^ 2 * Real.sin (c 1)) * g (sphereCoordSymmF c)
         rw [det_sphereCoordCLM, abs_of_nonneg hpos]
 
@@ -452,7 +452,7 @@ theorem lintegral_sphereChart_prod (F : Spectra.Sobolev.R3 → ℝ≥0∞) (hF :
             * F (WithLp.toLp 2 (sphereCoordSymmF c)) ∂volume := by
         apply setLIntegral_congr_fun measurableSet_chartBox
         intro c _
-        show ENNReal.ofReal ((c 0) ^ 2) * ENNReal.ofReal (Real.sin (c 1))
+        change ENNReal.ofReal ((c 0) ^ 2) * ENNReal.ofReal (Real.sin (c 1))
             * F (sphereChart (c 0) (c 1) (c 2))
           = ENNReal.ofReal ((c 0) ^ 2 * Real.sin (c 1)) * F (WithLp.toLp 2 (sphereCoordSymmF c))
         rw [← ENNReal.ofReal_mul (sq_nonneg _), ← toLp_sphereCoordSymmF]
@@ -524,12 +524,12 @@ lemma measurable_sphereCoordSymmInvF : Measurable sphereCoordSymmInvF := by
   rw [measurable_pi_iff]
   intro i
   fin_cases i
-  · show Measurable (fun y : Fin 3 → ℝ => Real.sqrt ((y 0) ^ 2 + (y 1) ^ 2 + (y 2) ^ 2))
+  · change Measurable (fun y : Fin 3 → ℝ => Real.sqrt ((y 0) ^ 2 + (y 1) ^ 2 + (y 2) ^ 2))
     fun_prop
-  · show Measurable (fun y : Fin 3 → ℝ =>
+  · change Measurable (fun y : Fin 3 → ℝ =>
       Real.arccos (y 2 / Real.sqrt ((y 0) ^ 2 + (y 1) ^ 2 + (y 2) ^ 2)))
     exact Real.measurable_arccos.comp (by fun_prop)
-  · show Measurable (fun y : Fin 3 → ℝ =>
+  · change Measurable (fun y : Fin 3 → ℝ =>
       if 0 < y 1 then Complex.arg ⟨y 0, y 1⟩ else Complex.arg ⟨y 0, y 1⟩ + 2 * Real.pi)
     refine Measurable.ite (measurableSet_lt measurable_const (measurable_pi_apply 1)) ?_ ?_
     · exact Complex.measurable_arg.comp hmk

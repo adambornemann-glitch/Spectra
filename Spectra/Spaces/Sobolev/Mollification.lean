@@ -1,6 +1,6 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Spectra.Spaces.Sobolev.Submodules
@@ -21,7 +21,7 @@ smooth bump approximates both the function and its weak derivative(s) simultaneo
 ## Main statements
 
 * `mollify_compactly_supported_family` — the shared construction, parametrized by an arbitrary
-  nonempty `Fintype` index `ι` of directions: one bump convolution `ε`-approximates a compactly
+  nonempty `Finite` index `ι` of directions: one bump convolution `ε`-approximates a compactly
   supported `L²` function and, for every `j : ι`, its weak derivative in direction `dir j`,
   simultaneously.
 * `mollify_compactly_supported` — the `ι := Unit` specialization: a single bump convolution
@@ -131,7 +131,7 @@ private lemma bumpConvolve_hasCompactSupport (ρ : ContDiffBump (0 : R3)) (f : R
       apply hx
       have hre0 := image_eq_zero_of_notMem_tsupport h.1
       have him0 := image_eq_zero_of_notMem_tsupport h.2
-      show (⟨_, _⟩ : ℂ) = 0
+      change (⟨_, _⟩ : ℂ) = 0
       rw [hre0, him0]; rfl
     · exact (isClosed_tsupport _).union (isClosed_tsupport _)
   exact (hcs_re.isCompact.union hcs_im.isCompact).of_isClosed_subset
@@ -158,7 +158,7 @@ private lemma bumpConvolve_eq_zero (ρ : ContDiffBump (0 : R3)) (g : R3 → ℂ)
     by_cases ht : t ∈ Metric.closedBall (0 : R3) ρ.rOut
     · rw [hg_zero t ht, hproj, mul_zero]; rfl
     · rw [hρ_zero t ht, zero_mul]; rfl
-  show (⟨_, _⟩ : ℂ) = 0
+  change (⟨_, _⟩ : ℂ) = 0
   rw [h_component Complex.re Complex.zero_re, h_component Complex.im Complex.zero_im]
   rfl
 
@@ -411,7 +411,7 @@ private lemma eLpNorm_real_convolve_le (ρ : ContDiffBump (0 : R3))
   let ν₀ : Measure R3 := volume.withDensity (fun t => ENNReal.ofReal (ψ t))
   haveI hν_prob : IsProbabilityMeasure ν₀ := by
     refine ⟨?_⟩
-    show (volume.withDensity _) Set.univ = 1
+    change (volume.withDensity _) Set.univ = 1
     rw [withDensity_apply _ MeasurableSet.univ, Measure.restrict_univ,
         ← ofReal_integral_eq_lintegral_ofReal hψ_intble hψ_ae_nn,
         hψ_int_eq_one, ENNReal.ofReal_one]
@@ -423,7 +423,7 @@ private lemma eLpNorm_real_convolve_le (ρ : ContDiffBump (0 : R3))
   have hν₀_eq_ν : ν₀ = ν := rfl
   have h_lhs : ∀ x, ψg x = ∫ t, g (x - t) ∂ν := by
     intro x
-    show MeasureTheory.convolution ψ g (ContinuousLinearMap.lsmul ℝ ℝ) volume x = _
+    change MeasureTheory.convolution ψ g (ContinuousLinearMap.lsmul ℝ ℝ) volume x = _
     rw [MeasureTheory.convolution_def]
     simp only [ContinuousLinearMap.lsmul_apply, smul_eq_mul]
     rw [integral_withDensity_eq_integral_smul
@@ -432,7 +432,7 @@ private lemma eLpNorm_real_convolve_le (ρ : ContDiffBump (0 : R3))
     simp only [NNReal.smul_def, smul_eq_mul, Real.coe_toNNReal _ (hψ_nn t)]
   have h_rhs : ∀ x, ψg_sq x = ∫ t, (g (x - t)) ^ 2 ∂ν := by
     intro x
-    show MeasureTheory.convolution ψ (fun t => (g t) ^ 2)
+    change MeasureTheory.convolution ψ (fun t => (g t) ^ 2)
         (ContinuousLinearMap.lsmul ℝ ℝ) volume x = _
     rw [MeasureTheory.convolution_def]
     simp only [ContinuousLinearMap.lsmul_apply, smul_eq_mul]
@@ -485,7 +485,7 @@ private lemma eLpNorm_real_convolve_le (ρ : ContDiffBump (0 : R3))
     have hg_x_intble_ν : Integrable (fun t => g (x - t)) ν := by
       refine ⟨?_, ?_⟩
       · exact hg_x_aesm.mono_ac (withDensity_absolutelyContinuous _ _)
-      · show ∫⁻ t, ‖g (x - t)‖ₑ ∂ν < ⊤
+      · change ∫⁻ t, ‖g (x - t)‖ₑ ∂ν < ⊤
         rw [show (ν : Measure R3) =
               volume.withDensity (fun t => ((ψ t).toNNReal : ℝ≥0∞)) from rfl,
             lintegral_withDensity_eq_lintegral_mul₀'
@@ -494,14 +494,14 @@ private lemma eLpNorm_real_convolve_le (ρ : ContDiffBump (0 : R3))
         have hψ_g_finite : ∫⁻ t, ‖ψ t * g (x - t)‖ₑ ∂volume < ⊤ := hψ_g_x_intble.2
         refine lt_of_le_of_lt ?_ hψ_g_finite
         refine lintegral_mono fun t => ?_
-        show ((ψ t).toNNReal : ℝ≥0∞) * ‖g (x - t)‖ₑ ≤ ‖ψ t * g (x - t)‖ₑ
+        change ((ψ t).toNNReal : ℝ≥0∞) * ‖g (x - t)‖ₑ ≤ ‖ψ t * g (x - t)‖ₑ
         rw [show ((ψ t).toNNReal : ℝ≥0∞) = ‖ψ t‖ₑ by
               rw [Real.enorm_eq_ofReal_abs, abs_of_nonneg (hψ_nn t)]; rfl,
             ← enorm_mul]
     have hg2_x_intble_ν : Integrable (fun t => (g (x - t))^2) ν := by
       refine ⟨?_, ?_⟩
       · exact hg2_x_aesm.mono_ac (withDensity_absolutelyContinuous _ _)
-      · show ∫⁻ t, ‖(g (x - t))^2‖ₑ ∂ν < ⊤
+      · change ∫⁻ t, ‖(g (x - t))^2‖ₑ ∂ν < ⊤
         rw [show (ν : Measure R3) =
               volume.withDensity (fun t => ((ψ t).toNNReal : ℝ≥0∞)) from rfl,
             lintegral_withDensity_eq_lintegral_mul₀'
@@ -510,7 +510,7 @@ private lemma eLpNorm_real_convolve_le (ρ : ContDiffBump (0 : R3))
         have hψ_g2_finite : ∫⁻ t, ‖ψ t * (g (x - t))^2‖ₑ ∂volume < ⊤ := hψ_g2_x_intble.2
         refine lt_of_le_of_lt ?_ hψ_g2_finite
         refine lintegral_mono fun t => ?_
-        show ((ψ t).toNNReal : ℝ≥0∞) * ‖(g (x - t))^2‖ₑ ≤ ‖ψ t * (g (x - t))^2‖ₑ
+        change ((ψ t).toNNReal : ℝ≥0∞) * ‖(g (x - t))^2‖ₑ ≤ ‖ψ t * (g (x - t))^2‖ₑ
         rw [show ((ψ t).toNNReal : ℝ≥0∞) = ‖ψ t‖ₑ by
               rw [Real.enorm_eq_ofReal_abs, abs_of_nonneg (hψ_nn t)]; rfl,
             ← enorm_mul]
@@ -523,7 +523,7 @@ private lemma eLpNorm_real_convolve_le (ρ : ContDiffBump (0 : R3))
       (Filter.Eventually.of_forall fun _ => Set.mem_univ _)
       hg_x_intble_ν
       (by
-        show Integrable ((fun u => u ^ 2) ∘ fun t => g (x - t)) ν
+        change Integrable ((fun u => u ^ 2) ∘ fun t => g (x - t)) ν
         exact hg2_x_intble_ν)
     exact h_jensen
   -- ===== STEP 4: Integrate and apply integral_convolution =====
@@ -541,7 +541,7 @@ private lemma eLpNorm_real_convolve_le (ρ : ContDiffBump (0 : R3))
   have h_integral_le : ∫ x, (ψg x) ^ 2 ∂volume ≤ ∫ x, ψg_sq x ∂volume :=
     integral_mono hψg_sq_intble h_conv_g2_intble (h_pointwise)
   have h_integral_eq : ∫ x, ψg_sq x ∂volume = ∫ x, (g x) ^ 2 ∂volume := by
-    show ∫ x, MeasureTheory.convolution ψ (fun t => (g t) ^ 2)
+    change ∫ x, MeasureTheory.convolution ψ (fun t => (g t) ^ 2)
       (ContinuousLinearMap.lsmul ℝ ℝ) volume x ∂volume = _
     rw [MeasureTheory.integral_convolution (ContinuousLinearMap.lsmul ℝ ℝ)
           hψ_intble hg_sq_intble']
@@ -604,13 +604,13 @@ private lemma eLpNorm_bumpConvolve_le (ρ : ContDiffBump (0 : R3))
     refine ⟨hh.aestronglyMeasurable.re, ?_⟩
     refine lt_of_le_of_lt
       (eLpNorm_mono_ae (Filter.Eventually.of_forall fun x => ?_)) hh.eLpNorm_lt_top
-    show ‖(h x).re‖ ≤ ‖h x‖
+    change ‖(h x).re‖ ≤ ‖h x‖
     exact Complex.abs_re_le_norm (h x)
   have hh_im : MemLp h_im 2 volume := by
     refine ⟨hh.aestronglyMeasurable.im, ?_⟩
     refine lt_of_le_of_lt
       (eLpNorm_mono_ae (Filter.Eventually.of_forall fun x => ?_)) hh.eLpNorm_lt_top
-    show ‖(h x).im‖ ≤ ‖h x‖
+    change ‖(h x).im‖ ≤ ‖h x‖
     exact Complex.abs_im_le_norm (h x)
   set ψ_h_re := MeasureTheory.convolution ψ h_re (ContinuousLinearMap.lsmul ℝ ℝ) volume
     with hψ_h_re_def
@@ -980,7 +980,7 @@ private lemma weak_deriv_against_translated_bump
   exact neg_inj.mp hwk
 
 /-- Derivative of convolution equals convolution of weak derivative:
-      ∂ᵢ(ρ ⋆ h)(x) = (ρ ⋆ dh)(x)  pointwise.-/
+      ∂ᵢ(ρ ⋆ h)(x) = (ρ ⋆ dh)(x) pointwise. -/
 private lemma clm_mul_ofReal (L : ℂ →L[ℝ] ℝ) (z : ℂ) (r : ℝ) :
     L (z * (r : ℂ)) = L z * r := by
   have hz : z * (r : ℂ) = r • z := by rw [Complex.real_smul]; ring
@@ -1119,7 +1119,7 @@ private lemma bumpConvolve_fderiv_eq_component (L : ℂ →L[ℝ] ℝ) (i : Fin 
   exact h_star_L
 
 /-- Derivative of convolution equals convolution of weak derivative:
-      ∂ᵢ(ρ ⋆ h)(x) = (ρ ⋆ dh)(x)  pointwise.-/
+      ∂ᵢ(ρ ⋆ h)(x) = (ρ ⋆ dh)(x)  pointwise. -/
 private lemma bumpConvolve_fderiv_eq (i : Fin 3)
     (h dh : R3 → ℂ) (hh : MemLp h 2 volume) (hdh : MemLp dh 2 volume)
     (h_wk : HasWeakDerivative (hh.toLp h) i (hdh.toLp dh))
@@ -1148,7 +1148,7 @@ private lemma norm_toLp_sub_lt {f g : R3 → ℂ}
     _ = ε := ENNReal.toReal_ofReal hε.le
 
 /-- **Shared mollification construction**, parametrized by an arbitrary nonempty
-    `Fintype` index `ι` of directions to control simultaneously. A single bump
+    `Finite` index `ι` of directions to control simultaneously. A single bump
     convolution `ε`-approximates `h_R` and, for every `j : ι`, its truncated weak
     derivative `dh_R j` in direction `dir j`, all at once. `mollify_compactly_supported`
     (`ι := Unit`) and `mollify_compactly_supported_multi` (`ι := Fin 3`, `dir := id`)
@@ -1159,7 +1159,7 @@ private lemma norm_toLp_sub_lt {f g : R3 → ℂ}
     ρ ⋆ h_R ≈ h_R and, for every j, ρ ⋆ dh_R j ≈ dh_R j in L², then use the derivative
     identity ∂_{dir j}(ρ ⋆ h_R) = ρ ⋆ dh_R j to couple the function bound to each
     derivative bound. -/
-lemma mollify_compactly_supported_family {ι : Type*} [Fintype ι] [Nonempty ι]
+lemma mollify_compactly_supported_family {ι : Type*} [Finite ι] [Nonempty ι]
     (dir : ι → Fin 3) (h_R : R3 → ℂ) (dh_R : ι → R3 → ℂ)
     (hh : MemLp h_R 2 volume) (hdh : ∀ j, MemLp (dh_R j) 2 volume)
     (hh_supp : HasCompactSupport h_R) (hdh_supp : ∀ j, HasCompactSupport (dh_R j))
@@ -1170,6 +1170,7 @@ lemma mollify_compactly_supported_family {ι : Type*} [Fintype ι] [Nonempty ι]
       ∀ j, ‖(hdh j).toLp (dh_R j) -
         (memLp_partialDeriv φ (dir j) hφ hφ_supp).toLp
           (fun x => fderiv ℝ φ x (EuclideanSpace.single (dir j) 1))‖ < ε := by
+  haveI : Fintype ι := Fintype.ofFinite ι
   -- L² convergence radii: δ₀ for h_R; δ_dg j for each dh_R j.
   obtain ⟨δ₀, hδ₀_pos, happrox₀⟩ := bumpConvolve_L2_tendsto h_R hh ε hε
   choose δ_dg hδ_dg_pos happrox_dg using

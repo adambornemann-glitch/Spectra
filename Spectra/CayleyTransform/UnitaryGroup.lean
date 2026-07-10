@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
-Author: Adam Bornemann
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Adam Bornemann
 -/
 import Spectra.CayleyTransform.BorelCalculus
 import Spectra.OneParameterUnitaryGroup.Basic
@@ -56,7 +56,8 @@ noncomputable def borelUnitaryGroup (V : H →L[ℂ] H) (hn : IsStarNormal V)
     unitary := by
       intro t ψ φ
       -- `(U t)⋆ ∘ (U t) = borelCalculus (conj (g t) · g t) = borelCalculus 1 = id`
-      have hcm : Measurable fun z => conj (g t z) := Complex.continuous_conj.measurable.comp (hmeas t)
+      have hcm : Measurable fun z => conj (g t z) :=
+        Complex.continuous_conj.measurable.comp (hmeas t)
       have hcb : ∃ C, ∀ z, ‖conj (g t z)‖ ≤ C :=
         ⟨1, fun z => by rw [RCLike.norm_conj]; exact le_of_eq (hunimod t z)⟩
       have hm : Measurable fun z => conj (g t z) * g t z := hcm.mul (hmeas t)
@@ -64,7 +65,8 @@ noncomputable def borelUnitaryGroup (V : H →L[ℂ] H) (hn : IsStarNormal V)
         ⟨1, fun z => by rw [norm_mul, RCLike.norm_conj, hunimod t z, one_mul]⟩
       have hsymbol : (fun z => conj (g t z) * g t z) = fun _ => (1 : ℂ) := by
         funext z
-        have h1 : conj (g t z) * g t z = ((‖g t z‖ ^ 2 : ℝ) : ℂ) := by rw [RCLike.conj_mul]; norm_cast
+        have h1 : conj (g t z) * g t z = ((‖g t z‖ ^ 2 : ℝ) : ℂ) := by
+          rw [RCLike.conj_mul]; norm_cast
         rw [h1, hunimod t z]; norm_num
       have hadj : (borelCalculus V hn (g t) (hmeas t) (hgb t)).adjoint.comp
           (borelCalculus V hn (g t) (hmeas t) (hgb t)) = ContinuousLinearMap.id ℂ H := by
@@ -86,7 +88,8 @@ noncomputable def borelUnitaryGroup (V : H →L[ℂ] H) (hn : IsStarNormal V)
       have hb : ∃ C, ∀ z, ‖g s z * g t z‖ ≤ C :=
         ⟨1, fun z => by rw [norm_mul, hunimod s z, hunimod t z, one_mul]⟩
       rw [borelCalculus_mul V hn (g s) (g t) (hmeas s) (hgb s) (hmeas t) (hgb t) hm hb]
-      exact borelCalculus_congr V hn (funext fun z => hmul s t z) (hmeas (s + t)) (hgb (s + t)) hm hb
+      exact borelCalculus_congr V hn (funext fun z => hmul s t z) (hmeas (s + t)) (hgb (s + t))
+        hm hb
     identity := by
       rw [borelCalculus_congr V hn (funext hzero) (hmeas 0) (hgb 0) measurable_const
             ⟨1, fun _ => by simp⟩,
@@ -175,7 +178,8 @@ noncomputable def borelModularGroup (V : H →L[ℂ] H) (hn : IsStarNormal V) :
   borelUnitaryGroup V hn (modularSymbol V) (measurable_modularSymbol V) (norm_modularSymbol V)
     (modularSymbol_zero V) (modularSymbol_add V) (continuous_modularSymbol V)
 
-/-- The operator at parameter `t` of `borelModularGroup` is `borelCalculus V hn (modularSymbol V t)`. -/
+/-- The operator at parameter `t` of `borelModularGroup` is
+`borelCalculus V hn (modularSymbol V t)`. -/
 @[simp] lemma borelModularGroup_U (V : H →L[ℂ] H) (hn : IsStarNormal V) (t : ℝ) :
     (borelModularGroup V hn).U t
       = borelCalculus V hn (modularSymbol V t) (measurable_modularSymbol V t)

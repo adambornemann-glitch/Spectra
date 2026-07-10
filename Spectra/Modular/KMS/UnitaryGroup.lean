@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
-Author: Adam Bornemann
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Adam Bornemann
 -/
 import Spectra.Modular.KMS.Condition
 import Spectra.Modular.KMS.Modular
@@ -75,7 +75,8 @@ type-synonym identifications `toPreGNS`/`ofPreGNS`). -/
 noncomputable def evolveLin (t : ℝ) : ω.toPLM.PreGNS →ₗ[ℂ] ω.toPLM.PreGNS :=
   ω.toPLM.toPreGNS.toLinearMap ∘ₗ α.evolve t ∘ₗ ω.toPLM.ofPreGNS.toLinearMap
 
-/-- Transporting `evolveLin ω α t a` back through `ofPreGNS` recovers `α_t` acting on `ofPreGNS a`. -/
+/-- Transporting `evolveLin ω α t a` back through `ofPreGNS` recovers `α_t` acting on
+`ofPreGNS a`. -/
 @[simp] lemma evolveLin_ofPreGNS (t : ℝ) (a : ω.toPLM.PreGNS) :
     ω.toPLM.ofPreGNS (evolveLin ω α t a) = α.evolve t (ω.toPLM.ofPreGNS a) := by
   simp [evolveLin]
@@ -99,7 +100,8 @@ lemma evolveLin_norm (hinv : IsInvariant ω α) (t : ℝ) (a : ω.toPLM.PreGNS) 
 /-- `α_t` as a continuous linear map on the pre-GNS space (norm `≤ 1`). -/
 noncomputable def evolveCLM (hinv : IsInvariant ω α) (t : ℝ) :
     ω.toPLM.PreGNS →L[ℂ] ω.toPLM.PreGNS :=
-  (evolveLin ω α t).mkContinuous 1 (fun a => le_of_eq (by rw [evolveLin_norm ω α hinv t a, one_mul]))
+  (evolveLin ω α t).mkContinuous 1
+    (fun a => le_of_eq (by rw [evolveLin_norm ω α hinv t a, one_mul]))
 
 /-- `evolveCLM ω α hinv t` agrees with the underlying linear map `evolveLin ω α t` pointwise. -/
 @[simp] lemma evolveCLM_apply (hinv : IsInvariant ω α) (t : ℝ) (a : ω.toPLM.PreGNS) :
@@ -353,7 +355,8 @@ lemma IsKMSState.generator_isSelfAdjoint {ω : State A} {α : Dynamics A} {β : 
 
 /-! ## The modular unitary group `Δ^{it}` (Tomita–Takesaki specialization)
 
-For a faithful normal state `ω` equipped with its modular theory data `hmod : ModularTheoryData A ω`,
+For a faithful normal state `ω` equipped with its modular theory data
+`hmod : ModularTheoryData A ω`,
 the modular flow `σ^ω` is implemented on the GNS Hilbert space by the canonical invariant unitary
 group — the **GNS implementation of the modular flow**, written `Δ^{it}`, with generator the
 **modular Hamiltonian** `K`.

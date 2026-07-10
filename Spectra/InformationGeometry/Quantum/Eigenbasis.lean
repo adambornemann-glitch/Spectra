@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
-Author: Adam Bornemann
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Adam Bornemann
 -/
 import Mathlib.Analysis.InnerProductSpace.Spectrum
 import Mathlib.Analysis.InnerProductSpace.Subspace
@@ -200,7 +200,8 @@ theorem apply_eigenbasis (hsa : IsSelfAdjoint T) (hc : IsCompactOperator T) (i :
 
 /-- **Rayleigh form of the eigenvalue.** The inner product of an eigenbasis vector with its image
 under `T` is exactly the eigenvalue. -/
-theorem inner_eigenbasis_self (hsa : IsSelfAdjoint T) (hc : IsCompactOperator T) (i : eigenIndex T) :
+theorem inner_eigenbasis_self (hsa : IsSelfAdjoint T) (hc : IsCompactOperator T)
+    (i : eigenIndex T) :
     ⟪eigenbasis T hsa hc i, T (eigenbasis T hsa hc i)⟫_ℂ = (eigenvalue T hsa hc i : ℂ) := by
   rw [apply_eigenbasis, inner_smul_right]
   have hnorm : ⟪eigenbasis T hsa hc i, eigenbasis T hsa hc i⟫_ℂ = 1 := by

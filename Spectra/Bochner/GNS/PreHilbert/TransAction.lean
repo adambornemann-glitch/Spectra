@@ -1,6 +1,6 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Spectra.Bochner.GNS.PreHilbert.PosSemiDef
@@ -65,7 +65,7 @@ lemma translate_translate (s t : ℝ) (α : ℝ →₀ ℂ) :
   unfold translate
   rw [← @mapDomain_comp]
   congr 1; funext x
-  show x + t + s = x + (s + t)
+  change x + t + s = x + (s + t)
   ring
 
 /-- Absorbing a `mapDomain (· + t)` shift into a `Finsupp.sum`, provided the summand `h` is

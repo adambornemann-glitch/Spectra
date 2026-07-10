@@ -1,6 +1,6 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Spectra.QuantumMechanics.Hydrogen.RadialProblem.Laguerre.Orthogonality
@@ -275,4 +275,4 @@ theorem laguerre_generating_function (α x t : ℝ) (ht : |t| < 1) :
   rw [hRHS] at hLHS
   exact hLHS
 
-end QuantumMechanics.Hydrogen.Radial
+end Spectra.QuantumMechanics.Hydrogen.Radial

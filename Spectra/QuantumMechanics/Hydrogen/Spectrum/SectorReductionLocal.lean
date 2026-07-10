@@ -1,6 +1,6 @@
 /-
-Copyright (c) 2026 Logos Library Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Spectra.QuantumMechanics.Hydrogen.Spectrum.Eigenvalue
@@ -104,7 +104,8 @@ theorem laplacian_in_sector_local (ℓ : ℕ) (m : ℤ) (hm : |m| ≤ ℓ)
 
 /-- **Local sector reduction of the half-Laplacian hydrogen Hamiltonian.** The
 `hydrogen_reduces_half` identity with separation required only *near* the evaluation point — the
-form usable with a globally smooth separated test function (e.g. `χ(‖x‖) · solidHarmonicNat ℓ m x`). -/
+form usable with a globally smooth separated test function (e.g.
+`χ(‖x‖) · solidHarmonicNat ℓ m x`). -/
 theorem hydrogen_reduces_half_local (p : CoulombParams) (ℓ : ℕ) (m : ℤ) (hm : |m| ≤ ℓ)
     (R : ℝ → ℂ) (hR : ContDiff ℝ 2 R)
     (f : Spectra.Sobolev.R3 → ℂ) (hf : ContDiff ℝ 2 f)
@@ -189,7 +190,7 @@ theorem solidTest_reduces_half (p : CoulombParams) (ℓ m : ℕ) (hm : m ≤ ℓ
       (fun u => (fun a => (χ a : ℂ) * (a : ℂ) ^ ℓ) u * SphericalHarmonic ℓ (m : ℤ) hm' (θ, φ)) := by
     filter_upwards [Ioi_mem_nhds hr] with u hu
     have hu0 : (0 : ℝ) < u := hu
-    show (χ ‖sphereChart u θ φ‖ : ℂ) * solidHarmonicNat ℓ m (sphereChart u θ φ)
+    change (χ ‖sphereChart u θ φ‖ : ℂ) * solidHarmonicNat ℓ m (sphereChart u θ φ)
         = ((χ u : ℂ) * (u : ℂ) ^ ℓ) * SphericalHarmonic ℓ (m : ℤ) hm' (θ, φ)
     rw [norm_sphereChart, abs_of_pos hu0, solidHarmonicNat_sphereChart ℓ m hm hu0 hθ]
     ring

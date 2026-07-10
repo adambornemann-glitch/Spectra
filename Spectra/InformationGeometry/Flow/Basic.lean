@@ -1,6 +1,6 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Spectra.InformationGeometry.Flow.Generator
@@ -1054,7 +1054,7 @@ lemma flow_eqOn_of_generator_eqOn
       refine ⟨Set.Ioo (t₀ - ε) (t₀ + ε), fun t' ht' => ?_, isOpen_Ioo,
         Set.mem_Ioo.mpr ⟨by linarith, by linarith⟩⟩
       -- Show t' ∈ S, i.e., F₁.φ t' θ = F₂.φ t' θ
-      show F₁.φ t' θ = F₂.φ t' θ
+      change F₁.φ t' θ = F₂.φ t' θ
       have h_abs : |t' - t₀| < ε := by
         rw [abs_lt]; constructor <;> linarith [(Set.mem_Ioo.mp ht').1,
                                                (Set.mem_Ioo.mp ht').2]

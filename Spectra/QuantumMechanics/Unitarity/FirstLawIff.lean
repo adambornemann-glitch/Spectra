@@ -1,8 +1,7 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
-Filename: QuantumMechanics/Unitarity/FirstLawIff.lean
 -/
 import Spectra.QuantumMechanics.DiracEquation.Operators
 /-!
@@ -38,25 +37,6 @@ constructed objects, so every theorem here is parametrized by `U_grp` alone and
   directly from the constructed calculus), `electron_number_conserved`,
   `positron_number_conserved`, `charge_conserved`, `sector_orthogonal`,
   `dirac_first_law`.
-
-## Port table (old file → this file)
-
-| old (hypothesis-threaded)                          | new (constructed)                                  |
-| -------------------------------------------------- | -------------------------------------------------- |
-| `spectral_scalar_measure E ψ hE`                    | `borelMeasure U_grp ψ` (a genuine `Measure`)        |
-| `spectral_measure_invariant gen hsa E hE` (setwise) | `borelMeasure_unitary_invariant` (measure equality) |
-| `unitarity_iff_spectral_invariance`                 | `unitary_iff_borelMeasure_invariant`                |
-| `spectral_invariance_implies_unitary`               | `unitary_of_borelMeasure_invariant` (general `V`)   |
-| `norm_preserving_implies_inner_preserving`          | Mathlib's `LinearMap.norm_map_iff_inner_map_map`    |
-| `projection_inner_eq_norm_sq`                       | `inner_spectralProjection_self` (already compiled)  |
-| `spectral_scalar_measure_eq_norm_sq`                | `norm_sq_spectralProjection` (already compiled)     |
-| `unitary_eq_spectral_integral`                      | `spectralCalculus_char` (already compiled)          |
-| `spectral_projection_eq_indicator` (≈ 90 lines)     | definitional: `spectralProjection := Φ(1_B)`        |
-| `exp_its_bounded`, `indicator_bounded`              | `char_bdd`, `indicator_one_bdd`                     |
-| `unitary_commutes_with_spectral`                    | `spectralProjection_group_comm`                     |
-| `energy_eq_spectral_moment` (Fatou + two-stream DCT)| dropped — see note below                            |
-| `FirstLawEquivalence gen E hE`, `…_of_self_adjoint` | `FirstLawEquivalence U_grp`, `first_law` (no hyps)  |
-| `DiracSpectralData` + `electronProjection data`     | `electronProjection H_D` from the calculus          |
 
 **Note on the energy moment identity.**  The old route to energy conservation
 went through `⟪Aψ, ψ⟫ = ∫ s dμ_ψ` on the full domain, which needed
@@ -293,7 +273,7 @@ theorem generator_group_comm (t : ℝ) (x : (generator U_grp).domain) :
     rw [map_sub, group_apply_comm U_grp s t (x : H)]
   refine tendsto_nhds_unique
     (generator_tendsto U_grp ⟨U_grp.U t (x : H), generator_domain_invariant U_grp t x⟩) ?_
-  show Tendsto (genDiffQuot U_grp (U_grp.U t (x : H))) (𝓝[≠] 0)
+  change Tendsto (genDiffQuot U_grp (U_grp.U t (x : H))) (𝓝[≠] 0)
     (𝓝 (U_grp.U t (generator U_grp x)))
   rw [hpt]
   exact ((U_grp.U t).continuous.tendsto _).comp (generator_tendsto U_grp x)

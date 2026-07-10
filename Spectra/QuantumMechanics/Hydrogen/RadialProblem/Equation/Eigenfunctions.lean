@@ -1,6 +1,6 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Mathlib.Analysis.ODE.Gronwall
@@ -368,7 +368,8 @@ private lemma tendsto_pow_deriv_hydrogenRadial (n ℓ a : ℕ) (hn : ℓ + 1 ≤
 lemma differentiable_hydrogenRadial (n ℓ : ℕ) (hn : ℓ + 1 ≤ n) :
     Differentiable ℝ (hydrogenRadialWavefunction n ℓ hn) := by
   rw [hydrogenRadial_eq_factored n ℓ hn]
-  have hL : Differentiable ℝ (fun x : ℝ => laguerrePolynomial (n - ℓ - 1) (2 * ℓ + 1) (2 * x / n)) :=
+  have hL : Differentiable ℝ
+      (fun x : ℝ => laguerrePolynomial (n - ℓ - 1) (2 * ℓ + 1) (2 * x / n)) :=
     ((laguerre_smooth _ _).differentiable (by simp)).comp (by fun_prop)
   fun_prop
 
@@ -382,7 +383,8 @@ theorem continuous_hydrogenRadialWavefunction (n ℓ : ℕ) (hn : ℓ + 1 ≤ n)
 lemma differentiable_deriv_hydrogenRadial (n ℓ : ℕ) (hn : ℓ + 1 ≤ n) :
     Differentiable ℝ (deriv (hydrogenRadialWavefunction n ℓ hn)) := by
   rw [deriv_hydrogenRadial n ℓ hn]
-  have hL : Differentiable ℝ (fun x : ℝ => laguerrePolynomial (n - ℓ - 1) (2 * ℓ + 1) (2 * x / n)) :=
+  have hL : Differentiable ℝ
+      (fun x : ℝ => laguerrePolynomial (n - ℓ - 1) (2 * ℓ + 1) (2 * x / n)) :=
     ((laguerre_smooth _ _).differentiable (by simp)).comp (by fun_prop)
   have hdL : Differentiable ℝ
       (fun x : ℝ => deriv (laguerrePolynomial (n - ℓ - 1) (2 * ℓ + 1)) (2 * x / n)) :=
@@ -576,7 +578,8 @@ theorem tendsto_deriv_hydrogenRadial_mul_exp (n ℓ : ℕ) (hn : ℓ + 1 ≤ n) 
           + (-(1 / (n : ℝ))) * (r ^ ℓ * Real.exp (-r / n) *
             laguerrePolynomial (n - ℓ - 1) (2 * ℓ + 1) (2 * r / n) * Real.exp (ε * r))
           + (2 / (n : ℝ)) * (r ^ ℓ * Real.exp (-r / n) *
-            deriv (laguerrePolynomial (n - ℓ - 1) (2 * ℓ + 1)) (2 * r / n) * Real.exp (ε * r))) := by
+            deriv (laguerrePolynomial (n - ℓ - 1) (2 * ℓ + 1)) (2 * r / n)
+              * Real.exp (ε * r))) := by
     funext r
     rw [deriv_hydrogenRadial n ℓ hn]
     ring
@@ -663,7 +666,8 @@ theorem radial_boundary_r_zero (n : ℕ) (ℓ : ℕ) (hn : ℓ + 1 ≤ n) :
       laguerrePolynomial (n - ℓ - 1) (2 * ℓ + 1) 0 := by
     rw [hg_def]; simp
   -- For r > 0 the quotient equals g r (the r^{ℓ+1} cancels exactly).
-  have heq : (fun r => hydrogenReducedWavefunction n ℓ hn r / r ^ (ℓ + 1)) =ᶠ[nhdsWithin 0 (Set.Ioi 0)] g := by
+  have heq : (fun r => hydrogenReducedWavefunction n ℓ hn r / r ^ (ℓ + 1))
+      =ᶠ[nhdsWithin 0 (Set.Ioi 0)] g := by
     filter_upwards [self_mem_nhdsWithin] with r hr
     rw [Set.mem_Ioi] at hr
     have hrne : r ≠ 0 := ne_of_gt hr
@@ -860,7 +864,8 @@ theorem radial_wavefunction_orthonormal (n n' : ℕ) (ℓ : ℕ)
       MemLp (fun r => hydrogenRadialWavefunction m ℓ hm r * r) 2 (volume.restrict (Set.Ioi 0)) := by
     intro m hm
     refine (memLp_two_iff_integrable_sq ?_).2 ?_
-    · exact ((differentiable_hydrogenRadial m ℓ hm).continuous.mul continuous_id).aestronglyMeasurable
+    · exact ((differentiable_hydrogenRadial m ℓ hm).continuous.mul
+        continuous_id).aestronglyMeasurable
     · exact IntegrableOn.congr_fun (radial_wavefunction_L2 m ℓ hm)
         (fun r _ => by ring) measurableSet_Ioi
   have hWint : IntegrableOn W' (Set.Ioi 0) := by
@@ -923,7 +928,8 @@ theorem radial_wavefunction_norm (n : ℕ) (ℓ : ℕ) (hn : ℓ + 1 ≤ n) :
     ring
   -- The normalisation constant squared.
   have hN2 : radialNormalization n ℓ hn ^ 2 =
-      (2 / (n : ℝ)) ^ 3 * ((n - ℓ - 1).factorial : ℝ) / (2 * (n : ℝ) * ((n + ℓ).factorial : ℝ)) := by
+      (2 / (n : ℝ)) ^ 3 * ((n - ℓ - 1).factorial : ℝ)
+        / (2 * (n : ℝ) * ((n + ℓ).factorial : ℝ)) := by
     unfold radialNormalization; rw [Real.sq_sqrt (by positivity)]
   -- Evaluate the Laguerre moment and simplify the coefficient / Gamma factor.
   have hco : 2 * ((n - ℓ - 1 : ℕ) : ℝ) + (2 * (ℓ : ℝ) + 1) + 1 = 2 * n := by rw [hc1]; ring
@@ -991,7 +997,7 @@ theorem radial_eigenfunction_unique (n ℓ : ℕ) (hn : ℓ + 1 ≤ n) (ψ : ℝ
   -- Hence Z is constant on (0, ∞); it equals Z r₀ = 0.
   have hZr0 : Z r₀ = 0 := by
     have hw : ψ r₀ * deriv R r₀ - deriv ψ r₀ * R r₀ = 0 := by rw [hW0]; ring
-    show ψ r₀ * (r₀ ^ 2 * deriv R r₀) - R r₀ * (r₀ ^ 2 * deriv ψ r₀) = 0
+    change ψ r₀ * (r₀ ^ 2 * deriv R r₀) - R r₀ * (r₀ ^ 2 * deriv ψ r₀) = 0
     linear_combination r₀ ^ 2 * hw
   intro r hr
   have hZeq : Z r = Z r₀ := by

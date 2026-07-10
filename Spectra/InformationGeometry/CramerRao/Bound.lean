@@ -1,6 +1,6 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Spectra.InformationGeometry.CramerRao.CauchySchwarz
@@ -52,8 +52,8 @@ Apply Cauchy–Schwarz to `f = T − τ(θ)` (the centred estimator) and
   `= Var(T) · g_{ii}(θ)`.
 
 The LHS equals `(∂ᵢτ)²` by the covariance–score identity (since
-`E[sᵢ] = 0` makes the centering irrelevant).  Dividing by
-`g_{ii} > 0` gives the bound.  -/
+`E[sᵢ] = 0` makes the centering irrelevant).
+Dividing by `g_{ii} > 0` gives the bound. -/
 lemma cramerRao_scalar
     {θ : ParamSpace n} (hθ : θ ∈ M.paramDomain)
     (T : Ω → ℝ)

@@ -1,8 +1,13 @@
 /-
+Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Adam Bornemann
+-/
+
+/-
 Spectra: Calculus.lean
 The bounded functional calculus `Φ(g)` of a one-parameter unitary group.
 
-Filename: SpectralTheory/Calculus/Bounded.lean
 -/
 import Mathlib.Analysis.InnerProductSpace.Dual
 import Spectra.SpectralTheory.Measure.Polarized

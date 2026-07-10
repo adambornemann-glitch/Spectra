@@ -1,6 +1,6 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Mathlib.Analysis.InnerProductSpace.Completion
@@ -120,7 +120,7 @@ noncomputable def gnsConstruction {f : ℝ → ℂ}
     embed := emb
     embed_inner := fun α β => by
       -- `emb α` unfolds to `ι.toLinearMap (mkQ α)`, i.e. the completion coercion `↑(mkQ α)`
-      show @inner ℂ H _ (↑(mkQ α) : H) (↑(mkQ β) : H) = pdInner f α β
+      change @inner ℂ H _ (↑(mkQ α) : H) (↑(mkQ β) : H) = pdInner f α β
       rw [@UniformSpace.Completion.inner_coe]
       rfl
     embed_dense := by
@@ -143,7 +143,7 @@ noncomputable def gnsConstruction {f : ℝ → ℂ}
       · intro h
         -- same unfolding as above, in reverse: `mkQ α = 0` in `V` pushes forward to
         -- `↑(mkQ α) = 0` in `H` via the coercion, which is `emb α`
-        show (↑(mkQ α) : H) = 0
+        change (↑(mkQ α) : H) = 0
         have : mkQ α = 0 := (Submodule.Quotient.mk_eq_zero _).mpr h
         rw [this, UniformSpace.Completion.coe_zero]
   }

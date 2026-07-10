@@ -1,8 +1,7 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
-File: Spectra/Spaces/Sobolev/Operations.lean
 -/
 import Spectra.Spaces.Sobolev.DuBoisReymond
 import Mathlib.Analysis.Calculus.FDeriv.Symmetric
@@ -12,7 +11,8 @@ import Mathlib.Analysis.Calculus.FDeriv.Symmetric
 
 This file develops the algebraic and analytic calculus of `HasWeakDerivative` and
 `HasWeakSecondDerivative` that the rest of the Sobolev-space development (in particular the
-`Submodule` structure of `H¹(ℝ³)`/`H²(ℝ³)` in `Submodules.lean`) is built on.
+`Submodule` structure of `H¹(ℝ^d)`/`H²(ℝ^d)` in `Submodules.lean`) is built on. Everything is
+generic in the dimension `d`.
 
 ## Main definitions
 
@@ -52,18 +52,20 @@ open scoped ContDiff
 
 namespace Spectra.Sobolev
 
+variable {d : ℕ}
+
 /-- The zero function has weak derivative zero. -/
-lemma hasWeakDerivative_zero (i : Fin 3) :
-    HasWeakDerivative (0 : l2R3) i 0 := by
+lemma hasWeakDerivative_zero (i : Fin d) :
+    HasWeakDerivative (0 : l2Rn d) i 0 := by
   intro φ hφ hsupp
-  have hae := Lp.coeFn_zero ℂ 2 (volume : Measure R3)
-  have lhs : ∫ x, ((0 : l2R3) : R3 → ℂ) x *
+  have hae := Lp.coeFn_zero ℂ 2 (volume : Measure (Rn d))
+  have lhs : ∫ x, ((0 : l2Rn d) : Rn d → ℂ) x *
       fderiv ℝ φ x (EuclideanSpace.single i 1) = 0 :=
     integral_eq_zero_of_ae (hae.mono fun x hx => by
       simp only [ZeroMemClass.coe_zero, Pi.zero_apply, mul_eq_zero]
       exact mul_eq_mul_left_iff.mp (congrArg (HMul.hMul ((fderiv ℝ φ x)
         (EuclideanSpace.single i 1))) hx))
-  have rhs : ∫ x, ((0 : l2R3) : R3 → ℂ) x * φ x = 0 :=
+  have rhs : ∫ x, ((0 : l2Rn d) : Rn d → ℂ) x * φ x = 0 :=
     integral_eq_zero_of_ae (hae.mono fun x hx => by
       simp only [ZeroMemClass.coe_zero, Pi.zero_apply, mul_eq_zero]
       exact mul_eq_mul_left_iff.mp (congrArg (HMul.hMul (φ x)) hx))
@@ -71,7 +73,7 @@ lemma hasWeakDerivative_zero (i : Fin 3) :
 
 /-- Weak derivative is linear in f. -/
 lemma hasWeakDerivative_add
-    (f₁ f₂ : l2R3) (i : Fin 3) (g₁ g₂ : l2R3)
+    (f₁ f₂ : l2Rn d) (i : Fin d) (g₁ g₂ : l2Rn d)
     (h₁ : HasWeakDerivative f₁ i g₁) (h₂ : HasWeakDerivative f₂ i g₂) :
     HasWeakDerivative (f₁ + f₂) i (g₁ + g₂) := by
   intro φ hφ hsupp
@@ -79,26 +81,26 @@ lemma hasWeakDerivative_add
   have e₂ := h₂ φ hφ hsupp
   have hψ_L2 := memLp_partialDeriv φ i hφ hsupp
   have hφ_L2 := memLp_of_smooth_compactSupport φ hφ hsupp
-  have hint_l1 : Integrable (fun x => (f₁ : R3 → ℂ) x *
+  have hint_l1 : Integrable (fun x => (f₁ : Rn d → ℂ) x *
       fderiv ℝ φ x (EuclideanSpace.single i 1)) volume :=
     (Lp.memLp f₁).integrable_mul hψ_L2
-  have hint_l2 : Integrable (fun x => (f₂ : R3 → ℂ) x *
+  have hint_l2 : Integrable (fun x => (f₂ : Rn d → ℂ) x *
       fderiv ℝ φ x (EuclideanSpace.single i 1)) volume :=
     (Lp.memLp f₂).integrable_mul hψ_L2
-  have hint_r1 : Integrable (fun x => (g₁ : R3 → ℂ) x * φ x) volume :=
+  have hint_r1 : Integrable (fun x => (g₁ : Rn d → ℂ) x * φ x) volume :=
     (Lp.memLp g₁).integrable_mul hφ_L2
-  have hint_r2 : Integrable (fun x => (g₂ : R3 → ℂ) x * φ x) volume :=
+  have hint_r2 : Integrable (fun x => (g₂ : Rn d → ℂ) x * φ x) volume :=
     (Lp.memLp g₂).integrable_mul hφ_L2
   -- Rewrite LHS pointwise via ae
-  have lhs : ∫ x, ((f₁ + f₂ : l2R3) : R3 → ℂ) x *
+  have lhs : ∫ x, ((f₁ + f₂ : l2Rn d) : Rn d → ℂ) x *
       fderiv ℝ φ x (EuclideanSpace.single i 1) =
-    (∫ x, (f₁ : R3 → ℂ) x * fderiv ℝ φ x (EuclideanSpace.single i 1)) +
-    (∫ x, (f₂ : R3 → ℂ) x * fderiv ℝ φ x (EuclideanSpace.single i 1)) := by
+    (∫ x, (f₁ : Rn d → ℂ) x * fderiv ℝ φ x (EuclideanSpace.single i 1)) +
+    (∫ x, (f₂ : Rn d → ℂ) x * fderiv ℝ φ x (EuclideanSpace.single i 1)) := by
     rw [integral_congr_ae ((Lp.coeFn_add f₁ f₂).mono fun x hx => by
       simp only [Pi.add_apply] at hx; rw [hx, add_mul])]
     exact integral_add hint_l1 hint_l2
-  have rhs : ∫ x, ((g₁ + g₂ : l2R3) : R3 → ℂ) x * φ x =
-    (∫ x, (g₁ : R3 → ℂ) x * φ x) + (∫ x, (g₂ : R3 → ℂ) x * φ x) := by
+  have rhs : ∫ x, ((g₁ + g₂ : l2Rn d) : Rn d → ℂ) x * φ x =
+    (∫ x, (g₁ : Rn d → ℂ) x * φ x) + (∫ x, (g₂ : Rn d → ℂ) x * φ x) := by
     rw [integral_congr_ae ((Lp.coeFn_add g₁ g₂).mono fun x hx => by
       simp only [Pi.add_apply] at hx; rw [hx, add_mul])]
     exact integral_add hint_r1 hint_r2
@@ -107,21 +109,21 @@ lemma hasWeakDerivative_add
 
 /-- Weak derivative commutes with scalar multiplication. -/
 lemma hasWeakDerivative_smul
-    (c : ℂ) (f : l2R3) (i : Fin 3) (g : l2R3)
+    (c : ℂ) (f : l2Rn d) (i : Fin d) (g : l2Rn d)
     (h : HasWeakDerivative f i g) :
     HasWeakDerivative (c • f) i (c • g) := by
   intro φ hφ hsupp
   have e := h φ hφ hsupp
   -- LHS: ∫ (c • f) · ∂ᵢφ = c * ∫ f · ∂ᵢφ
-  have lhs : ∫ x, ((c • f : l2R3) : R3 → ℂ) x *
+  have lhs : ∫ x, ((c • f : l2Rn d) : Rn d → ℂ) x *
       fderiv ℝ φ x (EuclideanSpace.single i 1) =
-    c * ∫ x, (f : R3 → ℂ) x * fderiv ℝ φ x (EuclideanSpace.single i 1) := by
+    c * ∫ x, (f : Rn d → ℂ) x * fderiv ℝ φ x (EuclideanSpace.single i 1) := by
     rw [integral_congr_ae ((Lp.coeFn_smul c f).mono fun x hx => by
       simp only [Pi.smul_apply, smul_eq_mul] at hx; rw [hx, mul_assoc])]
     exact integral_const_mul c _
   -- RHS: ∫ (c • g) · φ = c * ∫ g · φ
-  have rhs : ∫ x, ((c • g : l2R3) : R3 → ℂ) x * φ x =
-    c * ∫ x, (g : R3 → ℂ) x * φ x := by
+  have rhs : ∫ x, ((c • g : l2Rn d) : Rn d → ℂ) x * φ x =
+    c * ∫ x, (g : Rn d → ℂ) x * φ x := by
     rw [integral_congr_ae ((Lp.coeFn_smul c g).mono fun x hx => by
       simp only [Pi.smul_apply, smul_eq_mul] at hx; rw [hx, mul_assoc])]
     exact integral_const_mul c _
@@ -129,12 +131,12 @@ lemma hasWeakDerivative_smul
 
 /-- Second-order weak partial derivative. -/
 def HasWeakSecondDerivative
-    (f : l2R3) (i j : Fin 3) (g : l2R3) : Prop :=
-  ∃ (h : l2R3), HasWeakDerivative f i h ∧ HasWeakDerivative h j g
+    (f : l2Rn d) (i j : Fin d) (g : l2Rn d) : Prop :=
+  ∃ (h : l2Rn d), HasWeakDerivative f i h ∧ HasWeakDerivative h j g
 
 /-- Classical Schwarz: mixed partials of smooth functions commute. -/
-private lemma schwarz_partials (φ : R3 → ℂ) (hφ : ContDiff ℝ ∞ φ)
-    (i j : Fin 3) (x : R3) :
+private lemma schwarz_partials (φ : Rn d → ℂ) (hφ : ContDiff ℝ ∞ φ)
+    (i j : Fin d) (x : Rn d) :
     fderiv ℝ (fun y => fderiv ℝ φ y (EuclideanSpace.single i 1)) x
       (EuclideanSpace.single j 1) =
     fderiv ℝ (fun y => fderiv ℝ φ y (EuclideanSpace.single j 1)) x
@@ -163,7 +165,7 @@ private lemma schwarz_partials (φ : R3 → ℂ) (hφ : ContDiff ℝ ∞ φ)
 /-- Symmetry of second weak derivatives (Schwarz's theorem, L² version).
     Requires that `∂ⱼf` exists (automatic for H² functions). -/
 lemma hasWeakSecondDerivative_comm
-    (f : l2R3) (i j : Fin 3) (g : l2R3)
+    (f : l2Rn d) (i j : Fin d) (g : l2Rn d)
     (h : HasWeakSecondDerivative f i j g)
     (hfj : ∃ mid', HasWeakDerivative f j mid') :
     HasWeakSecondDerivative f j i g := by
@@ -185,10 +187,10 @@ lemma hasWeakSecondDerivative_comm
   --     ∫ mid·∂ⱼφ = −∫ g·φ
   have eC := hg_j φ hφ hsupp
   -- (D) Schwarz: ∂ⱼ(∂ᵢφ) = ∂ᵢ(∂ⱼφ) pointwise, hence under ∫ f·(−)
-  have eD : ∫ x, (f : R3 → ℂ) x *
+  have eD : ∫ x, (f : Rn d → ℂ) x *
       fderiv ℝ (fun y => fderiv ℝ φ y (EuclideanSpace.single i 1)) x
         (EuclideanSpace.single j 1) =
-    ∫ x, (f : R3 → ℂ) x *
+    ∫ x, (f : Rn d → ℂ) x *
       fderiv ℝ (fun y => fderiv ℝ φ y (EuclideanSpace.single j 1)) x
         (EuclideanSpace.single i 1) :=
     integral_congr_ae (ae_of_all _ fun x => by
@@ -199,7 +201,7 @@ lemma hasWeakSecondDerivative_comm
 
 /-- Second weak derivative is unique. -/
 lemma hasWeakSecondDerivative_unique
-    (f : l2R3) (i j : Fin 3) (g₁ g₂ : l2R3)
+    (f : l2Rn d) (i j : Fin d) (g₁ g₂ : l2Rn d)
     (h₁ : HasWeakSecondDerivative f i j g₁)
     (h₂ : HasWeakSecondDerivative f i j g₂) :
     g₁ = g₂ := by

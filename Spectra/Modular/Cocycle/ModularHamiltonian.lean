@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
-Author: Adam Bornemann
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Adam Bornemann
 -/
 import Spectra.SpectralTheory.Calculus.FlowGenerator
 import Spectra.Modular.Cocycle.ModularFlowVacuum
@@ -54,7 +54,8 @@ lemma measurable_logC : Measurable logC :=
   Complex.measurable_ofReal.comp Real.measurable_log
 
 /-- `logC` is real: `conj (logC s) = logC s`. -/
-lemma conj_logC : ∀ s, (starRingEnd ℂ) (logC s) = logC s := fun s => Complex.conj_ofReal (Real.log s)
+lemma conj_logC : ∀ s, (starRingEnd ℂ) (logC s) = logC s :=
+  fun s => Complex.conj_ofReal (Real.log s)
 
 /-- `log` is bounded by `log (n+1)` on the away-from-zero band `[1/(n+1), n+1]`. -/
 lemma logC_band_bound (n : ℕ) :
@@ -79,8 +80,9 @@ noncomputable def logModularOp (hcyc : IsCyclic M Ω) (hsep : IsSeparating M Ω)
   pmapOfPVM (genToGroup (modularOp_isSelfAdjoint hcyc hsep)) logC measurable_logC
 
 /-- **`D(log Δ)` is dense.**  `Δ`'s spectral measure is carried by `(0,∞)`
-(`borelMeasure_modular_Iio_zero`, `borelMeasure_modular_singleton_zero`), and `log` is bounded on each
-band `[1/(n+1), n+1]` (`logC_band_bound`), so `pmapOfPVM_domain_dense_of_support_Ioi` applies. -/
+(`borelMeasure_modular_Iio_zero`, `borelMeasure_modular_singleton_zero`), and `log` is bounded on
+each band `[1/(n+1), n+1]` (`logC_band_bound`), so `pmapOfPVM_domain_dense_of_support_Ioi`
+applies. -/
 theorem logModularOp_domain_dense (hcyc : IsCyclic M Ω) (hsep : IsSeparating M Ω) :
     Dense ((logModularOp hcyc hsep).domain : Set H) :=
   pmapOfPVM_domain_dense_of_support_Ioi (genToGroup (modularOp_isSelfAdjoint hcyc hsep)) logC
@@ -97,12 +99,14 @@ theorem logModularOp_isSelfAdjoint (hcyc : IsCyclic M Ω) (hsep : IsSeparating M
 /-! ## The modular Hamiltonian identity -/
 
 /-- **`generator (Δ^{it}) = log Δ`.**  The generator of the Tomita–Takesaki modular flow is the
-modular Hamiltonian `log Δ`, the honest unbounded functional calculus `∫ log s dE_Δ(s)`.  A corollary
+modular Hamiltonian `log Δ`, the honest unbounded functional calculus
+`∫ log s dE_Δ(s)`.  A corollary
 of the general spectral-flow generator theorem `generator_eq_pmapOfPVM_of_flowSymbol`, applied on
 `Δ`'s own group with the symbol `logC`; the flow hypothesis is `modularFlow_U_eq_spectralCalculus`
 (the flow is the spectral exponential of `logExpSym t = flowSymbol logC t`).
 
-The `[Nontrivial H]` hypothesis is **not** a degeneracy of the generator identity itself (the general
+The `[Nontrivial H]` hypothesis is **not** a degeneracy of the generator identity itself
+(the general
 engine `generator_eq_pmapOfPVM_of_flowSymbol` is unconditional): it enters *solely* through the
 Cayley/vacuum bridge `modularFlow_U_eq_spectralCalculus`, whose `stoneGroup = genToGroup` step needs
 `Nontrivial H`. -/

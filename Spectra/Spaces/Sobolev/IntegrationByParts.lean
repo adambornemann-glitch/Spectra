@@ -1,8 +1,7 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
-File: Spectra/Spaces/Sobolev/IntegrationByParts.lean
 -/
 import Spectra.Spaces.Sobolev.MeyersSerrin
 
@@ -159,7 +158,7 @@ private lemma ibp_component (i : Fin 3)
   -- Decompose: val = ⟨ddf, g - φ⟩ + ⟨df, dg - ∂ᵢφ⟩ + 0
   have h_val : val = @inner ℂ l2R3 _ ddf (g - φ_L2) +
       @inner ℂ l2R3 _ df (dg - dφ_L2) := by
-    show @inner ℂ l2R3 _ ddf g + @inner ℂ l2R3 _ df dg =
+    change @inner ℂ l2R3 _ ddf g + @inner ℂ l2R3 _ df dg =
          @inner ℂ l2R3 _ ddf (g - φ_L2) + @inner ℂ l2R3 _ df (dg - dφ_L2)
     rw [inner_sub_right, inner_sub_right]
     linear_combination h_ibp

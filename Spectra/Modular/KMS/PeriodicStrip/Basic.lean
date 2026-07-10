@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
-Author: Adam Bornemann
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Adam Bornemann
 -/
 import Spectra.Modular.KMS.PeriodicStrip.Defs
 import Spectra.Modular.KMS.PeriodicStrip.IndexProps
@@ -9,13 +9,40 @@ import Spectra.Modular.KMS.PeriodicStrip.ExtensionProps
 import Spectra.Modular.KMS.PeriodicStrip.Hadamard
 import Spectra.Modular.KMS.PeriodicStrip.LineRemove
 
+/-!
+# The periodic strip extension theorem
+
+This is the main assembly file for the periodic-strip theory used to prove that KMS states are
+time-invariant. It combines the pieces built elsewhere in `PeriodicStrip/` into two headline
+results:
+
+* `periodicExtension_entire`: a function holomorphic on the open strip `{0 < Im z < β}`,
+  continuous on the closed strip, and matching boundary values `F(t) = F(t + iβ)`, has an entire
+  periodic extension. This discharges the entire/Morera hypothesis that downstream KMS results
+  previously assumed, using the local Painlevé line-removal theorem
+  (`PeriodicStrip/LineRemove.lean`) at each boundary line.
+* `periodic_strip_extension`/`periodic_strip_is_constant`: adding boundedness, Liouville's theorem
+  then forces the extension — and hence `F` on the strip — to be constant.
+
+It also derives Hadamard-three-lines uniqueness for the closed strip: a bounded holomorphic
+function on the strip vanishing on both (`eqZero_of_strip_boundary_zero`) or just the lower
+(`eqZero_of_strip_lower_boundary_zero`) boundary line vanishes throughout, with the corresponding
+difference-form uniqueness statements for two functions agreeing on the boundary.
+
+## Main results
+
+* `periodicExtension_entire`, `periodic_strip_extension`, `periodic_strip_is_constant`
+* `eqZero_of_strip_boundary_zero`, `eqOn_closedStrip_of_boundary_eq`
+* `eqZero_of_strip_lower_boundary_zero`, `eqOn_closedStrip_of_lower_boundary_eq`
+-/
+
 open Complex Set Metric Filter Topology
 
 namespace Spectra.PeriodicHolomorphic
 
 /-! ## Entirety of the Periodic Extension -/
 
-variable {β:ℝ}
+variable {β : ℝ}
 
 /-- **The periodic extension is entire.**
 
@@ -119,7 +146,7 @@ lemma periodic_strip_extension
 /-! ## Application: Periodic Functions on Strips are Constant -/
 
 /-- A holomorphic function on a strip with matching boundary values is constant.
-This is the key result used in proving KMS states are time-invariant.-/
+This is the key result used in proving KMS states are time-invariant. -/
 lemma periodic_strip_is_constant
     (F : ℂ → ℂ) (hβ : 0 < β)
     (hholo : DifferentiableOn ℂ F (Strip β))
@@ -163,11 +190,11 @@ lemma eqZero_of_strip_boundary_zero
       rw [Set.eq_singleton_iff_unique_mem]
       refine ⟨⟨0, ?_, ?_⟩, ?_⟩
       · simp [Set.mem_preimage]
-      · show ‖H 0‖ = 0
+      · change ‖H 0‖ = 0
         rw [show (0 : ℂ) = realToLower 0 from by simp [realToLower], hlow 0, norm_zero]
       · rintro y ⟨w, hw, rfl⟩
         simp only [Set.mem_preimage, Set.mem_singleton_iff] at hw
-        show ‖H w‖ = 0
+        change ‖H w‖ = 0
         rw [show w = realToLower w.re from by apply Complex.ext <;> simp [realToLower, hw],
           hlow, norm_zero]
     rw [hset, csSup_singleton]
@@ -176,11 +203,11 @@ lemma eqZero_of_strip_boundary_zero
       rw [Set.eq_singleton_iff_unique_mem]
       refine ⟨⟨realToUpper β 0, ?_, ?_⟩, ?_⟩
       · simp [Set.mem_preimage, realToUpper]
-      · show ‖H (realToUpper β 0)‖ = 0
+      · change ‖H (realToUpper β 0)‖ = 0
         rw [hup, norm_zero]
       · rintro y ⟨w, hw, rfl⟩
         simp only [Set.mem_preimage, Set.mem_singleton_iff] at hw
-        show ‖H w‖ = 0
+        change ‖H w‖ = 0
         rw [show w = realToUpper β w.re from by apply Complex.ext <;> simp [realToUpper, hw],
           hup, norm_zero]
     rw [hset, csSup_singleton]
@@ -246,11 +273,11 @@ lemma eqZero_of_strip_lower_boundary_zero
       rw [Set.eq_singleton_iff_unique_mem]
       refine ⟨⟨0, ?_, ?_⟩, ?_⟩
       · simp [Set.mem_preimage]
-      · show ‖H 0‖ = 0
+      · change ‖H 0‖ = 0
         rw [show (0 : ℂ) = realToLower 0 from by simp [realToLower], hlow 0, norm_zero]
       · rintro y ⟨w, hw, rfl⟩
         simp only [Set.mem_preimage, Set.mem_singleton_iff] at hw
-        show ‖H w‖ = 0
+        change ‖H w‖ = 0
         rw [show w = realToLower w.re from by apply Complex.ext <;> simp [realToLower, hw],
           hlow, norm_zero]
     rw [hset, csSup_singleton]

@@ -22,7 +22,7 @@ Every `.lean` file in `Spectra/` has the same skeleton, in this order:
 ```lean
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Mathlib.Analysis.InnerProductSpace.Basic
@@ -67,7 +67,7 @@ Every file **opens** with the copyright block, before any `import`:
 ```lean
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 ```
@@ -78,8 +78,8 @@ Authors: Adam Bornemann
 - Do **not** add a `Filename:` line — the path is already the path. (Some early files have one;
   it should be removed during cleanup.)
 
-> Note: Spectra is MIT-licensed. This is the one intentional divergence from PhysLean, which uses
-> Apache 2.0. Keep the wording above exactly so it stays consistent across the library.
+> Note: Spectra is Apache 2.0-licensed, matching Mathlib and PhysLean. Keep the wording above
+> exactly so it stays consistent across the library.
 
 ### 1.2 Imports
 
@@ -231,7 +231,7 @@ does, use plain conventions:
 
 ## 6. Quick checklist before committing
 
-- [ ] Copyright header present, MIT, correct year and authors, no `Filename:` line.
+- [ ] Copyright header present, Apache 2.0, correct year and authors, no `Filename:` line.
 - [ ] Imports sorted, specific, Mathlib-then-Spectra.
 - [ ] Module docstring with `# Title`, prose, `## Main definitions`, `## Main statements`,
       `## References`.

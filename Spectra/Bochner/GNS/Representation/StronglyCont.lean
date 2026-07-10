@@ -1,6 +1,6 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Spectra.Bochner.GNS.Representation.Lemmas
@@ -94,7 +94,7 @@ lemma quotientTranslate_continuous {f : ℝ → ℂ}
     Complex.continuous_re.comp (pdInner_translate_left_continuous hf α (translate t₀ α))
   -- At t = t₀, cross = Re(pdInner f α α) = ‖qα‖² (by isometry + inner_self_eq_norm_sq)
   have hcross_eq : cross t₀ = ‖qα‖ ^ 2 := by
-    show (pdInner f (translate t₀ α) (translate t₀ α)).re = _
+    change (pdInner f (translate t₀ α) (translate t₀ α)).re = _
     rw [pdInner_translate]
     rw [← @inner_self_eq_norm_sq ℂ]; rfl
   -- Choose δ from continuity of cross

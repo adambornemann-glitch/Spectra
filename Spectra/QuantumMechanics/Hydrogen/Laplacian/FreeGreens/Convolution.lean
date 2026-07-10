@@ -1,6 +1,6 @@
 /-
-Copyright (c) 2026 Spectra Project, Adam Bornemann. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Spectra.QuantumMechanics.Hydrogen.Laplacian.FreeGreens.Fourier
@@ -145,12 +145,13 @@ that the banked `young_L1_conv_L2` (stated over `EuclideanSpace ℝ (Fin 3)`) ca
 below shuttle `MemLp`/`MeasureSpace` facts across the two. -/
 
 /-- The two `MeasurableSpace` instances on `R3` agree: both are the Borel σ-algebra. -/
-theorem hms : (Spectra.Sobolev.instMeasurableSpaceR3 : MeasurableSpace R3)
-    = (WithLp.measurableSpace 2 ((i : Fin 3) → ℝ) : MeasurableSpace (EuclideanSpace ℝ (Fin 3))) := by
+theorem hms : ((Spectra.Sobolev.instMeasurableSpaceRn 3) : MeasurableSpace R3)
+    = (WithLp.measurableSpace 2 ((i : Fin 3) → ℝ)
+        : MeasurableSpace (EuclideanSpace ℝ (Fin 3))) := by
   have h2 : (WithLp.measurableSpace 2 ((i : Fin 3) → ℝ)
         : MeasurableSpace (EuclideanSpace ℝ (Fin 3))) = borel (EuclideanSpace ℝ (Fin 3)) :=
     @BorelSpace.measurable_eq (EuclideanSpace ℝ (Fin 3)) _ (WithLp.measurableSpace 2 _) _
-  rw [show (Spectra.Sobolev.instMeasurableSpaceR3 : MeasurableSpace R3) = borel R3 from rfl, h2]
+  rw [show ((Spectra.Sobolev.instMeasurableSpaceRn 3) : MeasurableSpace R3) = borel R3 from rfl, h2]
 
 /-- `R3` is a `BorelSpace` for the `WithLp` measurable space too. -/
 instance instBorelWithLp : @BorelSpace R3 _ (WithLp.measurableSpace 2 ((i : Fin 3) → ℝ)) := by
@@ -199,11 +200,11 @@ theorem young_R3 {a b : R3 → ℂ} (ha : MemLp a 1 volume) (hb : MemLp b 2 volu
     MemLp (a ⋆[ContinuousLinearMap.mul ℂ ℂ, volume] b) 2 volume ∧
     eLpNorm (a ⋆[ContinuousLinearMap.mul ℂ ℂ, volume] b) 2 volume
       ≤ eLpNorm a 1 volume * eLpNorm b 2 volume := by
-  have fa := memLp_borel_invariant a 1 _ instBorelSpaceR3 _ instBorelWithLp ha
-  have fb := memLp_borel_invariant b 2 _ instBorelSpaceR3 _ instBorelWithLp hb
+  have fa := memLp_borel_invariant a 1 _ (Spectra.Sobolev.instBorelSpaceRn 3) _ instBorelWithLp ha
+  have fb := memLp_borel_invariant b 2 _ (Spectra.Sobolev.instBorelSpaceRn 3) _ instBorelWithLp hb
   have y := young_L1_conv_L2 (f := a) (g := b) fa fb
   refine ⟨?_, ?_⟩
-  · have := memLp_borel_invariant _ 2 _ instBorelWithLp _ instBorelSpaceR3 y.1
+  · have := memLp_borel_invariant _ 2 _ instBorelWithLp _ (Spectra.Sobolev.instBorelSpaceRn 3) y.1
     convert this using 3 <;> exact ms_default_eq_withLp
   · have hb2 := y.2
     convert hb2 using 3 <;>
@@ -305,7 +306,7 @@ theorem fourier_conv_seqB_bound (g : l2R3) (χ : 𝓢(R3, ℂ)) (φ : 𝓢(R3, �
 estimate and `L²`-continuity of `fourierL2`. -/
 theorem fourier_conv_seqB_tendsto (g : l2R3) (χ : 𝓢(R3, ℂ)) (φ : ℕ → 𝓢(R3, ℂ))
     (memB : MemLp (fun ξ => (fourierL2 g : R3 → ℂ) ξ * 𝓕 (χ : R3 → ℂ) ξ) 2 volume)
-    (hφ : Tendsto (fun n => (φ n).toLp (2:ℝ≥0∞)) atTop (𝓝 g)) :
+    (hφ : Tendsto (fun n => (φ n).toLp (2 : ℝ≥0∞)) atTop (𝓝 g)) :
     Tendsto (fun n => fourierL2 ((memLp_schwartz_conv (φ n) χ).toLp _)) atTop
       (𝓝 (memB.toLp _)) := by
   have hcont : Tendsto (fun n => fourierL2 ((φ n).toLp 2)) atTop (𝓝 (fourierL2 g)) :=
@@ -325,7 +326,7 @@ theorem fourier_conv_seqB_tendsto (g : l2R3) (χ : 𝓢(R3, ℂ)) (φ : ℕ → 
 /-- **`seqₙ → A`.** `(φₙ ⋆ χ).toLp → (g ⋆ χ).toLp` in `L²`, by Young's estimate
 `‖(φₙ − g) ⋆ χ‖₂ = ‖χ ⋆ (φₙ − g)‖₂ ≤ ‖χ‖₁ · ‖φₙ − g‖₂` and `L²`-density of `φₙ`. -/
 theorem conv_seqA_tendsto (g : l2R3) (χ : 𝓢(R3, ℂ)) (φ : ℕ → 𝓢(R3, ℂ))
-    (hφ : Tendsto (fun n => (φ n).toLp (2:ℝ≥0∞)) atTop (𝓝 g)) :
+    (hφ : Tendsto (fun n => (φ n).toLp (2 : ℝ≥0∞)) atTop (𝓝 g)) :
     Tendsto (fun n => (memLp_schwartz_conv (φ n) χ).toLp _) atTop
       (𝓝 ((memLp_conv_L2_schwartz g χ).toLp _)) := by
   rw [Lp.tendsto_Lp_iff_tendsto_eLpNorm'' (fun n => ((φ n : R3 → ℂ)

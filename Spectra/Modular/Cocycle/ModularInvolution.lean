@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
-Author: Adam Bornemann
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Adam Bornemann
 -/
 import Spectra.Modular.Cocycle.ModularVacuum
 /-!
@@ -12,33 +12,33 @@ This file assembles the genuine content behind the remaining structural `Modular
 
 ## What is proved here (route-independent, sorry-free)
 
-The antilinear Tomita operator `S̃ = ofConj ∘ S : H ⊇ D(S) → H` (where `S = tomitaClosure M Ω`) is an
-**involution on the core** `M Ω`: for `a ∈ M`,
-`S̃ (a Ω) = (star a) Ω`  (`sTilde_core`), hence `S̃ (S̃ (a Ω)) = (star (star a)) Ω = a Ω`
-(`sTilde_involutive_core`). This is the `S² ⊆ 1` seed of Tomita–Takesaki, and it needs **no**
-`Δ`, `Δ^{½}`, `J`, or adjoint theory — only `tomitaOp_apply` (`S₀ (a Ω) = toConj ((star a) Ω)`) and
-`star_star`. Together with the polar helpers `modularConjugation_apply` (`J y = ofConj (W y)`) and
-`modularConjugation_apply_modularSqrt` (`J (Δ^{½} x) = ofConj (S x)`), these are the building blocks
-of the field-3 proof.
+The antilinear Tomita operator `S̃ = ofConj ∘ S : H ⊇ D(S) → H` (where `S = tomitaClosure M Ω`) is
+an **involution on the core** `M Ω`: for `a ∈ M`, `S̃ (a Ω) = (star a) Ω`  (`sTilde_core`), hence
+`S̃ (S̃ (a Ω)) = (star (star a)) Ω = a Ω` (`sTilde_involutive_core`). This is the `S² ⊆ 1` seed of
+Tomita–Takesaki, and it needs **no** `Δ`, `Δ^{½}`, `J`, or adjoint theory — only `tomitaOp_apply`
+(`S₀ (a Ω) = toConj ((star a) Ω)`) and `star_star`. Together with the polar helpers
+`modularConjugation_apply` (`J y = ofConj (W y)`) and `modularConjugation_apply_modularSqrt`
+(`J (Δ^{½} x) = ofConj (S x)`), these are the building blocks of the field-3 proof.
 
 ## The Tomita involution on all of `D(S)` (closure level)
 
 `sTilde_involutive_core` gives `S̃²=1` only on the core `M Ω`. This is upgraded here to the whole
 domain `D(S)` of the closure — `sTilde_closure_involutive` (`S̃ (S̃ y) = y` for `y ∈ D(S)`) — by a
-graph-closure argument: the continuous conjugate-linear swap `σ(u,v) = (ofConj v, toConj u)` sends the
-core graph generator at `T` to the generator at `star T`, so it preserves `Γ(S₀)`, hence its closure
-`Γ(S)`; applied to `(y, S y)` it yields `(S̃ y, toConj y) ∈ Γ(S)`, i.e. `S̃ y ∈ D(S)` and `S̃(S̃ y)=y`.
-This is the genuine closed-operator `S² = 1`, proved with **no** `Δ`/`Δ^{½}`/adjoint calculus.
+graph-closure argument: the continuous conjugate-linear swap `σ(u,v) = (ofConj v, toConj u)` sends
+the core graph generator at `T` to the generator at `star T`, so it preserves `Γ(S₀)`, hence its
+closure `Γ(S)`; applied to `(y, S y)` it yields `(S̃ y, toConj y) ∈ Γ(S)`, i.e. `S̃ y ∈ D(S)` and
+`S̃(S̃ y)=y`. This is the genuine closed-operator `S² = 1`, proved with **no** `Δ`/`Δ^{½}`/adjoint
+calculus.
 
 ## The remaining node (`J² = 1`, not closed here)
 
-Closing `J (J (Δ^{½} x)) = Δ^{½} x` needs `W (S̃ x)`, whose only handle is `range (Δ^{½}|_{D(Δ)})` (via
-the polar relation `W (Δ^{½} x') = S x'`). The involution `sTilde_closure_involutive` gives
-`S̃ x ∈ D(S) = D(Δ^{½})`, but that is a *strictly larger* set than `range (Δ^{½}|_{D(Δ)})`. Bridging the
-two is exactly extending the polar relation `S = J Δ^{½}` from `D(Δ)` to the full `D(Δ^{½})` — which is
-what `Δ^{½}` self-adjointness `(Δ^{½})² = Δ` plus polar-decomposition uniqueness deliver (Route B; see the
-vault plan `Field 3 - J Involution Plan.md`). That step is deferred; this file supplies the involution it
-will build on.
+Closing `J (J (Δ^{½} x)) = Δ^{½} x` needs `W (S̃ x)`, whose only handle is `range (Δ^{½}|_{D(Δ)})`
+(via the polar relation `W (Δ^{½} x') = S x'`). The involution `sTilde_closure_involutive` gives
+`S̃ x ∈ D(S) = D(Δ^{½})`, but that is a *strictly larger* set than `range (Δ^{½}|_{D(Δ)})`. Bridging
+the two is exactly extending the polar relation `S = J Δ^{½}` from `D(Δ)` to the full `D(Δ^{½})` —
+which is what `Δ^{½}` self-adjointness `(Δ^{½})² = Δ` plus polar-decomposition uniqueness deliver
+(Route B; see the vault plan `Field 3 - J Involution Plan.md`). That step is deferred; this file
+supplies the involution it will build on.
 -/
 
 open scoped InnerProductSpace
@@ -102,7 +102,8 @@ theorem sTilde_involutive_core (hsep : IsSeparating M Ω) {a : H →L[ℂ] H} (h
     (h1 : a Ω ∈ (tomitaClosure M Ω).domain)
     (h2 : ofConj (tomitaClosure M Ω ⟨a Ω, h1⟩) ∈ (tomitaClosure M Ω).domain) :
     ofConj (tomitaClosure M Ω ⟨ofConj (tomitaClosure M Ω ⟨a Ω, h1⟩), h2⟩) = a Ω := by
-  -- The inner `S̃ (a Ω)` equals `(star a) Ω`; recast the outer subtype, then apply `S̃` at `star a`.
+  -- The inner `S̃ (a Ω)` equals `(star a) Ω`; recast the outer subtype, then apply
+  -- `S̃` at `star a`.
   have hval : ofConj (tomitaClosure M Ω ⟨a Ω, h1⟩) = (star a) Ω := sTilde_core hsep ha h1
   have hcast : (⟨ofConj (tomitaClosure M Ω ⟨a Ω, h1⟩), h2⟩ : (tomitaClosure M Ω).domain)
       = ⟨(star a) Ω, star_smul_vacuum_mem_domain ha⟩ := Subtype.ext hval
@@ -135,7 +136,8 @@ private lemma swapConj_mem_tomitaGraph {v : H × Conj H} (hv : v ∈ tomitaGraph
       = (evalAt Ω (star T), tomitaPre Ω (star T)) := rfl
   have e2 : swapConj ((evalAt Ω).prod (tomitaPre Ω) T)
       = (ofConj (tomitaPre Ω T), toConj (evalAt Ω T)) := rfl
-  rw [e1, e2, evalAt_apply, evalAt_apply, tomitaPre_apply, tomitaPre_apply, ofConj_toConj, star_star]
+  rw [e1, e2, evalAt_apply, evalAt_apply, tomitaPre_apply, tomitaPre_apply, ofConj_toConj,
+    star_star]
 
 /-- The swapped pair `(S̃ y, toConj y)` lands in the closed graph `Γ(S)` for `y ∈ D(S)`. -/
 theorem swapConj_tomitaClosure_graph (hcyc : IsCyclic M Ω) (hsep : IsSeparating M Ω)

@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
-Author: Adam Bornemann
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Adam Bornemann
 -/
 import Spectra.Modular.TomitaTakesaki.ModularOperator
 /-!
@@ -94,7 +94,7 @@ theorem modularOp_apply (x : (modularOp M Ω).domain)
   have hinner : (tomitaClosure M Ω).domRestrict (modularDomain M Ω) x
       = (tomitaClosure M Ω) ⟨(x : H), hxS⟩ :=
     LinearPMap.domRestrict_apply (y := ⟨(x : H), hxS⟩) rfl
-  show (tomitaClosure M Ω).adjoint.toFun.compPMap _ x = _
+  change (tomitaClosure M Ω).adjoint.toFun.compPMap _ x = _
   rw [LinearMap.compPMap_apply]
   exact congrArg _ (Subtype.ext hinner)
 

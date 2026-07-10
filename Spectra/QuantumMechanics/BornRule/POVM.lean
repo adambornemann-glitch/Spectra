@@ -1,6 +1,6 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Spectra.QuantumMechanics.BornRule.Mixed
@@ -228,6 +228,7 @@ private lemma re_nonneg_of_isPositive {E : H →L[ℂ] H} (hE : E.IsPositive) (�
 
 variable {κ : Type*}
 
+omit [CompleteSpace H] in
 /-- From `∑' k, E k = 1`, the family `E` is summable.  (If it were not, the tsum would be `0`,
 forcing the identity to vanish, hence `H` trivial — in which case every operator is `0`, so `E` is
 summable after all.) -/
@@ -270,6 +271,7 @@ variable [MeasurableSpace κ]
 noncomputable def diagOfEffects (E : κ → (H →L[ℂ] H)) (ξ : H) : Measure κ :=
   Measure.sum (fun k => ENNReal.ofReal ((⟪ξ, E k ξ⟫_ℂ).re) • Measure.dirac k)
 
+omit [CompleteSpace H] in
 private lemma diagOfEffects_apply {E : κ → (H →L[ℂ] H)} (ξ : H) {B : Set κ}
     (hB : MeasurableSet B) :
     (diagOfEffects E ξ) B
@@ -393,7 +395,7 @@ noncomputable def bornMeasurePOVMPure (M : POVM H ι) (ψ : H) : Measure ι :=
 theorem isProbabilityMeasure_bornMeasurePOVMPure (M : POVM H ι) {ψ : H} (hψ : ‖ψ‖ = 1) :
     IsProbabilityMeasure (bornMeasurePOVMPure M ψ) := by
   refine ⟨(ENNReal.toReal_eq_one_iff _).mp ?_⟩
-  show ((M.diag ψ) Set.univ).toReal = 1
+  change ((M.diag ψ) Set.univ).toReal = 1
   rw [M.diag_univ_toReal, hψ, one_pow]
 
 /-- `[done]` **The Born rule, POVM pure form.**  `Prob(B) = ⟪ψ, M(B) ψ⟫`.  Proof:

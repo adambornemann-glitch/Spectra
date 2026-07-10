@@ -1,6 +1,6 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Spectra.Bochner.Borel.Density
@@ -162,7 +162,7 @@ lemma borelCDF_continuous (ξ : H)
         filter_upwards [Iio_mem_nhds h] with x hx
         show (0 : ℝ) = (Set.Iic x).indicator (borelDensity U_grp ξ hε) t
         rw [Set.indicator_of_notMem (by simp only [Set.mem_Iic, not_le]; exact Set.mem_Iio.mp hx)]
-  show Tendsto (borelCDF U_grp ξ hε) (𝓝 x₀) (𝓝 (borelCDF U_grp ξ hε x₀))
+  change Tendsto (borelCDF U_grp ξ hε) (𝓝 x₀) (𝓝 (borelCDF U_grp ξ hε x₀))
   rw [hrw x₀]
   exact hCA.congr (fun x => (hrw x).symm)
 

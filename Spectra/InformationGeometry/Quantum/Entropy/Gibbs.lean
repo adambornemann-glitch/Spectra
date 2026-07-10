@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
-Author: Adam Bornemann
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Adam Bornemann
 -/
 import Spectra.InformationGeometry.Quantum.Entropy.Diagonal
 import Spectra.InformationGeometry.Quantum.KleinScalar
@@ -52,7 +52,8 @@ noncomputable def measuredCrossEntropy (ρ σ : QState H) : ℝ≥0∞ :=
   ∑' i, ENNReal.ofReal (-ρ.eigenvalue i * Real.log (ρ.diagSigma σ i))
 
 /-- **Gibbs' inequality (commuting-case Klein).**  For faithful `σ`, `S(ρ) ≤ ∑ᵢ -λᵢ log sᵢ`.  This
-is the classical `KL(λ ‖ s) ≥ 0` between `ρ`'s eigenvalue distribution and `σ`'s dephased diagonal. -/
+is the classical `KL(λ ‖ s) ≥ 0` between `ρ`'s eigenvalue distribution and `σ`'s dephased
+diagonal. -/
 theorem vonNeumannEntropy_le_measuredCrossEntropy (ρ σ : QState H)
     (hfaith : ∀ i, 0 < ρ.diagSigma σ i) :
     vonNeumannEntropy ρ ≤ measuredCrossEntropy ρ σ := by
@@ -87,12 +88,14 @@ theorem vonNeumannEntropy_le_measuredCrossEntropy (ρ σ : QState H)
     have hg_summable : Summable (fun i => -ρ.eigenvalue i * Real.log (ρ.diagSigma σ i)) :=
       summable_of_ofReal_tsum_ne_top hg_nn (by rwa [measuredCrossEntropy] at hRHS)
     have hh_summable : Summable
-        (fun i => (-ρ.eigenvalue i * Real.log (ρ.diagSigma σ i)) + (ρ.diagSigma σ i - ρ.eigenvalue i)) :=
+        (fun i => (-ρ.eigenvalue i * Real.log (ρ.diagSigma σ i))
+          + (ρ.diagSigma σ i - ρ.eigenvalue i)) :=
       hg_summable.add (hs_summable.sub hlam_summable)
     have hf_summable : Summable (fun i => Real.negMulLog (ρ.eigenvalue i)) :=
       Summable.of_nonneg_of_le hf_nn hbound hh_summable
     have hh_hs : HasSum
-        (fun i => (-ρ.eigenvalue i * Real.log (ρ.diagSigma σ i)) + (ρ.diagSigma σ i - ρ.eigenvalue i))
+        (fun i => (-ρ.eigenvalue i * Real.log (ρ.diagSigma σ i))
+          + (ρ.diagSigma σ i - ρ.eigenvalue i))
         ((∑' i, -ρ.eigenvalue i * Real.log (ρ.diagSigma σ i)) + (1 - 1)) :=
       hg_summable.hasSum.add ((ρ.hasSum_diagSigma σ).sub ρ.hasSum_eigenvalue)
     have hle : ∑' i, Real.negMulLog (ρ.eigenvalue i)

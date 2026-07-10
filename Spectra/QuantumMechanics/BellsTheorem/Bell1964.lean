@@ -1,5 +1,5 @@
 /-
-Copyright (c) 2026 Bell Theorem Formalization Project
+Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
@@ -82,7 +82,8 @@ private lemma responseProd_integrable {μ : ProbabilityMeasure Λ} (f g : Respon
 /-- **Abstract Bell-1964 correlation bound.** For any three response functions `A, B, C` sharing a
 probability space, `|∫A·B - ∫A·C| ≤ 1 - ∫B·C`. This is the pure-integration content of Bell's
 argument, prior to any physical two-party interpretation: it is literally the same conclusion
-Wigner's (1970) set-theoretic proof reaches by a wholly different (finite counting-measure) route. -/
+Wigner's (1970) set-theoretic proof reaches by a wholly different (finite counting-measure)
+route. -/
 lemma bell1964_correlation_bound {μ : ProbabilityMeasure Λ}
     (A B C : ResponseFunction Λ μ) :
     |(∫ ω, A ω * B ω ∂(μ : Measure Λ)) - ∫ ω, A ω * C ω ∂(μ : Measure Λ)|

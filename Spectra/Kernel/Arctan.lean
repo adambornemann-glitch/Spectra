@@ -1,6 +1,6 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Spectra.Kernel.Defs
@@ -92,13 +92,13 @@ lemma arctanRecovery_tendsto_zero_of_lt {a b ω : ℝ} (hω : ω < a)
   -- Both (b-ω)/ε and (a-ω)/ε → +∞ since b-ω > a-ω > 0
   have h1 : Tendsto (fun ε => Real.arctan ((b - ω) / ε)) (𝓝[>] (0 : ℝ))
       (𝓝 (Real.pi / 2)) :=
-    (Real.tendsto_arctan_atTop.comp (tendsto_pos_div_zero_atTop (by linarith [hab, hbb]))).mono_right
+    (Real.tendsto_arctan_atTop.comp
+      (tendsto_pos_div_zero_atTop (by linarith [hab, hbb]))).mono_right
       nhdsWithin_le_nhds
-
   have h2 : Tendsto (fun ε => Real.arctan ((a - ω) / ε)) (𝓝[>] (0 : ℝ))
       (𝓝 (Real.pi / 2)) :=
-    (Real.tendsto_arctan_atTop.comp (tendsto_pos_div_zero_atTop (by linarith))).mono_right nhdsWithin_le_nhds
-
+    (Real.tendsto_arctan_atTop.comp
+      (tendsto_pos_div_zero_atTop (by linarith))).mono_right nhdsWithin_le_nhds
   have h_diff : Tendsto (fun ε => Real.arctan ((b - ω) / ε) - Real.arctan ((a - ω) / ε))
       (𝓝[>] (0 : ℝ)) (𝓝 (Real.pi / 2 - Real.pi / 2)) :=
     h1.sub h2
@@ -118,7 +118,7 @@ lemma arctanRecovery_tendsto_zero_of_lt' {a b ω : ℝ} (hω : ω < a) (hab : a 
 For `s ∉ {a, b}`, `(1/π)[arctan((b-s)/ε) - arctan((a-s)/ε)] → 𝟙_{(a,b]}(s)` as
 `ε → 0+` At the endpoints `s = a` and `s = b` the limit is `1/2`, not `0` or
 `1`, which is the source of the averaged endpoint terms in Stone's formula.
-This is because `arctan(x) → π/2` as `x → +∞` and `arctan(x) → -π/2` as `x → -∞`.-/
+This is because `arctan(x) → π/2` as `x → +∞` and `arctan(x) → -π/2` as `x → -∞`. -/
 lemma arctan_indicator_limit (a b s : ℝ) (hab : a < b)
     (hs_a : s ≠ a) (hs_b : s ≠ b) :
     Tendsto (fun ε : ℝ => (1 / Real.pi) *

@@ -1,19 +1,11 @@
 /-
-Copyright (c) 2026 Spectra Project, Adam Bornemann. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann
 -/
 import Spectra.QuantumMechanics.Hydrogen.Spectrum.Continuous.Defs
 import Spectra.QuantumMechanics.Hydrogen.Laplacian.FreeGreens.Convolution
 import Spectra.SpectralTheory.IntegralOperatorCompact
-
-open MeasureTheory Complex Filter InnerProductSpace Metric Set
-open Spectra.Sobolev Spectra.CompactOperator
-open Spectra.QuantumMechanics.SpectralTheory Spectra.Essential
-open FourierTransform SchwartzMap
-open scoped Convolution Topology NNReal ENNReal
-
-namespace Spectra.QuantumMechanics.Hydrogen
 
 /-!
 # Compactness of the Coulomb resolvent perturbation, and `σ_ess(H) = [0, ∞)`
@@ -67,7 +59,13 @@ five stages, each isolated as its own section below:
   Theorem XIII.16 and surrounding discussion — compactness of Coulomb-type perturbations via
   kernel truncation, and `σ_ess(−Δ + V) = σ_ess(−Δ)` for relatively compact `V`.
 -/
+open MeasureTheory Complex Filter InnerProductSpace Metric Set
+open Spectra.Sobolev Spectra.CompactOperator
+open Spectra.QuantumMechanics.SpectralTheory Spectra.Essential
+open FourierTransform SchwartzMap
+open scoped Convolution Topology NNReal ENNReal
 
+namespace Spectra.QuantumMechanics.Hydrogen
 /-! ## Kernel truncation as a bounded operator -/
 
 /-- The underlying linear map `f ↦ (𝟙_{closedBall 0 (n+1)} · f).toLp`. -/
@@ -130,7 +128,7 @@ lemma coulombResolventAt_coeFn (p : CoulombParams) (z : ℂ) (hz : z.im ≠ 0) (
       fun x => (coulombMultiplier p x : ℂ) * (freeResolventAt z hz ψ : R3 → ℂ) x := by
   rw [coulombResolventAt_apply]
   -- `freeResolventCodAt z hz ψ = ⟨freeResolventAt z hz ψ, _⟩`
-  have hcod : (freeResolventCodAt z hz ψ : SobolevH2)
+  have hcod : (freeResolventCodAt z hz ψ : SobolevH2 (d := 3))
       = ⟨freeResolventAt z hz ψ, freeResolventAt_mem_domain z hz ψ⟩ := rfl
   rw [hcod]
   -- unfold coulombPotential on the explicit pair

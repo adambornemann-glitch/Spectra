@@ -88,7 +88,8 @@ assert_no_sorry Spectra.Resolvent.resolventIntegralPlus
 assert_no_sorry Spectra.Resolvent.resolventIntegralMinus
 assert_no_sorry Spectra.Resolvent.norm_resolventIntegralPlus_le
 assert_no_sorry Spectra.Resolvent.norm_resolventIntegralMinus_le
--- `Integral/Limits.lean`: elementary Laplace-transform tail limits feeding the group-integral route.
+-- `Integral/Limits.lean`: elementary Laplace-transform tail limits feeding the
+-- group-integral route.
 assert_no_sorry Spectra.Resolvent.tendsto_exp_sub_one_div
 assert_no_sorry Spectra.Resolvent.integrableOn_Ici_of_Ici_zero
 assert_no_sorry Spectra.Resolvent.integral_Ici_split_of
@@ -102,7 +103,8 @@ assert_no_sorry Spectra.Resolvent.norm_sq_sub_I_smul
 assert_no_sorry Spectra.Resolvent.norm_sq_add_I_smul
 assert_no_sorry Spectra.Resolvent.norm_le_norm_sub_I_smul
 assert_no_sorry Spectra.Resolvent.norm_le_norm_add_I_smul
--- `SpecialCases.lean`: the resolvent specialized to `z = ±i` (existence/uniqueness/bound/right-inverse).
+-- `SpecialCases.lean`: the resolvent specialized to `z = ±i`
+-- (existence/uniqueness/bound/right-inverse).
 assert_no_sorry Spectra.Resolvent.resolventAtImaginary_unique
 assert_no_sorry Spectra.Resolvent.resolventAtImaginary_bound
 assert_no_sorry Spectra.Resolvent.resolventAtImaginary_left_inverse
@@ -119,14 +121,16 @@ assert_no_sorry Spectra.Resolvent.weak_eigenvalue_of_orthogonal_to_range
 assert_no_sorry Spectra.Resolvent.orthogonal_range_eq_zero
 assert_no_sorry Spectra.Resolvent.preimage_cauchySeq
 assert_no_sorry Spectra.Resolvent.range_sub_smul_closed
--- `Range/Surjectivity.lean`: symmetric with deficiency indices (0,0) ⟹ `ran(A - zI) = H` for all `z`.
+-- `Range/Surjectivity.lean`: symmetric with deficiency indices (0,0) ⟹
+-- `ran(A - zI) = H` for all `z`.
 assert_no_sorry Spectra.Resolvent.self_adjoint_range_all_z
 assert_no_sorry Spectra.Resolvent.rangeSubmodule
 assert_no_sorry Spectra.Resolvent.range_sub_smul_dense
 assert_no_sorry Spectra.Resolvent.resolvent_unique
 assert_no_sorry Spectra.Resolvent.solution_unique
--- `Range.lean` / `Identities.lean`: the resolvent as a function, its defining/uniqueness identities,
--- commutation, adjoint symmetry, and analytic continuity in `z`.
+-- `Range.lean` / `Identities.lean`: the resolvent as a function, its
+-- defining/uniqueness identities, commutation, adjoint symmetry, and analytic
+-- continuity in `z`.
 assert_no_sorry Spectra.Resolvent.resolventSolution
 assert_no_sorry Spectra.Resolvent.resolventSolution_mem
 assert_no_sorry Spectra.Resolvent.resolventSolution_eq
@@ -543,8 +547,10 @@ assert_no_sorry QuantumMechanics.Hydrogen.Spectrum.hydrogen_spectral_projection_
 
 /-! ### Spectral theory · discreteness (Weyl hard half) and hydrogen eigenfunction completeness -/
 
-assert_no_sorry Spectra.QuantumMechanics.SpectralTheory.mem_pointSpectrum_of_mem_spectrum_notMem_essSpectrum
-assert_no_sorry Spectra.QuantumMechanics.SpectralTheory.spectralPVM_proj_eq_zero_of_subset_resolventSet
+assert_no_sorry
+  Spectra.QuantumMechanics.SpectralTheory.mem_pointSpectrum_of_mem_spectrum_notMem_essSpectrum
+assert_no_sorry
+  Spectra.QuantumMechanics.SpectralTheory.spectralPVM_proj_eq_zero_of_subset_resolventSet
 assert_no_sorry Spectra.QuantumMechanics.SpectralTheory.selfAdjointResolvent_residue_proj_singleton
 -- Tier C: general resolvent on the open resolvent set, analytic there.
 assert_no_sorry Spectra.Resolvent.isOpen_resolventSet
@@ -641,6 +647,109 @@ assert_no_sorry Spectra.QuantumMechanics.BornRule.isProbabilityMeasure_jointBorn
 assert_no_sorry Spectra.QuantumMechanics.BornRule.stronglyCommute_iff_jointPVM
 assert_no_sorry Spectra.QuantumMechanics.BornRule.jointBornMeasure_correlation
 
+/-! ### Reflection positivity (Osterwalder–Schrader OS3, abstract predicate)
+
+The abstract reflection-positivity condition and its bundled `ReflectionData` (self-adjoint
+involution + positive-time subspace + OS3 axiom), with the reflected-diagonal realness lemma and the
+`trivial` inhabitation witness.  `sorry`-free and axiom-clean. -/
+
+assert_no_sorry Spectra.QuantumFieldTheory.OsterwalderSchrader.IsReflectionPositive
+assert_no_sorry
+  Spectra.QuantumFieldTheory.OsterwalderSchrader.ReflectionData.reflected_inner_conj_eq
+assert_no_sorry Spectra.QuantumFieldTheory.OsterwalderSchrader.ReflectionData.trivial
+
+/-! ### Reflection positivity engine (Osterwalder–Seiler collapse, Lane R2 core)
+
+The integral-form reflected pairing `reflectedForm` and the Osterwalder–Seiler positivity mechanism:
+for a Gram-form Boltzmann kernel `ρ = ∑ᵢ conj(gᵢ) ⊗ gᵢ` the reflected pairing collapses to
+`∑ᵢ ‖∫ f·gᵢ‖²` (`reflectedForm_gram`), hence is a nonnegative real (reflection positivity,
+`reflectedForm_gram_re_nonneg`/`_im`), reducing R2 to G5's character/heat-kernel Gram decomposition
+of the Wilson weight (`IsReflectionPositiveKernel`, `reflectedForm_re_nonneg_of_kernel`).  The free
+(`β = 0`) case is the first unconditional instance (`reflectedForm_const_one`).  All
+`sorry`-free and axiom-clean. -/
+
+assert_no_sorry Spectra.QuantumFieldTheory.OsterwalderSchrader.reflectedForm_gram
+assert_no_sorry Spectra.QuantumFieldTheory.OsterwalderSchrader.reflectedForm_gram_re_nonneg
+assert_no_sorry Spectra.QuantumFieldTheory.OsterwalderSchrader.reflectedForm_gram_im
+assert_no_sorry Spectra.QuantumFieldTheory.OsterwalderSchrader.isReflectionPositiveKernel_const_one
+assert_no_sorry Spectra.QuantumFieldTheory.OsterwalderSchrader.reflectedForm_re_nonneg_of_kernel
+assert_no_sorry Spectra.QuantumFieldTheory.OsterwalderSchrader.reflectedForm_const_one
+assert_no_sorry Spectra.QuantumFieldTheory.OsterwalderSchrader.reflectedForm_const_one_re_nonneg
+
+/-! ### Wightman spectral condition & mass gap (relativistic joint-spectral statement)
+
+The precise **joint-spectral** statement of the Wightman spectral condition (W2), vacuum uniqueness
+(W3), and the **mass gap** for a relativistic Hilbert space, bundled `ModularData`-style in
+`RelativisticSpectralData` (uninhabited until an OS-type reconstruction supplies a representation).
+Gated here: the concrete spacetime-momentum regions' measurability, the `n`-ary marginal ⟹ pairwise
+strong-commutativity sanity lemma, and the structure's sanity lemmas.  All `sorry`-free and
+axiom-clean. -/
+
+assert_no_sorry Spectra.QuantumFieldTheory.Wightman.measurableSet_cylinder
+assert_no_sorry Spectra.QuantumFieldTheory.Wightman.measurableSet_closedForwardLightCone
+assert_no_sorry Spectra.QuantumFieldTheory.Wightman.measurableSet_massGapAnnulus
+assert_no_sorry Spectra.QuantumFieldTheory.Wightman.measurableSet_singleton_zero
+assert_no_sorry Spectra.QuantumFieldTheory.Wightman.isStarProjection_rankOneProjection
+assert_no_sorry Spectra.QuantumFieldTheory.Wightman.stronglyCommute_of_isJointOfFamily
+assert_no_sorry
+  Spectra.QuantumFieldTheory.Wightman.RelativisticSpectralData.stronglyCommute_of_marginal
+assert_no_sorry
+  Spectra.QuantumFieldTheory.Wightman.RelativisticSpectralData.isStarProjection_proj_zero
+
+/-! ### Gauge theory: the compact gauge group and the lattice substrate
+
+Lane G: `U(n)`/`SU(n)` are compact topological groups — the topological-group half is derivable from
+Mathlib's generic `unitary R` machinery (recorded as `isClosed_unitaryGroup`); compactness is proved
+here via a Tychonoff entry-box argument (`norm_entry_le_one` → `isCompact_unitaryGroup`).  Lane L1:
+the finite periodic-lattice combinatorial substrate (sites/links/plaquettes/holonomy).  All
+`sorry`-free and axiom-clean. -/
+
+assert_no_sorry Spectra.GaugeTheory.isClosed_unitaryGroup
+assert_no_sorry Spectra.GaugeTheory.norm_entry_le_one
+assert_no_sorry Spectra.GaugeTheory.isCompact_unitaryGroup
+assert_no_sorry Spectra.GaugeTheory.isCompact_specialUnitaryGroup
+-- G3: Haar probability measure on the compact gauge groups + uniqueness.
+assert_no_sorry Spectra.GaugeTheory.haarUnitary
+assert_no_sorry Spectra.GaugeTheory.haarUnitary_unique
+assert_no_sorry Spectra.GaugeTheory.haarSpecialUnitary
+assert_no_sorry Spectra.GaugeTheory.haarSpecialUnitary_unique
+assert_no_sorry Spectra.GaugeTheory.Lattice.card_site
+assert_no_sorry Spectra.GaugeTheory.Lattice.plaquetteHolonomy_one
+-- L2 Wilson action: nonnegativity (via the G-lane entry bound) and the vacuum minimizer.
+assert_no_sorry Spectra.GaugeTheory.Lattice.re_trace_le_card
+assert_no_sorry Spectra.GaugeTheory.Lattice.plaquetteAction_nonneg
+assert_no_sorry Spectra.GaugeTheory.Lattice.wilsonAction_nonneg
+assert_no_sorry Spectra.GaugeTheory.Lattice.wilsonAction_one
+assert_no_sorry Spectra.GaugeTheory.Lattice.wilsonAction_le
+-- L3 finite-volume Gibbs measure: partition-function bounds, measurable density,
+-- probability measure.
+assert_no_sorry Spectra.GaugeTheory.Lattice.continuous_wilsonAction
+assert_no_sorry Spectra.GaugeTheory.Lattice.measurable_gibbsDensity
+assert_no_sorry Spectra.GaugeTheory.Lattice.partitionFunction_pos
+assert_no_sorry Spectra.GaugeTheory.Lattice.partitionFunction_ne_top
+assert_no_sorry Spectra.GaugeTheory.Lattice.gibbsMeasure
+assert_no_sorry Spectra.GaugeTheory.Lattice.isProbabilityMeasure_gibbsMeasure
+-- R2 free case: reflection positivity of the a-priori (β=0) lattice measure via the R2-core engine.
+-- The a-priori measure factors as `posMeasure ⊗ negMeasure`; the explicit configuration reflection
+-- `Θ` (an involution) reflects a positive-time observable, and the reflected pairing over
+-- `aprioriMeasure` collapses to `‖𝔼[f]‖² ≥ 0`.
+assert_no_sorry Spectra.GaugeTheory.Lattice.measurePreserving_split
+assert_no_sorry Spectra.GaugeTheory.Lattice.measurePreserving_congr
+assert_no_sorry Spectra.GaugeTheory.Lattice.reflectionPositive_free
+assert_no_sorry Spectra.GaugeTheory.Lattice.configReflection_involutive
+assert_no_sorry Spectra.GaugeTheory.Lattice.posPart_configReflection
+assert_no_sorry Spectra.GaugeTheory.Lattice.reflectionPositive_configReflection
+assert_no_sorry Spectra.GaugeTheory.Lattice.reflectionPositive_configReflection_re_nonneg
+-- R2 interacting (β>0) case, modulo G5: if the Wilson weight is a reflected Gram sum (the
+-- character-expansion structure Lane G5 supplies), the reflected pairing over the genuine
+-- `gibbsMeasure` is ≥ 0 — reduced per Gram-mode to the free case.  The `_tsum` (countable) versions
+-- are the genuine β>0 statement (the character expansion is countably infinite for β>0); the finite
+-- `reflectionPositive_weighted` is the truncated/finite-mode case (exact for exp(−S) only at β=0).
+assert_no_sorry Spectra.GaugeTheory.Lattice.reflectionPositive_weighted
+assert_no_sorry Spectra.GaugeTheory.Lattice.reflectionPositive_weighted_re_nonneg
+assert_no_sorry Spectra.GaugeTheory.Lattice.reflectionPositive_weighted_tsum
+assert_no_sorry Spectra.GaugeTheory.Lattice.reflectionPositive_gibbsMeasure
+
 /-! ## KMS condition & modular theory -/
 
 assert_no_sorry Spectra.KMS.IsKMSState
@@ -661,8 +770,10 @@ assert_no_sorry Spectra.TomitaTakesaki.modularFlow_group_law
 assert_no_sorry Spectra.QuantumMechanics.SpectralTheory.groupPVM_eq_toPVM
 assert_no_sorry Spectra.QuantumMechanics.SpectralTheory.spectralPVM_eq_groupPVM_stoneGroup
 assert_no_sorry Spectra.QuantumMechanics.SpectralTheory.spectralPVM_eq_stoneGroup_toPVM
-assert_no_sorry Spectra.QuantumMechanics.SpectralTheory.spectralPVM_proj_eq_spectralProjection_stoneGroup
-assert_no_sorry Spectra.QuantumMechanics.SpectralTheory.spectralPVM_diag_eq_map_cayleySpectralMeasure
+assert_no_sorry
+  Spectra.QuantumMechanics.SpectralTheory.spectralPVM_proj_eq_spectralProjection_stoneGroup
+assert_no_sorry
+  Spectra.QuantumMechanics.SpectralTheory.spectralPVM_diag_eq_map_cayleySpectralMeasure
 
 -- P5: the spectral theorem, proved a SECOND, INDEPENDENT way via Cayley/Riesz–Markov — existence
 -- witnessed by `groupPVM (stoneGroup hA)`, mentioning `genToGroup` nowhere; uniqueness reused
@@ -670,7 +781,8 @@ assert_no_sorry Spectra.QuantumMechanics.SpectralTheory.spectralPVM_diag_eq_map_
 -- Cayley transform, not merely an identification with the Yosida-built spectral theorem.
 assert_no_sorry Spectra.QuantumMechanics.SpectralTheory.selfAdjointResolvent_eq_stoneGroup
 assert_no_sorry Spectra.QuantumMechanics.SpectralTheory.cayleyPVM_resolvent_formula
-assert_no_sorry Spectra.QuantumMechanics.SpectralTheory.groupPVM_stoneGroup_eq_spectralPVM_independent
+assert_no_sorry
+  Spectra.QuantumMechanics.SpectralTheory.groupPVM_stoneGroup_eq_spectralPVM_independent
 assert_no_sorry Spectra.QuantumMechanics.SpectralTheory.spectralTheoremCayley
 
 -- P4 (rescoped): closes the square `pmapOfPVM`/`spectralCalculus` (group-generic, already
@@ -701,7 +813,8 @@ assert_no_sorry Spectra.QuantumMechanics.SpectralTheory.re_inner_self_pmapOfPVM_
 -- for `(Δ^{½})²=Δ` in general) remains open; see `PMapBounded.lean`'s scope-honesty note.
 assert_no_sorry Spectra.QuantumMechanics.SpectralTheory.integrable_sq_of_bounded
 assert_no_sorry Spectra.QuantumMechanics.SpectralTheory.mem_pmapDomain_of_bounded
-assert_no_sorry Spectra.QuantumMechanics.SpectralTheory.pmapOfPVM_apply_eq_spectralCalculus_of_bounded
+assert_no_sorry
+  Spectra.QuantumMechanics.SpectralTheory.pmapOfPVM_apply_eq_spectralCalculus_of_bounded
 assert_no_sorry Spectra.QuantumMechanics.SpectralTheory.pmapOfPVM_mul_of_bounded
 -- R2 square root: spectral-measure restriction, support of a `≥0` generator on `[0,∞)`, and the
 -- form identity `‖A^{½}x‖² = Re⟪x,Ax⟫` — the engine for `Δ^{½}` and `‖Δ^{½}x‖=‖Sx‖` (R3 input).
@@ -736,22 +849,24 @@ assert_no_sorry Spectra.TomitaTakesaki.modularConjugation_fixes_vacuum
 -- R4a field 5: `Δ^{it} Ω = Ω` (the modular flow fixes the vacuum), via the Stone/genToGroup bridge
 -- `spectralCalculus_stoneGroup_eq_borelCalculus` + the spectral atom `E_Δ({1}) Ω = Ω`.
 assert_no_sorry Spectra.TomitaTakesaki.modularFlow_fixes_vacuum
--- R4a field 3 foundation: the Tomita involution `S̃² = 1` on the core `M Ω` (`S̃ (a Ω) = (star a) Ω`,
--- hence `S̃ (S̃ (a Ω)) = a Ω`), plus the polar helper `J (Δ^{½} x) = ofConj (S x)`. The genuine content
--- seeding `J² = 1` (field 3); the range-vs-core bridge closing `J² = 1` is the remaining node.
+-- R4a field 3 foundation: the Tomita involution `S̃² = 1` on the core `M Ω`
+-- (`S̃ (a Ω) = (star a) Ω`, hence `S̃ (S̃ (a Ω)) = a Ω`), plus the polar helper
+-- `J (Δ^{½} x) = ofConj (S x)`. The genuine content seeding `J² = 1` (field 3); the range-vs-core
+-- bridge closing `J² = 1` is the remaining node.
 assert_no_sorry Spectra.TomitaTakesaki.sTilde_core
 assert_no_sorry Spectra.TomitaTakesaki.sTilde_involutive_core
 assert_no_sorry Spectra.TomitaTakesaki.modularConjugation_apply_modularSqrt
--- Field-3 keystone spike result: the Tomita involution `S̃² = 1` upgraded from the core `M Ω` to the
--- whole domain `D(S)` of the closure (`S̃ y ∈ D(S)` and `S̃ (S̃ y) = y`), via the continuous
+-- Field-3 keystone spike result: the Tomita involution `S̃² = 1` upgraded from the core `M Ω` to
+-- the whole domain `D(S)` of the closure (`S̃ y ∈ D(S)` and `S̃ (S̃ y) = y`), via the continuous
 -- conjugate-linear graph-symmetry `swapConj`. No `Δ`/`Δ^{½}`/adjoint calculus. (Closing `J² = 1`
 -- still needs the polar relation on the full `D(Δ^{½})` — the Route B calculus.)
 assert_no_sorry Spectra.TomitaTakesaki.sTilde_closure_mem_domain
 assert_no_sorry Spectra.TomitaTakesaki.sTilde_closure_involutive
 -- R4a field 3, Route B gate (HC1): the modular square root `Δ^{½}` is SELF-ADJOINT — von Neumann's
--- deficiency criterion `isSelfAdjoint_of_surjective_addSub` fed by symmetry + surjectivity of `Δ^{½} ± i`
--- (bounded resolvent `Φ(1/(√±i))`). The single blocker of the J²=1 endgame; unblocks `(Δ^{½})²=Δ`.
--- Plus the reusable NEW infrastructure: the mixed bounded/unbounded product law for the PVM calculus.
+-- deficiency criterion `isSelfAdjoint_of_surjective_addSub` fed by symmetry + surjectivity of
+-- `Δ^{½} ± i` (bounded resolvent `Φ(1/(√±i))`). The single blocker of the J²=1 endgame; unblocks
+-- `(Δ^{½})²=Δ`. Plus the reusable NEW infrastructure: the mixed bounded/unbounded product law for
+-- the PVM calculus.
 assert_no_sorry Spectra.QuantumMechanics.SpectralTheory.pmapOfPVM_spectralCalculus_of_mul_bounded
 assert_no_sorry Spectra.TomitaTakesaki.modularSqrt_isSelfAdjoint
 -- R4a field 3, HC2: (Δ^{½})² = Δ (the modular square root squares to Δ), via a closed-graph
@@ -771,8 +886,9 @@ assert_no_sorry Spectra.QuantumMechanics.SpectralTheory.inner_resolvent_sq
 -- spectral-mapping `E^{f(A)} = (spectralPVM A).map f` for the polar-uniqueness build.
 assert_no_sorry Spectra.ProjValMeasure.map
 -- The `s ↦ s²` spectral-mapping theorem `spectralPVM (A²) = (spectralPVM A).map (·²)` (DAG node
--- `spectralPVM_sq_eq_pushforward`), with `A²` self-adjoint (`sq_isSelfAdjoint`) and the resolvent bridge
--- `(A²−z)⁻¹ = Φ(1/(s²−z))` — the crux of positive-square-root uniqueness for Field-3 polar uniqueness.
+-- `spectralPVM_sq_eq_pushforward`), with `A²` self-adjoint (`sq_isSelfAdjoint`) and the resolvent
+-- bridge `(A²−z)⁻¹ = Φ(1/(s²−z))` — the crux of positive-square-root uniqueness for Field-3 polar
+-- uniqueness.
 assert_no_sorry Spectra.QuantumMechanics.SpectralTheory.sq_isSelfAdjoint
 assert_no_sorry Spectra.QuantumMechanics.SpectralTheory.selfAdjointResolvent_sq_eq
 assert_no_sorry Spectra.QuantumMechanics.SpectralTheory.spectralPVM_sq_eq_pushforward
@@ -803,8 +919,9 @@ assert_no_sorry Spectra.TomitaTakesaki.generator_modularFlow_eq_logModularOp
 
 /-! ## Field-3 Stage 0 — the reciprocal modular calculus `Δ⁻¹`, `Δ^{-½}` (COMPLETE)
 
-The generic J-free real-symbol self-adjointness engine (surjectivity of `A_f ± i` is unconditional for
-a real symbol `f`, since `1/(f ± i)` is bounded), the away-from-zero band density engine
+The generic J-free real-symbol self-adjointness engine (surjectivity of `A_f ± i` is
+unconditional for a real symbol `f`, since `1/(f ± i)` is bounded), the away-from-zero band
+density engine
 (`D(∫f dP)` dense whenever every `μ_y` is carried by `(0,∞)` and `f` is bounded on each band
 `[1/(n+1), n+1]`), and their instantiation at the reciprocal symbols `1/s`, `1/√s`:
 `Δ⁻¹ = modularOpInv` and `Δ^{-½} = modularSqrtInv` are **unconditionally self-adjoint**, with
@@ -849,8 +966,9 @@ assert_no_sorry Spectra.TomitaTakesaki.modularSqrt_mem_closure_graph_domRestrict
 The polar relation `W(Δ^{½}x) = Sx` extended from `D(Δ)` to the full square-root domain, with the
 polar domains coinciding: `D(S) = D(Δ^{½})`, `S y = W(Δ^{½}y)`, the extended isometry
 `‖Δ^{½}y‖ = ‖Sy‖`, and the `J`-form `toConj (J (Δ^{½}y)) = S y`.  Both directions are image-closure
-pushes of the two core facts (KS1's `HasCore` and the graph-L² closure) through `(u,v) ↦ (u, W^{±1}v)`
-into the closed graphs.  This pins `W` on `cl(ran Δ^{½})` — the Stage-4 ingredient. -/
+pushes of the two core facts (KS1's `HasCore` and the graph-L² closure) through
+`(u,v) ↦ (u, W^{±1}v)` into the closed graphs.  This pins `W` on `cl(ran Δ^{½})` — the Stage-4
+ingredient. -/
 assert_no_sorry Spectra.TomitaTakesaki.modularSqrt_domain_le_tomitaClosure_domain
 assert_no_sorry Spectra.TomitaTakesaki.tomitaClosure_domain_le_modularSqrt_domain
 assert_no_sorry Spectra.TomitaTakesaki.tomitaClosure_domain_eq_modularSqrt_domain
@@ -870,9 +988,10 @@ assert_no_sorry Spectra.Operator.compPMap_adjoint_apply
 
 Block operators on the `L²` direct sum `H2 H = WithLp 2 (H × H)`, the carrier of the balanced-state
 amplification for the Connes cocycle.  The block algebra is a ring under matrix multiplication
-(`blockOp_comp`), entrywise-linear (`blockOp_add`/`_smul`), and `*`-closed via the conjugate transpose
-(`blockOp_star`), from which the matrix-unit relations `eᵢⱼ eₖₗ = δⱼₖ eᵢₗ`, `e₁₁ + e₂₂ = 1`, and the
-`*`-subalgebra `M2subalg M` of block operators with all entries in `M` all follow. -/
+(`blockOp_comp`), entrywise-linear (`blockOp_add`/`_smul`), and `*`-closed via the conjugate
+transpose (`blockOp_star`), from which the matrix-unit relations `eᵢⱼ eₖₗ = δⱼₖ eᵢₗ`,
+`e₁₁ + e₂₂ = 1`, and the `*`-subalgebra `M2subalg M` of block operators with all entries in `M` all
+follow. -/
 assert_no_sorry Spectra.TomitaTakesaki.blockOp_comp
 assert_no_sorry Spectra.TomitaTakesaki.blockOp_add
 assert_no_sorry Spectra.TomitaTakesaki.blockOp_smul
@@ -913,7 +1032,8 @@ assert_no_sorry Spectra.TomitaTakesaki.inner_modularAut_vacuum
 assert_no_sorry Spectra.TomitaTakesaki.inner_modularAut_modularFlow_vacuum
 assert_no_sorry Spectra.TomitaTakesaki.ModularData.inner_modularAut_vacuum
 
-/-! ## The inverse-calculus twins `Δ^{-½}Δ^{½} = 1`, `Δ^{½}Δ^{-½} = 1` and `ran Δ^{½} = D(Δ^{-½})` -/
+/-! ## The inverse-calculus twins `Δ^{-½}Δ^{½} = 1`, `Δ^{½}Δ^{-½} = 1` and
+`ran Δ^{½} = D(Δ^{-½})` -/
 assert_no_sorry Spectra.TomitaTakesaki.modularSqrt_mem_modularSqrtInv_domain
 assert_no_sorry Spectra.TomitaTakesaki.modularSqrtInv_modularSqrt_apply
 assert_no_sorry Spectra.TomitaTakesaki.modularSqrtInv_mem_modularSqrt_domain
@@ -922,7 +1042,8 @@ assert_no_sorry Spectra.TomitaTakesaki.mem_modularSqrtInv_domain_iff
 
 /-! ## The spectral-square bridge (generic): pointwise composition ⟹ `pmapOfPVM (·²)` -/
 assert_no_sorry Spectra.QuantumMechanics.SpectralTheory.mem_pmapDomain_id_of_mem_generator
-assert_no_sorry Spectra.QuantumMechanics.SpectralTheory.spectralCalculus_apply_pmapOfPVM_of_mul_bounded
+assert_no_sorry
+  Spectra.QuantumMechanics.SpectralTheory.spectralCalculus_apply_pmapOfPVM_of_mul_bounded
 assert_no_sorry Spectra.QuantumMechanics.SpectralTheory.mem_sq_domain_of_generator_comp
 assert_no_sorry Spectra.QuantumMechanics.SpectralTheory.pmapOfPVM_sq_apply_generator_comp
 assert_no_sorry Spectra.QuantumMechanics.SpectralTheory.pmapOfPVM_sq_genToGroup_eq
@@ -1018,9 +1139,9 @@ assert_no_sorry Spectra.QuantumMechanics.Channels.weighted_norm_tsum_inner_le
 /-! ## Operator algebra · bounded polar decomposition `T = U |T|`
 
 First brick of the trace-class / von Neumann predual development (discharge-first route to the
-Tomita–Takesaki fundamental theorem). `|T| = CFC.abs T`, the polar isometry identity `‖|T|x‖ = ‖Tx‖`,
-and the partial isometry `U` with `U |T| = T` — the last built by hand since Mathlib's
-`LinearIsometry.extend` is finite-dimensional only. -/
+Tomita–Takesaki fundamental theorem). `|T| = CFC.abs T`, the polar isometry identity
+`‖|T|x‖ = ‖Tx‖`, and the partial isometry `U` with `U |T| = T` — the last built by hand since
+Mathlib's `LinearIsometry.extend` is finite-dimensional only. -/
 assert_no_sorry Spectra.QuantumMechanics.Channels.norm_absOp_apply
 assert_no_sorry Spectra.QuantumMechanics.Channels.denseRange_absOpCorestrict
 assert_no_sorry Spectra.QuantumMechanics.Channels.polarIsometry_absOp
@@ -1050,17 +1171,18 @@ assert_no_sorry Spectra.QuantumMechanics.Channels.traceNorm_absOp
 assert_no_sorry Spectra.QuantumMechanics.Channels.traceNorm_smul
 assert_no_sorry Spectra.QuantumMechanics.Channels.isTraceClass_iff_summable
 -- Trace-class hard-core Stage A (partial-isometry infrastructure): the Hilbert–Schmidt sum is
--- adjoint-invariant (`∑ᵢ ‖A eᵢ‖² = ∑ᵢ ‖A⋆ eᵢ‖²`), the polar partial isometry `U` is a contraction, and
--- the initial-space identities `U⋆ U = P_K` and `U⋆ T = |T|` (load-bearing for trace-norm duality and
--- the triangle inequality).
+-- adjoint-invariant (`∑ᵢ ‖A eᵢ‖² = ∑ᵢ ‖A⋆ eᵢ‖²`), the polar partial isometry `U` is a contraction,
+-- and the initial-space identities `U⋆ U = P_K` and `U⋆ T = |T|` (load-bearing for trace-norm
+-- duality and the triangle inequality).
 assert_no_sorry Spectra.QuantumMechanics.Channels.tsum_enorm_apply_sq_adjoint
 assert_no_sorry Spectra.QuantumMechanics.Channels.norm_polarPartial_eq
 assert_no_sorry Spectra.QuantumMechanics.Channels.norm_polarIsometry_le_one
 assert_no_sorry Spectra.QuantumMechanics.Channels.polarIsometry_adjoint_comp_self
 assert_no_sorry Spectra.QuantumMechanics.Channels.polarIsometry_adjoint_comp
 -- Trace-class hard-core Stage C (minimal Hilbert–Schmidt ideal): the predicate `IsHilbertSchmidt`
--- (`∑ᵢ ‖A eᵢ‖² < ∞`) with basis-independence, `A⋆` HS ↔ `A` HS, `|A|^{1/2}` HS ↔ `A` trace-class, and
--- the two-sided-ideal closure `B∘A`, `A∘B` HS — the factorization toolkit for cyclicity `tr(AB)=tr(BA)`.
+-- (`∑ᵢ ‖A eᵢ‖² < ∞`) with basis-independence, `A⋆` HS ↔ `A` HS, `|A|^{1/2}` HS ↔ `A` trace-class,
+-- and the two-sided-ideal closure `B∘A`, `A∘B` HS — the factorization toolkit for cyclicity
+-- `tr(AB)=tr(BA)`.
 assert_no_sorry Spectra.QuantumMechanics.Channels.hsSum_indep
 assert_no_sorry Spectra.QuantumMechanics.Channels.isHilbertSchmidt_iff
 assert_no_sorry Spectra.QuantumMechanics.Channels.isHilbertSchmidt_iff_summable
@@ -1080,22 +1202,25 @@ assert_no_sorry Spectra.QuantumMechanics.Channels.trace_smul
 assert_no_sorry Spectra.QuantumMechanics.Channels.norm_trace_le_traceNorm
 assert_no_sorry Spectra.QuantumMechanics.Channels.norm_trace_comp_le
 assert_no_sorry Spectra.QuantumMechanics.Channels.trace_of_nonneg
--- Trace-class hard-core Stage D (cyclicity of the trace): the Hilbert–Schmidt case `tr (X Y) = tr (Y X)`
--- via a Fubini swap of the absolutely convergent double sum, and the general case `tr (A B) = tr (B A)`
--- (`A` trace-class, `B` bounded) via the `A = (U |A|^{1/2}) |A|^{1/2}` Hilbert–Schmidt factorization.
+-- Trace-class hard-core Stage D (cyclicity of the trace): the Hilbert–Schmidt case
+-- `tr (X Y) = tr (Y X)` via a Fubini swap of the absolutely convergent double sum, and the general
+-- case `tr (A B) = tr (B A)` (`A` trace-class, `B` bounded) via the `A = (U |A|^{1/2}) |A|^{1/2}`
+-- Hilbert–Schmidt factorization.
 assert_no_sorry Spectra.QuantumMechanics.Channels.trace_comp_comm_hs
 assert_no_sorry Spectra.QuantumMechanics.Channels.trace_comp_comm
--- The contraction–trace bound `∑ᵢ ‖⟪W eᵢ, S eᵢ⟫‖ ≤ ‖S‖₁` (`‖W‖ ≤ 1`), the single-fixed-`W` estimate.
+-- The contraction–trace bound `∑ᵢ ‖⟪W eᵢ, S eᵢ⟫‖ ≤ ‖S‖₁` (`‖W‖ ≤ 1`), the single-fixed-`W`
+-- estimate.
 assert_no_sorry Spectra.QuantumMechanics.Channels.tsum_norm_inner_comp_le
--- Trace-class hard-core Stage E (the triangle inequality): `tr |S+T| ≤ tr |S| + tr |T|` in `ℝ≥0∞` via
--- the polar decomposition of `S + T` with one fixed partial isometry, closure of trace-class under
--- addition, and the triangle inequality `‖S + T‖₁ ≤ ‖S‖₁ + ‖T‖₁`.
+-- Trace-class hard-core Stage E (the triangle inequality): `tr |S+T| ≤ tr |S| + tr |T|` in `ℝ≥0∞`
+-- via the polar decomposition of `S + T` with one fixed partial isometry, closure of trace-class
+-- under addition, and the triangle inequality `‖S + T‖₁ ≤ ‖S‖₁ + ‖T‖₁`.
 assert_no_sorry Spectra.QuantumMechanics.Channels.posTrace_absOp_add_le
 assert_no_sorry Spectra.QuantumMechanics.Channels.isTraceClass_add
 assert_no_sorry Spectra.QuantumMechanics.Channels.traceNorm_add_le
--- Trace-class hard-core Stage F (toward the Banach space): the trace class is a `ℂ`-submodule of `B(H)`
--- (`traceClassSubmodule`, via `isTraceClass_smul`), and the operator norm is dominated by the trace
--- norm `‖T‖ ≤ ‖T‖₁` (`norm_le_traceNorm`) — the comparison making `‖·‖₁`-Cauchy sequences `‖·‖`-Cauchy.
+-- Trace-class hard-core Stage F (toward the Banach space): the trace class is a `ℂ`-submodule of
+-- `B(H)` (`traceClassSubmodule`, via `isTraceClass_smul`), and the operator norm is dominated by
+-- the trace norm `‖T‖ ≤ ‖T‖₁` (`norm_le_traceNorm`) — the comparison making `‖·‖₁`-Cauchy sequences
+-- `‖·‖`-Cauchy.
 assert_no_sorry Spectra.QuantumMechanics.Channels.isTraceClass_smul
 assert_no_sorry Spectra.QuantumMechanics.Channels.traceNorm_neg
 assert_no_sorry Spectra.QuantumMechanics.Channels.traceClassSubmodule
@@ -1120,15 +1245,16 @@ assert_no_sorry Spectra.QuantumMechanics.Channels.isTraceClass_and_traceNorm_le_
 assert_no_sorry Spectra.QuantumMechanics.Channels.TraceClass.instCompleteSpace
 -- Trace-class hard-core Stage G (Hilbert–Schmidt × Hilbert–Schmidt is trace class): the qualitative
 -- Schatten–Hölder membership `X, Y` HS ⟹ `X∘Y` trace-class, proved by the diagonal estimate
--- `⟪eᵢ,|XY|eᵢ⟫ = ⟪X⋆ U eᵢ, Y eᵢ⟫ ≤ ‖X⋆ U eᵢ‖² + ‖Y eᵢ‖²` (the polar factor `U⋆(XY)=|XY|`, avoiding the
--- sup-over-bases characterization), and the resulting trace-class two-sided ideal `B∘T`, `T∘B`.
+-- `⟪eᵢ,|XY|eᵢ⟫ = ⟪X⋆ U eᵢ, Y eᵢ⟫ ≤ ‖X⋆ U eᵢ‖² + ‖Y eᵢ‖²` (the polar factor `U⋆(XY)=|XY|`, avoiding
+-- the sup-over-bases characterization), and the resulting trace-class two-sided ideal `B∘T`, `T∘B`.
 assert_no_sorry Spectra.QuantumMechanics.Channels.IsHilbertSchmidt.isTraceClass_comp
 assert_no_sorry Spectra.QuantumMechanics.Channels.IsTraceClass.comp_left
 assert_no_sorry Spectra.QuantumMechanics.Channels.IsTraceClass.comp_right
 assert_no_sorry Spectra.QuantumMechanics.Channels.isTraceClass_sqrtOp_absOp_comp
 -- Trace-class hard-core Stage H (the Hilbert–Schmidt norm + sharp Schatten–Hölder): the norm
 -- `‖A‖₂ = (∑ᵢ ‖A eᵢ‖²)^{1/2}` with adjoint-invariance and the operator-ideal bound, and the sharp
--- `‖X∘Y‖₁ ≤ ‖X‖₂ ‖Y‖₂` via the diagonal ℓ²-Cauchy–Schwarz `∑ᵢ re⟪X⋆Ueᵢ,Yeᵢ⟫ ≤ ‖X⋆U‖₂‖Y‖₂ ≤ ‖X‖₂‖Y‖₂`.
+-- `‖X∘Y‖₁ ≤ ‖X‖₂ ‖Y‖₂` via the diagonal ℓ²-Cauchy–Schwarz
+-- `∑ᵢ re⟪X⋆Ueᵢ,Yeᵢ⟫ ≤ ‖X⋆U‖₂‖Y‖₂ ≤ ‖X‖₂‖Y‖₂`.
 assert_no_sorry Spectra.QuantumMechanics.Channels.hsNorm
 assert_no_sorry Spectra.QuantumMechanics.Channels.hsNorm_adjoint
 assert_no_sorry Spectra.QuantumMechanics.Channels.hsNorm_comp_le
@@ -1142,14 +1268,16 @@ assert_no_sorry Spectra.QuantumMechanics.Channels.fidelity_self
 assert_no_sorry Spectra.QuantumMechanics.Channels.fidelity_le_sqrt_mul
 assert_no_sorry Spectra.QuantumMechanics.Channels.fidelity_le_one
 -- The trace norm is adjoint-invariant `‖A⋆‖₁ = ‖A‖₁` (`traceNorm_adjoint`, via the polar identity
--- `|A⋆| = U|A|U⋆` + cyclicity, with `A⋆` trace-class iff `A` is by the ideal) — gives fidelity symmetry.
+-- `|A⋆| = U|A|U⋆` + cyclicity, with `A⋆` trace-class iff `A` is by the ideal) — gives fidelity
+-- symmetry.
 assert_no_sorry Spectra.QuantumMechanics.Channels.isTraceClass_adjoint
 assert_no_sorry Spectra.QuantumMechanics.Channels.traceNorm_adjoint
 assert_no_sorry Spectra.QuantumMechanics.Channels.fidelity_comm
 -- Trace-class hard-core Stage J (the predual embedding `B(H) ↪ (T(H))*`): the trace pairing
--- `traceFunctional B = (T ↦ tr(BT))` is bounded (`≤‖B‖`), injective (rank-one separation), and — via
--- the unit rank-one witnesses `‖|u⟩⟨v|‖₁=1` — an isometry `‖traceFunctional B‖=‖B‖`, packaged as the
--- linear isometric embedding `traceDualₗᵢ`.  (Surjectivity is the deferred research-grade half.)
+-- `traceFunctional B = (T ↦ tr(BT))` is bounded (`≤‖B‖`), injective (rank-one separation), and —
+-- via the unit rank-one witnesses `‖|u⟩⟨v|‖₁=1` — an isometry `‖traceFunctional B‖=‖B‖`, packaged
+-- as the linear isometric embedding `traceDualₗᵢ`.  (Surjectivity is the deferred research-grade
+-- half.)
 assert_no_sorry Spectra.QuantumMechanics.Channels.traceFunctional
 assert_no_sorry Spectra.QuantumMechanics.Channels.norm_traceFunctional_le
 assert_no_sorry Spectra.QuantumMechanics.Channels.traceFunctional_injective
@@ -1185,12 +1313,12 @@ assert_no_sorry Spectra.InformationGeometry.Quantum.vonNeumannEntropy_pure
 
 -- The eigenbasis KEYSTONE: a positive trace-class operator is compact
 -- (`IsTraceClass.isCompactOperator`, general; via `opNorm_le_hsNorm` + finite-rank truncation), so
--- Mathlib's compact self-adjoint spectral theorem assembles a genuine `HilbertBasis` of eigenvectors
--- (`eigenbasis`/`apply_eigenbasis`), and the CFC acts diagonally on eigenvectors
--- (`cfc_apply_eigenvector`).  Applied to a `QState`, the eigenvalues form a probability distribution
--- (`eigenvalue_nonneg`/`eigenvalue_le_one`/`hasSum_eigenvalue`), yielding the SPECTRAL FORM of the von
--- Neumann entropy `S(ρ) = ∑ᵢ negMulLog λᵢ` (`vonNeumannEntropy_eq_tsum`) and the scalar Klein
--- inequality (`Real.klein_scalar`) for the quantum relative entropy.
+-- Mathlib's compact self-adjoint spectral theorem assembles a genuine `HilbertBasis` of
+-- eigenvectors (`eigenbasis`/`apply_eigenbasis`), and the CFC acts diagonally on eigenvectors
+-- (`cfc_apply_eigenvector`).  Applied to a `QState`, the eigenvalues form a probability
+-- distribution (`eigenvalue_nonneg`/`eigenvalue_le_one`/`hasSum_eigenvalue`), yielding the SPECTRAL
+-- FORM of the von Neumann entropy `S(ρ) = ∑ᵢ negMulLog λᵢ` (`vonNeumannEntropy_eq_tsum`) and the
+-- scalar Klein inequality (`Real.klein_scalar`) for the quantum relative entropy.
 assert_no_sorry Spectra.QuantumMechanics.Channels.opNorm_le_hsNorm
 assert_no_sorry Spectra.QuantumMechanics.Channels.IsHilbertSchmidt.isCompactOperator
 assert_no_sorry Spectra.QuantumMechanics.Channels.IsTraceClass.isCompactOperator
@@ -1208,8 +1336,8 @@ assert_no_sorry Spectra.InformationGeometry.Quantum.QState.vonNeumannEntropy_eq_
 assert_no_sorry Real.klein_scalar
 assert_no_sorry Real.mul_log_sub_mul_log_ge
 
--- M4 (quantum relative entropy), first leg: the bounded diagonal `sᵢ = ⟪eᵢ, σ eᵢ⟫` of a second state
--- `σ` in `ρ`'s eigenbasis is a probability distribution (`hasSum_diagSigma`), and the GIBBS /
+-- M4 (quantum relative entropy), first leg: the bounded diagonal `sᵢ = ⟪eᵢ, σ eᵢ⟫` of a second
+-- state `σ` in `ρ`'s eigenbasis is a probability distribution (`hasSum_diagSigma`), and the GIBBS /
 -- commuting-case Klein inequality `S(ρ) ≤ ∑ᵢ -λᵢ log sᵢ` holds for faithful `σ`
 -- (`vonNeumannEntropy_le_measuredCrossEntropy`) — the classical KL divergence of `ρ`'s eigenvalues
 -- against `σ`'s dephased diagonal is nonnegative.
@@ -1230,6 +1358,30 @@ assert_no_sorry Spectra.InformationGeometry.Quantum.QState.crossEntropy
 assert_no_sorry Spectra.InformationGeometry.Quantum.QState.measuredCrossEntropy_le_crossEntropy
 assert_no_sorry Spectra.InformationGeometry.Quantum.QState.vonNeumannEntropy_le_crossEntropy
 assert_no_sorry Spectra.InformationGeometry.Quantum.QState.crossEntropy_self
+
+-- M5 foundation: classical Shannon entropy `H(p) = ∑ᵢ negMulLog pᵢ` of a discrete distribution,
+-- and the identity `S(ρ) = H(λ(ρ))` — the von Neumann entropy is the Shannon entropy of the
+-- eigenvalue distribution (the entry point for the Holevo bound).
+assert_no_sorry Spectra.InformationGeometry.Quantum.shannonEntropy
+assert_no_sorry Spectra.InformationGeometry.Quantum.vonNeumannEntropy_eq_shannonEntropy
+
+-- M1 (classical Shannon entropy) — the analytic core: nonnegativity, the point-mass
+-- characterization `H(p) = 0 ↔ ∀ i, pᵢ ∈ {0,1}`, concavity (mixing never decreases entropy), and
+-- additivity under independent products `H(p⊗q) = H(p) + H(q)` (the chain rule for independent
+-- variables).
+assert_no_sorry Spectra.InformationGeometry.Quantum.shannonEntropy_nonneg
+assert_no_sorry Spectra.InformationGeometry.Quantum.shannonEntropy_eq_zero_iff
+assert_no_sorry Spectra.InformationGeometry.Quantum.shannonEntropy_concave
+assert_no_sorry Spectra.InformationGeometry.Quantum.shannonEntropy_prod
+
+-- M6 (quantum thermodynamics): the Gibbs variational principle `S(ρ) ≤ ⟨K⟩_ρ` (modular energy
+-- `⟨K⟩_ρ = -Tr(ρ log σ)`, `K = -log σ` the modular Hamiltonian of the thermal state `σ`) — the
+-- operator-algebraic form of "a thermal state maximizes entropy at fixed energy", which is Klein's
+-- inequality; saturated at `σ` (`modularEnergy_self`), giving the maximum-entropy principle.
+assert_no_sorry Spectra.InformationGeometry.Quantum.modularEnergy
+assert_no_sorry Spectra.InformationGeometry.Quantum.entropy_le_modularEnergy
+assert_no_sorry Spectra.InformationGeometry.Quantum.modularEnergy_self
+assert_no_sorry Spectra.InformationGeometry.Quantum.maxEntropy_of_modularEnergy_eq
 -- The Bogoliubov–Kubo–Mori (BKM) metric object and its well-definedness (G4a): the integrand kernel
 -- `K_τ(A,B) = tr(A τ⁻¹ B τ⁻¹)` is trace-class (via the trace-class ideal), bilinear, symmetric (one
 -- cyclicity step), and positive-semidefinite (`tr((τ^{-1/2}Aτ^{-1/2})⋆(·))`); the metric
@@ -1249,7 +1401,8 @@ assert_no_sorry Spectra.InformationGeometry.TwiceDifferentiableModel.klDiv_hessi
 -- The information-geometric Stone theorem: refutation of global flow-completeness for bounded
 -- domains (why `FlowComplete` is domain-relative), invariant-set flow uniqueness, and the
 -- packaged existence-plus-uniqueness statement.
-assert_no_sorry Spectra.InformationGeometry.TwiceDifferentiableModel.not_forall_hasGlobalFlow_of_isBounded
+assert_no_sorry
+  Spectra.InformationGeometry.TwiceDifferentiableModel.not_forall_hasGlobalFlow_of_isBounded
 assert_no_sorry Spectra.InformationGeometry.TwiceDifferentiableModel.flow_eqOn_of_generator_eqOn
 assert_no_sorry Spectra.InformationGeometry.TwiceDifferentiableModel.infoGeometric_stone_unique
 assert_no_sorry Spectra.InformationGeometry.TwiceDifferentiableModel.infoGeometric_stone
@@ -1262,8 +1415,10 @@ assert_no_sorry Spectra.InformationGeometry.GeometricData.classical_quantum_dich
 -- and the main law, each a `#print axioms`-worthy capstone of the four-file
 -- MixtureSymmetry → ThirdDerivative → PullbackIdentities → MixtureConnection cluster — gating
 -- the final theorem transitively certifies every lemma it depends on throughout that chain.
-assert_no_sorry Spectra.InformationGeometry.ThriceDifferentiableModel.DivergencePreservingFamily.preserves_cubic_basis
-assert_no_sorry Spectra.InformationGeometry.ThriceDifferentiableModel.DivergencePreservingFamily.mConnection_correction
+open Spectra.InformationGeometry.ThriceDifferentiableModel.DivergencePreservingFamily in
+assert_no_sorry preserves_cubic_basis
+open Spectra.InformationGeometry.ThriceDifferentiableModel.DivergencePreservingFamily in
+assert_no_sorry mConnection_correction
 
 /-! ## Hilbert tensor product `E ⊗̂[𝕜] F` (Fock Spaces M0) -/
 
@@ -1510,6 +1665,55 @@ assert_no_sorry Spectra.Sobolev.smooth_compactSupport_memSobolevH2
 assert_no_sorry Spectra.Sobolev.sobolevH2_dense
 assert_no_sorry Spectra.Sobolev.smooth_compactly_supported_dense_H1
 
+/-! ## Density Functional Theory — variational substrate, N-electron space, Fenchel library
+
+The S0-independent, gate-light lanes of the DFT project: the abstract Rayleigh–Ritz variational
+principle (S2/S3), the named `N`-electron antisymmetric space with its Slater reference state (S1),
+and the standalone Legendre–Fenchel library shared with Information Geometry (FD1/FD3). Every open
+research input (⛔S0, ⛔SB, ⛔SUCP, ⛔GSE, ⛔VR) is carried as an explicit hypothesis, never an axiom. -/
+
+-- `DFT/Variational/Semibounded.lean` (S3): bottom of the spectrum of a semibounded operator.
+assert_no_sorry Spectra.DFT.spectrum_subset_Ici
+assert_no_sorry Spectra.DFT.spectrum_subset_Ici_groundStateEnergy
+assert_no_sorry Spectra.DFT.groundStateEnergy_mem_spectrum
+-- `DFT/Variational/RayleighRitz.lean` (S2 + HK1S): the variational principle, its equality case,
+-- and the strict / nondegeneracy forms that drive Hohenberg–Kohn I.
+assert_no_sorry Spectra.DFT.groundStateEnergy_le_rayleigh
+assert_no_sorry Spectra.DFT.eigenvector_of_rayleigh_eq_groundStateEnergy
+assert_no_sorry Spectra.DFT.sInf_rayleigh_eq_groundStateEnergy
+assert_no_sorry Spectra.DFT.groundStateEnergy_lt_rayleigh_of_not_eigenvector
+assert_no_sorry Spectra.DFT.groundStateEnergy_lt_rayleigh_of_not_scalar_multiple
+assert_no_sorry Spectra.DFT.ground_state_unique_up_to_phase
+-- `DFT/State/AntisymmetricSpace.lean` (S1): the normalized Slater reference state and Pauli
+-- exclusion.
+assert_no_sorry Spectra.DFT.norm_slaterDet
+assert_no_sorry Spectra.DFT.slaterDet_eq_zero
+assert_no_sorry Spectra.DFT.NElectronSpace_ne_bot
+-- `Analysis/Convex/Fenchel/Conjugate.lean` (FD1 + FD3): Fenchel–Young inequality and the
+-- subdifferential's Fenchel–Young equality characterization.
+assert_no_sorry Spectra.le_fenchelConj_add
+assert_no_sorry Spectra.le_concaveConj_add
+assert_no_sorry Spectra.mem_subgradient_iff_fenchelConj_add_eq
+-- `Analysis/Convex/Fenchel/Conjugate.lean` (FD2): the biconjugate `f**`, the unconditional
+-- Fenchel–Moreau core (`f** ≤ f`, `f*** = f*`, `f**** = f**`), and the conditional Fenchel–Moreau
+-- equality `f** = f` for `f` a supremum of pairing-affine functions (the honest
+-- Hahn–Banach-free form).
+assert_no_sorry Spectra.biconjugate_le
+assert_no_sorry Spectra.fenchelConj_biconjugate
+assert_no_sorry Spectra.biconjugate_biconjugate
+assert_no_sorry Spectra.biconjugate_eq_of_eq_iSup_affine
+-- `DFT/State/CoordinatePermutation.lean` (S0-iii substrate): the measure-preserving `Lp`-unitary
+-- builder (a mathlib gap-fill), the coordinate-permutation action, and the closed antisymmetric
+-- `L²` subspace (the deferred coordinate realization's target object).
+assert_no_sorry Spectra.lpEquivₗᵢOfMeasurePreserving
+assert_no_sorry Spectra.DFT.coordPerm
+assert_no_sorry Spectra.DFT.isClosed_antisymL2
+-- `Operator/Unitary/Conjugation.lean` (Stage SB transport tool): unitary conjugation `U A U⁻¹`
+-- preserves self-adjointness and energy nonnegativity — the linchpin for carrying the kinetic
+-- operator `−½Δ` onto the `N`-electron coordinate space `nBodyL2 N`.
+assert_no_sorry Spectra.Operator.unitaryConj_isSelfAdjoint
+assert_no_sorry Spectra.Operator.unitaryConj_re_inner_nonneg
+
 /-! ## Axiom transparency
 
 These print the full axiom set into the build log. Only `propext`, `Classical.choice`,
@@ -1624,12 +1828,15 @@ and `Quot.sound` should appear — anything else (especially `sorryAx`) is a red
 #print axioms Spectra.HilbertTensor.inner_tmul_tmul
 #print axioms Spectra.HilbertTensor.norm_mapL
 #print axioms Spectra.HilbertTensor.tensorHilbertBasis
-#print axioms Spectra.InformationGeometry.TwiceDifferentiableModel.not_forall_hasGlobalFlow_of_isBounded
+#print axioms
+  Spectra.InformationGeometry.TwiceDifferentiableModel.not_forall_hasGlobalFlow_of_isBounded
 #print axioms Spectra.InformationGeometry.TwiceDifferentiableModel.infoGeometric_stone
 #print axioms Spectra.InformationGeometry.GeometricData.qubit_generator_azimuthal
 #print axioms Spectra.InformationGeometry.GeometricData.classical_quantum_dichotomy
-#print axioms Spectra.InformationGeometry.ThriceDifferentiableModel.DivergencePreservingFamily.preserves_cubic_basis
-#print axioms Spectra.InformationGeometry.ThriceDifferentiableModel.DivergencePreservingFamily.mConnection_correction
+open Spectra.InformationGeometry.ThriceDifferentiableModel.DivergencePreservingFamily in
+#print axioms preserves_cubic_basis
+open Spectra.InformationGeometry.ThriceDifferentiableModel.DivergencePreservingFamily in
+#print axioms mConnection_correction
 #print axioms Spectra.TensorPower.instInnerProductSpace
 #print axioms Spectra.fullFock
 #print axioms Spectra.boseFock
@@ -1637,3 +1844,15 @@ and `Quot.sound` should appear — anything else (especially `sorryAx`) is a red
 #print axioms Spectra.FundamentalSymmetry.fockSymmetry
 #print axioms Spectra.expVec_total
 #print axioms Spectra.numberOp_isSelfAdjoint
+#print axioms Spectra.DFT.eigenvector_of_rayleigh_eq_groundStateEnergy
+#print axioms Spectra.DFT.sInf_rayleigh_eq_groundStateEnergy
+#print axioms Spectra.DFT.ground_state_unique_up_to_phase
+#print axioms Spectra.DFT.norm_slaterDet
+#print axioms Spectra.mem_subgradient_iff_fenchelConj_add_eq
+#print axioms Spectra.biconjugate_le
+#print axioms Spectra.fenchelConj_biconjugate
+#print axioms Spectra.biconjugate_eq_of_eq_iSup_affine
+#print axioms Spectra.lpEquivₗᵢOfMeasurePreserving
+#print axioms Spectra.DFT.isClosed_antisymL2
+#print axioms Spectra.Operator.unitaryConj_isSelfAdjoint
+#print axioms Spectra.Operator.unitaryConj_re_inner_nonneg

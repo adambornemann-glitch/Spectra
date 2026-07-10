@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
-Author: Adam Bornemann
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Adam Bornemann
 -/
 import Spectra.QuantumMechanics.Channels.TraceClass.HilbertSchmidtNorm
 import Mathlib.Analysis.Normed.Operator.Compact.Basic
@@ -12,9 +12,9 @@ import Mathlib.Analysis.Normed.Operator.Compact.FiniteDimension
 
 Every Hilbert–Schmidt operator — and hence every trace-class operator — on a Hilbert space is a
 **compact operator**.  The proof is the textbook finite-rank approximation: a Hilbert–Schmidt `A` is
-the operator-norm limit of its finite truncations `A ∘L Pₛ` (`Pₛ` the finite-rank projection onto the
-span of the basis vectors indexed by `s`), each of which has finite-dimensional range and is therefore
-compact; the tail bound `‖A - A ∘L Pₛ‖ ≤ (Hilbert–Schmidt tail) → 0` uses the
+the operator-norm limit of its finite truncations `A ∘L Pₛ` (`Pₛ` the finite-rank projection onto
+the span of the basis vectors indexed by `s`), each of which has finite-dimensional range and is
+therefore compact; the tail bound `‖A - A ∘L Pₛ‖ ≤ (Hilbert–Schmidt tail) → 0` uses the
 operator-norm-`≤`-Hilbert–Schmidt-norm inequality together with the summability of `∑ᵢ ‖A eᵢ‖²`.
 
 ## Main results
@@ -35,8 +35,8 @@ variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H] [CompleteS
 
 /-! ## An `ℓ²`-Cauchy–Schwarz for `tsum` -/
 
-/-- **Cauchy–Schwarz for `ℓ²` sums.** For nonnegative real sequences `a, b` with `a²`, `b²` summable,
-`∑ᵢ aᵢ bᵢ ≤ (∑ᵢ aᵢ²)^{1/2} (∑ᵢ bᵢ²)^{1/2}`. -/
+/-- **Cauchy–Schwarz for `ℓ²` sums.** For nonnegative real sequences `a, b` with `a²`, `b²`
+summable, `∑ᵢ aᵢ bᵢ ≤ (∑ᵢ aᵢ²)^{1/2} (∑ᵢ bᵢ²)^{1/2}`. -/
 private lemma tsum_mul_le_sqrt_mul_sqrt {ι : Type*} {a b : ι → ℝ} (hna : ∀ i, 0 ≤ a i)
     (hnb : ∀ i, 0 ≤ b i) (ha : Summable (fun i => a i ^ 2)) (hb : Summable (fun i => b i ^ 2)) :
     ∑' i, a i * b i ≤ Real.sqrt (∑' i, a i ^ 2) * Real.sqrt (∑' i, b i ^ 2) := by
@@ -189,7 +189,8 @@ private lemma tsum_enorm_sub_hsTrunc (A : H →L[ℂ] H)
 Hilbert–Schmidt norm of `A - Aₛ` and tends to `0` as `s` grows. -/
 private noncomputable def hsTail (A : H →L[ℂ] H) (s : Finset (exists_hilbertBasis ℂ H).choose) :
     ℝ≥0∞ :=
-  ∑' j : ↥((s : Set (exists_hilbertBasis ℂ H).choose)ᶜ), (‖A (stdHilbertBasis H (j : _))‖₊ : ℝ≥0∞) ^ 2
+  ∑' j : ↥((s : Set (exists_hilbertBasis ℂ H).choose)ᶜ),
+    (‖A (stdHilbertBasis H (j : _))‖₊ : ℝ≥0∞) ^ 2
 
 /-- `A - Aₛ` is Hilbert–Schmidt when `A` is: its Hilbert–Schmidt sum is the tail of `A`'s. -/
 private lemma isHilbertSchmidt_sub_hsTrunc {A : H →L[ℂ] H} (hA : IsHilbertSchmidt A)

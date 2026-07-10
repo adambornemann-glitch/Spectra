@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2026 Spectra Formalization Project. All rights reserved.
-Released under MIT license as described in the file LICENSE.
-Author: Adam Bornemann
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Adam Bornemann
 -/
 import Spectra.QuantumMechanics.Channels.TraceClass.Norm
 import Spectra.QuantumMechanics.Channels.TraceClass.PartialIsometry
@@ -11,12 +11,11 @@ import Spectra.QuantumMechanics.Channels.TsumInner
 # Stage B — the complex trace functional and `|tr T| ≤ ‖T‖₁`
 
 For a bounded operator `T : H →L[ℂ] H` on a complex Hilbert space, the **trace** is
-`tr T = ∑ᵢ ⟪eᵢ, T eᵢ⟫` (complex-valued), over the canonical Hilbert basis `stdHilbertBasis H`.  Using
-the bounded polar decomposition `T = U |T|` and the factorization `|T| = |T|^{1/2} · |T|^{1/2}`, each
-summand rewrites as a *twisted* inner product
-`⟪eᵢ, T eᵢ⟫ = ⟪|T|^{1/2} (U⋆ eᵢ), |T|^{1/2} eᵢ⟫`, whose two families are both `ℓ²` with square-sum
-`≤ tr |T| = ‖T‖₁`.  A weighted arithmetic–geometric estimate then gives absolute summability of the
-trace and the bound `|tr T| ≤ ‖T‖₁`.
+`tr T = ∑ᵢ ⟪eᵢ, T eᵢ⟫` (complex-valued), over the canonical Hilbert basis `stdHilbertBasis H`. Using
+the bounded polar decomposition `T = U |T|` and the factorization `|T| = |T|^{1/2} · |T|^{1/2}`,
+each summand rewrites as a *twisted* inner product `⟪eᵢ, T eᵢ⟫ = ⟪|T|^{1/2} (U⋆ eᵢ), |T|^{1/2} eᵢ⟫`,
+whose two families are both `ℓ²` with square-sum `≤ tr |T| = ‖T‖₁`. A weighted arithmetic–geometric
+estimate then gives absolute summability of the trace and the bound `|tr T| ≤ ‖T‖₁`.
 
 ## Main definitions
 
@@ -35,9 +34,9 @@ trace and the bound `|tr T| ≤ ‖T‖₁`.
 ## Context
 
 Third brick of the trace-class / von Neumann predual development (the discharge-first route to the
-Tomita–Takesaki fundamental theorem), building on Stage A (`PartialIsometry.lean`) and the trace norm
-(`Norm.lean`).  Cyclicity `tr (AB) = tr (BA)`, the triangle inequality, and Banach completeness are the
-next bricks.
+Tomita–Takesaki fundamental theorem), building on Stage A (`PartialIsometry.lean`) and the trace
+norm (`Norm.lean`). Cyclicity `tr (AB) = tr (BA)`, the triangle inequality, and Banach completeness
+are the next bricks.
 -/
 
 open ContinuousLinearMap RCLike Spectra.QuantumMechanics.Channels
@@ -60,8 +59,8 @@ private lemma summable_sq_of_ne_top {p : ι → H} (hfin : ∑' i, (‖p i‖₊
   simpa only [NNReal.coe_pow, coe_nnnorm] using NNReal.summable_coe.mpr h1
 
 omit [InnerProductSpace ℂ H] [CompleteSpace H] in
-/-- The real square-sum is the `toReal` of the `ℝ≥0∞` square-sum (unconditionally: both are `0` in the
-non-summable case). -/
+/-- The real square-sum is the `toReal` of the `ℝ≥0∞` square-sum (unconditionally: both are `0` in
+the non-summable case). -/
 private lemma tsum_sq_eq_toReal (p : ι → H) :
     ∑' i, ‖p i‖ ^ 2 = (∑' i, (‖p i‖₊ : ℝ≥0∞) ^ 2).toReal := by
   rw [ENNReal.tsum_toReal_eq (fun i => ENNReal.pow_ne_top ENNReal.coe_ne_top)]
@@ -77,7 +76,8 @@ The weighted Cauchy–Schwarz estimate `weighted_norm_tsum_inner_le` and the inn
 `Spectra.QuantumMechanics.Channels` (`Spectra/QuantumMechanics/Channels/TsumInner.lean`). -/
 
 /-- **The twist identity.** With `S = |T|^{1/2}` and `U = polarIsometry T`,
-`⟪(S ∘ U⋆) x, S y⟫ = ⟪x, T y⟫` — the reduction of a diagonal entry to a `|T|^{1/2}`-twisted pairing. -/
+`⟪(S ∘ U⋆) x, S y⟫ = ⟪x, T y⟫` — the reduction of a diagonal entry to a `|T|^{1/2}`-twisted pairing.
+-/
 lemma trace_summand_polar (T : H →L[ℂ] H) (x y : H) :
     ⟪(sqrtOp (absOp T) ∘L (polarIsometry T)†) x, sqrtOp (absOp T) y⟫_ℂ = ⟪x, T y⟫_ℂ := by
   have hSadj : (sqrtOp (absOp T))† = sqrtOp (absOp T) := by
@@ -90,9 +90,10 @@ lemma trace_summand_polar (T : H →L[ℂ] H) (x y : H) :
   congr 1
   rw [hM, ContinuousLinearMap.comp_apply, hSS, polarIsometry_absOp]
 
-/-- **Square-sum bound for the twisted family.** For trace-class `T`, `∑ᵢ ‖(S ∘ D⋆) eᵢ‖²` is summable
-and bounded by `c² · ‖T‖₁`, whenever `D` shrinks `S eᵢ` by a factor `c` (`‖D (S x)‖ ≤ c ‖S x‖`).
-Instantiated at `D = U` (`c = 1`) for `tr` and `D = B U` (`c = ‖B‖`) for `tr (B T)`. -/
+/-- **Square-sum bound for the twisted family.** For trace-class `T`, `∑ᵢ ‖(S ∘ D⋆) eᵢ‖²` is
+summable and bounded by `c² · ‖T‖₁`, whenever `D` shrinks `S eᵢ` by a factor `c`
+(`‖D (S x)‖ ≤ c ‖S x‖`). Instantiated at `D = U` (`c = 1`) for `tr` and `D = B U` (`c = ‖B‖`) for
+`tr (B T)`. -/
 private lemma sqrtOp_comp_adjoint_bound (T D : H →L[ℂ] H) {c : ℝ≥0}
     (hc : ∀ x, ‖D (sqrtOp (absOp T) x)‖₊ ≤ c * ‖sqrtOp (absOp T) x‖₊) (hT : IsTraceClass T) :
     Summable (fun i => ‖(sqrtOp (absOp T) ∘L D†) (stdHilbertBasis H i)‖ ^ 2) ∧
@@ -138,7 +139,8 @@ lemma summable_sqrtOp_absOp_sq {T : H →L[ℂ] H} (hT : IsTraceClass T) :
     Summable (fun i => ‖sqrtOp (absOp T) (stdHilbertBasis H i)‖ ^ 2) :=
   summable_sq_of_ne_top hT
 
-/-- **The Hilbert–Schmidt sum of `|T|^{1/2}` equals the trace norm**: `∑ᵢ ‖|T|^{1/2} eᵢ‖² = ‖T‖₁`. -/
+/-- **The Hilbert–Schmidt sum of `|T|^{1/2}` equals the trace norm**: `∑ᵢ ‖|T|^{1/2} eᵢ‖² = ‖T‖₁`.
+-/
 lemma tsum_sqrtOp_absOp_sq (T : H →L[ℂ] H) :
     ∑' i, ‖sqrtOp (absOp T) (stdHilbertBasis H i)‖ ^ 2 = traceNorm T := by
   rw [tsum_sq_eq_toReal]; rfl
@@ -147,7 +149,8 @@ lemma tsum_sqrtOp_absOp_sq (T : H →L[ℂ] H) :
 theorem trace_summable (T : H →L[ℂ] H) (hT : IsTraceClass T) :
     Summable (fun i => ⟪stdHilbertBasis H i, T (stdHilbertBasis H i)⟫_ℂ) := by
   have hp := (sqrtOp_comp_adjoint_bound T (polarIsometry T)
-    (fun x => by rw [one_mul]; exact_mod_cast norm_polarIsometry_apply_le T (sqrtOp (absOp T) x)) hT).1
+    (fun x => by
+      rw [one_mul]; exact_mod_cast norm_polarIsometry_apply_le T (sqrtOp (absOp T) x)) hT).1
   exact (summable_inner_of_summable_sq hp (summable_sqrtOp_absOp_sq hT)).congr
     (fun i => trace_summand_polar T (stdHilbertBasis H i) (stdHilbertBasis H i))
 
@@ -251,7 +254,8 @@ private lemma inner_comp_twist (W S : H →L[ℂ] H) (i : (exists_hilbertBasis �
 
 /-- Square-summability of the twisted family, for any bounded `W` and trace-class `S`. -/
 private lemma summable_inner_comp_family {W S : H →L[ℂ] H} (hS : IsTraceClass S) :
-    Summable (fun i => ‖(sqrtOp (absOp S) ∘L (W† ∘L polarIsometry S)†) (stdHilbertBasis H i)‖ ^ 2) :=
+    Summable (fun i =>
+      ‖(sqrtOp (absOp S) ∘L (W† ∘L polarIsometry S)†) (stdHilbertBasis H i)‖ ^ 2) :=
   (sqrtOp_comp_adjoint_bound S (W† ∘L polarIsometry S) (c := ‖W‖₊)
     (fun x => by
       rw [ContinuousLinearMap.comp_apply]
