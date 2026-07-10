@@ -93,7 +93,7 @@ lemma classical_radial_eigen (n : ℕ) (hn : 0 + 1 ≤ n) {x : R3} (hx : x ≠ 0
         - (1 / (‖x‖ : ℂ)) * Rc n 0 hn ‖x‖
       = (hydrogenEigenvalue n (by omega) : ℂ) * Rc n 0 hn ‖x‖ := by
   have hr : 0 < ‖x‖ := norm_pos_iff.mpr hx
-  have hrne : (‖x‖ : ℝ) ≠ 0 := ne_of_gt hr
+  have _hrne : (‖x‖ : ℝ) ≠ 0 := ne_of_gt hr
   rw [laplacian_comp_norm (Rc n 0 hn) (contDiff_Rc n 0 hn) hx]
   have hid2 : iteratedDeriv 2 (Rc n 0 hn) ‖x‖ = deriv (deriv (Rc n 0 hn)) ‖x‖ := by
     rw [iteratedDeriv_succ, iteratedDeriv_one]
@@ -560,7 +560,7 @@ private lemma chi_ibp {ε : ℝ} (hε : 0 < ε) {v w : R3 → ℂ} (j : Fin 3)
     ∫ x, (↑(chi ε x) : ℂ) * v x * fderiv ℝ φ x (EuclideanSpace.single j 1)
       = - ∫ x, (↑(fderiv ℝ (chi ε) x (EuclideanSpace.single j 1)) * v x
               + ↑(chi ε x) * w x) * φ x := by
-  set F : R3 → ℂ := fun y => (↑(chi ε y) : ℂ) * v y with hF
+  set F : R3 → ℂ := fun y => (↑(chi ε y) : ℂ) * v y with _hF
   have hv_diff : ∀ x : R3, x ≠ 0 → DifferentiableAt ℝ v x :=
     fun x hx => (hv.contDiffAt (compl_singleton_mem_nhds hx)).differentiableAt one_ne_zero
   have hFc1 : ContDiff ℝ 1 F := contDiff_chi_mul hε hv
@@ -684,7 +684,7 @@ private lemma shell_tendsto_zero {v : R3 → ℂ} (j : Fin 3) {Mv r₀ : ℝ} (h
       * v x * φ x) atTop (𝓝 0) := by
   obtain ⟨Mφ, hMφ⟩ := hφc.bounded_above_of_compact_support hφcs
   obtain ⟨Md, hMd0, hMd⟩ := deriv_cutoffP_bounded
-  set c₁ := (volume (Metric.closedBall (0 : R3) 1)).toReal with hc₁
+  set c₁ := (volume (Metric.closedBall (0 : R3) 1)).toReal with _hc₁
   refine squeeze_zero_norm' (a := fun n : ℕ => 8 * (Md * Mv * Mφ) * c₁ * (1 / (n + 1)) ^ 2) ?_ ?_
   · have hev : ∀ᶠ n : ℕ in atTop, (2 : ℝ) * (1 / (n + 1)) ≤ r₀ := by
       have hlim : Tendsto (fun n : ℕ => 2 * (1 / (n + 1 : ℝ))) atTop (𝓝 0) := by

@@ -113,7 +113,7 @@ lemma borel_cauchy_approx_tendsto
       Tendsto (borelCauchyApprox U_grp ξ w) atTop
         (𝓝 ⟪ξ, resolvent w (ne_of_lt hw) hsym hplus hmin ξ⟫_ℂ) := by
     intro w hw
-    set ε : ℕ → ℝ := fun k => 1 / ((borelSubseq U_grp ξ k : ℝ) + 1) with ε_def
+    set ε : ℕ → ℝ := fun k => 1 / ((borelSubseq U_grp ξ k : ℝ) + 1) with _ε_def
     have hε  : ∀ k, 0 < ε k := fun k => borelEps_pos _
     have hε0 : Tendsto ε atTop (𝓝 0) := borelSubseq_eps_tendsto U_grp ξ
     have hwk_im : ∀ k, (w - I * (ε k : ℂ)).im = w.im - ε k := by

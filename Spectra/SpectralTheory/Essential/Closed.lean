@@ -38,7 +38,7 @@ theorem isClosed_essSpectrum {A : H →ₗ.[ℂ] H} (hA : IsSelfAdjoint A) :
   simp only [essSpectrum, Set.mem_setOf_eq] at hmem
   choose ψ hψnorm hψweak hψeig using hmem
   -- The countable family of all vectors, and its separable closed span `K`.
-  set S : Set H := Set.range (fun p : ℕ × ℕ => ((ψ p.1 p.2 : H))) with hSdef
+  set S : Set H := Set.range (fun p : ℕ × ℕ => ((ψ p.1 p.2 : H))) with _hSdef
   have hScount : S.Countable := Set.countable_range _
   set K : Submodule ℂ H := (Submodule.span ℂ S).topologicalClosure with hKdef
   have hmemK : ∀ k n, ((ψ k n : H)) ∈ K :=
@@ -88,7 +88,7 @@ theorem isClosed_essSpectrum {A : H →ₗ.[ℂ] H} (hA : IsSelfAdjoint A) :
       _ < ε := Set.mem_Iio.mp (hN k hk)
   · -- `φ` weakly null.
     intro g
-    set pg : H := K.starProjection g with hpgdef
+    set pg : H := K.starProjection g with _hpgdef
     have hproj : ∀ k, ⟪g, (ψ k (nidx k) : H)⟫_ℂ = ⟪pg, (ψ k (nidx k) : H)⟫_ℂ := by
       intro k
       have h0 : ⟪g - pg, (ψ k (nidx k) : H)⟫_ℂ = 0 :=

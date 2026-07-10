@@ -131,7 +131,7 @@ theorem exists_sum_tmul_orthonormal {X : Type*} [AddCommGroup X] [Module 𝕜 X]
       Orthonormal 𝕜 g ∧ t = ∑ j, x j ⊗ₜ[𝕜] g j := by
   classical
   obtain ⟨S, rfl⟩ := TensorProduct.exists_finset t
-  set W : Submodule 𝕜 F := Submodule.span 𝕜 ((S.image Prod.snd : Finset F) : Set F) with hW
+  set W : Submodule 𝕜 F := Submodule.span 𝕜 ((S.image Prod.snd : Finset F) : Set F) with _hW
   let g := stdOrthonormalBasis 𝕜 W
   refine ⟨Module.finrank 𝕜 W,
     fun j => ∑ p ∈ S, inner 𝕜 ((g j : F)) p.2 • p.1, fun j => (g j : F), ?_, ?_⟩

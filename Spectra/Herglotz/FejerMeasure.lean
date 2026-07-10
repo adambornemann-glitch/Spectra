@@ -54,7 +54,7 @@ lemma fejerMeanDensity_continuous (ψ : H) (N : ℕ) :
 /-- Total mass of the Fejér mean measure: `σ_N(𝕋) = ‖ψ‖²`. -/
 lemma fejerMeasure_total (hU : Operator.Unitary U) (ψ : H) (N : ℕ) :
     (fejerMeasure U ψ N (Set.Icc 0 (2 * Real.pi))).toReal = ‖ψ‖ ^ 2 := by
-  set S := Set.Icc (0 : ℝ) (2 * Real.pi) with hS
+  set S := Set.Icc (0 : ℝ) (2 * Real.pi) with _hS
   set f := fun θ : ℝ => (1 / (2 * Real.pi)) * (fejerMeanDensity U ψ N θ).re with hf_def
   -- Non-negativity of density
   have hf_nn : ∀ θ, 0 ≤ f θ := by

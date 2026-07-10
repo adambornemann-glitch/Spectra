@@ -248,7 +248,7 @@ lemma pd_hermitian_norm_bound (hf : IsPositiveDefinite f) (hH : IsHermitian f) (
   by_cases hft : f t = 0
   · simp only [hft, norm_zero]
     exact pd_at_zero_nonneg hf
-  have h_norm_pos : (0 : ℝ) < ‖f t‖ := norm_pos_iff.mpr hft
+  have _h_norm_pos : (0 : ℝ) < ‖f t‖ := norm_pos_iff.mpr hft
   have hpd := hf 2 ![0, t] ![starRingEnd ℂ (f t), -(↑‖f t‖ : ℂ)]
   simp only [Fin.sum_univ_two, Matrix.cons_val_zero, Matrix.cons_val_one,
              sub_self, sub_zero, zero_sub] at hpd

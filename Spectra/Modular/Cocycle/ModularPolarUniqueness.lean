@@ -146,7 +146,7 @@ theorem conjPMap_sub_I_surjective
   obtain ⟨w, hw⟩ := hplus (e.symm φ)
   refine ⟨⟨e (w : H), map_mem_conjPMap_domain e A w⟩, ?_⟩
   rw [conjPMap_apply_map]
-  have hIsmul : I • e (w : H) = e ((-I) • (w : H)) := by
+  have _hIsmul : I • e (w : H) = e ((-I) • (w : H)) := by
     rw [LinearIsometryEquiv.map_smulₛₗ]
     simp
   rw [sub_eq_add_neg, ← neg_smul, show (-I) • e (w : H) = e (I • (w : H)) by

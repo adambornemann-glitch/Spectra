@@ -67,7 +67,7 @@ lemma hermitian_expectation_real {n : ℕ} [NeZero n]
 
 
 /-- The self dot product `⟨x,x⟩` equals the sum of squared norms, cast to `ℂ`. -/
-lemma star_dotProduct_self_eq_sum_normSq (x : Fin n → ℂ) :
+lemma star_dotProduct_self_eq_sum_normSq {n : ℕ} (x : Fin n → ℂ) :
     star x ⬝ᵥ x = ↑(∑ i, ‖x i‖^2) := by
   simp only [dotProduct, Pi.star_apply]
   simp only [RCLike.star_def, ofReal_sum, ofReal_pow]
@@ -76,7 +76,7 @@ lemma star_dotProduct_self_eq_sum_normSq (x : Fin n → ℂ) :
   exact conj_mul' (x i)
 
 /-- The self dot product `⟨x,x⟩` has non-negative real part. -/
-lemma star_dotProduct_self_re_nonneg (x : Fin n → ℂ) :
+lemma star_dotProduct_self_re_nonneg {n : ℕ} (x : Fin n → ℂ) :
     0 ≤ (star x ⬝ᵥ x).re := by
   rw [star_dotProduct_self_eq_sum_normSq]
   simp only [ofReal_re]
@@ -85,7 +85,7 @@ lemma star_dotProduct_self_re_nonneg (x : Fin n → ℂ) :
   exact sq_nonneg ‖x i‖
 
 /-- For Hermitian `A`: `⟨Ax, Ax⟩ = ⟨x, A²x⟩`. -/
-lemma star_mulVec_dotProduct_mulVec_hermitian (A : Matrix (Fin n) (Fin n) ℂ)
+lemma star_mulVec_dotProduct_mulVec_hermitian {n : ℕ} (A : Matrix (Fin n) (Fin n) ℂ)
     (hA : A.IsHermitian) (x : Fin n → ℂ) :
     star (A.mulVec x) ⬝ᵥ (A.mulVec x) = star x ⬝ᵥ (A * A).mulVec x := by
   rw [Matrix.star_mulVec]
@@ -95,14 +95,14 @@ lemma star_mulVec_dotProduct_mulVec_hermitian (A : Matrix (Fin n) (Fin n) ℂ)
   exact Eq.symm (dotProduct_mulVec (star x) (A * A) x)
 
 /-- The norm of the self dot product `⟨x,x⟩` equals the sum of squared norms. -/
-lemma norm_star_dotProduct_self (x : Fin n → ℂ) :
+lemma norm_star_dotProduct_self {n : ℕ} (x : Fin n → ℂ) :
     ‖star x ⬝ᵥ x‖ = ∑ i, ‖x i‖^2 := by
   rw [star_dotProduct_self_eq_sum_normSq, Complex.norm_real, Real.norm_of_nonneg]
   exact Finset.sum_nonneg (fun i _ => sq_nonneg _)
 
 /-- A Hermitian involution (`A² = I`) preserves the sum of squared norms, i.e. acts as an
 isometry of `Fin n → ℂ`. -/
-lemma sum_normSq_mulVec_eq_of_hermitian_sq_one (A : Matrix (Fin n) (Fin n) ℂ)
+lemma sum_normSq_mulVec_eq_of_hermitian_sq_one {n : ℕ} (A : Matrix (Fin n) (Fin n) ℂ)
     (hA_herm : A.IsHermitian) (hA_sq : A * A = 1) (x : Fin n → ℂ) :
     ∑ i, ‖(A.mulVec x) i‖^2 = ∑ i, ‖x i‖^2 := by
   have h1 : star (A.mulVec x) ⬝ᵥ (A.mulVec x) = star x ⬝ᵥ (A * A).mulVec x :=
@@ -137,7 +137,7 @@ lemma inner_mul_self_bound {n : ℕ} [NeZero n]
   exact Eq.symm (EuclideanSpace.norm_sq_eq x')
 
 /-- For Hermitian `A`, `⟨x, Ax⟩` has zero imaginary part. -/
-lemma hermitian_dotProduct_self_im_eq_zero (A : Matrix (Fin n) (Fin n) ℂ)
+lemma hermitian_dotProduct_self_im_eq_zero {n : ℕ} (A : Matrix (Fin n) (Fin n) ℂ)
     (hA : A.IsHermitian) (x : Fin n → ℂ) :
     (star x ⬝ᵥ A.mulVec x).im = 0 := by
   rw [Complex.conj_eq_iff_im.mp]
@@ -161,7 +161,7 @@ lemma spectral_proj_plus_posSemidef {n : ℕ} [NeZero n]
   simp only [one_div, smul_eq_mul, mul_re, inv_re, re_ofNat, normSq_ofNat, div_self_mul_self',
     add_re, inv_im, im_ofNat]
   ring_nf
-  have h_self_nonneg := star_dotProduct_self_re_nonneg x
+  have _h_self_nonneg := star_dotProduct_self_re_nonneg x
   have h_bound := inner_mul_self_bound A hA_herm hA_sq x
   have h_im := hermitian_dotProduct_self_im_eq_zero A hA_herm x
   have h_norm_re : ‖star x ⬝ᵥ A.mulVec x‖ = |(star x ⬝ᵥ A.mulVec x).re| := by
@@ -188,7 +188,7 @@ lemma spectral_proj_minus_posSemidef {n : ℕ} [NeZero n]
   simp only [one_div, smul_eq_mul, mul_re, inv_re, re_ofNat, normSq_ofNat, div_self_mul_self',
     sub_re, inv_im, im_ofNat]
   ring_nf
-  have h_self_nonneg := star_dotProduct_self_re_nonneg x
+  have _h_self_nonneg := star_dotProduct_self_re_nonneg x
   have h_bound := inner_mul_self_bound A hA_herm hA_sq x
   have h_im := hermitian_dotProduct_self_im_eq_zero A hA_herm x
   have h_norm_re : ‖star x ⬝ᵥ A.mulVec x‖ = |(star x ⬝ᵥ A.mulVec x).re| := by
@@ -348,7 +348,7 @@ lemma dichotomic_expectation_bound {n : ℕ} [NeZero n]
     rw [this, Matrix.one_mul]
     exact ρ.trace_one
   -- Step 7: Show P_plus, P_minus are Hermitian (for real traces)
-  have h_P_plus_proj : P_plus * P_plus = P_plus := by
+  have _h_P_plus_proj : P_plus * P_plus = P_plus := by
     change (1/2 : ℂ) • (1 + A) * ((1/2 : ℂ) • (1 + A)) = (1/2 : ℂ) • (1 + A)
     rw [mul_smul_comm, smul_mul_assoc, smul_smul]
     have h_sq : (1 + A) * (1 + A) = (2 : ℂ) • (1 + A) := by
@@ -356,7 +356,7 @@ lemma dichotomic_expectation_bound {n : ℕ} [NeZero n]
       ext i j; simp [Matrix.add_apply, Matrix.smul_apply, Matrix.one_apply]; ring
     rw [h_sq, smul_smul]
     norm_num
-  have h_P_minus_proj : P_minus * P_minus = P_minus := by
+  have _h_P_minus_proj : P_minus * P_minus = P_minus := by
     change (1/2 : ℂ) • (1 - A) * ((1/2 : ℂ) • (1 - A)) = (1/2 : ℂ) • (1 - A)
     rw [mul_smul_comm, smul_mul_assoc, smul_smul]
     have h_sq : (1 - A) * (1 - A) = (2 : ℂ) • (1 - A) := by
@@ -389,8 +389,8 @@ lemma dichotomic_expectation_bound {n : ℕ} [NeZero n]
     simp only [Complex.add_re, Complex.one_re] at this
     exact this
   rw [h_trace, Complex.sub_re]
-  have h1 : (P_plus * ρ.toMatrix).trace.re ≤ 1 := by linarith
-  have h2 : (P_minus * ρ.toMatrix).trace.re ≤ 1 := by linarith
+  have _h1 : (P_plus * ρ.toMatrix).trace.re ≤ 1 := by linarith
+  have _h2 : (P_minus * ρ.toMatrix).trace.re ≤ 1 := by linarith
   rw [abs_sub_le_iff]
   constructor <;> linarith
 

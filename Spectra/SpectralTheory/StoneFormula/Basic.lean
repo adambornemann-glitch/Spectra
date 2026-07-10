@@ -61,7 +61,7 @@ lemma arctan_kernel_pointwise_limit (a b s : ℝ) (hab : a < b) :
       (Real.arctan ((b - s) / ε) - Real.arctan ((a - s) / ε)))
       (𝓝[>] 0) (𝓝 (averagedIndicator a b s)) := by
   unfold averagedIndicator
-  have hπ := Real.pi_pos
+  have _hπ := Real.pi_pos
   have arc_pos : ∀ c : ℝ, 0 < c →
       Tendsto (fun ε : ℝ => Real.arctan (c / ε)) (𝓝[>] 0) (𝓝 (Real.pi / 2)) :=
     fun c hc => (Real.tendsto_arctan_atTop.comp
@@ -108,7 +108,7 @@ lemma arctan_kernel_pointwise_limit (a b s : ℝ) (hab : a < b) :
 the DCT engine quantifies the uniform bound over the whole index type). -/
 lemma arctan_kernel_abs_le_one (a b s ε : ℝ) :
     |(1 / Real.pi) * (Real.arctan ((b - s) / ε) - Real.arctan ((a - s) / ε))| ≤ 1 := by
-  have hπ_pos := Real.pi_pos
+  have _hπ_pos := Real.pi_pos
   have h_diff : |Real.arctan ((b - s) / ε) - Real.arctan ((a - s) / ε)| ≤ Real.pi := by
     rw [abs_le]
     constructor <;>
@@ -366,7 +366,7 @@ lemma inner_stoneSymbol_eq_resolvent_integral (a b : ℝ) (hab : a ≤ b) {ε : 
               - resolvent (⟨t, -ε⟩ : ℂ) (neg_ne_zero.mpr hε.ne')
                   (generator_isFormalAdjoint U_grp)
                   (range_plus_i_eq_top U_grp) (range_minus_i_eq_top U_grp)) ξ⟫_ℂ := by
-  set μ := borelMeasure U_grp ξ with hμ_def
+  set μ := borelMeasure U_grp ξ with _hμ_def
   haveI : IsFiniteMeasure μ := borelMeasure_isFiniteMeasure U_grp ξ
   -- LHS: the calculus diagonal is the spectral integral of the symbol.
   rw [inner_spectralCalculus, spectralForm_self U_grp ξ

@@ -139,19 +139,19 @@ private lemma chiR_tail_bounds (n ℓ : ℕ) (hn : ℓ + 1 ≤ n) :
       |r * hydrogenRadialWavefunction n ℓ hn r| ≤ C * (r ^ n * Real.exp (-r / n)) ∧
       r * hydrogenRadialWavefunction n ℓ hn r ≠ 0 := by
   have hn0 : (0:ℝ) < n := by exact_mod_cast (by omega : 0 < n)
-  have hf1 : (0:ℝ) < ((n - ℓ - 1).factorial : ℝ) := by exact_mod_cast Nat.factorial_pos _
-  have hf2 : (0:ℝ) < ((n + ℓ).factorial : ℝ) := by exact_mod_cast Nat.factorial_pos _
+  have _hf1 : (0:ℝ) < ((n - ℓ - 1).factorial : ℝ) := by exact_mod_cast Nat.factorial_pos _
+  have _hf2 : (0:ℝ) < ((n + ℓ).factorial : ℝ) := by exact_mod_cast Nat.factorial_pos _
   have hNpos : 0 < radialNormalization n ℓ hn := by
     rw [radialNormalization, Real.sqrt_pos]; positivity
-  obtain ⟨x₀, cl, Cl, hx₀1, hclpos, hClpos, hbnd⟩ :=
+  obtain ⟨x₀, cl, Cl, _hx₀1, hclpos, hClpos, hbnd⟩ :=
     laguerre_asymptotic (n - ℓ - 1) (2 * (ℓ:ℝ) + 1)
-  set N := radialNormalization n ℓ hn with hNdef
+  set N := radialNormalization n ℓ hn with _hNdef
   set c : ℝ := N * cl * (2 / (n:ℝ)) ^ (n - 1) with hcdef
   set C : ℝ := N * Cl * (2 / (n:ℝ)) ^ (n - 1) with hCdef
   refine ⟨max 1 (n * x₀ / 2), c, C, lt_of_lt_of_le one_pos (le_max_left _ _),
     by positivity, by positivity, fun r hr => ?_⟩
   have hr1 : 1 ≤ r := le_trans (le_max_left _ _) hr
-  have hrpos : 0 < r := lt_of_lt_of_le one_pos hr1
+  have _hrpos : 0 < r := lt_of_lt_of_le one_pos hr1
   have hge : n * x₀ / 2 ≤ r := le_trans (le_max_right _ _) hr
   have h2rn : x₀ ≤ 2 * r / n := by
     rw [le_div_iff₀ hn0]; nlinarith [hge, hn0]
@@ -448,7 +448,7 @@ private lemma chiR_int_window (n ℓ : ℕ) (hn : ℓ + 1 ≤ n) {r₂ C : ℝ} 
   have hhead : 0 ≤ ∫ s in r₂..(d - 1), f s :=
     intervalIntegral.integral_nonneg hd1 (fun s _ => hfnn s)
   set B := C * d ^ n * Real.exp (-(d - 1) / n) with hBdef
-  have hBpos : 0 < B := by rw [hBdef]; positivity
+  have _hBpos : 0 < B := by rw [hBdef]; positivity
   have hptwise : ∀ s ∈ Set.Icc (d - 1) d, 1 / B ^ 2 ≤ f s := by
     intro s hs
     have hsr₂ : r₂ ≤ s := le_trans hd1 hs.1
@@ -496,7 +496,7 @@ private lemma wronskian_R_zero_of_L2 (n ℓ : ℕ) (hn : ℓ + 1 ≤ n) (χ : �
   have hne : ∀ s, r₂ ≤ s → chiR n ℓ hn s ≠ 0 := fun s hs => (hbnds s hs).2.2
   have hLB : ∀ r, r₂ ≤ r → c * (r ^ n * Real.exp (-r / n)) ≤ |chiR n ℓ hn r| :=
     fun r hr => (hbnds r hr).1
-  set W₀ := χ r₂ * deriv (chiR n ℓ hn) r₂ - deriv χ r₂ * chiR n ℓ hn r₂ with hW₀def
+  set W₀ := χ r₂ * deriv (chiR n ℓ hn) r₂ - deriv χ r₂ * chiR n ℓ hn r₂ with _hW₀def
   have hWconst : ∀ s, 0 < s →
       χ s * deriv (chiR n ℓ hn) s - deriv χ s * chiR n ℓ hn s = W₀ :=
     fun s hs => wronskian_R_const n ℓ hn χ hχ1 hχ2 hode hr₂pos hs
@@ -687,8 +687,8 @@ theorem bound_state_eq_smul_eigenfunction (n ℓ : ℕ) (hn : ℓ + 1 ≤ n) (ψ
   have hnear0 : ∃ δ, 0 < δ ∧ ∀ s, 0 < s → s < δ → chiR n ℓ hn s ≠ 0 := by
     have hNpos : 0 < radialNormalization n ℓ hn := by
       rw [radialNormalization, Real.sqrt_pos]
-      have h1 : (0:ℝ) < ((n - ℓ - 1).factorial : ℝ) := by exact_mod_cast Nat.factorial_pos _
-      have h2 : (0:ℝ) < ((n + ℓ).factorial : ℝ) := by exact_mod_cast Nat.factorial_pos _
+      have _h1 : (0:ℝ) < ((n - ℓ - 1).factorial : ℝ) := by exact_mod_cast Nat.factorial_pos _
+      have _h2 : (0:ℝ) < ((n + ℓ).factorial : ℝ) := by exact_mod_cast Nat.factorial_pos _
       have h3 : (0:ℝ) < n := by exact_mod_cast (by omega : 0 < n)
       positivity
     have h3 : (0:ℝ) < n := by exact_mod_cast (by omega : 0 < n)
@@ -726,7 +726,7 @@ theorem bound_state_eq_smul_eigenfunction (n ℓ : ℕ) (hn : ℓ + 1 ≤ n) (ψ
     rw [show chiR n ℓ hn s = hydrogenReducedWavefunction n ℓ hn s from rfl]
     exact ne_of_gt hval
   obtain ⟨δ, hδpos, hδne⟩ := hnear0
-  set c₀ := ψ rs / hydrogenRadialWavefunction n ℓ hn rs with hc₀def
+  set c₀ := ψ rs / hydrogenRadialWavefunction n ℓ hn rs with _hc₀def
   have hchiRrs : chiR n ℓ hn rs ≠ 0 := by
     rw [show chiR n ℓ hn rs = rs * hydrogenRadialWavefunction n ℓ hn rs from rfl]
     exact mul_ne_zero (ne_of_gt hrspos) hRrs
@@ -737,7 +737,7 @@ theorem bound_state_eq_smul_eigenfunction (n ℓ : ℕ) (hn : ℓ + 1 ≤ n) (ψ
   -- global identification χ = c₀·χ_R
   have hident : ∀ r, 0 < r → χ r = c₀ * chiR n ℓ hn r := by
     intro r hr
-    set rmin := min (min r rs) (δ / 2) with hrmindef
+    set rmin := min (min r rs) (δ / 2) with _hrmindef
     have hrminpos : 0 < rmin := lt_min (lt_min hr hrspos) (by linarith)
     have hrmin_r : rmin ≤ r := le_trans (min_le_left _ _) (min_le_left _ _)
     have hrmin_rs : rmin ≤ rs := le_trans (min_le_left _ _) (min_le_right _ _)

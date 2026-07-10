@@ -106,7 +106,7 @@ lemma poissonKernel_integrable {ε : ℝ} (hε : 0 < ε) :
     simp_rw [h_eq]
     have h_top := (tendsto_const_nhds (x := 1 / Real.pi)).mul
       ((Real.tendsto_arctan_atTop.comp h_nat_div).mono_right nhdsWithin_le_nhds)
-    have h_bot := (tendsto_const_nhds (x := 1 / Real.pi)).mul
+    have _h_bot := (tendsto_const_nhds (x := 1 / Real.pi)).mul
       ((Real.tendsto_arctan_atBot.comp
         ((tendsto_neg_atTop_atBot.comp h_nat_div).congr
           (fun _ => (neg_div _ _).symm))).mono_right nhdsWithin_le_nhds)
@@ -139,7 +139,7 @@ lemma poissonKernel_integral_eq_one {ε : ℝ} (hε : 0 < ε) :
       h3.const_mul (1 / Real.pi)
     convert h4 using 1
     unfold poissonKernel
-    have h_pos := sq_add_sq_pos hε x
+    have _h_pos := sq_add_sq_pos hε x
     field_simp; ring
   have h_interval : ∀ R : ℝ, ∫ x in (-R)..R, poissonKernel ε x =
       (1 / Real.pi) * Real.arctan (R / ε) -
@@ -222,7 +222,7 @@ private lemma inv_add_conj_inv {ε ξ : ℝ} (hε : 0 < ε) :
     intro h; have := congr_arg Complex.re h; simp at this; linarith
   have h2 : (↑ε + ↑ξ * I : ℂ) ≠ 0 := by
     intro h; have := congr_arg Complex.re h; simp at this; linarith
-  have h3 : (ξ ^ 2 + ε ^ 2 : ℝ) ≠ 0 :=
+  have _h3 : (ξ ^ 2 + ε ^ 2 : ℝ) ≠ 0 :=
     ne_of_gt (add_pos_of_nonneg_of_pos (sq_nonneg ξ) (sq_pos_of_pos hε))
   rw [inv_eq_one_div, inv_eq_one_div, div_add_div _ _ h1 h2]
   rw [show (↑ε - ↑ξ * I) * (↑ε + ↑ξ * I) = ↑(ξ ^ 2 + ε ^ 2) from by

@@ -96,7 +96,7 @@ theorem modularFlow_U_eq_spectralCalculus [Nontrivial H]
     (modularFlow hcyc hsep).U t
       = spectralCalculus (genToGroup (modΔ hcyc hsep)) (logExpSym t)
           (measurable_logExpSym t) (logExpSym_bdd t) := by
-  set hA := modΔ hcyc hsep with hAdef
+  set hA := modΔ hcyc hsep with _hAdef
   -- The flow `borelCalculus (cayley Δ) (modularSymbol …)` rewritten with
   -- the Möbius-pullback symbol.
   have hLHS : (modularFlow hcyc hsep).U t
@@ -127,7 +127,7 @@ theorem logExpSym_atom_apply (hcyc : IsCyclic M Ω) (hsep : IsSeparating M Ω) (
           (measurableSet_singleton 1) Ω)
       = spectralProjection (genToGroup (modΔ hcyc hsep)) ({(1 : ℝ)} : Set ℝ)
           (measurableSet_singleton 1) Ω := by
-  set U := genToGroup (modΔ hcyc hsep) with hU
+  set U := genToGroup (modΔ hcyc hsep) with _hU
   set xn := spectralProjection U ({(1 : ℝ)} : Set ℝ) (measurableSet_singleton 1) Ω with hxn
   have hE : xn = spectralCalculus U (Set.indicator ({(1 : ℝ)} : Set ℝ) fun _ => (1 : ℂ))
       (measurable_const.indicator (measurableSet_singleton 1)) (indicator_one_bdd _) Ω := by
@@ -158,7 +158,7 @@ theorem modularFlow_fixes_vacuum (hcyc : IsCyclic M Ω) (hsep : IsSeparating M �
   rcases subsingleton_or_nontrivial H with _ | _
   · exact Subsingleton.elim _ _
   · rw [modularFlow_U_eq_spectralCalculus hcyc hsep t]
-    set U := genToGroup (modΔ hcyc hsep) with hU
+    set U := genToGroup (modΔ hcyc hsep) with _hU
     have hEfix : spectralProjection U ({(1 : ℝ)} : Set ℝ) (measurableSet_singleton 1) Ω = Ω :=
       spectralProjection_singleton_one_vacuum hcyc hsep
     calc spectralCalculus U (logExpSym t) (measurable_logExpSym t) (logExpSym_bdd t) Ω

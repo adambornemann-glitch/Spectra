@@ -98,7 +98,7 @@ theorem reflectedForm_gram (ν : Measure X) {ι : Type*} (s : Finset ι) (g : ι
     reflectedForm ν (fun a b => ∑ i ∈ s, conj (g i a) * g i b) f
       = ((∑ i ∈ s, Complex.normSq (∫ x, f x * g i x ∂ν) : ℝ) : ℂ) := by
   -- Abbreviation for the moments `Iᵢ = ∫ f·gᵢ`.
-  set I : ι → ℂ := fun i => ∫ x, f x * g i x ∂ν with hI
+  set I : ι → ℂ := fun i => ∫ x, f x * g i x ∂ν with _hI
   -- Inner integral (fixing `a`) collapses to a finite sum with `Iᵢ`.
   have hInner : ∀ a, (∫ b, conj (f a) * f b * (∑ i ∈ s, conj (g i a) * g i b) ∂ν)
       = ∑ i ∈ s, conj (f a * g i a) * I i := by

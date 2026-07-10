@@ -95,8 +95,8 @@ private lemma deriv_reducedRadialProfile (n ℓ : ℕ) (hn : ℓ + 1 ≤ n) :
           ((2 / n) * deriv (laguerrePolynomial (n - ℓ - 1) (2 * ℓ + 1)) (2 * x / n))) := by
   funext x
   unfold reducedRadialProfile
-  set A := radialNormalization n ℓ hn * (2 / (n : ℝ)) ^ ℓ with hA
-  set L := laguerrePolynomial (n - ℓ - 1) (2 * ℓ + 1) with hLdef
+  set A := radialNormalization n ℓ hn * (2 / (n : ℝ)) ^ ℓ with _hA
+  set L := laguerrePolynomial (n - ℓ - 1) (2 * ℓ + 1) with _hLdef
   have hLd : ∀ y, HasDerivAt L (deriv L y) y :=
     fun y => ((laguerre_smooth _ _).differentiable (by simp)).differentiableAt.hasDerivAt
   have hexp : HasDerivAt (fun x : ℝ => Real.exp (-x / n)) (Real.exp (-x / n) * (-1 / n)) x := by
@@ -127,8 +127,8 @@ private lemma deriv2_reducedRadialProfile (n ℓ : ℕ) (hn : ℓ + 1 ≤ n) :
         + (1 / n ^ 2) * laguerrePolynomial (n - ℓ - 1) (2 * ℓ + 1) (2 * x / n)) := by
   funext x
   rw [deriv_reducedRadialProfile n ℓ hn]
-  set A := radialNormalization n ℓ hn * (2 / (n : ℝ)) ^ ℓ with hA
-  set L := laguerrePolynomial (n - ℓ - 1) (2 * ℓ + 1) with hLdef
+  set A := radialNormalization n ℓ hn * (2 / (n : ℝ)) ^ ℓ with _hA
+  set L := laguerrePolynomial (n - ℓ - 1) (2 * ℓ + 1) with _hLdef
   have hLd : ∀ y, HasDerivAt L (deriv L y) y :=
     fun y => ((laguerre_smooth _ _).differentiable (by simp)).differentiableAt.hasDerivAt
   have hLd2 : ∀ y, HasDerivAt (deriv L) (deriv^[2] L y) y :=
@@ -305,10 +305,10 @@ lemma separated_eigen_chart (n ℓ m : ℕ) (hn : ℓ + 1 ≤ n) (hm : m ≤ ℓ
           + (‖sphereChart r θ φ‖ : ℂ)⁻¹)
         * separatedEigenfunction n ℓ m hn (sphereChart r θ φ) := by
   classical
-  set p : CoulombParams := ⟨1, one_pos⟩ with hp
+  set p : CoulombParams := ⟨1, one_pos⟩ with _hp
   set pt := sphereChart r θ φ with hpt
   have hnorm : ‖pt‖ = r := by rw [hpt, norm_sphereChart, abs_of_pos hr]
-  have hptne : pt ≠ 0 := norm_pos_iff.mp (by rw [hnorm]; exact hr)
+  have _hptne : pt ≠ 0 := norm_pos_iff.mp (by rw [hnorm]; exact hr)
   have hrne : (r : ℝ) ≠ 0 := hr.ne'
   -- the localizing cutoff `χ = S` near `r`, `0` near `0`
   obtain ⟨χ, hχ, hχ0, hχr⟩ := exists_cutoff_reduced n ℓ hn hr
@@ -386,7 +386,7 @@ lemma solidHarmonicNat_smul (ℓ m : ℕ) (hm : m ≤ ℓ) {t : ℝ} (ht : 0 < t
     (x : Spectra.Sobolev.R3) (hx : x ≠ 0) :
     solidHarmonicNat ℓ m (t • x) = (t : ℂ) ^ ℓ * solidHarmonicNat ℓ m x := by
   have hsmul : ∀ i : Fin 3, (t • x) i = t * x i := fun i => rfl
-  have hxn : ‖x‖ ≠ 0 := norm_ne_zero_iff.mpr hx
+  have _hxn : ‖x‖ ≠ 0 := norm_ne_zero_iff.mpr hx
   have htn : (t : ℝ) ≠ 0 := ht.ne'
   have hnorm : ‖t • x‖ = t * ‖x‖ := by rw [norm_smul, Real.norm_of_nonneg ht.le]
   have htpow : (t : ℂ) ^ m * (t : ℂ) ^ (ℓ - m) = (t : ℂ) ^ ℓ := by
@@ -695,13 +695,13 @@ lemma pow_mul_exp_le_exp (k : ℕ) {a a' : ℝ} (_ha' : 0 < a') (haa : a' < a) :
   obtain ⟨R, hR⟩ := eventually_atTop.mp
     (htend.eventually (gt_mem_nhds (show (0:ℝ) < 1 by norm_num)))
   -- bound the *bracket* `r^k e^{-(a-a') r}` on the compact `[0, max R 0]`
-  set R₀ : ℝ := max R 0 with hR₀
+  set R₀ : ℝ := max R 0 with _hR₀
   have hR₀0 : 0 ≤ R₀ := le_max_right _ _
   obtain ⟨b, -, hbmax⟩ := (isCompact_Icc (a := (0:ℝ)) (b := R₀)).exists_isMaxOn
     (Set.nonempty_Icc.mpr hR₀0)
     (Continuous.continuousOn
       (by fun_prop : Continuous fun r : ℝ => r ^ k * Real.exp (-(a - a') * r)))
-  set M : ℝ := b ^ k * Real.exp (-(a - a') * b) with hM
+  set M : ℝ := b ^ k * Real.exp (-(a - a') * b) with _hM
   refine ⟨max M 1, le_trans zero_le_one (le_max_right _ _), fun r hr => ?_⟩
   -- split off the `e^{-a' r}` factor: `r^k e^{-a r} = (r^k e^{-(a-a') r}) · e^{-a' r}`
   have hsplit : r ^ k * Real.exp (-a * r)
@@ -827,7 +827,7 @@ lemma norm_separated_le_exp (n ℓ m : ℕ) (hn : ℓ + 1 ≤ n) (hm : m ≤ ℓ
   obtain ⟨CQ, hCQ0, hCQ⟩ := solidHarmonicNat_norm_le ℓ m hm
   obtain ⟨Cabs, hCabs0, hCabs⟩ := pow_mul_exp_le_exp ℓ ha' haa
   refine ⟨CS * CQ * Cabs, by positivity, fun x hx => ?_⟩
-  have hxpos : 0 < ‖x‖ := norm_pos_iff.mpr hx
+  have _hxpos : 0 < ‖x‖ := norm_pos_iff.mpr hx
   -- ‖Ψ x‖ = |S(‖x‖)| · ‖Q x‖
   have hΨ : ‖separatedEigenfunction n ℓ m hn x‖
       = |reducedRadialProfile n ℓ hn ‖x‖| * ‖solidHarmonicNat ℓ m x‖ := by
@@ -873,7 +873,7 @@ lemma norm_fderiv_separated_le_exp (n ℓ m : ℕ) (hn : ℓ + 1 ≤ n) (hm : m 
   obtain ⟨Cabs1, hCabs10, hCabs1⟩ := pow_mul_exp_le_exp (ℓ - 1) ha' haa
   obtain ⟨Cabs2, hCabs20, hCabs2⟩ := pow_mul_exp_le_exp ℓ ha' haa
   refine ⟨CS * CdQ * Cabs1 + CQ * CS' * Cabs2, by positivity, fun x hx => ?_⟩
-  have hxpos : 0 < ‖x‖ := norm_pos_iff.mpr hx
+  have _hxpos : 0 < ‖x‖ := norm_pos_iff.mpr hx
   -- product rule + triangle inequality
   rw [fderiv_separated_apply n ℓ m hn hx i]
   -- first term: ‖Sc(‖x‖)·∂ᵢQ(x)‖ ≤ (CS e) · (CdQ ‖x‖^{ℓ-1})
@@ -998,10 +998,10 @@ lemma norm_fderiv_fderiv_separated_le (n ℓ m : ℕ) (hn : ℓ + 1 ≤ n)
           * ‖fderiv ℝ (solidHarmonicNat ℓ m) x‖ := by
   classical
   set Acl : Spectra.Sobolev.R3 → ℂ := fun y => reducedRadialProfileC n ℓ hn ‖y‖ with hAcl
-  set Q : Spectra.Sobolev.R3 → ℂ := solidHarmonicNat ℓ m with hQ
-  set B : Spectra.Sobolev.R3 → ℂ := fun y => fderiv ℝ Q y (EuclideanSpace.single i 1) with hB
+  set Q : Spectra.Sobolev.R3 → ℂ := solidHarmonicNat ℓ m with _hQ
+  set B : Spectra.Sobolev.R3 → ℂ := fun y => fderiv ℝ Q y (EuclideanSpace.single i 1) with _hB
   set Dr : Spectra.Sobolev.R3 → ℂ :=
-    fun y => fderiv ℝ Acl y (EuclideanSpace.single i 1) with hDr
+    fun y => fderiv ℝ Acl y (EuclideanSpace.single i 1) with _hDr
   -- differentiability of the factors at `x`
   have hSc : HasDerivAt (reducedRadialProfileC n ℓ hn)
       (deriv (reducedRadialProfileC n ℓ hn) ‖x‖) ‖x‖ :=
@@ -1013,7 +1013,7 @@ lemma norm_fderiv_fderiv_separated_le (n ℓ m : ℕ) (hn : ℓ + 1 ≤ n)
   have hQ2 : ContDiffOn ℝ 2 Q {(0 : Spectra.Sobolev.R3)}ᶜ :=
     (solidHarmonicNat_contDiffOn ℓ m).of_le h2le
   have hQ_diff : DifferentiableAt ℝ Q x := differentiableAt_solidHarmonicNat ℓ m hx
-  have hAcl2 : ContDiffAt ℝ 2 Acl x :=
+  have _hAcl2 : ContDiffAt ℝ 2 Acl x :=
     contDiffAt_radial (reducedRadialProfileC n ℓ hn) (contDiff_reducedRadialProfileC n ℓ hn) hx
   have hB_diff : DifferentiableAt ℝ B x := by
     have hgrad1 : ContDiffOn ℝ 1 (fderiv ℝ Q) {(0 : Spectra.Sobolev.R3)}ᶜ :=
@@ -1113,9 +1113,9 @@ lemma norm_fderiv2_separated_le_exp (n ℓ m : ℕ) (hn : ℓ + 1 ≤ n) (hm : m
   refine le_trans hdir (le_trans (norm_fderiv_fderiv_separated_le n ℓ m hn hx i) ?_)
   -- abbreviations for the four term-bounds
   set eA : ℝ := Real.exp (-(1 / (2 * (n:ℝ))) * ‖x‖) with heA
-  set eB : ℝ := Real.exp (-(1 / (4 * (n:ℝ))) * ‖x‖) with heB
-  have heA0 : 0 < eA := Real.exp_pos _
-  have heB0 : 0 < eB := Real.exp_pos _
+  set eB : ℝ := Real.exp (-(1 / (4 * (n:ℝ))) * ‖x‖) with _heB
+  have _heA0 : 0 < eA := Real.exp_pos _
+  have _heB0 : 0 < eB := Real.exp_pos _
   -- term-1: `|S|·‖D(∂ᵢQ)‖ ≤ CS·eA · (Cd2Q ‖x‖^{ℓ-1}/‖x‖)`
   have hDB : ‖fderiv ℝ (fun y => fderiv ℝ (solidHarmonicNat ℓ m) y (EuclideanSpace.single i 1)) x‖
       ≤ Cd2Q * ‖x‖ ^ (ℓ - 1) / ‖x‖ := by
@@ -1283,7 +1283,7 @@ lemma aestronglyMeasurable_separated_second (n ℓ m : ℕ) (hn : ℓ + 1 ≤ n)
 lemma memLp_separated (n ℓ m : ℕ) (hn : ℓ + 1 ≤ n) (hm : m ≤ ℓ) (hℓ : 1 ≤ ℓ) :
     MemLp (separatedEigenfunction n ℓ m hn) 2 volume := by
   have hnR : (0:ℝ) < n := by exact_mod_cast (show 0 < n by omega)
-  obtain ⟨C, hC0, hC⟩ := norm_separated_le_exp n ℓ m hn hm
+  obtain ⟨C, _hC0, hC⟩ := norm_separated_le_exp n ℓ m hn hm
   refine memLp_two_of_le_exp (aestronglyMeasurable_separated n ℓ m hn)
     (C := max ‖separatedEigenfunction n ℓ m hn 0‖ C) (a := 1 / (4 * (n:ℝ)))
     (by positivity) (fun x => ?_)
@@ -1296,7 +1296,7 @@ lemma memLp_separated_first (n ℓ m : ℕ) (hn : ℓ + 1 ≤ n) (hm : m ≤ ℓ
     MemLp (fun x => fderiv ℝ (separatedEigenfunction n ℓ m hn) x (EuclideanSpace.single i 1))
       2 volume := by
   have hnR : (0:ℝ) < n := by exact_mod_cast (show 0 < n by omega)
-  obtain ⟨C, hC0, hC⟩ := norm_fderiv_separated_le_exp n ℓ m hn hm hℓ i
+  obtain ⟨C, _hC0, hC⟩ := norm_fderiv_separated_le_exp n ℓ m hn hm hℓ i
   set D : Spectra.Sobolev.R3 → ℂ :=
     fun x => fderiv ℝ (separatedEigenfunction n ℓ m hn) x (EuclideanSpace.single i 1) with hD
   refine memLp_two_of_le_exp (aestronglyMeasurable_separated_first n ℓ m hn i)
@@ -1310,7 +1310,7 @@ lemma memLp_separated_second (n ℓ m : ℕ) (hn : ℓ + 1 ≤ n) (hm : m ≤ �
     MemLp (fun x => fderiv ℝ (fun y => fderiv ℝ (separatedEigenfunction n ℓ m hn) y
         (EuclideanSpace.single i 1)) x (EuclideanSpace.single j 1)) 2 volume := by
   have hnR : (0:ℝ) < n := by exact_mod_cast (show 0 < n by omega)
-  obtain ⟨C, C', hC0, hC'0, hC⟩ := norm_fderiv2_separated_le_exp n ℓ m hn hm hℓ i j
+  obtain ⟨C, C', _hC0, _hC'0, hC⟩ := norm_fderiv2_separated_le_exp n ℓ m hn hm hℓ i j
   set D : Spectra.Sobolev.R3 → ℂ :=
     fun x => fderiv ℝ (fun y => fderiv ℝ (separatedEigenfunction n ℓ m hn) y
       (EuclideanSpace.single i 1)) x (EuclideanSpace.single j 1) with hD
@@ -1354,7 +1354,7 @@ lemma separated_first_bounded_near_zero (n ℓ m : ℕ) (hn : ℓ + 1 ≤ n) (hm
       ‖fderiv ℝ (separatedEigenfunction n ℓ m hn) x (EuclideanSpace.single i 1)‖ ≤ Mv := by
   obtain ⟨C, hC0, hC⟩ := norm_fderiv_separated_le_exp n ℓ m hn hm hℓ i
   set D : Spectra.Sobolev.R3 → ℂ :=
-    fun x => fderiv ℝ (separatedEigenfunction n ℓ m hn) x (EuclideanSpace.single i 1) with hD
+    fun x => fderiv ℝ (separatedEigenfunction n ℓ m hn) x (EuclideanSpace.single i 1) with _hD
   refine ⟨max ‖D 0‖ C, le_trans (norm_nonneg _) (le_max_left _ _), fun x _ => ?_⟩
   rcases eq_or_ne x 0 with rfl | hx
   · exact le_max_left _ _

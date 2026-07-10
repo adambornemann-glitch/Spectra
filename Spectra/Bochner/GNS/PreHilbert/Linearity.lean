@@ -49,7 +49,7 @@ lemma pdInner_add_right (f : ℝ → ℂ) (α β₁ β₂ : ℝ →₀ ℂ) :
       β₁.sum (fun s ds => starRingEnd ℂ ct * ds * f (s - t)) +
       β₂.sum (fun s ds => starRingEnd ℂ ct * ds * f (s - t)) :=
     fun t ct => Finsupp.sum_add_index (fun s => by simp)
-      (fun s d₁ d₂ => by ring_nf; simp only [implies_true])
+      (fun s _d₁ d₂ => by ring_nf; simp only [implies_true])
   simp_rw [h_inner]
   -- Step 2: distribute outer α.sum over the pointwise addition
   simp only [Finsupp.sum]

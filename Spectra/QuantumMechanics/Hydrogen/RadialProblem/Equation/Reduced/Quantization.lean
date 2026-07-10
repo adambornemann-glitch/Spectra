@@ -524,13 +524,13 @@ private lemma kummerRadial_near_zero (ℓ : ℕ) (κ : ℝ) :
 private lemma kummerRadial_growth (ℓ : ℕ) (κ : ℝ) (hκ : 0 < κ)
     (ha : ∀ p : ℕ, (ℓ : ℝ) + 1 - 1 / κ ≠ -(p : ℝ)) :
     ∃ C R : ℝ, 0 < C ∧ ∀ r, R ≤ r → C ≤ |kummerRadial ℓ κ r| := by
-  set a := (ℓ : ℝ) + 1 - 1 / κ with ha_def
+  set a := (ℓ : ℝ) + 1 - 1 / κ with _ha_def
   set b := 2 * (ℓ : ℝ) + 2 with hb_def
   have hb : 0 < b := by rw [hb_def]; positivity
   obtain ⟨C, R₀, hC, hlb⟩ := kummerM_abs_exp_lower a b hb ha
   refine ⟨C, max 1 (R₀ / (2 * κ)), hC, fun r hr => ?_⟩
   have hr1 : 1 ≤ r := le_trans (le_max_left _ _) hr
-  have hrpos : 0 < r := lt_of_lt_of_le one_pos hr1
+  have _hrpos : 0 < r := lt_of_lt_of_le one_pos hr1
   have hrR : R₀ / (2 * κ) ≤ r := le_trans (le_max_right _ _) hr
   have h2κ : 0 < 2 * κ := by positivity
   have hρ : R₀ ≤ 2 * κ * r := by
@@ -669,7 +669,7 @@ private lemma reduction_order_lower (ℓ : ℕ) (κ : ℝ) {d : ℝ}
             = r ^ (ℓ + 2) / (8 * 2 ^ (2 * ℓ + 2) * r ^ (2 * ℓ + 2)) := by
           rw [hc₁, show (2 * r) ^ (2 * ℓ + 2) = 2 ^ (2 * ℓ + 2) * r ^ (2 * ℓ + 2) from by
             rw [mul_pow]]
-          have hrne : r ≠ 0 := ne_of_gt hr
+          have _hrne : r ≠ 0 := ne_of_gt hr
           field_simp
           ring
         rw [hX, le_div_iff₀ (by positivity)]
@@ -760,14 +760,14 @@ private lemma wronskian_zero (ℓ : ℕ) (κ : ℝ) (hκ : 0 < κ) (χ : ℝ →
     fun s hs0 hsd => (hbounds s hs0 (lt_of_le_of_lt hsd hδ'lt)).2.2
   have hbub : ∀ s, 0 < s → s ≤ δ' → kummerRadial ℓ κ s ≤ 2 * s ^ (ℓ + 1) :=
     fun s hs0 hsd => (hbounds s hs0 (lt_of_le_of_lt hsd hδ'lt)).2.1
-  set W₀ := χ δ' * deriv (kummerRadial ℓ κ) δ' - deriv χ δ' * kummerRadial ℓ κ δ' with hW₀def
+  set W₀ := χ δ' * deriv (kummerRadial ℓ κ) δ' - deriv χ δ' * kummerRadial ℓ κ δ' with _hW₀def
   have hWconst : ∀ s, 0 < s →
       χ s * deriv (kummerRadial ℓ κ) s - deriv χ s * kummerRadial ℓ κ s = W₀ :=
     fun s hs => wronskian_const ℓ κ hκ χ hχ1 hχ2 hode hδ'pos hs
   suffices hW₀ : W₀ = 0 by
     intro s hs; rw [hWconst s hs]; exact hW₀
   by_contra hW₀ne
-  set ρ := min (δ / 4) 1 with hρdef
+  set ρ := min (δ / 4) 1 with _hρdef
   have hρpos : 0 < ρ := lt_min (by linarith) one_pos
   have hAtend : Filter.Tendsto
       (fun r => χ r - kummerRadial ℓ κ r * (χ δ' / kummerRadial ℓ κ δ'))
@@ -948,7 +948,7 @@ theorem reduced_radial_L2_quantized (ℓ : ℕ) (κ : ℝ) (hκ : 0 < κ) (χ : 
     (hnz : ∃ r, 0 < r ∧ χ r ≠ 0) :
     ∃ m : ℕ, ℓ + 1 ≤ m ∧ κ = 1 / (m : ℝ) := by
   by_contra hcon
-  have hκ0 : κ ≠ 0 := ne_of_gt hκ
+  have _hκ0 : κ ≠ 0 := ne_of_gt hκ
   -- the Kummer parameter `a = ℓ+1−1/κ` does not terminate
   have ha : ∀ p : ℕ, (ℓ : ℝ) + 1 - 1 / κ ≠ -(p : ℝ) := by
     intro p hp
@@ -961,7 +961,7 @@ theorem reduced_radial_L2_quantized (ℓ : ℕ) (κ : ℝ) (hκ : 0 < κ) (χ : 
   -- choose a base point `r₁` (small, below the nonzero point of `χ`)
   obtain ⟨δ, hδ, hbounds⟩ := kummerRadial_near_zero ℓ κ
   obtain ⟨rs, hrs_pos, hrs_ne⟩ := hnz
-  set r₁ := min (δ / 2) rs with hr₁def
+  set r₁ := min (δ / 2) rs with _hr₁def
   have hr₁pos : 0 < r₁ := lt_min (by linarith) hrs_pos
   have hr₁δ : r₁ < δ := lt_of_le_of_lt (min_le_left _ _) (by linarith)
   have hr₁rs : r₁ ≤ rs := min_le_right _ _
@@ -1067,7 +1067,7 @@ theorem radial_quantization (ℓ : ℕ) (E : ℝ) (hE : E < 0) :
   · -- (→) a classical L² bound state forces quantization (via the reduced equation).
     rintro ⟨ψ, hnz, hL2, hψ1, hψ2, heq, hψ0⟩
     obtain ⟨hκpos, hκ2⟩ := kappa_pos_sq E hE
-    set κ := Real.sqrt (-2 * E) with hκdef
+    set κ := Real.sqrt (-2 * E) with _hκdef
     set χ : ℝ → ℝ := fun s => s * ψ s with hχdef
     have hχ1 : ∀ r, 0 < r → HasDerivAt χ (deriv χ r) r := by
       intro r hr

@@ -26,7 +26,7 @@ namespace Spectra.QuantumInfo
 /-! ## Basic Inner Product Lemmas -/
 
 /-- For any matrix, ⟨Ax, Ax⟩ = ⟨x, (A†A)x⟩ -/
-lemma star_mulVec_dotProduct_self (A : Matrix (Fin n) (Fin n) ℂ) (x : Fin n → ℂ) :
+lemma star_mulVec_dotProduct_self {n : ℕ} (A : Matrix (Fin n) (Fin n) ℂ) (x : Fin n → ℂ) :
     star (A.mulVec x) ⬝ᵥ (A.mulVec x) = star x ⬝ᵥ (Aᴴ * A).mulVec x := by
   rw [Matrix.star_mulVec]
   rw [Matrix.dotProduct_mulVec]
@@ -36,7 +36,7 @@ lemma star_mulVec_dotProduct_self (A : Matrix (Fin n) (Fin n) ℂ) (x : Fin n �
 /-! ## Unitary Norm Preservation -/
 
 /-- Unitary matrices preserve the norm squared -/
-lemma sum_normSq_mulVec_eq_of_unitary (U : Matrix (Fin n) (Fin n) ℂ)
+lemma sum_normSq_mulVec_eq_of_unitary {n : ℕ} (U : Matrix (Fin n) (Fin n) ℂ)
     (hU : U * Uᴴ = 1) (x : Fin n → ℂ) :
     ∑ i, ‖(U.mulVec x) i‖^2 = ∑ i, ‖x i‖^2 := by
   have h1 : star (U.mulVec x) ⬝ᵥ (U.mulVec x) = star x ⬝ᵥ (Uᴴ * U).mulVec x :=
@@ -96,7 +96,7 @@ lemma unitary_add_conjTranspose_le_two {n : ℕ} [NeZero n]
   rw [star_dotProduct_nsmul, sub_re, nsmul_eq_mul, Nat.cast_ofNat, mul_re, re_ofNat,
       im_ofNat, zero_mul, sub_zero]
   -- Goal: 0 ≤ (2 • (star x ⬝ᵥ x) - (star x ⬝ᵥ U.mulVec x + star x ⬝ᵥ Uᴴ.mulVec x)).re
-  have h_self_nonneg := star_dotProduct_self_re_nonneg x
+  have _h_self_nonneg := star_dotProduct_self_re_nonneg x
   have h_self_eq : (star x ⬝ᵥ x).re = ∑ i, ‖x i‖^2 := by
     have := star_dotProduct_self_eq_sum_normSq x
     exact congrArg Complex.re this
@@ -117,7 +117,7 @@ lemma unitary_add_conjTranspose_le_two {n : ℕ} [NeZero n]
   -- Goal: 0 ≤ (2 • (star x ⬝ᵥ x) - (star x ⬝ᵥ U *ᵥ x + star x ⬝ᵥ Uᴴ *ᵥ x)).re
   rw [h_sum_re]
   -- Now deal with the smul
-  have h_smul_re : (2 • (star x ⬝ᵥ x)).re = 2 * (star x ⬝ᵥ x).re := by
+  have _h_smul_re : (2 • (star x ⬝ᵥ x)).re = 2 * (star x ⬝ᵥ x).re := by
     simp only [nsmul_eq_mul, Nat.cast_ofNat, mul_re, re_ofNat, im_ofNat, zero_mul, sub_zero]
   -- ⊢ 0 ≤ (star x ⬝ᵥ 2 • x).re - 2 * (star x ⬝ᵥ U *ᵥ x).re
   rw [h_self_eq]
@@ -167,7 +167,7 @@ lemma unitary_add_conjTranspose_ge_neg_two {n : ℕ} [NeZero n]
     rw [h_conj, add_re, conj_re]
     ring
   rw [add_re, h_sum_re]
-  have h_smul_re : (2 • (star x ⬝ᵥ x)).re = 2 * (star x ⬝ᵥ x).re := by
+  have _h_smul_re : (2 • (star x ⬝ᵥ x)).re = 2 * (star x ⬝ᵥ x).re := by
     simp only [nsmul_eq_mul, Nat.cast_ofNat, mul_re, re_ofNat, im_ofNat, zero_mul, sub_zero]
   rw [star_dotProduct_nsmul, nsmul_eq_mul, Nat.cast_ofNat,
       mul_re, re_ofNat, im_ofNat, zero_mul, sub_zero]
@@ -241,7 +241,7 @@ lemma unitary_add_conjTranspose_sq_le_four {n : ℕ} [NeZero n]
   simp only [dotProduct_sub]
   rw [nsmul_one_mulVec]
   rw [sub_re]
-  have h_smul : (4 • (star x ⬝ᵥ x)).re = 4 * (star x ⬝ᵥ x).re := by
+  have _h_smul : (4 • (star x ⬝ᵥ x)).re = 4 * (star x ⬝ᵥ x).re := by
     simp only [nsmul_eq_mul, Nat.cast_ofNat, mul_re, re_ofNat, im_ofNat, zero_mul, sub_zero]
   rw [star_dotProduct_nsmul, nsmul_eq_mul, Nat.cast_ofNat,
       mul_re, re_ofNat, im_ofNat, zero_mul, sub_zero]

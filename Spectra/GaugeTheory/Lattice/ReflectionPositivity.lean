@@ -180,7 +180,7 @@ theorem reflectionPositive_configReflection
         ∂(aprioriMeasure (d := d) (L := L) (n := n))
       = (Complex.normSq (∫ x, f x ∂(posMeasure (d := d) (L := L) (n := n) p)) : ℂ) := by
   set Φ := MeasurableEquiv.piEquivPiSubtypeProd
-    (fun _ : Link d L => Matrix.unitaryGroup n ℂ) p with hΦ
+    (fun _ : Link d L => Matrix.unitaryGroup n ℂ) p with _hΦ
   set E := MeasurableEquiv.piCongrLeft
     (fun _ : {ℓ : Link d L // ¬ p ℓ} => Matrix.unitaryGroup n ℂ) e with hE
   have hsplit : MeasurePreserving (⇑Φ) (aprioriMeasure (d := d) (L := L) (n := n))

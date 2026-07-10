@@ -59,7 +59,7 @@ theorem dense_span_tensor (b : HilbertBasis ι 𝕜 E) (c : HilbertBasis κ 𝕜
     (Submodule.span 𝕜
       (Set.range fun p : ι × κ => b p.1 ⊗̂ₜ[𝕜] c p.2)).topologicalClosure = ⊤ := by
   set M := (Submodule.span 𝕜
-    (Set.range fun p : ι × κ => b p.1 ⊗̂ₜ[𝕜] c p.2)).topologicalClosure with hM
+    (Set.range fun p : ι × κ => b p.1 ⊗̂ₜ[𝕜] c p.2)).topologicalClosure with _hM
   have hMclosed : IsClosed (M : Set (E ⊗̂[𝕜] F)) :=
     Submodule.isClosed_topologicalClosure _
   -- Stage A: `b i ⊗̂ₜ y ∈ M` for every basis vector `b i` and every `y : F`.

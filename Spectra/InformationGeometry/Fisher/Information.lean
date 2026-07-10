@@ -287,7 +287,7 @@ lemma fisherEntry_integrable {θ : ParamSpace n}
               M.score θ j ω ^ 2) / 2) *
               M.density θ ω := by
             apply mul_le_mul_of_nonneg_right _ hp
-            have h : 0 ≤ (|M.score θ i ω| -
+            have _h : 0 ≤ (|M.score θ i ω| -
               |M.score θ j ω|) ^ 2 := sq_nonneg _
             nlinarith [sq_abs (M.score θ i ω),
                        sq_abs (M.score θ j ω)]

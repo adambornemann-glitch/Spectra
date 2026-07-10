@@ -32,8 +32,8 @@ lemma yosidaJ_eq_sub_resolvent_A {A : H →ₗ.[ℂ] H}
         hsym hplus hminus φ =
       φ - Resolvent.resolvent (I * (n : ℂ)) (I_mul_pnat_im_ne_zero n) hsym hplus hminus
         (A ⟨φ, hφ⟩) := by
-  set z := I * (n : ℂ) with hz_def
-  set R := Resolvent.resolvent z (I_mul_pnat_im_ne_zero n) hsym hplus hminus with hR_def
+  set z := I * (n : ℂ) with _hz_def
+  set R := Resolvent.resolvent z (I_mul_pnat_im_ne_zero n) hsym hplus hminus with _hR_def
   have h_R_AzI : R (A ⟨φ, hφ⟩ - z • φ) = φ := by
     let ψ_sub : A.domain := Classical.choose (self_adjoint_range_all_z hsym hplus hminus z
                                (I_mul_pnat_im_ne_zero n) (A ⟨φ, hφ⟩ - z • φ)).exists
@@ -77,7 +77,7 @@ lemma yosidaJ_tendsto_on_domain {A : H →ₗ.[ℂ] H}
     intro n _
     rw [yosidaJ_eq_sub_resolvent_A hsym hplus hminus n φ hφ, norm_eq_zero.mp h_Aφ_zero]
     simp [dist_self, hε]
-  · have h_Aφ_pos : 0 < ‖A ⟨φ, hφ⟩‖ := (norm_nonneg _).lt_of_ne' h_Aφ_zero
+  · have _h_Aφ_pos : 0 < ‖A ⟨φ, hφ⟩‖ := (norm_nonneg _).lt_of_ne' h_Aφ_zero
     use ⟨Nat.ceil (‖A ⟨φ, hφ⟩‖ / ε) + 1, Nat.add_one_pos _⟩
     intro n hn
     have h_eq : dist ((-I * (n : ℂ)) • Resolvent.resolvent (I * (n : ℂ))

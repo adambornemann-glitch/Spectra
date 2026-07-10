@@ -293,7 +293,7 @@ lemma eqZero_of_strip_lower_boundary_zero
   intro z hz
   rcases lt_or_eq_of_le hz.2 with hlt | heq
   · exact hopen z hz hlt
-  set c : ℕ → ℝ := fun k => 1 / ((k : ℝ) + 1) with hc_def
+  set c : ℕ → ℝ := fun k => 1 / ((k : ℝ) + 1) with _hc_def
   set zk : ℕ → ℂ := fun k => z - (c k : ℂ) * I with hzk_def
   have hc_pos : ∀ k, 0 < c k := fun k => by positivity
   have hc_tend : Tendsto c atTop (𝓝 (0 : ℝ)) := tendsto_one_div_add_atTop_nhds_zero_nat

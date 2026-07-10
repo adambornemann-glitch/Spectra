@@ -443,7 +443,7 @@ lemma sector_weak_part (p : CoulombParams) (E : ℝ)
   have h0 := sector_projection_radial p E ψ heig ℓ m hm χ hχ hχ0 hχcs
   obtain ⟨hdc1, hdc2⟩ := deriv_ofReal_radial χ hχ ℓ
   set c : ℝ → ℂ := coeffFun ⟨ℓ, -(m : ℤ), by rw [abs_neg]; simpa using hm⟩
-    (chartRealization (ψ : Spectra.Sobolev.l2R3)) with hc
+    (chartRealization (ψ : Spectra.Sobolev.l2R3)) with _hc
   have hcML : MemLp c 2 radialMeasure := memLp_coeffFun _ _
   have hrealgC : ContDiff ℝ ∞ (fun a => χ a * a ^ ℓ) := hχ.mul (by simpa using contDiff_id.pow ℓ)
   have hrealgcont : Continuous (fun a => χ a * a ^ ℓ) := hrealgC.continuous
@@ -641,7 +641,7 @@ lemma locallyIntegrable_comp_exp (g : ℝ → ℂ) (hg : MemLp g 2 radialMeasure
   have hcontExpNeg : ContinuousOn (fun x : ℝ => Real.exp (-x)) K :=
     (Real.continuous_exp.comp continuous_neg).continuousOn
   refine (IntegrableOn.continuousOn_mul hcontExpNeg hcov hK).congr_fun ?_ hK.measurableSet
-  intro x hx
+  intro x _hx
   dsimp only
   rw [abs_of_pos (Real.exp_pos x), smul_eq_mul, ← mul_assoc, ← Real.exp_add, neg_add_cancel,
     Real.exp_zero, one_mul]
@@ -1182,7 +1182,7 @@ lemma radial_bc_of_logCoord (ℓ : ℕ) (Z E : ℝ) (hZ : 0 < Z) (hE : E < 0) (c
     convert h using 1
     ring
   -- convexity threshold `a`
-  set a : ℝ := Real.log (((ℓ : ℝ) * ((ℓ : ℝ) + 1) + 1 / 4) / (2 * Z)) with ha
+  set a : ℝ := Real.log (((ℓ : ℝ) * ((ℓ : ℝ) + 1) + 1 / 4) / (2 * Z)) with _ha
   have hxpos : (0 : ℝ) < ((ℓ : ℝ) * ((ℓ : ℝ) + 1) + 1 / 4) / (2 * Z) := by positivity
   have hconv : ∀ s ≤ a, 0 ≤ p'' s := by
     intro s hs
@@ -1245,7 +1245,7 @@ lemma coeffFun_coulomb (p : CoulombParams) (ℓ m : ℕ) (hm : m ≤ ℓ)
           (fun x => (coulombMultiplier p x : ℂ) * ψ x)))
       =ᵐ[radialMeasure] fun r => ((-p.Z / r : ℝ) : ℂ)
         * coeffFun ⟨ℓ, -(m : ℤ), by rw [abs_neg]; simpa using hm⟩ (chartRealization ψ) r := by
-  set G := (coulomb_mul_memLp_H2 p ψ hψ).toLp (fun x => (coulombMultiplier p x : ℂ) * ψ x) with hG
+  set G := (coulomb_mul_memLp_H2 p ψ hψ).toLp (fun x => (coulombMultiplier p x : ℂ) * ψ x) with _hG
   -- a.e. on the product box, `chartReal G = coulomb(sphereChart)·chartReal ψ`
   have hcombined : ⇑(chartRealization G) =ᵐ[radialMeasure.prod sphereMeasure]
       fun q => (coulombMultiplier p (sphereChart q.1 q.2.1 q.2.2) : ℂ) * ⇑(chartRealization ψ) q
@@ -1278,10 +1278,10 @@ lemma sector_coulomb_L2 (p : CoulombParams) (ψ' : (hydrogenHamiltonian p).domai
       (L (coeffFun ⟨ℓ, -(m : ℤ), by rw [abs_neg]; simpa using hm⟩
         (chartRealization (ψ' : Spectra.Sobolev.l2R3)) (Real.exp s))) ^ 2) volume := by
   set c : ℝ → ℂ := coeffFun ⟨ℓ, -(m : ℤ), by rw [abs_neg]; simpa using hm⟩
-    (chartRealization (ψ' : Spectra.Sobolev.l2R3)) with hc
+    (chartRealization (ψ' : Spectra.Sobolev.l2R3)) with _hc
   set cG : ℝ → ℂ := coeffFun ⟨ℓ, -(m : ℤ), by rw [abs_neg]; simpa using hm⟩
     (chartRealization ((coulomb_mul_memLp_H2 p (ψ' : Spectra.Sobolev.l2R3) ψ'.2).toLp
-      (fun x => (coulombMultiplier p x : ℂ) * (ψ' : Spectra.Sobolev.l2R3) x))) with hcG
+      (fun x => (coulombMultiplier p x : ℂ) * (ψ' : Spectra.Sobolev.l2R3) x))) with _hcG
   have hrel : cG =ᵐ[radialMeasure] fun r => ((-p.Z / r : ℝ) : ℂ) * c r :=
     coeffFun_coulomb p ℓ m hm _ ψ'.2
   have hcGmem : MemLp cG 2 radialMeasure := memLp_coeffFun _ _

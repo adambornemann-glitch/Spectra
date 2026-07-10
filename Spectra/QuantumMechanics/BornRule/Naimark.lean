@@ -203,7 +203,7 @@ noncomputable def naimarkPVM : ProjValMeasure' (NaimarkSpace H κ) κ where
     apply lp.ext
     simp [lpRestrict_coeFn, Set.indicator_univ]
   proj_inter := by
-    intro B₁ B₂ hB₁ hB₂
+    intro B₁ B₂ _hB₁ _hB₂
     ext η : 1
     apply lp.ext
     simp only [ContinuousLinearMap.mul_apply, lpRestrict_coeFn, Set.indicator_indicator]
@@ -294,7 +294,7 @@ noncomputable def naimarkV (E : κ → (H →L[ℂ] H)) (hpos : ∀ k, (E k).IsP
   norm_map' ψ := by
     change ‖(⟨fun k => CFC.sqrt (E k) ψ, memℓp_sqrt hpos hsum ψ⟩ : NaimarkSpace H κ)‖ = ‖ψ‖
     have hnonneg : (0 : ℝ) ≤ ‖ψ‖ := norm_nonneg ψ
-    set v : NaimarkSpace H κ := ⟨fun k => CFC.sqrt (E k) ψ, memℓp_sqrt hpos hsum ψ⟩ with hv
+    set v : NaimarkSpace H κ := ⟨fun k => CFC.sqrt (E k) ψ, memℓp_sqrt hpos hsum ψ⟩ with _hv
     have hVnonneg : (0 : ℝ) ≤ ‖v‖ := norm_nonneg v
     have hsq : ‖v‖ ^ (2 : ℝ≥0∞).toReal = ‖ψ‖ ^ 2 := by
       rw [lp.norm_rpow_eq_tsum (by norm_num) v]

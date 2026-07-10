@@ -75,7 +75,7 @@ lemma hasWeakDerivative_of_smooth_compactSupport
       (volume : Measure (Rn d))) :
     HasWeakDerivative (hmem.toLp φ) i
       (hdmem.toLp (fun x => fderiv ℝ φ x (EuclideanSpace.single i 1))) := by
-  intro ψ hψ_s hψ_c
+  intro ψ hψ_s _hψ_c
   -- Continuities & compact supports
   have hφ_cont  : Continuous φ := hφ.continuous
   have hψ_cont  : Continuous ψ := hψ_s.continuous

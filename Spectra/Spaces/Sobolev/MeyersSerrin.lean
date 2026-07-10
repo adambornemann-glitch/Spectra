@@ -9,7 +9,7 @@ import Spectra.Spaces.Sobolev.MeyersCommon
 /-!
 # Meyers–Serrin approximation (single direction)
 
-The single-direction instance of the Meyers–Serrin "H = W" approximation: any `g : l2R3`
+The single-direction instance of the Meyers–Serrin "H = W" approximation: any `g : (l2Rn d)`
 with a weak derivative `dg` in one coordinate direction `i` can be approximated, simultaneously
 in the L² norm and in the direction-`i` weak-derivative norm, by a genuinely smooth,
 compactly supported function.
@@ -49,6 +49,8 @@ open scoped ContDiff
 
 namespace Spectra.Sobolev
 
+variable {d : ℕ}
+
 /-- Truncation step of Meyers-Serrin: multiply `g` by a smooth cutoff `χ_R` to get compactly
     supported approximations `(h_R, dh_R)` of `(g, dg)` preserving weak derivative structure
     (`χ_R · g` has weak derivative `χ_R · dg + g · ∂ᵢχ_R` by `hasWeakDerivative_smul_smooth`).
@@ -61,12 +63,12 @@ namespace Spectra.Sobolev
     The single direction `i` is the `ι := Unit` specialization of the shared
     `truncation_approx_family` cutoff construction (`MeyersCommon.lean`), which carries out this
     whole argument once, generically in the index set; see `truncation_approx_multi` in
-    `MeyersMulti.lean` for the `Fin 3` sibling. We unpack the trivial `Unit`-indexed output
+    `MeyersMulti.lean` for the `Fin d` sibling. We unpack the trivial `Unit`-indexed output
     (`h_R`/`dh_R`/… at the single point `()`) back into the bare, un-indexed shape this lemma has
     always had. -/
-private lemma truncation_approx (i : Fin 3) (g dg : l2R3)
+private lemma truncation_approx (i : Fin d) (g dg : (l2Rn d))
     (h_dg : HasWeakDerivative g i dg) (ε : ℝ) (hε : 0 < ε) :
-    ∃ (h_R : R3 → ℂ) (dh_R : R3 → ℂ)
+    ∃ (h_R : Rn d → ℂ) (dh_R : Rn d → ℂ)
       (hh : MemLp h_R 2 volume) (hdh : MemLp dh_R 2 volume),
       HasCompactSupport h_R ∧ HasCompactSupport dh_R ∧
       HasWeakDerivative (hh.toLp h_R) i (hdh.toLp dh_R) ∧
@@ -85,9 +87,9 @@ private lemma truncation_approx (i : Fin 3) (g dg : l2R3)
     `mollify_compactly_supported` convolves that pair with a smooth bump to land a genuinely
     smooth `φ` within a further `ε/2` of the truncation in both norms; the triangle inequality
     combines the two `ε/2` bounds into the single `ε` bounds stated here. -/
-lemma meyers_serrin_approx (i : Fin 3) (g dg : l2R3)
+lemma meyers_serrin_approx (i : Fin d) (g dg : (l2Rn d))
     (h_dg : HasWeakDerivative g i dg) (ε : ℝ) (hε : 0 < ε) :
-    ∃ (φ : R3 → ℂ) (hφ : ContDiff ℝ ∞ φ) (hsupp : HasCompactSupport φ),
+    ∃ (φ : Rn d → ℂ) (hφ : ContDiff ℝ ∞ φ) (hsupp : HasCompactSupport φ),
       ‖g - (memLp_of_smooth_compactSupport φ hφ hsupp).toLp φ‖ < ε ∧
       ‖dg - (memLp_partialDeriv φ i hφ hsupp).toLp
         (fun x => fderiv ℝ φ x (EuclideanSpace.single i 1))‖ < ε := by

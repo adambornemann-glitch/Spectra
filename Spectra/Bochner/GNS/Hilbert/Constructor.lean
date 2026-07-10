@@ -102,7 +102,7 @@ Mathlib tools:
 noncomputable def gnsConstruction {f : ℝ → ℂ}
     (hPD : IsPositiveDefinite f) (hH : IsHermitian f) :
     GNSData f := by
-  let core := quotientCore hPD hH
+  let _core := quotientCore hPD hH
   let V := GNSQuotient hPD hH
   letI nacgV := gnsQuotientNACG hPD hH
   letI ipsV := gnsQuotientIPS hPD hH

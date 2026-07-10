@@ -220,7 +220,7 @@ theorem spectralForm_calculus_right (g h : ℝ → ℂ)
     (hh_meas : Measurable h) (hh_bdd : ∃ C, ∀ ω, ‖h ω‖ ≤ C) (ξ η : H) :
     spectralForm U_grp ξ (spectralCalculus U_grp g hg_meas hg_bdd η) h
       = spectralForm U_grp ξ η (fun l => h l * g l) := by
-  set Φg : H →L[ℂ] H := spectralCalculus U_grp g hg_meas hg_bdd with hΦ
+  set Φg : H →L[ℂ] H := spectralCalculus U_grp g hg_meas hg_bdd with _hΦ
   have key := integral_combination_ext
     (![1 / 4, -(1 / 4), I / 4, -(I / 4)])
     (fun i => borelMeasure U_grp

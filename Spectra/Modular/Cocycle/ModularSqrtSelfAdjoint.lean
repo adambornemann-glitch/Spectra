@@ -136,7 +136,7 @@ lemma measurable_sqrtMulResMinus :
 theorem modularSqrt_add_I_surjective (hcyc : IsCyclic M Ω) (hsep : IsSeparating M Ω) :
     ∀ h : H, ∃ ψ : (modularSqrt hcyc hsep).domain,
       modularSqrt hcyc hsep ψ + I • (ψ : H) = h := by
-  set U := genToGroup (modularOp_isSelfAdjoint hcyc hsep) with hU
+  set U := genToGroup (modularOp_isSelfAdjoint hcyc hsep) with _hU
   intro h
   have hmem : spectralCalculus U (fun s => (1 : ℂ) / ((Real.sqrt s : ℂ) + I))
         measurable_resPlus resPlus_bdd h
@@ -182,7 +182,7 @@ identity `√/(√−i) − i/(√−i) = (√−i)/(√−i) = 1`. -/
 theorem modularSqrt_sub_I_surjective (hcyc : IsCyclic M Ω) (hsep : IsSeparating M Ω) :
     ∀ h : H, ∃ ψ : (modularSqrt hcyc hsep).domain,
       modularSqrt hcyc hsep ψ - I • (ψ : H) = h := by
-  set U := genToGroup (modularOp_isSelfAdjoint hcyc hsep) with hU
+  set U := genToGroup (modularOp_isSelfAdjoint hcyc hsep) with _hU
   intro h
   have hmem : spectralCalculus U (fun s => (1 : ℂ) / ((Real.sqrt s : ℂ) - I))
         measurable_resMinus resMinus_bdd h

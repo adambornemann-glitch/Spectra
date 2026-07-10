@@ -176,7 +176,7 @@ lemma step_B_at (p : CoulombParams) (n : ℕ) (z : ℂ) (hz : z.im ≠ 0) (ψ : 
   have hW := coulombResolventAt_coeFn p z hz (ψ.toLp 2 volume)
   -- multIndicatorBall coeFn
   have hM := multIndicatorBall_coeFn n (coulombResolventAt p z hz (ψ.toLp 2 volume))
-  filter_upwards [hLHS, hKae2, hS3, hW, hM, hψae] with x hLHSx hKae2x hS3x hWx hMx hψaex
+  filter_upwards [hLHS, hKae2, hS3, hW, hM, hψae] with x hLHSx hKae2x hS3x hWx hMx _hψaex
   -- compute LHS at x
   rw [hLHSx]
   -- inner integral with Kₙ rep, and ψ.toLp = ψ

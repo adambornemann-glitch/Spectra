@@ -64,15 +64,15 @@ lemma resolvent_identity {A : H →ₗ.[ℂ] H}
     resolvent z hz hsym hplus hminus - resolvent w hw hsym hplus hminus =
     (z - w) • ((resolvent z hz hsym hplus hminus).comp (resolvent w hw hsym hplus hminus)) := by
   ext φ
-  set ψ_w := resolventSolution w hw hsym hplus hminus φ with hψ_w_def
+  set ψ_w := resolventSolution w hw hsym hplus hminus φ with _hψ_w_def
   have h_w_domain : ψ_w ∈ A.domain := resolventSolution_mem w hw hsym hplus hminus φ
   have h_w_eq : A ⟨ψ_w, h_w_domain⟩ - w • ψ_w = φ :=
     resolventSolution_eq w hw hsym hplus hminus φ
-  set ψ_z := resolventSolution z hz hsym hplus hminus φ with hψ_z_def
+  set ψ_z := resolventSolution z hz hsym hplus hminus φ with _hψ_z_def
   have h_z_domain : ψ_z ∈ A.domain := resolventSolution_mem z hz hsym hplus hminus φ
   have h_z_eq : A ⟨ψ_z, h_z_domain⟩ - z • ψ_z = φ :=
     resolventSolution_eq z hz hsym hplus hminus φ
-  set η := resolventSolution z hz hsym hplus hminus ψ_w with hη_def
+  set η := resolventSolution z hz hsym hplus hminus ψ_w with _hη_def
   have h_η_domain : η ∈ A.domain := resolventSolution_mem z hz hsym hplus hminus ψ_w
   have h_η_eq : A ⟨η, h_η_domain⟩ - z • η = ψ_w :=
     resolventSolution_eq z hz hsym hplus hminus ψ_w
@@ -116,7 +116,7 @@ lemma resolvent_identity {A : H →ₗ.[ℂ] H}
       _ = (A ⟨ψ_z, h_z_domain⟩ - z • ψ_z) + (w - z) • (A ⟨η, h_η_domain⟩ - z • η) :=
             by rw [← smul_sub]
       _ = φ + (w - z) • ψ_w := by rw [h_z_eq, h_η_eq]
-  set target := φ + (w - z) • ψ_w with htarget_def
+  set target := φ + (w - z) • ψ_w with _htarget_def
   have h_ψw_solves : A ⟨ψ_w, h_w_domain⟩ - z • ψ_w = target := h_Az_ψw
   have h_sum_solves : A ⟨ψ_z + (w - z) • η, h_sum_domain⟩ -
       z • (ψ_z + (w - z) • η) = target := h_sum_eq
@@ -246,11 +246,11 @@ lemma resolvent_adjoint {A : H →ₗ.[ℂ] H}
   set z_bar := (starRingEnd ℂ) z with hz_bar_def
   have hz_bar : z_bar.im ≠ 0 := by
     rw [hz_bar_def]; simp only [Complex.conj_im, neg_ne_zero]; exact hz
-  set ξ := resolventSolution z hz hsym hplus hminus ψ with hξ_def'
+  set ξ := resolventSolution z hz hsym hplus hminus ψ with _hξ_def'
   have hξ_domain : ξ ∈ A.domain := resolventSolution_mem z hz hsym hplus hminus ψ
   have hξ_eq : A ⟨ξ, hξ_domain⟩ - z • ξ = ψ := resolventSolution_eq z hz hsym hplus hminus ψ
   have hξ_def : resolvent z hz hsym hplus hminus ψ = ξ := rfl
-  set η := resolventSolution z_bar hz_bar hsym hplus hminus φ with hη_def'
+  set η := resolventSolution z_bar hz_bar hsym hplus hminus φ with _hη_def'
   have hη_domain : η ∈ A.domain := resolventSolution_mem z_bar hz_bar hsym hplus hminus φ
   have hη_eq : A ⟨η, hη_domain⟩ - z_bar • η = φ :=
     resolventSolution_eq z_bar hz_bar hsym hplus hminus φ

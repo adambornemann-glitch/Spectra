@@ -325,10 +325,10 @@ lemma klDiv_third_deriv_decomposition
     refine (this.symm ▸ ?_)
     congr 1; ext ω; simp only [A, B, C, D, E]; ring
   -- Step 6: Split ∫(A + BCDE) and rearrange: -∫A = ∫(B+C+D+E)
-  have hB_int : Integrable B M.refMeasure := h_int_m₁
-  have hC_int : Integrable C M.refMeasure := h_int_m₂
-  have hD_int : Integrable D M.refMeasure := h_int_m₃
-  have hE_int : Integrable E M.refMeasure := h_int_cubic
+  have _hB_int : Integrable B M.refMeasure := h_int_m₁
+  have _hC_int : Integrable C M.refMeasure := h_int_m₂
+  have _hD_int : Integrable D M.refMeasure := h_int_m₃
+  have _hE_int : Integrable E M.refMeasure := h_int_cubic
   have h_int_BCDE : Integrable (fun ω => B ω + C ω + D ω + E ω) M.refMeasure :=
     ((h_int_m₁.add h_int_m₂).add h_int_m₃).add h_int_cubic
   have h_split : ∫ ω, A ω ∂M.refMeasure +

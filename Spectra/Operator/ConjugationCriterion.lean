@@ -145,7 +145,7 @@ theorem conj_mem_deficiencySubspaceMinus (hdense : Dense (A.domain : Set H))
   rw [Submodule.mem_orthogonal]
   rintro y ⟨ψ, rfl⟩
   -- `Aψ = C(A(Cψ))` via commutation + involution
-  set ψ' : A.domain := ⟨C (ψ : H), hdom _ ψ.2⟩ with hψ'
+  set ψ' : A.domain := ⟨C (ψ : H), hdom _ ψ.2⟩ with _hψ'
   have hAψ : A ψ = C (A ψ') := by
     rw [← hcomm ψ']
     congr 1
@@ -170,7 +170,7 @@ theorem conj_mem_deficiencySubspacePlus (hdense : Dense (A.domain : Set H))
   apply orthogonal_le_deficiencySubspacePlus A hdense
   rw [Submodule.mem_orthogonal]
   rintro y ⟨ψ, rfl⟩
-  set ψ' : A.domain := ⟨C (ψ : H), hdom _ ψ.2⟩ with hψ'
+  set ψ' : A.domain := ⟨C (ψ : H), hdom _ ψ.2⟩ with _hψ'
   have hAψ : A ψ = C (A ψ') := by
     rw [← hcomm ψ']
     congr 1

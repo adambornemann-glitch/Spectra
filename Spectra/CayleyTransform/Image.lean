@@ -50,7 +50,7 @@ def inverseCayleyImage (S : Set ℂ) : Set ℝ :=
 lemma cayleyImage_inverseCayleyImage (S : Set ℂ) (hS : S ⊆ {w | ‖w‖ = 1 ∧ w ≠ 1}) :
     cayleyImage (inverseCayleyImage S) = S := by
   ext w
-  refine ⟨fun ⟨μ, hμ, hμw⟩ => hμw ▸ hμ, fun hw => ?_⟩
+  refine ⟨fun ⟨_μ, hμ, hμw⟩ => hμw ▸ hμ, fun hw => ?_⟩
   obtain ⟨hw_norm, hw_ne⟩ := hS hw
   have him : (inverseMobius w).im = 0 := inverseMobius_real w hw_norm hw_ne
   have hμ_eq : (↑(inverseMobius w).re : ℂ) = inverseMobius w :=

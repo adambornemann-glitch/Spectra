@@ -77,7 +77,7 @@ private theorem borelMeasure_Iio_neg_eq_zero
   have hmem : spectralProjection U_grp (Set.Iio (-c)) hBmeas (x : H) ∈ generatorDomain U_grp :=
     spectralProjection_mem_generatorDomain_of_mem U_grp hBmeas x
   set y : (generator U_grp).domain :=
-    ⟨spectralProjection U_grp (Set.Iio (-c)) hBmeas (x : H), hmem⟩ with hy
+    ⟨spectralProjection U_grp (Set.Iio (-c)) hBmeas (x : H), hmem⟩ with _hy
   have hrestr : borelMeasure U_grp (y : H)
       = (borelMeasure U_grp (x : H)).restrict (Set.Iio (-c)) :=
     borelMeasure_spectralProjection_restrict U_grp (Set.Iio (-c)) hBmeas (x : H)

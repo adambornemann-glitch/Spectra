@@ -133,7 +133,7 @@ theorem essSpectrum_smul_real {A : H →ₗ.[ℂ] H} (hA : IsSelfAdjoint A)
     essSpectrum (isSelfAdjoint_smul_real hA c hc) = (fun μ => c * μ) '' essSpectrum hA := by
   apply Set.eq_of_subset_of_subset
   · intro μ hμ
-    have hcℂ : (c : ℂ) ≠ 0 := by exact_mod_cast hc
+    have _hcℂ : (c : ℂ) ≠ 0 := by exact_mod_cast hc
     have hcA_SA : IsSelfAdjoint ((c : ℂ) • A) := isSelfAdjoint_smul_real hA c hc
     have hstep := mem_essSpectrum_smul_real hcA_SA c⁻¹ (inv_ne_zero hc) hμ
     have hop : ((c⁻¹ : ℝ) : ℂ) • (((c : ℂ)) • A) = A := smul_inv_smul_pmap c hc
@@ -165,7 +165,7 @@ theorem selfAdjointResolvent_smul_real {A : H →ₗ.[ℂ] H} (hA : IsSelfAdjoin
   have hcℂ : (c : ℂ) ≠ 0 := by exact_mod_cast hc
   have hcA_SA : IsSelfAdjoint ((c : ℂ) • A) := isSelfAdjoint_smul_real hA c hc
   set z' : ℂ := ((c⁻¹ : ℝ) : ℂ) * z with hz'def
-  set hz' : z'.im ≠ 0 := smul_inv_im_ne_zero hc hz with hhz'
+  set hz' : z'.im ≠ 0 := smul_inv_im_ne_zero hc hz with _hhz'
   ext φ
   obtain ⟨ψ, hψ⟩ := smul_surjective_sub_smul hA c hc z hz φ
   have hLHS : selfAdjointResolvent hcA_SA z hz φ = (ψ : H) := by

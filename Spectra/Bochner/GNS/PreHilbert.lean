@@ -75,7 +75,7 @@ lemma pdInner_cauchy_schwarz_re {f : ℝ → ℂ}
     have hlin : ∀ lambda : ℝ, 0 ≤ A + 2 * B * lambda := by simpa [hC0] using hq
     have hB : B = 0 := by
       by_contra hB
-      have h2B : (2 : ℝ) * B ≠ 0 := mul_ne_zero two_ne_zero hB
+      have _h2B : (2 : ℝ) * B ≠ 0 := mul_ne_zero two_ne_zero hB
       linarith [hlin (-(A + 1) / (2 * B)),
         show A + 2 * B * (-(A + 1) / (2 * B)) = -1 from by field_simp; ring]
     simp [hB, hC0]

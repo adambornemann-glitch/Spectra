@@ -267,9 +267,9 @@ theorem exists_conjModularSqrtInv_sq (x : (modularOp M Ω).domain) :
           ⟨conjModularSqrtInv hcyc hsep ⟨(x : H), h1⟩, h2⟩ = modularOp M Ω x := by
   classical
   obtain ⟨⟨hxS, hSx⟩, -⟩ := x.2
-  set S : H →ₗ.[ℂ] Conj H := tomitaClosure M Ω with hSdef
-  set P : H →ₗ.[ℂ] H := conjModularSqrtInv hcyc hsep with hPdef
-  set b : H ≃ₗᵢ[ℂ] Conj H := modularWInv hcyc hsep with hbdef
+  set S : H →ₗ.[ℂ] Conj H := tomitaClosure M Ω with _hSdef
+  set P : H →ₗ.[ℂ] H := conjModularSqrtInv hcyc hsep with _hPdef
+  set b : H ≃ₗᵢ[ℂ] Conj H := modularWInv hcyc hsep with _hbdef
   have hSC : S = b.toLinearEquiv.toLinearMap.compPMap P :=
     tomitaClosure_eq_modularWInv_comp hcyc hsep
   have hPsa : P.adjoint = P :=

@@ -196,7 +196,7 @@ lemma cos_mem_Ioo_of_mem_Ioo {t : ℝ} (ht : t ∈ Set.Ioo 0 Real.pi) :
 
 /-- `(natAbs m : ℝ)² = (m : ℝ)²` — the eigenvalue only sees `m²`. -/
 lemma natAbs_sq_real (m : ℤ) : ((m.natAbs : ℝ)) ^ 2 = ((m : ℝ)) ^ 2 := by
-  have hz : ((m.natAbs : ℤ)) ^ 2 = m ^ 2 := by
+  have _hz : ((m.natAbs : ℤ)) ^ 2 = m ^ 2 := by
     rcases Int.natAbs_eq m with h | h
     · conv_rhs => rw [h]
     · conv_rhs => rw [h]
@@ -255,7 +255,7 @@ theorem sphericalHarmonic_eigenvalue (ℓ : ℕ) (m : ℤ) (hm : |m| ≤ ℓ)
           ((assocLegendreSL ℓ m.natAbs (Real.cos t) : ℝ) : ℂ) := by
     refine Filter.eventuallyEq_of_mem (isOpen_Ioo.mem_nhds hθ) ?_
     intro t ht
-    have hxt := cos_mem_Ioo_of_mem_Ioo ht
+    have _hxt := cos_mem_Ioo_of_mem_Ioo ht
     have hst : Real.sin t ≠ 0 := (Real.sin_pos_of_pos_of_lt_pi ht.1 ht.2).ne'
     have hsqC : ((Real.sin t : ℂ)) ^ 2 = 1 - ((Real.cos t : ℂ)) ^ 2 := by
       exact_mod_cast Real.sin_sq t

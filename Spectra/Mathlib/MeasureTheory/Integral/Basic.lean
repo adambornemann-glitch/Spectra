@@ -80,8 +80,8 @@ lemma integrable_exp_decay_continuous
     (f : ℝ → V) (hf_cont : Continuous f)
     (C : ℝ) (hC : ∀ t ≥ 0, ‖f t‖ ≤ C) :
     IntegrableOn (fun t => Real.exp (-t) • f t) (Set.Ici 0) volume := by
-  set M := max |C| 1 with hM_def
-  have hM_pos : 0 < M := lt_max_of_lt_right one_pos
+  set M := max |C| 1 with _hM_def
+  have _hM_pos : 0 < M := lt_max_of_lt_right one_pos
   have hM_ge : |C| ≤ M := le_max_left _ _
   have h_exp_int : IntegrableOn (fun t => Real.exp (-t)) (Set.Ici 0) volume :=
     integrableOn_exp_neg
@@ -147,7 +147,7 @@ lemma hasDerivAt_integral_of_exp_decay
                t := by
   let μ := volume.restrict (Set.Ici (0 : ℝ))
   let M := max |C| 1
-  have hM_pos : 0 < M := lt_max_of_lt_right one_pos
+  have _hM_pos : 0 < M := lt_max_of_lt_right one_pos
   have hC_le_M : |C| ≤ M := le_max_left _ _
   have h := hasDerivAt_integral_of_dominated_loc_of_deriv_le
     (μ := μ) (x₀ := t)

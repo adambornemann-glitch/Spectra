@@ -104,7 +104,7 @@ theorem integral_norm_integralKernel_sq_le (K : α × β → ℂ) (hK : MemLp K 
     (f : β → ℂ) (hf : MemLp f 2 ν) :
     (∫ x, ‖∫ y, K (x, y) * f y ∂ν‖ ^ 2 ∂μ)
       ≤ (∫ z, ‖K z‖ ^ 2 ∂(μ.prod ν)) * (∫ y, ‖f y‖ ^ 2 ∂ν) := by
-  set C : ℝ := ∫ y, ‖f y‖ ^ 2 ∂ν with hC
+  set C : ℝ := ∫ y, ‖f y‖ ^ 2 ∂ν with _hC
   have hKsq : Integrable (fun z => ‖K z‖ ^ 2) (μ.prod ν) :=
     (memLp_two_iff_integrable_sq_norm hK.aestronglyMeasurable).1 hK
   -- `x ↦ ∫_y ‖K(x,y)‖²` is integrable (Tonelli).
@@ -178,7 +178,7 @@ noncomputable def integralOperatorLM : Lp ℂ 2 ν →ₗ[ℂ] Lp ℂ 2 μ where
   map_smul' c f := by
     rw [RingHom.id_apply, ← MemLp.toLp_const_smul]
     refine MemLp.toLp_congr _ _ ?_
-    filter_upwards [integrable_kernel_mul K f] with x hxf
+    filter_upwards [integrable_kernel_mul K f] with x _hxf
     simp only [Pi.smul_apply, smul_eq_mul]
     rw [← integral_const_mul]
     refine integral_congr_ae ?_

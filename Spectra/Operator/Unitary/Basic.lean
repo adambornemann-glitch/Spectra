@@ -216,7 +216,7 @@ lemma normal_bounded_below_surjective {T : H →L[ℂ] H}
           exact Complex.ofReal_re _
         linarith [h_inner, congrArg Complex.re h]
       have h3 : ‖T y‖^2 = (⟪T.adjoint (T y), y⟫_ℂ).re := by
-        have h := ContinuousLinearMap.adjoint_inner_left T (T y) y
+        have _h := ContinuousLinearMap.adjoint_inner_left T (T y) y
         have h_inner : (⟪T y, T y⟫_ℂ).re = ‖T y‖^2 := by
           rw [inner_self_eq_norm_sq_to_K (𝕜 := ℂ)]
           simp only [coe_algebraMap]
@@ -309,7 +309,7 @@ lemma unitary_not_isUnit_approx_eigenvalue [Nontrivial H] {U : H →L[ℂ] H} (h
     intro φ
     by_cases hφ : φ = 0
     · simp [hφ]
-    · have hφ_norm_pos : ‖φ‖ > 0 := norm_pos_iff.mpr hφ
+    · have _hφ_norm_pos : ‖φ‖ > 0 := norm_pos_iff.mpr hφ
       have h_unit := hε_bound (‖φ‖⁻¹ • φ) (by rw [norm_smul, norm_inv, norm_norm]; field_simp)
       calc ‖(U - w • ContinuousLinearMap.id ℂ H) φ‖
           = ‖φ‖ * (‖φ‖⁻¹ * ‖(U - w • ContinuousLinearMap.id ℂ H) φ‖) := by field_simp
@@ -340,7 +340,7 @@ lemma unitary_not_approx_eigenvalue_isUnit [Nontrivial H] {U : H →L[ℂ] H} (h
     intro φ
     by_cases hφ : φ = 0
     · simp [hφ]
-    · have hφ_norm_pos : ‖φ‖ > 0 := norm_pos_iff.mpr hφ
+    · have _hφ_norm_pos : ‖φ‖ > 0 := norm_pos_iff.mpr hφ
       have h_unit := hε_bound (‖φ‖⁻¹ • φ) (by rw [norm_smul, norm_inv, norm_norm]; field_simp)
       calc ‖(U - w • ContinuousLinearMap.id ℂ H) φ‖
           = ‖φ‖ * (‖φ‖⁻¹ * ‖(U - w • ContinuousLinearMap.id ℂ H) φ‖) := by field_simp

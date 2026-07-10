@@ -259,7 +259,7 @@ lemma resolventOf_eq_mul_inverse {A : H →ₗ.[ℂ] H} {z₀ : ℂ} (hz₀ : z�
     {z : ℂ} (hz : ‖z - z₀‖ * ‖resolventOf A z₀‖ < 1) :
     resolventOf A z
       = resolventOf A z₀ * Ring.inverse (1 - (z - z₀) • resolventOf A z₀) := by
-  set R₀ := resolventOf A z₀ with hR₀
+  set R₀ := resolventOf A z₀ with _hR₀
   have hTnorm : ‖(z - z₀) • R₀‖ < 1 := by rw [norm_smul]; exact hz
   have huniq : resolventOf A z = R₀ * neumannSeries ((z - z₀) • R₀) hTnorm :=
     resolventOf_eq_of_isResolvent (isResolvent_mul_neumann (resolventOf_isResolvent hz₀) hTnorm)
@@ -288,7 +288,7 @@ theorem isOpen_resolventSet (A : H →ₗ.[ℂ] H) : IsOpen (resolventSet A) := 
 `R₀ · (1 − (z − z₀) R₀)⁻¹`, a composition of an affine map with `Ring.inverse` at a unit. -/
 lemma resolventOf_differentiableAt {A : H →ₗ.[ℂ] H} {z₀ : ℂ} (hz₀ : z₀ ∈ resolventSet A) :
     DifferentiableAt ℂ (resolventOf A) z₀ := by
-  set R₀ := resolventOf A z₀ with hR₀
+  set R₀ := resolventOf A z₀ with _hR₀
   -- The local model `g z = R₀ · (1 − (z − z₀) R₀)⁻¹` is differentiable at `z₀`.
   have hg : DifferentiableAt ℂ (fun z => R₀ * Ring.inverse (1 - (z - z₀) • R₀)) z₀ := by
     have hc : DifferentiableAt ℂ (fun z => (1 : H →L[ℂ] H) - (z - z₀) • R₀) z₀ := by fun_prop

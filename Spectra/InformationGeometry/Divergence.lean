@@ -179,7 +179,7 @@ private lemma crossEntropy_hasFDerivAt {θ θ₀ : ParamSpace n}
   obtain ⟨ε₁, hε₁, bound, hbound_int, h_ae⟩ :=
     M.crossEntropy_fderiv_bound θ hθ θ₀ hθ₀
   obtain ⟨ε₂, hε₂, hball⟩ := Metric.isOpen_iff.mp M.isOpen_paramDomain θ₀ hθ₀
-  set ε := min ε₁ ε₂ with hε_def
+  set ε := min ε₁ ε₂ with _hε_def
   have hε_pos : 0 < ε := lt_min hε₁ hε₂
   apply hasFDerivAt_integral_of_dominated_of_fderiv_le
     (s := Metric.ball θ₀ ε)
@@ -384,9 +384,9 @@ lemma score_deriv_aestronglyMeasurable
         push_cast; ring_nf; simp only [zero_smul, add_zero]
       have h_seq_pos : ∀ m : ℕ, (0 : ℝ) < (m + 1 + N₀ : ℝ) := by
         intro m; positivity
-      have h_seq_ne : ∀ m : ℕ, (m + 1 + N₀ : ℝ)⁻¹ ≠ 0 := by
+      have _h_seq_ne : ∀ m : ℕ, (m + 1 + N₀ : ℝ)⁻¹ ≠ 0 := by
         intro m; exact inv_ne_zero (ne_of_gt (h_seq_pos m))
-      have h_seq_tendsto : Tendsto (fun m : ℕ => (m + 1 + N₀ : ℝ)⁻¹) atTop (𝓝 0) := by
+      have _h_seq_tendsto : Tendsto (fun m : ℕ => (m + 1 + N₀ : ℝ)⁻¹) atTop (𝓝 0) := by
         exact tendsto_inv_atTop_zero.comp
           (Filter.tendsto_atTop_add_const_right _ _ (
             Filter.tendsto_atTop_add_const_right _ _
@@ -603,7 +603,7 @@ lemma integral_second_partial_eq_zero
       fderiv ℝ (fun θ'' => M.density θ'' ω) θ' (EuclideanSpace.single j 1)) θ
         (EuclideanSpace.single i 1) ∂M.refMeasure = 0 := by
   set f : ParamSpace n → Ω → ℝ := fun θ' ω =>
-    fderiv ℝ (fun θ'' => M.density θ'' ω) θ' (EuclideanSpace.single j 1) with hf_def
+    fderiv ℝ (fun θ'' => M.density θ'' ω) θ' (EuclideanSpace.single j 1) with _hf_def
   have hG_ev : (fun θ' => ∫ ω, f θ' ω ∂M.refMeasure) =ᶠ[𝓝 θ] 0 := by
     filter_upwards [M.isOpen_paramDomain.mem_nhds hθ] with θ' hθ'
     have h := M.toRegularStatisticalModel.integral_partialDensity_eq_zero hθ' j
@@ -844,7 +844,7 @@ lemma cross_score_hasFDerivAt
       unfold RegularStatisticalModel.score RegularStatisticalModel.partialDensity
       field_simp
     rw [h_pd_i] at h_eval
-    have h_comm : M.toRegularStatisticalModel.score θ j ω *
+    have _h_comm : M.toRegularStatisticalModel.score θ j ω *
         (M.toRegularStatisticalModel.score θ i ω * M.density θ ω) =
       M.toRegularStatisticalModel.score θ i ω *
         M.toRegularStatisticalModel.score θ j ω * M.density θ ω := by ring
@@ -923,7 +923,7 @@ lemma cross_score_differentiableAt
     M.score_fderiv_bound θ hθ θ₀ hθ₀ j
   obtain ⟨ε₂, hε₂, hball₂⟩ :=
     Metric.isOpen_iff.mp M.isOpen_paramDomain θ₀ hθ₀
-  set ε := min ε₁ ε₂ with hε_def
+  set ε := min ε₁ ε₂ with _hε_def
   have hε_pos : 0 < ε := lt_min hε₁ hε₂
   have h_base_int : Integrable
       (fun ω => M.density θ ω *
@@ -1097,13 +1097,13 @@ lemma klDiv_taylor_second_order {θ : ParamSpace n} (hθ : θ ∈ M.paramDomain)
         Finset.univ_nonempty_iff.mpr ⟨⟨0, Nat.pos_of_ne_zero hn⟩⟩
       set m := Finset.inf' Finset.univ hne ρ_j
       have hm_pos : 0 < m := by
-        exact (lt_inf'_iff hne).mpr fun i a => hρ_j_pos i
+        exact (lt_inf'_iff hne).mpr fun i _a => hρ_j_pos i
       have hm_le : ∀ j : Fin n, m ≤ ρ_j j :=
         fun j => Finset.inf'_le _ (Finset.mem_univ j)
       refine ⟨min m r_dom, lt_min hm_pos hr_dom_pos,
         min_le_right _ _, fun j => le_trans (min_le_left _ _) (hm_le j)⟩
   obtain ⟨δ₀, hδ₀_pos, hδ₀_dom, hδ₀_ρ⟩ := h_exists_δ₀
-  refine ⟨δ₀, hδ₀_pos, fun δ hδ hδ_mem => ?_⟩
+  refine ⟨δ₀, hδ₀_pos, fun δ hδ _hδ_mem => ?_⟩
   by_cases hδ_zero : δ = 0
   · simp [hδ_zero, klDiv_self M hθ]
   have hn_η : ↑n * η ≤ ε := by
@@ -1241,7 +1241,7 @@ lemma klDiv_taylor_second_order {θ : ParamSpace n} (hθ : θ ∈ M.paramDomain)
            ∑ i, (t • δ) i * M.toRegularStatisticalModel.fisherMatrix θ i j| := by
           calc _ ≤ ∑ j, |δ j * _| := Finset.abs_sum_le_sum_abs _ _
             _ = _ := by congr 1; ext j; exact abs_mul _ _
-      _ ≤ ∑ j : Fin n, ‖δ‖ * (η * ‖δ‖) := by
+      _ ≤ ∑ _j : Fin n, ‖δ‖ * (η * ‖δ‖) := by
           apply Finset.sum_le_sum; intro j _
           exact mul_le_mul (h_comp_le j) (h_res_bound j) (abs_nonneg _) (norm_nonneg _)
       _ = ↑n * η * ‖δ‖ ^ 2 := by

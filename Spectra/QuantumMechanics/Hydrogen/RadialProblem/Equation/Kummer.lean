@@ -81,17 +81,17 @@ lemma kummerCoeff_succ (a b : ℝ) (k : ℕ) :
 
 /-- For `b > 0` the denominator `(b + k)(k + 1)` is strictly positive. -/
 lemma kummer_den_pos (b : ℝ) (hb : 0 < b) (k : ℕ) : 0 < (b + (k : ℝ)) * ((k : ℝ) + 1) := by
-  have hbk : 0 < b + (k : ℝ) := by
-    have hk : (0 : ℝ) ≤ (k : ℝ) := by positivity
+  have _hbk : 0 < b + (k : ℝ) := by
+    have _hk : (0 : ℝ) ≤ (k : ℝ) := by positivity
     linarith
-  have hk1 : 0 < (k : ℝ) + 1 := by positivity
+  have _hk1 : 0 < (k : ℝ) + 1 := by positivity
   positivity
 
 /-- The recurrence cleared of denominators: `(k+1)(b+k)·c_{k+1} = (a+k)·c_k`. -/
 lemma kummerCoeff_rec (a b : ℝ) (hb : 0 < b) (k : ℕ) :
     ((k : ℝ) + 1) * (b + (k : ℝ)) * kummerCoeff a b (k + 1)
       = (a + (k : ℝ)) * kummerCoeff a b k := by
-  have hden := (kummer_den_pos b hb k).ne'
+  have _hden := (kummer_den_pos b hb k).ne'
   rw [kummerCoeff_succ]
   field_simp
 
@@ -117,7 +117,7 @@ lemma summable_abs_kummer_mul_pow (a b : ℝ) (hb : 0 < b) (j : ℕ) {R : ℝ} (
   have hcn0 : 0 ≤ cn := by rw [hcn]; positivity
   have hRn : 0 ≤ R ^ n := by positivity
   have hn0 : (0 : ℝ) ≤ (n : ℝ) := by positivity
-  have hbk : (0 : ℝ) < b + (n : ℝ) := by linarith
+  have _hbk : (0 : ℝ) < b + (n : ℝ) := by linarith
   have hD : (0 : ℝ) < (b + (n : ℝ)) * ((n : ℝ) + 1) := kummer_den_pos b hb n
   have hfac : 0 ≤ cn * R ^ n := mul_nonneg hcn0 hRn
   -- The norms are the (nonnegative) values themselves.
@@ -228,7 +228,7 @@ lemma kummerM_hasDerivAt (a b : ℝ) (hb : 0 < b) (z : ℝ) :
         ≤ |kummerCoeff a b n| * ((n : ℝ) + 1) ^ 1 * (|z| + 1) ^ n := by
     intro n y hy
     rw [Metric.mem_ball, Real.dist_eq, sub_zero] at hy
-    have h1 : |y| ≤ |z| + 1 := le_of_lt hy
+    have _h1 : |y| ≤ |z| + 1 := le_of_lt hy
     have hyn : |y| ^ (n - 1) ≤ (|z| + 1) ^ n := by
       calc |y| ^ (n - 1) ≤ (|z| + 1) ^ (n - 1) := by gcongr
         _ ≤ (|z| + 1) ^ n := by gcongr <;> [linarith [abs_nonneg z]; exact Nat.sub_le n 1]
@@ -304,7 +304,7 @@ lemma kummerM_hasDerivAt2 (a b : ℝ) (hb : 0 < b) (z : ℝ) :
         ≤ |kummerCoeff a b n| * ((n : ℝ) + 1) ^ 2 * (|z| + 1) ^ n := by
     intro n y hy
     rw [Metric.mem_ball, Real.dist_eq, sub_zero] at hy
-    have h1 : |y| ≤ |z| + 1 := le_of_lt hy
+    have _h1 : |y| ≤ |z| + 1 := le_of_lt hy
     have hyn : |y| ^ (n - 1 - 1) ≤ (|z| + 1) ^ n := by
       calc |y| ^ (n - 1 - 1) ≤ (|z| + 1) ^ (n - 1 - 1) := by gcongr
         _ ≤ (|z| + 1) ^ n := by gcongr <;> [linarith [abs_nonneg z]; omega]
@@ -499,7 +499,7 @@ lemma abs_kummerCoeff_ratio_lower (a b : ℝ) (hb : 0 < b) :
   obtain ⟨hpos, hhalf⟩ := hK k hk
   rw [abs_kummerCoeff_succ a b hb k, abs_of_pos hpos]
   have hbk : (0 : ℝ) < b + (k : ℝ) := by linarith [Nat.cast_nonneg (α := ℝ) k]
-  have hk1 : (0 : ℝ) < (k : ℝ) + 1 := by positivity
+  have _hk1 : (0 : ℝ) < (k : ℝ) + 1 := by positivity
   have hratio : (1 : ℝ) / 2 ≤ (a + (k : ℝ)) / (b + (k : ℝ)) := by rw [le_div_iff₀ hbk]; linarith
   calc (1 / 2) * |kummerCoeff a b k|
       ≤ (a + (k : ℝ)) / (b + (k : ℝ)) * |kummerCoeff a b k| :=
@@ -516,7 +516,7 @@ lemma abs_kummerCoeff_geom_lower (a b : ℝ) (hb : 0 < b) (ha : ∀ p : ℕ, a �
       ∀ k ≥ K, C * (1 / 2) ^ k / (k.factorial : ℝ) ≤ |kummerCoeff a b k| := by
   obtain ⟨K, hK⟩ := abs_kummerCoeff_ratio_lower a b hb
   -- `D k = |c_k| · k! / (1/2)^k` is monotone for `k ≥ K`, so `D k ≥ D K = C`.
-  set D : ℕ → ℝ := fun k => |kummerCoeff a b k| * (k.factorial : ℝ) / (1 / 2) ^ k with hD
+  set D : ℕ → ℝ := fun k => |kummerCoeff a b k| * (k.factorial : ℝ) / (1 / 2) ^ k with _hD
   have hDpos : ∀ k, 0 < D k := fun k =>
     div_pos (mul_pos (abs_pos.2 (kummerCoeff_ne_zero a b hb ha k)) (by positivity)) (by positivity)
   have hmono : ∀ k, K ≤ k → D K ≤ D k := by
@@ -599,7 +599,7 @@ theorem kummerM_abs_exp_lower (a b : ℝ) (hb : 0 < b) (ha : ∀ p : ℕ, a ≠ 
     ∃ (C R : ℝ), 0 < C ∧ ∀ ρ, R ≤ ρ → C * Real.exp (ρ / 2) ≤ |kummerM a b ρ| := by
   obtain ⟨K₁, C, hC, hgeom⟩ := abs_kummerCoeff_geom_lower a b hb ha
   obtain ⟨K₂, σ, hσval, hsign⟩ := kummerCoeff_eventually_signed a b hb ha
-  set K := max K₁ K₂ with hKdef
+  set K := max K₁ K₂ with _hKdef
   have hσabs : |σ| = 1 := by rcases hσval with h | h <;> rw [h] <;> norm_num
   -- `σ c_k = |c_k| ≥ C (1/2)^k/k!` for `k ≥ K`.
   have hge : ∀ k, K ≤ k → C * (1 / 2) ^ k / (k.factorial : ℝ) ≤ σ * kummerCoeff a b k := by

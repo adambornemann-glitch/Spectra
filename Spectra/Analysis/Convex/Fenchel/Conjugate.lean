@@ -179,7 +179,7 @@ theorem mem_subgradient_iff_fenchelConj_add_eq (p : X → Y → ℝ) (f : X → 
     (htop : f x ≠ ⊤) (hbot : f x ≠ ⊥) :
     y ∈ subgradient p f x ↔ f x + fenchelConj p f y = (p x y : EReal) := by
   have hfx : ((f x).toReal : EReal) = f x := EReal.coe_toReal htop hbot
-  set r : ℝ := (f x).toReal with hrdef
+  set r : ℝ := (f x).toReal with _hrdef
   rw [mem_subgradient_iff]
   have hge : (p x y : EReal) - (r : EReal) ≤ fenchelConj p f y := by
     have h := sub_le_fenchelConj p f x y

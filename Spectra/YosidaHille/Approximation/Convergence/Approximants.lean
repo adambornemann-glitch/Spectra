@@ -139,7 +139,7 @@ lemma yosidaApproxSym_eq_avg
              ContinuousLinearMap.sub_apply, ContinuousLinearMap.id_apply]
   set R_pos := resolvent (I * (n : ℂ)) (I_mul_pnat_im_ne_zero n) hsym hplus hminus
   set R_neg := resolvent (-I * (n : ℂ)) (neg_I_mul_pnat_im_ne_zero n) hsym hplus hminus
-  have h : (1 / 2 : ℂ) * (n : ℂ)^2 = (n : ℂ)^2 / 2 := by ring
+  have _h : (1 / 2 : ℂ) * (n : ℂ)^2 = (n : ℂ)^2 / 2 := by ring
   calc ((n : ℂ)^2 / 2) • (R_pos ψ + R_neg ψ)
       = ((n : ℂ)^2 / 2) • R_pos ψ + ((n : ℂ)^2 / 2) • R_neg ψ := smul_add _ _ _
     _ = (1 / 2 : ℂ) • ((n : ℂ)^2 • R_pos ψ) + (1 / 2 : ℂ) • ((n : ℂ)^2 • R_neg ψ) := by

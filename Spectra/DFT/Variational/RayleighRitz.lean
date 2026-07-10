@@ -56,8 +56,8 @@ theorem groundStateEnergy_le_rayleigh {A : H →ₗ.[ℂ] H} (hA : IsSelfAdjoint
     (hne : (numericalRange A).Nonempty) {c : ℝ} (hb : IsSemibounded A c)
     {ψ : H} (hψ : ψ ∈ A.domain) (hnorm : ‖ψ‖ = 1) :
     groundStateEnergy A ≤ (⟪ψ, A ⟨ψ, hψ⟩⟫_ℂ).re := by
-  set A' : SelfAdjointOperator H := ⟨A, hA⟩ with hA'
-  set μ : Measure ℝ := A'.bornMeasure ψ with hμ
+  set A' : SelfAdjointOperator H := ⟨A, hA⟩ with _hA'
+  set μ : Measure ℝ := A'.bornMeasure ψ with _hμ
   haveI : IsProbabilityMeasure μ :=
     isProbabilityMeasure_bornMeasure A' hnorm
   have hint : Integrable (fun s : ℝ => s) μ :=
@@ -86,8 +86,8 @@ theorem eigenvector_of_rayleigh_eq_groundStateEnergy {A : H →ₗ.[ℂ] H} (hA 
     {ψ : H} (hψ : ψ ∈ A.domain) (hnorm : ‖ψ‖ = 1)
     (hmin : (⟪ψ, A ⟨ψ, hψ⟩⟫_ℂ).re = groundStateEnergy A) :
     A ⟨ψ, hψ⟩ = (groundStateEnergy A : ℂ) • ψ := by
-  set A' : SelfAdjointOperator H := ⟨A, hA⟩ with hA'
-  set E₀ : ℝ := groundStateEnergy A with hE₀
+  set A' : SelfAdjointOperator H := ⟨A, hA⟩ with _hA'
+  set E₀ : ℝ := groundStateEnergy A with _hE₀
   haveI : IsProbabilityMeasure (A'.bornMeasure ψ) := isProbabilityMeasure_bornMeasure A' hnorm
   have hint : Integrable (fun s : ℝ => s) (A'.bornMeasure ψ) := spectralPVM_integrable_id hA ψ hψ
   have hexp : bornExpectation A'.spectralPVM ψ = E₀ := (bornExpectation_eq_inner A' hψ).trans hmin

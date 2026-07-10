@@ -250,11 +250,11 @@ lemma ofReal_measuredTerm_le_lintegral (ρ σ : QState H) (hσ : σ.Faithful) (i
     ENNReal.ofReal (-ρ.eigenvalue i * Real.log (ρ.diagSigma σ i))
       ≤ ENNReal.ofReal (ρ.eigenvalue i)
         * ∫⁻ t, ENNReal.ofReal (-Real.log t) ∂(σ.spectralMeasure (ρ.eigenbasis i)) := by
-  set μ := σ.spectralMeasure (ρ.eigenbasis i) with hμ
+  set μ := σ.spectralMeasure (ρ.eigenbasis i) with _hμ
   haveI : IsProbabilityMeasure μ :=
     σ.isProbabilityMeasure_spectralMeasure (ρ.eigenbasis.orthonormal.1 i)
-  set lam := ρ.eigenvalue i with hlam
-  set s := ρ.diagSigma σ i with hs
+  set lam := ρ.eigenvalue i with _hlam
+  set s := ρ.diagSigma σ i with _hs
   have hlam0 : 0 ≤ lam := ρ.eigenvalue_nonneg i
   have hs0 : 0 < s := ρ.diagSigma_pos_of_faithful σ hσ i
   have haepos : ∀ᵐ t ∂μ, 0 < t := σ.spectralMeasure_ae_pos_of_faithful hσ (ρ.eigenbasis i)

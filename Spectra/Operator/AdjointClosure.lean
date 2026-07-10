@@ -292,7 +292,7 @@ theorem dense_adjoint_domain_of_isClosable {T : H →ₗ.[ℂ] H}
         ← LinearPMap.adjoint_graph_eq_graph_adjoint hdense,
         Submodule.mem_adjoint_iff]
       intro a b hab
-      obtain ⟨y, hy1, hy2⟩ := (LinearPMap.mem_graph_iff T.adjoint).mp hab
+      obtain ⟨y, hy1, _hy2⟩ := (LinearPMap.mem_graph_iff T.adjoint).mp hab
       have ha : a ∈ T.adjoint.domain := by
         have h := y.2
         rwa [hy1] at h

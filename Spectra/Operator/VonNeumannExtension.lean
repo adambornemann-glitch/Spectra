@@ -72,14 +72,14 @@ theorem mem_adjoint_domain_of_mem_deficiencySubspaceMinus {χ : H}
 theorem adjoint_apply_of_mem_deficiencySubspacePlus {χ : H}
     (hχ : χ ∈ deficiencySubspacePlus A) (h : χ ∈ A.adjoint.domain) :
     A.adjoint ⟨χ, h⟩ = I • χ := by
-  obtain ⟨h', hval⟩ := hχ
+  obtain ⟨_h', hval⟩ := hχ
   exact hval
 
 /-- On `N₋(A)` the adjoint acts as multiplication by `-i`: `A*χ = -iχ`. -/
 theorem adjoint_apply_of_mem_deficiencySubspaceMinus {χ : H}
     (hχ : χ ∈ deficiencySubspaceMinus A) (h : χ ∈ A.adjoint.domain) :
     A.adjoint ⟨χ, h⟩ = (-I) • χ := by
-  obtain ⟨h', hval⟩ := hχ
+  obtain ⟨_h', hval⟩ := hχ
   exact hval
 
 /-! ### The defect map and the extension domain -/

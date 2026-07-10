@@ -297,7 +297,7 @@ lemma hasDerivAt_sqrt_one_sub_sq_pow (m : ℕ) {x : ℝ}
   convert h using 1
   rcases m with _ | n
   · simp
-  · set s := Real.sqrt (1 - x ^ 2) with hs_def
+  · set s := Real.sqrt (1 - x ^ 2) with _hs_def
     have hs2 : s ^ 2 = 1 - x ^ 2 := Real.sq_sqrt hu.le
     rw [← hs2]
     simp only [Nat.cast_add, Nat.cast_one, neg_add_rev,
@@ -660,7 +660,7 @@ lemma integral_one_sub_sq_pow (n : ℕ) :
       rw [intervalIntegral.integral_sub h1 h2, intervalIntegral.integral_const_mul,
         intervalIntegral.integral_const_mul, ih] at hFTC
       have h2n3 : (2*(n:ℝ)+3) ≠ 0 := by positivity
-      have h2n2 : (2*(n:ℝ)+2) ≠ 0 := by positivity
+      have _h2n2 : (2*(n:ℝ)+2) ≠ 0 := by positivity
       have hne : ((2*n+1).factorial : ℝ) ≠ 0 := Nat.cast_ne_zero.mpr (Nat.factorial_ne_zero _)
       have hI : (∫ x in (-1:ℝ)..1, (1 - x^2)^(n+1))
           = (2*(n:ℝ)+2) * (2^(2*n+1) * ((n.factorial : ℝ))^2 / ((2*n+1).factorial : ℝ))
@@ -690,7 +690,7 @@ lemma assocLegendreNat_sq_succ (ℓ m : ℕ) {x : ℝ} (hx : (0 : ℝ) ≤ 1 - x
       = (assocLegendreSL ℓ m x + (m:ℝ) * x * assocLegendreNat ℓ m x)^2 := by
   have hs : Real.sqrt (1 - x^2) ^ 2 = 1 - x^2 := Real.sq_sqrt hx
   simp only [assocLegendreNat, assocLegendreSL, ← add_assoc]
-  set s := Real.sqrt (1 - x^2) with hsdef
+  set s := Real.sqrt (1 - x^2) with _hsdef
   rw [← hs]
   ring
 
@@ -836,7 +836,7 @@ lemma assocLegendreNat_normalization (ℓ m : ℕ) (hm : m ≤ ℓ) :
       have hne0 : ((ℓ:ℝ) - (m:ℝ)) ≠ 0 := sub_ne_zero.mpr (ne_of_gt hlt)
       have hne1 : ((ℓ - (m+1)).factorial : ℝ) ≠ 0 :=
         Nat.cast_ne_zero.mpr (Nat.factorial_ne_zero _)
-      have hne2 : (2*(ℓ:ℝ)+1) ≠ 0 := by positivity
+      have _hne2 : (2*(ℓ:ℝ)+1) ≠ 0 := by positivity
       field_simp
       ring
 

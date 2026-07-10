@@ -96,7 +96,7 @@ lemma cross_score_hasFDerivAt'
     M.score_fderiv_bound θ hθ θ₀ hθ₀ j
   obtain ⟨ε₂, hε₂, hball₂⟩ :=
     Metric.isOpen_iff.mp M.isOpen_paramDomain θ₀ hθ₀
-  set ε := min ε₁ ε₂ with hε_def
+  set ε := min ε₁ ε₂ with _hε_def
   have hε_pos : 0 < ε := lt_min hε₁ hε₂
   -- Base-point integrability via the crossEntropy_fderiv_bound trick
   -- (verbatim from `cross_score_differentiableAt`, with `mono'`).
@@ -803,13 +803,13 @@ lemma kl_faa_di_bruno
   -- once avoids repeatedly re-deriving `NormedAddCommGroup`/`NormedSpace` instances on
   -- `ParamSpace n` (a `PiLp`/`EuclideanSpace`-backed type — instance resolution on it is not free)
   -- for the same expression over and over.
-  set dφa : ParamSpace n := fderiv ℝ (F.φ t) θ (EuclideanSpace.single a 1) with hdφa
-  set dφb : ParamSpace n := fderiv ℝ (F.φ t) θ (EuclideanSpace.single b 1) with hdφb
-  set dφc : ParamSpace n := fderiv ℝ (F.φ t) θ (EuclideanSpace.single c 1) with hdφc
+  set dφa : ParamSpace n := fderiv ℝ (F.φ t) θ (EuclideanSpace.single a 1) with _hdφa
+  set dφb : ParamSpace n := fderiv ℝ (F.φ t) θ (EuclideanSpace.single b 1) with _hdφb
+  set dφc : ParamSpace n := fderiv ℝ (F.φ t) θ (EuclideanSpace.single c 1) with _hdφc
   have hα : α ∈ M.paramDomain := F.maps_domain t θ hθ
   have hφ_smooth : ContDiff ℝ (⊤ : ℕ∞) (F.φ t) :=
     F.smooth.comp (contDiff_const.prodMk contDiff_id)
-  have hf'_zero : fderiv ℝ (M.klDiv α) α = 0 :=
+  have _hf'_zero : fderiv ℝ (M.klDiv α) α = 0 :=
     (M.klDiv_fderiv_eq_zero hα).fderiv
   -- ═══ Level 1→2: Chain rule holds on paramDomain ═══
   have h_chain : ∀ θ₂ ∈ M.paramDomain,

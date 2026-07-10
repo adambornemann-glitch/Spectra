@@ -10,7 +10,7 @@ import Spectra.Spaces.Sobolev.MeyersCommon
 # Meyers–Serrin approximation (all three directions at once)
 
 The multi-direction, vectorized instance of the Meyers–Serrin "H = W" approximation: any
-`f : l2R3` with weak derivatives `dg i` in *every* coordinate direction `i : Fin 3` can be
+`f : (l2Rn d)` with weak derivatives `dg i` in *every* coordinate direction `i : Fin d` can be
 approximated by a *single* smooth, compactly supported `φ` that is simultaneously close to `f`
 in the L² norm and close to every `dg i` in the corresponding weak-derivative norm. This is the
 form actually needed to build `H¹`/`H²` elements as genuine smooth functions, and is the version
@@ -33,12 +33,12 @@ works uniformly across all three directions, because the cutoff acts on `f` itse
 individual derivatives — so `truncation_approx_multi` needs exactly one radius `R` and one
 cutoff `χ_R`, shared across `i = 0, 1, 2`. What *does* need to be `i`-indexed is the derivative
 side: `∂ᵢχ_R` differs by direction, so the per-direction truncated derivative `dh_R i` and its
-L²-tail radius `R_dg i` form genuine `Fin 3`-indexed families, even though the cutoff itself does
-not. `truncation_approx_multi` is the `ι := Fin 3`, `dir := id` specialization of the shared
+L²-tail radius `R_dg i` form genuine `Fin d`-indexed families, even though the cutoff itself does
+not. `truncation_approx_multi` is the `ι := Fin d`, `dir := id` specialization of the shared
 cutoff-truncation construction `truncation_approx_family` (`MeyersCommon.lean`), which also
 powers the single-direction case `truncation_approx` in `MeyersSerrin.lean` (`ι := Unit`) — so the
 cutoff/budget argument is maintained in exactly one place rather than twice. Likewise,
-`mollify_compactly_supported_multi` is the `ι := Fin 3`, `dir := id` specialization of the shared
+`mollify_compactly_supported_multi` is the `ι := Fin d`, `dir := id` specialization of the shared
 `mollify_compactly_supported_family` construction (`Mollification.lean`), which also powers the
 single-direction case `mollify_compactly_supported` in `MeyersSerrin.lean`.
 
@@ -53,25 +53,27 @@ open scoped ContDiff
 
 namespace Spectra.Sobolev
 
+variable {d : ℕ}
+
 /-- **Multi-direction truncation step of Meyers-Serrin**: simultaneously truncate
     `f` and all three weak derivatives using a single cutoff `χ`.
-    This is the `ι := Fin 3`, `dir := id` specialization of the shared
+    This is the `ι := Fin d`, `dir := id` specialization of the shared
     `truncation_approx_family` cutoff construction (`MeyersCommon.lean`); see
     `truncation_approx` in `MeyersSerrin.lean` for the single-direction sibling
     (`ι := Unit`). The function-side `h_R` is shared across all directions,
     only the derivative-side `dh_R i` depends on `i`. -/
-private lemma truncation_approx_multi
-    (f : l2R3) (dg : Fin 3 → l2R3)
+private lemma truncation_approx_multi [NeZero d]
+    (f : (l2Rn d)) (dg : Fin d → (l2Rn d))
     (h_dg : ∀ i, HasWeakDerivative f i (dg i)) (ε : ℝ) (hε : 0 < ε) :
-    ∃ (h_R : R3 → ℂ) (dh_R : Fin 3 → R3 → ℂ)
+    ∃ (h_R : Rn d → ℂ) (dh_R : Fin d → Rn d → ℂ)
       (hh : MemLp h_R 2 volume) (hdh : ∀ i, MemLp (dh_R i) 2 volume),
       HasCompactSupport h_R ∧ (∀ i, HasCompactSupport (dh_R i)) ∧
       (∀ i, HasWeakDerivative (hh.toLp h_R) i ((hdh i).toLp (dh_R i))) ∧
       ‖f - hh.toLp h_R‖ < ε ∧ ∀ i, ‖dg i - (hdh i).toLp (dh_R i)‖ < ε :=
-  truncation_approx_family (ι := Fin 3) id f dg h_dg ε hε
+  truncation_approx_family (ι := Fin d) id f dg h_dg ε hε
 
 /-- **Multi-direction Meyers-Serrin**: `f` with weak derivatives `dg i` in every direction
-    `i : Fin 3` can be simultaneously approximated by a single smooth, compactly supported `φ` in
+    `i : Fin d` can be simultaneously approximated by a single smooth, compactly supported `φ` in
     all four norms at once — `φ` is `ε`-close to `f`, and every classical partial `∂ᵢφ` is
     `ε`-close to the corresponding `dg i`, for the *same* `φ` and the *same* `ε`. As in the
     single-direction case, the proof is truncate-then-mollify: `truncation_approx_multi` first
@@ -79,10 +81,10 @@ private lemma truncation_approx_multi
     `mollify_compactly_supported_multi` convolves it with a single smooth bump to land a smooth
     `φ` within a further `ε/2`; the triangle inequality combines the two `ε/2` bounds into the
     single `ε` bounds stated here. -/
-lemma meyers_serrin_approx_multi
-    (f : l2R3) (dg : Fin 3 → l2R3)
+lemma meyers_serrin_approx_multi [NeZero d]
+    (f : (l2Rn d)) (dg : Fin d → (l2Rn d))
     (h_dg : ∀ i, HasWeakDerivative f i (dg i)) (ε : ℝ) (hε : 0 < ε) :
-    ∃ (φ : R3 → ℂ) (hφ : ContDiff ℝ ∞ φ) (hsupp : HasCompactSupport φ),
+    ∃ (φ : Rn d → ℂ) (hφ : ContDiff ℝ ∞ φ) (hsupp : HasCompactSupport φ),
       ‖f - (memLp_of_smooth_compactSupport φ hφ hsupp).toLp φ‖ < ε ∧
       ∀ i, ‖dg i - (memLp_partialDeriv φ i hφ hsupp).toLp
         (fun x => fderiv ℝ φ x (EuclideanSpace.single i 1))‖ < ε := by

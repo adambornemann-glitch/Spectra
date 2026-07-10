@@ -112,7 +112,7 @@ private lemma resolventSolution_norm_le (φ : H) :
   have heq := resolventSolution_eq z hz hsym hplus hminus φ
   have hbound := lower_bound_estimate hsym z (resolventSolution z hz hsym hplus hminus φ) hmem
   rw [heq] at hbound
-  have him : 0 < |z.im| := abs_pos.mpr hz
+  have _him : 0 < |z.im| := abs_pos.mpr hz
   calc ‖resolventSolution z hz hsym hplus hminus φ‖
       = (1 / |z.im|) * (|z.im| * ‖resolventSolution z hz hsym hplus hminus φ‖) := by field_simp
     _ ≤ (1 / |z.im|) * ‖φ‖ := by

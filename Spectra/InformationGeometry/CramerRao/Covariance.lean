@@ -256,7 +256,7 @@ lemma estimator_score_integrable
               M.score θ i ω ^ 2) / 2) *
               M.density θ ω := by
             apply mul_le_mul_of_nonneg_right _ hp
-            have h : 0 ≤ (|T ω| -
+            have _h : 0 ≤ (|T ω| -
               |M.score θ i ω|) ^ 2 := sq_nonneg _
             nlinarith [sq_abs (T ω),
                        sq_abs (M.score θ i ω)]

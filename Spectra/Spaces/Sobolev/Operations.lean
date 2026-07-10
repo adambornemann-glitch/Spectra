@@ -57,7 +57,7 @@ variable {d : ℕ}
 /-- The zero function has weak derivative zero. -/
 lemma hasWeakDerivative_zero (i : Fin d) :
     HasWeakDerivative (0 : l2Rn d) i 0 := by
-  intro φ hφ hsupp
+  intro φ _hφ _hsupp
   have hae := Lp.coeFn_zero ℂ 2 (volume : Measure (Rn d))
   have lhs : ∫ x, ((0 : l2Rn d) : Rn d → ℂ) x *
       fderiv ℝ φ x (EuclideanSpace.single i 1) = 0 :=

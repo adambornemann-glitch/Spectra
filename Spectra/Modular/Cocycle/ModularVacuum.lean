@@ -145,7 +145,7 @@ theorem vacuum_mem_modularOp_domain (hcyc : IsCyclic M Ω) (hsep : IsSeparating 
 theorem modularOp_vacuum (hcyc : IsCyclic M Ω) (hsep : IsSeparating M Ω)
     (hΩ : Ω ∈ (modularOp M Ω).domain) : modularOp M Ω ⟨Ω, hΩ⟩ = Ω := by
   obtain ⟨htcΩ, hvalue⟩ := tomitaClosure_adjoint_vacuum hcyc hsep
-  obtain ⟨⟨hxS, hSx⟩, hΩS⟩ := id hΩ
+  obtain ⟨⟨hxS, hSx⟩, _hΩS⟩ := id hΩ
   rw [modularOp_apply ⟨Ω, hΩ⟩ hxS hSx]
   -- `S Ω = toConj Ω`, and `S⋆ (toConj Ω) = Ω`.
   have hSΩ : tomitaClosure M Ω ⟨Ω, hxS⟩ = toConj Ω := tomitaClosure_vacuum hsep
@@ -195,7 +195,7 @@ theorem modularSqrt_atom_apply (hcyc : IsCyclic M Ω) (hsep : IsSeparating M Ω)
           modularOp_domain_le_modularSqrt_domain hcyc hsep hmem⟩
       = spectralProjection (modularGroup hcyc hsep) ({(1 : ℝ)} : Set ℝ)
           (measurableSet_singleton 1) Ω := by
-  set U := modularGroup hcyc hsep with hU
+  set U := modularGroup hcyc hsep with _hU
   set xn := spectralProjection U ({(1 : ℝ)} : Set ℝ) (measurableSet_singleton 1) Ω with hxn
   have hxnL2 : Integrable (fun s => ‖(Real.sqrt s : ℂ)‖ ^ 2) (borelMeasure U xn) :=
     (ProjValMeasure.mem_pmapDomain _).mp (modularOp_domain_le_modularSqrt_domain hcyc hsep hmem)

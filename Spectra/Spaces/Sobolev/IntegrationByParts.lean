@@ -37,7 +37,7 @@ test functions to arbitrary `H¹` data `g` by density: Meyers–Serrin supplies 
 supported `φ` with `‖g - φ‖` and `‖dg - ∂ᵢφ‖` both below any target `δ`, the smooth identity gives
 `⟨ddf, φ⟩ + ⟨df, ∂ᵢφ⟩ = 0` exactly, and an explicit Cauchy–Schwarz epsilon argument (by
 contradiction on `‖val‖ < ‖val‖`) shows the error introduced by replacing `φ` with `g` vanishes in
-the limit. `integration_by_parts` then assembles `ibp_component` componentwise over `i : Fin 3`,
+the limit. `integration_by_parts` then assembles `ibp_component` componentwise over `i : Fin d`,
 and the remaining results are direct algebraic consequences.
 
 ## References
@@ -52,19 +52,21 @@ open scoped ContDiff
 
 namespace Spectra.Sobolev
 
+variable {d : ℕ}
+
 /-- **Smooth IBP identity**: ⟨∂ᵢ(df), φ⟩ + ⟨df, ∂ᵢφ⟩ = 0 for smooth c.s. φ -/
-private lemma ibp_smooth_test (i : Fin 3) (df ddf : l2R3)
+private lemma ibp_smooth_test (i : Fin d) (df ddf : (l2Rn d))
     (h_ddf : HasWeakDerivative df i ddf)
-    (φ : R3 → ℂ) (hφ : ContDiff ℝ ∞ φ) (hsupp : HasCompactSupport φ) :
-    @inner ℂ l2R3 _ ddf ((memLp_of_smooth_compactSupport φ hφ hsupp).toLp φ) +
-    @inner ℂ l2R3 _ df ((memLp_partialDeriv φ i hφ hsupp).toLp
+    (φ : Rn d → ℂ) (hφ : ContDiff ℝ ∞ φ) (hsupp : HasCompactSupport φ) :
+    @inner ℂ (l2Rn d) _ ddf ((memLp_of_smooth_compactSupport φ hφ hsupp).toLp φ) +
+    @inner ℂ (l2Rn d) _ df ((memLp_partialDeriv φ i hφ hsupp).toLp
       (fun x => fderiv ℝ φ x (EuclideanSpace.single i 1))) = 0 := by
   set eᵢ := EuclideanSpace.single i (1 : ℝ)
   -- (A) Chain rule: ∂ᵢ(conj ∘ φ) = conj ∘ ∂ᵢφ  (conjCLE is ℝ-linear)
   have h_fderiv_conj : ∀ x, fderiv ℝ (fun y => starRingEnd ℂ (φ y)) x eᵢ =
         starRingEnd ℂ (fderiv ℝ φ x eᵢ) := by
       intro x
-      have hd : DifferentiableAt ℝ φ x :=
+      have _hd : DifferentiableAt ℝ φ x :=
         (hφ.differentiable (by exact_mod_cast ENat.top_ne_zero)).differentiableAt
       have hrw : (fun y => starRingEnd ℂ (φ y)) = ⇑Complex.conjCLE ∘ φ := rfl
       rw [hrw]
@@ -74,52 +76,52 @@ private lemma ibp_smooth_test (i : Fin 3) (df ddf : l2R3)
   -- (B) Test h_ddf against conj(φ), then substitute ∂ᵢ(conj φ) = conj(∂ᵢφ)
   have h_wk := h_ddf (fun x => starRingEnd ℂ (φ x))
     (contDiff_starRingEnd_comp hφ) (hasCompactSupport_starRingEnd_comp hsupp)
-  rw [show (fun x => (df : R3 → ℂ) x *
+  rw [show (fun x => (df : Rn d → ℂ) x *
         fderiv ℝ (fun y => starRingEnd ℂ (φ y)) x eᵢ) =
-      (fun x => (df : R3 → ℂ) x *
+      (fun x => (df : Rn d → ℂ) x *
         starRingEnd ℂ (fderiv ℝ φ x eᵢ)) from
     funext fun x => by rw [h_fderiv_conj]] at h_wk
   -- h_wk : ∫ df · conj(∂ᵢφ) = −∫ ddf · conj(φ)
   -- (C) Integrability for the conjugated integrals
-  have hint1 : Integrable (fun x => (ddf : R3 → ℂ) x * starRingEnd ℂ (φ x)) volume :=
+  have hint1 : Integrable (fun x => (ddf : Rn d → ℂ) x * starRingEnd ℂ (φ x)) volume :=
     (Lp.memLp ddf).integrable_mul
       (memLp_of_smooth_compactSupport _ (contDiff_starRingEnd_comp hφ)
         (hasCompactSupport_starRingEnd_comp hsupp))
-  have hint2 : Integrable (fun x => (df : R3 → ℂ) x *
+  have hint2 : Integrable (fun x => (df : Rn d → ℂ) x *
       starRingEnd ℂ (fderiv ℝ φ x eᵢ)) volume :=
     (Lp.memLp df).integrable_mul
       (memLp_of_smooth_compactSupport _
         (contDiff_starRingEnd_comp (contDiff_partialDeriv φ i hφ))
         (hasCompactSupport_starRingEnd_comp (hasCompactSupport_partialDeriv φ i hsupp)))
   -- (D) Sum to zero — NOTE: each ∫ MUST be parenthesized (the binder is greedy)
-  have h_sum_zero : (∫ x, (ddf : R3 → ℂ) x * starRingEnd ℂ (φ x)) +
-      (∫ x, (df : R3 → ℂ) x * starRingEnd ℂ (fderiv ℝ φ x eᵢ)) = 0 := by
+  have h_sum_zero : (∫ x, (ddf : Rn d → ℂ) x * starRingEnd ℂ (φ x)) +
+      (∫ x, (df : Rn d → ℂ) x * starRingEnd ℂ (fderiv ℝ φ x eᵢ)) = 0 := by
     linear_combination h_wk
   -- (E) Conjugate: (∫ conj(ddf)·φ) + (∫ conj(df)·∂ᵢφ) = 0
   --     Key identity: conj(a * conj(b)) = conj(a) * b
   have conj_swap : ∀ (a b : ℂ),
       starRingEnd ℂ (a * starRingEnd ℂ b) = starRingEnd ℂ a * b :=
     fun a b => by rw [map_mul, starRingEnd_self_apply]
-  have conj_integral : ∀ (f : R3 → ℂ), Integrable f volume →
+  have conj_integral : ∀ (f : Rn d → ℂ), Integrable f volume →
       (∫ x, starRingEnd ℂ (f x)) = starRingEnd ℂ (∫ x, f x) :=
     fun f hf => (Complex.conjCLE.toContinuousLinearMap.integral_comp_comm hf)
-  have h_conj : (∫ x, starRingEnd ℂ ((ddf : R3 → ℂ) x) * φ x) +
-      (∫ x, starRingEnd ℂ ((df : R3 → ℂ) x) * fderiv ℝ φ x eᵢ) = 0 := by
+  have h_conj : (∫ x, starRingEnd ℂ ((ddf : Rn d → ℂ) x) * φ x) +
+      (∫ x, starRingEnd ℂ ((df : Rn d → ℂ) x) * fderiv ℝ φ x eᵢ) = 0 := by
     simp_rw [← conj_swap]
     rw [conj_integral _ hint1, conj_integral _ hint2,
         ← map_add, h_sum_zero, map_zero]
   -- (F) Identify with L² inner products
-  have h_inner1 : @inner ℂ l2R3 _ ddf
+  have h_inner1 : @inner ℂ (l2Rn d) _ ddf
       ((memLp_of_smooth_compactSupport φ hφ hsupp).toLp φ) =
-      ∫ x, starRingEnd ℂ ((ddf : R3 → ℂ) x) * φ x := by
+      ∫ x, starRingEnd ℂ ((ddf : Rn d → ℂ) x) * φ x := by
     rw [L2.inner_def]; simp only [RCLike.inner_apply]
     exact integral_congr_ae
       ((memLp_of_smooth_compactSupport φ hφ hsupp).coeFn_toLp.mono
         fun x hx => by simp only [hx]; ring)
-  have h_inner2 : @inner ℂ l2R3 _ df
+  have h_inner2 : @inner ℂ (l2Rn d) _ df
       ((memLp_partialDeriv φ i hφ hsupp).toLp
         (fun x => fderiv ℝ φ x eᵢ)) =
-      ∫ x, starRingEnd ℂ ((df : R3 → ℂ) x) * fderiv ℝ φ x eᵢ := by
+      ∫ x, starRingEnd ℂ ((df : Rn d → ℂ) x) * fderiv ℝ φ x eᵢ := by
     rw [L2.inner_def]; simp only [RCLike.inner_apply]
     exact integral_congr_ae
       ((memLp_partialDeriv φ i hφ hsupp).coeFn_toLp.mono
@@ -131,20 +133,20 @@ private lemma ibp_smooth_test (i : Fin 3) (df ddf : l2R3)
 
     Proof: Meyers-Serrin gives φ close to g in H¹. Smooth IBP gives the
     identity for φ. Cauchy-Schwarz controls the error. -/
-private lemma ibp_component (i : Fin 3)
-    (df ddf g dg : l2R3)
+private lemma ibp_component (i : Fin d)
+    (df ddf g dg : (l2Rn d))
     (h_ddf : HasWeakDerivative df i ddf)
     (h_dg : HasWeakDerivative g i dg) :
-    @inner ℂ l2R3 _ ddf g = -@inner ℂ l2R3 _ df dg := by
+    @inner ℂ (l2Rn d) _ ddf g = -@inner ℂ (l2Rn d) _ df dg := by
   -- Suffices: ⟨ddf, g⟩ + ⟨df, dg⟩ = 0
   apply eq_neg_of_add_eq_zero_left
   by_contra h_ne
   -- The sum has positive norm
-  set val := @inner ℂ l2R3 _ ddf g + @inner ℂ l2R3 _ df dg
+  set val := @inner ℂ (l2Rn d) _ ddf g + @inner ℂ (l2Rn d) _ df dg
   have h_pos : (0 : ℝ) < ‖val‖ := norm_pos_iff.mpr h_ne
   -- Choose approximation radius
   set C := ‖ddf‖ + ‖df‖ + 1 with hC_def
-  have hC_pos : (0 : ℝ) < C := by positivity
+  have _hC_pos : (0 : ℝ) < C := by positivity
   set δ := ‖val‖ / (2 * C) with hδ_def
   have hδ_pos : (0 : ℝ) < δ := div_pos h_pos (by positivity)
   -- Meyers-Serrin: get smooth c.s. φ with ‖g - φ‖ < δ and ‖dg - ∂ᵢφ‖ < δ
@@ -156,19 +158,19 @@ private lemma ibp_component (i : Fin 3)
   -- Smooth IBP: ⟨ddf, φ⟩ + ⟨df, ∂ᵢφ⟩ = 0
   have h_ibp := ibp_smooth_test i df ddf h_ddf φ hφ_s hφ_c
   -- Decompose: val = ⟨ddf, g - φ⟩ + ⟨df, dg - ∂ᵢφ⟩ + 0
-  have h_val : val = @inner ℂ l2R3 _ ddf (g - φ_L2) +
-      @inner ℂ l2R3 _ df (dg - dφ_L2) := by
-    change @inner ℂ l2R3 _ ddf g + @inner ℂ l2R3 _ df dg =
-         @inner ℂ l2R3 _ ddf (g - φ_L2) + @inner ℂ l2R3 _ df (dg - dφ_L2)
+  have h_val : val = @inner ℂ (l2Rn d) _ ddf (g - φ_L2) +
+      @inner ℂ (l2Rn d) _ df (dg - dφ_L2) := by
+    change @inner ℂ (l2Rn d) _ ddf g + @inner ℂ (l2Rn d) _ df dg =
+         @inner ℂ (l2Rn d) _ ddf (g - φ_L2) + @inner ℂ (l2Rn d) _ df (dg - dφ_L2)
     rw [inner_sub_right, inner_sub_right]
     linear_combination h_ibp
   -- Cauchy-Schwarz bound
   have h_bound : ‖val‖ ≤ ‖ddf‖ * δ + ‖df‖ * δ := by
     rw [h_val]
-    calc ‖@inner ℂ l2R3 _ ddf (g - φ_L2) +
-            @inner ℂ l2R3 _ df (dg - dφ_L2)‖
-        ≤ ‖@inner ℂ l2R3 _ ddf (g - φ_L2)‖ +
-          ‖@inner ℂ l2R3 _ df (dg - dφ_L2)‖ := norm_add_le _ _
+    calc ‖@inner ℂ (l2Rn d) _ ddf (g - φ_L2) +
+            @inner ℂ (l2Rn d) _ df (dg - dφ_L2)‖
+        ≤ ‖@inner ℂ (l2Rn d) _ ddf (g - φ_L2)‖ +
+          ‖@inner ℂ (l2Rn d) _ df (dg - dφ_L2)‖ := norm_add_le _ _
       _ ≤ ‖ddf‖ * ‖g - φ_L2‖ + ‖df‖ * ‖dg - dφ_L2‖ := by
           gcongr <;> exact norm_inner_le_norm _ _
       _ ≤ ‖ddf‖ * δ + ‖df‖ * δ := by
@@ -186,10 +188,10 @@ private lemma ibp_component (i : Fin 3)
 
 /-- ### Integration by parts: the fundamental identity -/
 lemma integration_by_parts
-    (f : l2R3) (hf : MemSobolevH2 f)
-    (g : l2R3) (hg : MemSobolevH1 g) :
+    (f : (l2Rn d)) (hf : MemSobolevH2 f)
+    (g : (l2Rn d)) (hg : MemSobolevH1 g) :
     inner (𝕜 := ℂ) (weakLaplacian f hf) g =
-    ∑ i : Fin 3, inner (𝕜 := ℂ) (weakGradient f (sobolevH2_le_sobolevH1 hf) i)
+    ∑ i : Fin d, inner (𝕜 := ℂ) (weakGradient f (sobolevH2_le_sobolevH1 hf) i)
                    (weakGradient g hg i) := by
   simp only [weakLaplacian]
   rw [inner_neg_left, sum_inner, ← Finset.sum_neg_distrib]
@@ -211,7 +213,7 @@ lemma integration_by_parts
 
 /-- **Symmetry of -Δ**: ⟨-Δf, g⟩ = ⟨f, -Δg⟩ for f, g ∈ H². -/
 lemma laplacian_symmetric
-    (f g : l2R3) (hf : MemSobolevH2 f) (hg : MemSobolevH2 g) :
+    (f g : (l2Rn d)) (hf : MemSobolevH2 f) (hg : MemSobolevH2 g) :
     inner (𝕜 := ℂ) (weakLaplacian f hf) g =
     inner (𝕜 := ℂ) f (weakLaplacian g hg) := by
   rw [integration_by_parts f hf g (sobolevH2_le_sobolevH1 hg)]
@@ -231,7 +233,7 @@ lemma laplacian_symmetric
 
 /-- The gradient norm squared equals the Laplacian inner product. -/
 lemma gradient_norm_sq_eq_laplacian_inner
-    (f : l2R3) (hf : MemSobolevH2 f) :
+    (f : (l2Rn d)) (hf : MemSobolevH2 f) :
     (gradientNormSq f (sobolevH2_le_sobolevH1 hf) : ℂ) =
     inner (𝕜 := ℂ) (weakLaplacian f hf) f := by
   rw [integration_by_parts f hf f (sobolevH2_le_sobolevH1 hf), gradientNormSq]
@@ -243,7 +245,7 @@ lemma gradient_norm_sq_eq_laplacian_inner
 /-- **Non-negativity of -Δ**: `⟨-Δf, f⟩.re ≥ 0`. The full equation
 `⟨-Δf, f⟩ = ‖∇f‖² ≥ 0` is `gradient_norm_sq_eq_laplacian_inner`; this lemma is its
 non-negativity consequence, taking real parts. -/
-lemma laplacian_nonneg (f : l2R3) (hf : MemSobolevH2 f) :
+lemma laplacian_nonneg (f : (l2Rn d)) (hf : MemSobolevH2 f) :
     0 ≤ (inner (𝕜 := ℂ) (weakLaplacian f hf) f : ℂ).re := by
   rw [← gradient_norm_sq_eq_laplacian_inner]
   simp only [gradientNormSq, Complex.ofReal_re]
@@ -252,8 +254,8 @@ lemma laplacian_nonneg (f : l2R3) (hf : MemSobolevH2 f) :
 /-- **Skew-symmetry of the weak derivative**: `⟨∂ᵢf, g⟩ = −⟨f, ∂ᵢg⟩` for `f, g ∈ H¹(ℝ³)`.
 This is the first-order integration-by-parts identity (no boundary term on `ℝ³`); it is the
 reason the momentum operator `-i∂ᵢ` is symmetric. -/
-lemma weakGradient_inner_skew (f g : l2R3) (hf : MemSobolevH1 f) (hg : MemSobolevH1 g)
-    (i : Fin 3) :
+lemma weakGradient_inner_skew (f g : (l2Rn d)) (hf : MemSobolevH1 f) (hg : MemSobolevH1 g)
+    (i : Fin d) :
     inner (𝕜 := ℂ) (weakGradient f hf i) g = -inner (𝕜 := ℂ) f (weakGradient g hg i) :=
   ibp_component i f (weakGradient f hf i) g (weakGradient g hg i)
     (weakGradient_spec f hf i) (weakGradient_spec g hg i)

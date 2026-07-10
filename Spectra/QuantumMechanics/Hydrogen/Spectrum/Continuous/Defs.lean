@@ -101,7 +101,7 @@ def coulombResolventCAt (p : CoulombParams) (z : ℂ) (hz : z.im ≠ 0) : ℝ :=
 /-- The norm bound `‖W ψ‖ ≤ C ‖ψ‖`. -/
 lemma coulombResolventLinearAt_bound (p : CoulombParams) (z : ℂ) (hz : z.im ≠ 0) (ψ : l2R3) :
     ‖coulombResolventLinearAt p z hz ψ‖ ≤ coulombResolventCAt p z hz * ‖ψ‖ := by
-  set χ : laplacianPMap.domain := freeResolventCodAt z hz ψ with hχdef
+  set χ : laplacianPMap.domain := freeResolventCodAt z hz ψ with _hχdef
   have hχval : (χ : l2R3) = freeResolventAt z hz ψ := rfl
   have hWval : coulombResolventLinearAt p z hz ψ = coulombPotential p χ := rfl
   rw [hWval]
@@ -125,10 +125,10 @@ lemma coulombResolventLinearAt_bound (p : CoulombParams) (z : ℂ) (hz : z.im �
   have hRnorm : ‖(χ : l2R3)‖ ≤ ‖freeResolventAt z hz‖ * ‖ψ‖ := by
     rw [hχval]; exact (freeResolventAt z hz : l2R3 →L[ℂ] l2R3).le_opNorm ψ
   have hb0 : 0 ≤ coulombB p := coulombB_nonneg p
-  have hnormψ : (0:ℝ) ≤ ‖ψ‖ := norm_nonneg _
+  have _hnormψ : (0:ℝ) ≤ ‖ψ‖ := norm_nonneg _
   have hznn : (0:ℝ) ≤ ‖z‖ := norm_nonneg _
   have hχnn : (0:ℝ) ≤ ‖(χ : l2R3)‖ := norm_nonneg _
-  have h1c : (0:ℝ) ≤ (1 + coulombB p) * (1 + ‖z‖) := by positivity
+  have _h1c : (0:ℝ) ≤ (1 + coulombB p) * (1 + ‖z‖) := by positivity
   calc ‖coulombPotential p χ‖
       ≤ 1 * ‖laplacianPMap χ‖ + coulombB p * ‖(χ : l2R3)‖ := hrel
     _ ≤ 1 * (‖ψ‖ + ‖z‖ * ‖(χ : l2R3)‖) + coulombB p * ‖(χ : l2R3)‖ := by gcongr

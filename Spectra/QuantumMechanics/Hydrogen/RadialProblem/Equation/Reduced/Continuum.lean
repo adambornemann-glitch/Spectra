@@ -110,7 +110,7 @@ private lemma energy_diff_ineq (ℓ : ℕ) (E : ℝ) (hE : 0 ≤ E) (χ : ℝ �
           ≤ ((deriv χ r) ^ 2 - contW ℓ E r * (χ r) ^ 2) * (-contW ℓ E r₀)) := by
   have hr₀pos : 0 < r₀ := (contW_thresh ℓ E hE hr₀R).1
   set G : ℝ → ℝ := fun r => (deriv χ r) ^ 2 - contW ℓ E r * (χ r) ^ 2 with hGdef
-  set Wd : ℝ → ℝ := fun x => -2 * (ℓ : ℝ) * ((ℓ : ℝ) + 1) / x ^ 3 + 2 / x ^ 2 with hWddef
+  set Wd : ℝ → ℝ := fun x => -2 * (ℓ : ℝ) * ((ℓ : ℝ) + 1) / x ^ 3 + 2 / x ^ 2 with _hWddef
   have hpos : ∀ x, r₀ ≤ x → 0 < x := fun x hx => lt_of_lt_of_le hr₀pos hx
   have hWdnn : ∀ x, r₀ ≤ x → 0 ≤ Wd x := fun x hx => (contW_thresh ℓ E hE (le_trans hr₀R hx)).2.2.2
   have hWneg : ∀ x, r₀ ≤ x → contW ℓ E x < 0 :=
@@ -191,7 +191,7 @@ private lemma l2_tendsto_zero {f : ℝ → ℝ} {a B : ℝ} (hB : 0 ≤ B)
     Filter.Tendsto f Filter.atTop (𝓝 0) := by
   rw [Metric.tendsto_atTop]
   intro ε hε
-  have hBp : (0 : ℝ) < B + 1 := by linarith
+  have _hBp : (0 : ℝ) < B + 1 := by linarith
   set δ := ε / (2 * (B + 1)) with hδdef
   have hδpos : 0 < δ := by positivity
   have hδeq : ε = 2 * (B * δ) + 2 * δ := by rw [hδdef]; field_simp

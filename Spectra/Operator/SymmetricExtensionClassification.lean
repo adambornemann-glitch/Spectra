@@ -239,8 +239,8 @@ theorem inner_inducedPartner (hsym : A.IsFormalAdjoint A)
     (η η' : inducedDefectDomain A B) :
     ⟪inducedPartner A B η, inducedPartner A B η'⟫_ℂ = ⟪(η : H), (η' : H)⟫_ℂ := by
   have hBadj : B ≤ A.adjoint := le_adjoint_of_le_of_isFormalAdjoint hdense hAB hsymB
-  set u : H := (η : H) + inducedPartner A B η with hu_def
-  set w : H := (η' : H) + inducedPartner A B η' with hw_def
+  set u : H := (η : H) + inducedPartner A B η with _hu_def
+  set w : H := (η' : H) + inducedPartner A B η' with _hw_def
   have huB : u ∈ B.domain := add_inducedPartner_mem A B η
   have hwB : w ∈ B.domain := add_inducedPartner_mem A B η'
   have huadj : u ∈ A.adjoint.domain := hBadj.1 huB

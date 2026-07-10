@@ -332,7 +332,7 @@ lemma integral_deriv_update_eq_zero (F : (Fin 3 → ℝ) → ℝ) (i : Fin 3)
       (hg_int y) (hg_top y) (hg_bot y)
   -- transport the 3-D integral to `ℝ × ℝ²` along the measure-preserving slicing
   set e : (Fin 3 → ℝ) ≃ᵐ ℝ × (Fin 2 → ℝ) :=
-    MeasurableEquiv.piFinSuccAbove (fun _ : Fin 3 => ℝ) i with he
+    MeasurableEquiv.piFinSuccAbove (fun _ : Fin 3 => ℝ) i with _he
   have hmp : MeasurePreserving e volume volume :=
     volume_preserving_piFinSuccAbove (fun _ : Fin 3 => ℝ) i
   have hcomp : ∀ x : Fin 3 → ℝ,

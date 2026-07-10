@@ -60,7 +60,7 @@ namespace Spectra.QuantumMechanics.Hydrogen.Radial
 lemma laguerreWeight_mul_pow_moment (α : ℝ) (hα : -1 < α) (k : ℕ) :
     ∫ x in Set.Ioi (0 : ℝ), laguerreWeight α x * x ^ k = Real.Gamma (α + k + 1) := by
   have hs : (0 : ℝ) < α + k + 1 := by
-    have hk : (0 : ℝ) ≤ k := Nat.cast_nonneg k
+    have _hk : (0 : ℝ) ≤ k := Nat.cast_nonneg k
     linarith
   rw [Real.Gamma_eq_integral hs]
   refine setIntegral_congr_fun measurableSet_Ioi (fun x hx => ?_)

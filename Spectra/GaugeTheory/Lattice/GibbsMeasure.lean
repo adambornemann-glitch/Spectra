@@ -124,7 +124,7 @@ theorem partitionFunction_ne_top {β : ℝ} (hβ : 0 ≤ β) :
 below by the positive constant `exp(−M)`. -/
 theorem partitionFunction_pos {β : ℝ} (hβ : 0 ≤ β) :
     0 < partitionFunction (d := d) (L := L) (n := n) β := by
-  set M : ℝ := β * (Fintype.card (Plaquette d L) * (2 * Fintype.card n)) with hM
+  set M : ℝ := β * (Fintype.card (Plaquette d L) * (2 * Fintype.card n)) with _hM
   calc (0 : ℝ≥0∞) < ENNReal.ofReal (Real.exp (-M)) := ENNReal.ofReal_pos.mpr (Real.exp_pos _)
     _ = ∫⁻ _, ENNReal.ofReal (Real.exp (-M)) ∂aprioriMeasure := by rw [lintegral_const]; simp
     _ ≤ partitionFunction β := lintegral_mono fun U => by

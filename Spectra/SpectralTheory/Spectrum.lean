@@ -44,7 +44,7 @@ theorem spectralProjection_Ioo_eq_zero_of_mem_resolventSet {lam : ℝ}
     (h : (lam : ℂ) ∈ resolventSet (generator U_grp)) :
     ∃ ε > 0, spectralProjection U_grp (Set.Ioo (lam - ε) (lam + ε)) measurableSet_Ioo = 0 := by
   obtain ⟨R, hleft, _hright⟩ := h
-  set M := ‖R‖ with hMdef
+  set M := ‖R‖ with _hMdef
   have hM0 : 0 ≤ M := norm_nonneg R
   set ε : ℝ := 1 / (M + 1) with hεdef
   have hεpos : 0 < ε := by rw [hεdef]; positivity
@@ -55,7 +55,7 @@ theorem spectralProjection_Ioo_eq_zero_of_mem_resolventSet {lam : ℝ}
   have hIcc : spectralProjection U_grp (Set.Icc (lam - ε) (lam + ε)) measurableSet_Icc = 0 := by
     refine ContinuousLinearMap.ext fun φ' => ?_
     rw [ContinuousLinearMap.zero_apply]
-    set ξ := spectralProjection U_grp (Set.Icc (lam - ε) (lam + ε)) measurableSet_Icc φ' with hξdef
+    set ξ := spectralProjection U_grp (Set.Icc (lam - ε) (lam + ε)) measurableSet_Icc φ' with _hξdef
     have hmem : ξ ∈ (generator U_grp).domain :=
       spectralProjection_mem_generatorDomain U_grp measurableSet_Icc
         (fun x hx => abs_le_max_of_mem_Icc hx) φ'

@@ -42,8 +42,8 @@ lemma hydrogenEigenvalue_gap (n : ℕ) (hn : 1 ≤ n) :
       hydrogenEigenvalue a ha ≤ hydrogenEigenvalue b hb := by
     intro a b ha hb hab
     simp only [hydrogenEigenvalue]
-    have ha0 : (0:ℝ) < (a:ℝ) := by exact_mod_cast ha
-    have hb0 : (0:ℝ) < (b:ℝ) := by exact_mod_cast hb
+    have _ha0 : (0:ℝ) < (a:ℝ) := by exact_mod_cast ha
+    have _hb0 : (0:ℝ) < (b:ℝ) := by exact_mod_cast hb
     have hab' : (a:ℝ) ≤ (b:ℝ) := by exact_mod_cast hab
     simp only [neg_div]
     rw [neg_le_neg_iff]

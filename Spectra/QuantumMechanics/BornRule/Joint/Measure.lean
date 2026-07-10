@@ -170,8 +170,8 @@ theorem jointVector_sUnion (A B : Spectra.Operator.SelfAdjointOperator H)
       = (A.spectralPVM.proj S₀ hS₀ * B.spectralPVM.proj T₀ hT₀) ξ := by
   classical
   -- Augmented axis families over `Option κ`: index `none` carries `S₀, T₀`.
-  set Sfam : Option κ → Set ℝ := fun o => o.elim S₀ Sp with hSfam_def
-  set Tfam : Option κ → Set ℝ := fun o => o.elim T₀ Tp with hTfam_def
+  set Sfam : Option κ → Set ℝ := fun o => o.elim S₀ Sp with _hSfam_def
+  set Tfam : Option κ → Set ℝ := fun o => o.elim T₀ Tp with _hTfam_def
   have hSfam : ∀ o, MeasurableSet (Sfam o) := by
     rintro (_ | k)
     · exact hS₀
@@ -387,10 +387,10 @@ noncomputable def jointContent (A B : Spectra.Operator.SelfAdjointOperator H)
     -- the union is a rectangle `S₀ ×ˢ T₀`
     obtain ⟨S₀, T₀, hS₀, hT₀, hST₀⟩ := h_mem
     -- index `I` by its coercion fintype; each member is a rectangle `Sp R ×ˢ Tp R`
-    set κ := {R : Set (ℝ × ℝ) // R ∈ I} with hκ
+    set κ := {R : Set (ℝ × ℝ) // R ∈ I} with _hκ
     have hmemR : ∀ R : κ, R.1 ∈ jointRectangles := fun R => h_ss R.2
-    set Sp : κ → Set ℝ := fun R => (hmemR R).choose with hSp_def
-    set Tp : κ → Set ℝ := fun R => (hmemR R).choose_spec.choose with hTp_def
+    set Sp : κ → Set ℝ := fun R => (hmemR R).choose with _hSp_def
+    set Tp : κ → Set ℝ := fun R => (hmemR R).choose_spec.choose with _hTp_def
     have hSp : ∀ R, MeasurableSet (Sp R) := fun R => (hmemR R).choose_spec.choose_spec.1
     have hTp : ∀ R, MeasurableSet (Tp R) := fun R => (hmemR R).choose_spec.choose_spec.2.1
     have hR : ∀ R : κ, R.1 = Sp R ×ˢ Tp R := fun R => (hmemR R).choose_spec.choose_spec.2.2
@@ -540,7 +540,7 @@ theorem jointVectorContent_eq (A B : Spectra.Operator.SelfAdjointOperator H) (ξ
   classical
   -- expand the chosen-partition definition first, then name the chosen partition `K`
   rw [jointVectorContent, dif_pos hs]
-  set K := ((isSetSemiring_jointRectangles.mem_supClosure_iff).mp hs).choose with hKdef
+  set K := ((isSetSemiring_jointRectangles.mem_supClosure_iff).mp hs).choose with _hKdef
   have hKC : ↑K.parts ⊆ jointRectangles :=
     ((isSetSemiring_jointRectangles.mem_supClosure_iff).mp hs).choose_spec
   have hKd : (K.parts : Set (Set (ℝ × ℝ))).PairwiseDisjoint id := K.disjoint
@@ -562,9 +562,9 @@ theorem jointVectorContent_eq (A B : Spectra.Operator.SelfAdjointOperator H) (ξ
     -- index the cover of `R` by `R' ∈ J₂` (subtype)
     rw [← Finset.sum_coe_sort J₂ (fun R' => rectVec A B ξ (R ∩ R'))]
     -- represent each `R ∩ R'` as a rectangle `(SR ∩ S') ×ˢ (TR ∩ T')`
-    set Sp : {R' // R' ∈ J₂} → Set ℝ := fun R' => SR ∩ (hJ₂C R'.2).choose with hSpdef
+    set Sp : {R' // R' ∈ J₂} → Set ℝ := fun R' => SR ∩ (hJ₂C R'.2).choose with _hSpdef
     set Tp : {R' // R' ∈ J₂} → Set ℝ :=
-      fun R' => TR ∩ (hJ₂C R'.2).choose_spec.choose with hTpdef
+      fun R' => TR ∩ (hJ₂C R'.2).choose_spec.choose with _hTpdef
     have hS'm : ∀ R' : {R' // R' ∈ J₂}, MeasurableSet (hJ₂C R'.2).choose :=
       fun R' => (hJ₂C R'.2).choose_spec.choose_spec.1
     have hT'm : ∀ R' : {R' // R' ∈ J₂}, MeasurableSet (hJ₂C R'.2).choose_spec.choose :=
@@ -909,7 +909,7 @@ theorem jointContentRing_tendsto_empty (A B : Spectra.Operator.SelfAdjointOperat
       (fun n => (jointContent A B hSC ξ).supClosure isSetSemiring_jointRectangles (s n))
       Filter.atTop (nhds 0) := by
   classical
-  set mR := (jointContent A B hSC ξ).supClosure isSetSemiring_jointRectangles with hmRdef
+  set mR := (jointContent A B hSC ξ).supClosure isSetSemiring_jointRectangles with _hmRdef
   have hRing : MeasureTheory.IsSetRing (supClosure jointRectangles) :=
     isSetSemiring_jointRectangles.isSetRing_supClosure
   have hmR_ne_top : ∀ n, mR (s n) ≠ ⊤ := fun n => jointContentRing_ne_top A B hSC ξ (hs n)
@@ -962,7 +962,7 @@ theorem jointContentRing_tendsto_empty (A B : Spectra.Operator.SelfAdjointOperat
       ring
   -- `a` converges (antitone, bounded below by 0) to its infimum `L`
   have hbdd : BddBelow (Set.range a) := ⟨0, by rintro _ ⟨n, rfl⟩; exact ha_nonneg n⟩
-  set L : ℝ := ⨅ n, a n with hLdef
+  set L : ℝ := ⨅ n, a n with _hLdef
   have ha_tendsto : Tendsto a atTop (𝓝 L) := tendsto_atTop_ciInf ha_anti hbdd
   have hL_le : ∀ n, L ≤ a n := fun n => ciInf_le hbdd n
   -- the Cauchy modulus `b N = √(a N − L) → 0`, dominating `dist (v n) (v m)` for `N ≤ n, m`
@@ -1114,7 +1114,7 @@ theorem jointContent_isSigmaSubadditive (A B : Spectra.Operator.SelfAdjointOpera
     (hSC : StronglyCommute A B) (ξ : H) : (jointContent A B hSC ξ).IsSigmaSubadditive := by
   have hRing : MeasureTheory.IsSetRing (supClosure jointRectangles) :=
     isSetSemiring_jointRectangles.isSetRing_supClosure
-  set mR := (jointContent A B hSC ξ).supClosure isSetSemiring_jointRectangles with hmR
+  set mR := (jointContent A B hSC ξ).supClosure isSetSemiring_jointRectangles with _hmR
   have m_iUnion : ∀ (f : ℕ → Set (ℝ × ℝ)) (_ : ∀ i, f i ∈ supClosure jointRectangles)
       (_ : (⋃ i, f i) ∈ supClosure jointRectangles)
       (_ : Pairwise (Function.onFun Disjoint f)),

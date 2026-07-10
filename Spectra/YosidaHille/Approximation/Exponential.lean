@@ -143,7 +143,7 @@ lemma exponential_unitary
       atTop (𝓝 ⟪exponential hsym hplus hminus h_dense t ψ,
                 exponential hsym hplus hminus h_dense t φ⟫_ℂ) :=
     Filter.Tendsto.inner h_conv_ψ h_conv_φ
-  have h_const : Tendsto (fun n : ℕ+ => ⟪ψ, φ⟫_ℂ) atTop (𝓝 ⟪ψ, φ⟫_ℂ) := tendsto_const_nhds
+  have h_const : Tendsto (fun _n : ℕ+ => ⟪ψ, φ⟫_ℂ) atTop (𝓝 ⟪ψ, φ⟫_ℂ) := tendsto_const_nhds
   exact tendsto_nhds_unique h_inner_cont (h_const.congr (fun n => (h_approx_unitary n).symm))
 
 /-! ### Group law -/
@@ -467,7 +467,7 @@ lemma exponential_sub_eq_integral
     (φ : H) (hφ : φ ∈ A.domain) (t : ℝ) :
     exponential hsym hplus hminus h_dense t φ - φ
       = ∫ s in (0:ℝ)..t, I • exponential hsym hplus hminus h_dense s (A ⟨φ, hφ⟩) := by
-  set Aφ := A ⟨φ, hφ⟩ with hAφ
+  set Aφ := A ⟨φ, hφ⟩ with _hAφ
   have htend : Tendsto (fun n : ℕ+ => yosidaApproxSym hsym hplus hminus n φ) atTop (𝓝 Aφ) :=
     yosidaApproxSym_tendsto_on_domain hsym hplus hminus h_dense φ hφ
   -- each bounded integrand is continuous (for measurability/integrability)
@@ -565,7 +565,7 @@ lemma exponential_generator_eq
     (φ : H) (hφ : φ ∈ A.domain) :
     Tendsto (fun t : ℝ => (t⁻¹ : ℂ) • (exponential hsym hplus hminus h_dense t φ - φ))
             (𝓝[≠] 0) (𝓝 (I • A ⟨φ, hφ⟩)) := by
-  set Aφ := A ⟨φ, hφ⟩ with hAφ
+  set Aφ := A ⟨φ, hφ⟩ with _hAφ
   -- reduce the complex difference-quotient scalar to the real one the slope produces
   have hreal : (fun t : ℝ => (t⁻¹ : ℂ) • (exponential hsym hplus hminus h_dense t φ - φ))
       = (fun t : ℝ => (t⁻¹ : ℝ) • (exponential hsym hplus hminus h_dense t φ - φ)) := by

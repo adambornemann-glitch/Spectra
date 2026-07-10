@@ -186,7 +186,7 @@ lemma lorentzian_approx_delta (f : ℝ → ℂ) (hf_cont : Continuous f)
   -- Rewrite goal in terms of K (same as your existing h_rewrite)
   suffices h : Tendsto (fun ε => ∫ s, (K ε s) • f s) (𝓝[>] 0) (𝓝 (f t)) by
     refine h.congr' ?_
-    filter_upwards [self_mem_nhdsWithin] with ε hε
+    filter_upwards [self_mem_nhdsWithin] with ε _hε
     simp only [K]
     rw [show (fun s => (1 / Real.pi * (ε / ((s - t) ^ 2 + ε ^ 2))) • f s) =
          (fun s => (1 / Real.pi) • (ε / ((s - t) ^ 2 + ε ^ 2)) • f s) from by
@@ -220,7 +220,7 @@ lemma lorentzian_approx_delta (f : ℝ → ℂ) (hf_cont : Continuous f)
   obtain ⟨δ, hδ, hδ_close⟩ := hf_cont_t (η / 3) (by positivity)
   -- Step 1: Choose ε₁ so that |f(t)| · ∫_far K < η/3
   -- This uses lorentzian_concentration
-  have h_conc := lorentzian_concentration t δ hδ
+  have _h_conc := lorentzian_concentration t δ hδ
   -- We need: ∫_far K ε s ds → 0, which follows from lorentzian_concentration
   -- after multiplying by 1/π. Then |f(t)| · ∫_far K < η/3 eventually.
   obtain ⟨ε₁, hε₁_pos, hε₁⟩ : ∃ ε₁ > 0, ∀ ε, 0 < ε → ε < ε₁ →
@@ -256,7 +256,7 @@ lemma lorentzian_approx_delta (f : ℝ → ℂ) (hf_cont : Continuous f)
       ε / (Real.pi * δ^2) * C < η / 3 := by
     have hC_nonneg : 0 ≤ C := integral_nonneg (fun s => norm_nonneg (f s))
     have hπδ_pos : 0 < Real.pi * δ ^ 2 := by positivity
-    have hC1_pos : 0 < C + 1 := by linarith
+    have _hC1_pos : 0 < C + 1 := by linarith
     refine ⟨η * Real.pi * δ ^ 2 / (3 * (C + 1)), by positivity, fun ε hε hε_lt => ?_⟩
     have key : ε * (3 * (C + 1)) < η * Real.pi * δ ^ 2 := by
       rwa [lt_div_iff₀ (by positivity : (0 : ℝ) < 3 * (C + 1))] at hε_lt

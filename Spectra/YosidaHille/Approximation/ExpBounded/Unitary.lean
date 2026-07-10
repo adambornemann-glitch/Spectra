@@ -114,7 +114,7 @@ theorem expBounded_yosidaApproxSym_isometry {A : H →ₗ.[ℂ] H}
     (hminus : ∀ φ : H, ∃ ψ : A.domain, A ψ - I • (ψ : H) = φ)
     (n : ℕ+) (t : ℝ) (ψ : H) :
     ‖expBounded (I • yosidaApproxSym hsym hplus hminus n) t ψ‖ = ‖ψ‖ := by
-  set U := expBounded (I • yosidaApproxSym hsym hplus hminus n) t with hU
+  set U := expBounded (I • yosidaApproxSym hsym hplus hminus n) t with _hU
   have h_inner := expBounded_yosidaApproxSym_unitary hsym hplus hminus n t ψ ψ
   have h1 : ‖U ψ‖^2 = re ⟪U ψ, U ψ⟫_ℂ := (inner_self_eq_norm_sq (𝕜 := ℂ) (U ψ)).symm
   have h2 : ‖ψ‖^2 = re ⟪ψ, ψ⟫_ℂ := (inner_self_eq_norm_sq (𝕜 := ℂ) ψ).symm
@@ -164,7 +164,7 @@ lemma expBounded_hasDerivAt (B : H →L[ℂ] H) (τ : ℝ) :
       simp only [sub_self]
       exact expBounded_hasDerivAt_zero B
     exact h0.comp_sub_const τ τ
-  have h_val : expBounded B (τ - τ) = 1 := by simp only [sub_self, expBounded_at_zero']
+  have _h_val : expBounded B (τ - τ) = 1 := by simp only [sub_self, expBounded_at_zero']
   have h_post : HasDerivAt (fun t => (expBounded B τ).comp (expBounded B (t - τ)))
                            ((expBounded B τ).comp B) τ := by
     set A := expBounded B τ

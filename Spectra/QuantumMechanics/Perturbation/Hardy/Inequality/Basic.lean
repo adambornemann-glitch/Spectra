@@ -174,7 +174,7 @@ private lemma vsq_inverseRSq_integrable
     (le_abs_self _).trans (by rw [← Real.norm_eq_abs]; exact hM x)
   -- tsupport of v² lies in some closed ball, hence in the open ball of radius R+1.
   obtain ⟨R, hR⟩ := hv2_supp.isCompact.isBounded.subset_closedBall (0 : R3)
-  set R' := R + 1 with hR'_def
+  set R' := R + 1 with _hR'_def
   have hsub : tsupport (fun x => v x ^ 2) ⊆ Metric.ball (0 : R3) R' := fun x hx => by
     have := hR hx
     rw [Metric.mem_closedBall, dist_zero_right] at this
@@ -447,7 +447,7 @@ theorem hardy_inequality_smooth_real
   obtain ⟨M, hM_nn, hcut⟩ := exists_hardy_cutoff
   have hseq_tend : Tendsto (fun n : ℕ => (1:ℝ) / (n + 1)) atTop (𝓝 0) :=
     tendsto_one_div_add_atTop_nhds_zero_nat
-  set e : ℕ → ℝ := fun n => 1 / (n + 1) with he_def
+  set e : ℕ → ℝ := fun n => 1 / (n + 1) with _he_def
   have he_pos : ∀ n, 0 < e n := fun n => by positivity
   have hcut' : ∀ n : ℕ, ∃ χ : R3 → ℝ,
       ContDiff ℝ ∞ χ ∧ (∀ x, ‖x‖ ≤ e n → χ x = 0) ∧ (∀ x, 2 * e n ≤ ‖x‖ → χ x = 1) ∧
@@ -922,8 +922,8 @@ theorem hardy_operator_bound
       Real.sqrt (hardyIntegral ψ) ≤
       ε * ‖weakLaplacian ψ hψ‖ + C * ‖ψ‖ := by
   refine ⟨ε⁻¹, le_of_lt (inv_pos.mpr hε), fun ψ hψ => ?_⟩
-  set A := ‖weakLaplacian ψ hψ‖ with hA_def
-  set B := ‖ψ‖ with hB_def
+  set A := ‖weakLaplacian ψ hψ‖ with _hA_def
+  set B := ‖ψ‖ with _hB_def
   have hA0 : 0 ≤ A := norm_nonneg _
   have hB0 : 0 ≤ B := norm_nonneg _
   -- `‖(1/r)ψ‖² ≤ 4⟨−Δψ,ψ⟩ ≤ 4‖−Δψ‖‖ψ‖` (quadratic form + Cauchy–Schwarz).

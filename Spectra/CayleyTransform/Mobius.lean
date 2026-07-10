@@ -128,7 +128,7 @@ lemma mobius_inverseMobius (w : ℂ) (hw_ne : w ≠ 1) :
   have h_denom : I * (1 + w) / (1 - w) + I = 2 * I / (1 - w) := by
     field_simp [h1_sub_ne]
     ring
-  have h_denom_ne : 2 * I / (1 - w) ≠ 0 := div_ne_zero h2I_ne h1_sub_ne
+  have _h_denom_ne : 2 * I / (1 - w) ≠ 0 := div_ne_zero h2I_ne h1_sub_ne
   rw [h_num, h_denom]
   field_simp [h1_sub_ne, h2I_ne]
 

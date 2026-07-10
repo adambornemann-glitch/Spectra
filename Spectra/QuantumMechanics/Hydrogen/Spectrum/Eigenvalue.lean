@@ -441,7 +441,7 @@ theorem hydrogen_eigenfunction_eq (p : CoulombParams)
   rw [hydrogen_reduces_half p ℓ m hm (Rc n ℓ hn) (contDiff_Rc n ℓ hn) f hf hsep hr hθ]
   rw [hsep r θ φ]
   rw [deriv2_Rc n ℓ hn, deriv_Rc n ℓ hn, hZ]
-  have hrne : (r : ℝ) ≠ 0 := ne_of_gt hr
+  have _hrne : (r : ℝ) ≠ 0 := ne_of_gt hr
   have heig := radial_eigenvalue_eq n ℓ hn r hr
   simp only [Rc]
   -- The real radial bracket identity: at `Z = 1` the factor is exactly `H_ℓ R = E_n·R`.

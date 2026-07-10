@@ -125,7 +125,7 @@ lemma hasFDerivAt_gaussianFactor (R : Matrix (Fin m) (Fin n) ℝ) (k : Fin m) (x
     rw [meanCoord_eq_clm]
     exact (meanCLM R k).hasFDerivAt
   -- u(θ) = -(x k - L θ)²/2
-  set L := meanCLM R k with hLdef
+  set L := meanCLM R k with _hLdef
   -- derivative of θ ↦ x k - L θ is -L
   have hsub : HasFDerivAt (fun θ' : ParamSpace n => x k - R.mulVec θ' k) (-L) θ := by
     have h0 := (hasFDerivAt_const (x k) θ).sub hL

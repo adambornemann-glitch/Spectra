@@ -81,12 +81,12 @@ private lemma diff_bound (hβ : 0 < β) (hkmsIT : IsImaginaryTimeKMS ω α β) (
     ‖(kmsFunctionOfAnalytic hkmsIT hbn a).toFun z
         - (kmsFunctionOfAnalytic hkmsIT hbm a).toFun z‖
       ≤ (‖omegaL ω‖ * ‖a‖) * ‖bn - bm‖ := by
-  set Fn := kmsFunctionOfAnalytic hkmsIT hbn a with hFn
-  set Fm := kmsFunctionOfAnalytic hkmsIT hbm a with hFm
-  set D : ℂ → ℂ := fun w => Fn.toFun w - Fm.toFun w with hD
+  set Fn := kmsFunctionOfAnalytic hkmsIT hbn a with _hFn
+  set Fm := kmsFunctionOfAnalytic hkmsIT hbm a with _hFm
+  set D : ℂ → ℂ := fun w => Fn.toFun w - Fm.toFun w with _hD
   set C : ℝ := ‖omegaL ω‖ * ‖a‖ with hC
   set X : ℝ := C * ‖bn - bm‖ with hX
-  have hCnn : 0 ≤ C := by positivity
+  have _hCnn : 0 ≤ C := by positivity
   have hXnn : 0 ≤ X := by positivity
   -- D is holomorphic on the open strip, continuous + bounded on the closed strip.
   have hDholo : DifferentiableOn ℂ D (Strip β) := Fn.holomorphic.sub Fm.holomorphic
@@ -221,8 +221,8 @@ noncomputable def limitKMSFunction (hβ : 0 < β) (hkmsIT : IsImaginaryTimeKMS �
       tendsto_one_div_add_atTop_nhds_zero_nat
     rw [dist_comm, dist_eq_norm]; exact (hbn_lt n).le
   -- 2. The sequence of KMS functions and the constant C.
-  set F : ℕ → ℂ → ℂ := fun n => (kmsFunctionOfAnalytic hkmsIT (hbn_an n) a).toFun with hF
-  set C : ℝ := ‖omegaL ω‖ * ‖a‖ with hC
+  set F : ℕ → ℂ → ℂ := fun n => (kmsFunctionOfAnalytic hkmsIT (hbn_an n) a).toFun with _hF
+  set C : ℝ := ‖omegaL ω‖ * ‖a‖ with _hC
   have hCnn : 0 ≤ C := by positivity
   -- 3. Uniformly Cauchy on the closed strip.
   have hUC : UniformCauchySeqOn F atTop (ClosedStrip β) := by
@@ -251,8 +251,8 @@ noncomputable def limitKMSFunction (hβ : 0 < β) (hkmsIT : IsImaginaryTimeKMS �
     intro z hz
     exact cauchySeq_tendsto_of_complete (hUC.cauchySeq hz)
   classical
-  set f : ℂ → ℂ := fun z => if hz : z ∈ ClosedStrip β then (hlim z hz).choose else 0 with hf_def
-  have hf' : ∀ z (hz : z ∈ ClosedStrip β), Tendsto (fun n => F n z) atTop (nhds (f z)) := by
+  set f : ℂ → ℂ := fun z => if hz : z ∈ ClosedStrip β then (hlim z hz).choose else 0 with _hf_def
+  have hf' : ∀ z (_hz : z ∈ ClosedStrip β), Tendsto (fun n => F n z) atTop (nhds (f z)) := by
     intro z hz
     have : f z = (hlim z hz).choose := dif_pos hz
     rw [this]

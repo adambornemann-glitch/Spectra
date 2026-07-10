@@ -111,7 +111,7 @@ lemma op_range_dense {A : H →ₗ.[ℂ] H} (hA : IsSelfAdjoint A) (z : ℂ) (hz
     have h : A.adjoint.IsFormalAdjoint A := LinearPMap.adjoint_isFormalAdjoint hdense
     rwa [LinearPMap.isSelfAdjoint_def.mp hA] at h
   have hadj : A.adjoint = A := LinearPMap.isSelfAdjoint_def.mp hA
-  set R : Submodule ℂ H := LinearMap.range (A.toFun - z • A.domain.subtype) with hRdef
+  set R : Submodule ℂ H := LinearMap.range (A.toFun - z • A.domain.subtype) with _hRdef
   have hRset : (Set.range fun x : A.domain => A x - z • (x : H)) = (R : Set H) := by
     ext y; constructor
     · rintro ⟨x, rfl⟩; exact ⟨x, by simp [LinearMap.sub_apply]⟩
@@ -207,7 +207,7 @@ lemma IsSelfAdjoint.eq_of_le {A B : H →ₗ.[ℂ] H}
     have h : B.adjoint.IsFormalAdjoint B := LinearPMap.adjoint_isFormalAdjoint hB.dense_domain
     rwa [LinearPMap.isSelfAdjoint_def.mp hB] at h
   obtain ⟨_, hAminus⟩ := isSelfAdjoint_to_surjective hA
-  have hdom : ∀ w (hw : w ∈ B.domain), w ∈ A.domain := by
+  have hdom : ∀ w (_hw : w ∈ B.domain), w ∈ A.domain := by
     intro w hw
     obtain ⟨v, hv⟩ := hAminus (B ⟨w, hw⟩ - I • w)
     have hvB : (v : H) ∈ B.domain := hle.1 v.2

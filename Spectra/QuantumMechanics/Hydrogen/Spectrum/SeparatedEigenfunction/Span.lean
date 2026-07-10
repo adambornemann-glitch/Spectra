@@ -147,9 +147,9 @@ lemma sector_reIm_dichotomy (n : ℕ) (hn1 : 1 ≤ n)
           (chartRealization (ψ' : Spectra.Sobolev.l2R3)) r)
           = c * hydrogenRadialWavefunction n ℓ hℓn r) := by
   classical
-  set Φ' := chartRealization (ψ' : Spectra.Sobolev.l2R3) with hΦ'
+  set Φ' := chartRealization (ψ' : Spectra.Sobolev.l2R3) with _hΦ'
   set g : ℝ → ℂ := coeffFun ⟨ℓ, -(m : ℤ), by rw [abs_neg]; simpa using hm⟩ Φ' with hg
-  set E := hydrogenEigenvalue n hn1 with hE
+  set E := hydrogenEigenvalue n hn1 with _hE
   -- raw classical `C²` solution of the log-coordinate ODE (mirrors `forward_eigenvalue`)
   obtain ⟨c₀, hae, hc1, hc2, hode⟩ :=
     Spectra.RadialRegularity.classical_of_weak_ode
@@ -289,13 +289,13 @@ lemma coeffFun_dichotomy (n : ℕ) (hn1 : 1 ≤ n)
     rw [hidx]
     -- the Condon–Shortley constant
     set κ : ℝ := sphericalNorm ℓ (-(m : ℤ)) * reflectionFactor ℓ (-(m : ℤ))
-        / (sphericalNorm ℓ (m : ℤ) * reflectionFactor ℓ (m : ℤ)) with hκ
+        / (sphericalNorm ℓ (m : ℤ) * reflectionFactor ℓ (m : ℤ)) with _hκ
     have hκne : κ ≠ 0 := div_ne_zero
       (mul_ne_zero (sphericalNorm_pos _ _).ne' (reflectionFactor_ne_zero _ _))
       (mul_ne_zero (sphericalNorm_pos _ _).ne' (reflectionFactor_ne_zero _ _))
     -- `star ψ` is an eigenpair at `Eₙ`; run the dichotomy on its `-(m:ℤ)` coefficient
     set ψs : (hydrogenHamiltonian ⟨1, one_pos⟩).domain :=
-      ⟨star (ψ : Spectra.Sobolev.l2R3), memSobolevH2_star _ ψ.2⟩ with hψs
+      ⟨star (ψ : Spectra.Sobolev.l2R3), memSobolevH2_star _ ψ.2⟩ with _hψs
     have heigs : hydrogenHamiltonian ⟨1, one_pos⟩ ψs
         = ((hydrogenEigenvalue n hn1 : ℝ) : ℂ) • (ψs : Spectra.Sobolev.l2R3) :=
       hydrogenHamiltonian_star ⟨1, one_pos⟩ (hydrogenEigenvalue n hn1) ψ heig
@@ -384,7 +384,7 @@ lemma sectorEmbedding_w_mem_span (n : ℕ) (hn1 : 1 ≤ n)
     (n ≤ i.1 → sphericalDecomposition (chartRealization (ψ : Spectra.Sobolev.l2R3)) i = 0) := by
   classical
   obtain ⟨ℓ, M, hM⟩ := i
-  set Φ := chartRealization (ψ : Spectra.Sobolev.l2R3) with hΦ
+  set Φ := chartRealization (ψ : Spectra.Sobolev.l2R3) with _hΦ
   -- Step A: the component is the `toLp` of the angular coefficient
   have hA := sphericalDecomposition_eq_toLp_coeffFun Φ ⟨ℓ, M, hM⟩
   rcases coeffFun_dichotomy n hn1 ψ heig ℓ M hM with hzero | ⟨hℓn, c, hc⟩

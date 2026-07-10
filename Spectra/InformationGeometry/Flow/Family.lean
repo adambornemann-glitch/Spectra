@@ -214,7 +214,7 @@ lemma fderiv_klDiv_phi_apply_live
     fun θ₂ => (hφ_smooth.differentiable (by simp)).differentiableAt
   have hKL_zero : fderiv ℝ (M.klDiv α) α = 0 :=
     (M.klDiv_fderiv_eq_zero hα).fderiv
-  set v₀ := V θ with hv₀_def
+  set v₀ := V θ with _hv₀_def
   set G : ParamSpace n → ℝ := fun θ₂ =>
     fderiv ℝ (M.klDiv α) (F.φ t θ₂) (V θ₂) with hG_def
   set R : ParamSpace n → ℝ := fun θ₂ =>
@@ -379,7 +379,7 @@ lemma preserves_fisher {θ : ParamSpace n} (hθ : θ ∈ M.paramDomain)
     M.toRegularStatisticalModel.fisherBilin (F.φ t θ)
       (fderiv ℝ (F.φ t) θ v) (fderiv ℝ (F.φ t) θ w) =
     M.toRegularStatisticalModel.fisherBilin θ v w := by
-  set α := F.φ t θ with hα_def
+  set α := F.φ t θ with _hα_def
   have hα : α ∈ M.paramDomain := F.maps_domain t θ hθ
   suffices h_component : ∀ a b : Fin n,
       M.toRegularStatisticalModel.fisherBilin α
@@ -418,7 +418,7 @@ lemma preserves_fisher {θ : ParamSpace n} (hθ : θ ∈ M.paramDomain)
   have h_funcs_eq : ∀ θ₂ ∈ M.paramDomain,
       M.klDiv α (F.φ t θ₂) = M.klDiv θ θ₂ :=
     fun θ₂ hθ₂ => F.preserves_divergence t θ hθ θ₂ hθ₂
-  have h_ev_eq : (fun θ₂ => M.klDiv α (F.φ t θ₂)) =ᶠ[𝓝 θ] M.klDiv θ := by
+  have _h_ev_eq : (fun θ₂ => M.klDiv α (F.φ t θ₂)) =ᶠ[𝓝 θ] M.klDiv θ := by
     filter_upwards [M.isOpen_paramDomain.mem_nhds hθ] with θ₂ hθ₂
     exact h_funcs_eq θ₂ hθ₂
   -- ── Step 2: Their fderivs agree on an open neighborhood ──
@@ -465,7 +465,7 @@ lemma preserves_fisher {θ : ParamSpace n} (hθ : θ ∈ M.paramDomain)
         F.smooth.comp (contDiff_const.prodMk contDiff_id)
       have hφ_diff_at : ∀ θ₂, DifferentiableAt ℝ (F.φ t) θ₂ :=
         fun θ₂ => (hφ_smooth.differentiable (by simp)).differentiableAt
-      have hKL_zero : fderiv ℝ (M.klDiv α) α = 0 :=
+      have _hKL_zero : fderiv ℝ (M.klDiv α) α = 0 :=
         (M.klDiv_fderiv_eq_zero hα).fderiv
       -- Step 1: Chain rule — near θ, the b-th partial factors
       have h_chain_ev : ∀ᶠ θ₂ in 𝓝 θ,

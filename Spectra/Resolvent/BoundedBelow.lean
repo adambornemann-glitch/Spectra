@@ -105,7 +105,7 @@ lemma range_dense_of_boundedBelow_real {A : H →ₗ.[ℂ] H} (hA : IsSelfAdjoin
     Dense (Set.range fun ψ : A.domain => A ψ - (lam : ℂ) • (ψ : H)) := by
   have hdense : Dense (A.domain : Set H) := hA.dense_domain
   have hadj : A.adjoint = A := LinearPMap.isSelfAdjoint_def.mp hA
-  set R : Submodule ℂ H := LinearMap.range (A.toFun - (lam : ℂ) • A.domain.subtype) with hRdef
+  set R : Submodule ℂ H := LinearMap.range (A.toFun - (lam : ℂ) • A.domain.subtype) with _hRdef
   have hRset : (Set.range fun x : A.domain => A x - (lam : ℂ) • (x : H)) = (R : Set H) := by
     ext y; constructor
     · rintro ⟨x, rfl⟩; exact ⟨x, by simp [LinearMap.sub_apply]⟩

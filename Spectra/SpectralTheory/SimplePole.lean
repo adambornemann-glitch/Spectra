@@ -347,7 +347,7 @@ theorem tendsto_sub_smul_resolventOf {lam δ' : ℝ} (hδ' : 0 < δ')
         (by positivity : (0 : ℝ) < δ' / 2))] with z hzne hzball
     have hzlam : z ≠ (lam : ℂ) := hzne
     have hzd : dist z (lam : ℂ) < δ' / 2 := by rwa [Metric.mem_ball] at hzball
-    set g := simplePoleSymbol lam δ' z with hgdef
+    set g := simplePoleSymbol lam δ' z with _hgdef
     have hgm : Measurable g := simplePoleSymbol_measurable lam δ' z
     have hgb : ∃ C, ∀ s, ‖g s‖ ≤ C := ⟨_, fun s => norm_simplePoleSymbol_le hδ' hzd s⟩
     have hReq := resolventOf_eq_simplePoleSymbol U_grp hδ' hzd hzlam hgapJ hgm hgb

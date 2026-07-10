@@ -199,8 +199,8 @@ private lemma deriv_hydrogenRadial (n ℓ : ℕ) (hn : ℓ + 1 ≤ n) :
           ((2 / n) * deriv (laguerrePolynomial (n - ℓ - 1) (2 * ℓ + 1)) (2 * x / n))) := by
   funext x
   rw [hydrogenRadial_eq_factored n ℓ hn]
-  set A := radialNormalization n ℓ hn * (2 / (n : ℝ)) ^ ℓ with hA
-  set L := laguerrePolynomial (n - ℓ - 1) (2 * ℓ + 1) with hLdef
+  set A := radialNormalization n ℓ hn * (2 / (n : ℝ)) ^ ℓ with _hA
+  set L := laguerrePolynomial (n - ℓ - 1) (2 * ℓ + 1) with _hLdef
   have hLd : ∀ y, HasDerivAt L (deriv L y) y :=
     fun y => ((laguerre_smooth _ _).differentiable (by simp)).differentiableAt.hasDerivAt
   have hpow := hasDerivAt_pow ℓ x
@@ -247,8 +247,8 @@ private lemma deriv2_hydrogenRadial (n ℓ : ℕ) (hn : ℓ + 1 ≤ n) :
   have h2 : deriv^[2] (hydrogenRadialWavefunction n ℓ hn) x
       = deriv (deriv (hydrogenRadialWavefunction n ℓ hn)) x := rfl
   rw [h2, deriv_hydrogenRadial n ℓ hn]
-  set A := radialNormalization n ℓ hn * (2 / (n : ℝ)) ^ ℓ with hA
-  set L := laguerrePolynomial (n - ℓ - 1) (2 * ℓ + 1) with hLdef
+  set A := radialNormalization n ℓ hn * (2 / (n : ℝ)) ^ ℓ with _hA
+  set L := laguerrePolynomial (n - ℓ - 1) (2 * ℓ + 1) with _hLdef
   have hLd : ∀ y, HasDerivAt L (deriv L y) y :=
     fun y => ((laguerre_smooth _ _).differentiable (by simp)).differentiableAt.hasDerivAt
   have hLd2 : ∀ y, HasDerivAt (deriv L) (deriv^[2] L y) y :=
@@ -285,7 +285,7 @@ lemma tendsto_pow_mul_exp_neg_div (j m : ℕ) (hm : 0 < m) :
     have : (0 : ℝ) < m := Nat.cast_pos.mpr hm
     positivity
   refine (tendsto_rpow_mul_exp_neg_mul_atTop_nhds_zero (j : ℝ) (1 / (m : ℝ)) hb).congr' ?_
-  filter_upwards [eventually_gt_atTop (0 : ℝ)] with r hr
+  filter_upwards [eventually_gt_atTop (0 : ℝ)] with r _hr
   rw [Real.rpow_natCast, show -(1 / (m : ℝ)) * r = -r / m from by ring]
 
 /-- `r^a · e^{−r/n} · L_p^β(2r/n) → 0` at infinity (a monomial × exp × Laguerre). -/
@@ -670,7 +670,7 @@ theorem radial_boundary_r_zero (n : ℕ) (ℓ : ℕ) (hn : ℓ + 1 ≤ n) :
       =ᶠ[nhdsWithin 0 (Set.Ioi 0)] g := by
     filter_upwards [self_mem_nhdsWithin] with r hr
     rw [Set.mem_Ioi] at hr
-    have hrne : r ≠ 0 := ne_of_gt hr
+    have _hrne : r ≠ 0 := ne_of_gt hr
     rw [hg_def]
     unfold hydrogenReducedWavefunction hydrogenRadialWavefunction
     have h2n : (2 * r / (n : ℝ)) ^ ℓ = (2 / (n : ℝ)) ^ ℓ * r ^ ℓ := by

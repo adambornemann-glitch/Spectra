@@ -574,7 +574,7 @@ lemma laguerreWeight_integrable (α : ℝ) (hα : -1 < α) :
   it's the Euler Γ-integrand with s = α + k + 1. -/
 lemma laguerreWeight_mul_pow_integrable (α : ℝ) (hα : -1 < α) (k : ℕ) :
     IntegrableOn (fun x : ℝ => laguerreWeight α x * x ^ k) (Set.Ioi 0) volume := by
-  have hk : (0 : ℝ) ≤ (k : ℝ) := Nat.cast_nonneg k
+  have _hk : (0 : ℝ) ≤ (k : ℝ) := Nat.cast_nonneg k
   have hconv := Real.GammaIntegral_convergent (s := α + k + 1) (by linarith)
   refine hconv.congr_fun (fun x hx => ?_) measurableSet_Ioi
   rw [Set.mem_Ioi] at hx
@@ -764,7 +764,7 @@ lemma laguerre_mul_weight_mul_laguerre_deriv_tendsto_atTop
     refine Finset.sum_congr rfl (fun j _ => ?_)
     ring
   simp only [key]
-  rw [show (0 : ℝ) = ∑ i ∈ Finset.range (n + 1), ∑ j ∈ Finset.range (m + 1), (0 : ℝ) from by simp]
+  rw [show (0 : ℝ) = ∑ i ∈ Finset.range (n + 1), ∑ _j ∈ Finset.range (m + 1), (0 : ℝ) from by simp]
   refine tendsto_finsetSum _ (fun i _ => tendsto_finsetSum _ (fun j _ => ?_))
   have h := (hker (i + (j - 1))).const_mul
     (((-1 : ℝ) ^ i * realBinom (n + α) (n - i) / (i.factorial : ℝ))

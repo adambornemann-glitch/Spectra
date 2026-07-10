@@ -10,13 +10,23 @@ require mathlib from git
 @[default_target]
 lean_lib «Spectra» where
   leanOptions := #[
-    ⟨`weak.linter.mathlibStandardSet, true⟩, -- check that `mathlib` style is followed
-    ⟨`weak.linter.defProp, true⟩, -- check that `def` is used for propositions, not `theorem`/`lemma`
-    ⟨`relaxedAutoImplicit, false⟩, -- check that all implicit arguments are explicitly marked with `{}` or `[]`
-    --⟨`autoImplicit, false⟩, -- check that all implicit arguments are explicitly marked with `{}` or `[]`
-    --⟨`weak.linter.unusedVariables.analyzeTactics, true⟩, -- check that all tactic variables are used
-    ⟨`weak.linter.loopingSimpArgs, true⟩, -- check that `simp`/`rw`/`dsimp` are not called with the same argument multiple times
-    ⟨`maxSynthPendingDepth, 3⟩]
+    /- check that `mathlib` style is followed -/
+    ⟨`weak.linter.mathlibStandardSet, true⟩,
+    /- check that `def` is used for propositions, not `theorem`/`lemma` -/
+    ⟨`weak.linter.defProp, true⟩,
+    /- check that all implicit arguments are explicitly marked with `{}` or `[]` -/
+    ⟨`relaxedAutoImplicit, false⟩,
+    /- check that all universe levels are explicitly marked with `{}` or `[]` -/
+    ⟨`weak.linter.checkUnivs, true⟩,
+    /- check that all implicit arguments are explicitly marked with `{}` or `[]` -/
+    ⟨`autoImplicit, false⟩,
+    /- check that all tactic variables are used -/
+    ⟨`weak.linter.unusedVariables.analyzeTactics, true⟩,
+    /- check that `simp`/`rw`/`dsimp` are not called with the same argument multiple times -/
+    ⟨`weak.linter.loopingSimpArgs, true⟩,
+    /- check that the number of pending goals in `synthInstance` does not exceed 3 -/
+    ⟨`maxSynthPendingDepth, 3⟩
+    ]
 
 -- Compile-time axiom gate (root module `AxiomCheck.lean`): `assert_no_sorry` on every
 -- headline result. As a default target, `lake build` fails if a `sorry` reaches any of them.

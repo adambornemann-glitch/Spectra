@@ -36,9 +36,9 @@ theorem hydrogen_meromorphicAt_eigenvalue (n : ℕ) (hn : 1 ≤ n) :
     MeromorphicAt (resolventOf (hydrogenHamiltonian ⟨1, one_pos⟩))
       (hydrogenEigenvalue n hn : ℂ) := by
   obtain ⟨δ, hδpos, hiso⟩ := hydrogen_punctured_disk_subset_resolventSet n hn
-  set A := hydrogenHamiltonian ⟨1, one_pos⟩ with hA_def
+  set A := hydrogenHamiltonian ⟨1, one_pos⟩ with _hA_def
   have hA : IsSelfAdjoint A := hydrogenHamiltonian_isSelfAdjoint ⟨1, one_pos⟩
-  set lam := hydrogenEigenvalue n hn with hlam
+  set lam := hydrogenEigenvalue n hn with _hlam
   -- `E(puncturedGap) = 0` (G3 + C2 isolation)
   have hsub : ∀ l ∈ puncturedGap lam δ, (l : ℂ) ∈ resolventSet A := by
     intro l hl
@@ -64,7 +64,7 @@ theorem hydrogen_meromorphicAt_eigenvalue (n : ℕ) (hn : 1 ≤ n) :
 essential spectrum): analytic off the spectrum, with a pole at each negative eigenvalue. -/
 theorem hydrogen_meromorphicOn :
     MeromorphicOn (resolventOf (hydrogenHamiltonian ⟨1, one_pos⟩)) (Set.Ici (0 : ℂ))ᶜ := by
-  set A := hydrogenHamiltonian ⟨1, one_pos⟩ with hA_def
+  set A := hydrogenHamiltonian ⟨1, one_pos⟩ with _hA_def
   have hA : IsSelfAdjoint A := hydrogenHamiltonian_isSelfAdjoint ⟨1, one_pos⟩
   intro x hx
   by_cases him : x.im = 0
@@ -97,9 +97,9 @@ theorem hydrogen_residue_eigenvalue (n : ℕ) (hn : 1 ≤ n) :
       (𝓝 (-(spectralProjection (genToGroup (hydrogenHamiltonian_isSelfAdjoint ⟨1, one_pos⟩))
           {hydrogenEigenvalue n hn} (measurableSet_singleton _)))) := by
   obtain ⟨δ, hδpos, hiso⟩ := hydrogen_punctured_disk_subset_resolventSet n hn
-  set A := hydrogenHamiltonian ⟨1, one_pos⟩ with hA_def
+  set A := hydrogenHamiltonian ⟨1, one_pos⟩ with _hA_def
   have hA : IsSelfAdjoint A := hydrogenHamiltonian_isSelfAdjoint ⟨1, one_pos⟩
-  set lam := hydrogenEigenvalue n hn with hlam
+  set lam := hydrogenEigenvalue n hn with _hlam
   have hsub : ∀ l ∈ puncturedGap lam δ, (l : ℂ) ∈ resolventSet A := by
     intro l hl
     rw [puncturedGap, Set.mem_diff, Set.mem_Ioo, Set.mem_singleton_iff] at hl

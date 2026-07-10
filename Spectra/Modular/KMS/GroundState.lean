@@ -57,7 +57,7 @@ lemma const_of_glue (F G : ℂ → ℂ)
   have hUopen : IsOpen {z : ℂ | 0 < z.im} := isOpen_lt continuous_const continuous_im
   have hLopen : IsOpen {z : ℂ | z.im < 0} := isOpen_lt continuous_im continuous_const
   -- The glued function.
-  set H : ℂ → ℂ := fun z => if 0 ≤ z.im then F z else G z with hHdef
+  set H : ℂ → ℂ := fun z => if 0 ≤ z.im then F z else G z with _hHdef
   -- Off the real axis, `H` is locally `F` (above) or `G` (below), hence differentiable.
   have hHoff : ∀ w : ℂ, w.im ≠ 0 → DifferentiableAt ℂ H w := by
     intro w hwne

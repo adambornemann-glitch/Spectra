@@ -66,7 +66,7 @@ lemma cayley_shift_identity
     (cayleyTransform hsym hplus - ((↑μ - I) * (↑μ + I)⁻¹) • ContinuousLinearMap.id ℂ H)
         (A ψ + I • (ψ : H))
       = ((1 : ℂ) - (↑μ - I) * (↑μ + I)⁻¹) • (A ψ - (↑μ : ℂ) • (ψ : H)) := by
-  set w := (↑μ - I) * (↑μ + I)⁻¹ with hw
+  set w := (↑μ - I) * (↑μ + I)⁻¹ with _hw
   have h_Uφ : cayleyTransform hsym hplus (A ψ + I • (ψ : H)) = A ψ - I • (ψ : H) :=
     cayleyTransform_apply_resolvent hsym hplus ψ
   have h_coeff : I * ((1 : ℂ) + w) = ((1 : ℂ) - w) * ↑μ := mobius_coeff_identity μ hμ_ne
@@ -216,8 +216,8 @@ lemma cayley_approx_eigenvalue_backward
       ‖(cayleyTransform hsym hplus - ((↑μ - I) * (↑μ + I)⁻¹) • ContinuousLinearMap.id ℂ H) φ‖ < ε) →
     (∀ C > 0, ∃ ψ : A.domain, (ψ : H) ≠ 0 ∧ ‖A ψ - (↑μ : ℂ) • (ψ : H)‖ < C * ‖(ψ : H)‖) := by
   intro h_approx C hC
-  set U := cayleyTransform hsym hplus with hU_def
-  set w := (↑μ - I) * (↑μ + I)⁻¹ with hw_def
+  set U := cayleyTransform hsym hplus with _hU_def
+  set w := (↑μ - I) * (↑μ + I)⁻¹ with _hw_def
   have h_one_sub_w_ne : (1 : ℂ) - w ≠ 0 := one_sub_mobius_ne_zero μ hμ_ne
   have h_one_sub_w_norm_pos : ‖(1 : ℂ) - w‖ > 0 := norm_pos_iff.mpr h_one_sub_w_ne
   set denom := Real.sqrt (1 + μ ^ 2) with hdenom
@@ -228,7 +228,7 @@ lemma cayley_approx_eigenvalue_backward
       _ = 1 := Real.sqrt_one
   have h_denom_sq : denom ^ 2 = 1 + μ ^ 2 := by
     rw [hdenom]; exact Real.sq_sqrt (by linarith [sq_nonneg μ])
-  set C' := min C (1 / 2) with hC'_def
+  set C' := min C (1 / 2) with _hC'_def
   have hC'_pos : C' > 0 := lt_min hC (by norm_num)
   have hC'_le_half : C' ≤ 1 / 2 := min_le_right C (1 / 2)
   have hC'_le_C : C' ≤ C := min_le_left C (1 / 2)
@@ -293,16 +293,16 @@ lemma cayley_approx_eigenvalue_forward
       ‖(cayleyTransform hsym hplus - ((↑μ - I) * (↑μ + I)⁻¹) •
           ContinuousLinearMap.id ℂ H) φ‖ < ε) := by
   intro h_approx ε hε
-  set U := cayleyTransform hsym hplus with hU_def
-  set w := (↑μ - I) * (↑μ + I)⁻¹ with hw_def
+  set U := cayleyTransform hsym hplus with _hU_def
+  set w := (↑μ - I) * (↑μ + I)⁻¹ with _hw_def
   have h_one_sub_w_ne : (1 : ℂ) - w ≠ 0 := one_sub_mobius_ne_zero μ hμ_ne
   have h_one_sub_w_norm_pos : ‖(1 : ℂ) - w‖ > 0 := norm_pos_iff.mpr h_one_sub_w_ne
   obtain ⟨ψ, hψ_ne, h_Aμψ_bound⟩ := h_approx (ε / ‖(1 : ℂ) - w‖) (by positivity)
   have hψ_norm_pos : ‖(ψ : H)‖ > 0 := norm_pos_iff.mpr hψ_ne
-  set φ' := A ψ + I • (ψ : H) with hφ'_def
+  set φ' := A ψ + I • (ψ : H) with _hφ'_def
   have hφ'_norm_pos : ‖φ'‖ > 0 := by
     have h_sq := self_adjoint_norm_sq_add hsym ψ
-    have h_ge : ‖φ'‖ ^ 2 ≥ ‖(ψ : H)‖ ^ 2 := by
+    have _h_ge : ‖φ'‖ ^ 2 ≥ ‖(ψ : H)‖ ^ 2 := by
       calc ‖φ'‖ ^ 2 = ‖A ψ‖ ^ 2 + ‖(ψ : H)‖ ^ 2 := h_sq
         _ ≥ 0 + ‖(ψ : H)‖ ^ 2 := by linarith [sq_nonneg ‖A ψ‖]
         _ = ‖(ψ : H)‖ ^ 2 := by ring
@@ -310,7 +310,7 @@ lemma cayley_approx_eigenvalue_forward
   have hφ'_ne : φ' ≠ 0 := norm_pos_iff.mp hφ'_norm_pos
   have hφ'_norm_ge_ψ : ‖φ'‖ ≥ ‖(ψ : H)‖ := by
     have h_sq := self_adjoint_norm_sq_add hsym ψ
-    have h_ge : ‖φ'‖ ^ 2 ≥ ‖(ψ : H)‖ ^ 2 := by
+    have _h_ge : ‖φ'‖ ^ 2 ≥ ‖(ψ : H)‖ ^ 2 := by
       calc ‖φ'‖ ^ 2 = ‖A ψ‖ ^ 2 + ‖(ψ : H)‖ ^ 2 := h_sq
         _ ≥ ‖(ψ : H)‖ ^ 2 := by linarith [sq_nonneg ‖A ψ‖]
     nlinarith [norm_nonneg φ', norm_nonneg (ψ : H), sq_nonneg (‖φ'‖ - ‖(ψ : H)‖)]

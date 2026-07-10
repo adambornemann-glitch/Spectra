@@ -153,7 +153,7 @@ lemma arctan_indicator_limit (a b s : ℝ) (hab : a < b)
     simp only [Set.indicator_apply, if_neg hmem, Pi.one_apply]
     have h1 := (lim_pos _ (by aesop)).sub (lim_pos _ (by aesop))
     simp only [sub_self] at h1
-    have h2 := (tendsto_const_nhds (x := 1 / Real.pi)).mul h1
+    have _h2 := (tendsto_const_nhds (x := 1 / Real.pi)).mul h1
     exact arctanRecovery_tendsto_zero_of_lt' hsa hab
   · rcases lt_or_gt_of_ne hs_b with hsb | hsb
     · -- a < s < b: (b-s) > 0 → π/2, (a-s) < 0 → -π/2, difference → π
@@ -179,7 +179,7 @@ lemma arctan_indicator_limit (a b s : ℝ) (hab : a < b)
 Since `|arctan(x)| ≤ π/2` for all `x`, the difference is at most `π`. -/
 lemma arctan_kernel_bound (a b s ε : ℝ) (_hε : ε > 0) :
     |(1 / Real.pi) * (Real.arctan ((b - s) / ε) - Real.arctan ((a - s) / ε))| ≤ 1 := by
-  have hπ_pos := Real.pi_pos
+  have _hπ_pos := Real.pi_pos
   have h_diff : |Real.arctan ((b - s) / ε) - Real.arctan ((a - s) / ε)| ≤ Real.pi := by
     rw [abs_le]
     constructor <;>

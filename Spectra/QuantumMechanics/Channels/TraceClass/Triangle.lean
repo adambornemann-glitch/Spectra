@@ -49,7 +49,7 @@ theorem posTrace_absOp_add_le (S T : H →L[ℂ] H) :
       ≤ posTrace (stdHilbertBasis H) (absOp S) + posTrace (stdHilbertBasis H) (absOp T) := by
   by_cases hS : IsTraceClass S
   · by_cases hT : IsTraceClass T
-    · set W := polarIsometry (S + T) with hWdef
+    · set W := polarIsometry (S + T) with _hWdef
       have hWpolar : (W†) ∘L (S + T) = absOp (S + T) := polarIsometry_adjoint_comp (S + T)
       have hW1 : ‖W‖ ≤ 1 := norm_polarIsometry_le_one (S + T)
       have hterm : ∀ i, re ⟪stdHilbertBasis H i, absOp (S + T) (stdHilbertBasis H i)⟫_ℂ

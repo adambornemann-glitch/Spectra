@@ -51,7 +51,7 @@ lemma laplacianShell_subset_closedBall {lam ε : ℝ} (_hlam : 0 ≤ lam) (_hε 
   intro ξ hξ
   simp only [laplacianShell, Set.mem_setOf_eq] at hξ
   rw [Metric.mem_closedBall, dist_zero_right]
-  have hpi : 0 < 2 * Real.pi := by positivity
+  have _hpi : 0 < 2 * Real.pi := by positivity
   have hsym : (2 * Real.pi) ^ 2 * ‖ξ‖ ^ 2 ≤ lam + ε := by
     have h := (abs_le.mp hξ).2
     unfold laplacianSymbol at h
@@ -172,7 +172,7 @@ lemma shellFun_coeFn (n : ℕ) :
 /-- The Weyl vector lies in the domain `H²(ℝ³)`: `gₙ` has bounded support, so `(1+‖ξ‖²)·gₙ ∈ L²`. -/
 lemma memSobolevH2_weylSeq (n : ℕ) : MemSobolevH2 (weylSeq lam hlam n) := by
   have hεpos : (0 : ℝ) < 1 / (n + 1) := by positivity
-  set R : ℝ := Real.sqrt (lam + 1 / (n + 1)) / (2 * Real.pi) with hR
+  set R : ℝ := Real.sqrt (lam + 1 / (n + 1)) / (2 * Real.pi) with _hR
   apply memSobolevH2_of_fourier_decay
   rw [fourierL2_weylSeq]
   refine MemLp.mono' (g := fun ξ => (1 + R ^ 2) * ‖(shellFun lam hlam n : R3 → ℂ) ξ‖)
@@ -263,8 +263,8 @@ lemma norm_inner_shellFun_le (h : l2R3) (n : ℕ) :
       ≤ Real.sqrt (∫ ξ in laplacianShell lam (1 / (n + 1)),
           ‖(fourierL2 h : R3 → ℂ) ξ‖ ^ 2 ∂volume) := by
   have hεpos : (0 : ℝ) < 1 / (n + 1) := by positivity
-  set S : Set R3 := laplacianShell lam (1 / (n + 1)) with hSdef
-  have hmeasS : MeasurableSet S := measurableSet_laplacianShell lam (1 / (n + 1))
+  set S : Set R3 := laplacianShell lam (1 / (n + 1)) with _hSdef
+  have _hmeasS : MeasurableSet S := measurableSet_laplacianShell lam (1 / (n + 1))
   have hfin : volume S ≠ ∞ := (volume_laplacianShell_lt_top hlam hεpos.le).ne
   have hVpos : 0 < (volume S).toReal :=
     ENNReal.toReal_pos (volume_laplacianShell_pos hlam hεpos).ne' hfin

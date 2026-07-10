@@ -111,7 +111,7 @@ private lemma integrableOn_radial_two (c : ℝ) (hc : 0 < c) :
     rw [mem_Ioi] at hr
     unfold greensRadial
     rw [smul_eq_mul, div_pow, ← Real.exp_nat_mul]
-    have hr2 : (4 * Real.pi * r) ^ 2 ≠ 0 := by positivity
+    have _hr2 : (4 * Real.pi * r) ^ 2 ≠ 0 := by positivity
     field_simp
     ring_nf
   rw [integrableOn_congr_fun hcongr measurableSet_Ioi]

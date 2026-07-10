@@ -54,7 +54,7 @@ This shows that the imaginary part of the resolvent kernel is exactly the
 Lorentzian (Cauchy/Poisson) kernel, which is an approximation to the delta function. -/
 lemma resolvent_kernel_im (s t ε : ℝ) (hε : ε > 0) :
     (((s : ℂ) - (↑t + ↑ε * I))⁻¹).im = ε / ((s - t)^2 + ε^2) := by
-  have h_denom_ne : ((s - t : ℝ)^2 + ε^2 : ℂ) ≠ 0 := by
+  have _h_denom_ne : ((s - t : ℝ)^2 + ε^2 : ℂ) ≠ 0 := by
     have h : (s - t)^2 + ε^2 > 0 := by positivity
     exact_mod_cast h.ne'
   have h_diff : (s : ℂ) - (↑t + ↑ε * I) = (s - t : ℝ) - ε * I := by
@@ -85,7 +85,7 @@ lemma resolvent_kernel_im (s t ε : ℝ) (hε : ε > 0) :
 lemma resolvent_kernel_diff (s t ε : ℝ) (hε : ε > 0) :
     ((s : ℂ) - (↑t + ↑ε * I))⁻¹ - ((s : ℂ) - (↑t - ↑ε * I))⁻¹ =
     (2 * ε * I) / ((s - t)^2 + ε^2 : ℂ) := by
-  have h_z_plus : (↑t + ↑ε * I : ℂ) - (↑t - ↑ε * I) = 2 * ε * I := by ring
+  have _h_z_plus : (↑t + ↑ε * I : ℂ) - (↑t - ↑ε * I) = 2 * ε * I := by ring
   have h_denom : ((s : ℂ) - (↑t + ↑ε * I)) * ((s : ℂ) - (↑t - ↑ε * I)) =
       ((s - t)^2 + ε^2 : ℂ) := by
     have hI2 : (I : ℂ)^2 = -1 := Complex.I_sq
@@ -121,8 +121,8 @@ lemma resolvent_kernel_diff_normalized (s t ε : ℝ) (hε : ε > 0) :
       (((s : ℂ) - (↑t + ↑ε * I))⁻¹ - ((s : ℂ) - (↑t - ↑ε * I))⁻¹) =
     ↑(ε / ((s - t)^2 + ε^2) / Real.pi) := by
   rw [resolvent_kernel_diff s t ε hε]
-  have hπ : (Real.pi : ℝ) ≠ 0 := Real.pi_pos.ne'
-  have h_denom : (s - t) ^ 2 + ε ^ 2 > 0 := by positivity
+  have _hπ : (Real.pi : ℝ) ≠ 0 := Real.pi_pos.ne'
+  have _h_denom : (s - t) ^ 2 + ε ^ 2 > 0 := by positivity
   push_cast
   field_simp
 
@@ -148,7 +148,7 @@ lemma norm_setIntegral_cauchy_kernel_outside_le
     {ν : Measure ℝ} [IsFiniteMeasure ν] {z : ℂ} {R : ℝ} (hR : |z.re| < R) :
     ‖∫ l in (Set.Ioc (-R) R)ᶜ, ((l : ℂ) - z)⁻¹ ∂ν‖
       ≤ (ν Set.univ).toReal / (R - |z.re|) := by
-  have hRgap : 0 < R - |z.re| := by linarith
+  have _hRgap : 0 < R - |z.re| := by linarith
   have hbd : ∀ l ∈ (Set.Ioc (-R) R)ᶜ, ‖((l : ℂ) - z)⁻¹‖ ≤ 1 / (R - |z.re|) := by
     intro l hl
     have h_absL : R ≤ |l| := by

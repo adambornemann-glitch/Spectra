@@ -179,7 +179,7 @@ lemma re_inner_shifted_eq_covariance (A B : SymmetricOperator H) (ψ : H)
     rw [← inner_add_right, h_inner_sum]
   rw [h_add_re]
   unfold covariance
-  have h_anti_real : (⟪ψ, anticommutatorAt A B ψ h.toDomainConditions⟫_ℂ).im = 0 :=
+  have _h_anti_real : (⟪ψ, anticommutatorAt A B ψ h.toDomainConditions⟫_ℂ).im = 0 :=
     anticommutator_im_eq_zero A B ψ h.toDomainConditions
   simp only [Complex.sub_re, Complex.mul_re, Complex.re_ofNat, Complex.ofReal_re, Complex.im_ofNat,
     Complex.ofReal_im, mul_zero, sub_zero, Complex.mul_im, zero_mul, add_zero, one_div]

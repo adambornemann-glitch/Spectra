@@ -33,6 +33,8 @@ Two topological facts about the off-boundary set (`isOpen_off_boundaryLines`,
 open Complex Set Filter Topology Int MeasureTheory
 namespace Spectra.PeriodicHolomorphic
 
+variable {β : ℝ}
+
 /-- The periodic extension is continuous everywhere -/
 lemma periodicExtension_continuous
     (F : ℂ → ℂ) (hβ : 0 < β)
@@ -139,7 +141,7 @@ lemma periodicExtension_differentiableAt_off_boundaries
       linarith
   have him_lt : (toFundamentalStrip β z).im < β := (toFundamentalStrip_im hβ z).2
   -- toFundamentalStrip β z ∈ Strip β
-  have h_in_strip : toFundamentalStrip β z ∈ Strip β := ⟨him_pos, him_lt⟩
+  have _h_in_strip : toFundamentalStrip β z ∈ Strip β := ⟨him_pos, him_lt⟩
   -- F is differentiable at points in the open strip
   have hF_diff : DifferentiableAt ℂ F (toFundamentalStrip β z) := by
     apply hholo.differentiableAt
@@ -271,11 +273,11 @@ lemma isOpen_off_boundaryLines (β : ℝ) (hβ : 0 < β) :
   intro heq
   -- From hw_lower: n * β < w.im = m * β, so n < m (since β > 0)
   have hn_lt_m : n < m := by
-    have h : (n : ℝ) * β < (m : ℝ) * β := by rw [← heq]; exact hw_lower
+    have _h : (n : ℝ) * β < (m : ℝ) * β := by rw [← heq]; exact hw_lower
     exact_mod_cast show (n : ℝ) < (m : ℝ) by nlinarith
   -- From hw_upper: w.im = m * β < (n + 1) * β, so m < n + 1
   have hm_lt : m < n + 1 := by
-    have h1 : (m : ℝ) * β < (↑(n + 1 : ℤ) : ℝ) * β := by rw [heq.symm]; exact hw_upper
+    have _h1 : (m : ℝ) * β < (↑(n + 1 : ℤ) : ℝ) * β := by rw [heq.symm]; exact hw_upper
     exact_mod_cast show (m : ℝ) < (↑(n + 1 : ℤ) : ℝ) by nlinarith
   -- n < m and m < n + 1 is impossible for integers
   linarith

@@ -48,7 +48,7 @@ theorem memLp_kernel_mul_sub {a b : E → ℂ}
     (ha : MemLp a 2 μ) (hb : MemLp b 2 μ) :
     MemLp (fun p : E × E => a p.1 * b (p.1 - p.2)) 2 (μ.prod μ) := by
   -- measurability of the kernel
-  have hmeas_sub : Measurable (fun p : E × E => p.1 - p.2) :=
+  have _hmeas_sub : Measurable (fun p : E × E => p.1 - p.2) :=
     measurable_fst.sub measurable_snd
   have hae_a : AEStronglyMeasurable (fun p : E × E => a p.1) (μ.prod μ) :=
     ha.aestronglyMeasurable.comp_fst

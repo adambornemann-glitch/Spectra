@@ -277,7 +277,7 @@ lemma averagedVector_quotient_tendsto_zero (φ : H) :
     have h_F0 : ∫ t in (0 : ℝ)..0, U_grp.U t φ = 0 := intervalIntegral.integral_same
     rw [hasDerivAt_iff_tendsto_slope] at h_deriv
     apply h_deriv.congr'
-    filter_upwards [self_mem_nhdsWithin] with s hs
+    filter_upwards [self_mem_nhdsWithin] with s _hs
     unfold slope
     simp only [vsub_eq_sub, sub_zero, h_F0, sub_zero]
     rw [(Complex.coe_smul s⁻¹ _).symm, ofReal_inv]
@@ -310,7 +310,7 @@ lemma averagedVector_quotient_tendsto_at (h : ℝ) (φ : H) :
         exact hs
     have := h_deriv.comp h_shift
     apply this.congr'
-    filter_upwards [self_mem_nhdsWithin] with s hs
+    filter_upwards [self_mem_nhdsWithin] with s _hs
     unfold slope
     simp only [vsub_eq_sub, h_Fh, sub_zero, Function.comp_apply, add_sub_cancel_left]
     rw [(Complex.coe_smul s⁻¹ _).symm, ofReal_inv]

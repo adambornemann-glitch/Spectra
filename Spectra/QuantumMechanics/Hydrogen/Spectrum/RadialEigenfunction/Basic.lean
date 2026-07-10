@@ -73,10 +73,10 @@ private lemma integrable_first_deriv_mul (g : ℝ → ℂ) (hg : ContDiff ℝ 2 
   obtain ⟨a', -, hMg'max⟩ := (isCompact_Icc (a := (0 : ℝ)) (b := R)).exists_isMaxOn
     (Set.nonempty_Icc.mpr hR_pos.le) hdg_cont.norm.continuousOn
   obtain ⟨Mφ, hMφ⟩ := hdφ_cs.exists_bound_of_continuous hdφ_smooth.continuous
-  set Mg' : ℝ := ‖deriv g a'‖ with hMg'def
+  set Mg' : ℝ := ‖deriv g a'‖ with _hMg'def
   have hMg' : ∀ r ∈ Set.Icc (0 : ℝ) R, ‖deriv g r‖ ≤ Mg' := isMaxOn_iff.mp hMg'max
   have hMφ0 : 0 ≤ Mφ := (norm_nonneg _).trans (hMφ 0)
-  set C : ℝ := Mg' * Mφ with hC
+  set C : ℝ := Mg' * Mφ with _hC
   have hae : ∀ᵐ x : R3, x ∈ ({(0 : R3)}ᶜ : Set R3) := ae_ne_zero_R3
   have hbound : ∀ᵐ x : R3, ‖fderiv ℝ (fun z => g ‖z‖) x (EuclideanSpace.single j 1)
       * fderiv ℝ φ x (EuclideanSpace.single j 1)‖ ≤ C * ‖x‖ ^ (-(0 : ℝ)) := by
@@ -144,14 +144,14 @@ private lemma integrable_second_deriv_mul' (g : ℝ → ℂ) (hg : ContDiff ℝ 
   obtain ⟨a'', -, hMg''max⟩ := (isCompact_Icc (a := (0 : ℝ)) (b := R)).exists_isMaxOn
     (Set.nonempty_Icc.mpr hR_pos.le) hddg_cont.norm.continuousOn
   obtain ⟨Mφ, hMφ⟩ := hφc.exists_bound_of_continuous hφ.continuous
-  set Mg' : ℝ := ‖deriv g a'‖ with hMg'def
-  set Mg'' : ℝ := ‖deriv (deriv g) a''‖ with hMg''def
+  set Mg' : ℝ := ‖deriv g a'‖ with _hMg'def
+  set Mg'' : ℝ := ‖deriv (deriv g) a''‖ with _hMg''def
   have hMg' : ∀ r ∈ Set.Icc (0 : ℝ) R, ‖deriv g r‖ ≤ Mg' := isMaxOn_iff.mp hMg'max
   have hMg'' : ∀ r ∈ Set.Icc (0 : ℝ) R, ‖deriv (deriv g) r‖ ≤ Mg'' := isMaxOn_iff.mp hMg''max
-  have hMg'0 : 0 ≤ Mg' := norm_nonneg _
-  have hMg''0 : 0 ≤ Mg'' := norm_nonneg _
+  have _hMg'0 : 0 ≤ Mg' := norm_nonneg _
+  have _hMg''0 : 0 ≤ Mg'' := norm_nonneg _
   have hMφ0 : 0 ≤ Mφ := (norm_nonneg _).trans (hMφ 0)
-  set C : ℝ := (Mg'' * R + 2 * Mg') * Mφ with hC
+  set C : ℝ := (Mg'' * R + 2 * Mg') * Mφ with _hC
   have hae : ∀ᵐ x : R3, x ∈ ({(0 : R3)}ᶜ : Set R3) := ae_ne_zero_R3
   have hbound : ∀ᵐ x : R3, ‖fderiv ℝ (fun y => fderiv ℝ (fun z => g ‖z‖) y
         (EuclideanSpace.single i 1)) x (EuclideanSpace.single j 1) * φ x‖
@@ -379,7 +379,7 @@ private lemma memLp_radial_div_norm (g : ℝ → ℂ) (hg : Continuous g)
       (by rw [finrank_euclideanSpace_fin]; norm_num) ?_
       (hq_meas'.norm.pow_const 2).aestronglyMeasurable
     filter_upwards [ae_restrict_of_ae hae, ae_restrict_mem measurableSet_ball] with x hx0 hxmem
-    have hxpos : 0 < ‖x‖ := norm_pos_iff.mpr hx0
+    have _hxpos : 0 < ‖x‖ := norm_pos_iff.mpr hx0
     have hrp : ‖x‖ ^ (-(2 : ℝ)) = (‖x‖ ^ 2)⁻¹ := by
       rw [Real.rpow_neg (norm_nonneg x), ← Real.rpow_natCast ‖x‖ 2]; norm_num
     rw [Real.norm_eq_abs, abs_of_nonneg (by positivity), hnorm, hrp, div_eq_mul_inv]
@@ -392,7 +392,7 @@ private lemma memLp_radial_div_norm (g : ℝ → ℂ) (hg : Continuous g)
         (Filter.Eventually.of_forall (fun x hx => ?_)))
     rw [Real.norm_eq_abs, abs_of_nonneg (by positivity), hnorm]
     rw [Set.mem_compl_iff, Metric.mem_ball, dist_zero_right, not_lt] at hx
-    have hxpos : (0 : ℝ) < ‖x‖ := lt_of_lt_of_le one_pos hx
+    have _hxpos : (0 : ℝ) < ‖x‖ := lt_of_lt_of_le one_pos hx
     rw [div_le_iff₀ (by positivity)]
     have hx2 : (1 : ℝ) ≤ ‖x‖ ^ 2 := by nlinarith [hx]
     nlinarith [sq_nonneg ‖g ‖x‖‖, hx2]
@@ -410,7 +410,7 @@ lemma sum_second_deriv_eigen (n : ℕ) (hn : 0 + 1 ≤ n) {x : R3} (hx : x ≠ 0
         (EuclideanSpace.single j 1)
       = (-2 : ℂ) * ((hydrogenEigenvalue n (by omega) : ℂ) + (‖x‖ : ℂ)⁻¹)
           * ((sphericalNorm 0 0 : ℂ) * Rc n 0 hn ‖x‖) := by
-  set c : ℂ := (sphericalNorm 0 0 : ℂ) with hc
+  set c : ℂ := (sphericalNorm 0 0 : ℂ) with _hc
   have hRc2 : ContDiff ℝ 2 (fun r => c * Rc n 0 hn r) := contDiff_const.mul (contDiff_Rc n 0 hn)
   have hfd : DifferentiableAt ℝ (fderiv ℝ (fun z : R3 => c * Rc n 0 hn ‖z‖)) x :=
     ((contDiffAt_radial _ hRc2 hx).fderiv_right (m := 1) (by norm_num)).differentiableAt one_ne_zero
@@ -430,8 +430,8 @@ lemma sum_second_deriv_eigen (n : ℕ) (hn : 0 + 1 ≤ n) {x : R3} (hx : x ≠ 0
 private lemma memLp_classical_laplacian (n : ℕ) (hn : 0 + 1 ≤ n) (hm : |(0 : ℤ)| ≤ 0) :
     MemLp (fun x : R3 => (-2 : ℂ) * ((hydrogenEigenvalue n (by omega) : ℂ) + (‖x‖ : ℂ)⁻¹)
         * ((sphericalNorm 0 0 : ℂ) * Rc n 0 hn ‖x‖)) 2 volume := by
-  set c : ℂ := (sphericalNorm 0 0 : ℂ) with hc
-  set E : ℂ := (hydrogenEigenvalue n (by omega) : ℂ) with hE
+  set c : ℂ := (sphericalNorm 0 0 : ℂ) with _hc
+  set E : ℂ := (hydrogenEigenvalue n (by omega) : ℂ) with _hE
   have hf_L2 : MemLp (fun x : R3 => c * Rc n 0 hn ‖x‖) 2 volume :=
     (Lp.memLp (chartRealization.symm (hydrogenEigenfunction n 0 0 hn hm))).ae_eq
       (chartRealization_symm_eigenfunction_coeFn n hn hm)
@@ -458,7 +458,7 @@ lemma exp_bound_of_tendsto {h : ℝ → ℝ} (hcont : Continuous h) {a : ℝ}
   obtain ⟨b, -, hbmax⟩ := (isCompact_Icc (a := (0 : ℝ)) (b := max T 0)).exists_isMaxOn
     (Set.nonempty_Icc.mpr (le_max_right _ _))
     (hcont.mul (Real.continuous_exp.comp (continuous_const.mul continuous_id))).norm.continuousOn
-  set C : ℝ := max (|h b * Real.exp (a * b)|) 1 with hC
+  set C : ℝ := max (|h b * Real.exp (a * b)|) 1 with _hC
   refine ⟨C, le_trans zero_le_one (le_max_right _ _), fun r hr => ?_⟩
   have hgb : |h r * Real.exp (a * r)| ≤ C := by
     rcases le_total r (max T 0) with hrT | hrT
@@ -488,7 +488,7 @@ private lemma memLp_exp_neg_norm {a : ℝ} (ha : 0 < a) :
   have hib := integrableOn_rpow_mul_exp_neg_mul_rpow (p := 1) (s := 2) (b := 2 * a)
     (by norm_num) (le_refl 1) (by linarith)
   refine hib.congr_fun (fun y hy => ?_) measurableSet_Ioi
-  have hy0 : (0 : ℝ) < y := hy
+  have _hy0 : (0 : ℝ) < y := hy
   simp only [finrank_euclideanSpace_fin, smul_eq_mul]
   rw [Real.rpow_one, ← Real.rpow_natCast y 2]
   norm_num
@@ -553,7 +553,7 @@ private lemma aestronglyMeasurable_second_deriv (g : ℝ → ℂ) (hg : ContDiff
 lemma memLp_first_deriv (g : ℝ → ℂ) (hg : ContDiff ℝ 2 g) {C a : ℝ} (ha : 0 < a)
     (hbd : ∀ r : ℝ, 0 ≤ r → ‖deriv g r‖ ≤ C * Real.exp (-a * r)) (i : Fin 3) :
     MemLp (fun x : R3 => fderiv ℝ (fun y => g ‖y‖) x (EuclideanSpace.single i 1)) 2 volume := by
-  set D : R3 → ℂ := fun x => fderiv ℝ (fun y => g ‖y‖) x (EuclideanSpace.single i 1) with hD
+  set D : R3 → ℂ := fun x => fderiv ℝ (fun y => g ‖y‖) x (EuclideanSpace.single i 1) with _hD
   refine memLp_two_of_le_exp (aestronglyMeasurable_first_deriv g hg i) ha
     (C := max ‖D 0‖ C) (fun x => ?_)
   rcases eq_or_ne x 0 with rfl | hx
@@ -574,13 +574,13 @@ lemma memLp_second_deriv (g : ℝ → ℂ) (hg : ContDiff ℝ 2 g) {C₁ C₂ a 
     MemLp (fun x : R3 => fderiv ℝ (fun y => fderiv ℝ (fun z => g ‖z‖) y
         (EuclideanSpace.single i 1)) x (EuclideanSpace.single j 1)) 2 volume := by
   set D : R3 → ℂ := fun x => fderiv ℝ (fun y => fderiv ℝ (fun z => g ‖z‖) y
-      (EuclideanSpace.single i 1)) x (EuclideanSpace.single j 1) with hD
+      (EuclideanSpace.single i 1)) x (EuclideanSpace.single j 1) with _hD
   refine memLp_two_of_le_exp_add_div (aestronglyMeasurable_second_deriv g hg i j) ha
     (C := max ‖D 0‖ C₂) (C' := 2 * C₁) (fun x => ?_)
   rcases eq_or_ne x 0 with rfl | hx
   · simp only [norm_zero, mul_zero, Real.exp_zero, mul_one, div_zero, add_zero]
     exact le_max_left _ _
-  · have hxr : (0 : ℝ) < ‖x‖ := norm_pos_iff.mpr hx
+  · have _hxr : (0 : ℝ) < ‖x‖ := norm_pos_iff.mpr hx
     have hopn : ‖D x‖ ≤ ‖deriv (deriv g) ‖x‖‖ + 2 * ‖deriv g ‖x‖‖ / ‖x‖ := by
       calc ‖D x‖
           ≤ ‖fderiv ℝ (fun y => fderiv ℝ (fun z => g ‖z‖) y (EuclideanSpace.single i 1)) x‖
@@ -611,10 +611,10 @@ private lemma integrable_first_deriv_mul_test (g : ℝ → ℂ) (hg : ContDiff �
   obtain ⟨a', -, hMg'max⟩ := (isCompact_Icc (a := (0 : ℝ)) (b := R)).exists_isMaxOn
     (Set.nonempty_Icc.mpr hR_pos.le) hdg_cont.norm.continuousOn
   obtain ⟨Mψ, hMψ⟩ := hψc.exists_bound_of_continuous hψ
-  set Mg' : ℝ := ‖deriv g a'‖ with hMg'def
+  set Mg' : ℝ := ‖deriv g a'‖ with _hMg'def
   have hMg' : ∀ r ∈ Set.Icc (0 : ℝ) R, ‖deriv g r‖ ≤ Mg' := isMaxOn_iff.mp hMg'max
   have hMψ0 : 0 ≤ Mψ := (norm_nonneg _).trans (hMψ 0)
-  set C : ℝ := Mg' * Mψ with hC
+  set C : ℝ := Mg' * Mψ with _hC
   have hae : ∀ᵐ x : R3, x ∈ ({(0 : R3)}ᶜ : Set R3) := ae_ne_zero_R3
   have hbound : ∀ᵐ x : R3, ‖fderiv ℝ (fun y => g ‖y‖) x (EuclideanSpace.single i 1) * ψ x‖
       ≤ C * ‖x‖ ^ (-(0 : ℝ)) := by
@@ -735,7 +735,7 @@ theorem bound_state_of_radial_profile (p : CoulombParams) (E : ℝ)
       (ψ : Spectra.Sobolev.l2R3) ≠ 0 ∧
         hydrogenHamiltonian p ψ = ((E : ℝ) : ℂ) • (ψ : Spectra.Sobolev.l2R3) := by
   set d2 : Fin 3 → Fin 3 → Spectra.Sobolev.l2R3 :=
-    fun i j => (memLp_second_deriv g hg ha hbd1 hbd2 i j).toLp _ with hd2_def
+    fun i j => (memLp_second_deriv g hg ha hbd1 hbd2 i j).toLp _ with _hd2_def
   have hH2 : MemSobolevH2 Ψ := by
     refine ⟨fun i => ⟨(memLp_first_deriv g hg ha hbd1 i).toLp _,
       hasWeakDerivative_radial_first g hg ha hbd1 Ψ hΨ i⟩, fun i j => ?_⟩
@@ -888,7 +888,7 @@ theorem hydrogen_bound_state (p : CoulombParams) (n : ℕ) (hn : 1 ≤ n) :
       _ = |sphericalNorm 0 0| * CR * Real.exp (-(ε * Z) * ‖x‖) := by ring
   have hmemΨ : MemLp (fun x : R3 => g ‖x‖) 2 volume :=
     memLp_two_of_le_exp (hg.continuous.comp continuous_norm).aestronglyMeasurable haZ hgnorm
-  set Ψ : Spectra.Sobolev.l2R3 := hmemΨ.toLp _ with hΨ_def
+  set Ψ : Spectra.Sobolev.l2R3 := hmemΨ.toLp _ with _hΨ_def
   have hΨ : ⇑Ψ =ᵐ[volume] fun x : R3 => g ‖x‖ := hmemΨ.coeFn_toLp
   -- nonzero
   have hΨ0 : Ψ ≠ 0 := by
@@ -925,7 +925,7 @@ theorem hydrogen_bound_state (p : CoulombParams) (n : ℕ) (hn : 1 ≤ n) :
     intro x hx
     have hr : 0 < ‖x‖ := norm_pos_iff.mpr hx
     have hZx : 0 < Z * ‖x‖ := mul_pos hZ hr
-    have hZxne : (Z * ‖x‖ : ℝ) ≠ 0 := ne_of_gt hZx
+    have _hZxne : (Z * ‖x‖ : ℝ) ≠ 0 := ne_of_gt hZx
     have hrne : (‖x‖ : ℝ) ≠ 0 := ne_of_gt hr
     have hfd : DifferentiableAt ℝ (fderiv ℝ (fun z : R3 => g ‖z‖)) x :=
       ((contDiffAt_radial g hg hx).fderiv_right (m := 1) (by norm_num)).differentiableAt one_ne_zero

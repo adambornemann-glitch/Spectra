@@ -220,7 +220,7 @@ private lemma hardyField_diag_jacobian (x : R3) (hx : x ≠ 0) (i : Fin 3) :
     this divergence is positive — and it's what makes Hardy work in 3D. -/
 lemma hardyField_div (x : R3) (hx : x ≠ 0) :
     ∑ i : Fin 3, (fderiv ℝ hardyField x (EuclideanSpace.single i 1)) i = (‖x‖^2)⁻¹ := by
-  have hxsq_ne : ‖x‖^2 ≠ 0 := pow_ne_zero 2 (norm_ne_zero_iff.mpr hx)
+  have _hxsq_ne : ‖x‖^2 ≠ 0 := pow_ne_zero 2 (norm_ne_zero_iff.mpr hx)
   -- Reduce each summand to the diagonal formula.
   simp_rw [hardyField_diag_jacobian x hx]
   -- ∑ᵢ ((‖x‖²)⁻¹ − 2(xᵢ)²/(‖x‖²)²) = 3·(‖x‖²)⁻¹ − 2·(∑ᵢ(xᵢ)²)/(‖x‖²)²
@@ -587,7 +587,7 @@ private lemma hardy_algebraic {A B : ℝ} (hA : 0 ≤ A) (hB : 0 ≤ B)
     A ≤ 4 * B := by
   by_cases hA0 : A = 0
   · rw [hA0]; linarith
-  have hA_pos : 0 < A := hA.lt_of_ne (Ne.symm hA0)
+  have _hA_pos : 0 < A := hA.lt_of_ne (Ne.symm hA0)
   nlinarith [Real.sq_sqrt hA, Real.sq_sqrt hB,
              Real.sqrt_nonneg A, Real.sqrt_nonneg B,
              mul_self_nonneg (Real.sqrt A - 2 * Real.sqrt B)]

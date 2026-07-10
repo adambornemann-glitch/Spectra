@@ -75,7 +75,7 @@ transform `fourierL2`. -/
 theorem fourier_conv_schwartz_L2 (φ χ : 𝓢(R3, ℂ)) :
     (fourierL2 ((memLp_schwartz_conv φ χ).toLp _) : R3 → ℂ)
       =ᵐ[volume] fun x => 𝓕 (φ : R3 → ℂ) x * 𝓕 (χ : R3 → ℂ) x := by
-  set conv : 𝓢(R3, ℂ) := SchwartzMap.convolution (ContinuousLinearMap.mul ℂ ℂ) φ χ with hconv
+  set conv : 𝓢(R3, ℂ) := SchwartzMap.convolution (ContinuousLinearMap.mul ℂ ℂ) φ χ with _hconv
   have hcoe : (conv : R3 → ℂ)
       = ((φ : R3 → ℂ) ⋆[ContinuousLinearMap.mul ℂ ℂ, volume] (χ : R3 → ℂ)) := by
     funext x; exact SchwartzMap.convolution_apply (ContinuousLinearMap.mul ℂ ℂ) φ χ x
@@ -283,7 +283,7 @@ theorem fourier_conv_seqB_bound (g : l2R3) (χ : 𝓢(R3, ℂ)) (φ : 𝓢(R3, �
     eLpNorm (⇑(fourierL2 ((memLp_schwartz_conv φ χ).toLp _)) - ⇑(memB.toLp _)) 2 volume
       ≤ ((SchwartzMap.seminorm ℝ 0 0 (SchwartzMap.fourierTransformCLM ℂ χ)).toNNReal : ℝ≥0∞)
         * eLpNorm (⇑(fourierL2 (φ.toLp 2)) - ⇑(fourierL2 g)) 2 volume := by
-  set C := (SchwartzMap.seminorm ℝ 0 0 (SchwartzMap.fourierTransformCLM ℂ χ)).toNNReal with hC
+  set C := (SchwartzMap.seminorm ℝ 0 0 (SchwartzMap.fourierTransformCLM ℂ χ)).toNNReal with _hC
   set fdiff : R3 → ℂ := ⇑(fourierL2 (φ.toLp 2)) - ⇑(fourierL2 g) with hfdiff
   have hFn := fourier_conv_schwartz_L2 φ χ
   have hB := memB.coeFn_toLp

@@ -192,7 +192,7 @@ lemma resolvent_diag_lower_laplace (ξ : H) {ε : ℝ} (hε : 0 < ε) (lambda : 
               (Real.exp (-(ε * t)) : ℂ) *
               ⟪ξ, U_grp.U t ξ⟫_ℂ := by
   -- z = λ - iε, so z.im = -ε < 0
-  set z : ℂ := ⟨lambda, -ε⟩ with hz_def
+  set z : ℂ := ⟨lambda, -ε⟩ with _hz_def
   have hz_lt : z.im < 0 := by change (-ε : ℝ) < 0; linarith
   -- Step 1: replace R(z) ξ by its Laplace integral form.
   rw [← resolventIntegralZ_eq_resolvent (U_grp := U_grp) hz_lt]

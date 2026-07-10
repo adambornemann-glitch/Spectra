@@ -254,8 +254,8 @@ lemma scalarResolventSolve (c : ℝ) (hc : 0 < c) (g : l2R3) :
         = ((2 * Real.pi) ^ 4 * ‖ξ‖ ^ 2 + c ^ 2)
           / (c * (2 * Real.pi) ^ 2 * ((2 * Real.pi) ^ 2 * ‖ξ‖ ^ 2 + c)) := by
       have hc' := hc.ne'
-      have hp2' : ((2 * Real.pi) ^ 2 : ℝ) ≠ 0 := by positivity
-      have hd' : ((2 * Real.pi) ^ 2 * ‖ξ‖ ^ 2 + c : ℝ) ≠ 0 := by positivity
+      have _hp2' : ((2 * Real.pi) ^ 2 : ℝ) ≠ 0 := by positivity
+      have _hd' : ((2 * Real.pi) ^ 2 * ‖ξ‖ ^ 2 + c : ℝ) ≠ 0 := by positivity
       field_simp
       ring
     rw [hN]; positivity

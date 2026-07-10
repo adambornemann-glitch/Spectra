@@ -250,8 +250,8 @@ lemma measure_eq_of_fourier_eq (μ ν : Measure ℝ) [IsFiniteMeasure μ] [IsFin
     intro n; rw [hpf μ hcF n, hpf ν hcG n]; exact h n
   -- (4) equal Fourier coeffs ⟹ equal pushforwards on AddCircle T
   have hpush : Measure.map q μ = Measure.map q ν := by
-    set νF := Measure.map q μ with hνF
-    set νG := Measure.map q ν with hνG
+    set νF := Measure.map q μ with _hνF
+    set νG := Measure.map q ν with _hνG
     -- integration functionals are continuous (Lipschitz: ‖∫g‖ ≤ mass·‖g‖) and ℂ-linear,
     -- agree on range fourier, hence on span, hence on closure = ⊤  (span_fourier_closure_eq_top)
     have hCeq : ∀ g : C(AddCircle T, ℂ), ∫ c, g c ∂νF = ∫ c, g c ∂νG := by

@@ -50,7 +50,7 @@ theorem spectralPVM_sq_dist_integral {A : H →ₗ.[ℂ] H} (hA : IsSelfAdjoint 
     ∫ s, (s - c) ^ 2 ∂((PVM.spectralPVM hA).diag ψ)
       = ‖A ⟨ψ, hψ⟩ - (c : ℂ) • ψ‖ ^ 2 := by
   haveI : IsFiniteMeasure ((PVM.spectralPVM hA).diag ψ) := (PVM.spectralPVM hA).diag_finite ψ
-  set μ := (PVM.spectralPVM hA).diag ψ with hμ
+  set μ := (PVM.spectralPVM hA).diag ψ with _hμ
   have hint1 : Integrable (fun s : ℝ => s) μ := spectralPVM_integrable_id hA ψ hψ
   have hint2 : Integrable (fun s : ℝ => s ^ 2) μ := spectralPVM_integrable_sq hA ψ hψ
   have hI1 : ∫ s, s ∂μ = (⟪ψ, A ⟨ψ, hψ⟩⟫_ℂ).re := spectralPVM_integral_id hA ψ hψ
@@ -190,7 +190,7 @@ theorem spectralPVM_proj_singleton_apply_isEigen {A : H →ₗ.[ℂ] H} (hA : Is
     ∃ hmem : (PVM.spectralPVM hA).proj {lam} (measurableSet_singleton lam) φ ∈ A.domain,
       A ⟨(PVM.spectralPVM hA).proj {lam} (measurableSet_singleton lam) φ, hmem⟩
         = (lam : ℂ) • (PVM.spectralPVM hA).proj {lam} (measurableSet_singleton lam) φ := by
-  set v : H := (PVM.spectralPVM hA).proj {lam} (measurableSet_singleton lam) φ with hv
+  set v : H := (PVM.spectralPVM hA).proj {lam} (measurableSet_singleton lam) φ with _hv
   -- membership at the group level (the PVM projection is the group's spectral projection)
   have hmem_gen : v ∈ (generator (genToGroup hA)).domain :=
     spectralProjection_singleton_mem_generatorDomain (genToGroup hA) lam φ

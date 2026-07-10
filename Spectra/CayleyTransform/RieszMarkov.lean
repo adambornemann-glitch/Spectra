@@ -208,7 +208,7 @@ lemma spectralMeasure_real_univ
   rw [integral_const, smul_eq_mul, mul_one] at h
   rw [h]
   have hc1 : complexify U (1 : C(spectrum ℂ U, ℝ)) = 1 := by
-    ext z; simp [complexify_apply]
+    ext _z; simp [complexify_apply]
   rw [hc1, map_one, ContinuousLinearMap.one_apply]
   exact inner_self_eq_norm_sq (𝕜 := ℂ) ξ
 
@@ -224,7 +224,7 @@ real diagonal. -/
 lemma integral_spectralMeasure_complex
     (U : H →L[ℂ] H) (hn : IsStarNormal U) (ξ : H) (f : C(spectrum ℂ U, ℂ)) :
     ∫ z, f z ∂(spectralMeasure U hn ξ) = ⟪ξ, cfcHom hn f ξ⟫_ℂ := by
-  set μ := spectralMeasure U hn ξ with hμ
+  set μ := spectralMeasure U hn ξ with _hμ
   let fr : C(spectrum ℂ U, ℝ) := ⟨fun z => (f z).re, by fun_prop⟩
   let fi : C(spectrum ℂ U, ℝ) := ⟨fun z => (f z).im, by fun_prop⟩
   have hsplit : f = complexify U fr + Complex.I • complexify U fi := by

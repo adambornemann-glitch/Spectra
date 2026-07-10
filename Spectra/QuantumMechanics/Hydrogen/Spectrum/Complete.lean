@@ -83,12 +83,12 @@ theorem hydrogen_eigenfunction_complete :
           (Set.Iio 0) measurableSet_Iio :
           Spectra.Sobolev.l2R3 →ₗ[ℂ] Spectra.Sobolev.l2R3) := by
   classical
-  set hA := hydrogenHamiltonian_isSelfAdjoint ⟨1, one_pos⟩ with hAdef
-  set P := PVM.spectralPVM hA with hPdef
+  set hA := hydrogenHamiltonian_isSelfAdjoint ⟨1, one_pos⟩ with _hAdef
+  set P := PVM.spectralPVM hA with _hPdef
   set Ev : ℕ → ℝ := fun n => hydrogenEigenvalue (n + 1) (by omega) with hEv
   set En : ℕ → (Spectra.Sobolev.l2R3 →L[ℂ] Spectra.Sobolev.l2R3) :=
-    fun n => P.proj {Ev n} (measurableSet_singleton _) with hEn
-  set EIio := P.proj (Set.Iio 0) measurableSet_Iio with hEIio
+    fun n => P.proj {Ev n} (measurableSet_singleton _) with _hEn
+  set EIio := P.proj (Set.Iio 0) measurableSet_Iio with _hEIio
   -- convert the degeneracy spans to spectral ranges via M1
   have hM1 : ∀ n : ℕ,
       LinearMap.range (En n : Spectra.Sobolev.l2R3 →ₗ[ℂ] Spectra.Sobolev.l2R3)
@@ -99,7 +99,7 @@ theorem hydrogen_eigenfunction_complete :
       = ⨆ n : ℕ, LinearMap.range (En n : Spectra.Sobolev.l2R3 →ₗ[ℂ] Spectra.Sobolev.l2R3)
       from (iSup_congr hM1).symm]
   set K := ⨆ n : ℕ, LinearMap.range (En n : Spectra.Sobolev.l2R3 →ₗ[ℂ] Spectra.Sobolev.l2R3)
-    with hK
+    with _hK
   -- `Eₙ < 0` so `{Eₙ} ⊆ (−∞,0)`
   have hEvneg : ∀ n, Ev n < 0 := fun n => hydrogenEigenvalue_neg (n + 1) (by omega)
   have hEvsub : ∀ n, ({Ev n} : Set ℝ) ⊆ Set.Iio 0 := by

@@ -34,7 +34,7 @@ lemma yosidaJNeg_eq_sub_resolvent_A {A : H →ₗ.[ℂ] H}
       φ - Resolvent.resolvent (-I * (n : ℂ)) (neg_I_mul_pnat_im_ne_zero n) hsym hplus hminus
         (A ⟨φ, hφ⟩) := by
   set z := -I * (n : ℂ) with hz_def
-  set R := Resolvent.resolvent z (neg_I_mul_pnat_im_ne_zero n) hsym hplus hminus with hR_def
+  set R := Resolvent.resolvent z (neg_I_mul_pnat_im_ne_zero n) hsym hplus hminus with _hR_def
   have h_R_AzI : R (A ⟨φ, hφ⟩ - z • φ) = φ := by
     let ψ_sub : A.domain := Classical.choose (self_adjoint_range_all_z hsym hplus hminus z
                                (neg_I_mul_pnat_im_ne_zero n) (A ⟨φ, hφ⟩ - z • φ)).exists

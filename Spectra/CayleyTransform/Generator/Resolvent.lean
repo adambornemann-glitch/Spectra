@@ -81,7 +81,7 @@ theorem selfAdjointResolvent_eq_operator [Nontrivial H] (hA : IsSelfAdjoint A) (
   set R_sub : A.domain := Classical.choose
     (self_adjoint_range_all_z (isFormalAdjoint_of_isSelfAdjoint hA)
       (isSelfAdjoint_to_surjective hA).1 (isSelfAdjoint_to_surjective hA).2 z hz φ).exists
-    with hRsub_def
+    with _hRsub_def
   have hR_eq : A R_sub - z • (R_sub : H) = φ := Classical.choose_spec
     (self_adjoint_range_all_z (isFormalAdjoint_of_isSelfAdjoint hA)
       (isSelfAdjoint_to_surjective hA).1 (isSelfAdjoint_to_surjective hA).2 z hz φ).exists
@@ -227,7 +227,7 @@ theorem spectralMeasure_one_eq_zero (hA : IsSelfAdjoint A) (v : H) :
     Spectra.Riesz.spectralMeasure (cayley hA) (cayley_isStarNormal hA) v
         {w : spectrum ℂ (cayley hA) | (w : ℂ) = 1} = 0 := by
   have hn : IsStarNormal (cayley hA) := cayley_isStarNormal hA
-  set S : Set (spectrum ℂ (cayley hA)) := {w | (w : ℂ) = 1} with hSdef
+  set S : Set (spectrum ℂ (cayley hA)) := {w | (w : ℂ) = 1} with _hSdef
   have hSmeas : MeasurableSet S :=
     (measurableSet_singleton (1 : ℂ)).preimage continuous_subtype_val.measurable
   set χS : spectrum ℂ (cayley hA) → ℂ := Set.indicator S (fun _ => 1) with hχSdef
@@ -306,7 +306,7 @@ theorem resolventSymbol_eq_cts [Nontrivial H] (hA : IsSelfAdjoint A) (z : ℂ) (
     rw [sub_ne_zero]; intro h
     exact spectrum.mem_iff.mp (h ▸ w.2) hUnit2
   have h1w : (1 : ℂ) - (w : ℂ) ≠ 0 := sub_ne_zero.mpr (fun h => hw1 h.symm)
-  have hnum : I * (1 + (w : ℂ)) - z * (1 - (w : ℂ)) ≠ 0 := by
+  have _hnum : I * (1 + (w : ℂ)) - z * (1 - (w : ℂ)) ≠ 0 := by
     have heq : I * (1 + (w : ℂ)) - z * (1 - (w : ℂ))
         = (z + I) * ((w : ℂ) - (z - I) * (z + I)⁻¹) := by
       field_simp
@@ -332,7 +332,7 @@ theorem selfAdjointResolvent_eq_borelCalculus [Nontrivial H] (hA : IsSelfAdjoint
       = borelCalculus (cayley hA) (cayley_isStarNormal hA) (resolventSymbol hA z)
           (resolventSymbol_measurable hA z) (resolventSymbol_bdd hA z hz) := by
   have hn : IsStarNormal (cayley hA) := cayley_isStarNormal hA
-  have hzI : z + I ≠ 0 := by rwa [add_comm] at hzi
+  have _hzI : z + I ≠ 0 := by rwa [add_comm] at hzi
   -- continuity of the continuous symbol `g_z` on `σ(V)` (`w₀ ∉ σ(V)`).
   have hUnit : IsUnit (cayley hA - ((z - I) * (z + I)⁻¹) • (1 : H →L[ℂ] H)) := by
     rw [ContinuousLinearMap.one_def]

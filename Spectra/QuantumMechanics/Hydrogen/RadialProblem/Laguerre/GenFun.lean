@@ -135,7 +135,7 @@ private lemma realBinom_abs_le (α : ℝ) (k m : ℕ) :
   -- per factor: |(α+k+m) - i| ≤ (|α|+k+m) - i
   rw [Finset.mem_range] at hi
   have hi' : (i : ℝ) < (m : ℝ) := by exact_mod_cast hi
-  have hk' : (0 : ℝ) ≤ (k : ℝ) := Nat.cast_nonneg k
+  have _hk' : (0 : ℝ) ≤ (k : ℝ) := Nat.cast_nonneg k
   have hb : (0 : ℝ) ≤ (k : ℝ) + (m : ℝ) - (i : ℝ) := by linarith
   rw [show α + (k:ℝ) + (m:ℝ) - (i:ℝ) = α + ((k:ℝ) + (m:ℝ) - (i:ℝ)) from by ring]
   calc |α + ((k:ℝ) + (m:ℝ) - (i:ℝ))|

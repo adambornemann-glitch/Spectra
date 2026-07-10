@@ -219,7 +219,7 @@ private theorem sphereCoordSymmInv_spec_aux (y : Fin 3 → ℝ) (hy : y 1 ≠ 0)
     sphereCoordSymmF ![Real.sqrt ((y 0) ^ 2 + (y 1) ^ 2 + (y 2) ^ 2),
         Real.arccos (y 2 / Real.sqrt ((y 0) ^ 2 + (y 1) ^ 2 + (y 2) ^ 2)),
         if 0 < y 1 then Complex.arg ⟨y 0, y 1⟩ else Complex.arg ⟨y 0, y 1⟩ + 2 * Real.pi] = y := by
-  set z : ℂ := ⟨y 0, y 1⟩ with hz_def
+  set z : ℂ := ⟨y 0, y 1⟩ with _hz_def
   have hzre : z.re = y 0 := rfl
   have hzim : z.im = y 1 := rfl
   have hz : z ≠ 0 := by

@@ -135,7 +135,7 @@ lemma Dynamics.generator_one (α : Dynamics A) :
 -/
 lemma IsInvariant.generator_apply {ω : State A} {α : Dynamics A} (hinv : IsInvariant ω α)
     {a : A} (ha : α.IsAnalyticElement a) : ω (α.generator ha) = 0 := by
-  set ωL : A →L[ℂ] ℂ := ⟨ω.toFun, ω.continuous⟩ with hωL
+  set ωL : A →L[ℂ] ℂ := ⟨ω.toFun, ω.continuous⟩ with _hωL
   have hωL_apply : ∀ x, ωL x = ω x := fun _ => rfl
   -- `z ↦ ω(σ_z a)` is constant (identity theorem: entire, constant on `ℝ`).
   have hconst : (fun z : ℂ => ω (α.analyticExtend ha z)) = fun _ : ℂ => ω a := by

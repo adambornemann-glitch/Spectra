@@ -170,7 +170,7 @@ lemma sphericalHarmonic_sphereChartInv_eq (ℓ : ℕ) (m : ℤ) (hm : |m| ≤ (�
       refine ⟨⌊(Real.pi - φ) / (2 * Real.pi)⌋ + 1, ?_⟩
       rw [harg]; push_cast; ring
   -- assemble: `cos` of the polar slot is `cos θ`; `e^{im·azimuth} = e^{imφ}`
-  set q : ℝ × ℝ := (sphereChartInv (sphereChart r θ φ)).2 with hq
+  set q : ℝ × ℝ := (sphereChartInv (sphereChart r θ φ)).2 with _hq
   have hqeq : q = (q.1, q.2) := rfl
   rw [hqeq, hpolar, hk, sphericalHarmonic_eq, sphericalHarmonic_eq]
   congr 1
@@ -264,13 +264,13 @@ theorem hydrogen_bound_state_separated (n ℓ m : ℕ) (hn : ℓ + 1 ≤ n) (hm 
         = ((hydrogenEigenvalue n (by omega) : ℝ) : ℂ) • (ψ : Spectra.Sobolev.l2R3) := by
   classical
   set p : CoulombParams := ⟨1, one_pos⟩ with hp
-  set E : ℝ := hydrogenEigenvalue n (by omega) with hE_def
-  set Ψ : Spectra.Sobolev.l2R3 := (memLp_separated n ℓ m hn hm hℓ).toLp _ with hΨ_def
+  set E : ℝ := hydrogenEigenvalue n (by omega) with _hE_def
+  set Ψ : Spectra.Sobolev.l2R3 := (memLp_separated n ℓ m hn hm hℓ).toLp _ with _hΨ_def
   have hΨ : ⇑Ψ =ᵐ[volume] separatedEigenfunction n ℓ m hn :=
     (memLp_separated n ℓ m hn hm hℓ).coeFn_toLp
   -- abbreviations for the classical second partials (the L² witnesses)
   set d2 : Fin 3 → Fin 3 → Spectra.Sobolev.l2R3 :=
-    fun i j => (memLp_separated_second n ℓ m hn hm hℓ i j).toLp _ with hd2_def
+    fun i j => (memLp_separated_second n ℓ m hn hm hℓ i j).toLp _ with _hd2_def
   -- `Ψ ∈ H²` from the separated weak-derivative stack
   have hH2 : MemSobolevH2 Ψ := by
     refine ⟨fun i => ⟨(memLp_separated_first n ℓ m hn hm hℓ i).toLp _,
@@ -476,10 +476,10 @@ lemma chartRealization_symm_sstate_eigenpair (n : ℕ) (hn : 1 ≤ n) (hm : |(0 
       _ = |sphericalNorm 0 0| * C₂ * Real.exp (-a * r) := by ring
   -- the transported s-state as the explicit `Ψ`
   set Ψ : Spectra.Sobolev.l2R3 := chartRealization.symm (hydrogenEigenfunction n 0 0 hn0 hm)
-    with hΨ_def
+    with _hΨ_def
   have hΨ : ⇑Ψ =ᵐ[volume] fun x : R3 => g ‖x‖ :=
     chartRealization_symm_eigenfunction_coeFn n hn0 hm
-  have hΨ0 : Ψ ≠ 0 := by
+  have _hΨ0 : Ψ ≠ 0 := by
     intro h0
     have hae0 : (fun x : R3 => g ‖x‖) =ᵐ[volume] (0 : R3 → ℂ) := by
       refine hΨ.symm.trans ?_; rw [h0]; exact Lp.coeFn_zero _ _ _
@@ -523,7 +523,7 @@ lemma chartRealization_symm_sstate_eigenpair (n : ℕ) (hn : 1 ≤ n) (hm : |(0 
     have := heigen x hx
     simpa [hp, hE_def] using this
   set d2 : Fin 3 → Fin 3 → Spectra.Sobolev.l2R3 :=
-    fun i j => (memLp_second_deriv g hg ha hbd1 hbd2 i j).toLp _ with hd2_def
+    fun i j => (memLp_second_deriv g hg ha hbd1 hbd2 i j).toLp _ with _hd2_def
   have hH2 : MemSobolevH2 Ψ := by
     refine ⟨fun i => ⟨(memLp_first_deriv g hg ha hbd1 i).toLp _,
       hasWeakDerivative_radial_first g hg ha hbd1 Ψ hΨ i⟩, fun i j => ?_⟩
@@ -717,15 +717,15 @@ lemma chartRealization_symm_eigenfunction_eigenpair (n ℓ : ℕ) (M : ℤ) (hn 
     obtain ⟨hmemPos, heigPos⟩ :=
       chartRealization_symm_eigenfunction_eigenpair_nat n ℓ m hn hmℓ hn1 hm'
     set psiPos : (hydrogenHamiltonian ⟨1, one_pos⟩).domain :=
-      ⟨chartRealization.symm (hydrogenEigenfunction n ℓ (m : ℤ) hn hm'), hmemPos⟩ with hpsiPos_def
+      ⟨chartRealization.symm (hydrogenEigenfunction n ℓ (m : ℤ) hn hm'), hmemPos⟩ with _hpsiPos_def
     -- `star psiPos` is an eigenvector at the (real) eigenvalue `Eₙ`
     have hstar_eig :=
       hydrogenHamiltonian_star ⟨1, one_pos⟩ (hydrogenEigenvalue n hn1) psiPos heigPos
     set χ : (hydrogenHamiltonian ⟨1, one_pos⟩).domain :=
-      ⟨star (psiPos : Spectra.Sobolev.l2R3), memSobolevH2_star _ psiPos.2⟩ with hχ_def
+      ⟨star (psiPos : Spectra.Sobolev.l2R3), memSobolevH2_star _ psiPos.2⟩ with _hχ_def
     -- the Condon–Shortley constant `κ ≠ 0`
     set κ : ℝ := sphericalNorm ℓ (m : ℤ) * reflectionFactor ℓ (m : ℤ)
-        / (sphericalNorm ℓ (-(m : ℤ)) * reflectionFactor ℓ (-(m : ℤ))) with hκ_def
+        / (sphericalNorm ℓ (-(m : ℤ)) * reflectionFactor ℓ (-(m : ℤ))) with _hκ_def
     have hκne : κ ≠ 0 := div_ne_zero
       (mul_ne_zero (sphericalNorm_pos ℓ (m : ℤ)).ne' (reflectionFactor_ne_zero ℓ (m : ℤ)))
       (mul_ne_zero (sphericalNorm_pos ℓ (-(m : ℤ))).ne'

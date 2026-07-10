@@ -266,12 +266,12 @@ lemma toLp_sepFun_rodrigues_mem_span (m : ℤ) (j : ℕ) :
     (memLp_sepFun m (rodriguesDeriv (m.natAbs + j) (m.natAbs + j + m.natAbs))).toLp
         (sepFun m (rodriguesDeriv (m.natAbs + j) (m.natAbs + j + m.natAbs))) ∈
       Submodule.span ℂ harmonicSet := by
-  set ℓ : ℕ := m.natAbs + j with hℓ
+  set ℓ : ℕ := m.natAbs + j with _hℓ
   have hm' : |m| ≤ (ℓ : ℤ) := by
     rw [Int.abs_eq_natAbs]
     exact_mod_cast Nat.le_add_right m.natAbs j
   set c : ℝ := sphericalNorm ℓ m * reflectionFactor ℓ m *
-    ((-1 : ℝ) ^ m.natAbs / (2 ^ ℓ * ℓ.factorial : ℝ)) with hc
+    ((-1 : ℝ) ^ m.natAbs / (2 ^ ℓ * ℓ.factorial : ℝ)) with _hc
   have hc0 : c ≠ 0 := by
     refine mul_ne_zero (mul_ne_zero (sphericalNorm_pos ℓ m).ne'
       (reflectionFactor_ne_zero ℓ m)) ?_
@@ -323,7 +323,7 @@ lemma toLp_sepFun_mem_span (m : ℤ) (q : Polynomial ℝ) :
         simp [sepFun]
       rw [h0]
       exact Submodule.zero_mem _
-  | add x y hx hy ihx ihy =>
+  | add x y _hx _hy ihx ihy =>
       have hpt : sepFun m (x + y) = sepFun m x + sepFun m y := by
         funext p
         simp only [sepFun, Pi.add_apply, Polynomial.eval_add]
@@ -337,7 +337,7 @@ lemma toLp_sepFun_mem_span (m : ℤ) (q : Polynomial ℝ) :
           (Filter.Eventually.of_forall fun p => congrFun hpt p)
       rw [heq]
       exact Submodule.add_mem _ ihx ihy
-  | smul a x hx ih =>
+  | smul a x _hx ih =>
       have hpt : sepFun m (a • x) = (a : ℂ) • sepFun m x := by
         funext p
         simp only [sepFun, Pi.smul_apply, Polynomial.eval_smul, smul_eq_mul]
@@ -395,14 +395,14 @@ lemma ae_eq_zero_of_forall_integral_polyCos_eq_zero {u : ℝ → ℂ}
       isCompact_iff_compactSpace.mp isCompact_Icc
     set cosMap : C(Set.Icc (0 : ℝ) Real.pi, ℝ) :=
       ⟨fun x => Real.cos x.1, Real.continuous_cos.comp continuous_subtype_val⟩
-      with hcosMap
+      with _hcosMap
     have hsep : (Algebra.adjoin ℝ {cosMap}).SeparatesPoints := by
       intro x y hxy
       refine ⟨⇑cosMap, ⟨cosMap, Algebra.subset_adjoin (Set.mem_singleton _), rfl⟩, ?_⟩
       intro hcos
       exact hxy (Subtype.ext (Real.injOn_cos x.2 y.2 hcos))
     set fG : C(Set.Icc (0 : ℝ) Real.pi, ℝ) :=
-      ⟨fun x => G x.1, hG.comp continuous_subtype_val⟩ with hfG
+      ⟨fun x => G x.1, hG.comp continuous_subtype_val⟩ with _hfG
     obtain ⟨gA, hgA⟩ :=
       ContinuousMap.exists_mem_subalgebra_near_continuousMap_of_separatesPoints
         (Algebra.adjoin ℝ {cosMap}) hsep fG ε hε0
@@ -486,12 +486,12 @@ lemma ae_eq_zero_of_forall_integral_fourier_eq_zero {v : ℝ → ℂ}
     rw [hμ]
     exact ae_restrict_mem measurableSet_Ioc
   -- a strongly measurable representative of `v`
-  set g : ℝ → ℂ := hv.aestronglyMeasurable.mk v with hg_def
+  set g : ℝ → ℂ := hv.aestronglyMeasurable.mk v with _hg_def
   have hg_sm : StronglyMeasurable g := hv.aestronglyMeasurable.stronglyMeasurable_mk
   have hvg : v =ᵐ[phiMeasure] g := hv.aestronglyMeasurable.ae_eq_mk
   -- lift to the circle
   set V : AddCircle (2 * Real.pi) → ℂ := AddCircle.liftIoc (2 * Real.pi) 0 g
-    with hV_def
+    with _hV_def
   have hV_sm : StronglyMeasurable V := by
     have h1 : Measurable fun x : Set.Ioc (0 : ℝ) (0 + 2 * Real.pi) => g x.1 :=
       hg_sm.measurable.comp measurable_subtype_coe
@@ -525,7 +525,7 @@ lemma ae_eq_zero_of_forall_integral_fourier_eq_zero {v : ℝ → ℂ}
     rw [hhaar_eq]
     exact hVmem_vol.smul_measure (ENNReal.inv_ne_top.mpr h2π_ne)
   set VLp : Lp ℂ 2 (AddCircle.haarAddCircle : Measure (AddCircle (2 * Real.pi))) :=
-    hVmem.toLp V with hVLp_def
+    hVmem.toLp V with _hVLp_def
   -- all Fourier coefficients of `V` vanish (transport of `h`)
   have hgen : ∀ n : ℤ, inner ℂ (fourierLp (T := 2 * Real.pi) 2 n) VLp = 0 := by
     intro n
@@ -698,7 +698,7 @@ theorem sphericalHarmonic_complete :
       ∫ φ, Complex.exp (I * k * φ) * f (θ, φ) ∂phiMeasure = 0 := by
     intro k
     set u : ℝ → ℂ := fun θ => ((Real.sin θ ^ k.natAbs : ℝ) : ℂ) *
-      ∫ φ, Complex.exp (I * k * φ) * f (θ, φ) ∂phiMeasure with hu_def
+      ∫ φ, Complex.exp (I * k * φ) * f (θ, φ) ∂phiMeasure with _hu_def
     have hA := hFint.integral_norm_prod_left
     have hu_int : Integrable u thetaMeasure := by
       have hsm : AEStronglyMeasurable u thetaMeasure :=

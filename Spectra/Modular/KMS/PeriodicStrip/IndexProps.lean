@@ -30,6 +30,8 @@ strip.
 open Complex Set Filter Topology Int MeasureTheory
 namespace Spectra.PeriodicHolomorphic
 
+variable {β : ℝ}
+
 /-! ## Basic Properties of the Strip Index -/
 
 /-- `stripIndex β z` is the unique integer `n` with `n * β ≤ z.im < (n + 1) * β`. -/
@@ -77,7 +79,7 @@ lemma toFundamentalStrip_of_mem_strip (hβ : 0 < β) {z : ℂ}
     · exact div_nonneg hz.1 (le_of_lt hβ)
     · rw [propext (div_lt_one hβ)];
       rw [@RCLike.lt_iff_re_im]
-      exact And.symm (And.imp_left (fun a => rfl) hz)
+      exact And.symm (And.imp_left (fun _a => rfl) hz)
   simp [hn]
 
 /-! ## Continuity of the Periodic Extension -/
@@ -188,7 +190,7 @@ lemma periodicExtension_continuous_at_boundary
     have hw_strip : stripIndex β w = n - 1 := by
       simp only [stripIndex]
       rw [Int.floor_eq_iff]
-      have hβ_ne : β ≠ 0 := ne_of_gt hβ
+      have _hβ_ne : β ≠ 0 := ne_of_gt hβ
       constructor
       · -- Need: ((n - 1 : ℤ) : ℝ) ≤ w.im / β
         rw [Int.cast_sub, Int.cast_one]

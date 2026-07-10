@@ -60,7 +60,7 @@ private lemma exists_weylSequence_of_not_boundedBelow {A : H →ₗ.[ℂ] H} {la
     rw [h0, mul_zero] at hlt
     exact absurd hlt (not_lt.mpr (norm_nonneg _))
   -- normalize
-  set φn : ℕ → A.domain := fun n => (‖(ψ0 n : H)‖ : ℂ)⁻¹ • ψ0 n with hφn
+  set φn : ℕ → A.domain := fun n => (‖(ψ0 n : H)‖ : ℂ)⁻¹ • ψ0 n with _hφn
   have hφnorm : ∀ n, ‖(φn n : H)‖ = 1 := by
     intro n
     change ‖(‖(ψ0 n : H)‖ : ℂ)⁻¹ • (ψ0 n : H)‖ = 1

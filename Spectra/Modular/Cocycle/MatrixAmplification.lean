@@ -337,22 +337,22 @@ lemma centralizer_M2set (M : VonNeumannAlgebra H) :
   · -- `T` commutes with all of `M₂(M)` ⟹ `T` is a scalar block with entry in `M'`.
     intro hT
     -- Name the four entries and record the block decomposition of `T`.
-    set T₁₁ := fst₂ ∘L T ∘L inl₂ with hT₁₁
-    set T₁₂ := fst₂ ∘L T ∘L inr₂ with hT₁₂
-    set T₂₁ := snd₂ ∘L T ∘L inl₂ with hT₂₁
-    set T₂₂ := snd₂ ∘L T ∘L inr₂ with hT₂₂
+    set T₁₁ := fst₂ ∘L T ∘L inl₂ with _hT₁₁
+    set T₁₂ := fst₂ ∘L T ∘L inr₂ with _hT₁₂
+    set T₂₁ := snd₂ ∘L T ∘L inl₂ with _hT₂₁
+    set T₂₂ := snd₂ ∘L T ∘L inr₂ with _hT₂₂
     have hEq : T = blockOp T₁₁ T₁₂ T₂₁ T₂₂ := eq_blockOp T
     -- Commute with `e₁₂ = blockOp 0 1 0 0`.
     have h12 := hT e₁₂ (e₁₂_mem_M2subalg M)
     rw [hEq, e₁₂, blockOp_comp, blockOp_comp] at h12
     simp only [mul_zero, mul_one, zero_mul, one_mul, add_zero, zero_add] at h12
-    obtain ⟨hA, hB, hC, hD⟩ := blockOp_inj h12
+    obtain ⟨hA, hB, _hC, _hD⟩ := blockOp_inj h12
     -- From `e₁₂ * T = T * e₁₂`: forces `T₂₁ = 0`, `T₂₂ = T₁₁`.
     -- Commute with `e₂₁ = blockOp 0 0 1 0`.
     have h21 := hT e₂₁ (e₂₁_mem_M2subalg M)
     rw [hEq, e₂₁, blockOp_comp, blockOp_comp] at h21
     simp only [mul_zero, mul_one, zero_mul, one_mul, add_zero, zero_add] at h21
-    obtain ⟨hA', hB', hC', hD'⟩ := blockOp_inj h21
+    obtain ⟨_hA', _hB', _hC', hD'⟩ := blockOp_inj h21
     -- Collect: `T₁₂ = 0`, `T₂₁ = 0`, `T₁₁ = T₂₂`.
     refine ⟨T₁₁, ?_, ?_⟩
     · -- `T₁₁ ∈ M'`: it commutes with every `m ∈ M`.
@@ -384,10 +384,10 @@ lemma centralizer_scalarBlockSet (N : VonNeumannAlgebra H) :
   constructor
   · -- `T` commutes with all scalar blocks ⟹ each entry of `T` lies in `N'`.
     intro hT
-    set T₁₁ := fst₂ ∘L T ∘L inl₂ with hT₁₁
-    set T₁₂ := fst₂ ∘L T ∘L inr₂ with hT₁₂
-    set T₂₁ := snd₂ ∘L T ∘L inl₂ with hT₂₁
-    set T₂₂ := snd₂ ∘L T ∘L inr₂ with hT₂₂
+    set T₁₁ := fst₂ ∘L T ∘L inl₂ with _hT₁₁
+    set T₁₂ := fst₂ ∘L T ∘L inr₂ with _hT₁₂
+    set T₂₁ := snd₂ ∘L T ∘L inl₂ with _hT₂₁
+    set T₂₂ := snd₂ ∘L T ∘L inr₂ with _hT₂₂
     have hEq : T = blockOp T₁₁ T₁₂ T₂₁ T₂₂ := eq_blockOp T
     refine ⟨T₁₁, ?_, T₁₂, ?_, T₂₁, ?_, T₂₂, ?_, hEq⟩ <;>
     · rw [VonNeumannAlgebra.mem_commutant_iff]

@@ -224,7 +224,7 @@ theorem numericalRange_range_dense {H : Type*} [NormedAddCommGroup H] [InnerProd
   have hadj : A.adjoint = A := LinearPMap.isSelfAdjoint_def.mp hA
   have hzconj : (starRingEnd ℂ) z ∉ closure (numericalRange A) :=
     numericalRange_conj_notMem_of_notMem hsym z hz
-  set R : Submodule ℂ H := LinearMap.range (A.toFun - z • A.domain.subtype) with hRdef
+  set R : Submodule ℂ H := LinearMap.range (A.toFun - z • A.domain.subtype) with _hRdef
   have hRset : (Set.range fun x : A.domain => A x - z • (x : H)) = (R : Set H) := by
     ext y; constructor
     · rintro ⟨x, rfl⟩; exact ⟨x, by simp [LinearMap.sub_apply]⟩

@@ -87,7 +87,7 @@ lemma integral_log_le_log_of_probability {α : Type*} [MeasurableSpace α] {μ :
     simp
   calc ∫ x, Real.log (f x) ∂μ
       ≤ ∫ x, (Real.log s + (f x - s) / s) ∂μ := integral_mono_ae hlog_int hmin_int hkey
-    _ = (∫ x, Real.log s ∂μ) + ∫ x, (f x - s) / s ∂μ := integral_add (integrable_const _) hg_int
+    _ = (∫ _x, Real.log s ∂μ) + ∫ x, (f x - s) / s ∂μ := integral_add (integrable_const _) hg_int
     _ = Real.log s := by rw [hint2, integral_const]; simp
 
 end Real

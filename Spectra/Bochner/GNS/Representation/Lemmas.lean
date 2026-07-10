@@ -181,7 +181,7 @@ noncomputable def completionTranslate {f : ℝ → ℂ}
     UniformSpace.Completion (GNSQuotient hPD hH) →ₗ[ℂ]
     UniformSpace.Completion (GNSQuotient hPD hH) := by
   letI nacgV := gnsQuotientNACG hPD hH
-  letI ipsV := gnsQuotientIPS hPD hH
+  letI _ipsV := gnsQuotientIPS hPD hH
   haveI : UniformContinuousConstSMul ℂ (GNSQuotient hPD hH) :=
     gnsQuotient_uniformContinuousConstSMul hPD hH
   have huc : UniformContinuous (quotientTranslate hPD hH t) :=

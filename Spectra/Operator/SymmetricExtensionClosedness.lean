@@ -149,9 +149,9 @@ theorem vonNeumannExtensionOn_isClosed_of_isClosed (hsym : A.IsFormalAdjoint A)
     have hsum : ‖((xn m - xn k : A.domain) : H)‖ ^ 2 + ‖A (xn m - xn k)‖ ^ 2
         + 4 * ‖((ηn m - ηn k : F) : H)‖ ^ 2 < ε ^ 2 / 2 := by
       rw [← hk']
-      have hb1 : ‖((un m : (vonNeumannExtensionOn A hsym hdense hF V).domain) : H)
+      have _hb1 : ‖((un m : (vonNeumannExtensionOn A hsym hdense hF V).domain) : H)
           - ((un k : (vonNeumannExtensionOn A hsym hdense hF V).domain) : H)‖ < ε / 2 := h1
-      have hb2 : ‖vonNeumannExtensionOn A hsym hdense hF V (un m)
+      have _hb2 : ‖vonNeumannExtensionOn A hsym hdense hF V (un m)
           - vonNeumannExtensionOn A hsym hdense hF V (un k)‖ < ε / 2 := h2
       nlinarith [norm_nonneg (((un m : (vonNeumannExtensionOn A hsym hdense hF V).domain) : H)
           - ((un k : (vonNeumannExtensionOn A hsym hdense hF V).domain) : H)),
@@ -309,7 +309,7 @@ theorem isClosed_of_vonNeumannExtensionOn_isClosed (hsym : A.IsFormalAdjoint A)
       (vonNeumannExtensionOn A hsym hdense hF V).mem_graph
         ⟨ηs n - ((V ⟨ηs n, hmemF n⟩ : deficiencySubspaceMinus A) : H), humem n⟩)
   rw [LinearPMap.mem_graph_iff] at hpair
-  obtain ⟨w, hw1, hw2⟩ := hpair
+  obtain ⟨w, hw1, _hw2⟩ := hpair
   -- decompose `η - ξ` inside `D(A_V)` and compare with the first-formula decomposition
   have hwdom : η - ξ ∈ vonNeumannDomainOn A V := by
     have h := w.2

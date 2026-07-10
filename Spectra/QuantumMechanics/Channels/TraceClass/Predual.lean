@@ -140,8 +140,8 @@ theorem norm_traceFunctional (B : H →L[ℂ] H) : ‖traceFunctional B‖ = ‖
   have hTnorm : ‖rankOneTCunit hpn hqn‖ = 1 := by
     rw [TraceClass.norm_def, rankOneTCunit_toOp]; exact traceNorm_rankOne_of_unit hpn hqn
   -- `tr(B |p⟩⟨q|) = ⟪q, B p⟫ = ‖Bu‖/‖u‖`.
-  have hBc : (‖B u‖ : ℂ) ≠ 0 := by exact_mod_cast hBun.ne'
-  have huc : (‖u‖ : ℂ) ≠ 0 := by exact_mod_cast hun.ne'
+  have _hBc : (‖B u‖ : ℂ) ≠ 0 := by exact_mod_cast hBun.ne'
+  have _huc : (‖u‖ : ℂ) ≠ 0 := by exact_mod_cast hun.ne'
   have hinner : (⟪B u, B u⟫_ℂ) = ((‖B u‖ ^ 2 : ℝ) : ℂ) := by
     rw [inner_self_eq_norm_sq_to_K]; norm_cast
   have hreal : (‖B u‖⁻¹ * (‖u‖⁻¹ * ‖B u‖ ^ 2) : ℝ) = ‖B u‖ / ‖u‖ := by

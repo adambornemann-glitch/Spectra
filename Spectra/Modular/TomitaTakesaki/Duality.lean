@@ -41,7 +41,7 @@ Via the orthogonal projection onto `closure(M' Ω)`, which lands in `M` by the b
 theorem isCyclic_commutant_of_isSeparating {M : VonNeumannAlgebra H} {Ω : H}
     (hsep : IsSeparating M Ω) : IsCyclic M.commutant Ω := by
   set S := cyclicSet M.commutant Ω with hSdef
-  set Kspan := Submodule.span ℂ S with hKspandef
+  set Kspan := Submodule.span ℂ S with _hKspandef
   haveI hcs : CompleteSpace Kspan.topologicalClosure :=
     Kspan.isClosed_topologicalClosure.completeSpace_coe
   set K := Kspan.topologicalClosure with hKdef

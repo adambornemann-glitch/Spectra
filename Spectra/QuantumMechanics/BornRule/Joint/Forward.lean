@@ -92,7 +92,7 @@ theorem jointScalarMeasure_parallelogram (A B : Spectra.Operator.SelfAdjointOper
       = 2 * (jointScalarMeasure A B hSC ψ E).toReal
         + 2 * (jointScalarMeasure A B hSC φ E).toReal := by
   classical
-  set q : Set (ℝ × ℝ) → H → ℝ := fun E ξ => (jointScalarMeasure A B hSC ξ E).toReal with hq
+  set q : Set (ℝ × ℝ) → H → ℝ := fun E ξ => (jointScalarMeasure A B hSC ξ E).toReal with _hq
   have hqE : ∀ (E : Set (ℝ × ℝ)) (ξ : H),
       q E ξ = (jointScalarMeasure A B hSC ξ E).toReal := fun _ _ => rfl
   -- the diagonal of an operator obeys the parallelogram law (`ProjValMeasure.diag_parallelogram`)
@@ -933,9 +933,9 @@ private lemma joint_section_inner (A B : Spectra.Operator.SelfAdjointOperator H)
     ∫ p, f p.1 * Set.indicator T (fun _ => (1 : ℂ)) p.2 ∂(jointScalarMeasure A B hSC ξ)
       = ⟪ξ, spectralCalculus (genToGroup A.selfAdjoint) f hfm hfb
           (B.spectralPVM.proj T hT ξ)⟫_ℂ := by
-  set UA := genToGroup A.selfAdjoint with hUA
-  set EB := B.spectralPVM.proj T hT with hEB
-  set Φf := spectralCalculus UA f hfm hfb with hΦf
+  set UA := genToGroup A.selfAdjoint with _hUA
+  set EB := B.spectralPVM.proj T hT with _hEB
+  set Φf := spectralCalculus UA f hfm hfb with _hΦf
   -- rewrite the integrand as the indicator of the cylinder `univ ×ˢ T`
   have hpt : ∀ p : ℝ × ℝ, f p.1 * Set.indicator T (fun _ => (1 : ℂ)) p.2
       = Set.indicator (Set.univ ×ˢ T) (fun p => f p.1) p := by
@@ -997,8 +997,8 @@ private lemma joint_product_form_simple (A B : Spectra.Operator.SelfAdjointOpera
       = spectralForm (genToGroup B.selfAdjoint)
           (ContinuousLinearMap.adjoint (spectralCalculus (genToGroup A.selfAdjoint) f hfm hfb) ξ)
           ξ (s : ℝ → ℂ) := by
-  set UA := genToGroup A.selfAdjoint with hUA
-  set UB := genToGroup B.selfAdjoint with hUB
+  set UA := genToGroup A.selfAdjoint with _hUA
+  set UB := genToGroup B.selfAdjoint with _hUB
   set Φf := spectralCalculus UA f hfm hfb with hΦf
   set η := ContinuousLinearMap.adjoint Φf ξ with hη
   -- finite measure ⟹ `f(x)·h(y)` is integrable for any bounded measurable `h`
@@ -1051,7 +1051,7 @@ private lemma joint_product_form_simple (A B : Spectra.Operator.SelfAdjointOpera
       _ = spectralForm UB η ξ (Set.indicator S (fun _ => c)) := by
           rw [← spectralForm_smul_fun UB η ξ c (Set.indicator S (fun _ => (1 : ℂ)))]
           congr 1; ext y; rw [hci y]
-  | @add s₁ s₂ hdisj h₁ h₂ =>
+  | @add s₁ s₂ _hdisj h₁ h₂ =>
     -- additive step
     obtain ⟨C₁, hC₁⟩ := simpleFunc_bdd s₁
     obtain ⟨C₂, hC₂⟩ := simpleFunc_bdd s₂
@@ -1083,8 +1083,8 @@ private lemma joint_product_form (A B : Spectra.Operator.SelfAdjointOperator H)
     ∫ p, f p.1 * g p.2 ∂(jointScalarMeasure A B hSC ξ)
       = ⟪ξ, spectralCalculus (genToGroup A.selfAdjoint) f hfm hfb
           (spectralCalculus (genToGroup B.selfAdjoint) g hgm hgb ξ)⟫_ℂ := by
-  set UA := genToGroup A.selfAdjoint with hUA
-  set UB := genToGroup B.selfAdjoint with hUB
+  set UA := genToGroup A.selfAdjoint with _hUA
+  set UB := genToGroup B.selfAdjoint with _hUB
   set Φf := spectralCalculus UA f hfm hfb with hΦf
   set η := ContinuousLinearMap.adjoint Φf ξ with hη
   -- it suffices to prove the `spectralForm` version, then convert through the adjoint
@@ -1094,7 +1094,7 @@ private lemma joint_product_form (A B : Spectra.Operator.SelfAdjointOperator H)
   obtain ⟨Cg, hCg⟩ := hgb
   -- the approximating simple functions
   set gN : ℕ → MeasureTheory.SimpleFunc ℝ ℂ :=
-    fun n => MeasureTheory.SimpleFunc.approxOn g hgm Set.univ 0 (Set.mem_univ 0) n with hgN
+    fun n => MeasureTheory.SimpleFunc.approxOn g hgm Set.univ 0 (Set.mem_univ 0) n with _hgN
   have hgN_tendsto : ∀ y, Filter.Tendsto (fun n => (gN n : ℝ → ℂ) y) atTop (𝓝 (g y)) := fun y =>
     MeasureTheory.SimpleFunc.tendsto_approxOn hgm (Set.mem_univ 0) (by simp)
   have hgN_bound : ∀ n y, ‖(gN n : ℝ → ℂ) y‖ ≤ 2 * Cg := by
@@ -1160,12 +1160,12 @@ private lemma joint_truncated_vector (A B : Spectra.Operator.SelfAdjointOperator
       = A.spectralPVM.proj (Set.Icc (-(N : ℝ)) (N : ℝ)) measurableSet_Icc
           (B.spectralPVM.proj (Set.Icc (-(N : ℝ)) (N : ℝ)) measurableSet_Icc
             (A.toLinearPMap ⟨B.toLinearPMap ⟨ξ, hξ⟩, hξ'⟩)) := by
-  set UA := genToGroup A.selfAdjoint with hUA
-  set UB := genToGroup B.selfAdjoint with hUB
-  set IccN := Set.Icc (-(N : ℝ)) (N : ℝ) with hIccN
+  set UA := genToGroup A.selfAdjoint with _hUA
+  set UB := genToGroup B.selfAdjoint with _hUB
+  set IccN := Set.Icc (-(N : ℝ)) (N : ℝ) with _hIccN
   have habs : ∀ x ∈ IccN, |x| ≤ max |(-(N : ℝ))| |(N : ℝ)| := fun x hx => abs_le_max_of_mem_Icc hx
-  set ψ := B.toLinearPMap ⟨ξ, hξ⟩ with hψ
-  set EB := B.spectralPVM.proj IccN measurableSet_Icc with hEB
+  set ψ := B.toLinearPMap ⟨ξ, hξ⟩ with _hψ
+  set EB := B.spectralPVM.proj IccN measurableSet_Icc with _hEB
   -- inner truncation: `Φ_B(y·1_N) ξ = E_B(N) (Bξ)`
   have hξB' : ξ ∈ (generator UB).domain := by rw [generator_genToGroup]; exact hξ
   have hBval : generator UB ⟨ξ, hξB'⟩ = ψ := (le_of_eq (generator_genToGroup B.selfAdjoint)).2 rfl
@@ -1208,8 +1208,8 @@ private lemma joint_truncated_tendsto (A B : Spectra.Operator.SelfAdjointOperato
     tendsto_spectralProjection_Icc_univ (genToGroup B.selfAdjoint) v
   rw [tendsto_iff_norm_sub_tendsto_zero] at hA hB ⊢
   refine squeeze_zero (fun N => norm_nonneg _) (fun N => ?_) (by simpa using hB.add hA)
-  set EA := A.spectralPVM.proj (Set.Icc (-(N : ℝ)) (N : ℝ)) measurableSet_Icc with hEA
-  set EB := B.spectralPVM.proj (Set.Icc (-(N : ℝ)) (N : ℝ)) measurableSet_Icc with hEB
+  set EA := A.spectralPVM.proj (Set.Icc (-(N : ℝ)) (N : ℝ)) measurableSet_Icc with _hEA
+  set EB := B.spectralPVM.proj (Set.Icc (-(N : ℝ)) (N : ℝ)) measurableSet_Icc with _hEB
   calc ‖EA (EB v) - v‖ = ‖(EA (EB v) - EA v) + (EA v - v)‖ := by rw [sub_add_sub_cancel]
     _ ≤ ‖EA (EB v) - EA v‖ + ‖EA v - v‖ := norm_add_le _ _
     _ = ‖EA (EB v - v)‖ + ‖EA v - v‖ := by rw [← map_sub]

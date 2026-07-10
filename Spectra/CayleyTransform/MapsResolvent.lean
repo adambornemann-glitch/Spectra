@@ -85,7 +85,7 @@ theorem cayley_maps_resolvent [Nontrivial H]
     exact hz hz0
   -- (2) `U` is unitary, so its spectrum lies on the circle; `w ∉ σ(U)`.
   have hU := cayleyTransform_unitary hsym hplus hminus
-  set U := cayleyTransform hsym hplus with hU_def
+  set U := cayleyTransform hsym hplus with _hU_def
   have hUUadj : ∀ ψ, U (U.adjoint ψ) = ψ := fun ψ => by
     simpa using congrFun (congrArg DFunLike.coe hU.2) ψ
   rcases lt_or_gt_of_ne hw_norm_ne_one with hw_lt | hw_gt

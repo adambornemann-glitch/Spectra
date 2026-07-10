@@ -203,7 +203,7 @@ lemma bartlett_third
     ∫ ω, (M.scorePartial θ' j k ω +
       M.toRegularStatisticalModel.score θ' j ω *
       M.toRegularStatisticalModel.score θ' k ω) *
-      M.density θ' ω ∂M.refMeasure with hF_def
+      M.density θ' ω ∂M.refMeasure with _hF_def
   have hF_locally_zero : F =ᶠ[𝓝 θ] 0 := by
     filter_upwards [M.isOpen_paramDomain.mem_nhds hθ] with θ' hθ'
     exact h_bartlett2 θ' hθ'

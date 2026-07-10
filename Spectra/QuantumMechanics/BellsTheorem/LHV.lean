@@ -79,7 +79,7 @@ structure ResponseFunction (Λ : Type*) [MeasurableSpace Λ] (μ : Measure Λ) w
   /-- The function is integrable (needed for expectation) -/
   integrable : Integrable toFun μ
 
-instance : CoeFun (ResponseFunction Λ μ) (fun _ => Λ → ℝ) where
+instance {μ : Measure Λ} : CoeFun (ResponseFunction Λ μ) (fun _ => Λ → ℝ) where
   coe f := f.toFun
 
 /-- A Local Hidden Variable Model for a Bell experiment -/

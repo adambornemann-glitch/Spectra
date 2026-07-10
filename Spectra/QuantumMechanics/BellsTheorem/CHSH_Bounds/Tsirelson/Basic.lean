@@ -269,7 +269,7 @@ theorem tsirelson_bound {n : ℕ} [NeZero n]
   have hS_herm : S.IsHermitian := CHSH_op_isHermitian A₀ A₁ B₀ B₁ hT
   have hS_sq : IsPosSemidefComplex (8 • (1 : Matrix (Fin n) (Fin n) ℂ) - S * S) :=
     CHSH_op_sq_le_eight A₀ A₁ B₀ B₁ hT
-  have hc_sq : c ^ 2 = 8 := by
+  have _hc_sq : c ^ 2 = 8 := by
     simp only [c]
     rw [mul_pow]
     norm_num

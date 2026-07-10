@@ -100,7 +100,7 @@ lemma group_apply_curve_hasDerivAt (V : OneParameterUnitaryGroup (H := H))
     (hmem : v s ∈ (generator V).domain) :
     HasDerivAt (fun σ => V.U (r σ) (v σ))
       (r' • (I • V.U (r s) (generator V ⟨v s, hmem⟩)) + V.U (r s) v') s := by
-  set η := generator V ⟨v s, hmem⟩ with hη
+  set η := generator V ⟨v s, hmem⟩ with _hη
   have hp : HasDerivAt (fun σ => V.U (r σ) (v s)) (r' • (I • V.U (r s) η)) s :=
     (unitary_orbit_hasDerivAt V ⟨v s, hmem⟩ (r s)).scomp s hr
   have hq : HasDerivAt (fun σ => V.U (r s) (v σ)) (V.U (r s) v') s := by

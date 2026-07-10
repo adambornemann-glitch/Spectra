@@ -71,7 +71,7 @@ theorem hydrogen_eigenspace_eq_span (n : ℕ) (hn : 1 ≤ n) :
             = ((hydrogenEigenvalue n hn : ℝ) : ℂ) • ψ}
       = ↑(Submodule.span ℂ (Set.range (fun i => chartRealization.symm (degenFamily n i)))) := by
   classical
-  set hA := hydrogenHamiltonian_isSelfAdjoint (⟨1, one_pos⟩ : CoulombParams) with hAdef
+  set hA := hydrogenHamiltonian_isSelfAdjoint (⟨1, one_pos⟩ : CoulombParams) with _hAdef
   -- abbreviation for the spectral projection `E({Eₙ})`
   set E := (PVM.spectralPVM hA).proj {hydrogenEigenvalue n hn}
     (measurableSet_singleton _) with hEdef
@@ -125,7 +125,7 @@ theorem hydrogen_spectral_projection_discrete (n : ℕ) (hn : 1 ≤ n) :
           Spectra.Sobolev.l2R3 →ₗ[ℂ] Spectra.Sobolev.l2R3)
       = Submodule.span ℂ (Set.range (fun i => chartRealization.symm (degenFamily n i))) := by
   classical
-  set hA := hydrogenHamiltonian_isSelfAdjoint (⟨1, one_pos⟩ : CoulombParams) with hAdef
+  set hA := hydrogenHamiltonian_isSelfAdjoint (⟨1, one_pos⟩ : CoulombParams) with _hAdef
   apply Submodule.ext
   intro ψ
   rw [LinearMap.mem_range, ← SetLike.mem_coe, ← hydrogen_eigenspace_eq_span n hn, Set.mem_setOf_eq]

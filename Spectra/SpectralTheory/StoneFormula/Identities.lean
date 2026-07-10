@@ -128,7 +128,7 @@ theorem second_resolvent_identity
           (B ⟨resolvent z hz hsymB hplusB hminusB ψ,
               resolvent_mem_domain hsymB hplusB hminusB z hz ψ⟩
             - A ⟨resolvent z hz hsymB hplusB hminusB ψ, hA_dom⟩) := by
-  set χ : H := resolvent z hz hsymB hplusB hminusB ψ with hχ
+  set χ : H := resolvent z hz hsymB hplusB hminusB ψ with _hχ
   have hmemB : χ ∈ B.domain := resolvent_mem_domain hsymB hplusB hminusB z hz ψ
   have hψ_eq : B ⟨χ, hmemB⟩ - z • χ = ψ := resolvent_solves hsymB hplusB hminusB z hz ψ
   have h_decomp : ψ = (B ⟨χ, hmemB⟩ - A ⟨χ, hA_dom⟩) + (A ⟨χ, hA_dom⟩ - z • χ) := by
@@ -171,7 +171,7 @@ theorem born_series
     resolvent z hz hsymA hplusA hminusA
       = resolvent z hz hsymB hplusB hminusB
         * ∑' n : ℕ, (-(V * resolvent z hz hsymB hplusB hminusB)) ^ n := by
-  set R_B : H →L[ℂ] H := resolvent z hz hsymB hplusB hminusB with hRB_def
+  set R_B : H →L[ℂ] H := resolvent z hz hsymB hplusB hminusB with _hRB_def
   set T : H →L[ℂ] H := -(V * R_B) with hT_def
   have hT : ‖T‖ < 1 := by rw [hT_def, norm_neg]; exact h_small
   -- The algebraic identity: `R_A · (1 − T) = R_B`.
@@ -234,12 +234,12 @@ lemma resolvent_norm_blowup_at_spectrum (lambda₀ : ℝ)
     rw [hη']
     ring
   -- A nonzero spectrally supported vector `φ = E(B)ψ₀`.
-  set B := Set.Ioo (lambda₀ - η) (lambda₀ + η) with hB_def
+  set B := Set.Ioo (lambda₀ - η) (lambda₀ + η) with _hB_def
   obtain ⟨ψ₀, hψ₀⟩ : ∃ ψ₀, spectralProjection U_grp B measurableSet_Ioo ψ₀ ≠ 0 := by
     by_contra h
     push Not at h
     exact h_spec η hη_pos (ContinuousLinearMap.ext h)
-  set φ := spectralProjection U_grp B measurableSet_Ioo ψ₀ with hφ_def
+  set φ := spectralProjection U_grp B measurableSet_Ioo ψ₀ with _hφ_def
   have hφ_pos : 0 < ‖φ‖ := norm_pos_iff.mpr hψ₀
   have h_supp : borelMeasure U_grp φ Bᶜ = 0 :=
     borelMeasure_spectralProjection_supported U_grp B measurableSet_Ioo ψ₀
@@ -256,8 +256,8 @@ lemma resolvent_norm_blowup_at_spectrum (lambda₀ : ℝ)
     intro s hs
     have hs_abs : |s - lambda₀| < η :=
       abs_lt.mpr ⟨by linarith [hs.1], by linarith [hs.2]⟩
-    have hre : (⟨lambda₀, ε⟩ : ℂ).re = lambda₀ := rfl
-    have him : (⟨lambda₀, ε⟩ : ℂ).im = ε := rfl
+    have _hre : (⟨lambda₀, ε⟩ : ℂ).re = lambda₀ := rfl
+    have _him : (⟨lambda₀, ε⟩ : ℂ).im = ε := rfl
     have hsplit : (s : ℂ) - (⟨lambda₀, ε⟩ : ℂ) = ((s - lambda₀ : ℝ) : ℂ) - ↑ε * I := by
       apply Complex.ext <;> norm_num
     calc ‖(s : ℂ) - (⟨lambda₀, ε⟩ : ℂ)‖
@@ -337,7 +337,7 @@ theorem stieltjes_inversion (ψ : H) (lambda₀ : ℝ)
           (generator_isFormalAdjoint U_grp) (range_plus_i_eq_top U_grp)
           (range_minus_i_eq_top U_grp) ψ⟫_ℂ).im
       else 0) (𝓝[>] 0) (𝓝 (ρ lambda₀)) := by
-  set μ := borelMeasure U_grp ψ with hμ_def
+  set μ := borelMeasure U_grp ψ with _hμ_def
   haveI hμ_fin : IsFiniteMeasure μ := borelMeasure_isFiniteMeasure U_grp ψ
   -- ═══ Step 0: reduce via the Poisson representation ═══
   suffices h_main : Tendsto (fun ε : ℝ =>
@@ -376,7 +376,7 @@ theorem stieltjes_inversion (ψ : H) (lambda₀ : ℝ)
     exact h
   -- ═══ Step 5: connect the two forms ═══
   refine h_re.congr' ?_
-  filter_upwards [self_mem_nhdsWithin] with ε (hε : 0 < ε)
+  filter_upwards [self_mem_nhdsWithin] with ε (_hε : 0 < ε)
   set K := fun s => ε / ((s - lambda₀) ^ 2 + ε ^ 2) with hK_def
   -- `.re` of the ℝ-smul: `(r • z).re = r * z.re`.
   have h_smul_re : ((1 / (Real.pi : ℝ)) • ∫ s, K s • (↑(ρ s) : ℂ)).re =

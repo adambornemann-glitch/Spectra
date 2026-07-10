@@ -265,7 +265,7 @@ noncomputable def KMSFunction.rescaleGeneral {A : Type*} [CStarAlgebra A]
     KMSFunction ω (α.rescale (β₁/β₂)) β₂ a b where
   toFun := fun z => F.toFun (z * (β₁ / β₂))
   holomorphic := by
-    have hc : (β₁ / β₂ : ℂ) ≠ 0 := by simp [ne_of_gt hβ₁, ne_of_gt hβ₂]
+    have _hc : (β₁ / β₂ : ℂ) ≠ 0 := by simp [ne_of_gt hβ₁, ne_of_gt hβ₂]
     have h1 : DifferentiableOn ℂ (fun z : ℂ => z * (β₁ / β₂ : ℂ)) (Strip β₂) :=
       differentiableOn_id.mul (differentiableOn_const _)
     have h2 : Set.MapsTo (fun z : ℂ => z * (β₁ / β₂ : ℂ)) (Strip β₂) (Strip β₁) := by

@@ -118,7 +118,7 @@ private lemma fiber_count (N : ℕ) (n : ℤ) (hn : n ∈ Finset.Icc (-(N : ℤ)
       intro ⟨j, k⟩ hp
       simp only [S, Finset.mem_filter, Finset.mem_product, Finset.mem_univ,
                   true_and, Finset.mem_range, Int.ofNat_eq_natCast] at hp ⊢
-      have hk := k.isLt; omega
+      have _hk := k.isLt; omega
     · -- injective: j determines k = j + m
       intro ⟨j₁, k₁⟩ h₁ ⟨j₂, k₂⟩ h₂ heq
       simp only [S, Finset.mem_filter, Finset.mem_product, Finset.mem_univ,
@@ -143,7 +143,7 @@ private lemma fiber_count (N : ℕ) (n : ℤ) (hn : n ∈ Finset.Icc (-(N : ℤ)
       intro ⟨j, k⟩ hp
       simp only [S, Finset.mem_filter, Finset.mem_product, Finset.mem_univ,
                   true_and, Finset.mem_range] at hp ⊢
-      have hj := j.isLt; omega
+      have _hj := j.isLt; omega
     · -- injective: k determines j = k + m + 1
       intro ⟨j₁, k₁⟩ h₁ ⟨j₂, k₂⟩ h₂ heq
       simp only [S, Finset.mem_filter, Finset.mem_product, Finset.mem_univ,
@@ -194,7 +194,7 @@ private lemma double_sum_eq_weighted (g : ℤ → ℂ) (N : ℕ) :
 private lemma fejerWeight_mul_eq (N : ℕ) (n : ℤ) (hn : n.natAbs ≤ N) :
     (↑(N + 1) : ℂ) * (↑(fejerWeight N n) : ℂ) = ↑(N + 1 - n.natAbs) := by
   simp only [fejerWeight, if_pos hn]
-  have hN : (N + 1 : ℝ) ≠ 0 := by positivity
+  have _hN : (N + 1 : ℝ) ≠ 0 := by positivity
   push_cast [Nat.cast_sub (by omega : n.natAbs ≤ N + 1)]
   field_simp
 

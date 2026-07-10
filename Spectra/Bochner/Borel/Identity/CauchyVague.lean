@@ -61,18 +61,18 @@ lemma borel_cauchy_vague
     Tendsto (borelCauchyApprox U_grp ξ z) atTop
       (𝓝 (∫ lambda, ((lambda : ℂ) - z)⁻¹ ∂(borelMeasure U_grp ξ))) := by
   -- Setup: the density/measure/mass notation used throughout the proof.
-  set g  : ℝ → ℂ           := fun l => ((l : ℂ) - z)⁻¹ with hg_def
-  set G  : ℝ → ℝ           := borelLimitCDF U_grp ξ with hG_def
-  set μ  : Measure ℝ       := borelMeasure U_grp ξ  with hμ_def
+  set g  : ℝ → ℂ           := fun l => ((l : ℂ) - z)⁻¹ with _hg_def
+  set G  : ℝ → ℝ           := borelLimitCDF U_grp ξ with _hG_def
+  set μ  : Measure ℝ       := borelMeasure U_grp ξ  with _hμ_def
   set ρ  : ℕ → ℝ → ℝ       :=
-    fun k => borelDensity U_grp ξ (borelEps_pos (borelSubseq U_grp ξ k)) with hρ_def
+    fun k => borelDensity U_grp ξ (borelEps_pos (borelSubseq U_grp ξ k)) with _hρ_def
   set μk : ℕ → Measure ℝ   :=
-    fun k => volume.withDensity (fun l => ENNReal.ofReal (ρ k l)) with hμk_def
-  set M  : ℝ               := ‖ξ‖ ^ 2 with hM_def
+    fun k => volume.withDensity (fun l => ENNReal.ofReal (ρ k l)) with _hμk_def
+  set M  : ℝ               := ‖ξ‖ ^ 2 with _hM_def
   have hM_nn   : 0 ≤ M := by positivity
-  have hzim    : 0 < |z.im| := abs_pos.mpr hz
+  have _hzim    : 0 < |z.im| := abs_pos.mpr hz
   have hG_mono : Monotone G := borelLimitCDF_mono U_grp ξ
-  have hG_bnd  : ∀ x, G x ∈ Set.Icc (0 : ℝ) M :=
+  have _hG_bnd  : ∀ x, G x ∈ Set.Icc (0 : ℝ) M :=
     (borelHelly U_grp ξ).choose_spec.choose_spec.2.2.1
   -- Properties of `g` (the Cauchy kernel) and `ρ` (the approximate density).
   have hg_cont : Continuous g := by
@@ -167,7 +167,7 @@ lemma borel_cauchy_vague
       have : -R ∈ D₁ := h
       have : R ∈ D₂ := ⟨-R, this, by simp⟩
       exact hR_good (Or.inr this)
-    have hRgap : 4 * M / ε + 1 < R - |z.re| := by linarith
+    have _hRgap : 4 * M / ε + 1 < R - |z.re| := by linarith
     have hRsm : 2 * M / (R - |z.re|) < ε / 2 := by
       rcases eq_or_lt_of_le hM_nn with hM0 | hMp
       · rw [← hM0]; simp; linarith
@@ -181,7 +181,7 @@ lemma borel_cauchy_vague
                 mul_lt_mul_of_pos_left h_step (by linarith)
         exact h_target
     exact ⟨R, lt_trans hc_gt hRc, hRcontNeg, hRcontR, hRsm⟩
-  have hRgap : 0 < R - |z.re| := by linarith
+  have _hRgap : 0 < R - |z.re| := by linarith
   -- Tail bound, parametric in the finite measure `ν` (applied to both `μk k` and `μ` below).
   have tail : ∀ (ν : Measure ℝ) [IsFiniteMeasure ν], (ν Set.univ).toReal ≤ M →
       ‖∫ l in (Set.Ioc (-R) R)ᶜ, ((l : ℂ) - z)⁻¹ ∂ν‖ ≤ M / (R - |z.re|) := fun ν _ hνM =>

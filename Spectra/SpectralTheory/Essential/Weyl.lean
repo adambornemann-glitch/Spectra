@@ -223,7 +223,7 @@ theorem isCompactOperator_resolvent_sub_of_isCompactOperator_perturb
     ext ψ
     simp only [ContinuousLinearMap.sub_apply, ContinuousLinearMap.neg_apply,
       ContinuousLinearMap.comp_apply]
-    set χ := selfAdjointResolvent hA I I_im_ne_zero ψ with hχ
+    set χ := selfAdjointResolvent hA I I_im_ne_zero ψ with _hχ
     have memA : χ ∈ A.domain := selfAdjointResolvent_mem_domain hA I I_im_ne_zero ψ
     have hsolveA : A ⟨χ, memA⟩ - I • χ = ψ := selfAdjointResolvent_solves hA I I_im_ne_zero ψ
     have hinvB : selfAdjointResolvent hB I I_im_ne_zero (B ⟨χ, hdom ▸ memA⟩ - I • χ) = χ :=

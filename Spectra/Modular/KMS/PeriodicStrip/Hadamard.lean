@@ -27,6 +27,8 @@ open Complex Set Filter Topology Int MeasureTheory Complex.HadamardThreeLines
 open Spectra.PeriodicHolomorphic
 namespace Spectra.ThreeLines
 
+variable {β : ℝ}
+
 /-- The horizontal-to-vertical rotation: `tildeF F z = F (i z)`.
     Designed so `(I * z).im = z.re`, mapping the vertical strip to the horizontal one. -/
 def tildeF (F : ℂ → ℂ) : ℂ → ℂ := fun z => F (I * z)

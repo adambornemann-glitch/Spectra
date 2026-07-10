@@ -50,7 +50,7 @@ lemma resolventFun_hasSum {A : H →ₗ.[ℂ] H}
     HasSum (fun n => (z - z₀.val)^n • (resolventFun hsym hplus hminus z₀)^(n+1))
            (resolvent z (im_ne_zero_of_near hz) hsym hplus hminus) := by
   have hz' : z.im ≠ 0 := im_ne_zero_of_near hz
-  set R₀ := resolventFun hsym hplus hminus z₀ with hR₀_def
+  set R₀ := resolventFun hsym hplus hminus z₀ with _hR₀_def
   set T := (z - z₀.val) • R₀ with hT_def
   have hT_norm : ‖T‖ < 1 := by
     have h_smul_bound : ‖T‖ ≤ ‖z - z₀.val‖ * ‖R₀‖ := by
@@ -74,7 +74,7 @@ lemma resolventFun_hasSum {A : H →ₗ.[ℂ] H}
   -- Express R(z) in terms of R(z₀) and the Neumann series.
   have h_resolvent_eq : resolvent z hz' hsym hplus hminus =
     R₀.comp (neumannSeries T hT_norm) := by
-    set Rz := resolvent z hz' hsym hplus hminus with hRz_def
+    set Rz := resolvent z hz' hsym hplus hminus with _hRz_def
     have h_res_id := resolvent_identity hsym hplus hminus z₀.val z z₀.property hz'
     have h1 : Rz = R₀ + (z - z₀.val) • R₀.comp Rz := by
       have hsub : R₀ - Rz = (z₀.val - z) • R₀.comp Rz := h_res_id

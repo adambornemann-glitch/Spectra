@@ -239,7 +239,7 @@ theorem isTraceClass_and_traceNorm_le_of_tendsto {ι : Type*} {l : Filter ι} [l
     {X : ι → H →L[ℂ] H} {A : H →L[ℂ] H} (hX : Filter.Tendsto X l (nhds A))
     {C : ℝ} (hC : 0 ≤ C) (hbound : ∀ᶠ n in l, IsTraceClass (X n) ∧ traceNorm (X n) ≤ C) :
     IsTraceClass A ∧ traceNorm A ≤ C := by
-  set e := stdHilbertBasis H with he
+  set e := stdHilbertBasis H with _he
   -- Each finite partial sum of the diagonal of |A| is ≤ C.
   have hpartial : ∀ F : Finset _,
       ∑ i ∈ F, ENNReal.ofReal (re ⟪e i, absOp A (e i)⟫_ℂ) ≤ ENNReal.ofReal C := by

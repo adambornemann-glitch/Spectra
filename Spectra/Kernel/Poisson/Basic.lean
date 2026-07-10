@@ -81,8 +81,8 @@ theorem poissonKernel_fourier {ε : ℝ} (hε : 0 < ε) (t : ℝ) :
       integrable_inv_one_add_sq.comp_mul_left' hR
     have hg : Integrable (fun w : ℝ => 2 * ε / ((2 * Real.pi * w) ^ 2 + ε ^ 2)) volume := by
       refine (h1.const_mul (2 / ε)).congr (.of_forall fun w => ?_)
-      have hden : (2 * Real.pi * w) ^ 2 + ε ^ 2 ≠ 0 := by positivity
-      have hden2 : (1 : ℝ) + (2 * Real.pi / ε * w) ^ 2 ≠ 0 := by positivity
+      have _hden : (2 * Real.pi * w) ^ 2 + ε ^ 2 ≠ 0 := by positivity
+      have _hden2 : (1 : ℝ) + (2 * Real.pi / ε * w) ^ 2 ≠ 0 := by positivity
       field_simp; ring
     rw [show (𝓕 f) = fun w => ((2 * ε / ((2 * Real.pi * w) ^ 2 + ε ^ 2) : ℝ) : ℂ)
           from funext h_Ff]

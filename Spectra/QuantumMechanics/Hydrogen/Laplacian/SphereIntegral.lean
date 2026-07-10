@@ -93,7 +93,7 @@ variable {F : Type*} [NormedAddCommGroup F] [InnerProductSpace ℝ F]
 across the hyperplane orthogonal to `u - v`, which swaps `u` and `v`. -/
 theorem exists_linearIsometryEquiv_apply_eq (u v : F) (h : ‖u‖ = ‖v‖) :
     ∃ R : F ≃ₗᵢ[ℝ] F, R u = v := by
-  rcases eq_or_ne u v with rfl | hne
+  rcases eq_or_ne u v with rfl | _hne
   · exact ⟨LinearIsometryEquiv.refl ℝ F, rfl⟩
   · -- reflect across the hyperplane orthogonal to `u - v`.
     have hinner : ⟪u + v, u - v⟫_ℝ = 0 := by

@@ -75,7 +75,7 @@ lemma isSetSemiring_rectangles {α β : Type*} [MeasurableSpace α] [MeasurableS
           intro hyB2
           exact hnot ⟨hxA2, hyB2⟩
         · exact Or.inl ⟨⟨hxA1, hxA2⟩, hyB1⟩
-      · rintro (⟨⟨hxA1, hxA2⟩, hyB1⟩ | ⟨⟨hxA1, hxA2⟩, hyB1, hyB2⟩)
+      · rintro (⟨⟨hxA1, hxA2⟩, hyB1⟩ | ⟨⟨hxA1, _hxA2⟩, hyB1, hyB2⟩)
         · exact ⟨⟨hxA1, hyB1⟩, fun h => hxA2 h.1⟩
         · exact ⟨⟨hxA1, hyB1⟩, fun h => hyB2 h.2⟩
 
@@ -133,7 +133,7 @@ lemma IsRectSimple.add {α β : Type*} [MeasurableSpace α] [MeasurableSpace β]
 lemma IsRectSimple.aestronglyMeasurable {α β : Type*} [MeasurableSpace α] [MeasurableSpace β]
     {μ : Measure α} {ν : Measure β} {g : α × β → ℂ} (hg : IsRectSimple μ ν g) :
     AEStronglyMeasurable g (μ.prod ν) := by
-  obtain ⟨s, A, B, c, hA, hB, hμA, hνB, rfl⟩ := hg
+  obtain ⟨s, A, B, c, hA, hB, _hμA, _hνB, rfl⟩ := hg
   have : (fun p => ∑ i ∈ s, c i * (A i ×ˢ B i).indicator (fun _ => (1 : ℂ)) p)
       = ∑ i ∈ s, fun p => c i * (A i ×ˢ B i).indicator (fun _ => (1 : ℂ)) p := by
     ext p; simp [Finset.sum_apply]
@@ -260,10 +260,10 @@ lemma h0P_rect {α β : Type*} [MeasurableSpace α] [MeasurableSpace β]
   -- budget δ
   set δ : ℝ≥0∞ := (ε / en) ^ (2:ℝ) with hδdef
   have hdiv0 : ε / en ≠ 0 := ENNReal.div_ne_zero.2 ⟨hε, hentop⟩
-  have hdivtop : ε / en ≠ ∞ := ENNReal.div_ne_top hεtop hen0
+  have _hdivtop : ε / en ≠ ∞ := ENNReal.div_ne_top hεtop hen0
   have hδ0 : δ ≠ 0 := by
     rw [hδdef]; simp [hdiv0]
-  have hδ0' : 0 < δ := pos_iff_ne_zero.2 hδ0
+  have _hδ0' : 0 < δ := pos_iff_ne_zero.2 hδ0
   -- key: en * δ^(1/2) ≤ ε
   have hbudget : en * δ ^ ((1:ℝ)/2) ≤ ε := by
     have hpow : δ ^ ((1:ℝ)/2) = ε / en := by

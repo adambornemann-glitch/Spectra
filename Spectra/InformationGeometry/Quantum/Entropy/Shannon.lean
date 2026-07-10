@@ -61,7 +61,7 @@ lemma shannonEntropy_eq_zero_iff {ι : Type*} (p : ι → ℝ≥0∞) (hp : ∀ 
   rw [ENNReal.ofReal_eq_zero]
   constructor
   · intro hle
-    have hz : Real.negMulLog (p i).toReal = 0 := le_antisymm hle (Real.negMulLog_nonneg h0 h1)
+    have _hz : Real.negMulLog (p i).toReal = 0 := le_antisymm hle (Real.negMulLog_nonneg h0 h1)
     have hxreal : (p i).toReal = 0 ∨ (p i).toReal = 1 := by
       by_contra hc
       push Not at hc

@@ -100,7 +100,7 @@ theorem borelMeasure_pmapOfPVM_apply_eq_setLIntegral
           exact (tendsto_const_nhds (x := (1 : ℂ))).mul (tendsto_truncSym f s)
         exact hlim.norm.pow 2
       · simp only [Set.indicator_of_notMem hs, zero_mul, norm_zero]
-        refine tendsto_const_nhds.congr fun n => ?_
+        refine tendsto_const_nhds.congr fun _n => ?_
         simp
   exact tendsto_nhds_unique hL hR
 
@@ -113,7 +113,7 @@ theorem borelMeasure_pmapOfPVM_eq_withDensity
         ⟨ξ, (ProjValMeasure.mem_pmapDomain U_grp.toPVM).mpr hξ⟩)
       = (borelMeasure U_grp ξ).withDensity (fun s => (‖f s‖₊ : ℝ≥0∞) ^ 2) := by
   haveI : IsFiniteMeasure (borelMeasure U_grp ξ) := borelMeasure_isFiniteMeasure U_grp ξ
-  set v := pmapOfPVM U_grp f hf ⟨ξ, (ProjValMeasure.mem_pmapDomain U_grp.toPVM).mpr hξ⟩ with hv
+  set v := pmapOfPVM U_grp f hf ⟨ξ, (ProjValMeasure.mem_pmapDomain U_grp.toPVM).mpr hξ⟩ with _hv
   haveI : IsFiniteMeasure (borelMeasure U_grp v) := borelMeasure_isFiniteMeasure U_grp v
   refine Measure.ext fun B hB => ?_
   rw [withDensity_apply _ hB]
@@ -161,7 +161,7 @@ theorem tendsto_spectralCalculus_pmapOfPVM_of_dominated
       = Real.sqrt (∫ s, ‖g m s - f s‖ ^ 2 ∂(borelMeasure U_grp ξ)) := by
     intro m
     -- integrability of `‖g m − f‖²`
-    have hgf_int : Integrable (fun s => ‖g m s - f s‖ ^ 2) (borelMeasure U_grp ξ) := by
+    have _hgf_int : Integrable (fun s => ‖g m s - f s‖ ^ 2) (borelMeasure U_grp ξ) := by
       refine Integrable.mono' (hξ.const_mul (4 : ℝ))
         (((hg_meas m).sub hf).norm.pow_const 2).aestronglyMeasurable
         (Eventually.of_forall fun s => ?_)
@@ -293,7 +293,7 @@ theorem pmapOfPVM_id_eq_generator (x : (generator U_grp).domain)
     pmapOfPVM U_grp (fun s => (s : ℂ)) Complex.measurable_ofReal ⟨(x : H), hmem⟩
       = generator U_grp x := by
   classical
-  set μ := borelMeasure U_grp (x : H) with hμ
+  set μ := borelMeasure U_grp (x : H) with _hμ
   have hint : Integrable (fun s : ℝ => ‖(s : ℂ)‖ ^ 2) μ :=
     (ProjValMeasure.mem_pmapDomain _).mp hmem
   -- the two-sided cut-off symbols `l·1_{[-m,m]}`
@@ -472,7 +472,7 @@ private theorem tendsto_sqrtCut_modularSqrt (x : (modularOp M Ω).domain) :
 private theorem sqrtCut_mem_modularSqrt_domain (x : (modularOp M Ω).domain) (m : ℕ) :
     spectralCalculus (modU hcyc hsep) (sqrtCut m) (sqrtCut_meas m) (sqrtCut_bdd m) (x : H)
       ∈ (modularSqrt hcyc hsep).domain := by
-  set U := modU hcyc hsep with hU
+  set U := modU hcyc hsep with _hU
   have hfg_bdd : ∃ C, ∀ s, ‖(Real.sqrt s : ℂ) * sqrtCut m s‖ ≤ C := by
     have h := posCut_bdd m
     rw [← sqrtMul_sqrtCut_eq_posCut m] at h; exact h
@@ -485,7 +485,7 @@ private theorem modularSqrt_sqrtCut_apply (x : (modularOp M Ω).domain) (m : ℕ
         ⟨spectralCalculus (modU hcyc hsep) (sqrtCut m) (sqrtCut_meas m) (sqrtCut_bdd m) (x : H),
           sqrtCut_mem_modularSqrt_domain hcyc hsep x m⟩
       = spectralCalculus (modU hcyc hsep) (posCut m) (posCut_meas m) (posCut_bdd m) (x : H) := by
-  set U := modU hcyc hsep with hU
+  set U := modU hcyc hsep with _hU
   have hfg_meas : Measurable fun s => (Real.sqrt s : ℂ) * sqrtCut m s := by
     have h := posCut_meas m; rw [← sqrtMul_sqrtCut_eq_posCut m] at h; exact h
   have hfg_bdd : ∃ C, ∀ s, ‖(Real.sqrt s : ℂ) * sqrtCut m s‖ ≤ C := by
@@ -538,7 +538,7 @@ private theorem sq_integrable_of_mem_modularOp (x : (modularOp M Ω).domain) :
 
 private theorem posId_mem_pmapDomain (x : (modularOp M Ω).domain) :
     (x : H) ∈ ProjValMeasure.pmapDomain (modU hcyc hsep).toPVM posId := by
-  set U := modU hcyc hsep with hU
+  set U := modU hcyc hsep with _hU
   rw [ProjValMeasure.mem_pmapDomain]
   refine (sq_integrable_of_mem_modularOp hcyc hsep x).mono'
     (posId_meas.norm.pow_const 2).aestronglyMeasurable (Filter.Eventually.of_forall fun s => ?_)
@@ -558,7 +558,7 @@ private theorem id_mem_pmapDomain (x : (modularOp M Ω).domain) :
 private theorem tendsto_posCut_modularOp (x : (modularOp M Ω).domain) :
     Tendsto (fun m => spectralCalculus (modU hcyc hsep) (posCut m) (posCut_meas m) (posCut_bdd m)
         (x : H)) atTop (𝓝 (modularOp M Ω x)) := by
-  set U := modU hcyc hsep with hU
+  set U := modU hcyc hsep with _hU
   have h := tendsto_spectralCalculus_pmapOfPVM_of_dominated U posId posId_meas
     (ξ := (x : H)) ((ProjValMeasure.mem_pmapDomain _).mp (posId_mem_pmapDomain hcyc hsep x))
     posCut posCut_meas posCut_bdd posCut_dom posCut_lim
@@ -576,16 +576,16 @@ theorem modularSqrt_mem_domain_of_mem_modularOp (x : (modularOp M Ω).domain) :
     (modularSqrt hcyc hsep
         ⟨(x : H), modularOp_domain_le_modularSqrt_domain hcyc hsep x.2⟩ : H)
       ∈ (modularSqrt hcyc hsep).domain := by
-  set U := modU hcyc hsep with hU
-  set S := modularSqrt hcyc hsep with hS
+  set U := modU hcyc hsep with _hU
+  set S := modularSqrt hcyc hsep with _hS
   -- closedness of the self-adjoint Δ^{½}
   have hclosed : IsClosed (S.graph : Set (H × H)) :=
     (modularSqrt_isSelfAdjoint hcyc hsep).isClosed
   -- the graph points `(a_m, Δ^{½} a_m) = (Φ(sqrtCut m)x, Φ(posCut m)x)`
   set a : ℕ → H := fun m => spectralCalculus U (sqrtCut m) (sqrtCut_meas m) (sqrtCut_bdd m) (x : H)
-    with ha
+    with _ha
   set b : ℕ → H := fun m => spectralCalculus U (posCut m) (posCut_meas m) (posCut_bdd m) (x : H)
-    with hb
+    with _hb
   have hmemgraph : ∀ m, (a m, b m) ∈ S.graph := by
     intro m
     have hmem := sqrtCut_mem_modularSqrt_domain hcyc hsep x m
@@ -613,14 +613,14 @@ theorem modularSqrt_sq_apply (x : (modularOp M Ω).domain) :
             ⟨(x : H), modularOp_domain_le_modularSqrt_domain hcyc hsep x.2⟩,
           modularSqrt_mem_domain_of_mem_modularOp hcyc hsep x⟩
       = modularOp M Ω x := by
-  set U := modU hcyc hsep with hU
-  set S := modularSqrt hcyc hsep with hS
+  set U := modU hcyc hsep with _hU
+  set S := modularSqrt hcyc hsep with _hS
   have hclosed : IsClosed (S.graph : Set (H × H)) :=
     (modularSqrt_isSelfAdjoint hcyc hsep).isClosed
   set a : ℕ → H := fun m => spectralCalculus U (sqrtCut m) (sqrtCut_meas m) (sqrtCut_bdd m) (x : H)
-    with ha
+    with _ha
   set b : ℕ → H := fun m => spectralCalculus U (posCut m) (posCut_meas m) (posCut_bdd m) (x : H)
-    with hb
+    with _hb
   have hmemgraph : ∀ m, (a m, b m) ∈ S.graph := by
     intro m
     rw [LinearPMap.mem_graph_iff]

@@ -142,7 +142,7 @@ theorem fourierL2_selfAdjointResolvent (z : ℂ) (hz : z.im ≠ 0) (f : l2R3) :
       - z • selfAdjointResolvent laplacian_isSelfAdjoint z hz f = f := by
     have h := selfAdjointResolvent_solves laplacian_isSelfAdjoint z hz f
     rwa [laplacianPMap_apply] at h
-  set u : l2R3 := selfAdjointResolvent laplacian_isSelfAdjoint z hz f with hu
+  set u : l2R3 := selfAdjointResolvent laplacian_isSelfAdjoint z hz f with _hu
   -- apply the linear isometry `fourierL2` to the resolvent equation.
   have hF : fourierL2 (weakLaplacian u hmem) - z • fourierL2 u = fourierL2 f := by
     rw [← hsolve, map_sub, map_smul]

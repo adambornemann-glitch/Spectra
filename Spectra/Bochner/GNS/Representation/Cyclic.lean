@@ -26,7 +26,7 @@ namespace Spectra.Bochner.GNS
 
 /-- The cyclic vector in the GNS Hilbert space:
     `ξ = embed(δ₀) = embed(single 0 1)`. -/
-noncomputable def gnsCyclic (gns : GNSData f) : gns.H :=
+noncomputable def gnsCyclic {f : ℝ → ℂ} (gns : GNSData f) : gns.H :=
   gns.embed cyclicVector
 
 /-- **THE KEY IDENTITY in H**: `f(t) = ⟨ξ, U(t)ξ⟩_H`.

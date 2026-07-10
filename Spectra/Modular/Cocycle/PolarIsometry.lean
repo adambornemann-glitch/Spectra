@@ -295,7 +295,7 @@ forcing `q = k ∈ K`. -/
 theorem graphL2_eq_topologicalClosure_modularGraphL2 (hcyc : IsCyclic M Ω)
     (hsep : IsSeparating M Ω) :
     graphL2 M Ω = (modularGraphL2 M Ω).topologicalClosure := by
-  set K := (modularGraphL2 M Ω).topologicalClosure with hKdef
+  set K := (modularGraphL2 M Ω).topologicalClosure with _hKdef
   have hKle : K ≤ graphL2 M Ω :=
     Submodule.topologicalClosure_minimal _ modularGraphL2_le_graphL2 (graphL2_isClosed hcyc hsep)
   refine le_antisymm ?_ hKle
@@ -438,7 +438,7 @@ private theorem modularGroup_hpos (hcyc : IsCyclic M Ω) (hsep : IsSeparating M 
 hence is `0`; then `μ_y((-∞,0)) = ‖E((-∞,0)) y‖² = 0`. -/
 theorem borelMeasure_modular_Iio_zero (hcyc : IsCyclic M Ω) (hsep : IsSeparating M Ω) (y : H) :
     borelMeasure (modularGroup hcyc hsep) y (Set.Iio (0 : ℝ)) = 0 := by
-  set U := modularGroup hcyc hsep with hU
+  set U := modularGroup hcyc hsep with _hU
   -- `E((-∞,0))` vanishes on the dense domain `D(generator U) = D(Δ)`.
   have hdense : Dense ((generator U).domain : Set H) := by
     rw [generator_modularGroup hcyc hsep]
@@ -507,7 +507,7 @@ theorem modularSqrt_cutoff_apply (hcyc : IsCyclic M Ω) (hsep : IsSeparating M �
             (modular_cutoff_mem_domain hcyc hsep y n)⟩
       = spectralCalculus (modularGroup hcyc hsep) (sqrtCutoffSym n)
           (measurable_sqrtCutoffSym n) (bdd_sqrtCutoffSym n) y := by
-  set U := modularGroup hcyc hsep with hU
+  set U := modularGroup hcyc hsep with _hU
   set xn := spectralProjection U (Set.Icc 0 (n : ℝ)) measurableSet_Icc y with hxn
   -- the membership facts for the domain element on the LHS
   have hxnmem : xn ∈ (modularOp M Ω).domain := modular_cutoff_mem_domain hcyc hsep y n
@@ -621,8 +621,8 @@ theorem borelMeasure_modular_Ioc_zero (hcyc : IsCyclic M Ω) (hsep : IsSeparatin
           modularOp_domain_le_modularSqrt_domain hcyc hsep
             (modular_cutoff_mem_domain hcyc hsep y n)⟩⟫_ℂ = 0) :
     borelMeasure (modularGroup hcyc hsep) y (Set.Ioc 0 (n : ℝ)) = 0 := by
-  set U := modularGroup hcyc hsep with hU
-  set μ := borelMeasure U y with hμ
+  set U := modularGroup hcyc hsep with _hU
+  set μ := borelMeasure U y with _hμ
   -- the real integral vanishes
   have hint0 : ∫ s, realCutoffSym n s ∂μ = 0 := by
     have h := inner_modularSqrt_cutoff hcyc hsep y n
@@ -677,7 +677,7 @@ theorem borelMeasure_modular_Ioi_zero (hcyc : IsCyclic M Ω) (hsep : IsSeparatin
 theorem borelMeasure_modular_singleton_zero (hcyc : IsCyclic M Ω) (hsep : IsSeparating M Ω)
     (y : H) :
     borelMeasure (modularGroup hcyc hsep) y ({0} : Set ℝ) = 0 := by
-  set U := modularGroup hcyc hsep with hU
+  set U := modularGroup hcyc hsep with _hU
   -- `E({0}) y ∈ D(Δ)` (group level then Stone)
   have hmem_gen : spectralProjection U ({0} : Set ℝ) (measurableSet_singleton 0) y
       ∈ (generator U).domain :=
@@ -716,7 +716,7 @@ theorem eq_zero_of_orthogonal_modularSqrt (hcyc : IsCyclic M Ω) (hsep : IsSepar
     (hperp : ∀ x : (modularOp M Ω).domain,
       ⟪y, modularSqrtOnModularDomain hcyc hsep x⟫_ℂ = 0) :
     y = 0 := by
-  set U := modularGroup hcyc hsep with hU
+  set U := modularGroup hcyc hsep with _hU
   haveI : IsFiniteMeasure (borelMeasure U y) := borelMeasure_isFiniteMeasure U y
   -- the three pieces vanish
   have hIio : borelMeasure U y (Set.Iio (0 : ℝ)) = 0 := borelMeasure_modular_Iio_zero hcyc hsep y

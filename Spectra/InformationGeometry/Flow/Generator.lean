@@ -301,7 +301,7 @@ lemma killing_expansion
   -- ════════════════════════════════════════════════════════════════
   -- §3. Chain rule for the metric coefficients along the flow
   -- ════════════════════════════════════════════════════════════════
-  choose Lg hLg hLg_eval using M₃.fisherMatrix_hasFDerivAt θ hθ
+  choose Lg hLg _hLg_eval using M₃.fisherMatrix_hasFDerivAt θ hθ
   have hflow : HasDerivAt (fun t => F.φ t θ) (F.generator θ) 0 :=
     (F.generator_exists θ).hasFDerivAt.hasDerivAt
   have hGd : ∀ a b : Fin n, HasDerivAt

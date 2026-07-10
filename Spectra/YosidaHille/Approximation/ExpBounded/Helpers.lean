@@ -106,14 +106,14 @@ lemma expBounded_norm_bound (B : H →L[ℂ] H) (t : ℝ) :
     rw [norm_smul, norm_inv, norm_natCast, div_eq_inv_mul]
     gcongr
     exact opNorm_pow_le X n
-  have h_summable : Summable f :=
+  have _h_summable : Summable f :=
     Summable.of_norm_bounded (g := g) h_norm_summable h_term_le
   have h_eq_exp : (∑' k : ℕ, (1 / k.factorial : ℂ) • ((t : ℂ) • B) ^ k) =
       ∑' n, f n := by
     congr 1; ext k
     simp only [hf, one_div]
     abel
-  have h_exp_eq : NormedSpace.exp X = ∑' n, f n := by
+  have _h_exp_eq : NormedSpace.exp X = ∑' n, f n := by
     rw [NormedSpace.exp_eq_tsum ℂ]
   have h_norm_f_summable : Summable (fun n => ‖f n‖) :=
     Summable.of_nonneg_of_le (fun n => norm_nonneg _) h_term_le h_norm_summable
@@ -149,7 +149,7 @@ lemma expBounded_at_zero (B : H →L[ℂ] H) (ψ : H) :
     | zero => simp [pow_zero]
     | succ k => simp [pow_succ, mul_zero]
   simp_rw [h_zero_pow]
-  have h_sum : (∑' k : ℕ, (1 / k.factorial : ℂ) • (if k = 0 then (1 : H →L[ℂ] H) else 0)) = 1 := by
+  have _h_sum : (∑' k : ℕ, (1 / k.factorial : ℂ) • (if k = 0 then (1 : H →L[ℂ] H) else 0)) = 1 := by
     rw [tsum_eq_single 0]
     · simp [Nat.factorial_zero]
     · intro k hk

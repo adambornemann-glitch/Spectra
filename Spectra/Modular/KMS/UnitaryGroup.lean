@@ -196,7 +196,7 @@ lemma evolveU_continuous_coe (hinv : IsInvariant ω α) (a : ω.toPLM.PreGNS) :
   refine ⟨δ, hδ, fun {t} ht => ?_⟩
   rw [dist_eq_norm]
   have hcross_near : |cross t - cross t₀| < ε ^ 2 / 2 := by rw [← Real.dist_eq]; exact hδ_spec ht
-  have hnn : 0 ≤ cross t₀ - cross t := by
+  have _hnn : 0 ≤ cross t₀ - cross t := by
     have := (sq_nonneg ‖F t - F t₀‖).trans_eq (hnorm_sq t); linarith
   have hnorm_bound : ‖F t - F t₀‖ ^ 2 < ε ^ 2 := by
     rw [hnorm_sq]

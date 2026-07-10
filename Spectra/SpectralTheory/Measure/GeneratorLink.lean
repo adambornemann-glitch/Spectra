@@ -84,7 +84,7 @@ lemma norm_char_sub_one_le (x : ℝ) : ‖cexp (I * x) - 1‖ ≤ 2 * |x| := by
   rcases le_or_gt ‖I * (x : ℂ)‖ 1 with h | h
   · have hb := Complex.norm_exp_sub_one_le h
     rwa [hIx] at hb
-  · have habs : (1 : ℝ) < |x| := by rwa [hIx] at h
+  · have _habs : (1 : ℝ) < |x| := by rwa [hIx] at h
     have hexp : ‖cexp (I * (x : ℂ))‖ = 1 := by
       have h0 : (I * (x : ℂ)).re = 0 := by
         simp [Complex.mul_re, Complex.I_re, Complex.I_im, Complex.ofReal_re,

@@ -197,7 +197,7 @@ theorem radial_quantization_Z (p : CoulombParams) (ℓ : ℕ) (E : ℝ) (hE : E 
     have hs : 0 < Z⁻¹ * r := by positivity
     have hE2 := heq (Z⁻¹ * r) hs
     have hrne : r ≠ 0 := hr.ne'
-    have hsne : Z⁻¹ * r ≠ 0 := hs.ne'
+    have _hsne : Z⁻¹ * r ≠ 0 := hs.ne'
     have hkey : Z ^ 2 * RadialEq.radialHamiltonian ℓ φ r = E * φ r := by
       simp only [RadialEq.radialHamiltonian]
       rw [hderiv1 r hr, hderiv2 r hr]
@@ -252,7 +252,7 @@ theorem radial_continuum_Z (p : CoulombParams) (ℓ : ℕ) (E : ℝ) (hE : 0 ≤
       -(1 / 2) * deriv^[2] ψ r - (1 / r) * deriv ψ r
         + ((ℓ : ℝ) * ((ℓ : ℝ) + 1) / (2 * r ^ 2) - p.Z / r) * ψ r = E * ψ r) :
     ∀ r, 0 < r → ψ r = 0 := by
-  set Z : ℝ := p.Z with hZdef
+  set Z : ℝ := p.Z with _hZdef
   have hZ : 0 < Z := p.hZ
   have hZ0 : Z ≠ 0 := hZ.ne'
   have hinv : (0 : ℝ) < Z⁻¹ := inv_pos.mpr hZ
@@ -295,7 +295,7 @@ theorem radial_continuum_Z (p : CoulombParams) (ℓ : ℕ) (E : ℝ) (hE : 0 ≤
     have hs : 0 < Z⁻¹ * r := by positivity
     have hE2 := heq (Z⁻¹ * r) hs
     have hrne : r ≠ 0 := hr.ne'
-    have hsne : Z⁻¹ * r ≠ 0 := hs.ne'
+    have _hsne : Z⁻¹ * r ≠ 0 := hs.ne'
     have hkey : Z ^ 2 * RadialEq.radialHamiltonian ℓ φ r = E * φ r := by
       simp only [RadialEq.radialHamiltonian]
       rw [hderiv1 r hr, hderiv2 r hr]
@@ -427,7 +427,7 @@ theorem forward_bridge (ℓ : ℕ) (Z E : ℝ) (R : ℝ → ℝ)
   have hη2 : ∀ s, HasDerivAt (deriv η) (deriv (deriv η) s) s := fun s =>
     (((contDiff_infty_iff_deriv.mp hη).2).differentiable (by norm_num)).differentiableAt.hasDerivAt
   -- a support bound for `η`
-  obtain ⟨M, hM0, hMsub⟩ : ∃ M : ℝ, 0 ≤ M ∧ Function.support η ⊆ Icc (-M) M := by
+  obtain ⟨M, _hM0, hMsub⟩ : ∃ M : ℝ, 0 ≤ M ∧ Function.support η ⊆ Icc (-M) M := by
     obtain ⟨M, hMsub⟩ := hη0.isBounded.subset_closedBall (0 : ℝ)
     refine ⟨max M 0, le_max_right _ _, fun x hx => ?_⟩
     have hx' := hMsub (subset_tsupport η hx)
@@ -436,7 +436,7 @@ theorem forward_bridge (ℓ : ℕ) (Z E : ℝ) (R : ℝ → ℝ)
   -- the radial test function `χ(r) = η(log r)/r`, extended by `0`
   set χ : ℝ → ℝ := fun r => if 0 < r then η (Real.log r) * r⁻¹ else 0 with hχdef
   have hχ_pos : ∀ r, 0 < r → χ r = η (Real.log r) * r⁻¹ := fun r hr => if_pos hr
-  have hχ_nonpos : ∀ r ≤ 0, χ r = 0 := fun r hr => if_neg (not_lt.mpr hr)
+  have _hχ_nonpos : ∀ r ≤ 0, χ r = 0 := fun r hr => if_neg (not_lt.mpr hr)
   have hχ_lo : ∀ r, r < Real.exp (-M) → χ r = 0 := by
     intro r hr
     by_cases h0 : 0 < r

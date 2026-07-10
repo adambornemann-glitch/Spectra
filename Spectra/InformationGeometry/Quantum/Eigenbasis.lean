@@ -89,7 +89,7 @@ private theorem eigenspace_le_topologicalClosure (μ : ℂ) :
     eigenspace (T : Module.End ℂ H) μ
       ≤ (span ℂ (Set.range (eigenVec T))).topologicalClosure := by
   intro x hx
-  set Eμ := eigenspace (T : Module.End ℂ H) μ with hEμ
+  set Eμ := eigenspace (T : Module.End ℂ H) μ with _hEμ
   -- `⟨x, hx⟩` lies in the closure of the span of the μ-eigenspace basis.
   have hmem : (⟨x, hx⟩ : ↥Eμ) ∈ (span ℂ (Set.range (eigenspaceBasis T μ))).topologicalClosure := by
     rw [(eigenspaceBasis T μ).dense_span]; trivial

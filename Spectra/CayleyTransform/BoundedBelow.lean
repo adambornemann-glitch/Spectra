@@ -51,7 +51,7 @@ lemma isBoundedBelow_of_cayleyTransform_sub_smul_boundedBelow
     (hc_bound : ∀ φ, c * ‖φ‖ ≤
       ‖(cayleyTransform hsym hplus - ((↑μ - I) * (↑μ + I)⁻¹) • ContinuousLinearMap.id ℂ H) φ‖) :
     IsBoundedBelow A μ := by
-  set U := cayleyTransform hsym hplus with hU_def
+  set U := cayleyTransform hsym hplus with _hU_def
   set w := (↑μ - I) * (↑μ + I)⁻¹ with hw_def
   have h_one_sub_w_norm_pos : ‖(1 : ℂ) - w‖ > 0 := by
     rw [hw_def]; exact one_sub_mobius_norm_pos μ hμ_ne
@@ -116,7 +116,7 @@ lemma norm_lower_bound_of_approx_eigenvalue_of_unit
       sq_le_sq' (by nlinarith [norm_nonneg (A ψ), mul_nonneg (abs_nonneg μ) hx0]) hAψ_upper
     nlinarith [hpy, hsq, sq_abs μ]
   -- S = √(1+μ²−δ²) ≤ L = (1+μ²)‖ψ‖ + |μ|δ, because L² − S² = (1+μ²)·q(‖ψ‖) ≥ 0.
-  set S := Real.sqrt (1 + μ ^ 2 - δ ^ 2) with hS
+  set S := Real.sqrt (1 + μ ^ 2 - δ ^ 2) with _hS
   have hS0  : 0 ≤ S := Real.sqrt_nonneg _
   have hSsq : S ^ 2 = 1 + μ ^ 2 - δ ^ 2 := Real.sq_sqrt (by linarith)
   set L := (1 + μ ^ 2) * ‖(ψ : H)‖ + |μ| * δ with hL

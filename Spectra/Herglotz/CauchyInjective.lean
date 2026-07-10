@@ -119,7 +119,7 @@ lemma damped_fourierData_eq_poisson (μ : Measure ℝ) [IsFiniteMeasure μ]
       (Eventually.of_forall fun p => ?_)
     have e1 : (-(I * (s : ℂ) * (p.1 : ℂ))).re = 0 := by simp [Complex.mul_re]
     have e3 : (I * (p.2 : ℂ) * (p.1 : ℂ)).re = 0 := by simp [Complex.mul_re]
-    have e4 : (I * ((-s : ℝ) : ℂ) * (p.1 : ℂ)).re = 0 := by simp [Complex.mul_re]
+    have _e4 : (I * ((-s : ℝ) : ℂ) * (p.1 : ℂ)).re = 0 := by simp [Complex.mul_re]
     simp [Function.uncurry, Complex.norm_exp, e1, e3]
   calc (∫ t : ℝ, cexp (-(I * (s : ℂ) * (t : ℂ))) * cexp (-((ε : ℂ) * ((|t| : ℝ) : ℂ)))
           * ∫ ω, cexp (I * ω * t) ∂μ)

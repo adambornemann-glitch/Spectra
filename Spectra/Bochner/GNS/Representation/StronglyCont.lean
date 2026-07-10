@@ -119,7 +119,7 @@ lemma quotientTranslate_continuous {f : ℝ → ℂ}
   rw [← hcross_eq] at hnorm_sq
   -- ‖x - y‖² < ε²: unfold `hcross_near`'s absolute value to the two-sided bound
   -- `cross t₀ - cross t < ε²/2`, then substitute into `hnorm_sq = 2 * (cross t₀ - cross t)`.
-  have hnn : 0 ≤ ‖x - y‖ ^ 2 := sq_nonneg _
+  have _hnn : 0 ≤ ‖x - y‖ ^ 2 := sq_nonneg _
   have hnorm_bound : ‖x - y‖ ^ 2 < ε ^ 2 := by
     have := abs_lt.mp hcross_near
     linarith [this.2]

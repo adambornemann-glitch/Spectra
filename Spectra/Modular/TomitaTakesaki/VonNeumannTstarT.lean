@@ -170,8 +170,8 @@ theorem mem_graphL2_orthogonal (hcyc : IsCyclic M Ω) {q : WithLp 2 (H × Conj H
     ∃ hr : (WithLp.ofLp q).2 ∈ (tomitaClosure M Ω).adjoint.domain,
       (tomitaClosure M Ω).adjoint ⟨(WithLp.ofLp q).2, hr⟩ = -(WithLp.ofLp q).1 := by
   have hdense : Dense ((tomitaClosure M Ω).domain : Set H) := tomitaClosure_domain_dense hcyc
-  set p : H := (WithLp.ofLp q).1 with hp
-  set r : Conj H := (WithLp.ofLp q).2 with hr
+  set p : H := (WithLp.ofLp q).1 with _hp
+  set r : Conj H := (WithLp.ofLp q).2 with _hr
   -- Orthogonality against every graph element `(a, S a)`:
   -- `⟪a, p⟫ + ⟪S a, r⟫ = 0` for all `a ∈ D(S)`.
   have hortho : ∀ a : (tomitaClosure M Ω).domain,
@@ -263,7 +263,7 @@ self-adjoint. We have `Δ ⊆ Δ†` from symmetry (`IsFormalAdjoint.le_adjoint`
 kernel of `1 + Δ†` is the orthogonal complement of the (full) range of `1 + Δ`, hence trivial. -/
 theorem modularOp_isSelfAdjoint (hcyc : IsCyclic M Ω) (hsep : IsSeparating M Ω) :
     IsSelfAdjoint (modularOp M Ω) := by
-  set Δ := modularOp M Ω with hΔ
+  set Δ := modularOp M Ω with _hΔ
   have hsym : Δ.IsFormalAdjoint Δ := modularOp_isSymmetric hcyc
   have hdense : Dense (Δ.domain : Set H) := by
     -- `D(Δ)` is the *smaller* set `modularDomain ⊓ D(S)`, so density does NOT follow from `D(S)`

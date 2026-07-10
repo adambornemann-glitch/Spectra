@@ -73,8 +73,8 @@ lemma integral_Ioc_tendsto_of_cdf_tendsto
     simp only [setIntegral_empty]
     exact tendsto_const_nhds
   -- ══════ SETUP  (case a < b) ══════
-  set μk : ℕ → Measure ℝ := fun k => (mono_F (φ k)).stieltjesFunction.measure with hμk_def
-  set μ  : Measure ℝ     := mono_G.stieltjesFunction.measure                  with hμ_def
+  set μk : ℕ → Measure ℝ := fun k => (mono_F (φ k)).stieltjesFunction.measure with _hμk_def
+  set μ  : Measure ℝ     := mono_G.stieltjesFunction.measure                  with _hμ_def
   -- Cell-mass identity (F-side: rc_F directly).
   have mass_k : ∀ k c d, c ≤ d →
       (μk k (Set.Ioc c d)).toReal = F (φ k) d - F (φ k) c := by
@@ -195,7 +195,7 @@ lemma integral_Ioc_tendsto_of_cdf_tendsto
   -- ══════ RIEMANN–STIELTJES SUMS ══════
   set RS : ℕ → ℂ := fun k =>
     ∑ i ∈ Finset.range n,
-      (μk k (Set.Ioc (t i) (t (i + 1)))).toReal • g (t (i + 1)) with hRS_def
+      (μk k (Set.Ioc (t i) (t (i + 1)))).toReal • g (t (i + 1)) with _hRS_def
   set RS_inf : ℂ :=
     ∑ i ∈ Finset.range n,
       (μ (Set.Ioc (t i) (t (i + 1)))).toReal • g (t (i + 1)) with hRS_inf_def

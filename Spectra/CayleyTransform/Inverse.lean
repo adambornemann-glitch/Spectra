@@ -114,15 +114,15 @@ noncomputable def inverseCayleyOp (U : H →L[ℂ] H)
   map_add' := by
     intro ⟨φ₁, hφ₁⟩ ⟨φ₂, hφ₂⟩
     simp only [smul_add]
-    set ψ₁ := Classical.choose hφ₁ with hψ₁_def
-    set ψ₂ := Classical.choose hφ₂ with hψ₂_def
+    set ψ₁ := Classical.choose hφ₁ with _hψ₁_def
+    set ψ₂ := Classical.choose hφ₂ with _hψ₂_def
     have hψ₁ : (ContinuousLinearMap.id ℂ H - U) ψ₁ = φ₁ := Classical.choose_spec hφ₁
     have hψ₂ : (ContinuousLinearMap.id ℂ H - U) ψ₂ = φ₂ := Classical.choose_spec hφ₂
     have hφ₁₂ : ∃ ψ, (ContinuousLinearMap.id ℂ H - U) ψ = φ₁ + φ₂ := ⟨ψ₁ + ψ₂, by
       simp only [ContinuousLinearMap.sub_apply, ContinuousLinearMap.id_apply, map_add]
       rw [← hψ₁, ← hψ₂]
       simp only [ContinuousLinearMap.sub_apply, ContinuousLinearMap.id_apply]⟩
-    set ψ₁₂ := Classical.choose hφ₁₂ with hψ₁₂_def
+    set ψ₁₂ := Classical.choose hφ₁₂ with _hψ₁₂_def
     have hψ₁₂ : (ContinuousLinearMap.id ℂ H - U) ψ₁₂ = φ₁ + φ₂ := Classical.choose_spec hφ₁₂
     have h_diff : ψ₁₂ = ψ₁ + ψ₂ := by
       have h_eq : (ContinuousLinearMap.id ℂ H - U) ψ₁₂ =
@@ -150,13 +150,13 @@ noncomputable def inverseCayleyOp (U : H →L[ℂ] H)
   map_smul' := by
     intro c ⟨φ, hφ⟩
     simp only [RingHom.id_apply, smul_add]
-    set ψ := Classical.choose hφ with hψ_def
+    set ψ := Classical.choose hφ with _hψ_def
     have hψ : (ContinuousLinearMap.id ℂ H - U) ψ = φ := Classical.choose_spec hφ
     have hcφ : ∃ ψ', (ContinuousLinearMap.id ℂ H - U) ψ' = c • φ := ⟨c • ψ, by
       simp only [ContinuousLinearMap.sub_apply, ContinuousLinearMap.id_apply, map_smul]
       rw [← hψ]
       simp only [ContinuousLinearMap.sub_apply, ContinuousLinearMap.id_apply]⟩
-    set ψ' := Classical.choose hcφ with hψ'_def
+    set ψ' := Classical.choose hcφ with _hψ'_def
     have hψ' : (ContinuousLinearMap.id ℂ H - U) ψ' = c • φ := Classical.choose_spec hcφ
     have h_diff : ψ' = c • ψ := by
       have h_sub : (ContinuousLinearMap.id ℂ H - U) (ψ' - c • ψ) = 0 := by
@@ -181,17 +181,17 @@ lemma inverseCayleyOp_symmetric (U : H →L[ℂ] H)
       ⟪inverseCayleyOp U hU h_one h_neg_one ψ, (φ : H)⟫_ℂ =
       ⟪(ψ : H), inverseCayleyOp U hU h_one h_neg_one φ⟫_ℂ := by
   intro ⟨φ₁, hφ₁⟩ ⟨φ₂, hφ₂⟩
-  set χ₁ := Classical.choose hφ₁ with hχ₁_def
-  set χ₂ := Classical.choose hφ₂ with hχ₂_def
+  set χ₁ := Classical.choose hφ₁ with _hχ₁_def
+  set χ₂ := Classical.choose hφ₂ with _hχ₂_def
   have hχ₁ : (ContinuousLinearMap.id ℂ H - U) χ₁ = φ₁ := Classical.choose_spec hφ₁
   have hχ₂ : (ContinuousLinearMap.id ℂ H - U) χ₂ = φ₂ := Classical.choose_spec hφ₂
   have hφ₁_eq : φ₁ = χ₁ - U χ₁ := by
     rw [← hχ₁]; simp only [ContinuousLinearMap.sub_apply, ContinuousLinearMap.id_apply]
   have hφ₂_eq : φ₂ = χ₂ - U χ₂ := by
     rw [← hχ₂]; simp only [ContinuousLinearMap.sub_apply, ContinuousLinearMap.id_apply]
-  have hcoe₁ :
+  have _hcoe₁ :
       (⟨φ₁, hφ₁⟩ : LinearMap.range (↑(ContinuousLinearMap.id ℂ H - U) : H →ₗ[ℂ] H)).val = φ₁ := rfl
-  have hcoe₂ :
+  have _hcoe₂ :
       (⟨φ₂, hφ₂⟩ : LinearMap.range (↑(ContinuousLinearMap.id ℂ H - U) : H →ₗ[ℂ] H)).val = φ₂ := rfl
   change ⟪I • (U χ₁ + χ₁), φ₂⟫_ℂ = ⟪φ₁, I • (U χ₂ + χ₂)⟫_ℂ
   rw [hφ₁_eq, hφ₂_eq]

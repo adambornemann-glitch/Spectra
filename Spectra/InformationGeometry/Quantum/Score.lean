@@ -67,14 +67,14 @@ theorem traceCLM_differential_eq_zero {θ : ParamSpace n} (hθ : θ ∈ M.paramD
     (M.smooth.differentiableOn (by simp) θ hθ).hasFDerivWithinAt
   have hu : UniqueDiffWithinAt ℝ M.paramDomain θ := M.isOpen_paramDomain.uniqueDiffWithinAt hθ
   -- push the derivative through the (ℝ-linearised) trace functional
-  set L : TraceClass H →L[ℝ] ℂ := traceCLM.restrictScalars ℝ with hL
+  set L : TraceClass H →L[ℝ] ℂ := traceCLM.restrictScalars ℝ with _hL
   have h1 : HasFDerivWithinAt (fun θ' => L ((M.ρ θ').toTraceClass))
       (L.comp (fderivWithin ℝ (fun θ' => (M.ρ θ').toTraceClass) M.paramDomain θ)) M.paramDomain θ :=
     L.hasFDerivAt.comp_hasFDerivWithinAt θ hfw
   -- but `θ ↦ tr ρ_θ ≡ 1`, so that same composite has derivative `0`
   have hEq : (fun θ' => L ((M.ρ θ').toTraceClass))
       =ᶠ[nhdsWithin θ M.paramDomain] fun _ => (1 : ℂ) := by
-    filter_upwards [self_mem_nhdsWithin] with y hy
+    filter_upwards [self_mem_nhdsWithin] with y _hy
     change trace ((M.ρ y).toTraceClass).toOp = 1
     exact (M.ρ y).trace_one
   have h2 : HasFDerivWithinAt (fun θ' => L ((M.ρ θ').toTraceClass))

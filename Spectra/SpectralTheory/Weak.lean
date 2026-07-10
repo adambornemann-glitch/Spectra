@@ -154,7 +154,7 @@ theorem weak_second_moment (φ : (generator U_grp).domain) :
   -- the key lintegral identity
   have hlint : ∫⁻ l, ENNReal.ofReal (l ^ 2) ∂(borelMeasure U_grp (φ : H))
       = ENNReal.ofReal (‖generator U_grp φ‖ ^ 2) := by
-    set μ := borelMeasure U_grp (φ : H) with hμ
+    set μ := borelMeasure U_grp (φ : H) with _hμ
     set F : ℕ → ℝ → ℝ≥0∞ :=
       fun N l => ENNReal.ofReal (Set.indicator (Set.Icc (-(N : ℝ)) (N : ℝ)) (fun l => l ^ 2) l)
       with hFdef
@@ -355,7 +355,7 @@ theorem spectralPVM_central_moment {A : H →ₗ.[ℂ] H} (hA : IsSelfAdjoint A)
     ∫ s, (s - ∫ t, t ∂((PVM.spectralPVM hA).diag ψ)) ^ 2 ∂((PVM.spectralPVM hA).diag ψ)
       = ‖A ⟨ψ, hψ⟩ - ((∫ t, t ∂((PVM.spectralPVM hA).diag ψ) : ℝ) : ℂ) • ψ‖ ^ 2 := by
   haveI : IsFiniteMeasure ((PVM.spectralPVM hA).diag ψ) := (PVM.spectralPVM hA).diag_finite ψ
-  set μ := (PVM.spectralPVM hA).diag ψ with hμ
+  set μ := (PVM.spectralPVM hA).diag ψ with _hμ
   set m : ℝ := ∫ t, t ∂μ with hm
   have hint1 : Integrable (fun s : ℝ => s) μ := spectralPVM_integrable_id hA ψ hψ
   have hint2 : Integrable (fun s : ℝ => s ^ 2) μ := spectralPVM_integrable_sq hA ψ hψ

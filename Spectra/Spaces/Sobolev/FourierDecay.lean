@@ -179,7 +179,7 @@ lemma aeEq_of_toTD_smulLeft {A B : l2R3} {m : R3 → ℂ} (hm : Function.HasTemp
   -- view the real C_c^∞ test function `g` as a complex Schwartz map
   set gℂ : 𝓢(R3, ℂ) :=
     (hgsupp.comp_left (g := ((↑) : ℝ → ℂ)) Complex.ofReal_zero).toSchwartzMap
-      (Complex.ofRealCLM.contDiff.comp hg) with hgℂ
+      (Complex.ofRealCLM.contDiff.comp hg) with _hgℂ
   have hgℂ_coe : ⇑gℂ = fun x => ((g x : ℝ) : ℂ) := rfl
   have hpair := DFunLike.congr_fun h gℂ
   rw [Lp.toTemperedDistribution_apply, TemperedDistribution.smulLeftCLM_apply_apply,
@@ -218,7 +218,7 @@ lemma hasWeakDerivative_of_distEq (ψ g : l2R3) (k : Fin 3)
         (Lp.toTemperedDistribution ψ) = Lp.toTemperedDistribution g) :
     HasWeakDerivative ψ k g := by
   intro φ hφ hsupp
-  set φ𝓢 : 𝓢(R3, ℂ) := hsupp.toSchwartzMap hφ with hφ𝓢
+  set φ𝓢 : 𝓢(R3, ℂ) := hsupp.toSchwartzMap hφ with _hφ𝓢
   have hcoe : (⇑φ𝓢 : R3 → ℂ) = φ := rfl
   have hpair := DFunLike.congr_fun hd φ𝓢
   rw [TemperedDistribution.lineDerivOp_apply_apply, Lp.toTemperedDistribution_apply,
@@ -241,8 +241,8 @@ lemma lineDerivOp_toTD_of_smooth (φ : R3 → ℂ) (hφ : ContDiff ℝ ∞ φ)
         (Lp.toTemperedDistribution ((memLp_of_smooth_compactSupport φ hφ hsupp).toLp φ))
       = Lp.toTemperedDistribution ((memLp_partialDeriv φ i hφ hsupp).toLp
           (fun x => fderiv ℝ φ x (EuclideanSpace.single i 1))) := by
-  set m : R3 := EuclideanSpace.single i (1 : ℝ) with hm
-  set φ𝓢 : 𝓢(R3, ℂ) := hsupp.toSchwartzMap hφ with hφ𝓢
+  set m : R3 := EuclideanSpace.single i (1 : ℝ) with _hm
+  set φ𝓢 : 𝓢(R3, ℂ) := hsupp.toSchwartzMap hφ with _hφ𝓢
   have hcoe : (⇑φ𝓢 : R3 → ℂ) = φ := rfl
   -- both L² approximants agree a.e. with the corresponding Schwartz maps
   have hLp1 : (memLp_of_smooth_compactSupport φ hφ hsupp).toLp φ = φ𝓢.toLp 2 volume := by
@@ -271,15 +271,15 @@ lemma lineDerivOp_toTD_of_smooth (φ : R3 → ℂ) (hφ : ContDiff ℝ ∞ φ)
 lemma lineDerivOp_toTD_weakGradient (f : l2R3) (hf : MemSobolevH1 f) (i : Fin 3) :
     LineDeriv.lineDerivOp (EuclideanSpace.single i (1 : ℝ) : R3) (Lp.toTemperedDistribution f)
       = Lp.toTemperedDistribution (weakGradient f hf i) := by
-  set m : R3 := EuclideanSpace.single i (1 : ℝ) with hm
+  set m : R3 := EuclideanSpace.single i (1 : ℝ) with _hm
   -- H¹ approximating sequence of `C_c^∞` functions (ε = 1/(n+1))
   choose φ hφ hsupp hand using fun n : ℕ =>
     meyers_serrin_approx_multi f (weakGradient f hf) (weakGradient_spec f hf)
       (1 / (n + 1 : ℝ)) (by positivity)
   set g : ℕ → l2R3 :=
-    fun n => (memLp_of_smooth_compactSupport (φ n) (hφ n) (hsupp n)).toLp (φ n) with hg
+    fun n => (memLp_of_smooth_compactSupport (φ n) (hφ n) (hsupp n)).toLp (φ n) with _hg
   set dgn : ℕ → l2R3 := fun n => (memLp_partialDeriv (φ n) i (hφ n) (hsupp n)).toLp
-    (fun x => fderiv ℝ (φ n) x (EuclideanSpace.single i 1)) with hdgn
+    (fun x => fderiv ℝ (φ n) x (EuclideanSpace.single i 1)) with _hdgn
   -- `Lp.toTemperedDistribution` is continuous (it is a CLM)
   have htoTD : (Lp.toTemperedDistribution : l2R3 → 𝓢'(R3, ℂ))
       = ⇑(Lp.toTemperedDistributionCLM ℂ (volume : Measure R3) 2) :=
@@ -348,7 +348,7 @@ lemma weakDeriv_construct (ψ : l2R3) (k : Fin 3)
   have hfg : (fourierL2 (fourierL2.symm (hmem.toLp _)) : R3 → ℂ)
       =ᵐ[volume] fun ξ => derivSymbol k ξ * (fourierL2 ψ : R3 → ℂ) ξ := by
     rw [LinearIsometryEquiv.apply_symm_apply]; exact hmem.coeFn_toLp
-  set g : l2R3 := fourierL2.symm (hmem.toLp _) with hgdef
+  set g : l2R3 := fourierL2.symm (hmem.toLp _) with _hgdef
   -- distribution identity  ∂_{eₖ}(toTD ψ) = toTD g, then test against C_c^∞
   apply hasWeakDerivative_of_distEq
   apply fourierTD_injective

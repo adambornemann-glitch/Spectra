@@ -50,7 +50,7 @@ lemma exists_contDiff_hasCompactSupport_deriv_eq {k : ℝ → ℝ}
     (hk : ContDiff ℝ ∞ k) (hk0 : HasCompactSupport k) (hint : ∫ x, k x = 0) :
     ∃ g : ℝ → ℝ, ContDiff ℝ ∞ g ∧ HasCompactSupport g ∧ deriv g = k := by
   have hkc : Continuous k := hk.continuous
-  have hki : Integrable k volume := hkc.integrable_of_hasCompactSupport hk0
+  have _hki : Integrable k volume := hkc.integrable_of_hasCompactSupport hk0
   -- bound the support inside `Icc (-R) R`
   obtain ⟨R, hR0, hRsub⟩ : ∃ R : ℝ, 0 ≤ R ∧ Function.support k ⊆ Icc (-R) R := by
     obtain ⟨R, hRsub⟩ := hk0.isBounded.subset_closedBall (0 : ℝ)
@@ -59,7 +59,7 @@ lemma exists_contDiff_hasCompactSupport_deriv_eq {k : ℝ → ℝ}
     rw [Real.closedBall_eq_Icc, zero_sub, zero_add] at hx'
     exact ⟨le_trans (neg_le_neg (le_max_left _ _)) hx'.1, le_trans hx'.2 (le_max_left _ _)⟩
   set a₀ : ℝ := -R - 1 with ha₀
-  set g : ℝ → ℝ := fun x => ∫ t in a₀..x, k t with hg_def
+  set g : ℝ → ℝ := fun x => ∫ t in a₀..x, k t with _hg_def
   have hHDA : ∀ x, HasDerivAt g (k x) x := fun x =>
     (intervalIntegral.integral_hasStrictDerivAt_right (hkc.intervalIntegrable _ _)
       (hkc.stronglyMeasurableAtFilter _ _) hkc.continuousAt).hasDerivAt
@@ -97,7 +97,7 @@ theorem ae_eq_const_of_integral_deriv_mul_eq_zero (f : ℝ → ℝ)
       ∫ x, deriv g x * f x = 0) :
     ∃ c : ℝ, ∀ᵐ x, f x = c := by
   -- a fixed smooth bump with unit integral
-  set e : ℝ → ℝ := (default : ContDiffBump (0 : ℝ)).normed volume with he_def
+  set e : ℝ → ℝ := (default : ContDiffBump (0 : ℝ)).normed volume with _he_def
   have he_diff : ContDiff ℝ ∞ e := (default : ContDiffBump (0 : ℝ)).contDiff_normed
   have he_supp : HasCompactSupport e := (default : ContDiffBump (0 : ℝ)).hasCompactSupport_normed
   have he_int : ∫ x, e x = 1 := (default : ContDiffBump (0 : ℝ)).integral_normed
@@ -153,7 +153,7 @@ theorem ae_eq_affine_of_integral_deriv2_mul_eq_zero (f : ℝ → ℝ)
     (hyp : ∀ g : ℝ → ℝ, ContDiff ℝ ∞ g → HasCompactSupport g →
       ∫ x, deriv (deriv g) x * f x = 0) :
     ∃ a b : ℝ, ∀ᵐ x, f x = a * x + b := by
-  set e : ℝ → ℝ := (default : ContDiffBump (0 : ℝ)).normed volume with he_def
+  set e : ℝ → ℝ := (default : ContDiffBump (0 : ℝ)).normed volume with _he_def
   have he_diff : ContDiff ℝ ∞ e := (default : ContDiffBump (0 : ℝ)).contDiff_normed
   have he_supp : HasCompactSupport e := (default : ContDiffBump (0 : ℝ)).hasCompactSupport_normed
   have he_int : ∫ x, e x = 1 := (default : ContDiffBump (0 : ℝ)).integral_normed
@@ -242,7 +242,7 @@ which is what the radial application, where `h` is not globally `L¹`, requires.
 theorem integral_primitive_mul_deriv {h : ℝ → ℝ} (hh : LocallyIntegrable h volume) (x₀ : ℝ)
     {ψ : ℝ → ℝ} (hψ : ContDiff ℝ ∞ ψ) (hψ0 : HasCompactSupport ψ) :
     ∫ x, (∫ t in x₀..x, h t) * deriv ψ x = -∫ x, h x * ψ x := by
-  set F : ℝ → ℝ := fun x => ∫ t in x₀..x, h t with hF_def
+  set F : ℝ → ℝ := fun x => ∫ t in x₀..x, h t with _hF_def
   -- a finite interval `[-M, M]` containing the support of `ψ` (in its interior) and `x₀`
   obtain ⟨R, hRsub⟩ := hψ0.isBounded.subset_closedBall (0 : ℝ)
   set M : ℝ := max R |x₀| + 1 with hM

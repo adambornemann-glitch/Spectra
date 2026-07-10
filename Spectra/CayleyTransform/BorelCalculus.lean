@@ -323,12 +323,12 @@ lemma combination_ext_zero_real_density
     intro s h hh_meas hh_bdd i
     obtain ⟨Ch, hCh0⟩ := hh_bdd
     obtain ⟨Cw0, hCw0'⟩ := hw_bdd i
-    set Cw : ℝ := max Cw0 0 with hCwdef
+    set Cw : ℝ := max Cw0 0 with _hCwdef
     have hCw : ∀ z, ‖w i z‖ ≤ Cw := fun z => (hCw0' z).trans (le_max_left _ _)
-    have hCw0 : 0 ≤ Cw := le_max_right _ _
-    set Ch' : ℝ := max Ch 0 with hChdef
+    have _hCw0 : 0 ≤ Cw := le_max_right _ _
+    set Ch' : ℝ := max Ch 0 with _hChdef
     have hCh : ∀ z, ‖h z‖ ≤ Ch' := fun z => (hCh0 z).trans (le_max_left _ _)
-    have hCh0 : 0 ≤ Ch' := le_max_right _ _
+    have _hCh0 : 0 ≤ Ch' := le_max_right _ _
     refine integrable_of_bdd_real U
       ((continuous_real_toNNReal.measurable.comp (measurable_const.mul (hw_meas i))).smul hh_meas)
       (C := |s| * Cw * Ch') fun z => ?_
@@ -577,7 +577,7 @@ Riesz uniqueness. -/
 lemma spectralMeasure_smul (c : ℂ) (ξ : H) :
     spectralMeasure U hn (c • ξ) = (‖c‖₊ ^ 2) • spectralMeasure U hn ξ := by
   refine ext_of_forall_integral_eq_of_IsFiniteMeasure fun φ => ?_
-  set g : C(spectrum ℂ U, ℝ) := ⟨fun z => φ z, φ.continuous⟩ with hg
+  set g : C(spectrum ℂ U, ℝ) := ⟨fun z => φ z, φ.continuous⟩ with _hg
   have hφg : ∀ ν : Measure (spectrum ℂ U), (∫ z, φ z ∂ν) = ∫ z, g z ∂ν := fun ν => rfl
   rw [hφg, hφg, integral_smul_nnreal_measure, NNReal.smul_def, smul_eq_mul,
     integral_spectralMeasure_continuous U hn (c • ξ) g,

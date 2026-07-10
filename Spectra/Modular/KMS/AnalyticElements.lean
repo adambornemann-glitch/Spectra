@@ -486,7 +486,7 @@ theorem Dynamics.gaussianSmooth_isAnalyticElement (α : Dynamics A) (a : A) (n :
       rw [add_comm, α.evolve_add]
     rw [hev]
     rw [ContinuousLinearMap.integral_comp_comm _ (α.integrable_gaussian_smul a hn)]
-    set Z := ∫ u : ℝ, Real.exp (-(n : ℝ) * u ^ 2) • α.evolve u a with hZ
+    set Z := ∫ u : ℝ, Real.exp (-(n : ℝ) * u ^ 2) • α.evolve u a with _hZ
     have hpull : α.evolve s (Real.sqrt ((n : ℝ) / Real.pi) • Z)
         = Real.sqrt ((n : ℝ) / Real.pi) • α.evolve s Z := by
       rw [← Complex.coe_smul, ← evolveL_apply, map_smul, evolveL_apply, Complex.coe_smul]

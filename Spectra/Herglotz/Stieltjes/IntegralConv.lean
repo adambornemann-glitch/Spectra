@@ -206,7 +206,7 @@ private lemma integral_Icc_split {μ : Measure ℝ} [IsLocallyFiniteMeasure μ]
     intro i j hij
     induction hij with
     | refl => intro _; exact le_refl _
-    | @step m hm ih =>
+    | @step m _hm ih =>
         intro hmn
         exact le_trans (ih (by omega)) (le_of_lt (hmono m (by omega)))
   have add_lemma : ∀ m, m + 1 ≤ n →
@@ -272,7 +272,7 @@ private lemma approx_bound {μ : Measure ℝ} [IsLocallyFiniteMeasure μ]
     have hcint : IntegrableOn (fun _ : ℝ => c) S μ := by
       simp only [ne_eq, enorm_ne_top, not_false_eq_true, integrableOn_const_iff, enorm_eq_zero];
       exact Or.symm (Or.intro_left (c = 0) hSfin)
-    have h1 : (∫ x in S, (f x - c) ∂μ) = (∫ x in S, f x ∂μ) - ∫ x in S, c ∂μ :=
+    have h1 : (∫ x in S, (f x - c) ∂μ) = (∫ x in S, f x ∂μ) - ∫ _x in S, c ∂μ :=
       integral_sub hSint hcint
     have key : (∫ x in S, f x ∂μ) - (μ S).toReal • c = ∫ x in S, (f x - c) ∂μ := by
       rw [h1, setIntegral_const, MeasureTheory.measureReal_def]
@@ -433,11 +433,11 @@ lemma integral_tendsto_of_cdf_tendsto
   rw [Metric.tendsto_atTop]
   intro ε₀ hε₀
   -- the working tolerance
-  have hMp : (0 : ℝ) < M + 1 := by linarith
+  have _hMp : (0 : ℝ) < M + 1 := by linarith
   set ε := ε₀ / (4 * (M + 1)) with hε_def
   have hε_pos : 0 < ε := by rw [hε_def]; exact div_pos hε₀ (by linarith)
   have hεM : ε * M ≤ ε₀ / 4 := by
-    have h1 : ε * M ≤ ε * (M + 1) := by nlinarith [hε_pos.le]
+    have _h1 : ε * M ≤ ε * (M + 1) := by nlinarith [hε_pos.le]
     have h2 : ε * (M + 1) ≤ ε₀ / 4 := by
       rw [hε_def, div_mul_eq_mul_div, div_le_div_iff₀ (by linarith) (by norm_num)]
       apply le_of_eq; ring
@@ -638,7 +638,7 @@ lemma exists_partition_avoiding_countable {S : Set ℝ} (hS : S.Countable)
   set h : ℝ := L / (K : ℝ) with hh_def
   have hh_pos : 0 < h := div_pos hL_pos hKR
   have hKh : (K : ℝ) * h = L := by rw [hh_def]; field_simp
-  have hKh_b : a + (K : ℝ) * h = b := by rw [hKh, hL_def]; ring
+  have _hKh_b : a + (K : ℝ) * h = b := by rw [hKh, hL_def]; ring
   have hmesh : 3 * h / 2 < δ := by
     have hKbig : (3 * L / δ : ℝ) < (K : ℝ) := by
       have h1 : (3 * L / δ : ℝ) ≤ (⌈3 * L / δ⌉₊ : ℕ) := Nat.le_ceil _

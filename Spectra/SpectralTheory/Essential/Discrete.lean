@@ -126,7 +126,7 @@ theorem mem_essSpectrum_of_proj_singleton_eq_zero {A : H →ₗ.[ℂ] H} (hA : I
     (hsing : (PVM.spectralPVM hA).proj {lam} (measurableSet_singleton lam) = 0) :
     lam ∈ essSpectrum hA := by
   classical
-  set P := PVM.spectralPVM hA with hP
+  set P := PVM.spectralPVM hA with _hP
   set U := genToGroup hA with hU
   have hgenU : generator U = A := by rw [hU]; exact generator_genToGroup hA
   set D : ℕ → Set ℝ := fun k => Set.Ioo (lam - 1 / (k + 1)) (lam + 1 / (k + 1)) with hD
@@ -228,13 +228,13 @@ theorem mem_essSpectrum_of_proj_singleton_eq_zero {A : H →ₗ.[ℂ] H} (hA : I
       (1 / (N + 1)) (hpos N)
     exact hne ((P.proj_congr rfl measurableSet_Ioo (hDm N)).trans hDNzero)
   -- STEP 2: build the orthonormal approximate eigensequence
-  set p : ℕ → Prop := fun k => P.proj (C k) (hCm k) ≠ 0 with hp
+  set p : ℕ → Prop := fun k => P.proj (C k) (hCm k) ≠ 0 with _hp
   have hp_inf : {k | p k}.Infinite := by
     intro hfin
     obtain ⟨B, hB⟩ := hfin.bddAbove
     obtain ⟨k, hk, hpk⟩ := hstep (B + 1)
     exact absurd (hB hpk) (by omega)
-  set kn : ℕ → ℕ := Nat.nth p with hkn
+  set kn : ℕ → ℕ := Nat.nth p with _hkn
   have hkn_mem : ∀ n, P.proj (C (kn n)) (hCm (kn n)) ≠ 0 :=
     fun n => Nat.nth_mem_of_infinite hp_inf n
   have hkn_mono : StrictMono kn := Nat.nth_strictMono hp_inf

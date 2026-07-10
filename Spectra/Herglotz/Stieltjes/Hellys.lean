@@ -80,12 +80,12 @@ lemma helly_selection
   have hg_mono : ∀ {q r : ℚ}, q ≤ r → g q ≤ g r := fun {q r} hqr =>
     le_of_tendsto_of_tendsto (h_rat_conv q) (h_rat_conv r)
       (Eventually.of_forall fun k => h_mono (φ k) (by exact_mod_cast hqr))
-  set S : ℝ → Set ℝ := fun x => g '' {q : ℚ | x ≤ (q : ℝ)} with hS
+  set S : ℝ → Set ℝ := fun x => g '' {q : ℚ | x ≤ (q : ℝ)} with _hS
   have hS_ne  : ∀ x, (S x).Nonempty := fun x => by
     obtain ⟨q, hq⟩ := exists_rat_gt x; exact ⟨g q, q, hq.le, rfl⟩
   have hS_bdd : ∀ x, BddBelow (S x) := fun x =>
     ⟨0, by rintro _ ⟨q, _, rfl⟩; exact (hg_bnd q).1⟩
-  set G : ℝ → ℝ := fun x => sInf (S x) with hG
+  set G : ℝ → ℝ := fun x => sInf (S x) with _hG
   have hG_rat : ∀ q : ℚ, G (q : ℝ) = g q := fun q =>
   le_antisymm (csInf_le (hS_bdd _) ⟨q, Set.mem_setOf.mpr le_rfl, rfl⟩)
     (le_csInf (hS_ne _) (by rintro _ ⟨r, hr, rfl⟩; exact hg_mono (by exact_mod_cast hr)))

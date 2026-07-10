@@ -63,7 +63,7 @@ lemma logC_band_bound (n : ℕ) :
   intro s hs
   rw [Set.mem_Icc] at hs
   obtain ⟨hlo, hhi⟩ := hs
-  have hn1 : (0 : ℝ) < (n : ℝ) + 1 := by positivity
+  have _hn1 : (0 : ℝ) < (n : ℝ) + 1 := by positivity
   have hinv : (0 : ℝ) < ((n : ℝ) + 1)⁻¹ := by positivity
   have hspos : 0 < s := lt_of_lt_of_le hinv hlo
   have hup : Real.log s ≤ Real.log ((n : ℝ) + 1) := Real.log_le_log hspos hhi

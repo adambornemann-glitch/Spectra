@@ -64,7 +64,7 @@ positive trace of `|T|` is bounded by `‖X⋆ U‖₂² + ‖Y‖₂² < ∞`, 
 ideal property. -/
 theorem IsHilbertSchmidt.isTraceClass_comp {X Y : H →L[ℂ] H}
     (hX : IsHilbertSchmidt X) (hY : IsHilbertSchmidt Y) : IsTraceClass (X ∘L Y) := by
-  set e := stdHilbertBasis H with he
+  set e := stdHilbertBasis H with _he
   -- Diagonal identity `⟪eᵢ, |T| eᵢ⟫ = ⟪X⋆ U eᵢ, Y eᵢ⟫`, via `U⋆ T = |T|`.
   have hdiag : ∀ i, ⟪e i, absOp (X ∘L Y) (e i)⟫_ℂ
       = ⟪(X†) (polarIsometry (X ∘L Y) (e i)), Y (e i)⟫_ℂ := by

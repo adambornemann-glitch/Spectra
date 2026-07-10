@@ -472,7 +472,7 @@ theorem diracKinetic_add_smul_surjective (μ : ℝ) (hμ : μ ≠ 0) (φ : Dirac
       (fourierL2 (φ b))
   -- the solution `ψ = 𝓕⁻¹ (R·𝓕φ)`
   set ψ : DiracSpinorL2 := diracSpinorCLE.symm (fun a => fourierL2.symm ((hmem a).toLp (ĝ a)))
-    with hψdef
+    with _hψdef
   have hFψ : ∀ a, (fourierL2 (ψ a) : R3 → ℂ) =ᵐ[volume] ĝ a := by
     intro a
     change (fourierL2 (fourierL2.symm ((hmem a).toLp (ĝ a))) : R3 → ℂ) =ᵐ[volume] ĝ a

@@ -420,14 +420,14 @@ theorem modularSqrtInv_mem_domain_of_mem_modularOpInv (x : (modularOpInv hcyc hs
     (modularSqrtInv hcyc hsep
         ⟨(x : H), modularOpInv_domain_le_modularSqrtInv_domain hcyc hsep x.2⟩ : H)
       ∈ (modularSqrtInv hcyc hsep).domain := by
-  set U := modU hcyc hsep with hU
-  set S := modularSqrtInv hcyc hsep with hS
+  set U := modU hcyc hsep with _hU
+  set S := modularSqrtInv hcyc hsep with _hS
   have hclosed : IsClosed (S.graph : Set (H × H)) :=
     (modularSqrtInv_isSelfAdjoint hcyc hsep).isClosed
   set a : ℕ → H := fun m =>
-    spectralCalculus U (invSqrtCut m) (invSqrtCut_meas m) (invSqrtCut_bdd m) (x : H) with ha
+    spectralCalculus U (invSqrtCut m) (invSqrtCut_meas m) (invSqrtCut_bdd m) (x : H) with _ha
   set b : ℕ → H := fun m =>
-    spectralCalculus U (invCut m) (invCut_meas m) (invCut_bdd m) (x : H) with hb
+    spectralCalculus U (invCut m) (invCut_meas m) (invCut_bdd m) (x : H) with _hb
   have hmemgraph : ∀ m, (a m, b m) ∈ S.graph := by
     intro m
     rw [LinearPMap.mem_graph_iff]
@@ -456,14 +456,14 @@ theorem modularSqrtInv_sq_apply (x : (modularOpInv hcyc hsep).domain) :
             ⟨(x : H), modularOpInv_domain_le_modularSqrtInv_domain hcyc hsep x.2⟩,
           modularSqrtInv_mem_domain_of_mem_modularOpInv hcyc hsep x⟩
       = modularOpInv hcyc hsep x := by
-  set U := modU hcyc hsep with hU
-  set S := modularSqrtInv hcyc hsep with hS
+  set U := modU hcyc hsep with _hU
+  set S := modularSqrtInv hcyc hsep with _hS
   have hclosed : IsClosed (S.graph : Set (H × H)) :=
     (modularSqrtInv_isSelfAdjoint hcyc hsep).isClosed
   set a : ℕ → H := fun m =>
-    spectralCalculus U (invSqrtCut m) (invSqrtCut_meas m) (invSqrtCut_bdd m) (x : H) with ha
+    spectralCalculus U (invSqrtCut m) (invSqrtCut_meas m) (invSqrtCut_bdd m) (x : H) with _ha
   set b : ℕ → H := fun m =>
-    spectralCalculus U (invCut m) (invCut_meas m) (invCut_bdd m) (x : H) with hb
+    spectralCalculus U (invCut m) (invCut_meas m) (invCut_bdd m) (x : H) with _hb
   have hmemgraph : ∀ m, (a m, b m) ∈ S.graph := by
     intro m
     rw [LinearPMap.mem_graph_iff]

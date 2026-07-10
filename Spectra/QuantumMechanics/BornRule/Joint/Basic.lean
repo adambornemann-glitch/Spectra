@@ -436,7 +436,7 @@ theorem jointContent_hasSum (A B : Spectra.Operator.SelfAdjointOperator H)
     HasSum (fun n => ‖(A.spectralPVM.proj S hS * B.spectralPVM.proj (T n) (hT n)) ξ‖ ^ 2)
       (‖(A.spectralPVM.proj S hS
           * B.spectralPVM.proj (⋃ n, T n) (MeasurableSet.iUnion hT)) ξ‖ ^ 2) := by
-  set EA := A.spectralPVM.proj S hS with hEA
+  set EA := A.spectralPVM.proj S hS with _hEA
   have hUN : ∀ N, MeasurableSet (⋃ i ∈ Finset.range N, T i) :=
     fun N => Finset.measurableSet_biUnion _ fun i _ => hT i
   rw [hasSum_iff_tendsto_nat_of_nonneg (fun n => sq_nonneg _)]

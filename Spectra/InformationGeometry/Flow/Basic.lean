@@ -421,7 +421,7 @@ private lemma DivergencePreservingFamily.cubic_expansion
     exact DivergencePreservingFamily.fderiv_phi_eq_fderiv_uncurry
       (M := M) F s (θ := θ) v
   -- t-slice at any base point: X(θ') = dΦ(0,θ')·(1,0)
-  have hgen : ∀ θ' : ParamSpace n,
+  have _hgen : ∀ θ' : ParamSpace n,
       F.generator θ' =
       fderiv ℝ (Function.uncurry F.φ) ((0:ℝ), θ') ((1:ℝ), (0:ParamSpace n)) := by
     intro θ'
@@ -697,11 +697,11 @@ theorem not_forall_hasGlobalFlow_of_isBounded
   intro hall
   -- ═══ Step 0: a nonnegative radius bounding the domain ═══
   obtain ⟨R₀, hR₀⟩ := hbdd.subset_closedBall 0
-  set R : ℝ := max R₀ 0 with hR_def
+  set R : ℝ := max R₀ 0 with _hR_def
   have hR0 : (0 : ℝ) ≤ R := le_max_right _ _
   have hsub : M.paramDomain ⊆ Metric.closedBall 0 R :=
     hR₀.trans (Metric.closedBall_subset_closedBall (le_max_left _ _))
-  set i₀ : Fin n := ⟨0, hn⟩ with hi₀_def
+  set i₀ : Fin n := ⟨0, hn⟩ with _hi₀_def
   -- ═══ Step 1: the field X θ = f(θ i₀) • e₀; f vanishes on (-∞, R+1],
   --     equals s² on [R+2, ∞) ═══
   set f : ℝ → ℝ := fun s => Real.smoothTransition (s - (R + 1)) * s ^ 2 with hf_def
@@ -775,7 +775,7 @@ theorem not_forall_hasGlobalFlow_of_isBounded
     have h_eq : (fun s => φ s θ') = fun s => φ (s - t) (φ t θ') := by
       funext s; rw [← hgrp (s - t) t θ', sub_add_cancel]
     rw [h_eq]
-    set g := fun s => φ s (φ t θ') with hg_def
+    set g := fun s => φ s (φ t θ') with _hg_def
     set fs := fun s : ℝ => s - t with hfs_def
     have hg : HasFDerivAt g
         (ContinuousLinearMap.smulRight (1 : ℝ →L[ℝ] ℝ) (X (φ t θ'))) (fs t) := by
@@ -949,7 +949,7 @@ private lemma smooth_ode_local_unique
     rw [Metric.mem_closedBall, h₀]
     -- Goal: dist (γ₂ s) (γ₂ 0) ≤ 1
     exact le_of_lt (hball (by rw [Real.dist_eq, sub_zero]; linarith))
-  set ε := min ε₁ ε₂ with hε_def
+  set ε := min ε₁ ε₂ with _hε_def
   have hε : 0 < ε := lt_min hε₁ hε₂
   -- ═══ Step 3: Forward uniqueness on [0, ε] via Grönwall ═══
   have h_fwd : ∀ s ∈ Set.Icc 0 ε, γ₁ s = γ₂ s :=
@@ -1021,7 +1021,7 @@ lemma flow_eqOn_of_generator_eqOn
       rw [isOpen_iff_forall_mem_open]
       intro t₀ ht₀
       -- At t₀, both flows pass through θ₀ := F₁.φ t₀ θ = F₂.φ t₀ θ ∈ D
-      set θ₀ := F₁.φ t₀ θ with hθ₀_def
+      set θ₀ := F₁.φ t₀ θ with _hθ₀_def
       have hθ₀ : θ₀ ∈ D := hD₁ t₀ hθ
       have h_ode_unique : ∃ ε > 0, ∀ s, |s| < ε →
           F₁.φ s θ₀ = F₂.φ s θ₀ := by

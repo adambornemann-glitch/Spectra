@@ -61,7 +61,7 @@ theorem cfc_apply_eigenvector {T : H →L[ℂ] H} (hT : IsSelfAdjoint T) {μ : �
     (hv : T v = (μ : ℂ) • v) (hμ : μ ∈ spectrum ℝ T) {f : ℝ → ℝ}
     (hf : ContinuousOn f (spectrum ℝ T)) :
     cfc f T v = (f μ : ℂ) • v := by
-  set s := spectrum ℝ T with hs
+  set s := spectrum ℝ T with _hs
   -- The eigenvector equation with a *real* scalar smul.
   have hvℝ : T v = (μ : ℝ) • v := by rw [hv]; exact (RCLike.real_smul_eq_coe_smul (K := ℂ) μ v).symm
   -- `Φ g = (cfcHom hT g) v` is continuous.
