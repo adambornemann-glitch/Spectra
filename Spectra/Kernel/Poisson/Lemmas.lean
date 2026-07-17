@@ -70,9 +70,14 @@ lemma poissonKernel_integrable {ε : ℝ} (hε : 0 < ε) :
   have h_deriv : ∀ x : ℝ, HasDerivAt (fun x => (1 / Real.pi) * Real.arctan (x / ε))
       (poissonKernel ε x) x := by
     intro x
-    convert ((Real.hasDerivAt_arctan (x / ε)).comp x
-      ((hasDerivAt_id x).div_const ε)).const_mul (1 / Real.pi) using 1
-    unfold poissonKernel; field_simp; ring
+    have h := ((Real.hasDerivAt_arctan (x / ε)).comp x
+      ((hasDerivAt_id x).div_const ε)).const_mul (1 / Real.pi)
+    rw [show poissonKernel ε x =
+        (1 / Real.pi) * ((1 / (1 + (x / ε) ^ 2)) * (1 / ε)) by
+      unfold poissonKernel
+      field_simp [hε_ne, (sq_add_sq_pos hε x).ne']
+      ring]
+    exact h
   have h_FTC : ∀ a b : ℝ, ∫ x in a..b, poissonKernel ε x =
       (1 / Real.pi) * Real.arctan (b / ε) -
       (1 / Real.pi) * Real.arctan (a / ε) :=
@@ -114,7 +119,7 @@ lemma poissonKernel_integrable {ε : ℝ} (hε : 0 < ε) :
       ((Real.tendsto_arctan_atBot.comp
         ((tendsto_neg_atTop_atBot.comp h_nat_div).congr
           (fun _ => (neg_div _ _).symm))).mono_right nhdsWithin_le_nhds)
-    convert h_top.sub h_bot using 1
+    simpa only [Function.comp_apply] using h_top.sub h_bot
 
 /-- **Poisson kernel integrates to 1**: `∫ P_ε(x) dx = 1`.
 
@@ -207,10 +212,11 @@ private lemma hasDerivAt_antideriv_cexp {a : ℂ} (ha_ne : a ≠ 0) (t : ℝ) :
     HasDerivAt (fun t : ℝ => -a⁻¹ * cexp (-(a * ↑t)))
                (cexp (-(a * ↑t))) t := by
   have h1 : HasDerivAt (fun t : ℝ => (↑t : ℂ)) 1 t := ofRealCLM.hasDerivAt
-  have h2 : HasDerivAt (fun t : ℝ => -(a * ↑t)) (-a) t := by
-    convert (h1.const_mul a).neg using 1; ring
-  convert (h2.cexp).const_mul (-a⁻¹) using 1
-  field_simp
+  have h2 : HasDerivAt (-(fun t : ℝ => a * (t : ℂ))) (-a) t := by
+    simpa only [mul_one] using (h1.const_mul a).neg
+  have hcoef : (-a⁻¹) * (cexp (-(a * ↑t)) * (-a)) = cexp (-(a * ↑t)) := by
+    field_simp [ha_ne]
+  exact HasDerivAt.congr_deriv ((h2.cexp).const_mul (-a⁻¹)) hcoef
 
 /-! ## Phase 2: Fourier transform of the two-sided exponential -/
 

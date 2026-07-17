@@ -79,8 +79,11 @@ lemma op_range_isClosed {A : H →ₗ.[ℂ] H} (hsym : A.IsFormalAdjoint A)
     refine ⟨N, fun m hm k hk => ?_⟩
     have hsub : (↑(xn m) - ↑(xn k) : H) ∈ A.domain := A.domain.sub_mem (xn m).2 (xn k).2
     have hAsub : A ⟨↑(xn m) - ↑(xn k), hsub⟩ - z • (↑(xn m) - ↑(xn k)) = φn m - φn k := by
+      have hsub_eq : (⟨↑(xn m) - ↑(xn k), hsub⟩ : A.domain) = xn m - xn k := by
+        apply Subtype.ext
+        rfl
       have hms : A ⟨↑(xn m) - ↑(xn k), hsub⟩ = A (xn m) - A (xn k) := by
-        have := A.map_sub (xn m) (xn k); convert this using 2
+        rw [hsub_eq, A.map_sub]
       rw [hms, smul_sub, ← hxn m, ← hxn k]; abel_nf
       grind only
     have hlb := op_lower_bound hsym z ⟨↑(xn m) - ↑(xn k), hsub⟩
@@ -215,8 +218,12 @@ lemma IsSelfAdjoint.eq_of_le {A B : H →ₗ.[ℂ] H}
     have hBv : B ⟨(v : H), hvB⟩ - I • (v : H) = B ⟨w, hw⟩ - I • w := by rw [← hagree]; exact hv
     have hsub : (v : H) - w ∈ B.domain := B.domain.sub_mem hvB hw
     have hzero : B ⟨(v : H) - w, hsub⟩ - I • ((v : H) - w) = 0 := by
+      have hsub_eq : (⟨(v : H) - w, hsub⟩ : B.domain) =
+          ⟨(v : H), hvB⟩ - ⟨w, hw⟩ := by
+        apply Subtype.ext
+        rfl
       have op_eq : B ⟨(v : H) - w, hsub⟩ = B ⟨(v : H), hvB⟩ - B ⟨w, hw⟩ := by
-        have hms := B.map_sub ⟨(v : H), hvB⟩ ⟨w, hw⟩; convert hms using 2
+        rw [hsub_eq, B.map_sub]
       rw [op_eq, smul_sub, sub_sub_sub_comm, hBv, sub_self]
     have hvw : (v : H) - w = 0 := by
       have hlb := op_lower_bound hsymB I ⟨(v : H) - w, hsub⟩
