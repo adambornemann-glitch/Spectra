@@ -131,8 +131,11 @@ lemma solution_unique {A : H →ₗ.[ℂ] H} (hsym : A.IsFormalAdjoint A)
     (hψ : A ψ - z • (ψ : H) = φ)
     (hψ' : A ψ' - z • (ψ' : H) = φ) : ψ = ψ' := by
   have hχ : A ⟨(ψ:H) - ψ', sub_mem ψ.2 ψ'.2⟩ - z • ((ψ:H) - ψ') = 0 := by
-    have op_eq : A ⟨(ψ:H) - ψ', sub_mem ψ.2 ψ'.2⟩ = A ψ - A ψ' := by
-      convert A.map_sub ψ ψ' using 1
+    have hsub_eq : (⟨(ψ : H) - ψ', sub_mem ψ.2 ψ'.2⟩ : A.domain) = ψ - ψ' := by
+      apply Subtype.ext
+      rfl
+    have op_eq : A ⟨(ψ : H) - ψ', sub_mem ψ.2 ψ'.2⟩ = A ψ - A ψ' := by
+      rw [hsub_eq, A.map_sub]
     calc A ⟨(ψ:H) - ψ', sub_mem ψ.2 ψ'.2⟩ - z • ((ψ:H) - ψ')
         = (A ψ - A ψ') - z • ((ψ:H) - ψ') := by rw [op_eq]
       _ = (A ψ - z • (ψ:H)) - (A ψ' - z • (ψ':H)) := by rw [smul_sub]; abel

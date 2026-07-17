@@ -162,8 +162,11 @@ theorem numericalRange_range_isClosed {H : Type*} [NormedAddCommGroup H] [InnerP
     refine ⟨N, fun m hm k hk => ?_⟩
     have hsub : (↑(xn m) - ↑(xn k) : H) ∈ A.domain := A.domain.sub_mem (xn m).2 (xn k).2
     have hAsub : A ⟨↑(xn m) - ↑(xn k), hsub⟩ - z • (↑(xn m) - ↑(xn k)) = φn m - φn k := by
+      have hsub_eq : (⟨↑(xn m) - ↑(xn k), hsub⟩ : A.domain) = xn m - xn k := by
+        apply Subtype.ext
+        rfl
       have hms : A ⟨↑(xn m) - ↑(xn k), hsub⟩ = A (xn m) - A (xn k) := by
-        have := A.map_sub (xn m) (xn k); convert this using 2
+        rw [hsub_eq, A.map_sub]
       rw [hms, smul_sub, ← hxn m, ← hxn k]; abel_nf
       grind only
     have hlb := infDist_mul_norm_le_norm_sub_smul z (↑(xn m) - ↑(xn k) : H) hsub

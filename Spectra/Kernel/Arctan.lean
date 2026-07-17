@@ -45,11 +45,13 @@ lemma lorentzian_arctan_integral (s a b ε : ℝ) (hε : ε > 0) :
     have hg : HasDerivAt (fun t => (t - s) / ε) (1 / ε) t := by
       simpa using ((hasDerivAt_id t).sub (hasDerivAt_const t s)).div_const ε
     have hchain := (Real.hasDerivAt_arctan ((t - s) / ε)).comp t hg
-    convert hchain using 1
-    have : (s - t) ^ 2 + ε ^ 2 > 0 := by positivity
-    have : 1 + ((t - s) / ε) ^ 2 > 0 := by positivity
-    field_simp
-    ring
+    have hderiv : (1 / (1 + ((t - s) / ε) ^ 2)) * (1 / ε) =
+        ε / ((s - t) ^ 2 + ε ^ 2) := by
+      have hden : (s - t) ^ 2 + ε ^ 2 ≠ 0 := by positivity
+      have hscaled : 1 + ((t - s) / ε) ^ 2 ≠ 0 := by positivity
+      field_simp [hε_ne, hden, hscaled]
+      ring
+    exact HasDerivAt.congr_deriv hchain hderiv
   -- IntervalIntegrable
   · apply Continuous.intervalIntegrable
     apply continuous_const.div
